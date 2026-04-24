@@ -25,7 +25,6 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { Hex } from '@metamask/utils';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
   testId?: string;
@@ -90,7 +89,6 @@ const MusdConversionAssetOverviewCta = ({
           chainId: toHex(asset.chainId),
         },
         navigationStack: Routes.EARN.ROOT,
-        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
       });
     } catch (error) {
       Logger.error(

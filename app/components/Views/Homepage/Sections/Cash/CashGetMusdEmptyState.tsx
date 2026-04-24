@@ -31,7 +31,6 @@ import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../UI/Ramp/types';
 import { useMusdConversion } from '../../../../UI/Earn/hooks/useMusdConversion';
 import { useMusdConversionFlowData } from '../../../../UI/Earn/hooks/useMusdConversionFlowData';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../../UI/Earn/types/musd.types';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';

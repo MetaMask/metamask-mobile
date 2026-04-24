@@ -93,7 +93,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -337,8 +336,6 @@ export const TokenListItem = React.memo(
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
-          // TODO: Remove navigation override and all references to it
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(

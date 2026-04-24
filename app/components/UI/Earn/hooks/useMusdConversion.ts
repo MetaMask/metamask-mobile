@@ -22,10 +22,7 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  MusdNavigationTarget,
-} from '../types/musd.types';
+import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
 
 type MusdInitiationResult = { transactionId: string } | void;
@@ -124,11 +121,6 @@ export interface MusdConversionConfig {
    * Skip the education screen check. Used when calling from the education view itself
    */
   skipEducationCheck?: boolean;
-  /**
-   * Optional navigation mode override for this initiation.
-   */
-  // TODO: Remove navigation override and all references to it
-  navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
   /**
    * When the education screen is shown for a first-time user, and this config has
    * `returnTo`, the education screen's primary button routes to `returnTo` instead of
@@ -418,7 +410,6 @@ export const useMusdConversion = () => {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
-          navigationOverride: config.navigationOverride,
           returnTo: config.returnTo,
         },
       });
@@ -442,10 +433,7 @@ export const useMusdConversion = () => {
         return;
       }
 
-      const {
-        preferredPaymentToken,
-        navigationOverride = MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
-      } = config;
+      const { preferredPaymentToken } = config;
 
       try {
         setError(null);

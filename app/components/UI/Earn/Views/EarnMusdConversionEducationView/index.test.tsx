@@ -21,7 +21,6 @@ import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
@@ -311,8 +310,6 @@ describe('EarnMusdConversionEducationView', () => {
             chainId: '0x1',
           },
           skipEducationCheck: true,
-          // TODO: Remove navigation override and all references to it
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
           Routes.WALLET.HOME,
@@ -503,7 +500,6 @@ describe('EarnMusdConversionEducationView', () => {
             chainId: mockConversionTokenHighBalance.chainId,
           },
           skipEducationCheck: true,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });
@@ -1048,7 +1044,6 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           preferredPaymentToken: mockRouteParams.preferredPaymentToken,
           skipEducationCheck: true,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });
@@ -1105,38 +1100,6 @@ describe('EarnMusdConversionEducationView', () => {
         );
       });
       expect(mockInitiateConversion).not.toHaveBeenCalled();
-    });
-
-    it("forwards caller's navigationOverride (CUSTOM) to initiateCustomConversion instead of hardcoding QUICK_CONVERT", async () => {
-      mockUseParams.mockReturnValue({
-        preferredPaymentToken: {
-          address: '0xabc' as Hex,
-          chainId: '0x1' as Hex,
-        },
-        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <EarnMusdConversionEducationView />,
-        { state: {} },
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(
-            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
-          ),
-        );
-      });
-
-      await waitFor(() => {
-        expect(mockInitiateConversion).toHaveBeenCalledWith(
-          expect.objectContaining({
-            navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
-            skipEducationCheck: true,
-          }),
-        );
-      });
     });
   });
 
