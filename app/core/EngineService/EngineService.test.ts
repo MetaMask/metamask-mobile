@@ -731,8 +731,9 @@ describe('EngineService', () => {
 
       // Should subscribe to controllers that have persistent state
       // Based on the mock setup: KeyringController, PreferencesController, NetworkController
-      // (KeyringController appears twice due to test setup)
-      expect(mockSubscribe).toHaveBeenCalledTimes(4);
+      // (KeyringController appears twice due to test setup),
+      // plus one subscription for the money account override listener.
+      expect(mockSubscribe).toHaveBeenCalledTimes(5);
 
       // Should NOT subscribe to CronjobController
       const subscribedEvents = (mockSubscribe as jest.Mock).mock.calls.map(
@@ -770,8 +771,9 @@ describe('EngineService', () => {
         expect.any(Function),
       );
 
-      // Should only subscribe to controllers with persistent state
-      expect(mockSubscribe).toHaveBeenCalledTimes(4); // KeyringController (2x), PreferencesController, NetworkController
+      // Should only subscribe to controllers with persistent state plus the
+      // money account override listener.
+      expect(mockSubscribe).toHaveBeenCalledTimes(5); // KeyringController (2x), PreferencesController, NetworkController, money account override
     });
 
     it('persists controller state changes to filesystem', async () => {
