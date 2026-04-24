@@ -99,6 +99,15 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Move your mUSD')).toBeOnTheScreen();
   });
 
+  it('normalizes a US$ locale prefix to a plain $ in the move mUSD row', () => {
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      musdFiatFormatted: 'US$1,203.89',
+    });
+    const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(getByText('Move your $1,203.89 mUSD')).toBeOnTheScreen();
+  });
+
   it('navigates to the Ramps buy flow when Deposit funds is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 

@@ -38,6 +38,9 @@ const MoneyAddMoneySheet: React.FC = () => {
   const styles = createStyles(theme);
 
   const { musdFiatFormatted } = useMoneyAccountBalance();
+  // Figma 3027:12190 renders the amount as "$1,203.89" (plain USD symbol).
+  // The hook formats in the user locale and may prefix "US$" — normalize.
+  const musdAmountForLabel = musdFiatFormatted?.replace(/^US\$/, '$');
   const { initiateCustomConversion } = useMusdConversion();
   const { getPaymentTokenForSelectedNetwork } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
@@ -97,9 +100,9 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     },
     {
-      label: musdFiatFormatted
+      label: musdAmountForLabel
         ? strings('money.add_money_sheet.move_musd', {
-            amount: musdFiatFormatted,
+            amount: musdAmountForLabel,
           })
         : strings('money.add_money_sheet.move_musd_no_amount'),
       icon: IconName.Add,
