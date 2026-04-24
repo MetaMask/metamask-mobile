@@ -1,9 +1,23 @@
 import { createContext, useContext } from 'react';
+import { QrScanRequest } from '@metamask/eth-qr-keyring';
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
 import { DeviceSelectionState } from '../types';
+
+export interface HardwareWalletQRState {
+  /** The pending QR scan request from the keyring, if any. */
+  pendingScanRequest?: QrScanRequest;
+  /** Whether the pending request is a SIGN-type QR object. */
+  isSigningQRObject: boolean;
+  /** Mark the current QR scan request as completed (suppresses cancel-on-navigate). */
+  setRequestCompleted: () => void;
+  /** Whether the request has been completed. */
+  isRequestCompleted: boolean;
+  /** Reject the pending QR scan request if one exists. */
+  cancelQRScanRequestIfPresent: () => Promise<void>;
+}
 
 export interface HardwareWalletContextValue {
   /** The type of hardware wallet (Ledger, QR, etc.) */
@@ -34,6 +48,8 @@ export interface HardwareWalletContextValue {
   ) => void;
   /** Hide the "awaiting confirmation" bottom sheet. */
   hideAwaitingConfirmation: () => void;
+  /** QR-specific signing request state. */
+  qr: HardwareWalletQRState;
 }
 
 const HardwareWalletContext = createContext<

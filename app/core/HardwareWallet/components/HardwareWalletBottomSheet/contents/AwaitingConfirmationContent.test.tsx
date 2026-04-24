@@ -6,7 +6,7 @@ import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 import {
@@ -16,9 +16,9 @@ import {
   AWAITING_CONFIRMATION_QR_GET_SIGN_BUTTON_TEST_ID,
   AWAITING_CONFIRMATION_SPINNER_TEST_ID,
 } from './AwaitingConfirmationContent';
-import QRSigningContext, {
-  QRSigningContextValue,
-} from '../../../contexts/QRSigningContext';
+import HardwareWalletContext, {
+  HardwareWalletContextValue,
+} from '../../../contexts/HardwareWalletContext';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
@@ -136,24 +136,47 @@ describe('AwaitingConfirmationContent', () => {
     deviceType: HardwareWalletType.Ledger,
   };
 
-  const defaultQRSigningContext: QRSigningContextValue = {
-    pendingScanRequest: undefined,
-    isSigningQRObject: false,
-    setRequestCompleted: jest.fn(),
-    isRequestCompleted: false,
-    cancelQRScanRequestIfPresent: jest.fn().mockResolvedValue(undefined),
+  const defaultHardwareWalletContext: HardwareWalletContextValue = {
+    walletType: null,
+    deviceId: null,
+    connectionState: { status: ConnectionStatus.Disconnected },
+    deviceSelection: {
+      devices: [],
+      selectedDevice: null,
+      isScanning: false,
+      scanError: null,
+    },
+    ensureDeviceReady: jest.fn().mockResolvedValue(false),
+    setTargetWalletType: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    qr: {
+      pendingScanRequest: undefined,
+      isSigningQRObject: false,
+      setRequestCompleted: jest.fn(),
+      isRequestCompleted: false,
+      cancelQRScanRequestIfPresent: jest.fn().mockResolvedValue(undefined),
+    },
   };
 
   const renderComponent = (
     props = {},
-    qrSigningOverrides?: Partial<QRSigningContextValue>,
+    qrSigningOverrides?: Partial<HardwareWalletContextValue['qr']>,
   ) =>
     renderWithProvider(
-      <QRSigningContext.Provider
-        value={{ ...defaultQRSigningContext, ...qrSigningOverrides }}
+      <HardwareWalletContext.Provider
+        value={{
+          ...defaultHardwareWalletContext,
+          qr: {
+            ...defaultHardwareWalletContext.qr,
+            ...qrSigningOverrides,
+          },
+        }}
       >
         <AwaitingConfirmationContent {...defaultProps} {...props} />
-      </QRSigningContext.Provider>,
+      </HardwareWalletContext.Provider>,
       { state: mockInitialState },
       false,
       false,
@@ -321,7 +344,7 @@ describe('AwaitingConfirmationContent', () => {
 
   describe('scanner callbacks', () => {
     const renderWithScanner = (
-      qrSigningContextOverrides: Partial<QRSigningContextValue> = {},
+      qrSigningContextOverrides: Partial<HardwareWalletContextValue['qr']> = {},
       props: Partial<
         React.ComponentProps<typeof AwaitingConfirmationContent>
       > = {},
