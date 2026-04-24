@@ -66,7 +66,6 @@ export const usePredictBuyActions = ({
   const { activeOrder, clearActiveOrderTransactionId } =
     usePredictActiveOrder();
   const { placeOrder, initPayWithAnyToken } = usePredictTrading();
-  const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const payWithAnyTokenEnabled = useSelector(
@@ -271,6 +270,15 @@ export const usePredictBuyActions = ({
       }
     }
   }, [currentState, navigation, isSheetMode, onClose]);
+
+  useEffect(() => {
+    if (currentState === ActiveOrderState.DEPOSITING) {
+      if (didInitiateOrderRef.current) {
+        didInitiateOrderRef.current = false;
+        navigation.dispatch(StackActions.pop());
+      }
+    }
+  }, [currentState, navigation]);
 
   return {
     handleConfirm,
