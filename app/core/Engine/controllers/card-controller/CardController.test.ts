@@ -1514,6 +1514,50 @@ describe('CardController — data pass-throughs', () => {
     });
   });
 
+  describe('fetchDelegationChallenge', () => {
+    it('delegates to provider.fetchDelegationChallenge', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        delegationToken: 'jwt',
+        nonce: 'nonce-1',
+        expiresAt: '2099-01-01',
+      });
+      const provider = buildMockProvider({
+        fetchDelegationChallenge: mockFetch,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.fetchDelegationChallenge({
+        network: 'linea',
+        address: '0xabc',
+        faucet: true,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        { network: 'linea', address: '0xabc', faucet: true },
+        mockTokenSet,
+      );
+      expect(result).toStrictEqual({
+        delegationToken: 'jwt',
+        nonce: 'nonce-1',
+        expiresAt: '2099-01-01',
+      });
+    });
+
+    it('throws when provider does not support fetchDelegationChallenge', async () => {
+      const provider = buildMockProvider({
+        fetchDelegationChallenge: undefined,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(
+        controller.fetchDelegationChallenge({
+          network: 'linea',
+          address: '0xabc',
+        }),
+      ).rejects.toThrow('Delegation challenge not supported');
+    });
+  });
+
   describe('createGoogleWalletProvisioningRequest', () => {
     it('delegates to provider', async () => {
       const mockCreate = jest

@@ -1646,13 +1646,6 @@ export class CardSDK {
       },
     );
 
-  encodeApproveTransaction = (spender: string, value: string): string => {
-    const approvalInterface = new ethers.utils.Interface([
-      'function approve(address spender, uint256 value)',
-    ]);
-    return approvalInterface.encodeFunctionData('approve', [spender, value]);
-  };
-
   /**
    * Validate delegation settings response
    */

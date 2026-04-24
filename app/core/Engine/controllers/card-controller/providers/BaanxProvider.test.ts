@@ -5,6 +5,7 @@ import {
   CardStatus,
   CardType,
   FundingAssetStatus,
+  CardProviderError,
   CardProviderErrorCode,
   type CardAuthTokens,
 } from '../provider-types';
@@ -1675,65 +1676,51 @@ describe('BaanxProvider', () => {
     });
   });
 
+  describe('fetchDelegationChallenge', () => {
+    it('GETs delegation token and maps fields', async () => {
+      service.get.mockResolvedValue({
+        token: 'jwt-session',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        nonce: 'server-nonce',
+      });
+
+      const result = await provider.fetchDelegationChallenge(
+        { network: 'linea', address: '0xAbC', faucet: true },
+        AUTH_TOKENS,
+      );
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/delegation/token?network=linea&address=0xAbC&faucet=true',
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual({
+        delegationToken: 'jwt-session',
+        nonce: 'server-nonce',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('omits faucet query param when false', async () => {
+      service.get.mockResolvedValue({
+        token: 't',
+        expiresAt: 'e',
+        nonce: 'n',
+      });
+
+      await provider.fetchDelegationChallenge(
+        { network: 'base', address: '0x1' },
+        AUTH_TOKENS,
+      );
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/delegation/token?network=base&address=0x1',
+        AUTH_TOKENS,
+      );
+    });
+  });
+
   describe('approveFunding', () => {
-    it('posts funding approval to the delegation endpoint', async () => {
-      service.post.mockResolvedValue({});
-
-      await provider.approveFunding(
-        {
-          address: '0xwallet',
-          amount: '1000',
-          currency: 'USDC',
-          network: 'linea',
-          faucet: true,
-        },
-        AUTH_TOKENS,
-        {} as never,
-      );
-
-      expect(service.post).toHaveBeenCalledWith(
-        '/v1/delegation/evm/post-approval',
-        {
-          walletAddress: '0xwallet',
-          amount: '1000',
-          currency: 'USDC',
-          network: 'linea',
-          faucet: true,
-        },
-        AUTH_TOKENS,
-      );
-    });
-
-    it('defaults faucet to false when not provided', async () => {
-      service.post.mockResolvedValue({});
-
-      await provider.approveFunding(
-        {
-          address: '0xwallet',
-          amount: '500',
-          currency: 'mUSD',
-          network: 'base',
-        },
-        AUTH_TOKENS,
-        {} as never,
-      );
-
-      expect(service.post).toHaveBeenCalledWith(
-        '/v1/delegation/evm/post-approval',
-        expect.objectContaining({ faucet: false }),
-        AUTH_TOKENS,
-      );
-    });
-
-    it('propagates error when funding approval fails', async () => {
-      service.post.mockRejectedValue(
-        new CardApiError(
-          500,
-          '/v1/delegation/evm/post-approval',
-          'Server error',
-        ),
-      );
-
+    it('throws when delegation completion fields are missing', async () => {
       await expect(
         provider.approveFunding(
           {
@@ -1743,9 +1730,103 @@ describe('BaanxProvider', () => {
             network: 'linea',
           },
           AUTH_TOKENS,
-          {} as never,
+        ),
+      ).rejects.toThrow(CardProviderError);
+    });
+
+    it('propagates error when post-approval fails', async () => {
+      service.post.mockRejectedValue(
+        new CardApiError(
+          500,
+          '/v1/delegation/evm/post-approval',
+          'Server error',
+        ),
+      );
+
+      const sigHash = `0x${'b'.repeat(130)}`;
+
+      await expect(
+        provider.approveFunding(
+          {
+            address: '0xwallet',
+            amount: '1000',
+            currency: 'USDC',
+            network: 'linea',
+            txHash: '0xabc',
+            sigHash,
+            sigMessage: 'msg',
+            token: 'jwt',
+          },
+          AUTH_TOKENS,
         ),
       ).rejects.toThrow();
+    });
+
+    it('posts spending-limit completion to EVM post-approval when proof fields are set', async () => {
+      service.post.mockResolvedValue({});
+      const sigHash = `0x${'a'.repeat(130)}`;
+
+      await provider.approveFunding(
+        {
+          address: '0x0000000000000000000000000000000000000001',
+          amount: '100',
+          currency: 'USDC',
+          network: 'linea',
+          txHash: '0xtxhash',
+          sigHash,
+          sigMessage: 'siwe-message',
+          token: 'delegation-jwt',
+        },
+        AUTH_TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/delegation/evm/post-approval',
+        {
+          address: '0x0000000000000000000000000000000000000001',
+          network: 'linea',
+          currency: 'usdc',
+          amount: '100',
+          txHash: '0xtxhash',
+          sigHash,
+          sigMessage: 'siwe-message',
+          token: 'delegation-jwt',
+        },
+        AUTH_TOKENS,
+      );
+    });
+
+    it('posts spending-limit completion to Solana post-approval for solana network', async () => {
+      service.post.mockResolvedValue({});
+
+      await provider.approveFunding(
+        {
+          address: 'SoLanaAddrSoLanaAddrSoLanaAddrSoLanaAddrSoL',
+          amount: '50',
+          currency: 'USDC',
+          network: 'solana',
+          txHash: '5'.repeat(88),
+          sigHash: 'sig',
+          sigMessage: 'siwe-sol',
+          token: 'jwt-sol',
+        },
+        AUTH_TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/delegation/solana/post-approval',
+        {
+          address: 'SoLanaAddrSoLanaAddrSoLanaAddrSoLanaAddrSoL',
+          network: 'solana',
+          currency: 'usdc',
+          amount: '50',
+          txHash: '5'.repeat(88),
+          sigHash: 'sig',
+          sigMessage: 'siwe-sol',
+          token: 'jwt-sol',
+        },
+        AUTH_TOKENS,
+      );
     });
   });
 

@@ -1,10 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
-import { useCardSDK } from '../sdk';
 import { useNeedsGasFaucet } from './useNeedsGasFaucet';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
-import { CardSDK } from '../sdk/CardSDK';
 import { CardFundingToken, FundingStatus } from '../types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -20,14 +18,11 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import { encodeErc20ApproveCalldata } from '../../../../core/Engine/controllers/card-controller/utils/encodeErc20ApproveCalldata';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('../sdk', () => ({
-  useCardSDK: jest.fn(),
 }));
 
 jest.mock('./useNeedsGasFaucet', () => ({
@@ -55,6 +50,9 @@ jest.mock('../../../../util/address', () => ({
   safeToChecksumAddress: jest.fn(),
 }));
 
+const mockFetchDelegationChallenge = jest.fn();
+const mockApproveFunding = jest.fn();
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -62,6 +60,11 @@ jest.mock('../../../../core/Engine', () => ({
     },
     TransactionController: {
       addTransaction: jest.fn(),
+    },
+    CardController: {
+      fetchDelegationChallenge: (...args: unknown[]) =>
+        mockFetchDelegationChallenge(...args),
+      approveFunding: (...args: unknown[]) => mockApproveFunding(...args),
     },
   },
   controllerMessenger: {
@@ -95,7 +98,6 @@ jest.mock('@metamask/keyring-api', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseNeedsGasFaucet = useNeedsGasFaucet as jest.MockedFunction<
   typeof useNeedsGasFaucet
@@ -124,7 +126,7 @@ const createMockToken = (
   fundingStatus: FundingStatus.Enabled,
   spendableBalance: '500',
   walletAddress: '0xwallet1',
-  delegationContract: '0xdelegation123',
+  delegationContract: '0x000000000000000000000000000000000000dEaD',
   ...overrides,
 });
 
@@ -142,11 +144,6 @@ describe('useCardDelegation', () => {
   const mockTxHash = '0xTxHash123';
   const mockNetworkClientId = 'network-client-123';
 
-  let mockSDK: {
-    generateDelegationToken: jest.Mock;
-    encodeApproveTransaction: jest.Mock;
-    completeDelegation: jest.Mock;
-  };
   let mockTrackEvent: jest.Mock;
   let mockCreateEventBuilder: jest.Mock;
   let mockBuild: jest.Mock;
@@ -165,17 +162,12 @@ describe('useCardDelegation', () => {
       refetch: mockRefetchFaucetCheck,
     });
 
-    // Setup SDK mock
-    mockSDK = {
-      generateDelegationToken: jest.fn(),
-      encodeApproveTransaction: jest.fn(),
-      completeDelegation: jest.fn(),
-    };
-
-    mockUseCardSDK.mockReturnValue({
-      ...jest.requireMock('../sdk'),
-      sdk: mockSDK as unknown as CardSDK,
+    mockFetchDelegationChallenge.mockResolvedValue({
+      delegationToken: mockDelegationJWTToken,
+      nonce: mockNonce,
+      expiresAt: '2099-01-01T00:00:00.000Z',
     });
+    mockApproveFunding.mockResolvedValue(undefined);
 
     // Setup metrics mock
     mockBuild = jest.fn().mockReturnValue({ event: 'mock-event' });
@@ -236,14 +228,6 @@ describe('useCardDelegation', () => {
       (address?: string) => (address as `0x${string}`) || undefined,
     );
 
-    // Setup SDK method mocks
-    mockSDK.generateDelegationToken.mockResolvedValue({
-      token: mockDelegationJWTToken,
-      nonce: mockNonce,
-    });
-    mockSDK.encodeApproveTransaction.mockReturnValue('0xencodedData');
-    mockSDK.completeDelegation.mockResolvedValue({});
-
     // Reset Solana snap mock
     mockHandleSnapRequest.mockReset();
   });
@@ -294,19 +278,18 @@ describe('useCardDelegation', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
-        params.network,
-        mockAddress,
-        false, // needsFaucet
-      );
+      expect(mockFetchDelegationChallenge).toHaveBeenCalledWith({
+        network: params.network,
+        address: mockAddress,
+        faucet: false,
+      });
       expect(
         Engine.context.KeyringController.signPersonalMessage,
       ).toHaveBeenCalled();
-      expect(mockSDK.encodeApproveTransaction).toHaveBeenCalled();
       expect(
         Engine.context.TransactionController.addTransaction,
       ).toHaveBeenCalled();
-      expect(mockSDK.completeDelegation).toHaveBeenCalled();
+      expect(mockApproveFunding).toHaveBeenCalled();
     });
 
     it('completes delegation flow for full allowance', async () => {
@@ -334,19 +317,19 @@ describe('useCardDelegation', () => {
       const params = createMockDelegationParams();
 
       let resolveGenerateDelegation: (value: {
-        token: string;
+        delegationToken: string;
         nonce: string;
+        expiresAt: string;
       }) => void;
       const generateDelegationPromise = new Promise<{
-        token: string;
+        delegationToken: string;
         nonce: string;
+        expiresAt: string;
       }>((resolve) => {
         resolveGenerateDelegation = resolve;
       });
 
-      mockSDK.generateDelegationToken.mockReturnValue(
-        generateDelegationPromise,
-      );
+      mockFetchDelegationChallenge.mockReturnValue(generateDelegationPromise);
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -359,8 +342,9 @@ describe('useCardDelegation', () => {
 
       await act(async () => {
         resolveGenerateDelegation({
-          token: mockDelegationJWTToken,
+          delegationToken: mockDelegationJWTToken,
           nonce: mockNonce,
+          expiresAt: '2099-01-01T00:00:00.000Z',
         });
         // Wait for promises to resolve
         await new Promise((resolve) => setImmediate(resolve));
@@ -426,9 +410,16 @@ describe('useCardDelegation', () => {
       });
 
       expect(mockToTokenMinimalUnit).toHaveBeenCalledWith(params.amount, 6);
-      expect(mockSDK.encodeApproveTransaction).toHaveBeenCalledWith(
-        mockToken.delegationContract,
-        '100000000',
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: encodeErc20ApproveCalldata(
+            mockToken.delegationContract as string,
+            '100000000',
+          ),
+        }),
+        expect.any(Object),
       );
     });
 
@@ -445,7 +436,7 @@ describe('useCardDelegation', () => {
       expect(mockToTokenMinimalUnit).toHaveBeenCalledWith(params.amount, 18);
     });
 
-    it('calls completeDelegation with correct parameters', async () => {
+    it('calls approveFunding with correct parameters after EVM tx', async () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
@@ -455,7 +446,7 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockSDK.completeDelegation).toHaveBeenCalledWith({
+      expect(mockApproveFunding).toHaveBeenCalledWith({
         address: mockAddress,
         network: params.network,
         currency: params.currency.toLowerCase(),
@@ -469,24 +460,6 @@ describe('useCardDelegation', () => {
   });
 
   describe('error handling', () => {
-    it('throws error when SDK is not available', async () => {
-      mockUseCardSDK.mockReturnValue({
-        ...jest.requireMock('../sdk'),
-        sdk: null,
-      });
-
-      const params = createMockDelegationParams();
-      const { result } = renderHook(() => useCardDelegation());
-
-      await act(async () => {
-        await expect(result.current.submitDelegation(params)).rejects.toThrow(
-          'Card SDK not available',
-        );
-      });
-
-      expect(result.current.isLoading).toBe(false);
-    });
-
     it('throws error when token configuration is missing', async () => {
       const mockToken = createMockToken({ delegationContract: undefined });
       const params = createMockDelegationParams();
@@ -539,7 +512,7 @@ describe('useCardDelegation', () => {
 
     it('handles error during token generation', async () => {
       const error = new Error('Token generation failed');
-      mockSDK.generateDelegationToken.mockRejectedValue(error);
+      mockFetchDelegationChallenge.mockRejectedValue(error);
 
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
@@ -602,7 +575,7 @@ describe('useCardDelegation', () => {
 
     it('handles error during delegation completion', async () => {
       const error = new Error('Delegation completion failed');
-      mockSDK.completeDelegation.mockRejectedValue(error);
+      mockApproveFunding.mockRejectedValue(error);
 
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
@@ -624,7 +597,7 @@ describe('useCardDelegation', () => {
 
     it('handles delegation completion failure after transaction confirmation', async () => {
       const completionError = new Error('API delegation completion failed');
-      mockSDK.completeDelegation.mockRejectedValue(completionError);
+      mockApproveFunding.mockRejectedValue(completionError);
 
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
@@ -655,11 +628,11 @@ describe('useCardDelegation', () => {
         'Failed to complete EVM delegation',
       );
       // Transaction was confirmed but completion failed
-      expect(mockSDK.completeDelegation).toHaveBeenCalled();
+      expect(mockApproveFunding).toHaveBeenCalled();
     });
 
     it('handles non-Error objects thrown during delegation', async () => {
-      mockSDK.generateDelegationToken.mockRejectedValue('String error');
+      mockFetchDelegationChallenge.mockRejectedValue('String error');
 
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
@@ -815,7 +788,7 @@ describe('useCardDelegation', () => {
 
     it('tracks delegation process failed event on error', async () => {
       const error = new Error('Delegation failed');
-      mockSDK.generateDelegationToken.mockRejectedValue(error);
+      mockFetchDelegationChallenge.mockRejectedValue(error);
 
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
@@ -981,8 +954,8 @@ describe('useCardDelegation', () => {
         },
       );
 
-      // Mock completeDelegation
-      mockSDK.completeDelegation = jest.fn().mockResolvedValue({});
+      mockApproveFunding.mockReset();
+      mockApproveFunding.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1083,7 +1056,10 @@ describe('useCardDelegation', () => {
         {
           from: mockAddress,
           to: mockToken.address,
-          data: '0xencodedData',
+          data: encodeErc20ApproveCalldata(
+            mockToken.delegationContract as string,
+            '100000000000000000000',
+          ),
         },
         {
           networkClientId: mockNetworkClientId,
@@ -1156,7 +1132,7 @@ describe('useCardDelegation', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // completeDelegation should not be called yet
-      expect(mockSDK.completeDelegation).not.toHaveBeenCalled();
+      expect(mockApproveFunding).not.toHaveBeenCalled();
 
       // Simulate transaction confirmation
       await act(async () => {
@@ -1171,7 +1147,7 @@ describe('useCardDelegation', () => {
       });
 
       // Now it should be called
-      expect(mockSDK.completeDelegation).toHaveBeenCalled();
+      expect(mockApproveFunding).toHaveBeenCalled();
     });
 
     it('handles transaction failure in confirmation listener', async () => {
@@ -1206,7 +1182,7 @@ describe('useCardDelegation', () => {
         expect.any(Error),
         'Transaction failed',
       );
-      expect(mockSDK.completeDelegation).not.toHaveBeenCalled();
+      expect(mockApproveFunding).not.toHaveBeenCalled();
     });
 
     it('handles transaction failure with generic message when error details not provided', async () => {
@@ -1235,7 +1211,7 @@ describe('useCardDelegation', () => {
       });
 
       expect(result.current.error).toBe('Transaction failed');
-      expect(mockSDK.completeDelegation).not.toHaveBeenCalled();
+      expect(mockApproveFunding).not.toHaveBeenCalled();
     });
   });
 
@@ -1293,8 +1269,8 @@ describe('useCardDelegation', () => {
         },
       );
 
-      // Mock completeDelegation
-      mockSDK.completeDelegation = jest.fn().mockResolvedValue({});
+      mockApproveFunding.mockReset();
+      mockApproveFunding.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1303,11 +1279,11 @@ describe('useCardDelegation', () => {
       });
 
       expect(mockSafeToChecksumAddress).not.toHaveBeenCalled();
-      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
-        'solana',
-        mockSolanaAddress,
-        false, // needsFaucet
-      );
+      expect(mockFetchDelegationChallenge).toHaveBeenCalledWith({
+        network: 'solana',
+        address: mockSolanaAddress,
+        faucet: false,
+      });
       expect(mockHandleSnapRequest).toHaveBeenCalledTimes(2);
     });
 
@@ -1332,11 +1308,11 @@ describe('useCardDelegation', () => {
       });
 
       expect(mockSafeToChecksumAddress).toHaveBeenCalledWith(mockRawAddress);
-      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
-        'linea',
-        mockChecksummedAddress,
-        false, // needsFaucet
-      );
+      expect(mockFetchDelegationChallenge).toHaveBeenCalledWith({
+        network: 'linea',
+        address: mockChecksummedAddress,
+        faucet: false,
+      });
     });
 
     it('uses checksummed address for non-solana networks', async () => {
@@ -1389,9 +1365,16 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockSDK.encodeApproveTransaction).toHaveBeenCalledWith(
-        mockToken.delegationContract,
-        '999999999999999999999999999000000000000000000',
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: encodeErc20ApproveCalldata(
+            mockToken.delegationContract as string,
+            '999999999999999999999999999000000000000000000',
+          ),
+        }),
+        expect.any(Object),
       );
     });
 
@@ -1408,7 +1391,7 @@ describe('useCardDelegation', () => {
       expect(mockToTokenMinimalUnit).toHaveBeenCalledWith(params.amount, 0);
     });
 
-    it('converts currency to lowercase for SDK call', async () => {
+    it('converts currency to lowercase for approveFunding', async () => {
       const mockToken = createMockToken();
       const params = {
         ...createMockDelegationParams(),
@@ -1421,7 +1404,7 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockSDK.completeDelegation).toHaveBeenCalledWith(
+      expect(mockApproveFunding).toHaveBeenCalledWith(
         expect.objectContaining({
           currency: 'usdc',
         }),
@@ -1467,7 +1450,7 @@ describe('useCardDelegation', () => {
       expect(mockRefetchFaucetCheck).toHaveBeenCalled();
     });
 
-    it('passes needsFaucet=true to generateDelegationToken when user needs faucet', async () => {
+    it('passes needsFaucet=true to fetchDelegationChallenge when user needs faucet', async () => {
       mockUseNeedsGasFaucet.mockReturnValue({
         needsFaucet: true,
         isLoading: false,
@@ -1484,14 +1467,14 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
-        params.network,
-        mockAddress,
-        true, // needsFaucet
-      );
+      expect(mockFetchDelegationChallenge).toHaveBeenCalledWith({
+        network: params.network,
+        address: mockAddress,
+        faucet: true,
+      });
     });
 
-    it('passes needsFaucet=false to generateDelegationToken when user has sufficient funds', async () => {
+    it('passes needsFaucet=false to fetchDelegationChallenge when user has sufficient funds', async () => {
       mockUseNeedsGasFaucet.mockReturnValue({
         needsFaucet: false,
         isLoading: false,
@@ -1508,11 +1491,11 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
-        params.network,
-        mockAddress,
-        false, // needsFaucet
-      );
+      expect(mockFetchDelegationChallenge).toHaveBeenCalledWith({
+        network: params.network,
+        address: mockAddress,
+        faucet: false,
+      });
     });
 
     it('passes token to useNeedsGasFaucet hook', () => {
@@ -1560,13 +1543,13 @@ describe('useCardDelegation', () => {
         .mockResolvedValueOnce({ signature: 'mock-solana-signature' }) // signCardMessage
         .mockResolvedValueOnce({ signature: mockTxSignature }); // approveCardAmount
 
-      // Mock completeDelegation
-      mockSDK.completeDelegation = jest.fn().mockResolvedValue({});
+      mockApproveFunding.mockReset();
+      mockApproveFunding.mockResolvedValue(undefined);
 
       return { mockToken, params };
     };
 
-    it('waits for transaction confirmation before calling completeDelegation', async () => {
+    it('waits for transaction confirmation before calling approveFunding', async () => {
       const { mockToken, params } = setupSolanaTest();
 
       // Mock subscribe to simulate confirmed transaction
@@ -1603,7 +1586,7 @@ describe('useCardDelegation', () => {
         'MultichainTransactionsController:stateChange',
         expect.any(Function),
       );
-      expect(mockSDK.completeDelegation).toHaveBeenCalledWith({
+      expect(mockApproveFunding).toHaveBeenCalledWith({
         address: mockSolanaAddress,
         network: 'solana',
         currency: 'usdc',
@@ -1651,7 +1634,7 @@ describe('useCardDelegation', () => {
       });
 
       // completeDelegation should NOT be called when transaction fails
-      expect(mockSDK.completeDelegation).not.toHaveBeenCalled();
+      expect(mockApproveFunding).not.toHaveBeenCalled();
     });
 
     it('subscribes to MultichainTransactionsController stateChange event', async () => {
@@ -1738,7 +1721,7 @@ describe('useCardDelegation', () => {
       });
 
       // Should have completed successfully after our transaction was confirmed
-      expect(mockSDK.completeDelegation).toHaveBeenCalled();
+      expect(mockApproveFunding).toHaveBeenCalled();
     });
 
     it('handles transaction in submitted status by continuing to wait for confirmation', async () => {
@@ -1787,7 +1770,7 @@ describe('useCardDelegation', () => {
       });
 
       // completeDelegation should be called after confirmation
-      expect(mockSDK.completeDelegation).toHaveBeenCalled();
+      expect(mockApproveFunding).toHaveBeenCalled();
     });
 
     it('unsubscribes from state changes after transaction confirmation to prevent memory leaks', async () => {
