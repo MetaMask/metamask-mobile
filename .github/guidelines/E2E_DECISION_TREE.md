@@ -20,7 +20,7 @@ flowchart TD
     LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
     AI --> CONF[Confidence >= 80% ?]
     CONF -->|yes| SelectedTags[Run selected E2E suites]
-    CONF -->|no| AllTags
+    CONF -->|no| AllTagsFallback[Run all E2E needed]
 ```
 
 ## E2E tests skipped by default on new PRs
