@@ -178,7 +178,10 @@ export const selectCampaignParticipantStatuses = (state: RootState) =>
   state.rewards.campaignParticipantStatuses;
 
 export const selectCampaignParticipantStatus =
-  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (
+    subscriptionId: string | undefined | null,
+    campaignId: string | undefined | null,
+  ) =>
   (state: RootState) => {
     if (!subscriptionId || !campaignId) return null;
     const key = `${subscriptionId}:${campaignId}`;

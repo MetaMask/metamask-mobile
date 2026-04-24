@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -45,6 +46,8 @@ const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
 const displayUnderConstructionAlert = () => alert('Under construction 🚧');
 
 const MoneyHomeView = () => {
+  // TODO: wire to initiateDeposit(amount) once the amount entry UI is ready
+  // const { initiateDeposit } = useMoneyAccountDeposit();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
@@ -62,6 +65,7 @@ const MoneyHomeView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  // // eslint-disable-next-line no-alert
   const handleMenuPress = displayUnderConstructionAlert;
 
   const handleAddPress = displayUnderConstructionAlert;

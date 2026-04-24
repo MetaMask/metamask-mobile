@@ -3,6 +3,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMerklBonusClaim } from './useMerklBonusClaim';
 import { TokenI } from '../../../../Tokens/types';
 import { AGLAMERKL_ADDRESS_MAINNET } from '../constants';
+import { MONEY_EVENTS_CONSTANTS } from '../../../../Money/constants/moneyEvents';
 
 const mockClaimRewards = jest.fn().mockResolvedValue(undefined);
 const mockMerklRewardsRefetch = jest.fn();

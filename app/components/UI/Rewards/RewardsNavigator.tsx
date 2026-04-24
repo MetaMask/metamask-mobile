@@ -7,6 +7,7 @@ import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import CampaignsView from './Views/CampaignsView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
+import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
 import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
 import MusdCalculatorView from './Views/MusdCalculatorView';
@@ -24,12 +25,13 @@ import {
 import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
-import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useTheme } from '../../../util/theme';
-import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
-import { useReferralDetails } from './hooks/useReferralDetails';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
+import { useSeasonStatus } from './hooks/useSeasonStatus';
+import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import { useReferralDetails } from './hooks/useReferralDetails';
+
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
@@ -150,6 +152,11 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW}
             component={OndoCampaignDetailsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW}
+            component={OndoCampaignWinningView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
