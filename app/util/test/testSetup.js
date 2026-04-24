@@ -154,6 +154,27 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
+// Mock @metamask/react-native-button which accesses removed Text.propTypes at parse time
+jest.mock('@metamask/react-native-button', () => {
+  const { Text, TouchableOpacity, View } = require('react-native');
+  const React = require('react');
+  const Button = (props) => {
+    const { children, style, containerStyle, ...rest } = props;
+    return React.createElement(
+      TouchableOpacity,
+      rest,
+      React.createElement(
+        View,
+        { style: containerStyle },
+        typeof children === 'string'
+          ? React.createElement(Text, { style }, children)
+          : children,
+      ),
+    );
+  };
+  return { __esModule: true, default: Button };
+});
+
 jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {
@@ -477,9 +498,9 @@ jest.mock(
 );
 
 jest.mock('react-native-mmkv', () => {
-  const store = new Map();
-  return {
-    createMMKV: () => ({
+  const createInMemoryMMKV = () => {
+    const store = new Map();
+    return {
       getString: jest.fn((key) => store.get(key)),
       set: jest.fn((key, value) => store.set(key, value)),
       getBoolean: jest.fn((key) => store.get(key)),
@@ -489,7 +510,21 @@ jest.mock('react-native-mmkv', () => {
       contains: jest.fn((key) => store.has(key)),
       clearAll: jest.fn(() => store.clear()),
       getAllKeys: jest.fn(() => [...store.keys()]),
-    }),
+      recrypt: jest.fn(),
+      trim: jest.fn(),
+    };
+  };
+
+  class MMKV {
+    constructor() {
+      const api = createInMemoryMMKV();
+      Object.assign(this, api);
+    }
+  }
+
+  return {
+    MMKV,
+    createMMKV: () => createInMemoryMMKV(),
   };
 });
 
