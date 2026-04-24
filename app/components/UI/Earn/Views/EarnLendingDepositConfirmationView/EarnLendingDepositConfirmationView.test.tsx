@@ -320,12 +320,12 @@ describe('EarnLendingDepositConfirmationView', () => {
       >
     ).mockReturnValue(false);
 
-    const { queryByTestId } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
     );
 
-    expect(queryByTestId(CONFIRMATION_FOOTER_TEST_ID)).not.toBeOnTheScreen();
+    expect(toJSON()).toBeNull();
   });
 
   it('navigates to previous page when cancel button is pressed', () => {
@@ -1523,12 +1523,12 @@ describe('EarnLendingDepositConfirmationView', () => {
       params: {},
     });
 
-    const { queryByTestId } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
     );
 
-    expect(queryByTestId(CONFIRMATION_FOOTER_TEST_ID)).not.toBeOnTheScreen();
+    expect(toJSON()).toBeNull();
   });
 
   it('handles token import and confirmation via subscription listener when no outputToken is present', async () => {
