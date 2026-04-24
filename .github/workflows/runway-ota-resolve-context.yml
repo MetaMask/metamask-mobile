@@ -6,9 +6,13 @@
 #   - pr_number: open PR number for the resolved branch (empty if none)
 #   - base_ref:  semver release tag derived from package.json version (e.g. v7.71.0)
 #   - ota_version: OTA_VERSION string exported from app/constants/ota.ts at the resolved ref
+<<<<<<< HEAD
 #   - ota_bump:  "true" if OTA_VERSION differs from base_ref (or origin/main when tag missing).
 #                Forced to "false" when OTA_VERSION is the sentinel (vX.XX.X) or when a git tag
 #                matching OTA_VERSION already exists (already-shipped / stale merge).
+=======
+#   - ota_bump:  "true" if OTA_VERSION differs from base_ref (or origin/main when tag missing)
+>>>>>>> main
 #
 # Callers:
 #   - auto-rc-ota-build-core.yml (uses all outputs incl. ota_bump to decide OTA vs build)
@@ -38,7 +42,11 @@ on:
         description: 'OTA_VERSION exported from app/constants/ota.ts at the resolved ref'
         value: ${{ jobs.resolve.outputs.ota_version }}
       ota_bump:
+<<<<<<< HEAD
         description: 'true when OTA_VERSION differs from base_ref (or origin/main when tag missing). Forced to false when OTA_VERSION is the sentinel (vX.XX.X) or a matching git tag already exists.'
+=======
+        description: 'true when OTA_VERSION differs from base_ref (or origin/main when tag missing)'
+>>>>>>> main
         value: ${{ jobs.resolve.outputs.ota_bump }}
 
 permissions:
