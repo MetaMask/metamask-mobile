@@ -22,7 +22,6 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
@@ -74,10 +73,6 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 
-jest.mock('../../selectors/featureFlags', () => ({
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
-}));
-
 jest.mock('../../../Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(() => false),
 }));
@@ -123,10 +118,6 @@ const mockUseMusdConversionFlowData =
 const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
   typeof useRampNavigation
 >;
-const mockSelectMusdQuickConvertEnabledFlag =
-  selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
-    typeof selectMusdQuickConvertEnabledFlag
-  >;
 const mockSelectMoneyHubEnabledFlag =
   selectMoneyHubEnabledFlag as jest.MockedFunction<
     typeof selectMoneyHubEnabledFlag
@@ -236,7 +227,6 @@ describe('EarnMusdConversionEducationView', () => {
       goToSell: jest.fn(),
       goToDeposit: jest.fn(),
     });
-    mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
 
     mockBuild.mockReturnValue({ name: 'mock-built-event' });
@@ -321,6 +311,7 @@ describe('EarnMusdConversionEducationView', () => {
             chainId: '0x1',
           },
           skipEducationCheck: true,
+          // TODO: Remove navigation override and all references to it
           navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
@@ -1228,42 +1219,6 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockTrackEvent).toHaveBeenCalledTimes(1);
         expect(mockTrackEvent).toHaveBeenCalledWith({
           name: 'mock-built-event',
-        });
-      });
-    });
-
-    it('tracks quick convert redirect when quick convert is enabled', async () => {
-      mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(true);
-
-      const { getByTestId } = renderWithProvider(
-        <EarnMusdConversionEducationView />,
-        { state: {} },
-      );
-
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
-      mockBuild.mockClear();
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(
-            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
-          ),
-        );
-      });
-
-      await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
-        );
-
-        expect(mockAddProperties).toHaveBeenCalledWith({
-          location: 'conversion_education_screen',
-          button_type: 'primary',
-          button_text: strings('earn.musd_conversion.education.primary_button'),
-          redirects_to:
-            MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
         });
       });
     });
