@@ -1,12 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Button,
@@ -99,7 +93,7 @@ function HeadlessHost() {
   // session id so the Host can resume tracking on re-focus.
   // Memoize so `baseRouteParams` identity is stable; otherwise
   // `useTransakRouting` → `continueWithQuote` churn every render and
-  // `useFocusEffect` re-subscribes its listeners unnecessarily.
+  // trigger the session-processing effect unnecessarily.
   const transakRouting = useMemo(
     () => ({
       baseRoute: Routes.RAMP.HEADLESS_HOST,
@@ -115,10 +109,12 @@ function HeadlessHost() {
   const walletAddress = useRampAccountAddress(chainId ?? ('' as CaipChainId));
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  // useFocusEffect runs the cleanup on blur; we use a ref instead of state
-  // so the in-flight guard survives across focus/blur cycles caused by
-  // the Transak auth loop without forcing re-renders.
-  const hasContinuedRef = useRef(false);
+
+  // Reset UI state whenever a new session is wired up, so the second (and
+  // subsequent) headless buy starts with a clean slate.
+  useEffect(() => {
+    setErrorMessage(null);
+  }, [headlessSessionId]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -143,82 +139,86 @@ function HeadlessHost() {
     closeSession(headlessSessionId, { reason: 'unknown' });
   }, [nativeFlowError, session, headlessSessionId]);
 
-  // Continue-once on focus. Wrapped in `useFocusEffect` so the auth loop
-  // (which navigates Host → EnterEmail → … → Host) doesn't re-trigger the
-  // flow — `hasContinuedRef` already guards that, and `session.status`
-  // catches the cross-component case (e.g. the user already cancelled).
-  useFocusEffect(
-    useCallback(() => {
-      if (hasContinuedRef.current || !session || nativeFlowError) {
-        return;
+  // Process the session. Uses `useEffect` (not `useFocusEffect`) so that
+  // it fires whenever `headlessSessionId` changes even when the screen is
+  // already focused — React Navigation reuses the mounted component and
+  // merges params rather than remounting, so no focus event is emitted for
+  // a second session started while this screen is active.
+  //
+  // Re-entry during the Transak auth loop is prevented by `session.status`:
+  // `setStatus` marks it `'continued'` before the loop starts, and since
+  // `headlessSessionId` is unchanged during the loop, the effect does not
+  // re-fire. Any other dep change (e.g. walletAddress resolving) that
+  // re-runs the effect will bail on the status guard.
+  useEffect(() => {
+    if (!session || nativeFlowError) {
+      return;
+    }
+    if (session.status !== 'pending') {
+      return;
+    }
+    if (!chainId) {
+      const message = `HeadlessHost: invalid assetId "${session.params.assetId}"`;
+      Logger.error(new Error(message));
+      try {
+        session.callbacks.onError({
+          code: 'UNKNOWN',
+          message,
+        });
+      } catch (e) {
+        Logger.error(e as Error, 'HeadlessHost: onError callback threw');
       }
-      if (session.status !== 'pending') {
-        return;
-      }
-      if (!chainId) {
-        const message = `HeadlessHost: invalid assetId "${session.params.assetId}"`;
-        Logger.error(new Error(message));
-        try {
-          session.callbacks.onError({
-            code: 'UNKNOWN',
-            message,
-          });
-        } catch (e) {
-          Logger.error(e as Error, 'HeadlessHost: onError callback threw');
-        }
-        closeSession(headlessSessionId, { reason: 'unknown' });
-        return;
-      }
+      closeSession(headlessSessionId, { reason: 'unknown' });
+      return;
+    }
 
-      hasContinuedRef.current = true;
-      setStatus(headlessSessionId, 'continued');
+    setStatus(headlessSessionId, 'continued');
 
-      const { quote, amount, assetId, currency, paymentMethodId } =
-        session.params;
-      // Resolve the catalog id for the quote's payment method when the
-      // caller didn't pin one explicitly. The native (Transak) path needs
-      // a catalog id to look up `selectedPaymentMethod.isManualBankTransfer`.
-      const resolvedPaymentMethodId =
-        paymentMethodId ??
-        paymentMethods?.find((pm) => pm.id === quote.quote.paymentMethod)?.id;
+    const { quote, amount, assetId, currency, paymentMethodId } =
+      session.params;
+    // Resolve the catalog id for the quote's payment method when the
+    // caller didn't pin one explicitly. The native (Transak) path needs
+    // a catalog id to look up `selectedPaymentMethod.isManualBankTransfer`.
+    const resolvedPaymentMethodId =
+      paymentMethodId ??
+      paymentMethods?.find((pm) => pm.id === quote.quote.paymentMethod)?.id;
 
-      const ctx: ContinueWithQuoteContext = {
-        amount,
-        assetId,
-        chainId,
-        walletAddress: walletAddress ?? undefined,
-        currency: currency ?? userRegion?.country?.currency,
-        cryptoSymbol: quote.quote.cryptoTranslation?.symbol,
-        paymentMethodId: resolvedPaymentMethodId,
-        providerName: getQuoteProviderName(quote),
-        headlessSessionId,
-      };
-
-      continueWithQuote(quote, ctx).catch((error: Error) => {
-        const message =
-          error?.message ?? strings('deposit.buildQuote.unexpectedError');
-        setErrorMessage(message);
-        try {
-          session.callbacks.onError({
-            code: 'UNKNOWN',
-            message,
-          });
-        } catch (e) {
-          Logger.error(e as Error, 'HeadlessHost: onError callback threw');
-        }
-        closeSession(headlessSessionId, { reason: 'unknown' });
-      });
-    }, [
-      session,
-      nativeFlowError,
+    const ctx: ContinueWithQuoteContext = {
+      amount,
+      assetId,
       chainId,
+      walletAddress: walletAddress ?? undefined,
+      currency: currency ?? userRegion?.country?.currency,
+      cryptoSymbol: quote.quote.cryptoTranslation?.symbol,
+      paymentMethodId: resolvedPaymentMethodId,
+      providerName: getQuoteProviderName(quote),
       headlessSessionId,
-      paymentMethods,
-      walletAddress,
-      userRegion?.country?.currency,
-      continueWithQuote,
-    ]),
-  );
+    };
+
+    continueWithQuote(quote, ctx).catch((error: Error) => {
+      const message =
+        error?.message ?? strings('deposit.buildQuote.unexpectedError');
+      setErrorMessage(message);
+      try {
+        session.callbacks.onError({
+          code: 'UNKNOWN',
+          message,
+        });
+      } catch (e) {
+        Logger.error(e as Error, 'HeadlessHost: onError callback threw');
+      }
+      closeSession(headlessSessionId, { reason: 'unknown' });
+    });
+  }, [
+    session,
+    nativeFlowError,
+    chainId,
+    headlessSessionId,
+    paymentMethods,
+    walletAddress,
+    userRegion?.country?.currency,
+    continueWithQuote,
+  ]);
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
