@@ -27,7 +27,7 @@ describe('RewardsCard', () => {
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
-  it('render matches snapshot', () => {
+  it('renders reward rate, ETH rewards, and fiat rewards', () => {
     const props: RewardsCardProps = {
       rewardRate: '2.6%',
       rewardsEth: '0.13 ETH',

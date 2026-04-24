@@ -298,7 +298,7 @@ describe('EmptyStateCta', () => {
     });
   });
 
-  it('renders correctly', () => {
+  it('renders learn more link', () => {
     const { getByText } = renderComponent(mockEarnToken);
     expect(
       getByText(strings('earn.empty_state_cta.learn_more')),

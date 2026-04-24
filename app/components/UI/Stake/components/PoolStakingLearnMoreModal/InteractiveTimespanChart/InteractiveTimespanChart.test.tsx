@@ -86,7 +86,7 @@ const renderGraph = (
 };
 
 describe('InteractiveTimespanChart', () => {
-  it('render matches snapshot', () => {
+  it('renders chart container', () => {
     const { getByTestId } = renderGraph('object');
 
     expect(

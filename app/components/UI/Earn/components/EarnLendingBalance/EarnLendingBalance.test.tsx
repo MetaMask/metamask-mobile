@@ -317,19 +317,19 @@ describe('EarnLendingBalance', () => {
       earnSelectors.selectEarnToken as jest.MockedFunction<
         typeof earnSelectors.selectEarnToken
       >
-    ).mockReturnValue(undefined);
+    ).mockReturnValueOnce(undefined);
 
     (
       earnSelectors.selectEarnOutputToken as jest.MockedFunction<
         typeof earnSelectors.selectEarnOutputToken
       >
-    ).mockReturnValue(mockADAIMainnet);
+    ).mockReturnValueOnce(mockADAIMainnet);
 
     (
       earnSelectors.selectEarnTokenPair as jest.MockedFunction<
         typeof earnSelectors.selectEarnTokenPair
       >
-    ).mockReturnValue({
+    ).mockReturnValueOnce({
       outputToken: mockADAIMainnet,
       earnToken: mockDaiMainnet,
     });
@@ -367,19 +367,19 @@ describe('EarnLendingBalance', () => {
       earnSelectors.selectEarnToken as jest.MockedFunction<
         typeof earnSelectors.selectEarnToken
       >
-    ).mockReturnValue(mockDaiMainnet);
+    ).mockReturnValueOnce(mockDaiMainnet);
 
     (
       earnSelectors.selectEarnOutputToken as jest.MockedFunction<
         typeof earnSelectors.selectEarnOutputToken
       >
-    ).mockReturnValue(undefined);
+    ).mockReturnValueOnce(undefined);
 
     (
       earnSelectors.selectEarnTokenPair as jest.MockedFunction<
         typeof earnSelectors.selectEarnTokenPair
       >
-    ).mockReturnValue({
+    ).mockReturnValueOnce({
       outputToken: mockEmptyReceiptToken,
       earnToken: mockDaiMainnet,
     });
@@ -411,13 +411,13 @@ describe('EarnLendingBalance', () => {
       earnSelectors.selectEarnOutputToken as jest.MockedFunction<
         typeof earnSelectors.selectEarnOutputToken
       >
-    ).mockReturnValue(undefined);
+    ).mockReturnValueOnce(undefined);
 
     (
       earnSelectors.selectEarnTokenPair as jest.MockedFunction<
         typeof earnSelectors.selectEarnTokenPair
       >
-    ).mockReturnValue({
+    ).mockReturnValueOnce({
       outputToken: mockEmptyReceiptToken,
       earnToken: mockDaiMainnet,
     });

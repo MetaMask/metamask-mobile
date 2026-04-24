@@ -55,7 +55,7 @@ describe('EarnDepositTokenListItem', () => {
     color: TextColor.Alternative,
   };
 
-  it('render matches snapshot', () => {
+  it('renders primary and secondary text', () => {
     const props: EarnTokenListItemProps = {
       ...baseProps,
       secondaryText,

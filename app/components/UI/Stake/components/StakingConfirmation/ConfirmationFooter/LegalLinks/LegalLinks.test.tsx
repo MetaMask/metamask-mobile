@@ -22,7 +22,7 @@ describe('FooterLegalLinks', () => {
     jest.resetAllMocks();
   });
 
-  it('render matches snapshot', () => {
+  it('renders terms of service and risk disclosure links', () => {
     const { getByText } = renderWithProvider(<FooterLegalLinks />);
 
     expect(getByText(strings('stake.terms_of_service'))).toBeOnTheScreen();

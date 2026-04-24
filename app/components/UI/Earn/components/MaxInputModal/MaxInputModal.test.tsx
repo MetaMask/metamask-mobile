@@ -36,7 +36,7 @@ describe('MaxInputModal', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
+  it('renders use max button', () => {
     const { getByText } = renderMaxInputModal();
     expect(getByText('Use max')).toBeOnTheScreen();
   });

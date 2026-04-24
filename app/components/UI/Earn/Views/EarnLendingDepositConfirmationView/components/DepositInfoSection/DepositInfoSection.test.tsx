@@ -64,7 +64,7 @@ describe('DepositInfoSection', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('renders deposit info rows with network fee, APR, and protocol', () => {
     const { getByText } = renderWithProvider(
       <DepositInfoSection {...defaultProps} />,
       { state: mockInitialState },

@@ -28,7 +28,7 @@ describe('DepositReceiveSection', () => {
     receiptTokenAmount: '10 AETHUSDC',
   };
 
-  it('renders correctly', () => {
+  it('renders received token name', () => {
     const { getByText } = renderWithProvider(
       <DepositReceiveSection {...defaultProps} />,
       { state: mockInitialState },

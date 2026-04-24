@@ -127,7 +127,7 @@ describe('FooterButtonGroup', () => {
       );
   });
 
-  it('render matches snapshot', () => {
+  it('renders cancel and continue buttons', () => {
     const props: FooterButtonGroupProps = {
       valueWei: '3210000000000000',
       action: FooterButtonGroupActions.STAKE,

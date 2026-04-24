@@ -20,7 +20,7 @@ Image.getSize = jest
   );
 
 describe('TokenValueStack', () => {
-  it('render matches snapshot', () => {
+  it('renders token amount and fiat value', () => {
     const props: TokenValueStackProps = {
       amountWei: '3210000000000000',
       amountFiat: '7.46',

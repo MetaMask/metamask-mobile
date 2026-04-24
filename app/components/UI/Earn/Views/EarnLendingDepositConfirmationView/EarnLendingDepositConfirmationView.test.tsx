@@ -291,7 +291,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     ).mockReturnValue(true);
   });
 
-  it('matches snapshot', () => {
+  it('renders token hero, deposit sections, and confirmation footer buttons', () => {
     const { getByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },

@@ -449,7 +449,7 @@ describe('EarnWithdrawInputView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('render matches snapshot', async () => {
+  it('renders unstake ETH heading', async () => {
     render(EarnWithdrawInputView);
 
     await waitFor(async () => {

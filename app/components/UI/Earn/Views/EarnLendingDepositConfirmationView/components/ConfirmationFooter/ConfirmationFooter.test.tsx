@@ -55,7 +55,7 @@ describe('ConfirmationFooter', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('renders confirm and cancel buttons', () => {
     const { getByText } = renderWithProvider(
       <ConfirmationFooter {...defaultProps} />,
     );

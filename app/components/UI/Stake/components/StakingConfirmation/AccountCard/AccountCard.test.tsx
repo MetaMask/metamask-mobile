@@ -80,7 +80,7 @@ jest.mock('../../../hooks/useVaultMetadata', () => ({
 }));
 
 describe('AccountCard', () => {
-  it('render matches snapshot', () => {
+  it('renders staking from, interacting with, network, and contract name labels', () => {
     const props: AccountCardProps = {
       contractName: MOCK_STAKING_CONTRACT_NAME,
       primaryLabel: strings('stake.staking_from'),

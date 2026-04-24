@@ -88,7 +88,7 @@ const mockInitialState = {
 const earningsHistoryView = <StakeEarningsHistoryView />;
 
 describe('StakeEarningsHistoryView', () => {
-  it('renders correctly', () => {
+  it('calls navigation setOptions on render', () => {
     const renderedView = renderWithProvider(earningsHistoryView, {
       state: mockInitialState,
     });

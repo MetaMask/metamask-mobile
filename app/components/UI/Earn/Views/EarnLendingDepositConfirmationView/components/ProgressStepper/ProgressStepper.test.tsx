@@ -29,7 +29,7 @@ describe('ProgressStepper', () => {
     steps,
   });
 
-  it('renders correctly', () => {
+  it('renders approve and deposit step labels', () => {
     const { getByText } = renderWithProvider(
       <ProgressStepper {...defaultProps} />,
     );

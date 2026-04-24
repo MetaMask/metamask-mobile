@@ -24,7 +24,7 @@ describe('UnstakingTimeCard', () => {
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
-  it('render matches snapshot', () => {
+  it('renders unstaking time title and estimated duration', () => {
     const { getByText } = renderWithProvider(<UnstakingTimeCard />);
 
     const estimatedUnstakingTime = strings('stake.estimated_unstaking_time');

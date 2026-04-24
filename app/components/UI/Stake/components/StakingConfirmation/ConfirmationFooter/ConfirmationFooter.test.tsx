@@ -41,7 +41,7 @@ jest.mock('../../../hooks/useStakeContext', () => ({
 }));
 
 describe('ConfirmationFooter', () => {
-  it('render matches snapshot', () => {
+  it('renders cancel and continue buttons', () => {
     const props: ConfirmationFooterProps = {
       valueWei: '3210000000000000',
       action: FooterButtonGroupActions.STAKE,

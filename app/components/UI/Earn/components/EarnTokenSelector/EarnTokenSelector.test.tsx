@@ -66,7 +66,7 @@ describe('EarnTokenSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('renders token APR', () => {
     const { getByText } = renderWithProvider(
       <EarnTokenSelector {...mockProps} />,
       {

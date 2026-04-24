@@ -7,7 +7,7 @@ const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 const MOCK_CONTRACT_ADRESS = '0x0000000000000000000000000000000000000000';
 
 describe('ContractTag', () => {
-  it('render matches snapshot', () => {
+  it('renders contract name', () => {
     const { getByText } = renderWithProvider(
       <ContractTag
         contractAddress={MOCK_CONTRACT_ADRESS}

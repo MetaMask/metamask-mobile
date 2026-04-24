@@ -213,7 +213,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('matches snapshot', () => {
+  it('renders withdrawal confirmation with correct navbar title and cancel button', () => {
     const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {

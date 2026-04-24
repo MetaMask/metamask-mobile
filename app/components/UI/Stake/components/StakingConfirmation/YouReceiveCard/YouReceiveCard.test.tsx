@@ -18,7 +18,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('YouReceiveCard', () => {
-  it('render matches snapshot', () => {
+  it('renders estimated changes, received amount, and fiat value', () => {
     const props: YouReceiveCardProps = {
       amountWei: '4999820000000000000',
       amountFiat: '12,881.64',

@@ -192,7 +192,7 @@ describe('EarnTokenList', () => {
       });
   });
 
-  it('render matches snapshot', () => {
+  it('renders token list with deposit heading, upsell banner, and token rows', () => {
     const { getByText, getAllByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <EarnTokenList />

@@ -474,7 +474,7 @@ describe('EarnInputView', () => {
 
   const renderComponent = () => render(EarnInputView);
 
-  it('render matches snapshot', () => {
+  it('renders stake ETH heading', () => {
     const { getByText } = renderComponent();
     expect(getByText(strings('stake.stake_eth'))).toBeOnTheScreen();
   });
