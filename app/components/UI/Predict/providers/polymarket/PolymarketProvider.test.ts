@@ -1,4 +1,9 @@
-import { POLYMARKET_PROVIDER_ID } from './constants';
+import {
+  DEFAULT_CLOB_BASE_URL,
+  LEGACY_V2_CLOB_BASE_URL,
+  POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
+} from './constants';
 // Mock external dependencies
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -41,6 +46,7 @@ import {
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import type { PredictFeatureFlags } from '../../types/flags';
+import { submitProtocolClobOrder } from './protocol/transport';
 import {
   extractNeededTeamsFromEvents,
   isLiveSportsEvent,
@@ -54,6 +60,7 @@ import {
   getClaimTransaction,
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
+  getWithdrawTransactionCallData,
   hasAllowances,
 } from './safe/utils';
 import { PERMIT2_ADDRESS } from './safe/constants';
@@ -61,6 +68,7 @@ import {
   createApiKey,
   encodeClaim,
   getBalance,
+  getRawBalance,
   getContractConfig,
   getFeeRateBps,
   fetchEventsFromPolymarketApi,
@@ -107,6 +115,8 @@ jest.mock('./utils', () => {
     encodeApprove: jest.fn(),
     encodeClaim: jest.fn(),
     encodeErc1155Approve: jest.fn(),
+    getAllowance: jest.fn().mockResolvedValue(1n),
+    getIsApprovedForAll: jest.fn().mockResolvedValue(true),
     getContractConfig: jest.fn(),
     getL2Headers: jest.fn(),
     getFeeRateBps: jest.fn(),
@@ -119,10 +129,15 @@ jest.mock('./utils', () => {
     submitClobOrder: jest.fn(),
     getMarketPositions: jest.fn(),
     getBalance: jest.fn(),
+    getRawBalance: jest.fn(),
     previewOrder: jest.fn(),
     POLYGON_MAINNET_CHAIN_ID: 137,
   };
 });
+
+jest.mock('./protocol/transport', () => ({
+  submitProtocolClobOrder: jest.fn(),
+}));
 
 jest.mock('./safe/utils', () => ({
   computeProxyAddress: jest.fn(),
@@ -132,10 +147,13 @@ jest.mock('./safe/utils', () => ({
   getDeployProxyWalletTransaction: jest.fn(),
   getProxyWalletAllowancesTransaction: jest.fn(),
   hasAllowances: jest.fn(),
+  aggregateTransaction: jest.fn((txs) => txs[0]),
+  getSafeTransactionCallData: jest.fn().mockResolvedValue('0xsignedsafeexec'),
   getWithdrawTransactionCallData: jest
     .fn()
     .mockResolvedValue('0xsignedcalldata'),
-  getSafeUsdcAmount: jest.fn().mockReturnValue(1000000),
+  getSafeUsdcAmount: jest.fn().mockReturnValue(1),
+  getSafeUsdcAmountRaw: jest.fn().mockReturnValue(1000000n),
 }));
 
 const mockGameCacheInstance = {
@@ -240,11 +258,29 @@ const mockHasAllowances = hasAllowances as jest.Mock;
 const mockQuery = query as jest.Mock;
 const mockPreviewOrder = previewOrder as jest.Mock;
 const mockGetBalance = getBalance as jest.Mock;
+const mockGetRawBalance = getRawBalance as jest.Mock;
+const mockSubmitProtocolClobOrder = submitProtocolClobOrder as jest.Mock;
 const mockIsLiveSportsEvent = isLiveSportsEvent as jest.Mock;
 const mockExtractNeededTeamsFromEvents =
   extractNeededTeamsFromEvents as jest.Mock;
 
 describe('PolymarketProvider', () => {
+  const originalBuilderCode = process.env.MM_PREDICT_BUILDER_CODE;
+
+  beforeAll(() => {
+    process.env.MM_PREDICT_BUILDER_CODE =
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  });
+
+  afterAll(() => {
+    if (originalBuilderCode === undefined) {
+      delete process.env.MM_PREDICT_BUILDER_CODE;
+      return;
+    }
+
+    process.env.MM_PREDICT_BUILDER_CODE = originalBuilderCode;
+  });
+
   const defaultFeatureFlags: PredictFeatureFlags = {
     feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
     liveSportsLeagues: [],
@@ -255,6 +291,7 @@ describe('PolymarketProvider', () => {
     },
     fakOrdersEnabled: false,
     predictWithAnyTokenEnabled: false,
+    predictClobV2Enabled: false,
   };
   const createProvider = (
     featureFlagsOverride?: Partial<PredictFeatureFlags>,
@@ -985,6 +1022,19 @@ describe('PolymarketProvider', () => {
       },
       error: undefined,
     });
+    mockSubmitProtocolClobOrder.mockResolvedValue({
+      success: true,
+      response: {
+        success: true,
+        makingAmount: '1000000',
+        orderID: 'order-v2-123',
+        status: 'success',
+        takingAmount: '0',
+        transactionsHashes: [],
+      },
+      error: undefined,
+    });
+    mockGetRawBalance.mockResolvedValue(0n);
 
     mockGetFeeRateBps.mockResolvedValue('0');
 
@@ -1108,8 +1158,8 @@ describe('PolymarketProvider', () => {
       expect(result).toMatchObject({
         success: true,
         response: expect.any(Object),
-        error: undefined,
       });
+      expect(result).not.toHaveProperty('error');
     });
 
     it('successfully places a sell order and returns correct result', async () => {
@@ -1129,8 +1179,8 @@ describe('PolymarketProvider', () => {
       expect(result).toMatchObject({
         success: true,
         response: expect.any(Object),
-        error: undefined,
       });
+      expect(result).not.toHaveProperty('error');
     });
 
     it('handles order submission failure', async () => {
@@ -1231,6 +1281,110 @@ describe('PolymarketProvider', () => {
       // Assert
       expect(mockSignTypedMessage).toHaveBeenCalled();
       expect(mockSubmitClobOrder).toHaveBeenCalled();
+    });
+
+    it('uses the protocol transport and zero preview fee rate when CLOB v2 is enabled', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        predictClobV2Enabled: true,
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0x1111111111111111111111111111111111111111'],
+        },
+        fakOrdersEnabled: true,
+      });
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        feeRateBps: '123',
+        fees: {
+          totalFee: 1,
+          metamaskFee: 0.5,
+          providerFee: 0.5,
+          totalFeePercentage: 1,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          executors: ['0x1111111111111111111111111111111111111111'],
+          permit2Enabled: true,
+        },
+      });
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      const submitArgs = mockSubmitProtocolClobOrder.mock.calls[0][0];
+
+      expect(result.success).toBe(true);
+      expect(submitArgs.protocol).toEqual(
+        expect.objectContaining({ key: 'v2' }),
+      );
+      expect(mockCreateApiKey).toHaveBeenCalledWith({
+        address: mockSigner.address,
+        clobVersion: 'v2',
+        clobBaseUrl: DEFAULT_CLOB_BASE_URL,
+      });
+      expect(submitArgs.clobOrder).toEqual(
+        expect.objectContaining({
+          orderType: 'FAK',
+          order: expect.objectContaining({
+            metadata: expect.any(String),
+            builder: expect.any(String),
+          }),
+        }),
+      );
+      expect(submitArgs.clobOrder.order).not.toHaveProperty('feeRateBps');
+      expect(mockSubmitClobOrder).not.toHaveBeenCalled();
+    });
+
+    it('reuses the protocol resolved in placeOrder for v1 submission', async () => {
+      const { mockSigner } = setupPlaceOrderTest();
+      let featureFlagReadCount = 0;
+      const provider = new PolymarketProvider({
+        getFeatureFlags: () => {
+          featureFlagReadCount += 1;
+          return {
+            ...defaultFeatureFlags,
+            predictClobV2Enabled: featureFlagReadCount > 1,
+          };
+        },
+      });
+      jest.spyOn(provider, 'getPositions').mockResolvedValue([]);
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockSubmitClobOrder).toHaveBeenCalledTimes(1);
+      expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
+      expect(mockCreateApiKey).toHaveBeenCalledWith({
+        address: mockSigner.address,
+        clobVersion: 'v1',
+      });
+    });
+
+    it('aborts v2 order placement when trade preflight fails', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        predictClobV2Enabled: true,
+      });
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: undefined,
+      });
+
+      mockGetRawBalance.mockRejectedValueOnce(new Error('balance read failed'));
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to prepare v2 trade preflight');
+      expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
     });
 
     it('returns error result when maker address is not found', async () => {
@@ -1406,6 +1560,7 @@ describe('PolymarketProvider', () => {
   describe('previewOrder', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      mockPreviewOrder.mockResolvedValue({});
     });
 
     const createPreviewSigner = () => ({
@@ -1457,6 +1612,7 @@ describe('PolymarketProvider', () => {
       expect(mockPreviewOrder).toHaveBeenCalledWith({
         ...mockParams,
         feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+        isV2: false,
       });
     });
     it('returns FOK orderType by default', async () => {
@@ -1464,6 +1620,22 @@ describe('PolymarketProvider', () => {
       const result = await provider.previewOrder(createPreviewOrderParams());
 
       expect(result.orderType).toBe('FOK');
+    });
+
+    it('forces preview feeRateBps to zero when CLOB v2 is enabled', async () => {
+      const provider = createProvider({ predictClobV2Enabled: true });
+      mockPreviewOrder.mockResolvedValue({ feeRateBps: '123' });
+
+      const previewParams = createPreviewOrderParams();
+      const result = await provider.previewOrder(previewParams);
+
+      expect(result.feeRateBps).toBe('0');
+      expect(mockPreviewOrder).toHaveBeenCalledWith({
+        ...previewParams,
+        feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+        isV2: true,
+        clobBaseUrl: DEFAULT_CLOB_BASE_URL,
+      });
     });
 
     it.each([
@@ -1582,6 +1754,7 @@ describe('PolymarketProvider', () => {
       expect(mockCreateApiKey).toHaveBeenCalledTimes(1);
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner1.address,
+        clobVersion: 'v1',
       });
     });
 
@@ -1611,9 +1784,53 @@ describe('PolymarketProvider', () => {
       expect(mockCreateApiKey).toHaveBeenCalledTimes(2);
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner1.address,
+        clobVersion: 'v1',
       });
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner2.address,
+        clobVersion: 'v1',
+      });
+    });
+
+    it('creates separate cached v2 API keys when the resolved CLOB host changes', async () => {
+      // Arrange
+      const { mockSigner1 } = setupApiKeyCachingTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const orderParams = {
+        signer: mockSigner1,
+        providerId: POLYMARKET_PROVIDER_ID,
+        preview,
+      };
+      let currentFeatureFlags: PredictFeatureFlags = {
+        ...defaultFeatureFlags,
+        predictClobV2Enabled: true,
+        predictClobV2ClobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      };
+      const provider = new PolymarketProvider({
+        getFeatureFlags: () => currentFeatureFlags,
+      });
+
+      // Act - First call uses temporary v2 host
+      await provider.placeOrder(orderParams);
+
+      // Act - Second call uses canonical host for the same address
+      currentFeatureFlags = {
+        ...currentFeatureFlags,
+        predictClobV2ClobBaseUrl: DEFAULT_CLOB_BASE_URL,
+      };
+      await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(mockCreateApiKey).toHaveBeenCalledTimes(2);
+      expect(mockCreateApiKey).toHaveBeenNthCalledWith(1, {
+        address: mockSigner1.address,
+        clobVersion: 'v2',
+        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
+      });
+      expect(mockCreateApiKey).toHaveBeenNthCalledWith(2, {
+        address: mockSigner1.address,
+        clobVersion: 'v2',
+        clobBaseUrl: DEFAULT_CLOB_BASE_URL,
       });
     });
   });
@@ -2937,6 +3154,69 @@ describe('PolymarketProvider', () => {
           includeTransferTransaction: true,
         }),
       );
+    });
+
+    it('builds a signed Safe claim transaction when CLOB v2 is enabled', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider({ predictClobV2Enabled: true });
+      const signer = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+      const position = {
+        id: 'position-1',
+        providerId: POLYMARKET_PROVIDER_ID,
+        marketId: 'market-1',
+        outcomeId:
+          '0x1111111111111111111111111111111111111111111111111111111111111111',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      mockComputeProxyAddress.mockReturnValue(
+        '0x1234567890123456789012345678901234567891',
+      );
+      mockGetRawBalance.mockResolvedValue(0n);
+
+      const result = await provider.prepareClaim({
+        positions: [position],
+        signer,
+      });
+
+      expect(result).toEqual({
+        chainId: 137,
+        transactions: [
+          {
+            params: {
+              to: '0x1234567890123456789012345678901234567891',
+              data: '0xsignedsafeexec',
+            },
+            type: 'predictClaim',
+          },
+        ],
+      });
+      expect(mockGetClaimTransaction).not.toHaveBeenCalled();
+      expect(mockGetBalance).not.toHaveBeenCalled();
     });
   });
 
@@ -4356,6 +4636,38 @@ describe('PolymarketProvider', () => {
         'Failed to generate transfer data for deposit transaction',
       );
     });
+
+    it('adds a maintenance Safe transaction instead of v1 allowances when CLOB v2 is enabled', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider({ predictClobV2Enabled: true });
+      mockComputeProxyAddress.mockReturnValue(
+        '0x1234567890123456789012345678901234567891',
+      );
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
+      mockGetRawBalance.mockResolvedValue(1n);
+
+      const result = await provider.prepareDeposit({
+        signer: mockSigner,
+      });
+
+      expect(result.transactions).toHaveLength(2);
+      expect(result.transactions[0]).toEqual({
+        params: {
+          to: USDC_E_ADDRESS,
+          data: '0xtransferData',
+        },
+        type: 'predictDeposit',
+      });
+      expect(result.transactions[1]).toEqual({
+        params: {
+          to: '0x1234567890123456789012345678901234567891',
+          data: '0xsignedsafeexec',
+        },
+        type: 'contractInteraction',
+      });
+      expect(getProxyWalletAllowancesTransaction).not.toHaveBeenCalled();
+    });
   });
 
   describe('Rate Limiting', () => {
@@ -4767,6 +5079,27 @@ describe('PolymarketProvider', () => {
 
       expect(computeProxyAddress).not.toHaveBeenCalled();
     });
+
+    it('aggregates Safe USDC.e and pUSD balances when CLOB v2 is enabled', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider({ predictClobV2Enabled: true });
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
+      mockGetBalance.mockResolvedValueOnce(12.5).mockResolvedValueOnce(7.25);
+
+      const result = await provider.getBalance({
+        address: '0x1234567890123456789012345678901234567890',
+      });
+
+      expect(result).toBe(19.75);
+      expect(mockGetBalance).toHaveBeenNthCalledWith(1, {
+        address: '0xSafeAddress',
+        tokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+      });
+      expect(mockGetBalance).toHaveBeenNthCalledWith(2, {
+        address: '0xSafeAddress',
+        tokenAddress: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+      });
+    });
   });
 
   describe('prepareWithdraw', () => {
@@ -4831,6 +5164,26 @@ describe('PolymarketProvider', () => {
       expect(result.predictAddress).toBe('0xSafeAddress');
       expect(mockComputeProxyAddress).toHaveBeenCalled();
     });
+
+    it('prepares a legacy USDC.e edit transaction when CLOB v2 is enabled', async () => {
+      const provider = createProvider({ predictClobV2Enabled: true });
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+
+      const result = await provider.prepareWithdraw({
+        signer: mockSigner,
+      });
+
+      expect(result.predictAddress).toBe('0xSafeAddress');
+      expect(result.transaction.params.to).toBe(USDC_E_ADDRESS);
+    });
   });
 
   describe('prepareWithdrawConfirmation', () => {
@@ -4867,6 +5220,60 @@ describe('PolymarketProvider', () => {
           signer: mockSigner,
         }),
       ).rejects.toThrow('Signer address is required');
+    });
+
+    it('builds a signed Safe withdraw execution when CLOB v2 is enabled', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider({ predictClobV2Enabled: true });
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue(
+        '0x1234567890123456789012345678901234567891',
+      );
+      mockGetRawBalance
+        .mockResolvedValueOnce(0n)
+        .mockResolvedValueOnce(1_000_000n);
+
+      const result = await provider.signWithdraw({
+        callData:
+          '0xa9059cbb000000000000000000000000123456789012345678901234567890123456789000000000000000000000000000000000000000000000000000000000000f4240',
+        signer: mockSigner,
+      });
+
+      expect(result).toEqual({
+        callData: '0xsignedsafeexec',
+        amount: 1,
+      });
+      expect(getWithdrawTransactionCallData).not.toHaveBeenCalled();
+    });
+
+    it('throws when Safe pUSD is insufficient for fallback v2 withdraw', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider({ predictClobV2Enabled: true });
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue(
+        '0x1234567890123456789012345678901234567891',
+      );
+      mockGetRawBalance
+        .mockResolvedValueOnce(0n)
+        .mockResolvedValueOnce(999_999n);
+
+      await expect(
+        provider.signWithdraw({
+          callData:
+            '0xa9059cbb000000000000000000000000123456789012345678901234567890123456789000000000000000000000000000000000000000000000000000000000000f4240',
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Insufficient Safe pUSD balance for fallback withdraw');
     });
   });
 

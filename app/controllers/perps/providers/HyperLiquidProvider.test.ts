@@ -2145,10 +2145,28 @@ describe('HyperLiquidProvider', () => {
       const accountState = await provider.getAccountState();
 
       expect(accountState).toBeDefined();
-      expect(accountState.totalBalance).toBe('20500'); // 10000 (spot) + 10500 (perps marginSummary)
+      expect(accountState.totalBalance).toBe('19500'); // 10500 (perps) + 10000 (spot.total) - 1000 (spot.hold, double-counted in accountValue)
       expect(
         mockClientService.getInfoClient().clearinghouseState,
       ).toHaveBeenCalled();
+      expect(
+        mockClientService.getInfoClient().spotClearinghouseState,
+      ).toHaveBeenCalled();
+    });
+
+    it('does not count USDH-only spot balance in funded-state totals', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          spotClearinghouseState: jest.fn().mockResolvedValue({
+            balances: [{ coin: 'USDH', hold: '1000', total: '10000' }],
+          }),
+        }),
+      );
+
+      const accountState = await provider.getAccountState();
+
+      expect(accountState).toBeDefined();
+      expect(accountState.totalBalance).toBe('10500');
       expect(
         mockClientService.getInfoClient().spotClearinghouseState,
       ).toHaveBeenCalled();
@@ -3633,7 +3651,7 @@ describe('HyperLiquidProvider', () => {
 
         const accountState = await hip3Provider.getAccountState();
 
-        expect(parseFloat(accountState.totalBalance)).toBe(20500);
+        expect(parseFloat(accountState.totalBalance)).toBe(19500); // perps 10500 + spot.total 10000 - spot.hold 1000
         expect(parseFloat(accountState.marginUsed)).toBe(500);
         expect(mockInfoClient.clearinghouseState).toHaveBeenCalledWith({
           user: '0x123',
@@ -8575,6 +8593,7 @@ describe('HyperLiquidProvider', () => {
         clearinghouseState: jest.fn(),
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
+        spotClearinghouseState: jest.fn().mockResolvedValue({ balances: [] }),
       };
     });
 
@@ -9338,6 +9357,21 @@ describe('HyperLiquidProvider', () => {
 
       // Assert — provider remains functional with main DEX only
       expect(Array.isArray(markets)).toBe(true);
+    });
+  });
+
+  describe('getExchangeClient escape hatch', () => {
+    it('delegates to the client service and resolves with the underlying ExchangeClient', async () => {
+      const sentinel = mockClientService.getExchangeClient();
+      await expect(provider.getExchangeClient()).resolves.toBe(sentinel);
+    });
+
+    it('propagates errors thrown by the client service', async () => {
+      const bomb = new Error('client not initialized');
+      mockClientService.getExchangeClient = jest.fn(() => {
+        throw bomb;
+      });
+      await expect(provider.getExchangeClient()).rejects.toBe(bomb);
     });
   });
 });

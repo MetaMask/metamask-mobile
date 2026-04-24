@@ -1,5 +1,6 @@
 import { CaipAccountId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
+import type { ExchangeClient } from '@nktkas/hyperliquid';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { CandlePeriod } from '../constants/chartConfig';
@@ -110,7 +111,10 @@ import type {
 } from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
-import { aggregateAccountStates } from '../utils/accountUtils';
+import {
+  addSpotBalanceToAccountState,
+  aggregateAccountStates,
+} from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
@@ -5632,17 +5636,38 @@ export class HyperLiquidProvider implements PerpsProvider {
           isTestnet: this.#clientService.isTestnetMode(),
         });
         const dexs = await this.#getStandaloneValidatedDexs();
-        const results = await queryStandaloneClearinghouseStates(
-          standaloneInfoClient,
-          userAddress,
-          dexs,
-        );
+        const [standaloneSpotStateResult, standalonePerpsResults] =
+          await Promise.all([
+            standaloneInfoClient
+              .spotClearinghouseState({ user: userAddress })
+              .catch((error: unknown) => {
+                this.#deps.debugLogger.log(
+                  'Standalone spot state fetch failed — falling back to perps-only totals',
+                  {
+                    error: ensureError(
+                      error,
+                      'HyperLiquidProvider.getAccountState.standalone.spot',
+                    ).message,
+                  },
+                );
+                return null;
+              }),
+            queryStandaloneClearinghouseStates(
+              standaloneInfoClient,
+              userAddress,
+              dexs,
+            ),
+          ]);
 
-        // Aggregate account states across all DEXs
-        const dexAccountStates = results.map((perpsState) =>
+        // Aggregate account states across all DEXs, then apply spot-backed
+        // adjustments so streamed/standalone/full paths report the same totals.
+        const dexAccountStates = standalonePerpsResults.map((perpsState) =>
           adaptAccountStateFromSDK(perpsState),
         );
-        const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
+        const aggregatedAccountState = addSpotBalanceToAccountState(
+          aggregateAccountStates(dexAccountStates),
+          standaloneSpotStateResult,
+        );
 
         this.#deps.debugLogger.log(
           'HyperLiquidProvider: standalone account state fetched',
@@ -5757,19 +5782,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         );
         return dexAccountState;
       });
-      const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
-
-      // Add spot balance to totalBalance (spot is global, not per-DEX)
-      let spotBalance = 0;
-      if (spotState?.balances && Array.isArray(spotState.balances)) {
-        spotBalance = spotState.balances.reduce(
-          (sum, balance) => sum + parseFloat(balance.total || '0'),
-          0,
-        );
-      }
-      aggregatedAccountState.totalBalance = (
-        parseFloat(aggregatedAccountState.totalBalance) + spotBalance
-      ).toString();
+      const aggregatedAccountState = addSpotBalanceToAccountState(
+        aggregateAccountStates(dexAccountStates),
+        spotState,
+      );
 
       // Build per-sub-account breakdown (HIP-3 DEXs map to sub-accounts)
       const subAccountBreakdown: Record<
@@ -7834,6 +7850,19 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#userFeeCache.clear();
       this.#deps.debugLogger.log('Cleared all fee cache');
     }
+  }
+
+  /**
+   * Escape hatch for agentic validation flows and test harnesses that drive
+   * HL mutations directly. NOT part of the PerpsProvider interface.
+   * Production code paths must go through the provider's own methods.
+   *
+   * @returns A promise resolving to the underlying HyperLiquid SDK
+   * ExchangeClient. Promise shape matches the existing agentic flows
+   * (hl-provision-fixture) that chain `.then` on the result.
+   */
+  public async getExchangeClient(): Promise<ExchangeClient> {
+    return this.#clientService.getExchangeClient();
   }
 
   /**

@@ -289,18 +289,28 @@ export function adaptAccountStateFromSDK(
   const perpsBalance = parseFloat(perpsState.marginSummary.accountValue);
 
   let spotBalance = 0;
+  let spotHold = 0;
   if (spotState?.balances && Array.isArray(spotState.balances)) {
-    spotBalance = spotState.balances.reduce(
-      (sum: number, balance: { total?: string }) =>
-        sum + parseFloat(balance.total ?? '0'),
-      0,
-    );
+    for (const balance of spotState.balances) {
+      spotBalance += parseFloat(balance.total ?? '0');
+      spotHold += parseFloat((balance as { hold?: string }).hold ?? '0');
+    }
   }
 
-  const totalBalance = (spotBalance + perpsBalance).toString();
+  // Subtract spotHold to avoid double-counting margin on Unified/PM:
+  // perpsBalance already includes the margin HL surfaces as spot.hold.
+  // Standard mode has spotHold = 0. See addSpotBalanceToAccountState.
+  const totalBalance = (spotBalance + perpsBalance - spotHold).toString();
+
+  const withdrawable = parseFloat(perpsState.withdrawable || '0');
+  const freeSpot = Math.max(0, spotBalance - spotHold);
+  const availableToTradeBalance = (
+    (Number.isFinite(withdrawable) ? withdrawable : 0) + freeSpot
+  ).toString();
 
   const accountState: AccountState = {
     availableBalance: perpsState.withdrawable || '0',
+    availableToTradeBalance,
     totalBalance: totalBalance || '0',
     marginUsed: perpsState.marginSummary.totalMarginUsed || '0',
     unrealizedPnl: totalUnrealizedPnl.toString() || '0',
