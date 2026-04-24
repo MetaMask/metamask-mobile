@@ -33,7 +33,6 @@ import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types'
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import type { PerpsMarketDataWithVolumeNumber } from '../../UI/Perps/hooks/usePerpsMarkets';
 import {
@@ -202,10 +201,10 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
  * To add a new section (EVERYTHING IN THIS FILE):
  * 1. Add the section ID to the SectionId type above
  * 2. Add the config to SECTIONS_CONFIG. For **Explore omni-search**, add it in `useExploreSearchSectionsData` in `useExploreSearch.ts` only if it should appear in search.
- * 3. Add the section to `DEFAULT_HOME_ORDER` and/or `DEFAULT_SEARCH_ORDER` as needed, or to the per-tab `use*Sections` hook
+ * 3. Add the section to `DEFAULT_HOME_ORDER` and/or `DEFAULT_SEARCH_ORDER` as needed, or to the matching tab panel’s colocated section hook under `tabs/<TabName>/`
  *
  * The section will automatically appear in:
- * - The **Now** tab (via `useNowSections` / `DEFAULT_HOME_ORDER`); `sites` is only on the Crypto tab. **Stocks** appears on both **Now** and **RWAs** where applicable
+ * - The **Now** tab (via `DEFAULT_HOME_ORDER` / `tabs/Now/NowTabPanel`); `sites` is only on the Crypto tab. **Stocks** appears on both **Now** and **RWAs** where applicable
  * - Other tab hooks when you list them
  * - Search results
  * - Section headers with "View All" navigation
@@ -241,7 +240,7 @@ const CRYPTO_MOVERS_SEARCH_FILTER_CONTEXT: TrendingFilterContext = {
 };
 
 /**
- * Explore home tabs (order matches {@link useNowSections} / feed tabs in TrendingView).
+ * Explore home tabs (order matches {@link DEFAULT_HOME_ORDER} / feed tabs in TrendingView).
  * Each tab has its own section list; only `now` is wired today — other tabs are placeholders.
  */
 export type ExploreTabId =
@@ -1139,7 +1138,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   },
 };
 
-const DEFAULT_HOME_ORDER: SectionId[] = [
+export const DEFAULT_HOME_ORDER: SectionId[] = [
   SECTIONS_CONFIG.predictions.id,
   SECTIONS_CONFIG.tokens.id,
   SECTIONS_CONFIG.crypto_movers.id,
@@ -1156,100 +1155,13 @@ export const DEFAULT_SEARCH_ORDER: SectionId[] = [
   SECTIONS_CONFIG.sites.id,
 ];
 
-const buildSections = (
+export const buildSections = (
   order: SectionId[],
   isPerpsEnabled: boolean,
 ): (SectionConfig & { id: SectionId })[] =>
   order
     .filter((id) => isPerpsEnabled || id !== 'perps')
     .map((id) => SECTIONS_CONFIG[id]);
-
-const useEmptyExploreTabSections = (): (SectionConfig & { id: SectionId })[] =>
-  useMemo(() => [], []);
-
-/**
- * Section list for the **Now** tab (the main explore feed, ordered by {@link DEFAULT_HOME_ORDER}).
- * @deprecated Prefer {@link useNowSections}; kept for call sites that still use the old name.
- */
-export const useNowSections = (): (SectionConfig & { id: SectionId })[] => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  return useMemo(
-    () => buildSections(DEFAULT_HOME_ORDER, isPerpsEnabled),
-    [isPerpsEnabled],
-  );
-};
-
-/** @deprecated Use {@link useNowSections} */
-export const useHomeSections = useNowSections;
-
-/**
- * Per-tab section lists. Non-`now` hooks return an empty list until that tab is populated.
- * Add entries here the same way as the Now feed, then point the hook at `buildSections` or a
- * custom `SectionId` order.
- */
-/**
- * Macro tab: **politics** prediction markets, then perps for **stocks (equity)** and **commodities** (volume-sorted), when the respective feature flags are on.
- */
-export const useMacroSections = (): (SectionConfig & { id: SectionId })[] => {
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  return useMemo(() => {
-    const sections: (SectionConfig & { id: SectionId })[] = [];
-    if (isPredictEnabled) {
-      sections.push(SECTIONS_CONFIG.politics_predictions);
-    }
-    if (isPerpsEnabled) {
-      sections.push(SECTIONS_CONFIG.macro_stocks_commodity_perps);
-    }
-    return sections;
-  }, [isPerpsEnabled, isPredictEnabled]);
-};
-/**
- * RWAs tab: RWA **stocks**, then **rwa perps** (if enabled), then **politics** prediction markets (if Predict enabled).
- */
-export const useRwasSections = (): (SectionConfig & { id: SectionId })[] => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  return useMemo(() => {
-    const sections: (SectionConfig & { id: SectionId })[] = [
-      SECTIONS_CONFIG.stocks,
-    ];
-    if (isPredictEnabled) {
-      sections.push(SECTIONS_CONFIG.politics_predictions);
-    }
-    if (isPerpsEnabled) {
-      sections.push(SECTIONS_CONFIG.rwa_perps);
-    }
-    return sections;
-  }, [isPerpsEnabled, isPredictEnabled]);
-};
-/**
- * Crypto tab: **crypto** predictions, **trending tokens**, **crypto movers** (same config as Now), **crypto perps** (if enabled), then **sites**.
- */
-export const useCryptoSections = (): (SectionConfig & { id: SectionId })[] => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  return useMemo(() => {
-    const sections: (SectionConfig & { id: SectionId })[] = [
-      SECTIONS_CONFIG.tokens,
-      SECTIONS_CONFIG.crypto_movers,
-    ];
-    if (isPerpsEnabled) {
-      sections.push(SECTIONS_CONFIG.crypto_perps);
-    }
-    sections.push(SECTIONS_CONFIG.crypto_predictions);
-    return sections;
-  }, [isPerpsEnabled]);
-};
-/**
- * Sports tab: sport prediction markets (same carousel UX as the Now tab’s predictions, `sports` category).
- */
-export const useSportsSections = (): (SectionConfig & { id: SectionId })[] =>
-  useMemo(() => [SECTIONS_CONFIG.sports_predictions], []);
-/**
- * Dapps tab: reuses the same **sites** section as explore search / Crypto (`SECTIONS_CONFIG.sites`).
- */
-export const useDappsSections = (): (SectionConfig & { id: SectionId })[] =>
-  useMemo(() => [SECTIONS_CONFIG.dapps_recents, SECTIONS_CONFIG.sites], []);
 
 export const useSearchSectionsArray = (): (SectionConfig & {
   id: SectionId;

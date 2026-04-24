@@ -26,12 +26,12 @@ import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedS
 import { RefreshConfig } from './components/Sections/Section';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import { TabView } from './tabs/TabView';
-import { NowTabPanel } from './tabs/NowTabPanel';
-import { MacroTabPanel } from './tabs/MacroTabPanel';
-import { RwasTabPanel } from './tabs/RwasTabPanel';
-import { CryptoTabPanel } from './tabs/CryptoTabPanel';
-import { SportsTabPanel } from './tabs/SportsTabPanel';
-import { DappsTabPanel } from './tabs/DappsTabPanel';
+import { NowTabPanel } from './tabs/Now/NowTabPanel';
+import { MacroTabPanel } from './tabs/Macro/MacroTabPanel';
+import { RwasTabPanel } from './tabs/Rwas/RwasTabPanel';
+import { CryptoTabPanel } from './tabs/Crypto/CryptoTabPanel';
+import { SportsTabPanel } from './tabs/Sports/SportsTabPanel';
+import { DappsTabPanel } from './tabs/Dapps/DappsTabPanel';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
