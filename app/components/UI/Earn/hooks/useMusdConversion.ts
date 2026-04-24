@@ -26,7 +26,6 @@ import {
   MUSD_CONVERSION_NAVIGATION_OVERRIDE,
   MusdNavigationTarget,
 } from '../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
 import { providerErrors } from '@metamask/rpc-errors';
 
 type MusdInitiationResult = { transactionId: string } | void;
@@ -128,6 +127,7 @@ export interface MusdConversionConfig {
   /**
    * Optional navigation mode override for this initiation.
    */
+  // TODO: Remove navigation override and all references to it
   navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
   /**
    * When the education screen is shown for a first-time user, and this config has
@@ -190,10 +190,6 @@ export const useMusdConversion = () => {
   const selectedAddress = selectedAccount?.address;
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
-  );
-
-  const isMusdQuickConvertEnabledFlag = useSelector(
-    selectMusdQuickConvertEnabledFlag,
   );
 
   /**
@@ -462,15 +458,6 @@ export const useMusdConversion = () => {
           throw new Error('No account selected');
         }
 
-        // TODO: Remove navigation override and all references to it
-        if (
-          navigationOverride ===
-            MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT &&
-          isMusdQuickConvertEnabledFlag
-        ) {
-          return;
-        }
-
         const existingPendingMusdConversion = findExistingPendingMusdConversion(
           {
             pendingTransactionMetas,
@@ -567,7 +554,6 @@ export const useMusdConversion = () => {
     },
     [
       handleEducationRedirectIfNeeded,
-      isMusdQuickConvertEnabledFlag,
       navigateToCustomConversionScreen,
       navigation,
       pendingTransactionMetas,
