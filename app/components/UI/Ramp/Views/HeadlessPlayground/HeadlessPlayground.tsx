@@ -1157,6 +1157,7 @@ function HeadlessPlayground() {
                             cryptoSymbol={headlessResolvedToken?.symbol}
                             fiatCurrency={fiatCurrency?.toUpperCase()}
                             canStart={canGetQuotes}
+                            hasActiveSession={activeSession !== null}
                             onStartHeadlessBuy={handleStartHeadlessBuyForQuote}
                             styles={styles}
                           />
@@ -1180,6 +1181,7 @@ interface QuotesListProps {
   cryptoSymbol?: string;
   fiatCurrency?: string;
   canStart: boolean;
+  hasActiveSession: boolean;
   onStartHeadlessBuy: (quote: Quote) => void;
   styles: ReturnType<typeof styleSheet>;
 }
@@ -1190,6 +1192,7 @@ function QuotesList({
   cryptoSymbol,
   fiatCurrency,
   canStart,
+  hasActiveSession,
   onStartHeadlessBuy,
   styles,
 }: QuotesListProps) {
@@ -1217,6 +1220,7 @@ function QuotesList({
           cryptoSymbol={cryptoSymbol}
           fiatCurrency={fiatCurrency}
           canStart={canStart}
+          hasActiveSession={hasActiveSession}
           onStartHeadlessBuy={onStartHeadlessBuy}
           styles={styles}
         />
@@ -1261,6 +1265,7 @@ interface QuoteRowProps {
   cryptoSymbol?: string;
   fiatCurrency?: string;
   canStart: boolean;
+  hasActiveSession: boolean;
   onStartHeadlessBuy: (quote: Quote) => void;
   styles: ReturnType<typeof styleSheet>;
 }
@@ -1272,6 +1277,7 @@ function QuoteRow({
   cryptoSymbol,
   fiatCurrency,
   canStart,
+  hasActiveSession,
   onStartHeadlessBuy,
   styles,
 }: QuoteRowProps) {
@@ -1393,9 +1399,13 @@ function QuoteRow({
           onPress={() => onStartHeadlessBuy(entry)}
           testID={`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-${index}`}
         >
-          {strings(
-            'app_settings.fiat_on_ramp.headless_playground.start_headless_buy',
-          )}
+          {hasActiveSession
+            ? strings(
+                'app_settings.fiat_on_ramp.headless_playground.replace_and_start_headless_buy',
+              )
+            : strings(
+                'app_settings.fiat_on_ramp.headless_playground.start_headless_buy',
+              )}
         </Button>
       </View>
     </View>

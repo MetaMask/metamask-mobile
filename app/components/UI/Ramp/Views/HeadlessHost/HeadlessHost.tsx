@@ -157,24 +157,32 @@ function HeadlessHost() {
   // Re-entry during the Transak auth loop is prevented by `session.status`:
   // `setStatus` marks it `'continued'` before the loop starts, and since
   // `headlessSessionId` is unchanged during the loop, the effect does not
-  // re-fire. Any other dep change (e.g. walletAddress resolving) that
-  // re-runs the effect will bail on the status guard.
+  // re-fire.
+  //
+  // `walletAddress` begins as null while `useRampAccountAddress` resolves
+  // async. We defer (return early, leave status as 'pending') until it
+  // settles — a non-null value is a required input for widget/order URLs.
+  // When it resolves the effect re-fires (walletAddress is a dep) and
+  // proceeds with the real address. The status guard prevents a second
+  // invocation once continued.
   //
   // `session` is intentionally excluded from deps and re-read inside via
-  // `getSession(headlessSessionId)`. This has two benefits:
-  //  - Bug 2: removes the fragile object-reference dep — if a future refactor
-  //    creates a new session object for the same id, the effect still reads
-  //    the authoritative value rather than reacting to the identity swap.
-  //  - Bug 1: the .catch handler re-reads from the registry before firing
-  //    onError; if the nativeFlowError effect already closed the session, the
-  //    re-read returns undefined and the catch becomes a no-op, preventing the
-  //    consumer receiving onError twice for the same session.
+  // `getSession(headlessSessionId)`. This removes the fragile object-reference
+  // dep and lets the .catch handler confirm the session is still live before
+  // firing onError (preventing duplicate callbacks when nativeFlowError and
+  // the promise rejection race — see previous fixes).
   useEffect(() => {
     const currentSession = getSession(headlessSessionId);
     if (!currentSession || nativeFlowError) {
       return;
     }
     if (currentSession.status !== 'pending') {
+      return;
+    }
+    // Defer until walletAddress resolves — avoids calling continueWithQuote
+    // with an undefined address that downstream screens (widget URL, order
+    // creation) cannot recover from. Effect re-fires when walletAddress changes.
+    if (walletAddress === null) {
       return;
     }
     if (!chainId) {

@@ -3414,6 +3414,7 @@
         "quote_tag_most_reliable": "Most reliable",
         "quote_unknown_provider": "Unknown provider",
         "start_headless_buy": "Start headless buy",
+        "replace_and_start_headless_buy": "Replace & start headless buy",
         "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
         "start_headless_buy_pending": "Headless session active — open BuildQuote",
         "cancel_headless_buy": "Cancel headless session",
