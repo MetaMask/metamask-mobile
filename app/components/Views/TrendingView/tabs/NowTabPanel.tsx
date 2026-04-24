@@ -1,17 +1,17 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
+import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import {
   buildSections,
   DEFAULT_HOME_ORDER,
   SectionConfig,
   SectionId,
-} from '../../sections.config';
-import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
+} from '../sections.config';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import {
   ExploreTabSectionedScroll,
   type ExploreTabPanelProps,
-} from '../ExploreTabSectionedScroll';
+} from './ExploreTabSectionedScroll';
 
 export const NowTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);

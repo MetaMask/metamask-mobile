@@ -1,15 +1,11 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
-import {
-  SectionConfig,
-  SectionId,
-  SECTIONS_CONFIG,
-} from '../../sections.config';
+import { selectPerpsEnabledFlag } from '../../../UI/Perps';
+import { SectionConfig, SectionId, SECTIONS_CONFIG } from '../sections.config';
 import {
   ExploreTabSectionedScroll,
   type ExploreTabPanelProps,
-} from '../ExploreTabSectionedScroll';
+} from './ExploreTabSectionedScroll';
 
 export const CryptoTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);

@@ -2,15 +2,11 @@ import React, { useMemo } from 'react';
 import {
   ExploreTabSectionedScroll,
   type ExploreTabPanelProps,
-} from '../ExploreTabSectionedScroll';
+} from './ExploreTabSectionedScroll';
 import { useSelector } from 'react-redux';
-import { selectPredictEnabledFlag } from '../../../../UI/Predict';
-import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
-import {
-  SectionConfig,
-  SectionId,
-  SECTIONS_CONFIG,
-} from '../../sections.config';
+import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import { selectPerpsEnabledFlag } from '../../../UI/Perps';
+import { SectionConfig, SectionId, SECTIONS_CONFIG } from '../sections.config';
 
 export const MacroTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
