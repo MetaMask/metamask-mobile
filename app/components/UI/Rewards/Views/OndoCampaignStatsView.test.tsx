@@ -666,6 +666,54 @@ describe('OndoCampaignStatsView', () => {
     expect(getByText('$12,000.00')).toBeDefined();
   });
 
+  it('hides market value label when campaign is complete', () => {
+    mockGetCampaignStatus.mockReturnValue('complete');
+    mockRewardsState.campaigns = [createTestCampaign()];
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      ...portfolioDefaults,
+      portfolio: {
+        positions: [],
+        summary: {
+          totalCurrentValue: '12000',
+          totalBookValue: '11000',
+          totalUsdDeposited: '11000',
+          netDeposit: '10500',
+          totalCashedOut: '0',
+          portfolioPnl: '1000',
+          portfolioPnlPercent: '0.09',
+        },
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    const { queryByText } = render(<OndoCampaignStatsView />);
+    expect(
+      queryByText('rewards.ondo_campaign_stats.label_market_value'),
+    ).toBeNull();
+  });
+
+  it('shows market value label when campaign is active', () => {
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      ...portfolioDefaults,
+      portfolio: {
+        positions: [],
+        summary: {
+          totalCurrentValue: '12000',
+          totalBookValue: '11000',
+          totalUsdDeposited: '11000',
+          netDeposit: '10500',
+          totalCashedOut: '0',
+          portfolioPnl: '1000',
+          portfolioPnlPercent: '0.09',
+        },
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    const { getByText } = render(<OndoCampaignStatsView />);
+    expect(
+      getByText('rewards.ondo_campaign_stats.label_market_value'),
+    ).toBeDefined();
+  });
+
   it('shows pending tag when position is not qualified', () => {
     mockUseGetOndoLeaderboardPosition.mockReturnValue({
       ...positionDefaults,
@@ -854,6 +902,25 @@ describe('OndoCampaignStatsView', () => {
       const { queryByText } = render(<OndoCampaignStatsView />);
       expect(
         queryByText('rewards.ondo_campaign_leaderboard.ineligible'),
+      ).toBeNull();
+    });
+
+    it('does not show pending tag when campaign is complete even if position is not qualified', () => {
+      mockGetCampaignStatus.mockReturnValue('complete');
+      mockRewardsState.campaigns = [createTestCampaign()];
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: makePendingPosition(),
+      });
+      const { queryByText } = render(<OndoCampaignStatsView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.pending'),
       ).toBeNull();
     });
   });

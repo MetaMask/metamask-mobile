@@ -230,9 +230,9 @@ const OndoCampaignStatsView: React.FC = () => {
               rank={rankValue}
               tier={tierValue}
               isLoading={leaderboardLoading}
-              isPending={isPending}
+              isPending={!isCampaignComplete && isPending}
               isQualified={isQualified}
-              isIneligible={isIneligible}
+              isIneligible={!isCampaignComplete && isIneligible}
             />
           </Box>
 
@@ -252,14 +252,16 @@ const OndoCampaignStatsView: React.FC = () => {
                 isLoading={portfolioLoading}
                 valueColor={returnColor}
               />
-              <StatCell
-                label={strings(
-                  'rewards.ondo_campaign_stats.label_market_value',
-                )}
-                value={marketValue}
-                isLoading={portfolioLoading}
-                valueColor={returnColor}
-              />
+              {!isCampaignComplete && (
+                <StatCell
+                  label={strings(
+                    'rewards.ondo_campaign_stats.label_market_value',
+                  )}
+                  value={marketValue}
+                  isLoading={portfolioLoading}
+                  valueColor={returnColor}
+                />
+              )}
             </Box>
 
             {/* Net inflow | Outflow (or Days held when no outflow) */}

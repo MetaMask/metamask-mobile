@@ -193,11 +193,11 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           isLoading={leaderboardLoading}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK}
           suffix={
-            isIneligible ? (
+            !isCampaignComplete && isIneligible ? (
               <IneligibleTag
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
               />
-            ) : isPending ? (
+            ) : !isCampaignComplete && isPending ? (
               <PendingTag
                 testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
               />
@@ -228,13 +228,15 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           valueColor={returnColor}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN}
         />
-        <StatCell
-          label={strings('rewards.ondo_campaign_stats.label_market_value')}
-          value={marketValue}
-          isLoading={portfolioLoading}
-          valueColor={returnColor}
-          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE}
-        />
+        {!isCampaignComplete && (
+          <StatCell
+            label={strings('rewards.ondo_campaign_stats.label_market_value')}
+            value={marketValue}
+            isLoading={portfolioLoading}
+            valueColor={returnColor}
+            testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE}
+          />
+        )}
       </Box>
 
       {/* Outcome banner (campaign ended) */}
