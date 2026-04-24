@@ -12,22 +12,19 @@ import {
   SECTIONS_CONFIG,
 } from '../../sections.config';
 
-const useMacroSections = (): (SectionConfig & { id: SectionId })[] => {
+export const MacroTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  return useMemo(() => {
-    const sections: (SectionConfig & { id: SectionId })[] = [];
+  const sections: (SectionConfig & { id: SectionId })[] = useMemo(() => {
+    const next: (SectionConfig & { id: SectionId })[] = [];
     if (isPredictEnabled) {
-      sections.push(SECTIONS_CONFIG.politics_predictions);
+      next.push(SECTIONS_CONFIG.politics_predictions);
     }
     if (isPerpsEnabled) {
-      sections.push(SECTIONS_CONFIG.macro_stocks_commodity_perps);
+      next.push(SECTIONS_CONFIG.macro_stocks_commodity_perps);
     }
-    return sections;
+    return next;
   }, [isPerpsEnabled, isPredictEnabled]);
-};
 
-export const MacroTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
-  const sections = useMacroSections();
   return <ExploreTabSectionedScroll {...props} sections={sections} />;
 };

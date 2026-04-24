@@ -13,16 +13,13 @@ import {
   type ExploreTabPanelProps,
 } from '../ExploreTabSectionedScroll';
 
-const useNowSections = (): (SectionConfig & { id: SectionId })[] => {
+export const NowTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  return useMemo(
+  const sections: (SectionConfig & { id: SectionId })[] = useMemo(
     () => buildSections(DEFAULT_HOME_ORDER, isPerpsEnabled),
     [isPerpsEnabled],
   );
-};
 
-export const NowTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
-  const sections = useNowSections();
   return (
     <ExploreTabSectionedScroll
       {...props}

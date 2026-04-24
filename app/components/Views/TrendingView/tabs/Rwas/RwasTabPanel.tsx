@@ -12,24 +12,21 @@ import {
   type ExploreTabPanelProps,
 } from '../ExploreTabSectionedScroll';
 
-const useRwasSections = (): (SectionConfig & { id: SectionId })[] => {
+export const RwasTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  return useMemo(() => {
-    const sections: (SectionConfig & { id: SectionId })[] = [
+  const sections: (SectionConfig & { id: SectionId })[] = useMemo(() => {
+    const next: (SectionConfig & { id: SectionId })[] = [
       SECTIONS_CONFIG.stocks,
     ];
     if (isPredictEnabled) {
-      sections.push(SECTIONS_CONFIG.politics_predictions);
+      next.push(SECTIONS_CONFIG.politics_predictions);
     }
     if (isPerpsEnabled) {
-      sections.push(SECTIONS_CONFIG.rwa_perps);
+      next.push(SECTIONS_CONFIG.rwa_perps);
     }
-    return sections;
+    return next;
   }, [isPerpsEnabled, isPredictEnabled]);
-};
 
-export const RwasTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
-  const sections = useRwasSections();
   return <ExploreTabSectionedScroll {...props} sections={sections} />;
 };

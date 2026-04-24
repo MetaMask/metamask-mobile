@@ -11,22 +11,19 @@ import {
   type ExploreTabPanelProps,
 } from '../ExploreTabSectionedScroll';
 
-const useCryptoSections = (): (SectionConfig & { id: SectionId })[] => {
+export const CryptoTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  return useMemo(() => {
-    const sections: (SectionConfig & { id: SectionId })[] = [
+  const sections: (SectionConfig & { id: SectionId })[] = useMemo(() => {
+    const next: (SectionConfig & { id: SectionId })[] = [
       SECTIONS_CONFIG.tokens,
       SECTIONS_CONFIG.crypto_movers,
     ];
     if (isPerpsEnabled) {
-      sections.push(SECTIONS_CONFIG.crypto_perps);
+      next.push(SECTIONS_CONFIG.crypto_perps);
     }
-    sections.push(SECTIONS_CONFIG.crypto_predictions);
-    return sections;
+    next.push(SECTIONS_CONFIG.crypto_predictions);
+    return next;
   }, [isPerpsEnabled]);
-};
 
-export const CryptoTabPanel: React.FC<ExploreTabPanelProps> = (props) => {
-  const sections = useCryptoSections();
   return <ExploreTabSectionedScroll {...props} sections={sections} />;
 };
