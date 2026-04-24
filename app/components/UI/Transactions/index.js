@@ -75,6 +75,7 @@ import {
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
+import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -669,12 +670,18 @@ class Transactions extends PureComponent {
       hideAwaitingConfirmation: hardwareWallet.hideAwaitingConfirmation,
       showHardwareWalletError: hardwareWallet.showHardwareWalletError,
       execute: async () => {
-        if (transaction?.replacementParams?.type === 'speedUp') {
+        if (
+          transaction?.replacementParams?.type ===
+          LedgerReplacementTxTypes.SPEED_UP
+        ) {
           await speedUpTransaction(transaction.id, gasFeeParams);
           return;
         }
 
-        if (transaction?.replacementParams?.type === 'cancel') {
+        if (
+          transaction?.replacementParams?.type ===
+          LedgerReplacementTxTypes.CANCEL
+        ) {
           await Engine.context.TransactionController.stopTransaction(
             transaction.id,
             gasFeeParams,
