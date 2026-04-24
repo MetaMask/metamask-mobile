@@ -86,11 +86,23 @@ jest.mock(
 );
 jest.mock('./components/Sections/SectionTypes/TileSection', () => () => null);
 jest.mock(
-  './components/Sections/SectionTypes/TrendingTokenTileCard',
+  './components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCard',
   () => () => null,
 );
 jest.mock(
-  './components/Sections/SectionTypes/useTrendingTokenTileSparklines',
+  './components/Sections/SectionTypes/SectionPills/SectionPills',
+  () => () => null,
+);
+jest.mock(
+  './components/Sections/SectionTypes/SectionPills/SectionPillsSkeleton',
+  () => () => null,
+);
+jest.mock(
+  './components/Sections/SectionTypes/CryptoMoversPillItem/CryptoMoversPillItem',
+  () => () => null,
+);
+jest.mock(
+  './components/Sections/SectionTypes/TrendingTokenTileCard/useTrendingTokenTileSparklines',
   () => ({
     useTrendingTokenTileSparklines: jest.fn(() => ({ sparklines: {} })),
   }),

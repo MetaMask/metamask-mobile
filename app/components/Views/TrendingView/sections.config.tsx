@@ -59,6 +59,9 @@ import {
 import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
+import SectionPills from './components/Sections/SectionTypes/SectionPills/SectionPills';
+import SectionPillsSkeleton from './components/Sections/SectionTypes/SectionPills/SectionPillsSkeleton';
+import CryptoMoversPillItem from './components/Sections/SectionTypes/CryptoMoversPillItem/CryptoMoversPillItem';
 import TileSection from './components/Sections/SectionTypes/TileSection';
 import TrendingTokenTileCard from './components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCard';
 import { useTrendingTokenTileSparklines } from './components/Sections/SectionTypes/TrendingTokenTileCard/useTrendingTokenTileSparklines';
@@ -213,13 +216,6 @@ const SEARCH_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
   sortOption: PriceChangeOption.PriceChange,
   networkFilter: 'all',
   isSearchResult: true,
-};
-
-const CRYPTO_MOVERS_HOME_FILTER_CONTEXT: TrendingFilterContext = {
-  timeFilter: TimeOption.TwentyFourHours,
-  sortOption: PriceChangeOption.Volume,
-  networkFilter: 'all',
-  isSearchResult: false,
 };
 
 const CRYPTO_MOVERS_SEARCH_FILTER_CONTEXT: TrendingFilterContext = {
@@ -530,14 +526,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
     getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
-    RowItem: ({ item, index }) => (
-      <TrendingTokenRowItem
-        token={item as TrendingAsset}
-        position={index}
-        filterContext={CRYPTO_MOVERS_HOME_FILTER_CONTEXT}
-        testIdInstanceKey="crypto_movers"
-      />
-    ),
+    RowItem: CryptoMoversPillItem,
     OverrideRowItemSearch: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -546,8 +535,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         testIdInstanceKey="crypto_movers"
       />
     ),
-    Skeleton: TrendingTokensSkeleton,
-    Section: SectionCard,
+    Skeleton: SectionPillsSkeleton,
+    Section: SectionPills,
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch({
         searchQuery,
