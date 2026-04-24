@@ -6360,7 +6360,7 @@
       "link_title": "Link MetaMask Card",
       "link_subtitle": "Spend your Money balance and earn.",
       "link_bullet_cashback": "Up to 3% cash back",
-      "link_bullet_apy": "Up to 4% APY",
+      "link_bullet_apy": "Up to {{apy}}% APY",
       "link_card": "Link card"
     },
     "what_you_get": {

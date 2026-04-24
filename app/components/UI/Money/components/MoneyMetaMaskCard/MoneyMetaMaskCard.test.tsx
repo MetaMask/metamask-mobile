@@ -89,7 +89,7 @@ describe('MoneyMetaMaskCard', () => {
     });
 
     it('renders cashback and APY bullets', () => {
-      const { getByTestId } = render(<MoneyMetaMaskCard mode="link" />);
+      const { getByTestId } = render(<MoneyMetaMaskCard mode="link" apy={5} />);
 
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),

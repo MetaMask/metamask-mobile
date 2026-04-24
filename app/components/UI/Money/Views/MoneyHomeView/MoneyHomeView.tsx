@@ -206,6 +206,7 @@ const MoneyHomeView = () => {
           onGetNowPress={handleGetNowPress}
           onHeaderPress={handleHeaderPress}
           onLinkPress={handleLinkCardPress}
+          apy={DEV_APY}
         />
         <Divider />
         {isMilestone && (

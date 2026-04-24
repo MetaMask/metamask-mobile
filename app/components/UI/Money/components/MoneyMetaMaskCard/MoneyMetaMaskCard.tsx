@@ -32,6 +32,8 @@ interface MoneyMetaMaskCardProps {
   onHeaderPress?: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
+  /** Current APY value displayed in the link mode bullet. */
+  apy?: number;
 }
 
 const CardRow = ({
@@ -108,7 +110,13 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
   </Box>
 );
 
-const LinkContent = ({ onLinkPress }: { onLinkPress: () => void }) => (
+const LinkContent = ({
+  onLinkPress,
+  apy,
+}: {
+  onLinkPress: () => void;
+  apy?: number;
+}) => (
   <Box twClassName="gap-3">
     <Text
       variant={TextVariant.BodySm}
@@ -133,7 +141,9 @@ const LinkContent = ({ onLinkPress }: { onLinkPress: () => void }) => (
           testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
         />
         <CheckBullet
-          text={strings('money.metamask_card.link_bullet_apy')}
+          text={strings('money.metamask_card.link_bullet_apy', {
+            apy: apy ?? 4,
+          })}
           testID={MoneyMetaMaskCardTestIds.LINK_BULLET_APY}
         />
       </Box>
@@ -155,6 +165,7 @@ const MoneyMetaMaskCard = ({
   onGetNowPress = () => undefined,
   onHeaderPress,
   onLinkPress,
+  apy,
 }: MoneyMetaMaskCardProps) => {
   const handleVirtualPress = useCallback(
     () => onGetNowPress('virtual'),
@@ -180,7 +191,7 @@ const MoneyMetaMaskCard = ({
         onPress={onHeaderPress}
       />
       {mode === 'link' ? (
-        <LinkContent onLinkPress={handleLinkPress} />
+        <LinkContent onLinkPress={handleLinkPress} apy={apy} />
       ) : (
         <>
           <Text
