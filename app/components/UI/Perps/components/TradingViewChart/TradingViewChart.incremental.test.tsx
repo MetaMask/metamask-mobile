@@ -41,7 +41,14 @@ jest.mock('@metamask/react-native-webview', () => {
       ReactMock.useImperativeHandle(ref, () => ({
         postMessage: mockPostMessage,
       }));
-      return <View testID={props.testID} />;
+      // Cast View to accept onMessage so tests can access it via getByTestId().props.onMessage
+      const ViewWithMessage = View as React.ComponentType<{
+        testID?: string;
+        onMessage?: (event: unknown) => void;
+      }>;
+      return (
+        <ViewWithMessage testID={props.testID} onMessage={props.onMessage} />
+      );
     },
   );
   MockWebView.displayName = 'MockWebView';
@@ -66,11 +73,6 @@ jest.mock('../../Perps.testIds', () => ({
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'Light' },
-}));
-
-jest.mock('../../../../../util/haptics', () => ({
-  playImpact: jest.fn(),
-  ImpactMoment: { ChartCrosshair: 'ChartCrosshair' },
 }));
 
 jest.mock('react-native-gesture-handler', () => {
