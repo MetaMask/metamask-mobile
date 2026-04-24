@@ -27,7 +27,7 @@ export interface SecurityBannerProps {
   testID: string;
   /** Callback when banner is pressed. If not provided, banner is non-interactive */
   onPress?: () => void;
-  /** Optional custom className for spacing/styling overrides */
+  /** Optional custom className for spacing/styling overrides. Defaults to 'gap-4' if not provided. */
   className?: string;
   /** Optional title to display */
   title?: string;
@@ -59,7 +59,7 @@ export const SecurityBanner: React.FC<SecurityBannerProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName={`self-stretch py-3 pl-6 pr-4 rounded-2xl ${backgroundClass} ${className || ''}`}
+      twClassName={`self-stretch py-3 pl-6 pr-4 rounded-2xl ${backgroundClass} ${className || 'gap-4'}`}
       testID={onPress ? undefined : testID}
     >
       <Box twClassName="pt-[2px]">

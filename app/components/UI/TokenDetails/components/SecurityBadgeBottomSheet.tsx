@@ -207,7 +207,7 @@ const SecurityBadgeBottomSheet = () => {
                 backgroundClass="bg-error-muted"
                 titleFontWeight={FontWeight.Bold}
                 testID="security-banner-malicious"
-                className="my-3 gap-3"
+                className="my-3 gap-4"
                 description={strings(
                   'security_trust.malicious_token_banner_description',
                   {
