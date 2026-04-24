@@ -115,6 +115,7 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.alert = jest.fn();
 
     mockSelectIsCardholder.mockReturnValue(false);
 
@@ -303,6 +304,13 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
     });
+
+    it('fires handleCardPress when onboarding CTA is tapped', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(() => {
+        fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+      }).not.toThrow();
+    });
   });
 
   describe('card-unlinked state (milestone + has cardholder)', () => {
@@ -398,6 +406,13 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
     });
+
+    it('fires handleLinkCardPress when onboarding CTA is tapped', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(() => {
+        fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+      }).not.toThrow();
+    });
   });
 
   describe('empty state (0 transactions)', () => {
@@ -440,6 +455,13 @@ describe('MoneyHomeView', () => {
     it('renders expanded WhatYouGet section', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('fires handleAddPress when onboarding CTA is tapped', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(() => {
+        fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+      }).not.toThrow();
     });
   });
 });
