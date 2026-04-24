@@ -95,27 +95,3 @@ export function getAccountTreeControllerInitMessenger(
   });
   return messenger;
 }
-
-export type AllowedInitializationEvents =
-  AccountTreeControllerSelectedAccountGroupChangeEvent;
-
-export type AccountTreeControllerInitMessenger = ReturnType<
-  typeof getAccountTreeControllerInitMessenger
->;
-
-/**
- * Get a messenger restricted to the actions and events that the
- * AccountTreeController requires during initialization.
- *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
- */
-export function getAccountTreeControllerInitMessenger(
-  messenger: Messenger<never, AllowedInitializationEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'AccountTreeControllerInit',
-    allowedActions: [],
-    allowedEvents: ['AccountTreeController:selectedAccountGroupChange'],
-  });
-}

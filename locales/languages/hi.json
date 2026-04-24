@@ -487,10 +487,6 @@
     "title_select_hardware": "किसी hardware wallet को कनेक्ट करें",
     "select_hardware": "किसी hardware wallet को चुनें जिसे आप इस्तेमाल करना चाहेंगे"
   },
-  "connect_hardware": {
-    "title_select_hardware": "किसी hardware wallet को कनेक्ट करें",
-    "select_hardware": "किसी hardware wallet को चुनें जिसे आप इस्तेमाल करना चाहेंगे"
-  },
   "enter_password": {
     "title": "अपना पासवर्ड दर्ज करें",
     "desc": "जारी रखने के लिए कृपया अपना पासवर्ड दर्ज करें",

@@ -3,8 +3,6 @@ import { ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../locales/i18n';
-import ActionModal from '../../../../components/UI/ActionModal';
-import SDKConnect from '../../../../core/SDKConnect';
 import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,

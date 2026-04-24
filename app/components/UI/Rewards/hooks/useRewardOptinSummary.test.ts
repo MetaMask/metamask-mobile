@@ -50,11 +50,6 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
   useInvalidateByRewardEvents: jest.fn(),
 }));
 
-// Mock useMetrics hook
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-}));
-
 describe('useRewardOptinSummary', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
@@ -75,7 +70,6 @@ describe('useRewardOptinSummary', () => {
     useInvalidateByRewardEvents as jest.MockedFunction<
       typeof useInvalidateByRewardEvents
     >;
-  const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
   const mockAccount1: InternalAccount = {
     id: 'account-1',

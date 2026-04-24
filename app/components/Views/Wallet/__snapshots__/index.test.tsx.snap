@@ -336,6 +336,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                       <View
                         style={
                           {
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                             "padding": 16,
                           }
@@ -2654,6 +2655,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       <View
                         style={
                           {
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                             "padding": 16,
                           }
@@ -3426,6 +3428,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       <View
                         style={
                           {
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                             "padding": 16,
                           }

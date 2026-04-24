@@ -21,7 +21,6 @@ import {
 import ActionModal from '../ActionModal';
 import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
 import { LEARN_MORE_URL } from '../../../constants/urls';

@@ -194,20 +194,6 @@ jest.mock('./Ledger/Ledger', () => ({
   withLedgerKeyring: jest.fn(),
 }));
 
-jest.mock('./redux/ReduxService', () => ({
-  store: {
-    getState: jest.fn().mockReturnValue({
-      engine: {
-        backgroundState: {
-          SeedlessOnboardingController: {
-            vault: null,
-          },
-        },
-      },
-    }),
-  },
-}));
-
 jest.mock('../util/Logger', () => ({
   error: jest.fn(),
 }));

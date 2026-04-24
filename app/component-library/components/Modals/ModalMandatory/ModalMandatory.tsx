@@ -18,16 +18,12 @@ import { WebView } from '@metamask/react-native-webview';
 
 // External dependencies.
 import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
-import Text from '../../Texts/Text';
+import Text, { TextVariant, TextColor } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 import { useTheme } from '../../../../util/theme';
-import ReusableModal, {
-  ReusableModalRef,
-} from '../../../../components/UI/ReusableModal';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
-
 // Internal dependencies
 import {
   WEBVIEW_SCROLL_END_EVENT,
@@ -47,8 +43,9 @@ import { throttle } from 'lodash';
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
-  const modalRef = useRef<ReusableModalRef>(null);
   const webViewRef = useRef<WebView>(null);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
 
   const [isWebViewLoaded, setIsWebViewLoaded] = useState<boolean>(false);
   const [isScrollEnded, setIsScrollEnded] = useState<boolean>(false);
@@ -206,10 +203,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     </View>
   );
 
-  const onPress = () => {
-    modalRef.current?.dismissModal(onAccept);
-  };
-
   const onMessage = (event: { nativeEvent: { data: string } }) => {
     if (event.nativeEvent.data === WEBVIEW_SCROLL_END_EVENT) {
       setIsScrollEnded(true);
@@ -232,6 +225,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
         onPress={scrollToEnd}
         iconName={IconName.ArrowDown}
+        iconColor={colors.primary.inverse}
         hitSlop={12}
       />
     </View>
@@ -355,10 +349,16 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         />
         {isScrollToEndNeeded && renderScrollEndButton()}
         {footerHelpText ? (
-          <Text style={styles.footerHelpText}>{footerHelpText}</Text>
+          <Text
+            style={styles.footerHelpText}
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+          >
+            {footerHelpText}
+          </Text>
         ) : null}
       </View>
-    </ReusableModal>
+    </BottomSheet>
   );
 };
 

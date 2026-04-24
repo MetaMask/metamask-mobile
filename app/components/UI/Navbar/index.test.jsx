@@ -158,6 +158,7 @@ describe('getNetworkNavbarOptions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Device.isAndroid.mockReset();
   });
 
   it('renders correctly with default options', () => {

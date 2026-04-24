@@ -68,17 +68,6 @@ jest.mock('../../util/trace', () => ({
   endTrace: (options: unknown) => mockEndTrace(options),
 }));
 
-jest.mock('../../selectors/seedlessOnboardingController', () => ({
-  selectSeedlessOnboardingLoginFlow: (state: unknown) =>
-    mockSelectSeedlessOnboardingLoginFlow(state),
-}));
-
-jest.mock('../../util/trace', () => ({
-  ...jest.requireActual('../../util/trace'),
-  trace: (options: unknown) => mockTrace(options),
-  endTrace: (options: unknown) => mockEndTrace(options),
-}));
-
 const createMockState = (hasVault: boolean) => ({
   engine: {
     backgroundState: {
@@ -114,7 +103,6 @@ jest.mock('../../core/Engine', () => ({
       getKeyringsByType: () => mockGetKeyringsByType(),
       withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
-      removeAccount: (address: string) => mockRemoveAccount(address),
     },
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),

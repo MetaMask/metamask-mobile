@@ -174,7 +174,7 @@ const PerpsTabView = () => {
   const renderStartTradeCTA = () => (
     <TouchableOpacity
       style={styles.startTradeCTA}
-      onPress={memoizedPressHandler}
+      onPress={handleNewTrade}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
     >
       <View style={styles.startTradeContent}>

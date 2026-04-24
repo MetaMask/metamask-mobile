@@ -57,7 +57,6 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
-  LEGACY_V2_CLOB_BASE_URL,
   MATIC_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';

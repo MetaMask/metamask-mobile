@@ -2,7 +2,6 @@ import { createSelector } from 'reselect';
 import { getSwapsLiveness, CHAIN_ID_TO_NAME_MAP } from './utils';
 import { invert, omit } from 'lodash';
 import { toHex } from '@metamask/controller-utils';
-import { SolScope } from '@metamask/keyring-api';
 
 export const getFeatureFlagChainId = (chainId) => chainId;
 

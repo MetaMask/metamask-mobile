@@ -33,10 +33,6 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
     selectNetworkConfigurationsByCaipChainId,
   );
 
-  const networksByCaipChainId = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-
   const [
     { data: sdkCryptoCurrencies, error, isFetching },
     retryFetchCryptoCurrencies,

@@ -81,7 +81,6 @@ const createStyles = (colors) =>
 export default class WalletConnectSessions extends PureComponent {
   state = {
     sessions: [],
-    sessionsV2: [],
   };
 
   actionSheet = null;
@@ -125,7 +124,6 @@ export default class WalletConnectSessions extends PureComponent {
   onActionSheetPress = (index) => (index === 0 ? this.killSession() : null);
 
   killSession = async () => {
-    const isV2 = this.sessionToRemove.peerId === undefined;
     try {
       if (isWC2Enabled) {
         await (
@@ -191,13 +189,12 @@ export default class WalletConnectSessions extends PureComponent {
   };
 
   render = () => {
-    const { ready, sessions, sessionsV2 } = this.state;
+    const { ready, sessions } = this.state;
     if (!ready) return null;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance;
     const styles = createStyles(colors);
 
-    const sessionsLength = sessions.length + sessionsV2.length;
     return (
       <SafeAreaView
         edges={{ bottom: 'additive' }}
