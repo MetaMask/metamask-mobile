@@ -14,7 +14,7 @@
 # - android / ios:    platform-specific file trees.
 # - all_changes:      denominator for count comparisons.
 #
-# 
+#
 # E2E STRATEGY: Use separate filters to detect different file types non E2E related.
 # Conservative approach - add only files that safely allow skipping E2E tests.
 
@@ -28,7 +28,7 @@ e2e_ignorable:
   - 'codecov.yml'
   - 'crowdin.yml'
   - 'sonar-project.properties'
-  - '.github/**'                       # all .github files — overridden by e2e_workflows below
+  - '.github/**' # all .github files — overridden by e2e_workflows below
 
 # ── E2E-relevant workflows (overrides the .github/** ignorable above) ─────────
 # Changes here always trigger E2E regardless of e2e_ignorable.
