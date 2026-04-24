@@ -1,0 +1,39 @@
+diff --git a/node_modules/@metamask/controllers/dist/keyring/KeyringController.js b/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
+index 8b9d1ba..d78f8b7 100644
+--- a/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
++++ b/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
+@@ -119,6 +119,7 @@ class KeyringController extends BaseController_1.BaseController {
+     }
+     /**
+      * Adds a new account to the default (first) HD seed phrase keyring.
++     * Patched to not auto switch accounts.
+      *
+      * @returns Promise resolving to current state when the account is added.
+      */
+@@ -134,12 +135,13 @@ class KeyringController extends BaseController_1.BaseController {
+             const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+             yield this.verifySeedPhrase();
+             this.updateIdentities(newAccounts);
++            let addedAccountAddress = '';
+             newAccounts.forEach((selectedAddress) => {
+                 if (!oldAccounts.includes(selectedAddress)) {
+-                    this.setSelectedAddress(selectedAddress);
++                    addedAccountAddress = selectedAddress
+                 }
+             });
+-            return this.fullUpdate();
++            return { addedAccountAddress, keyringState: this.fullUpdate() };
+         });
+     }
+     /**
+@@ -307,8 +309,8 @@ class KeyringController extends BaseController_1.BaseController {
+             const accounts = yield newKeyring.getAccounts();
+             const allAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+             this.updateIdentities(allAccounts);
+-            this.setSelectedAddress(accounts[0]);
+-            return this.fullUpdate();
++            const importedAccountAddress = accounts[0];
++            return { importedAccountAddress, keyringState: this.fullUpdate() };
+         });
+     }
+     /**

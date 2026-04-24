@@ -26,6 +26,7 @@ import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -78,6 +79,12 @@ jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
   })),
 }));
 
+jest.mock('../../hooks/gas/useIsGaslessLoading', () => ({
+  useIsGaslessLoading: jest.fn(() => ({
+    isGaslessLoading: false,
+  })),
+}));
+
 const mockTrackAlertMetrics = jest.fn();
 
 (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
@@ -101,6 +108,7 @@ describe('Footer', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useIsGaslessLoadingMock = jest.mocked(useIsGaslessLoading);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -124,6 +132,7 @@ describe('Footer', () => {
     });
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
   });
 
   it('should render correctly', () => {
@@ -228,9 +237,29 @@ describe('Footer', () => {
     ).toBe(true);
   });
 
-  it('disables confirm button if quotes are loading', () => {
+  it('disables confirm button if transaction pay is loading', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
+    useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      emptySignatureControllerMock,
+      { securityAlerts: { alerts: {} } },
+    );
 
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
+  it('disables confirm button if gasless support is loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: true });
     const state = merge(
       {},
       simpleSendTransactionControllerMock,
@@ -273,6 +302,38 @@ describe('Footer', () => {
 
     const { queryByTestId } = renderWithProvider(<Footer />, {
       state: getAppStateForConfirmation(moneyAccountDepositConfirmation),
+    });
+
+    expect(
+      queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeNull();
+  });
+
+  it('hides footer by default for moneyAccountWithdraw transaction type', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: undefined,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setIsFooterVisible: jest.fn(),
+      setIsTransactionDataUpdating: jest.fn(),
+      setIsTransactionValueUpdating: jest.fn(),
+    });
+
+    const moneyAccountWithdrawConfirmation = {
+      chainId: '0x89',
+      id: 'money-account-withdraw-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta;
+
+    const { queryByTestId } = renderWithProvider(<Footer />, {
+      state: getAppStateForConfirmation(moneyAccountWithdrawConfirmation),
     });
 
     expect(

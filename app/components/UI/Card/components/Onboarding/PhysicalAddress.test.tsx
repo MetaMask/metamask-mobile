@@ -40,6 +40,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
+      },
+    },
+  },
+}));
+
 // Mock utility functions
 jest.mock('../../util/cardTokenVault', () => ({
   storeCardBaanxToken: jest.fn().mockResolvedValue({ success: true }),
@@ -382,7 +393,6 @@ const createTestStore = (initialState = {}) =>
             onboardingId: 'test-id',
             contactVerificationId: 'contact-id',
           },
-          userCardLocation: 'us',
           ...initialState,
         },
         action = { type: '', payload: null },

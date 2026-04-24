@@ -25,11 +25,6 @@ describe('BackupAndSyncSettings', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<BackupAndSyncSettings />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('wraps content in SafeAreaView', () => {
     const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
 

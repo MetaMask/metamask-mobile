@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   selectProviders,
   selectUserRegion,
@@ -49,30 +49,66 @@ export interface UseRampsProvidersResult {
 }
 
 /**
- * Hook to get providers state from RampsController.
- * This hook assumes Engine is already initialized.
+ * Hook to get providers via React Query.
  *
- * Uses react-query with a 15min staleTime and refetchOnMount so that
- * providers (including supportedCryptoCurrencies) are refreshed when
- * stale data is detected on mount.
+ * The query fires when the region changes. Provider data is read from the
+ * React Query cache (not controller state) so that region-switching with
+ * cached data works correctly.
  *
  * @returns Providers state.
  */
-export function useRampsProviders(): UseRampsProvidersResult {
+/**
+ * @param options.enableSideEffects - When true, runs region-change invalidation and provider auto-selection.
+ * Should only be true in RampsBootstrap to avoid duplicate side effects from multiple consumers.
+ */
+export function useRampsProviders(options?: {
+  enableSideEffects?: boolean;
+}): UseRampsProvidersResult {
+  const enableSideEffects = options?.enableSideEffects ?? false;
   const {
-    data: providers,
+    data: providersStateData,
     selected: selectedProvider,
-    isLoading,
-    error,
+    isLoading: providersStateIsLoading,
+    error: providersStateError,
   } = useSelector(selectProviders);
 
   const userRegion = useSelector(selectUserRegion);
   const regionCode = userRegion?.regionCode ?? '';
+  const queryClient = useQueryClient();
 
-  useQuery({
+  // Mark all ramp queries as stale when region changes so that switching
+  // back to a previously visited region triggers a fresh fetch instead of
+  // serving cached data. refetchType: 'none' avoids a duplicate fetch —
+  // the query-key change already causes React Query to fetch for the new
+  // region; without 'none', invalidateQueries would trigger a second fetch
+  // on the same active query.
+  const prevRegionRef = useRef(regionCode);
+  useEffect(() => {
+    if (
+      enableSideEffects &&
+      regionCode &&
+      prevRegionRef.current !== regionCode
+    ) {
+      prevRegionRef.current = regionCode;
+      queryClient.invalidateQueries({
+        queryKey: ['ramps'],
+        refetchType: 'none',
+      });
+    }
+  }, [enableSideEffects, regionCode, queryClient]);
+
+  const providersQuery = useQuery({
     ...rampsQueries.providers.options({ regionCode }),
     enabled: Boolean(regionCode),
   });
+
+  // Keep a stable array reference for hook dependencies.
+  // React Query is authoritative when present; fallback to controller state
+  // keeps initial renders and test mocks resilient.
+  const providers = useMemo(
+    () => providersQuery?.data ?? providersStateData ?? [],
+    [providersQuery?.data, providersStateData],
+  );
 
   const legacyOrders = useSelector(getOrders);
   const controllerOrders = useSelector(
@@ -88,31 +124,46 @@ export function useRampsProviders(): UseRampsProvidersResult {
   );
 
   const setSelectedProvider = useCallback(
-    (provider: Provider | null, options?: { autoSelected?: boolean }) =>
+    (provider: Provider | null, setOptions?: { autoSelected?: boolean }) =>
       Engine.context.RampsController.setSelectedProvider(
         provider?.id ?? null,
-        options,
+        setOptions,
       ),
     [],
   );
 
   useEffect(() => {
-    if (providers && providers.length > 0 && !selectedProvider) {
+    if (
+      enableSideEffects &&
+      providers &&
+      providers.length > 0 &&
+      !selectedProvider
+    ) {
       const result = determinePreferredProvider(completedOrders, providers);
       if (result) {
-        Engine.context.RampsController.setSelectedProvider(result.provider.id, {
+        (
+          Engine.context.RampsController as {
+            setSelectedProvider: (
+              providerOrId: Provider | string | null,
+              options?: { autoSelected?: boolean },
+            ) => void;
+          }
+        ).setSelectedProvider(result.provider, {
           autoSelected: result.autoSelected,
         });
       }
     }
-  }, [providers, selectedProvider, completedOrders]);
+  }, [enableSideEffects, providers, selectedProvider, completedOrders]);
 
   return {
     providers,
     selectedProvider,
     setSelectedProvider,
-    isLoading,
-    error,
+    isLoading: providersQuery?.isLoading ?? providersStateIsLoading,
+    error:
+      providersQuery?.error instanceof Error
+        ? providersQuery.error.message
+        : providersStateError,
   };
 }
 

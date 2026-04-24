@@ -26,7 +26,6 @@ import { handlePerpsUrl } from './handlePerpsUrl';
 import { handleRewardsUrl } from './handleRewardsUrl';
 import { handlePredictUrl } from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
-import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
@@ -81,7 +80,6 @@ const SUPPORTED_ACTIONS = {
   PREDICT: ACTIONS.PREDICT,
   WC: ACTIONS.WC,
   ONBOARDING: ACTIONS.ONBOARDING,
-  ENABLE_CARD_BUTTON: ACTIONS.ENABLE_CARD_BUTTON,
   CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
@@ -104,7 +102,6 @@ type SUPPORTED_ACTIONS =
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.WC,
-  SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
   SUPPORTED_ACTIONS.CARD_KYC_NOTIFICATION,
@@ -128,13 +125,12 @@ const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
 
 const interstitialWhitelistUrls = [] as const;
 
-// This is used when links originate from within the app itself
-const inAppLinkSources = [
+// Deeplinks from these sources are sent by MetaMask and won't show the interstitial modal
+const trustedInAppSources = [
   AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
-  AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-  AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+  AppConstants.DEEPLINKS.ORIGIN_BRAZE,
 ] as string[];
 
 /**
@@ -386,9 +382,10 @@ async function handleUniversalLink({
         validatedUrlString.startsWith(u),
       );
       const linkInstanceType = linkType();
-      const isInAppSourceWithPrivateLink =
-        inAppLinkSources.includes(source) &&
-        linkInstanceType === DeepLinkModalLinkType.PRIVATE;
+      const isTrustedInAppSource =
+        trustedInAppSources.includes(source) &&
+        (linkInstanceType === DeepLinkModalLinkType.PRIVATE ||
+          linkInstanceType === DeepLinkModalLinkType.PUBLIC);
 
       // Build analytics context - interstitialShown starts as false, set to true when modal is actually shown
       // interstitialAction will be set when user takes action
@@ -403,8 +400,8 @@ async function handleUniversalLink({
         // interstitialAction is undefined initially, set when user takes action
       };
 
-      // Track analytics for skipped cases (whitelisted URLs or in-app sources with private links)
-      if (isWhitelistedUrl || isInAppSourceWithPrivateLink) {
+      // Track analytics for skipped cases (whitelisted URLs or trusted in-app sources)
+      if (isWhitelistedUrl || isTrustedInAppSource) {
         analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
         // Track analytics asynchronously without blocking
         trackDeepLinkAnalytics(analyticsContext);
@@ -610,10 +607,6 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.ONBOARDING: {
       handleFastOnboarding({ onboardingPath: actionBasedRampPath });
-      break;
-    }
-    case SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON: {
-      handleEnableCardButton();
       break;
     }
     case SUPPORTED_ACTIONS.CARD_ONBOARDING: {

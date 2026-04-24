@@ -62,7 +62,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -114,7 +114,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -166,7 +166,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -232,7 +232,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -284,7 +284,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -336,7 +336,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -402,7 +402,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -454,7 +454,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -506,7 +506,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -572,7 +572,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -624,7 +624,7 @@ exports[`Keypad components components should render correctly and match snapshot
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -752,7 +752,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -805,7 +805,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -858,7 +858,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -925,7 +925,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -978,7 +978,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1031,7 +1031,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1098,7 +1098,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1151,7 +1151,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1204,7 +1204,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1273,7 +1273,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1326,7 +1326,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,

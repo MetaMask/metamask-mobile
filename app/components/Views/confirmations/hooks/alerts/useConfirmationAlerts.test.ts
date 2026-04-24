@@ -16,6 +16,8 @@ import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
+import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
+import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -37,6 +39,8 @@ jest.mock('./useBatchedUnusedApprovalsAlert');
 jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useInsufficientPredictBalanceAlert');
+jest.mock('./useInsufficientPerpsBalanceAlert');
+jest.mock('./useInsufficientMoneyAccountBalanceAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
@@ -146,6 +150,22 @@ describe('useConfirmationAlerts', () => {
       severity: Severity.Danger,
     },
   ];
+  const mockBurnAddressAlert: Alert[] = [
+    {
+      key: 'BurnAddressAlert',
+      title: 'Test Burn Address Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+  const mockBurnAddressAlert: Alert[] = [
+    {
+      key: 'BurnAddressAlert',
+      title: 'Test Burn Address Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
 
   const mockTokenTrustSignalAlerts: Alert[] = [
     {
@@ -194,6 +214,8 @@ describe('useConfirmationAlerts', () => {
     (useInsufficientPayTokenBalanceAlert as jest.Mock).mockReturnValue([]);
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
+    (useInsufficientPerpsBalanceAlert as jest.Mock).mockReturnValue([]);
+    (useInsufficientMoneyAccountBalanceAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
@@ -277,6 +299,7 @@ describe('useConfirmationAlerts', () => {
     (useTokenContractAlert as jest.Mock).mockReturnValue(
       mockTokenContractAlert,
     );
+    (useBurnAddressAlert as jest.Mock).mockReturnValue(mockBurnAddressAlert);
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });

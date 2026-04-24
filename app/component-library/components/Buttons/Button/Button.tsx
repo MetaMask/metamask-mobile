@@ -14,6 +14,7 @@ import { ButtonProps, ButtonVariants } from './Button.types';
  * @deprecated Please update your code to use `Button` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Button/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#button-component Migration docs}
  */
 const Button = (buttonProps: ButtonProps) => {
   const { variant, ...restProps } = buttonProps;

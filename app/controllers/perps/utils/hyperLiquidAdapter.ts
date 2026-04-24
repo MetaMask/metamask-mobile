@@ -1,4 +1,4 @@
-import { Hex, isHexString } from '@metamask/utils';
+import { hasProperty, Hex, isHexString } from '@metamask/utils';
 
 import {
   countSignificantFigures,
@@ -19,7 +19,6 @@ import type {
   AssetPosition,
   FrontendOrder,
   ClearinghouseStateResponse,
-  SpotClearinghouseStateResponse,
   MetaResponse,
   SDKOrderParams,
 } from '../types/hyperliquid-types';
@@ -255,9 +254,12 @@ export function adaptMarketFromSDK(
   };
 }
 
+// Perps-only account adapter. Spot balances are layered on afterwards by
+// addSpotBalanceToAccountState, which enforces the USDC-only policy via
+// SPOT_COLLATERAL_COINS. Keeping spot logic out of here preserves a single
+// source of truth for spot balance math.
 export function adaptAccountStateFromSDK(
   perpsState: ClearinghouseStateResponse,
-  spotState?: SpotClearinghouseStateResponse | null,
 ): AccountState {
   const { totalUnrealizedPnl, weightedReturnOnEquity } =
     perpsState.assetPositions.reduce(
@@ -288,20 +290,10 @@ export function adaptAccountStateFromSDK(
 
   const perpsBalance = parseFloat(perpsState.marginSummary.accountValue);
 
-  let spotBalance = 0;
-  if (spotState?.balances && Array.isArray(spotState.balances)) {
-    spotBalance = spotState.balances.reduce(
-      (sum: number, balance: { total?: string }) =>
-        sum + parseFloat(balance.total ?? '0'),
-      0,
-    );
-  }
-
-  const totalBalance = (spotBalance + perpsBalance).toString();
-
   const accountState: AccountState = {
     availableBalance: perpsState.withdrawable || '0',
-    totalBalance: totalBalance || '0',
+    availableToTradeBalance: perpsState.withdrawable || '0',
+    totalBalance: perpsBalance.toString() || '0',
     marginUsed: perpsState.marginSummary.totalMarginUsed || '0',
     unrealizedPnl: totalUnrealizedPnl.toString() || '0',
     returnOnEquity: totalReturnOnEquityPercentage || '0',
@@ -438,10 +430,13 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
       let amount = '0';
       let asset = 'USDC';
 
-      if ('usdc' in update.delta && update.delta.usdc) {
+      if (hasProperty(update.delta, 'usdc') && update.delta.usdc) {
         amount = Math.abs(parseFloat(update.delta.usdc)).toString();
       }
-      if ('coin' in update.delta && typeof update.delta.coin === 'string') {
+      if (
+        hasProperty(update.delta, 'coin') &&
+        typeof update.delta.coin === 'string'
+      ) {
         asset = update.delta.coin;
       }
 

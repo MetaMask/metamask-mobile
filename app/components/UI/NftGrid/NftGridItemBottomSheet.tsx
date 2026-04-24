@@ -5,13 +5,12 @@ import {
   ButtonVariant,
   Text,
   TextVariant,
+  BottomSheet,
+  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useRef } from 'react';
 import { Alert, Modal, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Nft } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
@@ -76,11 +75,7 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
   return (
     <View testID="nft-grid-item-bottom-sheet">
       <Modal visible transparent animationType="none" statusBarTranslucent>
-        <BottomSheet
-          shouldNavigateBack={false}
-          ref={sheetRef}
-          onClose={onClose}
-        >
+        <BottomSheet ref={sheetRef} onClose={onClose}>
           <BottomSheetHeader onClose={handleSheetClose}>
             <Text variant={TextVariant.HeadingMd}>
               {strings('wallet.collectible_action_title')}

@@ -18,11 +18,8 @@ jest.mock('./useEarnToasts');
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-jest.mock('../../../../selectors/tokenListController', () => ({
-  selectERC20TokensByChain: jest.fn(),
+jest.mock('../../../../selectors/tokensController', () => ({
+  selectSingleTokenByAddressAndChainId: jest.fn(),
 }));
 jest.mock('../../../../util/transactions', () => {
   const actual = jest.requireActual('../../../../util/transactions');
@@ -32,9 +29,6 @@ jest.mock('../../../../util/transactions', () => {
   };
 });
 jest.mock('../../../../util/networks', () => ({}));
-jest.mock('../../../../selectors/networkController', () => ({
-  selectEvmNetworkConfigurationsByChainId: jest.fn(),
-}));
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
@@ -54,12 +48,10 @@ jest.mock('../../../../selectors/transactionPayController', () => ({
   selectTransactionPayQuotesByTransactionId: jest.fn(),
 }));
 
-import { useSelector } from 'react-redux';
-import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { decodeTransferData } from '../../../../util/transactions';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import {
   trace,
   endTrace,
@@ -79,13 +71,11 @@ const mockSelectTransactionPayQuotesByTransactionId = jest.mocked(
   selectTransactionPayQuotesByTransactionId,
 );
 
-const mockUseSelector = jest.mocked(useSelector);
-const mockSelectERC20TokensByChain = jest.mocked(selectERC20TokensByChain);
+const mockSelectSingleTokenByAddressAndChainId = jest.mocked(
+  selectSingleTokenByAddressAndChainId,
+);
 const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockDecodeTransferData = jest.mocked(decodeTransferData);
-const mockSelectEvmNetworkConfigurationsByChainId = jest.mocked(
-  selectEvmNetworkConfigurationsByChainId,
-);
 
 type TransactionStatusUpdatedHandler = (event: {
   transactionMeta: TransactionMeta;
@@ -192,9 +182,6 @@ describe('useMusdConversionStatus', () => {
     },
   };
 
-  // Default mock data
-  const defaultTokensChainsCache = {};
-
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -223,28 +210,18 @@ describe('useMusdConversionStatus', () => {
       EarnToastOptions: mockEarnToastOptions,
     });
 
-    // Setup useSelector to return different values based on selector
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === mockSelectERC20TokensByChain) {
-        return defaultTokensChainsCache;
-      }
-      if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
-        return { '0x1': { name: 'Ethereum Mainnet' } };
-      }
-      return {};
-    });
+    // Default: token not found
+    mockSelectSingleTokenByAddressAndChainId.mockReturnValue(undefined);
   });
 
-  // Helper to setup token cache mock
-  const setupTokensCacheMock = (tokenData: Record<string, unknown>) => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === mockSelectERC20TokensByChain) {
-        return tokenData;
-      }
-      if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
-        return { '0x1': { name: 'Ethereum Mainnet' } };
-      }
-      return {};
+  // Helper to setup token lookup mock for a specific address+chain
+  const setupTokenLookupMock = (symbol: string, name = '') => {
+    mockSelectSingleTokenByAddressAndChainId.mockReturnValue({
+      symbol,
+      name,
+      address: '',
+      decimals: 18,
+      aggregators: [],
     });
   };
 
@@ -364,14 +341,7 @@ describe('useMusdConversionStatus', () => {
     it('passes token symbol from metamaskPay data to in-progress toast', () => {
       const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
       const chainId = '0x89';
-      const mockTokenData = {
-        [chainId]: {
-          data: {
-            [tokenAddress]: { symbol: 'USDC' },
-          },
-        },
-      };
-      setupTokensCacheMock(mockTokenData);
+      setupTokenLookupMock('USDC');
 
       renderHook(() => useMusdConversionStatus());
 
@@ -390,41 +360,10 @@ describe('useMusdConversionStatus', () => {
       });
     });
 
-    it('uses lowercase token address as fallback for symbol lookup', () => {
-      const tokenAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
-      const chainId = '0x1';
-      const mockTokenData = {
-        [chainId]: {
-          data: {
-            [tokenAddress.toLowerCase()]: { symbol: 'DAI' },
-          },
-        },
-      };
-      setupTokensCacheMock(mockTokenData);
-
-      renderHook(() => useMusdConversionStatus());
-
-      const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.approved,
-        'test-tx-lowercase',
-        TransactionType.musdConversion,
-        { chainId, tokenAddress },
-      );
-
-      handler({ transactionMeta });
-
-      expect(mockInProgressFn).toHaveBeenCalledWith(
-        expect.objectContaining({ tokenSymbol: 'DAI' }),
-      );
-    });
-
-    it('uses "Token" as fallback when token symbol is not found', () => {
+    it('uses "Token" as fallback when token is not found in wallet', () => {
       const tokenAddress = '0x1111111111111111111111111111111111111111';
       const chainId = '0x1';
-      setupTokensCacheMock({
-        [chainId]: { data: {} },
-      });
+      mockSelectSingleTokenByAddressAndChainId.mockReturnValue(undefined);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -856,13 +795,7 @@ describe('useMusdConversionStatus', () => {
     it('tracks status updated event when transaction status is approved', () => {
       const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
       const chainId = '0x1';
-      setupTokensCacheMock({
-        [chainId]: {
-          data: {
-            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
-          },
-        },
-      });
+      setupTokenLookupMock('USDC', 'USD Coin');
 
       renderHook(() => useMusdConversionStatus());
 
@@ -902,13 +835,7 @@ describe('useMusdConversionStatus', () => {
     it('tracks status updated event when transaction status is confirmed', () => {
       const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
       const chainId = '0x1';
-      setupTokensCacheMock({
-        [chainId]: {
-          data: {
-            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
-          },
-        },
-      });
+      setupTokenLookupMock('USDC', 'USD Coin');
 
       renderHook(() => useMusdConversionStatus());
 
@@ -948,13 +875,7 @@ describe('useMusdConversionStatus', () => {
     it('tracks status updated event when transaction status is failed', () => {
       const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
       const chainId = '0x1';
-      setupTokensCacheMock({
-        [chainId]: {
-          data: {
-            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
-          },
-        },
-      });
+      setupTokenLookupMock('USDC', 'USD Coin');
 
       renderHook(() => useMusdConversionStatus());
 

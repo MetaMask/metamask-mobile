@@ -13,6 +13,14 @@ import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
 import Device from '../device';
 
 /**
+ * Darker success green used in light mode for better contrast on charts,
+ * price indicators, and action buttons. The design-system token
+ * `success.default` is too faint against a light background.
+ */
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+export const LIGHT_MODE_SUCCESS_GREEN = '#00881A';
+
+/**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
  * TODO: Convert classes into functional components and remove contextType
  */
@@ -122,18 +130,14 @@ export const useAppTheme = (): Theme => {
 
   const setDarkStatusBar = () => {
     StatusBar.setBarStyle('light-content', true);
-    if (Device.isAndroid()) {
-      StatusBar.setTranslucent(true);
-      StatusBar.setBackgroundColor('transparent');
-    }
+    Device.isAndroid() &&
+      StatusBar.setBackgroundColor(darkTheme.colors.background.default);
   };
 
   const setLightStatusBar = () => {
     StatusBar.setBarStyle('dark-content', true);
-    if (Device.isAndroid()) {
-      StatusBar.setTranslucent(true);
-      StatusBar.setBackgroundColor('transparent');
-    }
+    Device.isAndroid() &&
+      StatusBar.setBackgroundColor(lightTheme.colors.background.default);
   };
 
   switch (appTheme) {

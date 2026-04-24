@@ -90,6 +90,30 @@ const AccountsConnectedList = ({
     [networkAvatars],
   );
 
+  const getFilteredNetworkAvatars = useCallback(
+    (accountScopes: CaipChainId[] = []) => {
+      if (!accountScopes.length) return [];
+
+      return networkAvatars.filter((avatar) => {
+        const { namespace } = parseCaipChainId(avatar.caipChainId);
+
+        return accountScopes.some((scope) => {
+          switch (namespace) {
+            case KnownCaipNamespace.Bip122:
+              return scope.includes(KnownCaipNamespace.Bip122);
+            case KnownCaipNamespace.Solana:
+              return scope.includes(KnownCaipNamespace.Solana);
+            case KnownCaipNamespace.Eip155:
+              return scope.includes(KnownCaipNamespace.Eip155);
+            default:
+              return false;
+          }
+        });
+      });
+    },
+    [networkAvatars],
+  );
+
   const renderRightAccessory = useCallback(
     (account: Account) => {
       const { assets, address, scopes = [] } = account;

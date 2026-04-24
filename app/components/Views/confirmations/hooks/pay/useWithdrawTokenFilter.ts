@@ -17,8 +17,10 @@ import { RootState } from '../../../../../reducers';
  * Returns a token filter for withdraw transactions, following the same pattern
  * as `usePerpsBalanceTokenFilter` and `useMusdConversionTokens`.
  *
- * Uses `includeAllTokens` to pull from the full token catalog so that
- * allowlisted tokens appear even when the user has zero balance.
+ * Wallet tokens matching the allowlist are returned via `tokenFilter` delegation
+ * to `useSendTokens`. For allowlisted tokens the user does not hold, metadata
+ * is fetched from the tokens API (via `enrichTokenRequests` in `useAccountTokens`)
+ * so they still appear as zero-balance options.
  */
 export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   const transactionMeta = useTransactionMetadataRequest();
@@ -28,7 +30,7 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
     selectPayQuoteConfig(state, transactionType),
   );
   const allowlist = config.tokens;
-  const shouldLoadFullTokenCatalog = isWithdraw && Boolean(allowlist);
+  const shouldEnrich = isWithdraw && Boolean(allowlist);
 
   const tokenFilter = useMemo(() => {
     if (!allowlist) {
@@ -39,20 +41,32 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
       lookup.get(chainId.toLowerCase())?.has(address.toLowerCase()) ?? false;
   }, [allowlist]);
 
-  const allTokens = useSendTokens({
-    includeNoBalance: shouldLoadFullTokenCatalog,
-    includeAllTokens: shouldLoadFullTokenCatalog,
+  const enrichTokenRequests = useMemo(() => {
+    if (!shouldEnrich || !allowlist) return [];
+    return Object.entries(allowlist).flatMap(([chainId, addresses]) =>
+      addresses
+        .filter((addr) => !isNativeAddress(addr.toLowerCase()))
+        .map((addr) => ({
+          chainId: chainId as Hex,
+          address: addr,
+        })),
+    );
+  }, [shouldEnrich, allowlist]);
+
+  const walletTokens = useSendTokens({
+    includeNoBalance: shouldEnrich,
     tokenFilter,
+    enrichTokenRequests,
   });
 
   return useCallback(
     (tokens: AssetType[]): AssetType[] => {
-      if (!isWithdraw || !shouldLoadFullTokenCatalog) {
+      if (!isWithdraw || !shouldEnrich) {
         return tokens;
       }
-      return allTokens;
+      return walletTokens;
     },
-    [isWithdraw, shouldLoadFullTokenCatalog, allTokens],
+    [isWithdraw, shouldEnrich, walletTokens],
   );
 }
 

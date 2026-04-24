@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   AddressBookController,
   type AddressBookControllerMessenger,
@@ -11,7 +11,7 @@ import {
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const addressBookControllerInit: ControllerInitFunction<
+export const addressBookControllerInit: MessengerClientInitFunction<
   AddressBookController,
   AddressBookControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

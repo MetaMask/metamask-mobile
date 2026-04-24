@@ -74,6 +74,8 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
 import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useComplianceGate } from '../../../Compliance';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
@@ -120,6 +122,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const isEligible = useSelector(selectPerpsEligibility);
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+
+  // Compliance gate
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const { gate } = useComplianceGate(selectedAddress ?? '');
 
   // Get market data for the header
   const { markets } = usePerpsMarkets();
@@ -373,123 +379,139 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   );
 
   // Handle Long button press
-  const handleLongPress = useCallback(() => {
-    // Geo-restriction check
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
+  const handleLongPress = useCallback(
+    () =>
+      gate(async () => {
+        // Geo-restriction check
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
 
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
-      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
-      [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      ...(isButtonColorTestEnabled && {
-        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+          [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          ...(isButtonColorTestEnabled && {
+            [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+          }),
+        });
+
+        navigateToOrder({
+          direction: 'long',
+          asset: symbol || '',
+          source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
+        });
       }),
-    });
-
-    navigateToOrder({
-      direction: 'long',
-      asset: symbol || '',
-      source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
-    });
-  }, [
-    isEligible,
-    symbol,
-    navigateToOrder,
-    track,
-    isButtonColorTestEnabled,
-    buttonColorVariant,
-  ]);
+    [
+      gate,
+      isEligible,
+      symbol,
+      navigateToOrder,
+      track,
+      isButtonColorTestEnabled,
+      buttonColorVariant,
+    ],
+  );
 
   // Handle Short button press
-  const handleShortPress = useCallback(() => {
-    // Geo-restriction check
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
+  const handleShortPress = useCallback(
+    () =>
+      gate(async () => {
+        // Geo-restriction check
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
 
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
-      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
-      [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.SHORT,
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      ...(isButtonColorTestEnabled && {
-        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+          [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          ...(isButtonColorTestEnabled && {
+            [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+          }),
+        });
+
+        navigateToOrder({
+          direction: 'short',
+          asset: symbol || '',
+          source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
+        });
       }),
-    });
-
-    navigateToOrder({
-      direction: 'short',
-      asset: symbol || '',
-      source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
-    });
-  }, [
-    isEligible,
-    symbol,
-    navigateToOrder,
-    track,
-    isButtonColorTestEnabled,
-    buttonColorVariant,
-  ]);
+    [
+      gate,
+      isEligible,
+      symbol,
+      navigateToOrder,
+      track,
+      isButtonColorTestEnabled,
+      buttonColorVariant,
+    ],
+  );
 
   // Handle Close position button press
   const handleClosePosition = useCallback(() => {
     if (!existingPosition) return;
 
-    // Geo-restriction check
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_CLOSE_BUTTON,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
+    return gate(async () => {
+      // Geo-restriction check
+      if (!isEligible) {
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_CLOSE_BUTTON,
+        });
+        setIsEligibilityModalVisible(true);
+        return;
+      }
 
-    navigateToClosePosition(
-      existingPosition,
-      PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
-    );
-  }, [existingPosition, navigateToClosePosition, isEligible, track]);
+      navigateToClosePosition(
+        existingPosition,
+        PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
+      );
+    });
+  }, [existingPosition, gate, navigateToClosePosition, isEligible, track]);
 
   // Handle Modify position button press
   const handleModifyPress = useCallback(() => {
     if (!existingPosition) return;
 
-    // Geo-restriction check
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_MODIFY_BUTTON,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
+    return gate(async () => {
+      // Geo-restriction check
+      if (!isEligible) {
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_MODIFY_BUTTON,
+        });
+        setIsEligibilityModalVisible(true);
+        return;
+      }
 
-    openModifySheet();
-  }, [existingPosition, openModifySheet, isEligible, track]);
+      openModifySheet();
+    });
+  }, [existingPosition, gate, openModifySheet, isEligible, track]);
 
   // Error state
   if (error) {
@@ -796,6 +818,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           position={existingPosition ?? undefined}
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
+          testID={PerpsOrderBookViewSelectorsIDs.MODIFY_ACTION_SHEET}
         />
       )}
 

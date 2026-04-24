@@ -1033,7 +1033,7 @@ workflows:
           inputs:
             - content: |
                 #!/usr/bin/env bash
-                ./scripts/download-android-qa-app.sh
+                ./tests/scripts/download-android-qa-app.sh
                 # APK_PATH is already set by the download script using envman
   build_flask_e2e_android:
     after_run:
@@ -1361,7 +1361,7 @@ workflows:
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh
+                  ./tests/scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           title: Export test results
@@ -1491,7 +1491,7 @@ workflows:
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh
+                  ./tests/scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           title: Export test results
@@ -1990,14 +1990,14 @@ workflows:
                 # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                 # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
                 # else
-                # ./scripts/run-e2e-tags.sh
+                # ./tests/scripts/run-e2e-tags.sh
                 # fi
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh
+                  ./tests/scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           is_always_run: true
@@ -2142,7 +2142,7 @@ workflows:
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
-                  ./scripts/run-e2e-tags.sh
+                  ./tests/scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           is_always_run: true
@@ -2268,14 +2268,6 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      # Note - This step will fail if stack is not Linux
-      - script@1:
-          title: Install ICU libraries for Hermes
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install libicu-dev -y
       - script@1:
           title: "[Phase 1.5] Verify builds.yml config"
           is_skippable: true
@@ -2476,12 +2468,12 @@ workflows:
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       # Note - This step will fail if stack is not Linux
       - script@1:
-          title: Install CCache, ICU libraries & symlink
+          title: Install CCache & symlink
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 sudo apt update
-                sudo apt install ccache libicu-dev -y
+                sudo apt install ccache -y
       - restore-cache@2:
           title: Restore CCache
           inputs:
@@ -3519,6 +3511,9 @@ app:
       MM_PERPS_HIP3_BLOCKLIST_MARKETS: ""
     - opts:
         is_expand: false
+      MM_CHARTING_LIBRARY_URL: 'https://charting-assets.static.metamask.io/tradingview/advanced-charts/v30.1.0/'
+    - opts:
+        is_expand: false
       MM_MUSD_CONVERSION_FLOW_ENABLED: false
     - opts:
         is_expand: false
@@ -3552,16 +3547,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.73.0
+      VERSION_NAME: 7.75.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 4594
+      VERSION_NUMBER: 4660
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.73.0
+      FLASK_VERSION_NAME: 7.75.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 4594
+      FLASK_VERSION_NUMBER: 4660
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

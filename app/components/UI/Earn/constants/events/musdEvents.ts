@@ -5,11 +5,10 @@ const EVENT_PROVIDERS = {
 const EVENT_LOCATIONS = {
   HOME_SCREEN: 'home',
   /** Cash section on homepage (aggregated mUSD row or empty state "Get mUSD") */
-  HOME_CASH_SECTION: 'home_cash_section',
+  HOME_CASH_SECTION: 'home_section',
   TOKEN_LIST_ITEM: 'token_list_item',
   ASSET_OVERVIEW: 'asset_overview',
-  ASSET_OVERVIEW_CLAIMABLE_BONUS_TOOLTIP:
-    'asset_overview_claimable_bonus_tooltip',
+  BONUS_CLAIM_TOOLTIP: 'bonus_claim_tooltip',
   CONVERSION_EDUCATION_SCREEN: 'conversion_education_screen',
   CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
   BUY_SCREEN: 'buy_screen', // Buy mUSD screen.

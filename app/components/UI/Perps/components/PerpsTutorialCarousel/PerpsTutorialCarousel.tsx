@@ -32,6 +32,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
 import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
+import { PERPS_LEARN_MORE_URL } from '../../../../../constants/urls';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
@@ -209,6 +210,16 @@ const PerpsTutorialCarousel: React.FC = () => {
     });
   }, []);
 
+  // Initialize connection in background while user views tutorial
+  useEffect(() => {
+    PerpsConnectionManager.connect().catch((error) => {
+      DevLogger.log(
+        'Background connection initialization during tutorial:',
+        error,
+      );
+    });
+  }, []);
+
   // Cleanup timeouts on unmount
   useEffect(
     () => () => {
@@ -379,7 +390,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     NavigationService.navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {
-        newTabUrl: 'https://support.metamask.io/manage-crypto/trade/perps',
+        newTabUrl: PERPS_LEARN_MORE_URL,
         linkType: EXTERNAL_LINK_TYPE,
         timestamp: Date.now(),
         fromPerps: true,

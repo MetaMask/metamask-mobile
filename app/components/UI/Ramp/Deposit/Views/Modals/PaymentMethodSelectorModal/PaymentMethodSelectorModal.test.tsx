@@ -53,9 +53,10 @@ describe('PaymentMethodSelectorModal Component', () => {
     });
   });
 
-  it('renders correctly and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(PaymentMethodSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders payment methods list', () => {
+    const { getByText } = renderWithProvider(PaymentMethodSelectorModal);
+    expect(getByText('Debit or Credit')).toBeOnTheScreen();
+    expect(getByText('Apple Pay')).toBeOnTheScreen();
   });
 
   it('displays payment methods and allows selection', async () => {

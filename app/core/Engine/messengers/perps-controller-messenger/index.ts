@@ -42,6 +42,7 @@ export function getPerpsControllerMessenger(
       'RemoteFeatureFlagController:getState',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AuthenticationController:getBearerToken',
+      'RemoteFeatureFlagController:getState',
     ],
     events: [
       'RemoteFeatureFlagController:stateChange',

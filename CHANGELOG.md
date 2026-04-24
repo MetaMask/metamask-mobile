@@ -5817,7 +5817,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- fix: capture exception with Sentry instead throwing the error (#15469)
+- fix: capture exception with Sentry instead throwing the error ([#15469](https://github.com/MetaMask/metamask-mobile/pull/15469))
 
 ## [7.46.0]
 
@@ -7060,8 +7060,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.32.0]
 
-### Added
+### Changed
+- [#11379](https://github.com/MetaMask/metamask-mobile/pull/11379): refactor: rename the feature flag since it had a typo (#11379)
+- [#11615](https://github.com/MetaMask/metamask-mobile/pull/11615): chore: exclude temporarily sentry SDK advisory (#11615)
+- [#11577](https://github.com/MetaMask/metamask-mobile/pull/11577): ci: disable swaps e2e workflow (#11577)
+- [#11350](https://github.com/MetaMask/metamask-mobile/pull/11350): chore: replace Segment patch by plugin (#11350)
+- [#11287](https://github.com/MetaMask/metamask-mobile/pull/11287): chore: remove unused events (#11287)
+- [#11517](https://github.com/MetaMask/metamask-mobile/pull/11517): chore: delete swaps token charts test (#11517)
+- [#11515](https://github.com/MetaMask/metamask-mobile/pull/11515): test: disable swaps token charts regression tests (#11515)
+- [#11504](https://github.com/MetaMask/metamask-mobile/pull/11504): chore: revert measuring with react native performance (#11504)
+- [#11458](https://github.com/MetaMask/metamask-mobile/pull/11458): test: Merge Import Token flow methods and ids in just one folder and files (#11458)
+- [#11492](https://github.com/MetaMask/metamask-mobile/pull/11492): chore(revert): Prevent redundant Sentry sourcemap uploads (#11492)
+- [#11469](https://github.com/MetaMask/metamask-mobile/pull/11469): test: Remove E2E Tests for Features No Longer Present in the App (#11469)
+- [#11425](https://github.com/MetaMask/metamask-mobile/pull/11425): chore: Add skip label to bypass sonarcloud (#11425)
+- [#11275](https://github.com/MetaMask/metamask-mobile/pull/11275): chore(js-ts): Convert app/util/bytes.js to TypeScript (#11275)
+- [#11418](https://github.com/MetaMask/metamask-mobile/pull/11418): chore: revert chore(js-ts): Migrate 37 0-error js files (#11418)
+- [#10880](https://github.com/MetaMask/metamask-mobile/pull/10880): chore: Enable linting Pods and re-organize setup.mjs file (#10880)
+- [#11311](https://github.com/MetaMask/metamask-mobile/pull/11311): chore(js-ts): Convert app/components/UI/Swaps/components/Ratio.js to TypeScript (#11311)
+- [#11357](https://github.com/MetaMask/metamask-mobile/pull/11357): chore(js-ts): Convert app/components/Views/PickComponent/index.js to TypeScript (#11357)
+- [#11446](https://github.com/MetaMask/metamask-mobile/pull/11446): chore(js-ts): Convert app/components/Views/MediaPlayer/Loader.js to TypeScript (#11446)
+- [#11473](https://github.com/MetaMask/metamask-mobile/pull/11473): chore(js-ts): Convert app/components/Base/ModalHandler.js to TypeScript (#11473)
+- [#11601](https://github.com/MetaMask/metamask-mobile/pull/11601): chore(js-ts): Convert app/components/Base/ListItem.js to TypeScript (#11601)
+- [#11407](https://github.com/MetaMask/metamask-mobile/pull/11407): chore(js-ts): Convert app/util/jsonRpcRequest.js to TypeScript (#11407)
+- [#11594](https://github.com/MetaMask/metamask-mobile/pull/11594): chore(js-ts): Convert app/component-library/components/Icons/Icon/scripts/generate-assets.js to TypeScript (#11594)
+- [#11523](https://github.com/MetaMask/metamask-mobile/pull/11523): chore(js-ts): Convert app/components/UI/GenericButton/index.ios.js to TypeScript (#11523)
+- [#11472](https://github.com/MetaMask/metamask-mobile/pull/11472): chore(js-ts): Convert app/components/UI/FadeView/index.js to TypeScript (#11472)
+- [#11476](https://github.com/MetaMask/metamask-mobile/pull/11476): chore(js-ts): Convert app/components/UI/OnboardingProgress/index.js to TypeScript (#11476)
+- [#11405](https://github.com/MetaMask/metamask-mobile/pull/11405): chore(js-ts): Convert app/util/browserScripts.js to TypeScript (#11405)
+- [#11214](https://github.com/MetaMask/metamask-mobile/pull/11214): chore(js-ts): Migrate 37 0-error js files (#11214)
+- [#11271](https://github.com/MetaMask/metamask-mobile/pull/11271): chore(js-ts): Convert app/components/UI/ComponentErrorBoundary/index.js to TypeScript (#11271)
+- [#11299](https://github.com/MetaMask/metamask-mobile/pull/11299): chore(js-ts): Convert app/util/validators/index.js to TypeScript (#11299)
+- [#11303](https://github.com/MetaMask/metamask-mobile/pull/11303): chore(js-ts): Convert app/components/Base/SelectorButton.js to TypeScript (#11303)
+- [#11280](https://github.com/MetaMask/metamask-mobile/pull/11280): chore(js-ts): Convert app/components/UI/GenericButton/index.android.js to TypeScript (#11280)
+- [#11273](https://github.com/MetaMask/metamask-mobile/pull/11273): chore(js-ts): Convert app/components/UI/OnboardingScreenWithBg/index.js to TypeScript (#11273)
+- [#11272](https://github.com/MetaMask/metamask-mobile/pull/11272): chore(js-ts): Convert app/components/Base/ModalDragger.js to TypeScript (#11272)
+- [#11308](https://github.com/MetaMask/metamask-mobile/pull/11308): chore(js-ts): Convert app/components/UI/BlockingActionModal/index.js to TypeScript (#11308)
+- [#11305](https://github.com/MetaMask/metamask-mobile/pull/11305): chore(js-ts): Convert app/components/Base/Summary.js to TypeScript (#11305)
+- [#11274](https://github.com/MetaMask/metamask-mobile/pull/11274): chore(js-ts): Convert app/components/UI/ConnectHeader/index.js to TypeScript (#11274)
+- [#11334](https://github.com/MetaMask/metamask-mobile/pull/11334): chore: chore/7.32.0-Changelog (#11334)
+- [#11483](https://github.com/MetaMask/metamask-mobile/pull/11483): chore: refactor e2e (#11483)
+- [#11491](https://github.com/MetaMask/metamask-mobile/pull/11491): chore: Add UX CodeOwners responsibilities (#11491)
+- [#11364](https://github.com/MetaMask/metamask-mobile/pull/11364): refactor(1702-2): auto detect nft component (#11364)
+- [#11363](https://github.com/MetaMask/metamask-mobile/pull/11363): refactor(1702-1): auto detect tokens component (#11363)
+- [#11329](https://github.com/MetaMask/metamask-mobile/pull/11329): chore: Add `@MetaMask/metamask-assets` to `CODEOWNERS` (#11329)
+- [#10449](https://github.com/MetaMask/metamask-mobile/pull/10449): chore: remove installation of redundant detox-cli in bitrise (#10449)
+- [#11111](https://github.com/MetaMask/metamask-mobile/pull/11111): chore(deps): Bump `@metamask/phishing-controller` from `^9.0.0` to `^12.0.1` (#11111)
+- [#11375](https://github.com/MetaMask/metamask-mobile/pull/11375): chore(deps): Bump `@metamask/controller-utils` from `^10.0.0` to `^11.3.0` (#11375)
+- [#11140](https://github.com/MetaMask/metamask-mobile/pull/11140): chore(deps): Bump `@metamask/smart-transactions-controller` from `11.0.0` to `^13.0.0` (#11140)
+- [#11351](https://github.com/MetaMask/metamask-mobile/pull/11351): chore(deps): Bump `@metamask/keyring-controller` from `^16.1.0` to `^17.2.1` (#11351)
+- [#11104](https://github.com/MetaMask/metamask-mobile/pull/11104): chore(deps): Bump `@metamask/address-book-controller` from `^4.0.1` to `^6.0.1` (#11104)
+- [#10917](https://github.com/MetaMask/metamask-mobile/pull/10917): chore(ci): split out ci scripts and devDeps into separate project (#10917)
+- [#11081](https://github.com/MetaMask/metamask-mobile/pull/11081): chore: Prevent redundant Sentry sourcemap uploads (#11081)
+- [#11470](https://github.com/MetaMask/metamask-mobile/pull/11470): chore: [Design quality] Update token details (#11470)
+- [#11439](https://github.com/MetaMask/metamask-mobile/pull/11439): chore: cherry-pick fix: ""chore(deps): Bump @metamask/base-controller from ^6.0.0 to ^7.0.0 (#11207)"" (#11439)
+- [#11169](https://github.com/MetaMask/metamask-mobile/pull/11169): chore(deps): Bump `@metamask/signature-controller` from `^17.0.0` to `^19.1.0`
+- [#11352](https://github.com/MetaMask/metamask-mobile/pull/11352): chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`
 
+### Fixed
+- [#11512](https://github.com/MetaMask/metamask-mobile/pull/11512): fix: android firebase docs template (#11512)
+- [#11430](https://github.com/MetaMask/metamask-mobile/pull/11430): fix: refactor Logger usage (#11430)
+- [#11250](https://github.com/MetaMask/metamask-mobile/pull/11250): fix: push notifications (#11250)
+- [#11581](https://github.com/MetaMask/metamask-mobile/pull/11581): fix: Fix invalid browser url crash (#11581)
+- [#11467](https://github.com/MetaMask/metamask-mobile/pull/11467): fix: Reorder prep_environment (#11467)
+- [#11367](https://github.com/MetaMask/metamask-mobile/pull/11367): fix: Update steps of the methods that are no longer valid (#11367)
+- [#11400](https://github.com/MetaMask/metamask-mobile/pull/11400): fix: Stop crowdin action from creating branches (#11400)
+- [#11348](https://github.com/MetaMask/metamask-mobile/pull/11348): fix: splash screen image on android  (#11348)
+- [#11346](https://github.com/MetaMask/metamask-mobile/pull/11346): fix: splash screen image on android (#11346)
+- [#11554](https://github.com/MetaMask/metamask-mobile/pull/11554): fix: Fix/use portfolio home page (#11554)
+- [#11443](https://github.com/MetaMask/metamask-mobile/pull/11443): fix: react native quick crypto ios build bug (#11443)
+- [#11325](https://github.com/MetaMask/metamask-mobile/pull/11325): fix: loader can display on top of login screen (#11325)
+- [#11372](https://github.com/MetaMask/metamask-mobile/pull/11372): fix: origin spoofing vulnerability in signature prompts on iOS (#11372)
+- [#11076](https://github.com/MetaMask/metamask-mobile/pull/11076): fix(2453): adjust UI details for account cell on wallet screen (#11076)
+- [#11524](https://github.com/MetaMask/metamask-mobile/pull/11524): fix: fix duplicated network select (#11524)
+- [#11411](https://github.com/MetaMask/metamask-mobile/pull/11411): fix: fix fixture builder network state (#11411)
+- [#11380](https://github.com/MetaMask/metamask-mobile/pull/11380): fix: Unreadable Asset options (#11380)
+- [#11321](https://github.com/MetaMask/metamask-mobile/pull/11321): fix: fix detect tokens performance (#11321)
+- [#11401](https://github.com/MetaMask/metamask-mobile/pull/11401): fix: replace decomissioned cloudflare-ipfs.com with gateway.pinata.cloud (#11401)
+- [#11552](https://github.com/MetaMask/metamask-mobile/pull/11552): fix(11481): android system alert respects dark mode themes (#11552)
+- [#11518](https://github.com/MetaMask/metamask-mobile/pull/11518): fix(11482): incorrect QR code error (#11518)
+
+## 7.32.0 - Oct 7, 2024
+### Added
 - [#10294](https://github.com/MetaMask/metamask-mobile/pull/10294): feat: create redux slice for featureFlags (#10294)
 - [#11314](https://github.com/MetaMask/metamask-mobile/pull/11314): feat: reject connection properly (#11314)
 - [#11132](https://github.com/MetaMask/metamask-mobile/pull/11132): feat: Add performance tracing infrastructure (#11132)

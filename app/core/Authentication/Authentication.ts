@@ -16,12 +16,7 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import {
-  setCompletedOnboarding,
-  clearAccountType,
-  clearSeedlessOnboarding,
-  setPendingSocialLoginMarketingConsentBackfill,
-} from '../../actions/onboarding';
+import { clearOnboarding } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -43,7 +38,10 @@ import { retryWithExponentialDelay } from '../../util/exponential-retry';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import {
+  convertMnemonicToWordlistIndices,
+  uint8ArrayToMnemonic,
+} from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -1539,21 +1537,16 @@ class AuthenticationService {
    * Deletes the wallet by resetting wallet state and deleting user data.
    * This is the main public method for wallet deletion/reset flows.
    * It calls resetWalletState() followed by deleteUser(), and also clears
-   * metrics opt-in UI state and resets onboarding completion status.
+   * metrics opt-in UI state and resets onboarding Redux state.
    *
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
     await this.resetWalletState();
     await this.deleteUser();
-    // Clear metrics opt-in UI state and reset onboarding completion
+    // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-    ReduxService.store.dispatch(setCompletedOnboarding(false));
-    ReduxService.store.dispatch(clearAccountType());
-    ReduxService.store.dispatch(clearSeedlessOnboarding());
-    ReduxService.store.dispatch(
-      setPendingSocialLoginMarketingConsentBackfill(null),
-    );
+    ReduxService.store.dispatch(clearOnboarding());
   };
 
   /**

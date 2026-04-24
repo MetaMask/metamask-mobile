@@ -5,7 +5,31 @@ import TopTradersSection from './TopTradersSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 
+const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
+
+const mockTraders = [
+  {
+    id: 'trader-1',
+    rank: 1,
+    username: 'alice',
+    percentageChange: 96.2,
+    pnlValue: 963000,
+    isFollowing: false,
+  },
+];
+
+const mockUseTopTraders = jest.fn((_options?: unknown) => ({
+  traders: mockTraders,
+  isLoading: false,
+  error: null,
+  refresh: mockRefetch,
+  toggleFollow: jest.fn(),
+}));
+
+jest.mock('./hooks', () => ({
+  useTopTraders: (args: unknown) => mockUseTopTraders(args),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -47,6 +71,39 @@ describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+  });
+
+  it('returns null when the API returns no traders', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+    expect(screen.queryByTestId('homepage-top-traders-carousel')).toBeNull();
+  });
+
+  it('renders skeletons while loading even when traders is empty', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
   });
 
   it('returns null when the feature flag is disabled', () => {
@@ -64,8 +121,21 @@ describe('TopTradersSection', () => {
 
   it('navigates to the Top Traders view when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
+
     fireEvent.press(screen.getByText('Top Traders'));
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+  });
+
+  it('navigates to the trader profile with correct params when a card is tapped', () => {
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      { traderId: 'trader-1', traderName: 'alice' },
+    );
   });
 
   it('exposes refresh via ref and resolves when called', async () => {

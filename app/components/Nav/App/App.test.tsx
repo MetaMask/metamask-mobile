@@ -223,9 +223,6 @@ jest.mock(
   '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions',
   () => () => <MockView testID="mock-mc-actions" />,
 );
-jest.mock('../../Views/CardNotification', () => () => (
-  <MockView testID="mock-card-notification" />
-));
 jest.mock('../../Views/ReturnToAppNotification', () => () => (
   <MockView testID="mock-return-notif" />
 ));
@@ -514,7 +511,7 @@ describe('App', () => {
       await waitFor(() => {
         expect(
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -537,12 +534,14 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Account Group')).toBeTruthy();
-        expect(getByText('Account name')).toBeTruthy();
+        expect(getByText('Account Group')).toBeOnTheScreen();
+        expect(getByText('Account name')).toBeOnTheScreen();
       });
     });
 
     it('renders the multichain account share address screen when navigated to', async () => {
+      jest.useRealTimers();
+
       const routeState = {
         index: 0,
         routes: [
@@ -561,8 +560,10 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share address')).toBeTruthy();
+        expect(getByText('Share address')).toBeOnTheScreen();
       });
+
+      jest.useFakeTimers();
     });
   });
 
@@ -1042,10 +1043,6 @@ describe('App', () => {
       expect(Routes.SDK.RETURN_TO_DAPP_NOTIFICATION).toBeDefined();
     });
 
-    it('has card notification route defined', () => {
-      expect(Routes.CARD.NOTIFICATION).toBeDefined();
-    });
-
     it('has multichain transaction details route defined', () => {
       expect(Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS).toBeDefined();
     });
@@ -1367,12 +1364,6 @@ describe('App', () => {
 
     it('has delete wallet route defined', () => {
       expect(Routes.MODAL.DELETE_WALLET).toBeDefined();
-    });
-  });
-
-  describe('Card screens', () => {
-    it('has card notification route defined', () => {
-      expect(Routes.CARD.NOTIFICATION).toBeDefined();
     });
   });
 

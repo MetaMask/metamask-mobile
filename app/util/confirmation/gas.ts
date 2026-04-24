@@ -30,6 +30,16 @@ interface ResolvedMediumEstimate {
   scalarGwei?: string;
 }
 
+interface ReplacementGasFeeParamsInput {
+  legacyGasFee?: {
+    gasPrice?: string;
+  } | null;
+  eip1559GasFee?: {
+    maxFeePerGas?: string;
+    maxPriorityFeePerGas?: string;
+  } | null;
+}
+
 /**
  * Extracts the medium-level gas fee estimate from various possible shapes of gas fee estimates.
  */
@@ -169,6 +179,33 @@ export function gasEstimateGreaterThanGasUsedPlusTenPercent(
   }
 
   return new BigNumber(String(estimateGwei)).gt(bumpedGwei);
+}
+
+/**
+ * Normalizes replacement gas params so only controller-supported fee fields
+ * are forwarded to replacement transaction flows.
+ */
+export function normalizeReplacementGasFeeParams(
+  replacementParams?: ReplacementGasFeeParamsInput | null,
+): GasPriceValue | FeeMarketEIP1559Values | undefined {
+  if (replacementParams?.legacyGasFee?.gasPrice) {
+    return {
+      gasPrice: replacementParams.legacyGasFee.gasPrice,
+    };
+  }
+
+  if (
+    replacementParams?.eip1559GasFee?.maxFeePerGas &&
+    replacementParams?.eip1559GasFee?.maxPriorityFeePerGas
+  ) {
+    return {
+      maxFeePerGas: replacementParams.eip1559GasFee.maxFeePerGas,
+      maxPriorityFeePerGas:
+        replacementParams.eip1559GasFee.maxPriorityFeePerGas,
+    };
+  }
+
+  return undefined;
 }
 
 export interface PreviousGasParams {

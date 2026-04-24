@@ -37,12 +37,7 @@ import {
   logIn,
   passwordSet,
 } from '../../actions/user';
-import {
-  setCompletedOnboarding,
-  clearAccountType,
-  clearSeedlessOnboarding,
-  setPendingSocialLoginMarketingConsentBackfill,
-} from '../../actions/onboarding';
+import { clearOnboarding } from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -280,9 +275,23 @@ const mockUint8ArrayToMnemonic = jest
   .fn()
   .mockImplementation((uint8Array: Uint8Array) => uint8Array.toString());
 
+const mockConvertMnemonicToWordlistIndices = jest
+  .fn()
+  .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+
+const mockConvertEnglishWordlistIndicesToCodepoints = jest
+  .fn()
+  .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+
 jest.mock('../../util/mnemonic', () => ({
   uint8ArrayToMnemonic: (mnemonic: Uint8Array, wordlist: string[]) =>
     mockUint8ArrayToMnemonic(mnemonic, wordlist),
+  convertMnemonicToWordlistIndices: (mnemonic: Buffer, wordlist: string[]) =>
+    mockConvertMnemonicToWordlistIndices(mnemonic, wordlist),
+  convertEnglishWordlistIndicesToCodepoints: (
+    wordlistIndices: Uint8Array,
+    wordlist: string[],
+  ) => mockConvertEnglishWordlistIndicesToCodepoints(wordlistIndices, wordlist),
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -1673,6 +1682,8 @@ describe('Authentication', () => {
         state: {
           keyrings: [createMockHdKeyringObject()],
         },
+        exportEncryptionKey: jest.fn(),
+        exportSeedPhrase: jest.fn(),
       } as unknown as KeyringController;
 
       Engine.context.SeedlessOnboardingController = {
@@ -3915,16 +3926,7 @@ describe('Authentication', () => {
       );
       expect(createDataDeletionTaskMock).toHaveBeenCalledTimes(1);
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
-      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
-        setCompletedOnboarding(false),
-      );
-      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
-      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
-        clearSeedlessOnboarding(),
-      );
-      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
-        setPendingSocialLoginMarketingConsentBackfill(null),
-      );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearOnboarding());
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });

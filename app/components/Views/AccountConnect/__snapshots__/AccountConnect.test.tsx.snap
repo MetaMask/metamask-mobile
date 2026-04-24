@@ -252,7 +252,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -981,7 +981,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       null,
                       [
                         {
-                          "fontFamily": "Geist-Bold",
+                          "fontFamily": "Geist-SemiBold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -1041,7 +1041,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       null,
                       [
                         {
-                          "fontFamily": "Geist-Bold",
+                          "fontFamily": "Geist-SemiBold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -1319,7 +1319,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2048,7 +2048,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       null,
                       [
                         {
-                          "fontFamily": "Geist-Bold",
+                          "fontFamily": "Geist-SemiBold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -2108,7 +2108,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       null,
                       [
                         {
-                          "fontFamily": "Geist-Bold",
+                          "fontFamily": "Geist-SemiBold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -2386,7 +2386,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3115,7 +3115,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       null,
                       [
                         {
-                          "fontFamily": "Geist-Bold",
+                          "fontFamily": "Geist-SemiBold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -3175,7 +3175,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       null,
                       [
                         {
-                          "fontFamily": "Geist-Bold",
+                          "fontFamily": "Geist-SemiBold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -3453,7 +3453,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -4182,7 +4182,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       null,
                       [
                         {
-                          "fontFamily": "Geist-Bold",
+                          "fontFamily": "Geist-SemiBold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },
@@ -4242,7 +4242,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       null,
                       [
                         {
-                          "fontFamily": "Geist-Bold",
+                          "fontFamily": "Geist-SemiBold",
                           "fontSize": 14,
                           "textAlign": "center",
                         },

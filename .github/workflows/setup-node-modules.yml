@@ -71,7 +71,7 @@ jobs:
   setup:
     name: Setup Node Modules ${{ inputs.platform && format('({0})', inputs.platform) || '' }}
     # Platform-specific runner to match consumer (build needs same OS for native deps/symlinks)
-    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest') }}
+    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest') }}
     permissions:
       contents: read
       id-token: write

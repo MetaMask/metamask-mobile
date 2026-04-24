@@ -5,6 +5,7 @@ import {
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
 import {
   BUILDER_FEE_CONFIG,
   REFERRAL_CONFIG,
@@ -17,6 +18,7 @@ import { TradingReadinessCache } from '../services/TradingReadinessCache';
 import type {
   ClosePositionParams,
   DepositParams,
+  Order,
   PerpsPlatformDependencies,
   LiveDataConfig,
   OrderParams,
@@ -267,6 +269,7 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   historicalOrders: jest.fn().mockResolvedValue([]),
   userFills: jest.fn().mockResolvedValue([]),
   userFillsByTime: jest.fn().mockResolvedValue([]),
+  userFunding: jest.fn().mockResolvedValue([]),
   ...overrides,
 });
 
@@ -368,6 +371,7 @@ describe('HyperLiquidProvider', () => {
       ensureInitialized: jest.fn(),
       getExchangeClient: jest.fn().mockReturnValue(createMockExchangeClient()),
       getInfoClient: jest.fn().mockReturnValue(createMockInfoClient()),
+      fetchHistoricalOrders: jest.fn().mockResolvedValue([]),
       disconnect: jest.fn().mockResolvedValue(undefined),
       toggleTestnet: jest.fn(),
       setTestnetMode: jest.fn(),
@@ -2145,10 +2149,28 @@ describe('HyperLiquidProvider', () => {
       const accountState = await provider.getAccountState();
 
       expect(accountState).toBeDefined();
-      expect(accountState.totalBalance).toBe('20500'); // 10000 (spot) + 10500 (perps marginSummary)
+      expect(accountState.totalBalance).toBe('19500'); // 10500 (perps) + 10000 (spot.total) - 1000 (spot.hold, double-counted in accountValue)
       expect(
         mockClientService.getInfoClient().clearinghouseState,
       ).toHaveBeenCalled();
+      expect(
+        mockClientService.getInfoClient().spotClearinghouseState,
+      ).toHaveBeenCalled();
+    });
+
+    it('does not count USDH-only spot balance in funded-state totals', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          spotClearinghouseState: jest.fn().mockResolvedValue({
+            balances: [{ coin: 'USDH', hold: '1000', total: '10000' }],
+          }),
+        }),
+      );
+
+      const accountState = await provider.getAccountState();
+
+      expect(accountState).toBeDefined();
+      expect(accountState.totalBalance).toBe('10500');
       expect(
         mockClientService.getInfoClient().spotClearinghouseState,
       ).toHaveBeenCalled();
@@ -3570,6 +3592,138 @@ describe('HyperLiquidProvider', () => {
           ],
         });
       });
+
+      it('cache path: only cancels positionTpsl orders, not normalTpsl children of limit orders', async () => {
+        provider = createTestProvider({
+          initialAssetMapping: [['BTC', 0]],
+        });
+
+        // Simulate WS cache with mixed orders: normalTpsl children (isPositionTpsl: false)
+        // from a pending limit order AND positionTpsl orders (isPositionTpsl: true)
+        const cachedOrders: Order[] = [
+          {
+            orderId: '500',
+            symbol: 'BTC',
+            side: 'buy',
+            orderType: 'limit',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '50000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1000,
+            isTrigger: false,
+            reduceOnly: false,
+            isPositionTpsl: false,
+          },
+          {
+            orderId: '501',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'limit',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '60000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1001,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: false,
+            detailedOrderType: 'Take Profit Limit',
+          },
+          {
+            orderId: '502',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'market',
+            size: '0.01',
+            originalSize: '0.01',
+            price: '40000',
+            filledSize: '0',
+            remainingSize: '0.01',
+            status: 'open',
+            timestamp: 1002,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: false,
+            detailedOrderType: 'Stop Market',
+          },
+          {
+            orderId: '503',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'limit',
+            size: '0',
+            originalSize: '0',
+            price: '58000',
+            filledSize: '0',
+            remainingSize: '0',
+            status: 'open',
+            timestamp: 1003,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: true,
+            detailedOrderType: 'Take Profit Limit',
+          },
+          {
+            orderId: '504',
+            symbol: 'BTC',
+            side: 'sell',
+            orderType: 'market',
+            size: '0',
+            originalSize: '0',
+            price: '42000',
+            filledSize: '0',
+            remainingSize: '0',
+            status: 'open',
+            timestamp: 1004,
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: true,
+            detailedOrderType: 'Stop Market',
+          },
+        ];
+
+        mockSubscriptionService.getOrdersCacheIfInitialized = jest
+          .fn()
+          .mockReturnValue(cachedOrders);
+
+        const mockCancel = jest.fn().mockResolvedValue({
+          status: 'ok',
+          response: { data: { statuses: ['success', 'success'] } },
+        });
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+          createMockExchangeClient({
+            cancel: mockCancel,
+            order: jest.fn().mockResolvedValue({
+              status: 'ok',
+              response: {
+                data: { statuses: [{ resting: { oid: '999' } }] },
+              },
+            }),
+          }),
+        );
+
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        const result = await provider.updatePositionTPSL({
+          symbol: 'BTC',
+          takeProfitPrice: '60000',
+          stopLossPrice: '40000',
+        });
+
+        expect(result.success).toBe(true);
+        // Must cancel positionTpsl orders (503, 504) only — not normalTpsl children (501, 502)
+        expect(mockCancel).toHaveBeenCalledWith({
+          cancels: [
+            { a: 0, o: 503 },
+            { a: 0, o: 504 },
+          ],
+        });
+      });
     });
 
     describe('getAccountState error handling', () => {
@@ -3633,7 +3787,7 @@ describe('HyperLiquidProvider', () => {
 
         const accountState = await hip3Provider.getAccountState();
 
-        expect(parseFloat(accountState.totalBalance)).toBe(20500);
+        expect(parseFloat(accountState.totalBalance)).toBe(19500); // perps 10500 + spot.total 10000 - spot.hold 1000
         expect(parseFloat(accountState.marginUsed)).toBe(500);
         expect(mockInfoClient.clearinghouseState).toHaveBeenCalledWith({
           user: '0x123',
@@ -6105,66 +6259,71 @@ describe('HyperLiquidProvider', () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         historicalOrders: jest.fn().mockResolvedValue(null),
       });
+      mockClientService.fetchHistoricalOrders = jest.fn().mockResolvedValue([]);
 
       const result = await provider.getOrders();
       expect(result).toEqual([]);
     });
 
     it('properly transform getOrders with reduceOnly and isTrigger fields', async () => {
+      const historicalOrdersData = [
+        {
+          order: {
+            oid: 123,
+            coin: 'BTC',
+            side: 'A',
+            sz: '0.5',
+            origSz: '1.0',
+            limitPx: '50000',
+            orderType: 'Limit',
+            reduceOnly: false,
+            isTrigger: false,
+          },
+          status: 'filled',
+          statusTimestamp: 1640995200000,
+        },
+        {
+          order: {
+            oid: 124,
+            coin: 'ETH',
+            side: 'A',
+            sz: '0.0',
+            origSz: '2.0',
+            limitPx: '3500',
+            orderType: 'Take Profit Limit',
+            reduceOnly: true,
+            isTrigger: true,
+          },
+          status: 'filled',
+          statusTimestamp: 1640995300000,
+        },
+        {
+          order: {
+            oid: 125,
+            coin: 'BTC',
+            side: 'B',
+            sz: '0.1',
+            origSz: '0.1',
+            limitPx: '45000',
+            orderType: 'Stop Market',
+            reduceOnly: true,
+            isTrigger: true,
+          },
+          status: 'triggered',
+          statusTimestamp: 1640995400000,
+        },
+      ];
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         maxBuilderFee: jest.fn().mockResolvedValue(1),
         referral: jest.fn().mockResolvedValue({
           referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
           referredBy: { code: 'MMCSI' },
         }),
-        historicalOrders: jest.fn().mockResolvedValue([
-          {
-            order: {
-              oid: 123,
-              coin: 'BTC',
-              side: 'A',
-              sz: '0.5',
-              origSz: '1.0',
-              limitPx: '50000',
-              orderType: 'Limit',
-              reduceOnly: false,
-              isTrigger: false,
-            },
-            status: 'filled',
-            statusTimestamp: 1640995200000,
-          },
-          {
-            order: {
-              oid: 124,
-              coin: 'ETH',
-              side: 'A',
-              sz: '0.0',
-              origSz: '2.0',
-              limitPx: '3500',
-              orderType: 'Take Profit Limit',
-              reduceOnly: true,
-              isTrigger: true,
-            },
-            status: 'filled',
-            statusTimestamp: 1640995300000,
-          },
-          {
-            order: {
-              oid: 125,
-              coin: 'BTC',
-              side: 'B',
-              sz: '0.1',
-              origSz: '0.1',
-              limitPx: '45000',
-              orderType: 'Stop Market',
-              reduceOnly: true,
-              isTrigger: true,
-            },
-            status: 'triggered',
-            statusTimestamp: 1640995400000,
-          },
-        ]),
+        historicalOrders: jest.fn().mockResolvedValue(historicalOrdersData),
       });
+      mockClientService.fetchHistoricalOrders = jest
+        .fn()
+        .mockResolvedValue(historicalOrdersData);
 
       const result = await provider.getOrders();
 
@@ -6368,6 +6527,148 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.getFunding();
       expect(result).toEqual([]);
+    });
+
+    it('fetches funding across multiple page windows to include latest records', async () => {
+      const NOW = 1735689600000; // fixed timestamp for determinism
+      const DAY_MS = 24 * 60 * 60 * 1000;
+
+      const oldRecord = {
+        time: NOW - 40 * DAY_MS,
+        hash: '0x' + 'a'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-1.0',
+          szi: '0.1',
+          fundingRate: '0.0001',
+          nSamples: null,
+        },
+      };
+      const recentRecord = {
+        time: NOW - 5 * DAY_MS,
+        hash: '0x' + 'b'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-2.0',
+          szi: '0.1',
+          fundingRate: '0.0001',
+          nSamples: null,
+        },
+      };
+
+      const userFundingMock = jest
+        .fn()
+        .mockImplementation(
+          (params: { startTime: number; endTime: number }) => {
+            const records = [oldRecord, recentRecord].filter(
+              (r) => r.time >= params.startTime && r.time <= params.endTime,
+            );
+            return Promise.resolve(records);
+          },
+        );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      // Time range spans 60 days → 2 page windows of 30 days each
+      const result = await provider.getFunding({
+        startTime: NOW - 60 * DAY_MS,
+        endTime: NOW,
+      });
+
+      expect(userFundingMock).toHaveBeenCalledTimes(2);
+      expect(result).toHaveLength(2);
+      // Results sorted ascending: older first, recent last
+      expect(result[0].amountUsd).toBe('-1.0');
+      expect(result[1].amountUsd).toBe('-2.0');
+      // Most recent record is present — this would fail with the old single-call approach
+      // when total records exceeded the 500-record API cap
+      expect(result[1].timestamp).toBe(recentRecord.time);
+    });
+
+    it('includes records from the most recent page window when history is long', async () => {
+      const NOW = 1735689600000;
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const recentTs = NOW - 2 * DAY_MS;
+
+      const userFundingMock = jest
+        .fn()
+        .mockImplementation(
+          (params: { startTime: number; endTime: number }) => {
+            if (params.endTime >= recentTs && params.startTime <= recentTs) {
+              return Promise.resolve([
+                {
+                  time: recentTs,
+                  hash: '0x' + 'f'.repeat(64),
+                  delta: {
+                    type: 'funding',
+                    coin: 'ETH',
+                    usdc: '-0.5',
+                    szi: '1.0',
+                    fundingRate: '0.00005',
+                    nSamples: null,
+                  },
+                },
+              ]);
+            }
+            return Promise.resolve([]);
+          },
+        );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      // Pass explicit 365-day range to trigger multi-page behavior.
+      // The default is now 30 days (1 call); callers must pass startTime to paginate further.
+      const result = await provider.getFunding({
+        startTime: NOW - 365 * DAY_MS,
+        endTime: NOW,
+      });
+
+      // Multiple page windows must be created for a 365-day explicit range
+      expect(userFundingMock.mock.calls.length).toBeGreaterThan(1);
+      // The most recent record is present — proves pagination reaches the latest window
+      expect(result.some((r) => r.timestamp === recentTs)).toBe(true);
+    });
+
+    it('handles null response from one page window without losing other pages', async () => {
+      const NOW = 1735689600000;
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const validRecord = {
+        time: NOW - 10 * DAY_MS,
+        hash: '0x' + 'c'.repeat(64),
+        delta: {
+          type: 'funding',
+          coin: 'BTC',
+          usdc: '-3.0',
+          szi: '0.2',
+          fundingRate: '0.0002',
+          nSamples: null,
+        },
+      };
+
+      let callCount = 0;
+      const userFundingMock = jest.fn().mockImplementation(() => {
+        callCount += 1;
+        // First call returns null, subsequent calls return data
+        return Promise.resolve(callCount === 1 ? null : [validRecord]);
+      });
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: userFundingMock,
+      });
+
+      const result = await provider.getFunding({
+        startTime: NOW - 60 * DAY_MS,
+        endTime: NOW,
+      });
+
+      // Null page is gracefully skipped; valid records from other pages survive
+      expect(result.some((r) => r.amountUsd === '-3.0')).toBe(true);
     });
 
     it('handles validateWithdrawal returning true', async () => {
@@ -6582,7 +6883,7 @@ describe('HyperLiquidProvider', () => {
         },
       ]);
 
-      const mockHistoricalOrders = jest.fn().mockResolvedValue([
+      const historicalOrdersData = [
         {
           order: {
             oid: 100,
@@ -6613,7 +6914,10 @@ describe('HyperLiquidProvider', () => {
           status: 'filled',
           statusTimestamp: Date.now(),
         },
-      ]);
+      ];
+      const mockHistoricalOrders = jest
+        .fn()
+        .mockResolvedValue(historicalOrdersData);
 
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -6621,6 +6925,9 @@ describe('HyperLiquidProvider', () => {
           historicalOrders: mockHistoricalOrders,
         }),
       );
+      mockClientService.fetchHistoricalOrders = jest
+        .fn()
+        .mockResolvedValue(historicalOrdersData);
 
       const fills = await provider.getOrderFills();
 
@@ -6652,6 +6959,9 @@ describe('HyperLiquidProvider', () => {
           historicalOrders: jest.fn().mockRejectedValue(new Error('API error')),
         }),
       );
+      mockClientService.fetchHistoricalOrders = jest
+        .fn()
+        .mockRejectedValue(new Error('API error'));
 
       const fills = await provider.getOrderFills();
 
@@ -7182,13 +7492,7 @@ describe('HyperLiquidProvider', () => {
       // Create a provider instance with equity enabled for this specific test
       const testProvider = createTestProvider({ hip3Enabled: true });
 
-      // Override the private cachedValidatedDexs to simulate already validated state
-      // This avoids the complex initialization flow
-      Object.defineProperty(testProvider, 'cachedValidatedDexs', {
-        value: null, // Force re-evaluation
-        writable: true,
-        configurable: true,
-      });
+      // DEX discovery cache starts with null state on a fresh provider — no reset needed
 
       // Act
       const result = await testProvider.getAvailableHip3Dexs();
@@ -7501,7 +7805,14 @@ describe('HyperLiquidProvider', () => {
     describe('getAllAvailableDexs', () => {
       interface ProviderWithDexMethods {
         getAllAvailableDexs(): Promise<(string | null)[]>;
-        cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
+        dexDiscoveryCache: {
+          state: {
+            raw: ({ name: string; url: string } | null)[];
+            validated: (string | null)[];
+            timestamp: number;
+          } | null;
+          reset(): void;
+        };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -7509,17 +7820,21 @@ describe('HyperLiquidProvider', () => {
 
       beforeEach(() => {
         testableProvider = provider as unknown as ProviderWithDexMethods;
-        // Reset cache
-        testableProvider.cachedAllPerpDexs = null;
+        // Reset unified state
+        testableProvider.dexDiscoveryCache.reset();
       });
 
       it('returns cached DEX list when cache is populated', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [
-          null,
-          { name: 'dex1', url: 'https://dex1.example' },
-          { name: 'dex2', url: 'https://dex2.example' },
-        ];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [
+            null,
+            { name: 'dex1', url: 'https://dex1.example' },
+            { name: 'dex2', url: 'https://dex2.example' },
+          ],
+          validated: [null, 'dex1', 'dex2'],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -7547,7 +7862,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null, 'dex1', 'dex2']);
-        expect(testableProvider.cachedAllPerpDexs).toEqual(mockDexs);
+        expect(testableProvider.dexDiscoveryCache.state?.raw).toEqual(mockDexs);
         expect(mockClientService.getInfoClient).toHaveBeenCalledTimes(1);
       });
 
@@ -7564,7 +7879,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
       });
 
       it('returns fallback when API returns non-array', async () => {
@@ -7580,7 +7895,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
       });
 
       it('returns fallback and logs error when API throws', async () => {
@@ -7598,7 +7913,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(result).toEqual([null]);
-        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(testableProvider.dexDiscoveryCache.state).toBeNull();
         expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
@@ -7614,12 +7929,16 @@ describe('HyperLiquidProvider', () => {
 
       it('filters out null entries from cached DEX list', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [
-          null,
-          { name: 'dex1', url: 'https://dex1.example' },
-          null,
-          { name: 'dex2', url: 'https://dex2.example' },
-        ];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [
+            null,
+            { name: 'dex1', url: 'https://dex1.example' },
+            null,
+            { name: 'dex2', url: 'https://dex2.example' },
+          ],
+          validated: [null, 'dex1', 'dex2'],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -7630,7 +7949,11 @@ describe('HyperLiquidProvider', () => {
 
       it('returns only main DEX when cached list contains only null', async () => {
         // Arrange
-        testableProvider.cachedAllPerpDexs = [null];
+        testableProvider.dexDiscoveryCache.state = {
+          raw: [null],
+          validated: [null],
+          timestamp: Date.now(),
+        };
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -8575,6 +8898,7 @@ describe('HyperLiquidProvider', () => {
         clearinghouseState: jest.fn(),
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
+        spotClearinghouseState: jest.fn().mockResolvedValue({ balances: [] }),
       };
     });
 
@@ -9260,6 +9584,61 @@ describe('HyperLiquidProvider', () => {
         // clearinghouseState should be called for both main + xyz DEX (from cache)
         expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
       });
+
+      it('filters DEXs via testnet config when in testnet mode', async () => {
+        // Arrange: testnet mode with TESTNET_HIP3_CONFIG.EnabledDexs = ['xyz']
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
+        const testnetProvider = createTestProvider({
+          hip3Enabled: true,
+          isTestnet: true,
+        });
+
+        // perpDexs returns main + xyz + other DEX
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null,
+          { name: 'xyz' },
+          { name: 'otherdex' },
+        ]);
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act
+        await testnetProvider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: clearinghouseState called for main + xyz only (otherdex filtered out)
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledTimes(2);
+        // Restore
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(false);
+      });
+
+      it('updates unified state atomically when standalone perpDexs succeeds', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: first standalone call populates dexDiscoveryCache
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: second call reuses cached state — perpDexs NOT called again
+        mockStandaloneInfoClient.perpDexs.mockClear();
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(mockStandaloneInfoClient.perpDexs).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -9319,6 +9698,123 @@ describe('HyperLiquidProvider', () => {
     });
   });
 
+  describe('getFunding', () => {
+    const makeFundingRecord = (time: number, coin = 'BTC') => ({
+      delta: { coin, usdc: '0.001', fundingRate: '0.0001' },
+      hash: `0x${time.toString(16)}`,
+      time,
+    });
+
+    it('returns funding records for the default 30-day window with a single API call', async () => {
+      // Arrange
+      const records = [
+        makeFundingRecord(Date.now() - 2000, 'ETH'),
+        makeFundingRecord(Date.now() - 1000, 'BTC'),
+      ];
+      const mockUserFunding = jest.fn().mockResolvedValue(records);
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(
+          createMockInfoClient({ userFunding: mockUserFunding }),
+        );
+
+      // Act
+      const result = await provider.getFunding();
+
+      // Assert — exactly one API call for the default 30-day window
+      expect(mockUserFunding).toHaveBeenCalledTimes(1);
+      expect(result).toHaveLength(2);
+      expect(result[0].symbol).toBe('ETH');
+      expect(result[1].symbol).toBe('BTC');
+    });
+
+    it('auto-splits window when API returns the record cap and recovers all records from sub-windows', async () => {
+      // Arrange — first call hits the cap (500 records); the function discards
+      // those and refetches the two halves. Each half is under the cap.
+      const apiLimit =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_API_LIMIT;
+      const capRecords = Array.from({ length: apiLimit }, (_, i) =>
+        makeFundingRecord(1_700_000_000_000 + i * 1000),
+      );
+      const leftHalfRecords = [makeFundingRecord(1_700_000_001_000)];
+      const rightHalfRecords = [
+        makeFundingRecord(1_700_000_002_000),
+        makeFundingRecord(1_700_000_003_000),
+      ];
+
+      const mockUserFunding = jest
+        .fn()
+        .mockResolvedValueOnce(capRecords)
+        .mockResolvedValueOnce(leftHalfRecords)
+        .mockResolvedValueOnce(rightHalfRecords);
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(
+          createMockInfoClient({ userFunding: mockUserFunding }),
+        );
+
+      // Act — 2-day explicit window (> 1 h minimum) so splitting is allowed
+      const endTime = 1_700_000_100_000;
+      const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+      const result = await provider.getFunding({
+        startTime: endTime - twoDaysMs,
+        endTime,
+      });
+
+      // Assert — 3 calls total: original window + left half + right half
+      expect(mockUserFunding).toHaveBeenCalledTimes(3);
+      // Combined result comes from the sub-windows (not the capped initial call)
+      expect(result).toHaveLength(
+        leftHalfRecords.length + rightHalfRecords.length,
+      );
+    });
+
+    it('does not split when window is at or below the minimum split size', async () => {
+      // Arrange — even with a full 500-record response the 1-hour window must
+      // not recurse (prevents infinite recursion at the minimum boundary)
+      const apiLimit =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_API_LIMIT;
+      const capRecords = Array.from({ length: apiLimit }, (_, i) =>
+        makeFundingRecord(Date.now() - i * 1000),
+      );
+      const mockUserFunding = jest.fn().mockResolvedValue(capRecords);
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(
+          createMockInfoClient({ userFunding: mockUserFunding }),
+        );
+
+      // Act — 1-hour window equals minSplitWindowMs; no split should occur
+      const oneHourMs = 60 * 60 * 1000;
+      const endTime = Date.now();
+      await provider.getFunding({ startTime: endTime - oneHourMs, endTime });
+
+      // Assert — exactly one call, no recursive splitting
+      expect(mockUserFunding).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes explicit startTime and endTime directly to the API', async () => {
+      // Arrange
+      const mockUserFunding = jest.fn().mockResolvedValue([]);
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(
+          createMockInfoClient({ userFunding: mockUserFunding }),
+        );
+
+      // Act
+      const startTime = 1_700_000_000_000;
+      const endTime = 1_702_592_000_000; // startTime + 30 days
+      await provider.getFunding({ startTime, endTime });
+
+      // Assert — explicit bounds forwarded verbatim to the API
+      expect(mockUserFunding).toHaveBeenCalledWith(
+        expect.objectContaining({ startTime, endTime }),
+      );
+    });
+  });
+
   describe('buildAssetMapping with perpDexs network failure', () => {
     it('completes asset mapping using fallback when perpDexs throws', async () => {
       // Arrange — perpDexs throws, so getValidatedDexs falls back to [null]
@@ -9338,6 +9834,21 @@ describe('HyperLiquidProvider', () => {
 
       // Assert — provider remains functional with main DEX only
       expect(Array.isArray(markets)).toBe(true);
+    });
+  });
+
+  describe('getExchangeClient escape hatch', () => {
+    it('delegates to the client service and resolves with the underlying ExchangeClient', async () => {
+      const sentinel = mockClientService.getExchangeClient();
+      await expect(provider.getExchangeClient()).resolves.toBe(sentinel);
+    });
+
+    it('propagates errors thrown by the client service', async () => {
+      const bomb = new Error('client not initialized');
+      mockClientService.getExchangeClient = jest.fn(() => {
+        throw bomb;
+      });
+      await expect(provider.getExchangeClient()).rejects.toBe(bomb);
     });
   });
 });

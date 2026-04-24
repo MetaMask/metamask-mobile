@@ -1,5 +1,4 @@
 import { NativeEventSubscription } from 'react-native';
-import { analytics } from '@metamask/sdk-analytics';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 
@@ -162,6 +161,15 @@ export class SDKConnect {
 
   public async hideLoadingState() {
     return hideLoadingState({ instance: this });
+  }
+
+  public async hideLoadingState() {
+    this.sdkLoadingState = {};
+    const currentRoute = (this.navigation as any).getCurrentRoute?.()
+      ?.name as string;
+    if (currentRoute === Routes.SHEET.SDK_LOADING) {
+      this.navigation?.goBack();
+    }
   }
 
   public updateOriginatorInfos({
@@ -360,8 +368,6 @@ export class SDKConnect {
     const navigation = NavigationService.navigation;
     const instance = SDKConnect.getInstance();
 
-    analytics.setGlobalProperty('platform', 'mobile');
-    analytics.enable();
     await init({ navigation, context, instance });
     await instance.postInit();
   }

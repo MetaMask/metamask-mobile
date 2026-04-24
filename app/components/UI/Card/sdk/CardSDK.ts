@@ -89,7 +89,7 @@ export class CardSDK {
     enableLogs = false,
   }: {
     cardFeatureFlag: CardFeatureFlag;
-    userCardLocation?: CardLocation;
+    userCardLocation?: CardLocation | null;
     enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
@@ -99,20 +99,9 @@ export class CardSDK {
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
-  get isCardEnabled(): boolean {
-    return (
-      this.cardFeatureFlag.chains?.[cardNetworkInfos.linea.caipChainId]
-        ?.enabled || false
-    );
-  }
-
   getSupportedTokensByChainId(
     caipChainId: CaipChainId = 'eip155:59144',
   ): SupportedToken[] {
-    if (!this.isCardEnabled) {
-      return [];
-    }
-
     const tokens = this.cardFeatureFlag.chains?.[caipChainId]?.tokens;
 
     if (!tokens) {
@@ -361,8 +350,8 @@ export class CardSDK {
   isCardHolder = async (
     accounts: `${string}:${string}:${string}`[],
   ): Promise<`${string}:${string}:${string}`[]> => {
-    // Early return for invalid input or disabled feature
-    if (!this.isCardEnabled || !accounts?.length) {
+    // Early return for invalid input
+    if (!accounts?.length) {
       return [];
     }
 
@@ -476,10 +465,6 @@ export class CardSDK {
       globalAllowance: ethers.BigNumber;
     }[]
   > => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     const supportedTokensAddresses = this.getSupportedTokensByChainId()
       .map((token) => token.address)
       // Ensure all addresses are valid Ethereum addresses
@@ -537,10 +522,6 @@ export class CardSDK {
     address: string,
     nonZeroBalanceTokens: string[],
   ): Promise<CardToken | null> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
       this.logDebugInfo('getPriorityToken (Simple Case 1)', {
@@ -1466,10 +1447,6 @@ export class CardSDK {
   updateWalletPriority = async (
     wallets: { id: number; priority: number }[],
   ): Promise<void> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     this.logDebugInfo('updateWalletPriority', { wallets });
 
     const requestBody = { wallets };
