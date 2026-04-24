@@ -9,11 +9,11 @@ import Text, {
 
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -249,22 +249,24 @@ const PerpsPositionTransactionView: React.FC = () => {
             {/* Trade again button */}
             {market && (
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.transactions.trade_again')}
+                isFullWidth
                 onPress={handleTradeAgain}
-              />
+              >
+                {strings('perps.transactions.trade_again')}
+              </Button>
             )}
             {/* Block explorer button */}
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.transactions.view_on_explorer')}
+              isFullWidth
               onPress={handleViewOnBlockExplorer}
               style={styles.blockExplorerButton}
-            />
+            >
+              {strings('perps.transactions.view_on_explorer')}
+            </Button>
           </View>
         </View>
       </ScrollView>
