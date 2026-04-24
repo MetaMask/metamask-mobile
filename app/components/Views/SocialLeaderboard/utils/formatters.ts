@@ -39,7 +39,7 @@ export function formatTokenAmount(value: number): string {
       localizeLargeNumber(i18n, absValue, { decimals: 2, includeK: true })
     );
   }
-  return String(formatAmountWithThreshold(value, 4));
+  return String(formatAmountWithThreshold(value, 5));
 }
 
 export function formatPercent(value: number | null | undefined): string {

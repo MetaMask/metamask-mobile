@@ -44,12 +44,16 @@ describe('formatTokenAmount', () => {
     expect(formatTokenAmount(1500000000000)).toBe('1.50T');
   });
 
-  it('caps decimals at 4 for small values below 1,000', () => {
+  it('caps decimals at 5 for small values below 1,000', () => {
     expect(formatTokenAmount(1.5)).toBe('1.5');
   });
 
-  it('caps decimals at 4 and strips trailing zeros for values below 1,000', () => {
-    expect(formatTokenAmount(1.23456789)).toBe('1.2346');
+  it('caps decimals at 5 and strips trailing zeros for values below 1,000', () => {
+    expect(formatTokenAmount(1.23456789)).toBe('1.23457');
+  });
+
+  it('correctly displays values just above the dust threshold', () => {
+    expect(formatTokenAmount(0.00003)).toBe('0.00003');
   });
 
   it('returns dust threshold string for very small positive values', () => {
