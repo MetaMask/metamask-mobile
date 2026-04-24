@@ -19,7 +19,11 @@ import type {
 
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
-import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  TP_SL_CONFIG,
+  PERPS_CONSTANTS,
+  ABSTRACTION_MODE_REFRESH_THROTTLE_MS,
+} from '../constants/perpsConfig';
 import { WebSocketConnectionState } from '../types';
 import type {
   PriceUpdate,
@@ -194,7 +198,6 @@ export class HyperLiquidSubscriptionService {
 
   // Minimum interval between WS-driven userAbstraction refreshes. Balances
   // picking up HL-web mode flips promptly against avoiding REST quota burn.
-  static readonly #abstractionModeRefreshThrottleMs = 60_000;
 
   // In-flight promise for the WS-triggered refresh, so concurrent spot
   // ticks share one fetch instead of each launching their own. Cleared
@@ -1107,7 +1110,7 @@ export class HyperLiquidSubscriptionService {
     const now = Date.now();
     if (
       now - this.#abstractionModeLastFetchedAt <
-      HyperLiquidSubscriptionService.#abstractionModeRefreshThrottleMs
+      ABSTRACTION_MODE_REFRESH_THROTTLE_MS
     ) {
       return undefined;
     }

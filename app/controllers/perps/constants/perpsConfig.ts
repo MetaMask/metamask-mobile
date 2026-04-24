@@ -415,6 +415,14 @@ export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA_V2';
 export const PERPS_DISK_CACHE_THROTTLE_MS = 30_000;
 
 /**
+ * Minimum interval between WebSocket-triggered HL `userAbstraction`
+ * refreshes. Balances picking up HL-web mode flips (Unified ↔ Standard)
+ * promptly against burning REST quota on every spot tick. Covers the
+ * observed user pattern of flipping mode once per session at most.
+ */
+export const ABSTRACTION_MODE_REFRESH_THROTTLE_MS = 60_000;
+
+/**
  * Build the standard provider:network cache key from controller state.
  *
  * @param state - Controller state containing provider and network info.

@@ -232,7 +232,12 @@ function resolveFoldedBalance(
   if (Number.isFinite(currentNumeric)) {
     return (currentNumeric + freeSpot).toString();
   }
-  return freeSpot.toString();
+  // Non-finite currentNumeric means the adapter passed a sentinel like
+  // `PERPS_CONSTANTS.FallbackDataDisplay` ("--") during loading. Preserve
+  // the sentinel rather than synthesising a numeric fold; the caller's
+  // UI treats "--" as "loading" and would otherwise show a misleading
+  // spot-only figure while the per-DEX perps fetch is still in flight.
+  return currentRaw;
 }
 
 /**
