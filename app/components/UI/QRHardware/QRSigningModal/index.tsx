@@ -41,7 +41,6 @@ const QRSigningModal = ({
   onFailure,
 }: IQRSigningModalProps) => {
   const { colors } = useTheme();
-  const dispatch = useDispatch();
   const styles = createStyles(colors);
   const [isModalCompleteShow, setModalCompleteShow] = useState(false);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -55,20 +54,6 @@ const QRSigningModal = ({
 
   const handleFailure = (error: string) => {
     onFailure?.(error);
-  };
-
-  const handleCancel = () => {
-    onCancel?.();
-    dispatch(resetTransaction());
-  };
-  const handleSuccess = () => {
-    onSuccess?.();
-    dispatch(resetTransaction());
-  };
-
-  const handleFailure = (error: string) => {
-    onFailure?.(error);
-    dispatch(resetTransaction());
   };
 
   return (

@@ -364,7 +364,7 @@ describe('Carousel Solana Integration', () => {
     const { findByTestId } = render(<Carousel />);
     const slide = await findByTestId('carousel-slide-solana');
     expect(slide).toBeVisible();
-    await userEvent.press(slide);
+    fireEvent.press(slide);
   };
 
   it('switches to existing Solana account when clicked', async () => {

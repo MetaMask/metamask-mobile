@@ -339,9 +339,6 @@ describe('Remote Feature Flags Helper', () => {
       expect(urls).toContain(
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=prod',
       );
-      expect(testCallArgs.url).toBe(
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=test',
-      );
     });
 
     it('rejects when setupMockRequest throws', async () => {

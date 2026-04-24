@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OnboardingScreenWithBg renders correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      },
+      {
+        "backgroundColor": undefined,
+      },
+    ]
+  }
+>
+  <Text>
+    Test
+  </Text>
+</View>
+`;
+
+exports[`OnboardingScreenWithBg renders correctly with background color and image 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "red",
+      },
+    ]
+  }
+>
+  <View
+    accessibilityIgnoresInvertColors={true}
+    style={
+      {
+        "borderTopWidth": 0,
+        "bottom": 0,
+        "flex": 1,
+        "height": null,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": null,
+      }
+    }
+  >
+    <Image
+      resizeMode="stretch"
+      source={1}
+      style={
+        [
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "height": null,
+            "width": null,
+          },
+          undefined,
+        ]
+      }
+    />
+    <Text>
+      Test
+    </Text>
+  </View>
+</View>
+`;

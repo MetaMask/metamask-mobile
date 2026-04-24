@@ -350,7 +350,13 @@ class WalletConnect2Session {
     this.needsRedirect(id);
   };
 
-  updateSession = async ({ chainId, accounts }: { chainId: number; accounts?: string[]; }) => {
+  updateSession = async ({
+    chainId,
+    accounts,
+  }: {
+    chainId: number;
+    accounts?: string[];
+  }) => {
     try {
       if (!accounts) {
         DevLogger.log(

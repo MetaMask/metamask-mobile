@@ -19,7 +19,6 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
-  TraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -135,23 +134,6 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       endTrace({ name: traceName });
     };
   }, [onboardingTraceCtx, type, track]);
-
-  useEffect(() => {
-    const traceName =
-      type === 'found'
-        ? TraceName.OnboardingNewSocialAccountExists
-        : TraceName.OnboardingExistingSocialAccountNotFound;
-
-    trace({
-      name: traceName,
-      op: TraceOperation.OnboardingUserJourney,
-      tags: getTraceTags(store.getState()),
-      parentContext: onboardingTraceCtx,
-    });
-    return () => {
-      endTrace({ name: traceName });
-    };
-  }, [onboardingTraceCtx, type]);
 
   const navigateNextScreen = (
     targetRoute: string,

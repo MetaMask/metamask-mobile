@@ -12,15 +12,6 @@ import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefault
 import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
-import { Linking } from 'react-native';
-
-// Mock Linking
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
-}));
 
 // Mock Linking
 jest.mock('react-native/Libraries/Linking/Linking', () => ({

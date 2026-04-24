@@ -41,11 +41,6 @@ const securityReducer = (
         ...state,
         osAuthEnabled: action.enabled,
       };
-    case ActionType.SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN:
-      return {
-        ...state,
-        isAutomaticSecurityChecksModalOpen: action.open,
-      };
     default:
       return state;
   }

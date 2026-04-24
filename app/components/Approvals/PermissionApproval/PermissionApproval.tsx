@@ -27,7 +27,6 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
-  const isProcessing = useRef<boolean>(false);
 
   // Prevents re-navigation for the same approval when pendingApprovals changes.
   const lastNavigatedApprovalIdRef = useRef<string | null>(null);

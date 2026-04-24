@@ -1152,12 +1152,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     };
   }, [market?.marketSource]);
 
-  const handleTradingViewPress = useCallback(() => {
-    Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
-      console.error('Failed to open Trading View URL:', error);
-    });
-  }, []);
-
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
     () => !isLoadingPosition,

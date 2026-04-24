@@ -108,7 +108,7 @@ class WelcomeScreen {
 
   async waitForSplashAnimationToNotExit() {
     const elem = await this.splashScreenMetamaskAnimationId;
-    await elem.waitForExist({reverse: true});
+    await elem.waitForExist({ reverse: true });
   }
 
   async verifyCarouselTitle(key) {

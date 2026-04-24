@@ -163,15 +163,6 @@ export class SDKConnect {
     return hideLoadingState({ instance: this });
   }
 
-  public async hideLoadingState() {
-    this.sdkLoadingState = {};
-    const currentRoute = (this.navigation as any).getCurrentRoute?.()
-      ?.name as string;
-    if (currentRoute === Routes.SHEET.SDK_LOADING) {
-      this.navigation?.goBack();
-    }
-  }
-
   public updateOriginatorInfos({
     channelId,
     originatorInfo,

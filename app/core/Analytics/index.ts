@@ -7,8 +7,7 @@ import {
 } from './MetaMetrics.types';
 
 export {
-  Analytics,
-  // MetaMetrics,
+  MetaMetrics,
   MetaMetricsEvents,
   DataDeleteStatus,
   DataDeleteResponseStatus,

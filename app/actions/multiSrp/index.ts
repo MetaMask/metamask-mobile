@@ -59,8 +59,6 @@ export async function importNewSecretRecoveryPhrase(
 
   const { SeedlessOnboardingController } = Engine.context;
 
-  let discoveredAccountsCount = 0;
-
   // TODO: to use loginCompleted
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly

@@ -172,7 +172,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
-      onPress={memoizedPressHandler}
+      onPress={handlePress}
       testID={testID}
     >
       <View style={styles.cardContent}>

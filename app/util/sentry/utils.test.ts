@@ -92,34 +92,6 @@ const expoUpdatesMockValues: {
 
 jest.mock('expo-updates', () => expoUpdatesMockValues);
 
-jest.mock('../../store', () => ({
-  store: {
-    getState: jest.fn(),
-  },
-}));
-
-jest.mock('../extractEthJsErrorMessage', () => ({
-  __esModule: true,
-  default: jest.fn((message) => message),
-}));
-
-jest.mock('../../core/Performance', () => ({
-  Performance: {
-    appLaunchTime: 1640995200000,
-  },
-}));
-
-jest.mock('../device', () => ({
-  __esModule: true,
-  default: {
-    isAndroid: jest.fn(() => true),
-  },
-}));
-
-jest.mock('./tags', () => ({
-  getTraceTags: jest.fn(() => ({ mockTag: 'mockValue' })),
-}));
-
 describe('deriveSentryEnvironment', () => {
   it('returns flask-production for non-dev production environment and flask build type', async () => {
     const METAMASK_ENVIRONMENT = 'production';

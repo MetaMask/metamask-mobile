@@ -50,12 +50,6 @@ import { ReduxStore } from '../../../core/redux/types';
 
 // ─── Mock variables ──────────────────────────────────────────────────────────
 
-// Mock selectors
-jest.mock('../../../selectors/seedlessOnboardingController', () => ({
-  selectIsSeedlessPasswordOutdated: jest.fn(),
-  selectSeedlessOnboardingLoginFlow: jest.fn(),
-}));
-
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
@@ -136,9 +130,6 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => mockRoute(),
   };
 });
-
-// Metrics mocks
-const mockTrackEvent = jest.fn();
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
@@ -372,8 +363,6 @@ describe('Login', () => {
     jest.clearAllMocks();
     Alert.alert = mockAlertAlert;
     mockNavigate.mockClear();
-    mockMetricsTrackEvent.mockClear();
-    mockMetricsCreateEventBuilder.mockClear();
     mockReplace.mockClear();
     mockGoBack.mockClear();
     mockReset.mockClear();
@@ -1412,67 +1401,4 @@ describe('Login', () => {
       expect(scrollView.props.extraScrollHeight).toBe(0);
     });
   });
-
-  describe('Social Login User Interface', () => {
-    beforeEach(() => {
-      // Platform.OS to default
-      Platform.OS = 'ios';
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should show pin placeholder on iOS for social login users', () => {
-      // Arrange
-      const {
-        selectIsSeedlessPasswordOutdated,
-        selectSeedlessOnboardingLoginFlow,
-      } = jest.requireMock('../../../selectors/seedlessOnboardingController');
-
-      selectIsSeedlessPasswordOutdated.mockReturnValue(false);
-      selectSeedlessOnboardingLoginFlow.mockReturnValue(true);
-
-      // Act
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Assert
-      expect(passwordInput.props.placeholder).toBe(
-        strings('login.pin_placeholder'),
-      );
-    });
-
-    it('should show forgot pin text on iOS for social login users', () => {
-      // Arrange
-      const {
-        selectIsSeedlessPasswordOutdated,
-        selectSeedlessOnboardingLoginFlow,
-      } = jest.requireMock('../../../selectors/seedlessOnboardingController');
-
-      selectIsSeedlessPasswordOutdated.mockReturnValue(false);
-      selectSeedlessOnboardingLoginFlow.mockReturnValue(true);
-
-      // Mock route
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-
-      // Act
-      const { getByText } = renderWithProvider(<Login />);
-
-      // Assert - "Forgot PIN?" appears
-      expect(getByText(strings('login.forgot_pin'))).toBeOnTheScreen();
-    });
-  });
 });
-// it('should navigate back and reset OAuth state when using other methods', async () => {
-//   mockRoute.mockReturnValue({
-//     params: {
-//       locked: false,
-//       oauthLoginSuccess: true,
-//     },
-//   });

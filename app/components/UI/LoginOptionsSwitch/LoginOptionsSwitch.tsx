@@ -1,10 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { Switch, Text, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { AUTHENTICATION_TYPE, BIOMETRY_TYPE } from 'react-native-keychain';
 import { LoginViewSelectors } from '../../Views/Login/LoginView.testIds';
 import { useSelector } from 'react-redux';
-import { useTheme } from '../../../util/theme';
+import SecurityOptionToggle from '../SecurityOptionToggle/SecurityOptionToggle';
 
 interface Props {
   shouldRenderBiometricOption:
@@ -29,9 +28,6 @@ const LoginOptionsSwitch = ({
   onUpdateBiometryChoice,
   onUpdateRememberMe,
 }: Props) => {
-  const theme = useTheme();
-  const { colors } = theme;
-  const styles = createStyles(colors);
   const allowLoginWithRememberMe = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,23 +62,12 @@ const LoginOptionsSwitch = ({
     );
   } else if (shouldRenderBiometricOption === null && allowLoginWithRememberMe) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.label}>
-          {strings(`choose_password.remember_me`)}
-        </Text>
-        <Switch
-          onValueChange={onRememberMeValueChanged}
-          value={rememberMeEnabled}
-          style={styles.switch}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={theme.brandColors.white}
-          ios_backgroundColor={colors.border.muted}
-          testID={LoginViewSelectors.REMEMBER_ME_SWITCH}
-        />
-      </View>
+      <SecurityOptionToggle
+        title={strings('choose_password.remember_me')}
+        value={rememberMeEnabled}
+        onOptionUpdated={onRememberMeValueChanged}
+        testId={LoginViewSelectors.REMEMBER_ME_SWITCH}
+      />
     );
   }
   return null;
