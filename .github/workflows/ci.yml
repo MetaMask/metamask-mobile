@@ -223,12 +223,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Baseline is the latest successful ci/ios-js-bundle-size status on
+          # github.event.pull_request.base.sha (GitHub's PR base commit for this run), not git merge-base(head, base).
+          append_job_summary() {
+            if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+              cat >> "$GITHUB_STEP_SUMMARY"
+            fi
+          }
+
           FILE_PATH='ios/main.jsbundle'
           CURRENT_MB="$(stat -c %s "$FILE_PATH" | awk '{print $1/1024/1024}')"
           echo "Current iOS JS bundle: ${CURRENT_MB} MB"
 
           BASELINE_MB=""
           BASE_SHA='${{ github.event.pull_request.base.sha }}'
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+
           if [[ -n "$BASE_SHA" ]]; then
             echo "Resolving baseline bundle size from ci/ios-js-bundle-size status on base commit ${BASE_SHA}"
             if ! STATUSES_JSON="$(
@@ -239,6 +249,17 @@ jobs:
                 "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/${BASE_SHA}/status"
             )"; then
               echo "::warning::Failed to fetch commit statuses for base ${BASE_SHA}; skipping iOS JS bundle delta check."
+              append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** skipped — could not load [combined status](${REPO_URL}/commit/${BASE_SHA}) for PR base \`${BASE_SHA}\`.
+
+          | | MiB |
+          |---|--:|
+          | Current bundle | ${CURRENT_MB} |
+
+          Baseline would be read from the latest successful \`ci/ios-js-bundle-size\` status description on that base commit (MiB from awk, then an optional trailing semicolon, matching the main-branch post step).
+          EOF
               exit 0
             fi
             DESC="$(
@@ -257,26 +278,85 @@ jobs:
               echo "Baseline from base ref status: ${BASELINE_MB} MB"
             else
               echo "::warning::No successful ci/ios-js-bundle-size status (or unrecognized description) on base ${BASE_SHA}; skipping iOS JS bundle delta check."
+              append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** skipped — no parseable \`ci/ios-js-bundle-size\` success status on PR base [\`${BASE_SHA}\`](${REPO_URL}/commit/${BASE_SHA}).
+
+          | | MiB |
+          |---|--:|
+          | Current bundle | ${CURRENT_MB} |
+          | Raw description | \`${DESC:-<empty>}\` |
+
+          EOF
               exit 0
             fi
           else
             echo "::warning::Pull request base SHA is empty; skipping iOS JS bundle delta check."
+            append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** skipped — \`github.event.pull_request.base.sha\` was empty.
+
+          | | MiB |
+          |---|--:|
+          | Current bundle | ${CURRENT_MB} |
+
+          EOF
             exit 0
           fi
 
           if [[ -z "${BASELINE_MB:-}" ]]; then
             echo "::warning::Baseline is undefined; skipping iOS JS bundle delta check."
+            append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** skipped — baseline MiB was empty after parsing.
+
+          | | MiB |
+          |---|--:|
+          | Current bundle | ${CURRENT_MB} |
+
+          EOF
             exit 0
           fi
 
           DELTA_MB="$(echo "${CURRENT_MB} - ${BASELINE_MB}" | bc -l)"
           echo "Delta (current - baseline): ${DELTA_MB} MB"
-          echo "::notice::iOS JS bundle delta vs main: ${DELTA_MB} MB (current ${CURRENT_MB} MB, main ${BASELINE_MB} MB)"
+          echo "::notice::iOS JS bundle delta vs baseline: ${DELTA_MB} MB (current ${CURRENT_MB} MB, baseline ${BASELINE_MB} MB)"
           if (( $(echo "${DELTA_MB} > 1" | bc -l) )); then
-            echo "::error::JS bundle is larger than main by ${DELTA_MB} MB (current ${CURRENT_MB} MB, main ${BASELINE_MB} MB)."
+            echo "::error::JS bundle exceeds baseline by more than 1 MiB (delta ${DELTA_MB} MiB; current ${CURRENT_MB} MiB, baseline ${BASELINE_MB} MiB)."
+            append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** failed — delta is more than 1 MiB above the status baseline on PR base [\`${BASE_SHA}\`](${REPO_URL}/commit/${BASE_SHA}).
+
+          | | MiB |
+          |---|--:|
+          | PR base commit | — |
+          | Baseline (from status) | ${BASELINE_MB} |
+          | Current bundle | ${CURRENT_MB} |
+          | Delta (current - baseline) | ${DELTA_MB} |
+
+          EOF
             exit 1
           fi
           echo "JS bundle size check passed (delta is one or less)."
+          append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** passed
+
+          | | MiB |
+          |---|--:|
+          | PR base commit | [\`${BASE_SHA}\`](${REPO_URL}/commit/${BASE_SHA}) |
+          | Baseline (from \`ci/ios-js-bundle-size\` status) | ${BASELINE_MB} |
+          | Current bundle | ${CURRENT_MB} |
+          | Delta (current - baseline) | ${DELTA_MB} |
+
+          Fail threshold: more than 1 MiB above baseline. Baseline is **not** from \`git merge-base\`; it is the value posted to the PR base commit by CI.
+
+          EOF
 
       - name: Post iOS JS bundle size to commit status
         if: ${{ github.ref == 'refs/heads/main' }}
