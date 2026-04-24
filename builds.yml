@@ -273,7 +273,7 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
-      RAMPS_ENVIRONMENT: 'staging'
+      RAMPS_ENVIRONMENT: 'development'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       IS_TEST: 'false'
