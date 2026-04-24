@@ -64,6 +64,7 @@ import SectionPillsSkeleton from './components/Sections/SectionTypes/SectionPill
 import CryptoMoversPillItem from './components/Sections/SectionTypes/CryptoMoversPillItem/CryptoMoversPillItem';
 import TileSection from './components/Sections/SectionTypes/TileSection';
 import TrendingTokenTileCard from './components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCard';
+import TrendingTokenTileCardSkeleton from './components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCardSkeleton';
 import { useTrendingTokenTileSparklines } from './components/Sections/SectionTypes/TrendingTokenTileCard/useTrendingTokenTileSparklines';
 import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
@@ -497,7 +498,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       );
       return { sparklines };
     },
-    Skeleton: TrendingTokensSkeleton,
+    Skeleton: TrendingTokenTileCardSkeleton,
+    OverrideSkeletonSearch: TrendingTokensSkeleton,
     Section: TileSection,
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch({
@@ -899,13 +901,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
     },
     getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
-    RowItem: ({ item, index }) => (
-      <TrendingTokenRowItem
-        token={item as TrendingAsset}
-        position={index}
-        filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
-      />
-    ),
+    RowItem: TrendingTokenTileItem,
     OverrideRowItemSearch: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -913,8 +909,15 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
       />
     ),
-    Skeleton: TrendingTokensSkeleton,
-    Section: SectionCard,
+    useTileExtra: (items) => {
+      const { sparklines } = useTrendingTokenTileSparklines(
+        items as TrendingAsset[],
+      );
+      return { sparklines };
+    },
+    Skeleton: TrendingTokenTileCardSkeleton,
+    OverrideSkeletonSearch: TrendingTokensSkeleton,
+    Section: TileSection,
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useRwaTokens({ searchQuery });
       return { data, isLoading, refetch };
