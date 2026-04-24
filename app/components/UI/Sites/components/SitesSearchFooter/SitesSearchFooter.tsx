@@ -7,7 +7,6 @@ import {
   Icon,
   IconName,
   IconSize,
-  type BoxProps,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +15,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 import { SEARCH_ENGINE_URLS, SearchEngine } from '../../../../../util/browser';
 import AppConstants from '../../../../../core/AppConstants';
+
+type BoxStyle = React.ComponentProps<typeof Box>['style'];
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
@@ -27,7 +28,7 @@ export interface SitesSearchFooterProps {
    * @returns
    */
   onPress?: (url: string) => void;
-  containerStyle?: BoxProps['style'];
+  containerStyle?: BoxStyle;
 }
 
 /**
@@ -86,7 +87,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
   const searchEngineLabel = resolvedEngine;
 
   return (
-    <Box style={containerStyle as unknown as undefined}>
+    <Box style={containerStyle}>
       {isUrl && (
         <TouchableOpacity
           style={tw.style('flex-row items-center py-4')}

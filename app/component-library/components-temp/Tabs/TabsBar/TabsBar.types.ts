@@ -2,7 +2,9 @@
 import React from 'react';
 
 // External dependencies.
-import { BoxProps } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+
+type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 /**
  * Individual tab item data interface
@@ -18,7 +20,7 @@ export interface TabItem {
 /**
  * TabsBar component props
  */
-export interface TabsBarProps extends BoxProps {
+export interface TabsBarProps extends BoxComponentProps {
   /**
    * Array of tab items
    */

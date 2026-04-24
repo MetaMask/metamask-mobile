@@ -106,7 +106,7 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
       return computeProgress(parseFloat(totalUsdDeposited));
     }, [totalUsdDeposited]);
 
-  const progressPercent = `${Math.round(progress * 100)}%`;
+  const progressPercent: `${number}%` = `${Math.round(progress * 100)}%`;
   const deposited = totalUsdDeposited ? parseFloat(totalUsdDeposited) : 0;
 
   if (showError) {
@@ -194,7 +194,7 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
       >
         <Box
           twClassName="h-full rounded-full bg-success-default"
-          style={{ width: progressPercent } as unknown as undefined}
+          style={{ width: progressPercent } satisfies NonNullable<BoxStyle>}
         />
       </Box>
 
@@ -217,3 +217,4 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
 };
 
 export default OndoPrizePool;
+type BoxStyle = React.ComponentProps<typeof Box>['style'];

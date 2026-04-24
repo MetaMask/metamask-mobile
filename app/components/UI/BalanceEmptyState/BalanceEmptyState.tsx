@@ -84,7 +84,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
       backgroundColor={BoxBackgroundColor.BackgroundSection}
       gap={5}
       testID={testID}
-      {...(props as unknown as {})}
+      {...props}
       twClassName={`rounded-2xl ${props?.twClassName ?? ''}`}
     >
       <Box

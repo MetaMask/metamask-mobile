@@ -39,8 +39,8 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
     backgroundColor={BoxBackgroundColor.BackgroundDefault}
     gap={3}
     twClassName={`max-w-64 ${twClassName}`}
-    style={style as unknown as undefined}
-    {...(props as unknown as {})}
+    style={style}
+    {...props}
   >
     {icon}
     {description && (

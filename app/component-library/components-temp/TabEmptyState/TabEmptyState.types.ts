@@ -2,10 +2,13 @@ import React from 'react';
 import {
   type ButtonProps,
   type TextProps,
-  type BoxProps,
+  Box,
 } from '@metamask/design-system-react-native';
 
-export interface TabEmptyStateProps extends Omit<BoxProps, 'children'> {
+type BoxComponentProps = React.ComponentProps<typeof Box>;
+
+export interface TabEmptyStateProps
+  extends Omit<BoxComponentProps, 'children'> {
   /**
    * The icon to display in the empty state if this is an png/jpg image you will need to account for light and dark theme with useAssetFromTheme
    */

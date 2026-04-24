@@ -13,11 +13,12 @@ import {
   IconSize,
   Text,
   TextVariant,
-  type BoxProps,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
+
+type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -38,15 +39,15 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-interface KeypadContainerProps extends BoxProps {
+interface KeypadContainerProps extends BoxComponentProps {
   children?: React.ReactNode;
 }
 
 const KeypadContainer: React.FC<KeypadContainerProps> = (props) => (
-  <Box gap={3} {...(props as unknown as {})} />
+  <Box gap={3} {...props} />
 );
 
-interface KeypadRowProps {
+interface KeypadRowProps extends BoxComponentProps {
   children?: React.ReactNode;
 }
 
@@ -55,7 +56,7 @@ const KeypadRow: React.FC<KeypadRowProps> = (props) => (
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
     gap={3}
-    {...(props as unknown as {})}
+    {...props}
   />
 );
 
@@ -64,7 +65,7 @@ interface KeypadButtonProps {
   children?: React.ReactNode;
   onPress?: () => void;
   isDisabled?: boolean;
-  boxWrapperProps?: BoxProps;
+  boxWrapperProps?: BoxComponentProps;
   testID?: string;
 }
 
@@ -80,7 +81,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...(boxWrapperProps as unknown as {})}>
+    <Box twClassName="flex-1" {...boxWrapperProps}>
       <TouchableOpacity
         style={[styles.keypadButton, style]}
         disabled={isDisabled}
@@ -106,7 +107,7 @@ interface KeypadDeleteButtonProps {
   onLongPress?: () => void;
   delayLongPress?: number;
   testID?: string;
-  boxWrapperProps?: BoxProps;
+  boxWrapperProps?: BoxComponentProps;
 }
 
 const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
@@ -119,7 +120,7 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
 
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...(boxWrapperProps as unknown as {})}>
+    <Box twClassName="flex-1" {...boxWrapperProps}>
       <TouchableOpacity
         style={[styles.keypadDeleteButton, style]}
         accessibilityRole="button"

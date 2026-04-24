@@ -48,21 +48,21 @@ const QuickActionButtons: React.FC<QuickActionButtonsProps> = ({
   }
 
   return (
-    <Box gap={3} {...(props as unknown as {})}>
+    <Box gap={3} {...props}>
       {buttonRows.map((row, rowIndex) => (
         <Box
           key={`row-${rowIndex}`}
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
           gap={3}
-          {...(rowWrapperProps as unknown as {})}
+          {...rowWrapperProps}
         >
           {row.map((button, buttonIndex) => (
             <Box
               key={button.key || `button-${buttonIndex}`}
               // Box wrapper with flex-1 is needed to ensure the QuickActionButton doesn't collapse
               twClassName="flex-1"
-              {...(buttonWrapperProps as unknown as {})}
+              {...buttonWrapperProps}
             >
               {button}
             </Box>
@@ -73,7 +73,7 @@ const QuickActionButtons: React.FC<QuickActionButtonsProps> = ({
               <Box
                 key={`spacer-${rowIndex}-${i}`}
                 twClassName="flex-1"
-                {...(spacerProps as unknown as {})}
+                {...spacerProps}
               />
             ))}
         </Box>

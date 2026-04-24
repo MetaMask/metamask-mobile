@@ -14,14 +14,15 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  type BoxProps,
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import Tab from '../Tab';
 import { TabsBarProps } from './TabsBar.types';
 
-type BoxLayoutEvent = Parameters<NonNullable<BoxProps['onLayout']>>[0];
+type BoxLayoutEvent = Parameters<
+  NonNullable<React.ComponentProps<typeof Box>['onLayout']>
+>[0];
 
 const TabsBar: React.FC<TabsBarProps> = ({
   tabs,
@@ -286,8 +287,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
     <Box
       twClassName={`relative overflow-hidden px-4 ${twClassName || ''}`}
       testID={testID}
-      onLayout={handleContainerLayout as never}
-      {...(boxProps as unknown as {})}
+      onLayout={handleContainerLayout}
+      {...boxProps}
     >
       {scrollEnabled ? (
         <ScrollView
@@ -310,10 +311,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
                 isActive={index === activeIndex}
                 isDisabled={tab.isDisabled}
                 onPress={() => handleTabPress(index)}
-                onLayout={
-                  ((layoutEvent: BoxLayoutEvent) =>
-                    handleTabLayout(index, layoutEvent)) as never
-                }
+                onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
                 testID={tab.testID ?? `${testID}-tab-${index}`}
               />
             ))}
@@ -342,10 +340,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
               isActive={index === activeIndex}
               isDisabled={tab.isDisabled}
               onPress={() => handleTabPress(index)}
-              onLayout={
-                ((layoutEvent: BoxLayoutEvent) =>
-                  handleTabLayout(index, layoutEvent)) as never
-              }
+              onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
               testID={tab.testID ?? `${testID}-tab-${index}`}
             />
           ))}

@@ -1,6 +1,6 @@
 // External dependencies.
 import {
-  BoxProps,
+  Box,
   ButtonIconProps,
   ButtonProps,
 } from '@metamask/design-system-react-native';
@@ -16,10 +16,12 @@ export enum HeaderSearchVariant {
   Inline = 'inline',
 }
 
+type BoxComponentProps = React.ComponentProps<typeof Box>;
+
 /**
  * Base props shared by both variants - extends BoxProps.
  */
-interface HeaderSearchBaseProps extends Omit<BoxProps, 'children'> {
+interface HeaderSearchBaseProps extends Omit<BoxComponentProps, 'children'> {
   /**
    * Props to pass to the TextFieldSearch component.
    */

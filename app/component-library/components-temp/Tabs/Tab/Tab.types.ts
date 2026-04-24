@@ -1,5 +1,8 @@
 // Third party dependencies.
-import { PressableProps, LayoutChangeEvent } from 'react-native';
+import React from 'react';
+import { PressableProps, View } from 'react-native';
+
+type ViewLayoutHandler = React.ComponentProps<typeof View>['onLayout'];
 
 /**
  * Tab component props
@@ -24,5 +27,5 @@ export interface TabProps extends PressableProps {
   /**
    * Callback when tab layout changes
    */
-  onLayout?: (event: LayoutChangeEvent) => void;
+  onLayout?: ViewLayoutHandler;
 }
