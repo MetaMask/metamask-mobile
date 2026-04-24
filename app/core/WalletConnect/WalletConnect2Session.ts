@@ -207,14 +207,19 @@ class WalletConnect2Session {
   private onStoreChange() {
     const newChainId = this.getCurrentChainId();
     if (newChainId !== this.lastChainId && !this.isHandlingChainChange) {
-      this.lastChainId = newChainId;
       const decimalChainId = Number.parseInt(newChainId, 16);
-      this.handleChainChange(decimalChainId).catch((error) => {
-        DevLogger.log(
-          'WC2::store.subscribe Error handling chain change:',
-          error,
-        );
-      });
+      this.handleChainChange(decimalChainId)
+        .then(() => {
+          // Only advance the local marker after session sync succeeds.
+          // This allows retrying the same chain if updateSession fails.
+          this.lastChainId = newChainId;
+        })
+        .catch((error) => {
+          DevLogger.log(
+            'WC2::store.subscribe Error handling chain change:',
+            error,
+          );
+        });
     }
   }
   public getCurrentChainId() {

@@ -16,7 +16,6 @@ import { Minimizer } from '../NativeModules';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { Hex, CaipChainId, KnownCaipNamespace } from '@metamask/utils';
-import { handleSnapRequest } from '../Snaps/utils';
 import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
 
 jest.mock('../AppConstants', () => ({
@@ -200,10 +199,6 @@ jest.mock('../../util/networks/global-network', () => ({
 
 jest.mock('../../actions/sdk', () => ({
   updateWC2Metadata: jest.fn().mockReturnValue({ type: 'UPDATE_WC2_METADATA' }),
-}));
-
-jest.mock('../Snaps/utils', () => ({
-  handleSnapRequest: jest.fn().mockResolvedValue('snap-result'),
 }));
 
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
