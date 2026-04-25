@@ -236,7 +236,10 @@ describe('useTrendingRequest', () => {
           chainIds: ['eip155:1', 'eip155:137'],
         }),
       );
-      expect(result.current.isLoading).toBe(false);
+      await waitFor(() => {
+        expect(result.current.results).toEqual(mockResults);
+        expect(result.current.isLoading).toBe(false);
+      });
 
       spyGetTrendingTokens.mockRestore();
     },

@@ -285,7 +285,7 @@ describe('PerpsOpenOrderCard', () => {
       const cancelButton = screen.getByTestId(
         PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
       );
-      // Check that the button has disabled prop
+      // Check that the button is disabled
       expect(cancelButton).toBeDisabled();
     });
 

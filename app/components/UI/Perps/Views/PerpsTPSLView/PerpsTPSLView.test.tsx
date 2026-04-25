@@ -111,6 +111,33 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        {!isLoading && <Text>{label ?? children}</Text>}
+      </TouchableOpacity>
+    ),
+  };
+});
+
 describe('PerpsTPSLView', () => {
   const defaultMockReturn = {
     formState: {

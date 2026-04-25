@@ -11,7 +11,10 @@ import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
-import { hasTransactionType } from '../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import Engine from '../../../../../core/Engine';
 import {
@@ -51,6 +54,10 @@ export function useTransactionCustomAmount({
   const { chainId, id: transactionId } = transactionMeta;
 
   const isMaxAmount = useTransactionPayIsMaxAmount();
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const isPerpsWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
   const balanceUsd = useTokenBalance(tokenFiatRate);
@@ -61,14 +68,22 @@ export function useTransactionCustomAmount({
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
 
-    if (isMaxAmount && targetAmountUsd && targetAmountUsd !== '0') {
+    // For withdrawals, targetAmount.usd is the destination-side received
+    // value (e.g. BNB after bridge fees), not the amount being withdrawn.
+    // The input field should always display what the user is withdrawing.
+    if (
+      !isWithdraw &&
+      isMaxAmount &&
+      targetAmountUsd &&
+      targetAmountUsd !== '0'
+    ) {
       return new BigNumber(targetAmountUsd)
         .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
         .toString(10);
     }
 
     return amountFiatState;
-  }, [amountFiatState, isMaxAmount, totals?.targetAmount.usd]);
+  }, [amountFiatState, isMaxAmount, isWithdraw, totals?.targetAmount.usd]);
 
   const amountHuman = useMemo(
     () =>
@@ -146,7 +161,15 @@ export function useTransactionCustomAmount({
         },
       });
 
-      if (percentage === 100) {
+      // For perps withdraw, do NOT set isMaxAmount=true. TPC's
+      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw`
+      // (the Arbitrum USDC wallet balance — wrong for a HyperLiquid-source
+      // withdrawal) instead of `token.amountRaw` (the typed HL balance).
+      // Letting isMaxAmount stay false routes the typed amount through,
+      // so the user actually withdraws their full balance.
+      const shouldSetMax = percentage === 100 && !isPerpsWithdraw;
+
+      if (shouldSetMax) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
@@ -154,7 +177,7 @@ export function useTransactionCustomAmount({
 
       setAmountFiat(newAmount);
     },
-    [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
+    [balanceUsd, isMaxAmount, isPerpsWithdraw, setIsMax, setConfirmationMetric],
   );
 
   const updateTokenAmount = useCallback(() => {

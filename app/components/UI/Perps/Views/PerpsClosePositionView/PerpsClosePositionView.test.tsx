@@ -346,10 +346,8 @@ describe('PerpsClosePositionView', () => {
       const confirmButton = getByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
       );
-      expect(
-        confirmButton.props.accessibilityState?.disabled ??
-          confirmButton.props.disabled,
-      ).toBe(true);
+      expect(confirmButton).toBeDisabled();
+      expect(confirmButton.props.accessibilityState.busy).toBe(true);
     });
   });
 
