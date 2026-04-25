@@ -2,19 +2,19 @@ import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
+  FontWeight,
   Icon,
   IconName,
   IconSize,
   IconColor,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -108,7 +108,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingSM}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('money.add_money_sheet.title')}
         </Text>
       </BottomSheetHeader>
@@ -125,7 +125,9 @@ const MoneyAddMoneySheet: React.FC = () => {
               size={IconSize.Lg}
               color={IconColor.IconDefault}
             />
-            <Text variant={TextVariant.BodyMDMedium}>{item.label}</Text>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {item.label}
+            </Text>
           </TouchableOpacity>
         ))}
         <View
@@ -139,8 +141,9 @@ const MoneyAddMoneySheet: React.FC = () => {
           />
           <View style={styles.disabledRowContent}>
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
             >
               {strings('money.add_money_sheet.receive_external')}
             </Text>
