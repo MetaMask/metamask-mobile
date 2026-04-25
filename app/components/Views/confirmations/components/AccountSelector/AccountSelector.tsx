@@ -1,5 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, TouchableOpacity, View } from 'react-native';
+import {
+  Modal,
+  StyleProp,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
@@ -42,12 +48,14 @@ export interface AccountSelectorProps {
   onAccountSelected: (address: string) => void;
   /** Label shown on the left side of the row. Defaults to the "To" i18n string. */
   label?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAddress,
   onAccountSelected,
   label = strings('confirm.label.to'),
+  style,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -120,7 +128,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const closeModal = useCallback(() => setIsModalVisible(false), []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <TouchableOpacity
         onPress={openModal}
         style={styles.row}

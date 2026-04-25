@@ -8,8 +8,6 @@ const stylesheet = (params: { theme: Theme }) => {
     container: {
       paddingVertical: 12,
       paddingHorizontal: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
     },
     row: {
       flexDirection: 'row',
