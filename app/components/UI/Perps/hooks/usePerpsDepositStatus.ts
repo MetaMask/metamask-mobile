@@ -36,7 +36,7 @@ export const usePerpsDepositStatus = () => {
 
   // Track if we're expecting a deposit
   const expectingDepositRef = useRef(false);
-  const prevSpendableBalanceRef = useRef<string>('0');
+  const prevTotalBalanceRef = useRef<string>('0');
 
   // Get deposit state from controller
   const depositInProgress = useSelector(
@@ -79,7 +79,7 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.status === TransactionStatus.approved
       ) {
         expectingDepositRef.current = true;
-        prevSpendableBalanceRef.current = liveAccount?.spendableBalance || '0';
+        prevTotalBalanceRef.current = liveAccount?.totalBalance || '0';
 
         const processingTimeSeconds = isArbUSDCDeposit ? 0 : 60; // hardcoded to 1 minute to avoid estimation failures of multiple bridges
 
@@ -106,7 +106,7 @@ export const usePerpsDepositStatus = () => {
   }, [
     PerpsToastOptions.accountManagement.deposit,
     bridgeQuotes,
-    liveAccount?.spendableBalance,
+    liveAccount?.totalBalance,
     showToast,
   ]);
 
@@ -116,22 +116,20 @@ export const usePerpsDepositStatus = () => {
       return;
     }
 
-    const currentBalance = Number.parseFloat(
-      liveAccount.spendableBalance || '0',
-    );
-    const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
+    const currentBalance = Number.parseFloat(liveAccount.totalBalance || '0');
+    const previousBalance = Number.parseFloat(prevTotalBalanceRef.current);
     // Check if balance increased
     if (currentBalance > previousBalance) {
       // Show success toast
       showToast(
         PerpsToastOptions.accountManagement.deposit.success(
-          liveAccount?.spendableBalance,
+          liveAccount?.totalBalance,
         ),
       );
 
       // Reset state
       expectingDepositRef.current = false;
-      prevSpendableBalanceRef.current = liveAccount.spendableBalance;
+      prevTotalBalanceRef.current = liveAccount.totalBalance;
     }
   }, [liveAccount, showToast, PerpsToastOptions.accountManagement.deposit]);
 

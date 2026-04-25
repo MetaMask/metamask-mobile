@@ -491,7 +491,7 @@ describe('usePerpsDepositStatus', () => {
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.success,
-      ).toHaveBeenCalledWith('1500.00'); // Current balance
+      ).toHaveBeenCalledWith('10600.00'); // Total balance after deposit
     });
 
     it('should not show success toast when balance decreases', () => {

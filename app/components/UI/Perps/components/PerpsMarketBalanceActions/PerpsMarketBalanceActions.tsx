@@ -87,20 +87,22 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
-  // "Empty" here means "no funds usable to place a trade right now" — drive
-  // off spendableBalance, not totalBalance. On HL Standard mode, a spot-only
-  // account has totalBalance > 0 but spendableBalance === 0 (spot isn't auto-
-  // collateral); those users need the Add Funds CTA even though their
-  // aggregate wealth on the venue is non-zero.
+  // "Empty" means "no funds at the venue" — i.e. nothing to display in the
+  // funded balance card. Drive off totalBalance: a user with open positions
+  // (collateral tied up, spendable=$0) is NOT empty and must keep seeing
+  // the balance/withdraw surface. Likewise a Standard-mode user with spot
+  // collateral has totalBalance > 0 — render the funded card; the
+  // order-entry path separately gates on spendableBalance.
   //
-  // During loading, spendableBalance may carry a sentinel string
+  // During loading, totalBalance may carry a sentinel string
   // (PERPS_CONSTANTS.FallbackDataDisplay = '--'). `BigNumber('--')` is NaN
-  // which reports `isZero() === false`, silently hiding the Add Funds CTA.
-  // Treat non-finite parses as empty so the skeleton/empty surface renders
-  // consistently.
+  // which reports `isZero() === false`, which would render the funded card
+  // with garbage values. Treat non-finite parses as empty so skeleton /
+  // empty-state renders consistently until real data lands.
+  const totalBn = BigNumber(totalBalance);
+  const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
+  // Funded card subtitle ("available") shows usable-for-new-trades.
   const spendableBalance = perpsAccount?.spendableBalance || '0';
-  const spendableBn = BigNumber(spendableBalance);
-  const isBalanceEmpty = !spendableBn.isFinite() || spendableBn.isZero();
 
   // Use hook for eligibility checks and action handlers
   // Determine button location based on whether balance is empty (empty state) or not (home)

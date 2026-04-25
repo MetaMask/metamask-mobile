@@ -20,7 +20,7 @@ export const usePerpsDepositProgress = () => {
 
   // Track if we're expecting a deposit
   const [isDepositInProgress, setIsDepositInProgress] = useState(false);
-  const prevSpendableBalanceRef = useRef<string>('0');
+  const prevTotalBalanceRef = useRef<string>('0');
   const liveAccountRef = useRef(liveAccount);
 
   // Update the ref whenever liveAccount changes
@@ -46,8 +46,8 @@ export const usePerpsDepositProgress = () => {
       // Handle PerpsDeposit approved - set deposit in progress
       if (transactionMeta.status === TransactionStatus.approved) {
         setIsDepositInProgress(true);
-        prevSpendableBalanceRef.current =
-          liveAccountRef.current?.spendableBalance || '0';
+        prevTotalBalanceRef.current =
+          liveAccountRef.current?.totalBalance || '0';
       }
 
       // Handle PerpsDeposit failed - clear deposit in progress
@@ -75,16 +75,14 @@ export const usePerpsDepositProgress = () => {
       return;
     }
 
-    const currentBalance = Number.parseFloat(
-      liveAccount.spendableBalance || '0',
-    );
-    const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
+    const currentBalance = Number.parseFloat(liveAccount.totalBalance || '0');
+    const previousBalance = Number.parseFloat(prevTotalBalanceRef.current);
 
     // Check if balance increased
     if (currentBalance > previousBalance) {
       // Deposit completed successfully
       setIsDepositInProgress(false);
-      prevSpendableBalanceRef.current = liveAccount.spendableBalance;
+      prevTotalBalanceRef.current = liveAccount.totalBalance;
     }
   }, [isDepositInProgress, liveAccount]);
 
