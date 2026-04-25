@@ -6802,8 +6802,8 @@
       "perps_withdraw": "Mag-withdraw",
       "predict_deposit": "Magdagdag ng mga pondo para sa Prediksyon",
       "predict_withdraw": "Mag-withdraw",
-      "money_account_deposit": "Magdagdag ng pondo",
-      "money_account_withdraw": "I-withdraw ang mga pondo"
+      "money_account_add_money": "Magdagdag ng pondo",
+      "money_account_transfer_money": "I-withdraw ang mga pondo"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",

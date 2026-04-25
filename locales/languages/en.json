@@ -6873,8 +6873,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_deposit": "Add funds",
-      "money_account_withdraw": "Withdraw funds"
+      "money_account_add_money": "Add money",
+      "money_account_transfer_money": "Transfer money"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",

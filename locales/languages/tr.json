@@ -6802,8 +6802,8 @@
       "perps_withdraw": "Çek",
       "predict_deposit": "Tahmin fonu ekle",
       "predict_withdraw": "Çek",
-      "money_account_deposit": "Fon ekle",
-      "money_account_withdraw": "Para çek"
+      "money_account_add_money": "Fon ekle",
+      "money_account_transfer_money": "Para çek"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",

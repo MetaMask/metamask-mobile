@@ -6802,8 +6802,8 @@
       "perps_withdraw": "Вывести средства",
       "predict_deposit": "Внести средства для прогнозирования",
       "predict_withdraw": "Вывести средства",
-      "money_account_deposit": "Внести средства",
-      "money_account_withdraw": "Вывести средства"
+      "money_account_add_money": "Внести средства",
+      "money_account_transfer_money": "Вывести средства"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",

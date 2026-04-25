@@ -6802,8 +6802,8 @@
       "perps_withdraw": "Rút tiền",
       "predict_deposit": "Nạp tiền Dự đoán",
       "predict_withdraw": "Rút tiền",
-      "money_account_deposit": "Nạp tiền",
-      "money_account_withdraw": "Rút tiền"
+      "money_account_add_money": "Nạp tiền",
+      "money_account_transfer_money": "Rút tiền"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
