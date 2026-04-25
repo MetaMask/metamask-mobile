@@ -13,7 +13,7 @@ flowchart TD
     GR -->|PR has Android-only changes| Android[Android Build + Tests needed]
     GR -->|PR has iOS-only changes| iOS[iOS Build + Test needed]
     GR -->|PR other files changed| Both[Both Build + Tests needed]
-    GR -->|Scheduled / Push to main / Release branches| Full[Run all E2E Suites for Both]
+    GR -->|Scheduled and Push to main | Full[Run all E2E Suites for Both]
 
     Android & iOS & Both --> LABEL[PR label: skip-smart-e2e-selection ?]
     LABEL -->|yes| AllTags[Run all E2E needed]
