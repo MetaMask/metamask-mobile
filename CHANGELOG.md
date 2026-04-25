@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.75.0]
+
+### Added
+
+- Added support for ENS v2 (#29258)
+- Added a Rive-based animated fox splash screen in place of the static loading spinner for a smoother app launch experience (#29003)
+- Hid multichain Activity entries involving tokens flagged as malicious by security scanning, consistent with how malicious tokens are handled on the assets overview (#29239)
+- Added Suspicious and Malicious security badges to tokens in the Swaps and Bridge asset pickers (#29070)
+- Added security badges to the trending tokens list (#29112)
+- Added live mUSD and Veda vault USD balance display on the Money account home page (#28889)
+- Added a new hardware connection page (#28019)
+- Added an A/B-tested homepage layout that separates trending sections and tracks swap analytics attribution for actions launched from homepage trending sections (#28085)
+- Added follow/unfollow functionality for traders (#28843)
+- Added hold time to the trader profile view (#28873)
+- Extended notification account toggles to all wallet keyrings (#27254)
+- Enabled MetaMask Card Cashback for US users (#29138)
+- Added an Ondo campaign rewards stats page (#28734)
+- Added a migration that resets the native balance to 0 on Tempo chains (#28869)
+
+### Changed
+
+- Hid token warnings in the Swaps asset picker temporarily (#29278)
+- Improved MetaMask Card login fields to use the design-system `TextField` with correct username/password autocomplete hints for accessibility and password managers (#29215)
+- Moved the Cashback action on Card Home directly under Change asset; the Change asset row no longer shows a trailing chevron in the bottom sheet (#29219)
+- Updated the Tempo native token logo (#29105)
+- Only show the Transak verify-identity policy screen once on Unified Buy; later visits skip to email entry when not logged in to Transak (#28952)
+- Updated token avatars to use only asset image URLs, without a curated token list fallback (#28552)
+- Updated the perps section on the Explore screen to display horizontal tile cards with sparkline charts (#28512)
+- Stopped using the token list cache for asset overview token details; decimals, aggregators, and market data now come from the asset and token rates (#28533)
+- Improved scroll-back user experience in the advanced chart integration on the token details page (#28451)
+- Updated app typography and font assets to align with the latest MetaMask design system semibold bold-weight migration (#28363)
+- Updated perps chart volume bars to use 30% opacity, matching the transparency style of the spot token details chart (#29132)
+- Updated Settings copy so the IPFS gateway is described under Security and privacy instead of Advanced (#29045)
+
+### Fixed
+
+- Fixed featured carousel showing secondary markets instead of the match winner for sports events (#29001)
+- Fixed featured carousel showing sports games that had already ended (#29000)
+- Fixed Tempo transactions to fall back to a classic transaction when contract deployment is required (#29078)
+- Fixed the Confirmation button state by adding a gasless-loading guard, consistent with Extension (#29188)
+- Fixed rapid market switching triggering Hyperliquid rate-limit errors (#29056)
+- Fixed max mUSD conversion displaying an inflated receive amount (#29175)
+- Fixed the mUSD logo not displayed when opening mUSD swap from Rewards (#29194)
+- Fixed MetaMask Card home showing zero token balances when the user is not authenticated with the card provider (#29146)
+- Fixed a Perps position size formatting bug that stripped valid trailing zeros on whole-unit assets (szDecimals=0), e.g. displaying "1" instead of "100" (#29016)
+- Fixed SRP reveal QR code styling to display consistently across light and dark themes (#28969)
+- Fixed a visual alignment issue in the Top Traders list where double-digit ranks appeared to be missing their trailing dot (#29099)
+- Fixed an iOS-only bug where the header and web content overlapped in the in-app web view screen (#29020)
+- Fixed quote polling so the timer stops and interactions are blocked while a quote is being processed (#28862)
+- Fixed `wallet_watchAsset` failing with `"Expected a value of type JSON, but received: [object Object]"` when a dapp requested the wallet to watch a token (#29030)
+- Fixed bridge quotes showing a misleading 0% price impact when quote price data was unavailable (#28931)
+- Fixed incorrect TRX "locked for" value (#29038)
+- Fixed a layout shift that happened when following/unfollowing traders with high PnL (#29021)
+- Fixed NFT ownership status not refreshing across all enabled networks when pulling to refresh (#28655)
+- Fixed noisy Sentry error reports from expected candle fetch cancellations during navigation (#28953)
+- Fixed transient UI flashes on the Buy screen (stale "Powered by" text, brief quote-fetch error banner, and a disabled-looking Continue button) when the selected token isn't supported by the current provider and the app is silently switching to a supporting one (#29178)
+- Fixed missing error sheet on auth server and seedless login errors (#29227)
+- Fixed missing token icons in the predictions pay-with picker for zero-balance tokens (#27702)
+
 ## [7.73.1]
 
 ### Fixed
@@ -11222,7 +11281,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.0...HEAD
+[7.75.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.1...v7.75.0
 [7.73.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.0...v7.73.1
 [7.73.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.1...v7.73.0
 [7.72.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...v7.72.1
