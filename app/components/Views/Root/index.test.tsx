@@ -38,7 +38,7 @@ jest.mock('../../Nav/App', () => {
 
 jest.mock('../../Nav/ControllersGate', () => ({
   __esModule: true,
-  default: ({ children }) => children,
+  default: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('../../../util/test/utils', () => ({

@@ -229,7 +229,7 @@ describe('usePredictMarketData', () => {
     const firstRefetch = result.current.refetch;
 
     // Trigger a re-render
-    rerender();
+    rerender(undefined);
 
     expect(result.current.refetch).toBe(firstRefetch);
   });

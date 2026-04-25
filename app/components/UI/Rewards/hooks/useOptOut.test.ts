@@ -366,19 +366,21 @@ describe('useOptout', () => {
       });
 
       // Act - Try to call optout while already loading
-      let secondOptoutResult: boolean;
+      let secondOptoutResult = false;
       await act(async () => {
         secondOptoutResult = await result.current.optout();
       });
 
       // Assert - Second call should return false immediately without calling controller
-      expect(secondOptoutResult!).toBe(false);
+      expect(secondOptoutResult).toBe(false);
       expect(mockEngineCall).toHaveBeenCalledTimes(1); // Only called once from the first optout
 
       // Clean up the first promise
       await act(async () => {
-        resolveSlowPromise!(true);
-        await firstOptoutPromise!;
+        resolveSlowPromise?.(true);
+        if (firstOptoutPromise) {
+          await firstOptoutPromise;
+        }
       });
     });
 
@@ -888,7 +890,7 @@ describe('useOptout', () => {
       });
 
       // Act
-      rerender();
+      rerender(undefined);
 
       // Assert
       expect(result.current.optout).not.toBe(initialOptout);
@@ -912,7 +914,7 @@ describe('useOptout', () => {
       });
 
       // Act - Rerender to see if callback changed
-      rerender();
+      rerender(undefined);
 
       // Assert - The callback should be different due to isLoading dependency change
       expect(result.current.showOptoutBottomSheet).not.toBe(

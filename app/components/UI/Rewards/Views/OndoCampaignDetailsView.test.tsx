@@ -21,6 +21,9 @@ import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockRouteState: { params: { campaignId?: string } } = {
+  params: { campaignId: 'campaign-1' },
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -29,7 +32,7 @@ jest.mock('@react-navigation/native', () => ({
     addListener: jest.fn(() => jest.fn()),
     isFocused: () => true,
   }),
-  useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
+  useRoute: () => mockRouteState,
   useFocusEffect: jest.fn((cb) => cb()),
 }));
 

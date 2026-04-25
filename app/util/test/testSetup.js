@@ -744,7 +744,7 @@ if (!Reanimated.ReanimatedLogLevel) {
 // on circular references (the default implementation does JSON.stringify(value)
 // which throws "Converting circular structure to JSON" or causes RangeError).
 try {
-  const mutables = require('react-native-reanimated/src/mutables');
+  const mutables = require('react-native-reanimated/lib/module/mutables');
   const origMakeMutable = mutables.makeMutable;
   if (origMakeMutable) {
     mutables.makeMutable = function patchedMakeMutable(value) {

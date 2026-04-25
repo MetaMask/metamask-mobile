@@ -23,8 +23,8 @@ jest.mock(
       ) => {
         // Capture the navigation object at render time using the (already
         // mocked) useNavigation from @react-navigation/native.
-        const navigationRef = MockReact.useRef<{ goBack: () => void } | null>(
-          null,
+        const navigationRef = MockReact.useRef(
+          null as { goBack: () => void } | null,
         );
         try {
           // eslint-disable-next-line react-hooks/rules-of-hooks

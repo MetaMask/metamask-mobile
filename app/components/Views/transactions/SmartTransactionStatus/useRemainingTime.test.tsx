@@ -83,7 +83,6 @@ describe('useRemainingTime', () => {
           chainId: MOCK_CHAIN_ID,
         }),
       {
-        // @ts-expect-error - TypeScript limitation with renderHook wrapper types
         wrapper: createWrapper(),
         initialProps: { isStxPending: true },
       },

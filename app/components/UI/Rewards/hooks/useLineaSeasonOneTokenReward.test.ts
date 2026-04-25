@@ -294,7 +294,7 @@ describe('useLineaSeasonOneTokenReward', () => {
       expect(mockEngineCall).not.toHaveBeenCalled();
 
       // Rerender with valid subscriptionId
-      rerender();
+      rerender(undefined);
 
       await waitFor(() => {
         expect(result.current.lineaTokenReward).toEqual(mockLineaTokenReward);
@@ -320,7 +320,7 @@ describe('useLineaSeasonOneTokenReward', () => {
 
       // Change subscriptionId to null and rerender
       mockUseSelector.mockReturnValue(null);
-      rerender();
+      rerender(undefined);
 
       // Wait for useEffect to process the change
       await act(async () => {

@@ -193,7 +193,7 @@ describe('useTronStakeApy', () => {
     });
   });
 
-  describe.skip('loading state', () => {
+  describe('loading state', () => {
     it('sets isLoading true during fetch', async () => {
       let resolvePromise: (
         value: ReturnType<typeof createMockWitnessesResponse>,
@@ -220,7 +220,7 @@ describe('useTronStakeApy', () => {
       const { result } = renderHook(() => useTronStakeApy());
 
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
       });
     });
 
@@ -230,7 +230,7 @@ describe('useTronStakeApy', () => {
       const { result } = renderHook(() => useTronStakeApy());
 
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.fetchStatus).toBe(FetchStatus.Error);
       });
     });
   });

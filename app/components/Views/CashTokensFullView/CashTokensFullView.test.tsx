@@ -155,7 +155,13 @@ describe('CashTokensFullView', () => {
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((cb) => {
         if (typeof cb === 'function') cb();
-        return { cancel: jest.fn(), done: Promise.resolve() } as ReturnType<
+        const donePromise = Promise.resolve();
+        return {
+          cancel: jest.fn(),
+          done: (...args: Parameters<typeof donePromise.then>) =>
+            donePromise.then(...args),
+          then: donePromise.then.bind(donePromise),
+        } as unknown as ReturnType<
           typeof InteractionManager.runAfterInteractions
         >;
       });
@@ -170,6 +176,7 @@ describe('CashTokensFullView', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
     });
   });
 

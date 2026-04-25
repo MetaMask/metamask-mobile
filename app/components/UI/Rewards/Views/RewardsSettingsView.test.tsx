@@ -30,7 +30,7 @@ jest.mock('@react-navigation/native', () => {
 // Mock useTailwind hook
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const twFn = () => ({});
-  twFn.style = (styles) => (typeof styles === 'string' ? {} : styles);
+  twFn.style = (styles: unknown) => (typeof styles === 'string' ? {} : styles);
   twFn.color = () => 'black';
   return {
     useTailwind: () => twFn,

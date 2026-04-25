@@ -98,7 +98,7 @@ describe('useAuthCapabilities', () => {
     });
 
     mockOsAuthEnabled = false;
-    rerender();
+    rerender(undefined);
 
     await waitFor(() => {
       expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(2);
