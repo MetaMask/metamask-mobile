@@ -122,6 +122,31 @@ describe('migration 133', () => {
     expect('availableBalance' in acc).toBe(false);
   });
 
+  it('maps tradeable-only legacy state to spendableBalance and keeps withdrawableBalance at "0"', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            accountState: {
+              availableToTradeBalance: '42',
+              totalBalance: '42',
+              marginUsed: '0',
+              unrealizedPnl: '0',
+              returnOnEquity: '0',
+            },
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>;
+
+    migrate(state);
+
+    const acc = getAccountState(state);
+    expect(acc.spendableBalance).toBe('42');
+    expect(acc.withdrawableBalance).toBe('0');
+    expect('availableToTradeBalance' in acc).toBe(false);
+  });
+
   it('coerces numeric legacy values (defensive — pre-refactor dev branches could have written numbers)', () => {
     const state = {
       engine: {

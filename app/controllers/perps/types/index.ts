@@ -232,7 +232,7 @@ export type AccountState = {
    * contract guarantees HL's own abstraction (Unified) or the direct
    * perps-clearinghouse (Standard) is what actually settles the
    * withdraw — no client-side spot→perps sweep is performed.
-   * HL Unified: withdrawable + freeSpotUSDC (HL withdraw3 draws from the unified ledger server-side)
+   * HL Unified: withdrawable + freeSpotUSDC (USDC only; `freeSpotUSDC = spot.total - spot.hold`, and HL withdraw3 draws from the unified ledger server-side)
    * HL Standard: withdrawable (perps-clearinghouse only; spot is a separate ledger)
    * MYX: walletBalance
    */

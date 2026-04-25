@@ -190,6 +190,8 @@ export function addSpotBalanceToAccountState(
   }
 
   if (spotBalance === 0) {
+    // No spot wealth means no hold either in the HL payload shape, so the
+    // later totalBalance adjustment would also be a no-op.
     return accountState;
   }
 
