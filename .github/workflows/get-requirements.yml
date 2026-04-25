@@ -7,30 +7,31 @@ on:
     outputs:
       skip_jobs_in_merge_queue:
         description: 'Whether all jobs should be skipped in merge-queue (branch is already up-to-date with latest commit)'
-        value: ${{ jobs.detect.outputs.skip_jobs_in_merge_queue }}
+        value: ${{ jobs.detect-changes.outputs.skip_jobs_in_merge_queue }}
       skip_e2e:
         description: 'Whether all E2E builds and tests should be skipped. True for any skip signal (labels or commit tag). Check block_merge_for_e2e_readiness separately to know if merge is also blocked'
-        value: ${{ jobs.detect.outputs.skip_e2e }}
+        value: ${{ jobs.detect-changes.outputs.skip_e2e }}
       android_e2e_needed:
         description: 'Whether Android E2E tests and builds should run (true when Android-specific or shared files changed)'
-        value: ${{ jobs.detect.outputs.android_e2e_needed }}
+        value: ${{ jobs.detect-changes.outputs.android_e2e_needed }}
       ios_e2e_needed:
         description: 'Whether iOS E2E tests and builds should run (true when iOS-specific or shared files changed)'
-        value: ${{ jobs.detect.outputs.ios_e2e_needed }}
+        value: ${{ jobs.detect-changes.outputs.ios_e2e_needed }}
       changed_files:
         description: 'Space-separated list of changed file paths. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
-        value: ${{ jobs.detect.outputs.changed_files }}
+        value: ${{ jobs.detect-changes.outputs.changed_files }}
       block_merge_for_e2e_readiness:
         description: 'Whether "pr-not-ready-for-e2e" label is still applied; blocks merge while true'
-        value: ${{ jobs.detect.outputs.block_merge_for_e2e_readiness }}
+        value: ${{ jobs.detect-changes.outputs.block_merge_for_e2e_readiness }}
       run_smart_e2e_selection:
         description: 'Whether the smart-e2e-selection AI job should run. False for non-PR events, forks, hard skips, or skip-smart-e2e-selection label.'
-        value: ${{ jobs.detect.outputs.run_smart_e2e_selection }}
+        value: ${{ jobs.detect-changes.outputs.run_smart_e2e_selection }}
 
 jobs:
-  detect:
-    name: Detect requirements
+  detect-changes:
+    name: Filter files changed and decide which jobs to run
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     outputs:
       skip_jobs_in_merge_queue: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'true' || 'false' }}
       skip_e2e: ${{ steps.set-outputs.outputs.builds != 'true' && 'true' || 'false' }}
@@ -57,7 +58,7 @@ jobs:
           ref: ${{ env.HEAD_COMMIT_HASH }}
 
       - name: Check skip commit tag
-        id: skip-tag
+        id: skip-e2e-tag
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
@@ -118,7 +119,7 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
-          SHOULD_SKIP_E2E: ${{ steps.skip-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
+          SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
           SKIP_SMART_SELECTION: ${{ steps.check-labels.outputs.SKIP_SMART_SELECTION == 'true' }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}

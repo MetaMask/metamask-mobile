@@ -6,6 +6,7 @@ The following diagram shows the high level decision flow used by Mobile CI to de
 flowchart TD
     CI[CI run starts - Android and iOS] --> GR[Check conditions]
     GR -->|Merge Queue | MQ[No E2E]
+    GR -->|Fork PR| FK[No E2E]
     GR -->|PR label: skip-e2e| HS[No E2E]
     GR -->|PR label: pr-not-ready-for-e2e| L2[No E2E]
     L2 -->|while label present in PR| Skip2[Merge blocked]
