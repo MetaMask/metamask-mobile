@@ -1,12 +1,46 @@
-# TAT-3047 Validation
+# Perps — Account Abstraction & Balance Contract
 
-PR: [#29303](https://github.com/MetaMask/metamask-mobile/pull/29303)
-Branch: `refactor/tat-3047-balance-contract-reshape`
-Last validated: 2026-04-24, mainnet
+This is the reference doc for the perps `AccountState` balance contract and how mobile handles HyperLiquid's account-abstraction modes (Unified, Standard, Portfolio, DEX-abstraction). Anyone touching balance display, order-entry validation, withdraw flow, or HL-mode-aware logic should start here.
 
-## What this validates
+The current shape — three purpose-built balance fields plus a mode-aware spot-fold gate — was introduced in [TAT-3047 / PR #29303](https://github.com/MetaMask/metamask-mobile/pull/29303), which replaced the earlier overloaded `availableBalance` + optional `availableToTradeBalance` pair (TAT-3016 hotfix) and added end-to-end correctness across the abstraction modes HL exposes.
 
-The refactor reshapes `AccountState` from `availableBalance` / `availableToTradeBalance?` into `spendableBalance` / `withdrawableBalance` / `totalBalance`. This document proves — with live, repeatable evidence — that the new contract is correct across the range of real HL account topologies that users actually hit: different abstraction modes, different balance distributions, with and without open positions.
+## What's in this doc
+
+1. **The contract** — three fields and what they mean per provider (`AccountState.spendableBalance` / `withdrawableBalance` / `totalBalance`).
+2. **HL abstraction modes** — Unified vs Standard vs Portfolio vs DEX-abstraction, mapped to HL web checkboxes and the SDK `userSetAbstraction` enum, with the per-mode balance semantics.
+3. **The mode-aware spot-fold gate** — how the provider + subscription service detect and react to HL-side mode changes.
+4. **Validation matrix** — the four fixture accounts and recipes that prove the contract holds end-to-end on mainnet.
+5. **Known trade-offs** — explicit "not covered" + the cold-start behaviour for Standard-mode users.
+
+## Why this matters for any future change
+
+- **UI never branches on provider or HL abstraction mode.** Consumers read `spendableBalance` for "can the user open a trade with this much" and `withdrawableBalance` for "can the user pull this much off the venue". The provider populates each field with the right number for the mode it's in. If a future provider needs different semantics, add the translation in the adapter — not in a hook or component.
+- **`addSpotBalanceToAccountState` is provider-agnostic** and takes an explicit `{ foldIntoCollateral }` flag. The HL provider computes the flag from `userAbstraction`; MYX always passes `true`.
+- **`hyperLiquidModeFoldsSpot(mode)` is the single source of truth** for "does this HL mode let spot USDC act as perps collateral". Add new HL mode strings here when HL ships them.
+
+Last validated: 2026-04-24, mainnet (recipe run on 4 fixture accounts including a live Unified ↔ Standard mode flip).
+
+## The three-field contract
+
+`AccountState` (in `app/controllers/perps/types/index.ts`) carries three balance fields, each answering one question:
+
+| Field                 | Question                                                      | Used by                                                          |
+| --------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `totalBalance`        | What is the user's total wealth at this venue, including PnL? | Balance header, portfolio aggregation, deposit progress watchers |
+| `spendableBalance`    | How much can immediately collateralize a new position?        | Order-form max, pay-token gate, insufficient-balance alerts      |
+| `withdrawableBalance` | How much can leave this venue to the user's external wallet?  | Withdraw-form max, withdraw validation                           |
+
+Invariant (documented, not enforced): `withdrawableBalance ≤ spendableBalance ≤ totalBalance`.
+
+### Per-provider mapping
+
+| Provider               | `totalBalance`                                         | `spendableBalance`            | `withdrawableBalance`         |
+| ---------------------- | ------------------------------------------------------ | ----------------------------- | ----------------------------- |
+| HL Unified / Portfolio | `accountValue + spot.total − spot.hold`                | `withdrawable + freeSpotUSDC` | `withdrawable + freeSpotUSDC` |
+| HL Standard            | `accountValue + spot.total − spot.hold` (display only) | `withdrawable` (perps-only)   | `withdrawable` (perps-only)   |
+| MYX                    | `walletBalance + marginUsed + unrealizedPnl`           | `walletBalance`               | `walletBalance`               |
+
+On HL Unified/Portfolio, `spendable === withdrawable`: HL's backend treats spot USDC as perps collateral and `withdraw3` draws from the unified ledger server-side. On HL Standard, spot USDC is a separate ledger that HL won't auto-draw from, so spendable/withdrawable stay perps-only and only `totalBalance` reflects the combined wealth (display).
 
 ## HL abstraction modes — glossary
 
@@ -340,5 +374,5 @@ Manual validation of the migration path requires a build-upgrade harness (instal
 | `scripts/perps/agentic/teams/perps/flows/hl-standard-mode-fold-check.json` | Composable Standard-mode fold-inflation quantifier        | ✓ git                       |
 | `scripts/perps/agentic/teams/perps/flows/hl-provision-fixture.json`        | Pre-existing fixture-provisioning flow (abstraction flip) | ✓ git                       |
 | `.task/fix/tat-3047-0424-1139/artifacts/recipe.json`                       | Top-level orchestration                                   | local (`.task/` gitignored) |
-| `VALIDATION.md` (repo root)                                                | This document                                             | ✓ git                       |
+| `docs/perps/perps-account-abstraction-and-balance-contract.md`             | This document                                             | ✓ git                       |
 | `.agent/recipe-runs/*/`                                                    | Trace / screenshots / issues per run                      | local                       |
