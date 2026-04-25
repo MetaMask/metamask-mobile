@@ -2,7 +2,7 @@ import React from 'react';
 import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
-import { MoneyScreenStack } from './index';
+import { MoneyModalStack, MoneyScreenStack } from './index';
 
 const EXPECTED_CARD_BACKGROUND = '#money-test-bg';
 
@@ -60,14 +60,13 @@ jest.mock('../components/MoneyAddMoneySheet', () => () => (
 ));
 
 describe('MoneyScreenStack', () => {
-  it('registers Money home, activity, and add-money sheet screens', () => {
+  it('registers Money home and activity screens', () => {
     const { getByTestId } = renderWithProvider(<MoneyScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
     expect(getByTestId('money-screen-MoneyHome')).toBeOnTheScreen();
     expect(getByTestId('money-screen-MoneyActivity')).toBeOnTheScreen();
-    expect(getByTestId('money-screen-MoneyAddMoneySheet')).toBeOnTheScreen();
   });
 
   it('sets stack card background from theme to avoid flash during inner navigation', () => {
@@ -86,5 +85,15 @@ describe('MoneyScreenStack', () => {
     });
 
     expect(getByTestId('money-header-hidden')).toBeOnTheScreen();
+  });
+});
+
+describe('MoneyModalStack', () => {
+  it('registers the Add money sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId('money-screen-MoneyAddMoneySheet')).toBeOnTheScreen();
   });
 });

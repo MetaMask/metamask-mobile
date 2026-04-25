@@ -1,11 +1,11 @@
-import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
+import type { Theme } from '../../../../../util/theme/models';
 
-export const createStyles = (theme: Theme) =>
+const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     list: {
       paddingBottom: 16,
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: params.theme.colors.background.default,
     },
     row: {
       flexDirection: 'row',
@@ -25,3 +25,5 @@ export const createStyles = (theme: Theme) =>
       borderRadius: 8,
     },
   });
+
+export default styleSheet;

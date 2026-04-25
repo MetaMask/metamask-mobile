@@ -1,10 +1,12 @@
 import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import Icon, {
+import { useNavigation } from '@react-navigation/native';
+import {
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -14,15 +16,17 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import Tag from '../../../../../component-library/components/Tags/Tag';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
-import Logger from '../../../../../util/Logger';
+import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
+import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../../../Earn/constants/musd';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import { createStyles } from './MoneyAddMoneySheet.styles';
+import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
 interface Option {
@@ -34,16 +38,11 @@ interface Option {
 
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const navigation = useNavigation();
+  const { styles } = useStyles(styleSheet, {});
 
   const { fiatBalanceAggregatedFormatted } = useMusdBalance();
-  const musdAmountForLabel = fiatBalanceAggregatedFormatted?.replace(
-    /^US\$/,
-    '$',
-  );
-  const { initiateCustomConversion } = useMusdConversion();
-  const { getPaymentTokenForSelectedNetwork } = useMusdConversionFlowData();
+  const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
@@ -53,33 +52,22 @@ const MoneyAddMoneySheet: React.FC = () => {
   // TODO(MUSD-478/MUSD-516): point to the MM Pay "Add money" amount-entry
   // screen (Figma 2547:8887). Interim: existing mUSD quick-convert token list.
   const handleConvertCrypto = useCallback(() => {
-    const paymentToken = getPaymentTokenForSelectedNetwork();
-    if (!paymentToken) {
-      Logger.error(new Error('[MoneyAddMoneySheet] payment token missing'));
-      sheetRef.current?.onCloseBottomSheet();
-      return;
-    }
     closeAndNavigate(() => {
-      initiateCustomConversion({
-        preferredPaymentToken: paymentToken,
-        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
-      }).catch((error) => {
-        Logger.error(error as Error, '[MoneyAddMoneySheet] conversion failed');
-      });
+      navigation.navigate(Routes.EARN.MUSD.QUICK_CONVERT as never);
     });
-  }, [
-    closeAndNavigate,
-    getPaymentTokenForSelectedNetwork,
-    initiateCustomConversion,
-  ]);
+  }, [closeAndNavigate, navigation]);
 
   // TODO(MUSD-479): point to the Ramps "Add funds" amount-entry screen
-  // (Figma 2547:8780). Interim: unified smart-routed Buy flow.
+  // (Figma 2547:8780). Interim: unified smart-routed Buy flow with mUSD
+  // pre-selected so the destination matches the Money Hub experience.
   const handleDepositFunds = useCallback(() => {
+    const chainId = getChainIdForBuyFlow
+      ? getChainIdForBuyFlow()
+      : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     closeAndNavigate(() => {
-      goToBuy();
+      goToBuy({ assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] });
     });
-  }, [closeAndNavigate, goToBuy]);
+  }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
 
   // TODO: wire to the "move external mUSD → Money Account" flow once the
   // dedicated ticket lands. Interim: close sheet.
@@ -101,9 +89,9 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     },
     {
-      label: musdAmountForLabel
+      label: fiatBalanceAggregatedFormatted
         ? strings('money.add_money_sheet.move_musd', {
-            amount: musdAmountForLabel,
+            amount: fiatBalanceAggregatedFormatted,
           })
         : strings('money.add_money_sheet.move_musd_no_amount'),
       icon: IconName.Add,
@@ -135,7 +123,7 @@ const MoneyAddMoneySheet: React.FC = () => {
             <Icon
               name={item.icon}
               size={IconSize.Lg}
-              color={IconColor.Default}
+              color={IconColor.IconDefault}
             />
             <Text variant={TextVariant.BodyMDMedium}>{item.label}</Text>
           </TouchableOpacity>
@@ -147,7 +135,7 @@ const MoneyAddMoneySheet: React.FC = () => {
           <Icon
             name={IconName.Arrow2Down}
             size={IconSize.Lg}
-            color={IconColor.Muted}
+            color={IconColor.IconMuted}
           />
           <View style={styles.disabledRowContent}>
             <Text

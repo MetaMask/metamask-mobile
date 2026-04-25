@@ -262,7 +262,9 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(testId));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ADD_MONEY_SHEET);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
   });
 
   describe('milestone state (1-9 transactions)', () => {
@@ -477,7 +479,9 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(testId));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ADD_MONEY_SHEET);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
     });
   });
 });

@@ -11,6 +11,7 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
 const Stack = createStackNavigator();
+const ModalStack = createStackNavigator();
 
 const MoneyScreenStack = () => {
   const { colors } = useTheme();
@@ -33,11 +34,6 @@ const MoneyScreenStack = () => {
         component={MoneyHowItWorksView}
       />
       <Stack.Screen
-        name={Routes.MONEY.ADD_MONEY_SHEET}
-        component={MoneyAddMoneySheet}
-        options={clearStackNavigatorOptions}
-      />
-      <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
         component={Confirm}
@@ -46,4 +42,19 @@ const MoneyScreenStack = () => {
   );
 };
 
-export { MoneyScreenStack };
+const MoneyModalStack = () => (
+  <ModalStack.Navigator
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
+  >
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.ADD_MONEY_SHEET}
+      component={MoneyAddMoneySheet}
+      options={{ headerShown: false }}
+    />
+  </ModalStack.Navigator>
+);
+
+export { MoneyScreenStack, MoneyModalStack };

@@ -74,7 +74,13 @@ const MoneyHomeView = () => {
   const handleMenuPress = displayUnderConstructionAlert;
 
   const handleAddPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.ADD_MONEY_SHEET as never);
+    (
+      navigation as unknown as {
+        navigate: (name: string, params?: unknown) => void;
+      }
+    ).navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
   }, [navigation]);
   const handleTransferPress = displayUnderConstructionAlert;
   const handleCardPress = displayUnderConstructionAlert;
