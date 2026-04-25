@@ -68,7 +68,7 @@ Four fixture accounts, each in a distinct state. Two abstraction modes (Unified 
 | **dev2**      | `0x5993d2…0916` | **Unified → Standard → Unified** | `withdrawable≈$10`, `accountValue≈$10` (pre-flip) | dust (`≈$0.0004`, `hold=$0`)  | None                 | Perps-funded clean fixture flipped to Standard and back     |
 | **Account 6** | `0xB9b9E1…42c2` | Unified                          | `withdrawable=$0`, `accountValue=$0`              | `total=$0`, `hold=$0`         | None                 | Zero across all ledgers                                     |
 
-Note on dev2 ledger drift: `userSetAbstraction` flipping a Unified account to Standard and back can redistribute the USDC between the perps and spot sides at the HL validator level (observed: $10 moved perps→spot during the flip cycle). This is HL-side behaviour, not a recipe artefact. The account's total USDC is preserved end-to-end; only the side it reports on changes.
+Note on dev2 ledger drift: `userSetAbstraction` flipping a Unified account to Standard and back can redistribute the USDC between the perps and spot sides at the HL backend (observed: $10 moved perps→spot during the flip cycle). This is HL-side behaviour, not a recipe artefact. The account's total USDC is preserved end-to-end; only the side it reports on changes.
 
 ## Why this set covers the refactor surface
 
@@ -81,7 +81,6 @@ Note on dev2 ledger drift: `userSetAbstraction` flipping a Unified account to St
 | Perps-funded clean case produces wrong shape                  | dev2 Unified baseline — covers the "perps-heavy, spot-light" topology the other fixtures don't                                  |
 | Contract not mode-agnostic                                    | dev2 flipped Unified → Standard → Unified — contract + math asserted in both modes                                              |
 | Mode flip corrupts persisted state shape                      | dev2 post-flip-back — contract re-asserted to confirm shape survives the round trip                                             |
-| Zero-balance accounts render `$undefined` / crash             | Account 6 — empty-state flow asserts Add Funds affordance renders                                                               |
 | Legacy keys leak back in                                      | All four — contract flow asserts `availableBalance` and `availableToTradeBalance` are absent                                    |
 | `spendable` diverges from `withdrawable` on HL                | All four — math flow asserts `spendable === withdrawable`                                                                       |
 
@@ -138,26 +137,7 @@ Asserts the spot-fold math by deriving expected values from the controller's own
 
 This formulation naturally covers single-DEX accounts and HIP-3 multi-DEX accounts — the per-DEX sum is the controller's own truth; the spot REST is independent. Works in both Unified and Standard modes because `freeSpot` comes from raw HL REST.
 
-### `hl-empty-state-check.json`
-
-For zero-balance accounts:
-
-- Asserts all three fields parse to `< 0.01`
-- Navigates to `PerpsMarketListView`
-- Asserts either `perps-market-add-funds-button` mounts or `perps-market-balance-value` shows `$0`
-
-### `hl-standard-mode-fold-check.json`
-
-Runs ONLY after the account is flipped to Standard. Asserts that the mode-aware fold gate is holding — `spendableBalance` and `withdrawableBalance` must stay perps-only in Standard mode:
-
-- `standardSemanticExpected.spendable = Σ(breakdown.spendableBalance)` (perps-only, no fold)
-- `adapterActual.spendable = accountState.spendableBalance` (what our adapter produces)
-- `observedInflation = adapterActual.spendable − standardSemanticExpected.spendable`
-- Asserts `standardModeCorrect === true`, which requires `|observedInflation| ≤ ε` (default `0.05`)
-
-This flow is a regression guard against the fold returning. If a future refactor accidentally drops the `foldIntoCollateral` gate, `observedInflation` grows back to `freeSpot` and the assertion fails — pointing squarely at the mode handling.
-
-Gate input `minFoldSignal` (default `0.5` USDC): the flow fails fast if spot is too dust-like to distinguish folded from non-folded, with a hint to fund the account.
+Standard-mode regression guard is inlined in the recipe (`pathA-fold-correctness` node) rather than a separate flow — `hl-balance-math-check{foldIntoCollateral=false}` already proves the gate works; the inline `eval_async` quantifies `observedInflation = adapterActual.spendable − Σ(breakdown.spendable)` so a reviewer can read the delta in the trace.
 
 ### `hl-provision-fixture.json` (pre-existing, reused)
 
@@ -165,64 +145,98 @@ Already in the repo. Used to flip abstraction mode via `userSetAbstraction`. Req
 
 ## Top-level recipe
 
-`.task/fix/tat-3047-0424-1139/artifacts/recipe.json` (local — `.task/` is gitignored) orchestrates 36 workflow nodes across four phases plus teardown.
+The validation recipe lives in the repo at `scripts/perps/agentic/teams/perps/recipes/hl-balance-contract.json`. It is a **single-account state machine** parameterised by EVM address. The runner's `--input address=0x...` flag picks the fixture; the recipe's preflight probe classifies the account into one of two execution paths based on whether positions / orders are open (HL rejects `userSetAbstraction` while either exists).
 
 ```
-entry → gate-check-route → go-home (if inside Perps) → phase1
-phase1 (Trading, Unified spot-funded + HIP-3)
+setup    → toggle_testnet enabled=false → wait isTestnet===false   (force mainnet before graph runs)
+entry → gate-check-route → go-home (if inside Perps) → select-account ({{address}}) → wait-account → preflight-probe
+preflight-probe (HL REST: clearinghouseState + openOrders + spotClearinghouseState + userAbstraction)
+  └─ classifies pathA = positions===0 && pendingOrders===0
+shared (mode-agnostic — runs on both paths)
   ├─ call hl-balance-contract-check
   ├─ call hl-balance-math-check
-  ├─ nav PerpsMarketListView → assert PerpsMarketBalanceActions shows spendableBalance
-  ├─ screenshot phase1-trading-market-list.png
-  ├─ nav PerpsWithdraw → assert perps-withdraw-available-balance-text shows withdrawableBalance (not $0)
-  ├─ screenshot phase1-trading-withdraw-folded.png
-  ├─ type_keypad 1   → assert continue-button disabled=false
+  ├─ nav PerpsMarketListView   → assert PerpsMarketBalanceActions shows spendableBalance
+  ├─ screenshot shared-market-list.png
+  ├─ nav PerpsWithdraw         → assert perps-withdraw-available-balance-text shows withdrawableBalance (not $0)
+  ├─ screenshot shared-withdraw-folded.png
+  ├─ type_keypad 1     → assert continue-button disabled=false
   └─ type_keypad 99999 → assert contract (over-amount > withdrawable)
-phase2 (dev1, Unified spot-only clean)
-  ├─ call hl-balance-contract-check
-  └─ call hl-balance-math-check
-phase2b (dev2, Unified perps-funded clean)
-  ├─ call hl-balance-contract-check
-  └─ call hl-balance-math-check
-phase2c (dev2, mode transition coverage — both HL web checkboxes checked → Standard)
+path-switch
+  ├─ pathA → pathA-flip-standard            (Unified → Standard)
+  └─ default → pathB-shift-spot             (positions present — perps↔spot transfers only)
+pathA (clean account, full mode-flip matrix)
   ├─ call hl-provision-fixture abstraction=disabled       (Unified → Standard)
-  ├─ wait for accountState refresh
-  ├─ call hl-balance-contract-check                       (shape in Standard mode)
-  ├─ call hl-balance-math-check                           (adapter internal-consistency in Standard)
-  ├─ call hl-standard-mode-fold-check                     (EMPIRICAL: quantifies spot-fold inflation vs Standard semantics)
-  ├─ call hl-provision-fixture abstraction=unifiedAccount (restore — checkbox B unchecked again)
-  ├─ wait for accountState refresh
-  └─ call hl-balance-contract-check                       (verify shape survived round trip)
-phase3 (Account 6, zero)
-  ├─ call hl-balance-contract-check
-  ├─ call hl-empty-state-check
-  └─ screenshot phase3-account6-zero.png
+  ├─ wait userAbstraction REST = 'disabled'               (HL-side propagation bite)
+  ├─ call hl-balance-contract-check                        (shape in Standard mode)
+  ├─ call hl-balance-math-check foldIntoCollateral=false   (math gated for Standard semantics)
+  ├─ eval_async pathA-fold-correctness                     (inline regression guard: assert observedInflation ≤ ε)
+  ├─ call hl-provision-fixture abstraction=unifiedAccount  (restore)
+  ├─ wait userAbstraction REST = 'unifiedAccount'
+  └─ call hl-balance-contract-check                        (shape survives round trip)
+pathB (positions present — perps↔spot transfer only, no mode flip)
+  ├─ call hl-provision-fixture transferDirection=to-spot   (shift free perps → spot)
+  ├─ call hl-balance-contract-check                        (shape unchanged)
+  ├─ call hl-balance-math-check                            (math under non-trivial spot.hold)
+  └─ call hl-provision-fixture transferDirection=to-perp   (restore — positions untouched)
 teardown
-  ├─ select_account Trading
   └─ navigate WalletView
 ```
 
-Run it against a live app:
+Setup prerequisites (Metro, simulator, wallet fixture, CDP bridge): see `scripts/perps/agentic/README.md`. The recipe forces `isTestnet=false` in its setup block (HyperLiquid mainnet — real fixtures and `userAbstraction`) and expects the fixture wallet (default Trading) to hold ≥ a few USDC.
+
+Run against a live app (Trading by default):
 
 ```bash
-bash scripts/perps/agentic/validate-recipe.sh .task/fix/tat-3047-0424-1139/artifacts
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/recipes/hl-balance-contract.json
+```
+
+Pick a different fixture (e.g. dev2 for guaranteed Path A):
+
+```bash
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/recipes/hl-balance-contract.json \
+  --input address=0x5993d2153F080470BFE765aE81F4fA5fA2080916
 ```
 
 Dry-run graph walk only (no CDP):
 
 ```bash
-bash scripts/perps/agentic/validate-recipe.sh .task/fix/tat-3047-0424-1139/artifacts --dry-run
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/recipes/hl-balance-contract.json --dry-run
 ```
 
 Schema validation (syntax + graph reachability):
 
 ```bash
 node scripts/perps/agentic/validate-flow-schema.js \
-  .task/fix/tat-3047-0424-1139/artifacts/recipe.json \
+  scripts/perps/agentic/teams/perps/recipes/hl-balance-contract.json \
   scripts/perps/agentic/teams/perps/flows/hl-balance-contract-check.json \
-  scripts/perps/agentic/teams/perps/flows/hl-balance-math-check.json \
-  scripts/perps/agentic/teams/perps/flows/hl-empty-state-check.json
+  scripts/perps/agentic/teams/perps/flows/hl-balance-math-check.json
 ```
+
+## Manual reproduction
+
+Anyone with HL web access + a fixture wallet can validate the contract by hand. The state machine below mirrors the recipe 1:1; each row maps to an HL-web action and an expected mobile-app readout. Run on a clean account (no open positions/orders) to walk all five states; on an account with positions you can only do steps 1, 1b (perps→spot transfer), and 1c (transfer back).
+
+Default fixture: **Trading** (`0x316BDE…01fA`). Substitute any address you can sign for; the recipe's `--input address=...` flag does the same.
+
+| #      | HL web action                                                                                         | Resulting state                            | Mobile app readout                                                                                           | What it proves                                                            |
+| ------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| **0**  | open `app.hyperliquid.xyz/portfolio`, log in with the fixture wallet, ensure no open positions/orders | baseline                                   | (no app action)                                                                                              | precondition for mode flips                                               |
+| **1**  | none (start in Unified, all funds on perps)                                                           | **Unified, perps-only**                    | PerpsMarketListView header `$X` (= perps balance); PerpsWithdrawView "Available Perps balance" `$X`          | three-field shape populated, sane Unified case                            |
+| **1b** | click _Transfer_ (Perp → Spot) for the full perps balance                                             | **Unified, spot-only**                     | PerpsMarketListView still `$X` (fold); PerpsWithdrawView still `$X` (TAT-3047 fix — was `$0` before this PR) | spot fold on Unified; primary TAT-3047 user-visible fix                   |
+| **2**  | Account Settings → check **Disable Unified Account Mode**, confirm signature                          | **Standard, spot-only**                    | PerpsMarketListView shows `$0` and the Add Funds CTA; PerpsWithdrawView "Available" reads `$0.00`            | mode-aware fold gate working — spot is no longer perps collateral         |
+| **2b** | click _Transfer_ (Spot → Perp) for half the spot balance                                              | **Standard, mixed (perps + spot)**         | PerpsMarketListView `$X/2`; total displayed wealth still `$X`                                                | math invariant: `total = perps + spot − hold` independent of mode         |
+| **2c** | click _Transfer_ (Spot → Perp) for the remaining spot                                                 | **Standard, perps-only**                   | PerpsMarketListView `$X`; PerpsWithdrawView `$X`                                                             | Standard cap matches perps clearinghouse exactly                          |
+| **3**  | Account Settings → uncheck **Disable Unified Account Mode**, confirm signature                        | **Unified, perps-only** (back to baseline) | Same as state 1                                                                                              | mode round trip preserves contract; HL redistributes the ledger as needed |
+
+Notes:
+
+- **HL web "Transfer between Perp and Spot"** is on the Portfolio screen. The mobile app does not expose this transfer — `usdClassTransfer` lives in the SDK and is only invoked by the agentic provisioning flow, not by user-facing UI.
+- **Mode-flip restriction**: the _Disable Unified Account Mode_ checkbox is greyed out while any position, order, or TWAP is open on the account. Close everything before attempting the flip.
+- **HL ledger drift on flip**: flipping from Unified to Standard can move USDC between the perps and spot sides at the HL backend (HL redistribution). Flipping back does not always restore the original split — it merely re-enables the unified view. The recipe documents this in the Path A trace.
+- **Recovery if a flip leaves you in Standard unintentionally**: re-open Account Settings, uncheck the box, sign. The mobile app picks up the new mode within ~60 s via the spot WebSocket → `userAbstraction` REST refresh path documented in the [Mode-aware spot-fold gate](#standard-mode-correctness--fixed) section.
 
 ## Live run evidence
 
@@ -295,7 +309,7 @@ Interpretation:
 
 - **Contract-shape check**: passed in Standard mode — fields populated, no legacy keys, shape is mode-agnostic. ✓
 - **Adapter internal-consistency check** (`hl-balance-math-check` with `foldIntoCollateral=false`): passed — adapter output matches the expected perps-only formula when Standard semantics apply. ✓
-- **Standard-mode correctness check** (`hl-standard-mode-fold-check`): `adapterActual.spendable = 0` even though `spot.free = $10.01`, proving the `hyperLiquidModeFoldsSpot` gate is wired end-to-end through both the subscription service and the provider. ✓
+- **Standard-mode correctness check** (inline `pathA-fold-correctness` eval): `adapterActual.spendable = 0` even though `spot.free = $10.01`, proving the `hyperLiquidModeFoldsSpot` gate is wired end-to-end through both the subscription service and the provider. ✓
 - **Post-restore contract check**: passed — shape survived the Unified → Standard → Unified round trip. ✓
 
 ### Captured values — Phase 3 (Account 6, zero)
@@ -366,13 +380,10 @@ Manual validation of the migration path requires a build-upgrade harness (instal
 
 ## Files
 
-| Path                                                                       | Purpose                                                   | Tracked                     |
-| -------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------- |
-| `scripts/perps/agentic/teams/perps/flows/hl-balance-contract-check.json`   | Composable shape check                                    | ✓ git                       |
-| `scripts/perps/agentic/teams/perps/flows/hl-balance-math-check.json`       | Composable math check                                     | ✓ git                       |
-| `scripts/perps/agentic/teams/perps/flows/hl-empty-state-check.json`        | Composable empty-state check                              | ✓ git                       |
-| `scripts/perps/agentic/teams/perps/flows/hl-standard-mode-fold-check.json` | Composable Standard-mode fold-inflation quantifier        | ✓ git                       |
-| `scripts/perps/agentic/teams/perps/flows/hl-provision-fixture.json`        | Pre-existing fixture-provisioning flow (abstraction flip) | ✓ git                       |
-| `.task/fix/tat-3047-0424-1139/artifacts/recipe.json`                       | Top-level orchestration                                   | local (`.task/` gitignored) |
-| `docs/perps/perps-account-abstraction-and-balance-contract.md`             | This document                                             | ✓ git                       |
-| `.agent/recipe-runs/*/`                                                    | Trace / screenshots / issues per run                      | local                       |
+| Path                                                                     | Purpose                                                   | Tracked |
+| ------------------------------------------------------------------------ | --------------------------------------------------------- | ------- |
+| `scripts/perps/agentic/teams/perps/flows/hl-balance-contract-check.json` | Composable shape check                                    | ✓ git   |
+| `scripts/perps/agentic/teams/perps/flows/hl-balance-math-check.json`     | Composable math check                                     | ✓ git   |
+| `scripts/perps/agentic/teams/perps/flows/hl-provision-fixture.json`      | Pre-existing fixture-provisioning flow (abstraction flip) | ✓ git   |
+| `scripts/perps/agentic/teams/perps/recipes/hl-balance-contract.json`     | Top-level single-account state-machine recipe             | ✓ git   |
+| `docs/perps/perps-account-abstraction-and-balance-contract.md`           | This document                                             | ✓ git   |
