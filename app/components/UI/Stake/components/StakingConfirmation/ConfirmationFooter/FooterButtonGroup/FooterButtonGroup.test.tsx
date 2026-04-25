@@ -127,21 +127,18 @@ describe('FooterButtonGroup', () => {
       );
   });
 
-  it('render matches snapshot', () => {
+  it('renders cancel and continue buttons', () => {
     const props: FooterButtonGroupProps = {
       valueWei: '3210000000000000',
       action: FooterButtonGroupActions.STAKE,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
-      <FooterButtonGroup {...props} />,
-      { state: mockInitialState },
-    );
+    const { getByText } = renderWithProvider(<FooterButtonGroup {...props} />, {
+      state: mockInitialState,
+    });
 
-    expect(getByText(strings('stake.cancel'))).toBeDefined();
-    expect(getByText(strings('stake.continue'))).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.cancel'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.continue'))).toBeOnTheScreen();
   });
 
   it('navigates to Asset page when cancel is pressed', () => {
@@ -151,16 +148,13 @@ describe('FooterButtonGroup', () => {
       action: FooterButtonGroupActions.STAKE,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
-      <FooterButtonGroup {...props} />,
-      { state: mockInitialState },
-    );
+    const { getByText } = renderWithProvider(<FooterButtonGroup {...props} />, {
+      state: mockInitialState,
+    });
 
     fireEvent.press(getByText(strings('stake.cancel')));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('attempts stake transaction on continue click', () => {
@@ -169,14 +163,13 @@ describe('FooterButtonGroup', () => {
       action: FooterButtonGroupActions.STAKE,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
-      <FooterButtonGroup {...props} />,
-      { state: mockInitialState },
-    );
+    const { getByText } = renderWithProvider(<FooterButtonGroup {...props} />, {
+      state: mockInitialState,
+    });
 
     fireEvent.press(getByText(strings('stake.continue')));
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(mockAttemptDepositTransaction).toHaveBeenCalledTimes(1);
   });
 
   it('attempts unstake transaction on continue click', () => {
@@ -185,14 +178,13 @@ describe('FooterButtonGroup', () => {
       action: FooterButtonGroupActions.UNSTAKE,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
-      <FooterButtonGroup {...props} />,
-      { state: mockInitialState },
-    );
+    const { getByText } = renderWithProvider(<FooterButtonGroup {...props} />, {
+      state: mockInitialState,
+    });
 
     fireEvent.press(getByText(strings('stake.continue')));
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(mockAttemptUnstakeTransaction).toHaveBeenCalledTimes(1);
   });
 
   it('handles transaction error correctly', async () => {
