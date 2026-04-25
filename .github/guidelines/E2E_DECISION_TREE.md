@@ -35,7 +35,6 @@ To save infra resources while waiting for static analysis findings and potential
 
 Runs only when all of the following are true:
 
-- PR targets `main`
 - Not a fork
 - No hard E2E skip signal (label `skip-e2e`)
 - No `skip-smart-e2e-selection` label

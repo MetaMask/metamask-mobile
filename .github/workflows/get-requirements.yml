@@ -24,7 +24,7 @@ on:
         description: 'Whether "pr-not-ready-for-e2e" label is still applied; blocks merge while true'
         value: ${{ jobs.detect.outputs.block_merge_for_e2e_readiness }}
       run_smart_e2e_selection:
-        description: 'Whether the smart-e2e-selection AI job should run. False for non-PR events, forks, hard skips, skip-smart-e2e-selection label, or release/* base branches.'
+        description: 'Whether the smart-e2e-selection AI job should run. False for non-PR events, forks, hard skips, or skip-smart-e2e-selection label.'
         value: ${{ jobs.detect.outputs.run_smart_e2e_selection }}
 
 jobs:
@@ -185,16 +185,15 @@ jobs:
           BUILDS=false
           [[ "$ANDROID" == "true" || "$IOS" == "true" ]] && BUILDS=true
 
-          # Run smart-e2e-selection only for non-fork, non-hard-skip PRs
-          # targeting main with no skip-smart-e2e-selection label.
-          # release/* PRs, non-PR events, and all skip signals bypass AI selection.
+          # Run smart-e2e-selection for non-fork, non-hard-skip PRs
+          # with no skip-smart-e2e-selection label.
+          # Non-PR events and all skip signals bypass AI selection.
           RUN_SMART=false
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
                 "$BUILDS" == "true" && \
                 "$IS_FORK" != "true" && \
                 "$SHOULD_SKIP_E2E" != "true" && \
-                "$SKIP_SMART_SELECTION" != "true" && \
-                "$BASE_REF" == "main" ]]; then
+                "$SKIP_SMART_SELECTION" != "true" ]]; then
             RUN_SMART=true
           fi
 

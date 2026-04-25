@@ -19,7 +19,7 @@ The check can be bypassed when necessary, either by setting the changelog entry 
 
 ### E2E readiness gate
 
-- **pr-not-ready-for-e2e**: Automatically applied to every newly opened PR. While present, E2E build and test jobs are skipped and the `Check all jobs pass` required status check fails, blocking merge. The PR owner must remove this label when the PR is ready for E2E validation. Once removed, CI re-runs and E2E tests execute normally. This label is distinct from `skip-e2e`: removing it is an expected part of the PR lifecycle, not an exceptional bypass.
+- **pr-not-ready-for-e2e**: Automatically applied to every newly opened PR. While present, E2E build and test jobs are skipped and block merge. The PR owner must remove this label when the PR is ready for E2E validation. Once removed, CI re-runs and E2E tests execute normally.
 
 ## Optional labels (manual addition)
 

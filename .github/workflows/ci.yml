@@ -8,6 +8,8 @@ on:
       - opened
       - reopened
       - synchronize
+    branches-ignore:
+      - stable
   merge_group:
     types: [checks_requested]
   schedule:
