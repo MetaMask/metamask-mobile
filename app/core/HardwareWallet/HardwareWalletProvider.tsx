@@ -208,7 +208,32 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     [setters],
   );
 
-  const qrSigningValue = useQRSigningState();
+  const {
+    pendingScanRequest,
+    isSigningQRObject,
+    setRequestCompleted,
+    isRequestCompleted,
+    cancelQRScanRequestIfPresent,
+  } = useQRSigningState();
+  // Memoize the provider's `qr` object so its reference stays stable when the
+  // underlying QR fields have not changed.
+  const qrSigningValue = useMemo(
+    () => ({
+      pendingScanRequest,
+      isSigningQRObject,
+      setRequestCompleted,
+      isRequestCompleted,
+      cancelQRScanRequestIfPresent,
+    }),
+    [
+      pendingScanRequest,
+      isSigningQRObject,
+      setRequestCompleted,
+      isRequestCompleted,
+      cancelQRScanRequestIfPresent,
+    ],
+  );
+
   const contextValue = useMemo(
     () => ({
       walletType: effectiveWalletType,
