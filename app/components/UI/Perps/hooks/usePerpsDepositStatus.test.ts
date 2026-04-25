@@ -491,7 +491,7 @@ describe('usePerpsDepositStatus', () => {
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.success,
-      ).toHaveBeenCalledWith('10600.00'); // Total balance after deposit
+      ).toHaveBeenCalledWith('1500.00');
     });
 
     it('should not show success toast when balance decreases', () => {
@@ -551,6 +551,44 @@ describe('usePerpsDepositStatus', () => {
       rerender({});
 
       expect(mockShowToast).not.toHaveBeenCalledWith({ success: true });
+    });
+
+    it('should not show success toast when only totalBalance increases from unrealized pnl', () => {
+      const { rerender } = renderHook(() => usePerpsDepositStatus());
+
+      act(() => {
+        const transactionHandler = mockSubscribe.mock.calls.find(
+          (call) =>
+            call[0] === 'TransactionController:transactionStatusUpdated',
+        )?.[1];
+        if (transactionHandler) {
+          transactionHandler({
+            transactionMeta: {
+              id: 'test-tx-id',
+              type: TransactionType.perpsDeposit,
+              status: TransactionStatus.approved,
+            } as TransactionMeta,
+          });
+        }
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '1000.00',
+          withdrawableBalance: '1000.00',
+          marginUsed: '9000.00',
+          unrealizedPnl: '600.00',
+          returnOnEquity: '0.15',
+          totalBalance: '10600.00',
+        },
+        isInitialLoading: false,
+      });
+
+      rerender({});
+
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.success,
+      ).not.toHaveBeenCalled();
     });
   });
 

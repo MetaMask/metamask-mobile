@@ -20,7 +20,7 @@ export const usePerpsDepositProgress = () => {
 
   // Track if we're expecting a deposit
   const [isDepositInProgress, setIsDepositInProgress] = useState(false);
-  const prevTotalBalanceRef = useRef<string>('0');
+  const prevSpendableBalanceRef = useRef<string>('0');
   const liveAccountRef = useRef(liveAccount);
 
   // Update the ref whenever liveAccount changes
@@ -46,8 +46,8 @@ export const usePerpsDepositProgress = () => {
       // Handle PerpsDeposit approved - set deposit in progress
       if (transactionMeta.status === TransactionStatus.approved) {
         setIsDepositInProgress(true);
-        prevTotalBalanceRef.current =
-          liveAccountRef.current?.totalBalance || '0';
+        prevSpendableBalanceRef.current =
+          liveAccountRef.current?.spendableBalance || '0';
       }
 
       // Handle PerpsDeposit failed - clear deposit in progress
@@ -69,20 +69,21 @@ export const usePerpsDepositProgress = () => {
     };
   }, []);
 
-  // Watch for balance increases when expecting a deposit
+  // Watch for spendable-balance increases when expecting a deposit. A live
+  // totalBalance move can be pure unrealized PnL and must not clear progress.
   useEffect(() => {
     if (!isDepositInProgress || !liveAccount) {
       return;
     }
 
-    const currentBalance = Number.parseFloat(liveAccount.totalBalance || '0');
-    const previousBalance = Number.parseFloat(prevTotalBalanceRef.current);
+    const currentBalance = Number.parseFloat(
+      liveAccount.spendableBalance || '0',
+    );
+    const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
 
-    // Check if balance increased
     if (currentBalance > previousBalance) {
-      // Deposit completed successfully
       setIsDepositInProgress(false);
-      prevTotalBalanceRef.current = liveAccount.totalBalance;
+      prevSpendableBalanceRef.current = liveAccount.spendableBalance;
     }
   }, [isDepositInProgress, liveAccount]);
 

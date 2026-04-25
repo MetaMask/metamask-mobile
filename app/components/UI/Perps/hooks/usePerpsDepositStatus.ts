@@ -36,7 +36,7 @@ export const usePerpsDepositStatus = () => {
 
   // Track if we're expecting a deposit
   const expectingDepositRef = useRef(false);
-  const prevTotalBalanceRef = useRef<string>('0');
+  const prevSpendableBalanceRef = useRef<string>('0');
 
   // Get deposit state from controller
   const depositInProgress = useSelector(
@@ -79,7 +79,7 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.status === TransactionStatus.approved
       ) {
         expectingDepositRef.current = true;
-        prevTotalBalanceRef.current = liveAccount?.totalBalance || '0';
+        prevSpendableBalanceRef.current = liveAccount?.spendableBalance || '0';
 
         const processingTimeSeconds = isArbUSDCDeposit ? 0 : 60; // hardcoded to 1 minute to avoid estimation failures of multiple bridges
 
@@ -106,30 +106,32 @@ export const usePerpsDepositStatus = () => {
   }, [
     PerpsToastOptions.accountManagement.deposit,
     bridgeQuotes,
-    liveAccount?.totalBalance,
+    liveAccount?.spendableBalance,
     showToast,
   ]);
 
-  // Watch for balance increases when expecting a deposit
+  // Watch for spendable-balance increases when expecting a deposit. Using
+  // totalBalance here is incorrect because unrealized PnL can move it without
+  // any deposit settling.
   useEffect(() => {
     if (!expectingDepositRef.current || !liveAccount) {
       return;
     }
 
-    const currentBalance = Number.parseFloat(liveAccount.totalBalance || '0');
-    const previousBalance = Number.parseFloat(prevTotalBalanceRef.current);
-    // Check if balance increased
+    const currentBalance = Number.parseFloat(
+      liveAccount.spendableBalance || '0',
+    );
+    const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
+
     if (currentBalance > previousBalance) {
-      // Show success toast
       showToast(
         PerpsToastOptions.accountManagement.deposit.success(
-          liveAccount?.totalBalance,
+          liveAccount.spendableBalance,
         ),
       );
 
-      // Reset state
       expectingDepositRef.current = false;
-      prevTotalBalanceRef.current = liveAccount.totalBalance;
+      prevSpendableBalanceRef.current = liveAccount.spendableBalance;
     }
   }, [liveAccount, showToast, PerpsToastOptions.accountManagement.deposit]);
 

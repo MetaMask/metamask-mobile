@@ -3897,6 +3897,56 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribeA();
     });
 
+    it('refreshes abstraction mode on the first spotState tick even inside the throttle window', async () => {
+      const user = '0xaaa';
+      const accountId = 'eip155:42161:0xaaa' as CaipAccountId;
+      const callback = jest.fn();
+      const spotState = {
+        balances: [
+          {
+            coin: 'USDC',
+            token: 0,
+            hold: '0',
+            total: '100',
+            entryNtl: '100',
+          },
+        ],
+      };
+      const userAbstraction = jest
+        .fn()
+        .mockResolvedValueOnce('unifiedAccount')
+        .mockResolvedValueOnce('disabled');
+
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
+        totalBalance: '10100.00',
+        marginUsed: '500.00',
+        unrealizedPnl: '100.00',
+        returnOnEquity: '20.0',
+      }));
+      mockSpotClearinghouseState.mockResolvedValue(spotState);
+      mockClientService.getInfoClient.mockReturnValue({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction,
+      } as any);
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        user as Hex,
+      );
+
+      service.subscribeToAccount({ accountId, callback });
+      await jest.runAllTimersAsync();
+
+      expect(userAbstraction).toHaveBeenCalledTimes(1);
+
+      const spotListener = mockSubscriptionClient.spotState.mock.calls[0][1];
+      spotListener({ user, spotState });
+      await jest.runAllTimersAsync();
+
+      expect(userAbstraction).toHaveBeenCalledTimes(2);
+      expect(userAbstraction).toHaveBeenLastCalledWith({ user });
+    });
+
     it('unsubscribes spotState when the last account subscriber leaves', async () => {
       const unsubSpot = jest.fn().mockResolvedValue(undefined);
       mockSubscriptionClient.spotState.mockResolvedValueOnce({

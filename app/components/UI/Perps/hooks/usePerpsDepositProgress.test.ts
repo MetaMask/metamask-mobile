@@ -225,6 +225,44 @@ describe('usePerpsDepositProgress', () => {
       expect(result.current.isDepositInProgress).toBe(false);
     });
 
+    it('does not clear deposit in progress when only totalBalance increases from unrealized pnl', () => {
+      const { result, rerender } = renderHook(() => usePerpsDepositProgress());
+
+      act(() => {
+        const transactionHandler = mockSubscribe.mock.calls.find(
+          (call) =>
+            call[0] === 'TransactionController:transactionStatusUpdated',
+        )?.[1];
+        if (transactionHandler) {
+          transactionHandler({
+            transactionMeta: {
+              id: 'test-tx-id',
+              type: TransactionType.perpsDeposit,
+              status: TransactionStatus.approved,
+            } as TransactionMeta,
+          });
+        }
+      });
+
+      expect(result.current.isDepositInProgress).toBe(true);
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '1000.00',
+          withdrawableBalance: '1000.00',
+          marginUsed: '9000.00',
+          unrealizedPnl: '600.00',
+          returnOnEquity: '0.15',
+          totalBalance: '10600.00',
+        },
+        isInitialLoading: false,
+      });
+
+      rerender({});
+
+      expect(result.current.isDepositInProgress).toBe(true);
+    });
+
     it('does not clear deposit in progress when balance decreases', () => {
       // Arrange
       const { result, rerender } = renderHook(() => usePerpsDepositProgress());

@@ -190,9 +190,15 @@ export class HyperLiquidSubscriptionService {
     HyperLiquidAbstractionMode
   >();
 
-  // Timestamp of the last successful userAbstraction fetch per user. Gates
-  // WS-triggered refreshes without letting one wallet throttle another.
+  // Timestamp of the last successful userAbstraction fetch per user, regardless
+  // of whether it came from the initial spot bootstrap or a WS-driven refresh.
   readonly #abstractionModeLastFetchedAtByUser = new Map<string, number>();
+
+  // Timestamp of the last successful WS-driven userAbstraction refresh per
+  // user. This throttle intentionally does not count the initial bootstrap
+  // fetch so the first spot tick after app launch can still detect an HL-web
+  // mode flip immediately.
+  readonly #abstractionModeLastWsRefreshAtByUser = new Map<string, number>();
 
   // Minimum interval between WS-driven userAbstraction refreshes. Balances
   // picking up HL-web mode flips promptly against avoiding REST quota burn.
@@ -1098,16 +1104,16 @@ export class HyperLiquidSubscriptionService {
    * @returns Promise that resolves once the refresh completes (or immediately when throttled).
    */
   async #refreshAbstractionModeThrottled(userAddress: string): Promise<void> {
-    const now = Date.now();
     const normalizedUser = userAddress.toLowerCase();
-    const lastFetchedAt =
-      this.#abstractionModeLastFetchedAtByUser.get(normalizedUser) ?? 0;
-    if (now - lastFetchedAt < ABSTRACTION_MODE_REFRESH_THROTTLE_MS) {
-      return undefined;
-    }
     const existing = this.#abstractionModeInflightByUser.get(normalizedUser);
     if (existing) {
       await existing;
+      return undefined;
+    }
+    const now = Date.now();
+    const lastWsRefreshAt =
+      this.#abstractionModeLastWsRefreshAtByUser.get(normalizedUser) ?? 0;
+    if (now - lastWsRefreshAt < ABSTRACTION_MODE_REFRESH_THROTTLE_MS) {
       return undefined;
     }
     const inflight: Promise<void> = (async (): Promise<void> => {
@@ -1121,6 +1127,10 @@ export class HyperLiquidSubscriptionService {
         // ratchet the throttle window forward (which would silence every
         // subsequent spot WS tick for the full throttle duration).
         this.#abstractionModeLastFetchedAtByUser.set(
+          normalizedUser,
+          Date.now(),
+        );
+        this.#abstractionModeLastWsRefreshAtByUser.set(
           normalizedUser,
           Date.now(),
         );
@@ -2353,6 +2363,7 @@ export class HyperLiquidSubscriptionService {
       this.#cachedSpotStateUserAddress = null;
       this.#abstractionModeByUser.clear();
       this.#abstractionModeLastFetchedAtByUser.clear();
+      this.#abstractionModeLastWsRefreshAtByUser.clear();
       // Drop in-flight refresh handles so stale hanging userAbstraction
       // requests from the prior connection can't be awaited by future calls.
       this.#abstractionModeInflightByUser.clear();
@@ -4136,6 +4147,7 @@ export class HyperLiquidSubscriptionService {
     this.#cachedSpotStateUserAddress = null;
     this.#abstractionModeByUser.clear();
     this.#abstractionModeLastFetchedAtByUser.clear();
+    this.#abstractionModeLastWsRefreshAtByUser.clear();
     this.#abstractionModeInflightByUser.clear();
     this.#spotStateGeneration += 1;
     this.#spotStatePromise = undefined;
