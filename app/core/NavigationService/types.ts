@@ -561,6 +561,7 @@ export interface RootStackParamList extends ParamListBase {
   TraderPositionView: {
     traderId: string;
     traderName: string;
+    traderImageUrl?: string;
     tokenSymbol: string;
     position?: Position;
   };
@@ -622,7 +623,7 @@ export interface RootStackParamList extends ParamListBase {
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes
   SnapsSettingsList: undefined;
   SnapSettings: SnapSettingsParams | undefined;

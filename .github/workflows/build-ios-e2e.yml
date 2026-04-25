@@ -27,13 +27,6 @@ on:
         default: ''
         type: string
 
-permissions:
-  contents: read
-  id-token: write
-  actions: read
-  pull-requests: read
-  statuses: read
-
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
@@ -43,9 +36,7 @@ jobs:
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
-      # Bump these to bust the respective caches and force a full rebuild
       XCODE_CACHE_VERSION: 1
-      IOS_APP_CACHE_VERSION: 2
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
       GITHUB_CI: 'true' # This ensures it's available during pod install
@@ -87,17 +78,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # -------------------------------------------------------------------------
-      # Fast-path: probe branch cache, main cache, and cross-run artifacts BEFORE
-      # any heavy native setup. These steps only need `inputs.source-fingerprint`
-      # and `github.token`, so we can short-circuit Ruby/Bundler/CocoaPods/Xcode
-      # (~6m) when a compatible .app already exists.
-      # -------------------------------------------------------------------------
-
-      # Escape hatch: a `force-builds` label on the PR or a `[force-builds]`
-      # token in the head commit message forces a fresh native build and
-      # bypasses both the GHA cache restores and the cross-run artifact
-      # lookup. Honored only on `pull_request` events.
       - name: Check force-builds override
         id: force-builds
         uses: ./.github/actions/check-force-builds
@@ -113,39 +93,16 @@ jobs:
       - name: Report source fingerprint
         run: |
           if [[ -z "$SOURCE_FINGERPRINT" ]]; then
-            echo "::warning::No source-fingerprint provided (likely a forked PR); caches and reuse disabled."
+            echo "::warning::No source-fingerprint provided (likely a forked PR); artifact reuse disabled."
           else
             echo "Source fingerprint: $SOURCE_FINGERPRINT"
           fi
         env:
           SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
 
-      - name: Restore iOS app matching fingerprint from branch cache
-        id: cache-restore
-        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
-        # This action automatically updates the cache at the end of the workflow
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
-
-      - name: Restore iOS app matching fingerprint from main cache
-        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
-        id: cache-restore-main
-        # This will only restore the cache, not update it
-        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
-
-      # Cross-PR reuse: before building, try to find a prior workflow run whose
-      # build-source-hash commit status matches our fingerprint AND whose
-      # MetaMask.app artifact is still available. Falls back to a fresh build.
       - name: Find reusable build from prior run
         id: find-reusable-build
-        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -153,7 +110,9 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Download reusable iOS build from prior run
+        id: download-reusable-app
         if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -163,25 +122,24 @@ jobs:
           run-id: ${{ steps.find-reusable-build.outputs.run-id }}
 
       - name: Log reused iOS build source
-        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        if: ${{ steps.download-reusable-app.outcome == 'success' }}
         run: |
           echo "Reusing iOS build from run ${{ steps.find-reusable-build.outputs.run-id }}"
           echo "Source SHA: ${{ steps.find-reusable-build.outputs.source-sha }}"
           echo "Source branch: ${{ steps.find-reusable-build.outputs.source-branch }}"
         shell: bash
 
-      # When any of the three reuse paths hit (branch cache, main cache,
-      # cross-run artifact), gate = false and we skip the heavy Xcode + CocoaPods
-      # setup and jump straight to a lean JS-only setup + repack.
       - name: Compute native-build gate
         id: gate
         run: |
-          if [[ "${{ steps.cache-restore.outputs.cache-hit }}" == "true" \
-             || "${{ steps.cache-restore-main.outputs.cache-hit }}" == "true" \
-             || "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
+          if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+             && "${{ steps.download-reusable-app.outcome }}" == "success" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
-            echo "Reuse path active; heavy native setup will be skipped."
+            echo "Reuse path active (cross-run artifact download succeeded); heavy native setup will be skipped."
           else
+            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
+              echo "::warning::Reusable run was found but artifact download failed (outcome=${{ steps.download-reusable-app.outcome }}); falling back to fresh native build."
+            fi
             echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
             echo "No reuse path; full native build + setup will run."
           fi
@@ -250,9 +208,6 @@ jobs:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
-      - name: Install Foundry if cache missed
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.restore-metamask.outputs.cache-hit != 'true' }}
-        run: yarn install:foundryup
       # Run project setup with retry for better resilience
       - name: Setup project dependencies with retry
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
@@ -324,18 +279,6 @@ jobs:
         run: yarn setup:github-ci --no-build-ios --no-build-android
         shell: bash
 
-      - name: Restore Metro transform cache (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        id: metro-cache-restore
-        uses: actions/cache@v4
-        with:
-          path: .metro-cache
-          key: metro-ios-${{ github.ref_name }}-${{ hashFiles('yarn.lock', 'babel.config.js', 'metro.config.js', 'metro.transform.js', 'app.config.js') }}
-          restore-keys: |
-            metro-ios-${{ github.ref_name }}-
-            metro-ios-main-
-            metro-ios-
-
       # -------------------------------------------------------------------------
       # Build (fresh) or Repack (reuse) — exactly one of these runs per job.
       # -------------------------------------------------------------------------
@@ -394,11 +337,6 @@ jobs:
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
           METRO_MAX_WORKERS: '6'
-          METRO_CACHE_DIR: ${{ github.workspace }}/.metro-cache
-          # See Android comment: `@expo/repack-app` hard-codes `--reset-cache`;
-          # we strip it in `scripts/repack.js` and defensively disable reset
-          # here so the persisted cache is actually honored.
-          METRO_RESET_CACHE: 'false'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
