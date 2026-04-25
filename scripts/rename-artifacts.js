@@ -215,9 +215,25 @@ function setGithubOutput(key, value) {
 }
 
 /**
+ * Path relative to GITHUB_WORKSPACE (or cwd) for upload-artifact.
+ * upload-artifact treats `.app` bundles as directories; staging the ditto zip
+ * under ios-simulator-upload/ and emitting this path ensures the artifact is a file.
+ */
+function toRepoRelative(absFilePath) {
+  const root = process.env.GITHUB_WORKSPACE || process.cwd();
+  const resolved = path.resolve(absFilePath);
+  const rel = path.relative(root, resolved);
+  if (rel.startsWith('..')) {
+    return resolved;
+  }
+  return rel;
+}
+
+/**
  * Rename iOS artifacts
  *
- * Simulator-only: ios_simulator_path (zipped .app).
+ * Simulator-only: ios_simulator_path (zipped .app; under CI, copied to
+ * ios-simulator-upload/ so upload-artifact uploads a .zip file, not a .app directory).
  * Device-only: ios_ipa_path, ios_archive_path, ios_sourcemap_path.
  * Dual (IS_SIM_BUILD + IS_DEVICE_BUILD, e.g. main-dev): all of the above.
  */
@@ -268,7 +284,18 @@ function renameIos() {
         `ditto -c -k --sequesterRsrc --keepParent "${newApp}" "${zipPath}"`,
       );
       console.log(`✅ Zipped: ${zipPath}`);
-      setGithubOutput('ios_simulator_path', zipPath);
+
+      let simulatorUploadPath = zipPath;
+      if (process.env.GITHUB_OUTPUT) {
+        const stagingDir = path.join(__dirname, '../ios-simulator-upload');
+        fs.rmSync(stagingDir, { recursive: true, force: true });
+        fs.mkdirSync(stagingDir, { recursive: true });
+        const stagedZip = path.join(stagingDir, path.basename(zipPath));
+        fs.copyFileSync(zipPath, stagedZip);
+        simulatorUploadPath = stagedZip;
+        console.log(`✅ Staged simulator zip for CI upload: ${stagedZip}`);
+      }
+      setGithubOutput('ios_simulator_path', toRepoRelative(simulatorUploadPath));
     } else {
       console.log(`⚠️  Simulator .app not found: ${oldApp}`);
     }

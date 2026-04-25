@@ -462,13 +462,19 @@ jobs:
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
+      # ios_simulator_path is set by scripts/rename-artifacts.js (staged under ios-simulator-upload/
+      # in CI so upload-artifact uploads a .zip file, not a .app directory).
       - name: Upload iOS simulator app
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
+        if: success() && matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_simulator_path }}
           if-no-files-found: error
+
+      - name: Remove iOS simulator staging directory
+        if: success() && matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
+        run: rm -rf ios-simulator-upload
 
       - name: Upload iOS IPA
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
