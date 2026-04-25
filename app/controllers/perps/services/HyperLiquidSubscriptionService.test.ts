@@ -7,6 +7,7 @@
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { ABSTRACTION_MODE_REFRESH_THROTTLE_MS } from '../constants/perpsConfig';
 import type {
   SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
@@ -3789,6 +3790,111 @@ describe('HyperLiquidSubscriptionService', () => {
 
       observerUnsubscribe();
       unsubscribe();
+    });
+
+    it('refreshes abstraction mode per user when spotState ticks overlap account switches', async () => {
+      const userA = '0xaaa';
+      const userB = '0xbbb';
+      const accountA = 'eip155:42161:0xaaa' as CaipAccountId;
+      const accountB = 'eip155:42161:0xbbb' as CaipAccountId;
+      const spotState = {
+        balances: [
+          {
+            coin: 'USDC',
+            token: 0,
+            hold: '0',
+            total: '100',
+            entryNtl: '100',
+          },
+        ],
+      };
+      const spotListeners = new Map<string, (event: any) => void>();
+      let resolveUserARefresh: (mode: 'unifiedAccount') => void = () =>
+        undefined;
+      let userACalls = 0;
+      let userBCalls = 0;
+      const userAbstraction = jest.fn(({ user }: { user: string }) => {
+        const normalizedUser = user.toLowerCase();
+
+        if (normalizedUser === userA) {
+          userACalls += 1;
+          if (userACalls === 1) {
+            return Promise.resolve('unifiedAccount');
+          }
+          return new Promise<'unifiedAccount'>((resolve) => {
+            resolveUserARefresh = resolve;
+          });
+        }
+
+        if (normalizedUser === userB) {
+          userBCalls += 1;
+          if (userBCalls === 1) {
+            return Promise.reject(new Error('transient userAbstraction error'));
+          }
+          return Promise.resolve('disabled');
+        }
+
+        return Promise.resolve('unifiedAccount');
+      });
+
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
+        totalBalance: '10100.00',
+        marginUsed: '500.00',
+        unrealizedPnl: '100.00',
+        returnOnEquity: '20.0',
+      }));
+      mockSpotClearinghouseState.mockResolvedValue(spotState);
+      mockClientService.getInfoClient.mockReturnValue({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction,
+      } as any);
+      mockWalletService.getUserAddressWithDefault.mockImplementation(
+        async (accountId?: CaipAccountId) =>
+          accountId === accountB ? (userB as Hex) : (userA as Hex),
+      );
+      mockSubscriptionClient.spotState.mockImplementation(
+        (_params: any, callback: any) => {
+          spotListeners.set(_params.user.toLowerCase(), callback);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribeA = service.subscribeToAccount({
+        accountId: accountA,
+        callback: jest.fn(),
+      });
+      await jest.runAllTimersAsync();
+
+      jest.advanceTimersByTime(ABSTRACTION_MODE_REFRESH_THROTTLE_MS + 1);
+      spotListeners.get(userA)?.({ user: userA, spotState });
+      expect(userACalls).toBe(2);
+
+      const callbackB = jest.fn();
+      const unsubscribeB = service.subscribeToAccount({
+        accountId: accountB,
+        callback: callbackB,
+      });
+      await jest.runAllTimersAsync();
+
+      const bCallsBeforeTick = userBCalls;
+      spotListeners.get(userB)?.({ user: userB, spotState });
+      await jest.runAllTimersAsync();
+
+      expect(bCallsBeforeTick).toBe(1);
+      expect(userBCalls).toBe(2);
+      expect(userAbstraction).toHaveBeenLastCalledWith({ user: userB });
+      expect(callbackB.mock.calls.at(-1)[0].spendableBalance).toBe('1000');
+      expect(callbackB.mock.calls.at(-1)[0].withdrawableBalance).toBe('1000');
+
+      resolveUserARefresh('unifiedAccount');
+      await jest.runAllTimersAsync();
+
+      unsubscribeB();
+      unsubscribeA();
     });
 
     it('unsubscribes spotState when the last account subscriber leaves', async () => {
