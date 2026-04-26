@@ -345,7 +345,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-android-flask.yml         @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-ios.yml                   @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-ios-flask.yml             @MetaMask/qa
-.github/workflows/rerun-ci-on-skipped-labels.yml                 @MetaMask/qa
+.github/workflows/rerun-ci-on-skipped-e2e-labels.yml                 @MetaMask/qa
 .github/workflows/update-e2e-fixtures.yml                       @MetaMask/qa
 .github/workflows/qa-stats.yml                                  @MetaMask/qa
 .github/workflows/flaky-test-report.yml                         @MetaMask/qa
