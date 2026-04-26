@@ -78,6 +78,18 @@ export function TransactionDetails() {
 }
 
 function getTitle(transactionMeta: TransactionMeta) {
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+  ) {
+    return strings('transaction_details.title.money_account_deposit');
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return strings('transaction_details.title.money_account_withdraw');
+  }
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
     return strings('transaction_details.title.predict_claim');
   }

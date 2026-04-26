@@ -271,6 +271,42 @@ describe('TransactionDetails', () => {
       );
     });
 
+    it('returns money_account_deposit title for nested moneyAccountDeposit', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.contractInteraction,
+          nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.money_account_deposit'),
+        }),
+      );
+    });
+
+    it('returns money_account_withdraw title for nested moneyAccountWithdraw', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.contractInteraction,
+          nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.money_account_withdraw'),
+        }),
+      );
+    });
+
     it('returns default title for other transaction types', () => {
       render();
 
