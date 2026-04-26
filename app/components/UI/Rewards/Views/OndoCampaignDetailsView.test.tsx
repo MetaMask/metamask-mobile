@@ -494,6 +494,7 @@ jest.mock('../../../../../locales/i18n', () => ({
         'Competition no longer open',
       'rewards.campaign_details.competition_closed_description':
         'Entries are now closed',
+      'rewards.ondo_campaign_portfolio.view_activity': 'View activity',
     };
     return translations[key] || key;
   },
