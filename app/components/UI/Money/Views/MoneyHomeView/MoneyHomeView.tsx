@@ -3,6 +3,7 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
@@ -30,6 +31,7 @@ import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Secti
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
+import { selectIsCardholder } from '../../../../../selectors/cardController';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
@@ -58,8 +60,11 @@ const MoneyHomeView = () => {
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
+  const isCardholder = useSelector(selectIsCardholder);
+
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
+  const isCardUnlinked = isMilestone && isCardholder;
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -74,6 +79,7 @@ const MoneyHomeView = () => {
   const handleApyInfoPress = displayUnderConstructionAlert;
   const handleProjectedEarningsPress = displayUnderConstructionAlert;
   const handleGetNowPress = displayUnderConstructionAlert;
+  const handleLinkCardPress = displayUnderConstructionAlert;
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
       ...MUSD_MAINNET_ASSET_FOR_DETAILS,
@@ -101,6 +107,26 @@ const MoneyHomeView = () => {
   const handleActivityItemPress = useCallback(() => {
     showMoneyActivityUnderConstructionAlert();
   }, []);
+
+  const handleOnboardingCtaPress = useCallback(() => {
+    if (isCardUnlinked) {
+      handleLinkCardPress();
+      return;
+    }
+
+    if (isMilestone) {
+      handleCardPress();
+      return;
+    }
+
+    handleAddPress();
+  }, [
+    isCardUnlinked,
+    isMilestone,
+    handleLinkCardPress,
+    handleCardPress,
+    handleAddPress,
+  ]);
 
   // TODO: Remove before launch
   // Useful for testing how zero and non-zero APYs are handled quickly.
@@ -134,7 +160,8 @@ const MoneyHomeView = () => {
         />
         <MoneyOnboardingCard
           currentStep={isMilestone ? 2 : 1}
-          onCtaPress={isMilestone ? handleCardPress : handleAddPress}
+          variant={isCardUnlinked ? 'link-card' : 'get-card'}
+          onCtaPress={handleOnboardingCtaPress}
         />
         <Divider />
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
@@ -179,8 +206,11 @@ const MoneyHomeView = () => {
           </>
         )}
         <MoneyMetaMaskCard
+          mode={isCardUnlinked ? 'link' : 'upsell'}
           onGetNowPress={handleGetNowPress}
           onHeaderPress={handleHeaderPress}
+          onLinkPress={handleLinkCardPress}
+          apy={DEV_APY}
         />
         <Divider />
         {isMilestone && (

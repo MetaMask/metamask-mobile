@@ -1,4 +1,8 @@
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  Button as DSButton,
+  ButtonVariant,
+  ButtonSize as ButtonSizeRNDesignSystem,
+} from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -28,11 +32,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -681,43 +680,44 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         {existingPosition ? (
           <View style={styles.actionsContainer}>
             <View style={styles.actionButtonWrapper}>
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.market.modify')}
+              <DSButton
+                variant={ButtonVariant.Secondary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                isFullWidth
                 onPress={handleModifyPress}
                 testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
-              />
+              >
+                {strings('perps.market.modify')}
+              </DSButton>
             </View>
 
             <View style={styles.actionButtonWrapper}>
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={
-                  parseFloat(existingPosition.size) >= 0
-                    ? strings('perps.market.close_long')
-                    : strings('perps.market.close_short')
-                }
+              <DSButton
+                variant={ButtonVariant.Primary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                isFullWidth
                 onPress={handleClosePosition}
                 testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
-              />
+              >
+                {parseFloat(existingPosition.size) >= 0
+                  ? strings('perps.market.close_long')
+                  : strings('perps.market.close_short')}
+              </DSButton>
             </View>
           </View>
         ) : (
           <View style={styles.actionsContainer}>
             <View style={styles.actionButtonWrapper}>
               {buttonColorVariant === 'monochrome' ? (
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.market.long')}
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isFullWidth
                   onPress={handleLongPress}
                   testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-                />
+                >
+                  {strings('perps.market.long')}
+                </DSButton>
               ) : (
                 <ButtonSemantic
                   severity={ButtonSemanticSeverity.Success}
@@ -733,14 +733,15 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
             <View style={styles.actionButtonWrapper}>
               {buttonColorVariant === 'monochrome' ? (
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.market.short')}
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isFullWidth
                   onPress={handleShortPress}
                   testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-                />
+                >
+                  {strings('perps.market.short')}
+                </DSButton>
               ) : (
                 <ButtonSemantic
                   severity={ButtonSemanticSeverity.Danger}

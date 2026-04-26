@@ -54,6 +54,7 @@ describe('useDeviceEventHandlers', () => {
       isConnectingRef: { current: false },
       abortControllerRef: { current: null },
       targetWalletTypeRef: { current: null },
+      pendingOperationWalletTypeRef: { current: null },
     };
 
     // Track last connection state for assertion
@@ -70,6 +71,7 @@ describe('useDeviceEventHandlers', () => {
       }),
       setDeviceId: jest.fn(),
       setTargetWalletType: jest.fn(),
+      setPendingOperationWalletType: jest.fn(),
     };
   });
 

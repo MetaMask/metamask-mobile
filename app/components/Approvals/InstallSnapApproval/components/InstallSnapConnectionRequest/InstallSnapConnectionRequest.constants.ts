@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 export const SNAP_INSTALL_CONNECTION_REQUEST =
   'snap-install-connection-request';
 export const SNAP_INSTALL_CANCEL = 'snap-install-cancel';
