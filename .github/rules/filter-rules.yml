@@ -23,7 +23,6 @@ low_level_test_files: &low_level_test_files
   - '**/*.test.{js,ts,tsx,jsx}'
   - '**/*.stories.*'
   - '**/*.snap'
-  - '!tests/**'
 
 # CONFIG FILES
 config_files: &config_files
