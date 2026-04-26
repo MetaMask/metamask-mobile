@@ -82,6 +82,10 @@ jest.mock('../../hooks/usePredictSeries', () => ({
   usePredictSeries: jest.fn(),
 }));
 
+jest.mock('../../hooks/useCryptoTargetPrice', () => ({
+  useCryptoTargetPrice: jest.fn(() => ({ data: undefined })),
+}));
+
 jest.mock('../../utils/format', () => ({
   formatMarketEndDate: jest.fn(() => 'April 9, 1:45 PM'),
 }));

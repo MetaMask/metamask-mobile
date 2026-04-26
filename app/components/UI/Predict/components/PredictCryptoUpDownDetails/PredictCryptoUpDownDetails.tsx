@@ -8,9 +8,15 @@ import TitleSubpage from '../../../../../component-library/components-temp/Title
 import type { PredictMarket, PredictSeries } from '../../types';
 import { formatMarketEndDate } from '../../utils/format';
 import usePredictShare from '../../hooks/usePredictShare';
+import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
-import { RECURRENCE_TO_DURATION_SECS } from '../../utils/cryptoUpDown';
+import {
+  RECURRENCE_TO_DURATION_SECS,
+  getCryptoSymbol,
+  getEventStartTime,
+  getVariant,
+} from '../../utils/cryptoUpDown';
 import { TimeSlotPicker } from '../TimeSlotPicker';
 import { findLiveMarket } from '../TimeSlotPicker/TimeSlotPicker.utils';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
@@ -48,6 +54,23 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     seriesId: market.series.id,
     endDateMin,
     endDateMax,
+  });
+
+  const targetPriceSymbol = getCryptoSymbol(selectedMarket);
+  const targetPriceEventStartTime = getEventStartTime(
+    selectedMarket.endDate,
+    selectedMarket.series.recurrence,
+  );
+  const { data: targetPrice } = useCryptoTargetPrice({
+    eventId: selectedMarket.id,
+    symbol: targetPriceSymbol ?? '',
+    eventStartTime: targetPriceEventStartTime ?? '',
+    variant: getVariant(selectedMarket.series.recurrence),
+    endDate: selectedMarket.endDate ?? '',
+    enabled:
+      !!targetPriceSymbol &&
+      !!targetPriceEventStartTime &&
+      !!selectedMarket.endDate,
   });
 
   // Once the series markets load, auto-advance to the live slot if the current
@@ -127,6 +150,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       <Box twClassName="px-4 pt-4 border-2 border-error-default">
         <PredictCryptoUpDownChart
           market={selectedMarket}
+          targetPrice={targetPrice}
           height={chartAreaHeight}
         />
       </Box>
