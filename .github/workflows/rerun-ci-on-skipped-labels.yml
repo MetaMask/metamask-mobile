@@ -1,4 +1,4 @@
-name: Retrigger CI on E2E label change
+name: Rerun CI on skipped E2E labels
 
 on:
   pull_request_target:
