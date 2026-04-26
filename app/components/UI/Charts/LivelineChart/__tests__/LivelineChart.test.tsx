@@ -100,6 +100,16 @@ describe('LivelineChart', () => {
 
       expect(queryByTestId('liveline-chart-loading')).not.toBeOnTheScreen();
     });
+
+    it('keeps the native loading overlay while chart data is loading', () => {
+      const { getByTestId } = render(
+        <LivelineChart data={[]} value={0} loading />,
+      );
+
+      makeReady(getByTestId('liveline-chart-webview'));
+
+      expect(getByTestId('liveline-chart-loading')).toBeOnTheScreen();
+    });
   });
 
   describe('callbacks', () => {

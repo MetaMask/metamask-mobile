@@ -105,6 +105,7 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
       ...chartProps,
       theme: theme.themeAppearance,
     });
+    const shouldShowNativeLoading = !isChartReady || chartProps.loading;
 
     useEffect(() => {
       if (!isChartReady) return;
@@ -225,7 +226,8 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
           androidLayerType="hardware"
         />
 
-        {!isChartReady && (
+        {/* TODO: Clean up Liveline loading so the WebView empty state never appears between native loading and chart data. */}
+        {shouldShowNativeLoading && (
           <Box
             testID="liveline-chart-loading"
             alignItems={BoxAlignItems.Center}

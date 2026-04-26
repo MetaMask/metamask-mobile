@@ -4,8 +4,21 @@ import type { GetCryptoTargetPriceParams } from '../types';
 
 export const predictCryptoTargetPriceKeys = {
   all: () => ['predict', 'cryptoTargetPrice'] as const,
-  detail: (eventId: string) =>
-    [...predictCryptoTargetPriceKeys.all(), eventId] as const,
+  detail: (
+    eventId: string,
+    symbol: string,
+    eventStartTime: string,
+    variant: string,
+    endDate: string,
+  ) =>
+    [
+      ...predictCryptoTargetPriceKeys.all(),
+      eventId,
+      symbol,
+      eventStartTime,
+      variant,
+      endDate,
+    ] as const,
 };
 
 export interface CryptoTargetPriceQueryParams
@@ -21,7 +34,13 @@ export const predictCryptoTargetPriceOptions = ({
   endDate,
 }: CryptoTargetPriceQueryParams) =>
   queryOptions<number, Error>({
-    queryKey: predictCryptoTargetPriceKeys.detail(eventId),
+    queryKey: predictCryptoTargetPriceKeys.detail(
+      eventId,
+      symbol,
+      eventStartTime,
+      variant,
+      endDate,
+    ),
     queryFn: async (): Promise<number> => {
       const price = await Engine.context.PredictController.getCryptoTargetPrice(
         {

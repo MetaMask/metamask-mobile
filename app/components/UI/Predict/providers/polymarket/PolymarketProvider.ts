@@ -1110,7 +1110,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const data: unknown = await response.json();
       const parsed = data as { openPrice?: number } | undefined;
-      if (typeof parsed?.openPrice !== 'number') {
+      if (typeof parsed?.openPrice !== 'number' || parsed.openPrice <= 0) {
         throw new Error('Crypto target price API returned unexpected shape');
       }
       return parsed.openPrice;

@@ -160,6 +160,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       !!targetPriceEventStartTime &&
       !!selectedMarket.endDate,
   });
+  const validatedTargetPrice =
+    typeof targetPrice === 'number' && targetPrice > 0
+      ? targetPrice
+      : undefined;
 
   const selectedOpenOutcomes = useMemo(
     () => getOpenOutcomes(selectedMarket),
@@ -207,8 +211,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     ? formatMarketEndDate(selectedMarket.endDate)
     : undefined;
   const currentPriceDelta =
-    typeof currentPrice === 'number' && typeof targetPrice === 'number'
-      ? currentPrice - targetPrice
+    typeof currentPrice === 'number' && typeof validatedTargetPrice === 'number'
+      ? currentPrice - validatedTargetPrice
       : undefined;
   const currentPriceDeltaColor =
     typeof currentPriceDelta === 'number' && currentPriceDelta >= 0
@@ -282,7 +286,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
           >
-            {formatUsdPrice(targetPrice)}
+            {formatUsdPrice(validatedTargetPrice)}
           </Text>
         </Box>
         <Box twClassName="flex-1">
@@ -317,7 +321,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       <Box twClassName="px-4 pt-3">
         <PredictCryptoUpDownChart
           market={selectedMarket}
-          targetPrice={targetPrice}
+          targetPrice={validatedTargetPrice}
           onCurrentPriceChange={handleCurrentPriceChange}
           height={chartAreaHeight}
         />

@@ -1,4 +1,10 @@
-import { type RefObject, useCallback, useRef, useState } from 'react';
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import { useLiveCryptoPrices } from './useLiveCryptoPrices';
@@ -14,8 +20,26 @@ import type {
   LivelinePoint,
 } from '../../Charts/LivelineChart/LivelineChart.types';
 
-const LIVE_WINDOW_SECS = 30;
 const EMPTY_DATA: LivelinePoint[] = [];
+
+const mergeLivelinePoints = (
+  historicalData: LivelinePoint[],
+  liveData: LivelinePoint[],
+): LivelinePoint[] => {
+  if (historicalData.length === 0) {
+    return liveData;
+  }
+
+  if (liveData.length === 0) {
+    return historicalData;
+  }
+
+  const byTime = new Map<number, LivelinePoint>();
+  historicalData.forEach((point) => byTime.set(point.time, point));
+  liveData.forEach((point) => byTime.set(point.time, point));
+
+  return Array.from(byTime.values()).sort((a, b) => a.time - b.time);
+};
 
 export interface UseCryptoUpDownChartDataResult {
   data: LivelinePoint[];
@@ -28,6 +52,7 @@ export interface UseCryptoUpDownChartDataResult {
 export const useCryptoUpDownChartData = (
   market: PredictMarket & { series: PredictSeries },
   chartRef?: RefObject<LivelineChartRef | null>,
+  targetPrice?: number,
 ): UseCryptoUpDownChartDataResult => {
   const symbol = getCryptoSymbol(market);
   const recurrence = market.series.recurrence;
@@ -41,6 +66,9 @@ export const useCryptoUpDownChartData = (
   const [liveLoading, setLiveLoading] = useState(true);
   const liveLoadingRef = useRef(true);
   const [liveValue, setLiveValue] = useState(0);
+  const [livePoints, setLivePoints] = useState<LivelinePoint[]>(EMPTY_DATA);
+  const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
+  const fallbackStartPointRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const frozenRef = useRef(false);
 
   const prevMarketIdRef = useRef(market.id);
@@ -50,6 +78,9 @@ export const useCryptoUpDownChartData = (
     liveLoadingRef.current = true;
     setLiveLoading(true);
     setLiveValue(0);
+    setLivePoints(EMPTY_DATA);
+    stableHistoricalDataRef.current = EMPTY_DATA;
+    fallbackStartPointRef.current = EMPTY_DATA;
     chartRef?.current?.clearData();
   }
 
@@ -69,43 +100,104 @@ export const useCryptoUpDownChartData = (
         value: update.price,
       };
 
-      chartRef?.current?.appendPoint(point, update.price);
-
       setLiveValue(update.price);
+      setLivePoints((points) => {
+        const nextPoints = mergeLivelinePoints(points, [point]);
+        const cutoff = timeSecs - durationSecs * 2;
+        return nextPoints.filter((nextPoint) => nextPoint.time >= cutoff);
+      });
       if (liveLoadingRef.current) {
         liveLoadingRef.current = false;
         setLiveLoading(false);
       }
     },
-    [market.endDate, chartRef],
+    [durationSecs, market.endDate],
   );
 
   const wsSymbol = isLive && symbol ? `${symbol.toLowerCase()}usdt` : '';
 
   useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
 
+  const historyEndDate = isLive ? undefined : market.endDate;
+
+  // TODO: Explore alternate price history sources when Polymarket's Binance-backed history endpoint is unavailable.
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
       symbol: symbol ?? '',
       eventStartTime: eventStartTime ?? '',
       variant,
-      endDate: market.endDate,
+      endDate: historyEndDate,
     }),
-    enabled: !isLive && !!symbol && !!eventStartTime,
+    enabled: !!symbol && !!eventStartTime,
+    staleTime: isLive ? 1000 : Infinity,
+    refetchOnMount: isLive ? 'always' : false,
+    refetchInterval: isLive ? 10000 : false,
   });
+
+  const historicalValue = historicalQuery.data?.at(-1)?.value;
+  const historicalData = historicalQuery.data ?? EMPTY_DATA;
+  if (historicalData.length > 0) {
+    stableHistoricalDataRef.current = historicalData;
+  }
+  const stableHistoricalData = stableHistoricalDataRef.current;
+  const eventStartTimeSecs = eventStartTime
+    ? Math.floor(new Date(eventStartTime).getTime() / 1000)
+    : undefined;
+  const fallbackStartPoint =
+    isLive &&
+    typeof targetPrice === 'number' &&
+    targetPrice > 0 &&
+    typeof eventStartTimeSecs === 'number' &&
+    Number.isFinite(eventStartTimeSecs)
+      ? [{ time: eventStartTimeSecs, value: targetPrice }]
+      : EMPTY_DATA;
+  if (fallbackStartPoint.length > 0) {
+    fallbackStartPointRef.current = fallbackStartPoint;
+  }
+  const firstLivePointTime = livePoints[0]?.time;
+  const firstLivePointIsNearEventStart =
+    typeof firstLivePointTime === 'number' &&
+    typeof eventStartTimeSecs === 'number' &&
+    firstLivePointTime - eventStartTimeSecs <= 90;
+  const shouldUseFallbackStartPoint =
+    stableHistoricalData.length > 0 || firstLivePointIsNearEventStart;
+  const baseHistoricalData = mergeLivelinePoints(
+    shouldUseFallbackStartPoint ? fallbackStartPointRef.current : EMPTY_DATA,
+    stableHistoricalData,
+  );
+  const chartData = mergeLivelinePoints(baseHistoricalData, livePoints);
+  const hasRenderableLiveData = chartData.length >= 2;
+  const displayedLiveValue =
+    liveLoadingRef.current && typeof historicalValue === 'number'
+      ? historicalValue
+      : liveValue;
+
+  useEffect(() => {
+    if (
+      isLive &&
+      liveLoadingRef.current &&
+      typeof historicalValue === 'number'
+    ) {
+      setLiveValue(historicalValue);
+    }
+  }, [historicalValue, isLive]);
 
   if (isLive) {
     return {
-      data: EMPTY_DATA,
-      value: liveValue,
-      loading: liveLoading,
+      data: chartData,
+      value: displayedLiveValue,
+      loading:
+        liveLoading &&
+        !!symbol &&
+        (!!eventStartTime || historicalQuery.isFetching) &&
+        !hasRenderableLiveData,
       isLive: true,
-      window: LIVE_WINDOW_SECS,
+      window: durationSecs,
     };
   }
 
   return {
-    data: historicalQuery.data ?? [],
+    data: historicalData,
     value: historicalQuery.data?.at(-1)?.value ?? 0,
     loading: historicalQuery.isFetching,
     isLive: false,

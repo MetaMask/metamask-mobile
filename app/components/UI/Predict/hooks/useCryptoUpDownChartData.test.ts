@@ -3,8 +3,10 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCryptoUpDownChartData } from './useCryptoUpDownChartData';
 import type { CryptoPriceUpdate, PredictMarket, PredictSeries } from '../types';
-import type { LivelinePoint } from '../../Charts/LivelineChart/LivelineChart.types';
-import type { LivelineChartRef } from '../../Charts/LivelineChart/LivelineChart.types';
+import type {
+  LivelineChartRef,
+  LivelinePoint,
+} from '../../Charts/LivelineChart/LivelineChart.types';
 
 const mockCryptoPriceHistoryOptions = jest.fn();
 const mockUseLiveCryptoPrices = jest.fn();
@@ -41,7 +43,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        gcTime: 0,
+        cacheTime: 0,
         retry: false,
       },
     },
@@ -156,10 +158,11 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.loading).toBe(true);
     });
 
-    it('pushes live data points to chart ref via appendPoint', () => {
+    it('adds live data points to the returned chart data', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
       const chartRef = createMockChartRef();
+      historicalData = [];
 
       const { result } = renderHook(
         () => useCryptoUpDownChartData(market, chartRef),
@@ -179,20 +182,16 @@ describe('useCryptoUpDownChartData', () => {
         });
       });
 
-      expect(chartRef.current.appendPoint).toHaveBeenCalledTimes(2);
-      expect(chartRef.current.appendPoint).toHaveBeenCalledWith(
+      expect(chartRef.current.appendPoint).not.toHaveBeenCalled();
+      expect(result.current.data).toEqual([
         { time: 100, value: 51000 },
-        51000,
-      );
-      expect(chartRef.current.appendPoint).toHaveBeenCalledWith(
         { time: 110, value: 51500 },
-        51500,
-      );
+      ]);
       expect(result.current.value).toBe(51500);
       expect(result.current.loading).toBe(false);
     });
 
-    it('returns empty data array in live mode (data managed by WebView)', () => {
+    it('seeds live mode with historical data before live updates arrive', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
       const chartRef = createMockChartRef();
@@ -202,25 +201,163 @@ describe('useCryptoUpDownChartData', () => {
         { wrapper: Wrapper },
       );
 
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+        expect(result.current.value).toBe(51000);
+      });
+    });
+
+    it('keeps historical data available after live updates arrive', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
+
       act(() => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
-          price: 51000,
-          timestamp: 100000,
+          price: 51500,
+          timestamp: 210000,
         });
       });
 
-      expect(result.current.data).toEqual([]);
+      expect(result.current.data).toEqual([
+        ...historicalData,
+        { time: 210, value: 51500 },
+      ]);
+      expect(result.current.value).toBe(51500);
+    });
+
+    it('falls back to the target price at event start when history is unavailable', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [];
+      mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef, 50000),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51500,
+          timestamp: 110000,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 50000 },
+        { time: 110, value: 51500 },
+      ]);
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('does not draw an assumed target-to-live line when opened late without history', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [];
+      mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef, 50000),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51500,
+          timestamp: 260000,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51600,
+          timestamp: 270000,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 260, value: 51500 },
+        { time: 270, value: 51600 },
+      ]);
+    });
+
+    it('keeps the target price fallback if target price later becomes unavailable', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [];
+      mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
+
+      const { result, rerender } = renderHook(
+        ({ targetPrice }: { targetPrice?: number }) =>
+          useCryptoUpDownChartData(market, chartRef, targetPrice),
+        {
+          initialProps: { targetPrice: 50000 },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51500,
+          timestamp: 110000,
+        });
+      });
+
+      rerender({ targetPrice: undefined });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 50000 },
+        { time: 110, value: 51500 },
+      ]);
+    });
+
+    it('uses target price fallback with partial historical data', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [{ time: 105, value: 50100 }];
+      mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef, 50000),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual([
+          { time: 100, value: 50000 },
+          { time: 105, value: 50100 },
+        ]);
+      });
     });
 
     it('freezes live data once the end date passes', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({ endDate: '2026-01-01T00:00:05.000Z' });
       const chartRef = createMockChartRef();
+      historicalData = [];
 
-      renderHook(() => useCryptoUpDownChartData(market, chartRef), {
-        wrapper: Wrapper,
-      });
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        {
+          wrapper: Wrapper,
+        },
+      );
 
       act(() => {
         liveUpdateHandler?.({
@@ -244,11 +381,8 @@ describe('useCryptoUpDownChartData', () => {
         });
       });
 
-      expect(chartRef.current.appendPoint).toHaveBeenCalledTimes(1);
-      expect(chartRef.current.appendPoint).toHaveBeenCalledWith(
-        { time: 100, value: 50000 },
-        50000,
-      );
+      expect(chartRef.current.appendPoint).not.toHaveBeenCalled();
+      expect(result.current.data).toEqual([{ time: 100, value: 50000 }]);
     });
 
     it('returns live flags and the live window for future markets', () => {
@@ -260,7 +394,23 @@ describe('useCryptoUpDownChartData', () => {
       });
 
       expect(result.current.isLive).toBe(true);
-      expect(result.current.window).toBe(30);
+      expect(result.current.window).toBe(300);
+    });
+
+    it('fetches crypto price history for live markets', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      expect(mockCryptoPriceHistoryOptions).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        eventStartTime: '2025-12-31T23:55:30.000Z',
+        variant: 'fiveminute',
+        endDate: undefined,
+      });
     });
 
     it('passes the lowercase websocket symbol to useLiveCryptoPrices', () => {
@@ -453,7 +603,7 @@ describe('useCryptoUpDownChartData', () => {
         expect.any(Function),
       );
       expect(result.current.isLive).toBe(true);
-      expect(result.current.loading).toBe(true);
+      expect(result.current.loading).toBe(false);
     });
   });
 });

@@ -731,7 +731,7 @@ export class PredictController extends BaseController<
           // Provider threw — fall through to groupItemThreshold fallback.
         }
 
-        if (price !== null) {
+        if (typeof price === 'number' && price > 0) {
           return price;
         }
 
@@ -746,7 +746,10 @@ export class PredictController extends BaseController<
           if (!market?.outcomes?.length) {
             return null;
           }
-          return market.outcomes[0].groupItemThreshold ?? null;
+          const threshold = market.outcomes[0].groupItemThreshold;
+          return typeof threshold === 'number' && threshold > 0
+            ? threshold
+            : null;
         } catch {
           return null;
         }

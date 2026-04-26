@@ -129,6 +129,23 @@ export const createLivelineChartTemplate = (
     var inLiveMode = false;
     var lastPerfTs = 0;
 
+    function mergeLivelineData(base, incoming) {
+      var byTime = new Map();
+      (base || []).forEach(function(point) {
+        if (point && typeof point.time === 'number') {
+          byTime.set(point.time, point);
+        }
+      });
+      (incoming || []).forEach(function(point) {
+        if (point && typeof point.time === 'number') {
+          byTime.set(point.time, point);
+        }
+      });
+      return Array.from(byTime.values()).sort(function(a, b) {
+        return a.time - b.time;
+      });
+    }
+
     function render() {
       if (!currentProps) return;
       var formatValue = currentProps.formatValue;
@@ -160,6 +177,9 @@ export const createLivelineChartTemplate = (
           case 'SET_PROPS':
             if (inLiveMode) {
               var incoming = Object.assign({}, msg.payload);
+              if (Array.isArray(incoming.data) && incoming.data.length > 0) {
+                liveData = mergeLivelineData(incoming.data, liveData);
+              }
               delete incoming.data;
               delete incoming.value;
               currentProps = Object.assign(currentProps || {}, incoming);
@@ -169,8 +189,13 @@ export const createLivelineChartTemplate = (
             render();
             break;
           case 'APPEND_POINT':
+            if (!inLiveMode) {
+              liveData = (currentProps && Array.isArray(currentProps.data))
+                ? currentProps.data.slice()
+                : [];
+            }
             inLiveMode = true;
-            liveData.push(msg.payload.point);
+            liveData = mergeLivelineData(liveData, [msg.payload.point]);
             liveValue = msg.payload.value;
             if (currentProps && currentProps.window) {
               var cutoff = msg.payload.point.time - currentProps.window * 2;
