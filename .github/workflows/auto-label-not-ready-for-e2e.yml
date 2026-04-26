@@ -1,13 +1,14 @@
 name: Auto-apply pr-not-ready-for-e2e label
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened]
     branches-ignore:
       - 'release/**'
 
 jobs:
   add-label:
+    if: github.event.pull_request.head.repo.fork == false
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
