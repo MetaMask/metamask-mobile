@@ -46,9 +46,14 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
     ? strings('confirm.label.from')
     : undefined;
 
+  const selectorTitle = isMoneyAccountDeposit
+    ? strings('bridge.select_account')
+    : strings('bridge.select_recipient');
+
   return (
     <AccountSelector
       label={label}
+      selectorTitle={selectorTitle}
       selectedAddress={accountOverride}
       onAccountSelected={handleAccountSelected}
       style={style}

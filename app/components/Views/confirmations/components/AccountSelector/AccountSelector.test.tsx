@@ -70,6 +70,58 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   };
 });
 
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { View } = require('react-native');
+    return {
+      __esModule: true,
+      default: React.forwardRef(
+        (
+          {
+            children,
+            onClose,
+            testID,
+          }: {
+            children: React.ReactNode;
+            onClose?: (hasPendingAction?: boolean) => void;
+            testID?: string;
+          },
+          ref: React.Ref<{
+            onCloseBottomSheet: (cb?: () => void) => void;
+            onOpenBottomSheet: (cb?: () => void) => void;
+          }>,
+        ) => {
+          React.useImperativeHandle(ref, () => ({
+            onCloseBottomSheet: (cb?: () => void) => {
+              onClose?.(false);
+              cb?.();
+            },
+            onOpenBottomSheet: jest.fn(),
+          }));
+          return <View testID={testID}>{children}</View>;
+        },
+      ),
+    };
+  },
+);
+
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    return ({ title, onClose }: { title: string; onClose?: () => void }) => (
+      <View testID="account-selector-modal-header">
+        <Text>{title}</Text>
+        <Pressable accessibilityRole="button" onPress={onClose} />
+      </View>
+    );
+  },
+);
+
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   const { View } = RN;
@@ -85,14 +137,12 @@ jest.mock('react-native', () => {
       testID?: string;
       animationType?: string;
       presentationStyle?: string;
+      transparent?: boolean;
       onRequestClose?: () => void;
     }) => {
       if (!visible) return null;
       return <View testID={testID}>{children}</View>;
     },
-    SafeAreaView: ({ children }: { children: React.ReactNode }) => (
-      <View>{children}</View>
-    ),
   };
 });
 
@@ -243,6 +293,9 @@ describe('AccountSelector', () => {
     fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
 
     expect(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.MODAL)).toBeOnTheScreen();
+    expect(
+      getByTestId(ACCOUNT_SELECTOR_TEST_IDS.BOTTOM_SHEET),
+    ).toBeOnTheScreen();
   });
 
   it('calls onAccountSelected with correct address when account is selected', () => {
@@ -277,6 +330,19 @@ describe('AccountSelector', () => {
 
     expect(getByText('From')).toBeOnTheScreen();
     expect(queryByText('confirm.label.to')).toBeNull();
+  });
+
+  it('uses custom selector title in the sheet header when provided', () => {
+    const { getByTestId, getByText } = render(
+      <AccountSelector
+        onAccountSelected={mockOnAccountSelected}
+        selectorTitle="Custom sheet title"
+      />,
+    );
+
+    fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
+
+    expect(getByText('Custom sheet title')).toBeOnTheScreen();
   });
 });
 
