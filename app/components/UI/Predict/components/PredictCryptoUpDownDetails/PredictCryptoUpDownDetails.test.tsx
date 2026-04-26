@@ -2,13 +2,31 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictCryptoUpDownDetails from './PredictCryptoUpDownDetails';
 import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
-import { Recurrence } from '../../types';
-import type { PredictMarket, PredictSeries } from '../../types';
+import {
+  Recurrence,
+  type PredictMarket,
+  type PredictSeries,
+} from '../../types';
 import usePredictShare from '../../hooks/usePredictShare';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
+import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 
 const mockUsePredictShare = usePredictShare as jest.Mock;
 const mockUsePredictSeries = usePredictSeries as jest.Mock;
+const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
+
+interface HeaderCompactStandardMockProps {
+  testID?: string;
+  endButtonIconProps?: {
+    testID?: string;
+    onPress?: () => void;
+  }[];
+}
+
+interface TimeSlotPickerMockProps {
+  onMarketSelected: (market: PredictMarket) => void;
+  markets: PredictMarket[];
+}
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -49,9 +67,9 @@ jest.mock(
     const { View, TouchableOpacity } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: jest.fn((props) => (
+      default: jest.fn((props: HeaderCompactStandardMockProps) => (
         <View testID={props.testID} {...props}>
-          {props.endButtonIconProps?.map((btn: any, index: number) => (
+          {props.endButtonIconProps?.map((btn, index) => (
             <TouchableOpacity
               key={index}
               testID={btn.testID}
@@ -93,17 +111,19 @@ jest.mock('../../utils/format', () => ({
 jest.mock('../TimeSlotPicker', () => {
   const { View, TouchableOpacity } = jest.requireActual('react-native');
   return {
-    TimeSlotPicker: jest.fn(({ onMarketSelected, markets }) => (
-      <View testID="mock-time-slot-picker">
-        {markets.map((m: any) => (
-          <TouchableOpacity
-            key={m.id}
-            testID={`mock-time-slot-${m.id}`}
-            onPress={() => onMarketSelected(m)}
-          />
-        ))}
-      </View>
-    )),
+    TimeSlotPicker: jest.fn(
+      ({ onMarketSelected, markets }: TimeSlotPickerMockProps) => (
+        <View testID="mock-time-slot-picker">
+          {markets.map((m) => (
+            <TouchableOpacity
+              key={m.id}
+              testID={`mock-time-slot-${m.id}`}
+              onPress={() => onMarketSelected(m)}
+            />
+          ))}
+        </View>
+      ),
+    ),
   };
 });
 
@@ -111,10 +131,11 @@ jest.mock('../PredictCryptoUpDownChart', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(({ market }) => (
+    default: jest.fn(({ market, targetPrice }) => (
       <View
         testID="mock-predict-crypto-up-down-chart"
         testID-marketId={market.id}
+        testID-targetPrice={targetPrice}
       />
     )),
   };
@@ -158,6 +179,7 @@ describe('PredictCryptoUpDownDetails', () => {
         createMockMarket({ id: 'market-2', endDate: '2026-04-09T19:50:00Z' }),
       ],
     });
+    mockUseCryptoTargetPrice.mockReturnValue({ data: 78000 });
   });
 
   it('renders the screen container with correct testID', () => {
@@ -285,6 +307,18 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(
       screen.getByTestId('mock-predict-crypto-up-down-chart'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the target price summary above the chart', () => {
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Price to beat')).toBeOnTheScreen();
+    expect(screen.getByText('$78,000.00')).toBeOnTheScreen();
   });
 
   it('passes selected market to chart component and updates subtitle when a different time slot is selected', () => {

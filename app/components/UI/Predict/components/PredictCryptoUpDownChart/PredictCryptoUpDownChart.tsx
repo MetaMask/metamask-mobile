@@ -1,23 +1,34 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import { LivelineChart } from '../../../Charts/LivelineChart';
-import type { LivelineChartRef } from '../../../Charts/LivelineChart';
+import {
+  LivelineChart,
+  type LivelineChartRef,
+} from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
 const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   market,
   targetPrice,
+  onCurrentPriceChange,
   height: explicitHeight,
 }) => {
   const chartRef = useRef<LivelineChartRef>(null);
   const [measuredHeight, setMeasuredHeight] = useState(0);
-  const { data, value, loading, window } = useCryptoUpDownChartData(
-    market,
-    chartRef,
-  );
+  const {
+    data,
+    value,
+    loading,
+    window: chartWindow,
+  } = useCryptoUpDownChartData(market, chartRef);
 
   const chartHeight = explicitHeight ?? measuredHeight;
+
+  useEffect(() => {
+    if (Number.isFinite(value)) {
+      onCurrentPriceChange?.(value);
+    }
+  }, [onCurrentPriceChange, value]);
 
   return (
     <Box
@@ -35,16 +46,18 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           data={data}
           value={value}
           loading={loading}
-          window={window}
+          window={chartWindow}
           height={chartHeight}
           color="rgb(245, 158, 11)"
           lineWidth={2}
-          grid={true}
-          badge={true}
+          grid
+          hideControls
+          badge
+          padding={{ top: 48, bottom: 48 }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
-          formatValue="return '$' + v.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+          formatValue="const sign = v < 0 ? '-' : ''; const parts = Math.abs(v).toFixed(2).split('.'); parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); return sign + '$' + parts.join('.')"
         />
       )}
     </Box>

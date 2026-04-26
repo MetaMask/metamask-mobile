@@ -2,8 +2,11 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictCryptoUpDownChart from './PredictCryptoUpDownChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
-import { Recurrence } from '../../types';
-import type { PredictMarket, PredictSeries } from '../../types';
+import {
+  Recurrence,
+  type PredictMarket,
+  type PredictSeries,
+} from '../../types';
 
 jest.mock('../../hooks/useCryptoUpDownChartData', () => ({
   useCryptoUpDownChartData: jest.fn(),
@@ -98,9 +101,11 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.color).toBe('rgb(245, 158, 11)');
     expect(chart.props.lineWidth).toBe(2);
     expect(chart.props.grid).toBe(true);
+    expect(chart.props.hideControls).toBe(true);
     expect(chart.props.badge).toBe(true);
+    expect(chart.props.padding).toEqual({ top: 48, bottom: 48 });
     expect(chart.props.formatValue).toBe(
-      "return '$' + v.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})",
+      "const sign = v < 0 ? '-' : ''; const parts = Math.abs(v).toFixed(2).split('.'); parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); return sign + '$' + parts.join('.')",
     );
   });
 

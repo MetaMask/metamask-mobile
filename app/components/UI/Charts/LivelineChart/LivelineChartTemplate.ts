@@ -53,6 +53,7 @@ export const createLivelineChartTemplate = (
        natural height. Using last-child covers all combinations. */
     #root>*{flex-shrink:0}
     #root>*:last-child{flex:1;min-height:0}
+    body.liveline-hide-controls #root>*:not(:last-child){display:none!important}
   </style>
 </head>
 <body>
@@ -135,6 +136,9 @@ export const createLivelineChartTemplate = (
       var rest = Object.assign({}, currentProps);
       delete rest.formatValue;
       delete rest.formatTime;
+      var hideControls = !!rest.hideControls;
+      delete rest.hideControls;
+      document.body.classList.toggle('liveline-hide-controls', hideControls);
       var effectiveData  = inLiveMode ? liveData : (rest.data || []);
       var effectiveValue = inLiveMode ? liveValue : (rest.value || 0);
       var props = Object.assign({}, rest, callbacks, {

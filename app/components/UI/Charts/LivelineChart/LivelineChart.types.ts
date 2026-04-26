@@ -112,6 +112,7 @@ export interface LivelineChartProps {
 
   // -- Feature flags --
   grid?: boolean;
+  hideControls?: boolean;
   badge?: boolean;
   badgeTail?: boolean;
   badgeVariant?: BadgeVariant;

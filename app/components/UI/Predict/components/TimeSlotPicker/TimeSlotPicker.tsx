@@ -230,27 +230,32 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   if (markets.length === 0) return null;
 
   return (
-    <ScrollView
-      testID="time-slot-picker"
-      ref={scrollRef}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tw.style('px-4 gap-2')}
-    >
-      {markets.map((market) => (
-        <Box
-          key={market.id}
-          onLayout={(e) => handlePillLayout(market.id, e.nativeEvent.layout.x)}
-        >
-          <TimeSlotPill
-            market={market}
-            isSelected={market.id === resolvedSelectedId}
-            isLive={market.id === liveMarketId}
-            onPress={onMarketSelected}
-          />
-        </Box>
-      ))}
-    </ScrollView>
+    <Box twClassName="h-11">
+      <ScrollView
+        testID="time-slot-picker"
+        ref={scrollRef}
+        horizontal
+        style={tw.style('h-11 max-h-11')}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-2')}
+      >
+        {markets.map((market) => (
+          <Box
+            key={market.id}
+            onLayout={(e) =>
+              handlePillLayout(market.id, e.nativeEvent.layout.x)
+            }
+          >
+            <TimeSlotPill
+              market={market}
+              isSelected={market.id === resolvedSelectedId}
+              isLive={market.id === liveMarketId}
+              onPress={onMarketSelected}
+            />
+          </Box>
+        ))}
+      </ScrollView>
+    </Box>
   );
 };
 
