@@ -59,9 +59,9 @@ runs:
 
     - name: Checkout for PR analysis
       if: steps.check-skip-label.outputs.SKIP != 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
-        fetch-depth: 1 # Shallow clone - only need PR commit
+        fetch-depth: 1 # Shallow clone for speed; unshallowed below for diff comparison
 
     - name: Disable sparse checkout and restore all files
       if: steps.check-skip-label.outputs.SKIP != 'true'
@@ -81,7 +81,7 @@ runs:
 
     - name: Setup Node.js
       if: steps.check-skip-label.outputs.SKIP != 'true'
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version-file: '.nvmrc'
 
