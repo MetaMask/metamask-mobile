@@ -160,6 +160,7 @@
         "screenshot-chart": {
           "action": "screenshot",
           "filename": "{{screenshot_filename}}",
+          "note": "Final ETH market detail after rapid BTC→ETH→SOL→HYPE→BTC→ETH switch — proves chart loads on the last symbol without rate-limit/abort errors",
           "next": "back-6"
         },
         "back-6": {

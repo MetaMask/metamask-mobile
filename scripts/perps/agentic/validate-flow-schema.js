@@ -62,6 +62,9 @@ function validateActionShape(node, issues) {
     case 'switch_provider':
       requireFields(node, ['provider'], issues);
       break;
+    case 'screenshot':
+      requireFields(node, ['filename', 'note'], issues);
+      break;
     case 'log_watch':
       if (!(node.watch_for?.length || node.must_not_appear?.length)) {
         issues.push(

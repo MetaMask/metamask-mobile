@@ -36,6 +36,7 @@
         "screenshot-position-open": {
           "action": "screenshot",
           "filename": "evidence-position-open.png",
+          "note": "ETH long market position opened — appears in PerpsController.getPositions before TP/SL is attached",
           "next": "create-tpsl"
         },
         "create-tpsl": {
@@ -67,6 +68,7 @@
         "screenshot-closed": {
           "action": "screenshot",
           "filename": "evidence-position-closed.png",
+          "note": "ETH position closed — getPositions no longer returns ETH after trade-close-position completes",
           "next": "done"
         },
         "done": {

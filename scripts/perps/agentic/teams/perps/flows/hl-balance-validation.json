@@ -82,6 +82,7 @@
           "screenshot-market-list": {
             "action": "screenshot",
             "filename": "tat3016-{{phaseLabel}}-market-list.png",
+            "note": "PerpsMarketListView available-balance text in {{phaseLabel}} phase — must reflect availableToTradeBalance (gates Long/Add-Funds CTA)",
             "next": "nav-withdraw"
           },
           "nav-withdraw": {
@@ -121,6 +122,7 @@
           "screenshot-withdraw": {
             "action": "screenshot",
             "filename": "tat3016-{{phaseLabel}}-withdraw.png",
+            "note": "PerpsWithdraw available-balance text in {{phaseLabel}} phase — must show availableBalance only, never the spot-fold amount (TAT-3016 hotfix invariant)",
             "next": "nav-market-details"
           },
           "nav-market-details": {
@@ -172,6 +174,7 @@
           "screenshot-order-form": {
             "action": "screenshot",
             "filename": "tat3016-{{phaseLabel}}-order-form.png",
+            "note": "BTC order form in {{phaseLabel}} phase — pay-with should default to Perps balance when availableToTradeBalance > 0; place-order button mounted",
             "next": "back-to-wallet"
           },
           "back-to-wallet": {

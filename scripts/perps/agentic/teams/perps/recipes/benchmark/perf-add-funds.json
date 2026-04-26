@@ -54,6 +54,7 @@
         "screenshot-amount": {
           "action": "screenshot",
           "filename": "evidence-perf-add-funds.png",
+          "note": "Perf benchmark: deposit screen reached with $2 entered — captures end of timed nav-to-amount path",
           "next": "done"
         },
         "done": {

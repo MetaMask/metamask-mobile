@@ -36,6 +36,7 @@
         "screenshot-open": {
           "action": "screenshot",
           "filename": "evidence-perf-btc-open.png",
+          "note": "Perf benchmark: BTC long opened — captured before close timer starts",
           "next": "close-position"
         },
         "close-position": {
@@ -54,6 +55,7 @@
         "screenshot-closed": {
           "action": "screenshot",
           "filename": "evidence-perf-btc-closed.png",
+          "note": "Perf benchmark: BTC position closed — getPositions empty, end of timed open-then-close path",
           "next": "done"
         },
         "done": {

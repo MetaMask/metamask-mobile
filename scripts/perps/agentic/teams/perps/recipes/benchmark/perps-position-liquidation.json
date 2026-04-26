@@ -50,6 +50,7 @@
         "screenshot-position": {
           "action": "screenshot",
           "filename": "evidence-position-open-for-liquidation.png",
+          "note": "ETH long position open on PerpsMarketDetails with close button visible — liquidation precondition (price-trigger requires E2E mock)",
           "next": "cleanup"
         },
         "cleanup": {

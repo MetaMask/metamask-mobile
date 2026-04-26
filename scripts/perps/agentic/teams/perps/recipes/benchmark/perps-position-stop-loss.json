@@ -49,6 +49,7 @@
         "screenshot-sl-set": {
           "action": "screenshot",
           "filename": "evidence-stop-loss-set.png",
+          "note": "ETH long position with stopLossPrice attached via tpsl-create — SL trigger live (price-based liquidation requires E2E mock)",
           "next": "cleanup"
         },
         "cleanup": {
