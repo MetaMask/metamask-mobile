@@ -16,10 +16,10 @@ flowchart TD
     GR -->|PR other files changed| Both[Both Build + Tests needed]
     GR -->|Scheduled and Push to main | Full[Run all E2E Suites for Both]
 
-    Android & iOS & Both --> LABEL[PR label: skip-smart-e2e-selection ?]
+    Android & iOS & Both --> LABEL{{PR label: skip-smart-e2e-selection ?}}
     LABEL -->|yes| AllTags[Run all E2E needed]
     LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
-    AI --> CONF[Confidence >= 80% ?]
+    AI --> CONF{{Confidence >= 80% ?}}
     CONF -->|yes| SelectedTags[Run selected E2E suites]
     CONF -->|no| AllTagsFallback[Run all E2E needed]
 ```

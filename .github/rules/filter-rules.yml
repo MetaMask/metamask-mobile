@@ -5,63 +5,66 @@
 # - {filter_name}: 'true'/'false' if any changed files match any filter rules
 # - {filter_name}_count: number of matching files
 #
-# E2E STRATEGY:
-# - e2e_ignorable:    files that never require E2E (denylist); includes all .github/**
-#                     so that non-E2E workflow changes are automatically ignored.
-# - e2e_workflows:    allowlist of workflows/scripts that DO affect E2E — overrides
-#                     the ignorable catch-all when present. Only this list needs
-#                     maintenance when new E2E-relevant workflows are added.
-# - android / ios:    platform-specific file trees.
-# - all_changes:      denominator for count comparisons.
-#
-#
 # E2E STRATEGY: Use separate filters to detect different file types non E2E related.
 # Conservative approach - add only files that safely allow skipping E2E tests.
 
-e2e_ignorable:
-  - '**/*.md'
+# DOCUMENTATION FILES
+documentation_files: &documentation_files
+  - '**/*.{md,mdx,txt}'
   - 'docs/**'
   - 'LICENSE'
-  - 'attribution.txt'
-  - '*.svg'
-  - '*.png'
+
+# ASSET FILES
+asset_files: &asset_files
+  - '**/*.{svg,png}'
+
+# LOW LEVEL TEST FILES
+low_level_test_files: &low_level_test_files
+  - '**/*.test.{js,ts,tsx,jsx}'
+  - '**/*.stories.*'
+  - '**/*.snap'
+  - '!tests/**'
+
+# CONFIG FILES
+config_files: &config_files
+  - '.eslint*'
+  - '.prettier*'
+  - 'tailwind.config.js'
+  - 'sonar-project.properties'
   - 'codecov.yml'
   - 'crowdin.yml'
-  - 'sonar-project.properties'
-  - '.github/**' # all .github files — overridden by e2e_workflows below
+  - 'coverage-thresholds.json'
+  - '.editorconfig'
+  - '.watchmanconfig'
+  - '.gitignore'
 
-# ── E2E-relevant workflows (overrides the .github/** ignorable above) ─────────
-# Changes here always trigger E2E regardless of e2e_ignorable.
-# Add new E2E/build workflows here; everything else in .github is auto-ignored.
-e2e_workflows:
+# CI/GITHUB FILES — overridden by e2e_related_workflows below
+github_files: &github_files
+  - '.github/**'
+
+# ALL IGNORABLE FILES - safe to skip E2E
+e2e_ignorable:
+  - *documentation_files
+  - *asset_files
+  - *low_level_test_files
+  - *config_files
+  - *github_files
+
+e2e_related_workflows:
   - '.github/workflows/ci.yml'
   - '.github/workflows/get-requirements.yml'
   - '.github/workflows/build-android-e2e.yml'
   - '.github/workflows/build-ios-e2e.yml'
-  - '.github/workflows/run-e2e-workflow.yml'
   - '.github/workflows/run-e2e-*.yml'
-  - '.github/workflows/run-performance-e2e*.yml'
-  - '.github/workflows/performance-test-runner.yml'
-  - '.github/workflows/setup-node-modules.yml'
-  - '.github/workflows/nightly-build.yml'
   - '.github/workflows/update-e2e-fixtures.yml'
-  - '.github/workflows/push-eas-update.yml'
-  - '.github/workflows/expo-dev-build.yml'
   - '.github/workflows/build.yml'
-  - '.github/workflows/build-rc-auto.yml'
-  - '.github/workflows/build-android-upload-to-browserstack.yml'
-  - '.github/workflows/build-ios-upload-to-browserstack.yml'
-  - '.github/workflows/post-merge-validation.yml'
-  - '.github/workflows/retrigger-ci-on-e2e-label.yml'
-  - '.github/scripts/**'
+  - '.github/scripts/e2e-*.mjs'
 
-# ── Platform-specific ────────────────────────────────────────────────────────
 android:
   - 'android/**'
 
 ios:
   - 'ios/**'
 
-# ── Denominator for count comparisons ────────────────────────────────────────
 all_changes:
   - '**'

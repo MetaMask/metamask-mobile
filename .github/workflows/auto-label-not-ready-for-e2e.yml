@@ -3,6 +3,8 @@ name: Auto-apply pr-not-ready-for-e2e label
 on:
   pull_request_target:
     types: [opened]
+    branches-ignore:
+      - 'release/**'
 
 jobs:
   add-label:

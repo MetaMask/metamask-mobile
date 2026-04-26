@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 2
     outputs:
       skip_jobs_in_merge_queue: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'true' || 'false' }}
-      skip_e2e: ${{ steps.set-outputs.outputs.builds != 'true' && 'true' || 'false' }}
+      skip_e2e: ${{ steps.set-outputs.outputs.e2e_needed != 'true' && 'true' || 'false' }}
       android_e2e_needed: ${{ steps.set-outputs.outputs.android_final }}
       ios_e2e_needed: ${{ steps.set-outputs.outputs.ios_final }}
       changed_files: ${{ steps.set-outputs.outputs.changed_files }}
@@ -57,7 +57,7 @@ jobs:
           fetch-depth: 1
           ref: ${{ env.HEAD_COMMIT_HASH }}
 
-      - name: Check skip commit tag
+      - name: Check skip E2E commit tag
         id: skip-e2e-tag
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         env:
@@ -124,7 +124,7 @@ jobs:
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
-          E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_workflows_count }}
+          E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_related_workflows_count }}
           ANDROID_COUNT: ${{ steps.filter.outputs.android_count }}
           IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
         run: |
@@ -135,28 +135,21 @@ jobs:
           CHANGED=""
           MSG=""
 
-          # Hard skip signals (label / commit tag) ALWAYS win — even on release/*
-          if [[ "$SHOULD_SKIP_E2E" == "true" ]]; then
-            MSG="Skipping E2E builds (skip signal)"
-
-          # Scheduled runs always build both platforms
-          elif [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
-            MSG="Building both platforms (scheduled run)"
+          # Scheduled runs and push to main always test both platforms
+          if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$GITHUB_EVENT_NAME" == "push" ]]; then
+            MSG="Building both platforms (scheduled or push to main)"
             ANDROID=true; IOS=true
 
-          # Release-branch PRs always run full E2E (release safety overrides
-          # path-filter soft skip; only hard skip above can opt out)
-          elif [[ "$BASE_REF" == release/* ]]; then
-            MSG="Building both platforms (release branch override)"
-            ANDROID=true; IOS=true
-            CHANGED="$ALL_CHANGES_FILES"
+          # Hard skip signals (label / commit tag) ALWAYS win for PRs
+          elif [[ "$SHOULD_SKIP_E2E" == "true" ]]; then
+            MSG="Skipping E2E (skip signal)"
 
           # All changed files are ignorable AND no E2E-relevant workflow touched
-          # (e2e_workflows overrides the .github/** ignorable catch-all)
+          # (e2e_related_workflows overrides the .github/** ignorable catch-all)
           elif [[ "$ALL_CHANGES_COUNT" -gt 0 &&
                   "$IGNORABLE_COUNT" -eq "$ALL_CHANGES_COUNT" &&
                   "$E2E_WORKFLOWS_COUNT" -eq 0 ]]; then
-            MSG="Skipping E2E builds (ignorable-only changes)"
+            MSG="Skipping E2E (ignorable-only changes)"
 
           # Android-only: only android + ignorable files changed, no iOS, no E2E workflows
           elif [[ "$ANDROID_COUNT" -gt 0 &&
@@ -178,20 +171,20 @@ jobs:
 
           # Conservative default: app code, yarn.lock, E2E workflows, mixed, or unknown
           else
-            MSG="Building both platforms"
+            MSG="E2E for both platforms"
             ANDROID=true; IOS=true
             CHANGED="$ALL_CHANGES_FILES"
           fi
 
-          BUILDS=false
-          [[ "$ANDROID" == "true" || "$IOS" == "true" ]] && BUILDS=true
+          E2E_NEEDED=false
+          [[ "$ANDROID" == "true" || "$IOS" == "true" ]] && E2E_NEEDED=true
 
           # Run smart-e2e-selection for non-fork, non-hard-skip PRs
           # with no skip-smart-e2e-selection label.
           # Non-PR events and all skip signals bypass AI selection.
           RUN_SMART=false
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
-                "$BUILDS" == "true" && \
+                "$E2E_NEEDED" == "true" && \
                 "$IS_FORK" != "true" && \
                 "$SHOULD_SKIP_E2E" != "true" && \
                 "$SKIP_SMART_SELECTION" != "true" ]]; then
@@ -202,7 +195,7 @@ jobs:
           {
             echo "android_final=$ANDROID"
             echo "ios_final=$IOS"
-            echo "builds=$BUILDS"
+            echo "e2e_needed=$E2E_NEEDED"
             echo "run_smart_e2e_selection=$RUN_SMART"
           } >> "$GITHUB_OUTPUT"
 
