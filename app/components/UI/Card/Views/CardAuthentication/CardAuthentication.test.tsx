@@ -335,8 +335,7 @@ describe('CardAuthentication Component', () => {
     it('has password hidden by default', () => {
       render();
 
-      expect(getLoginTextInput('password-field')).toHaveProp(
-        'secureTextEntry',
+      expect(getLoginTextInput('password-field').props.secureTextEntry).toBe(
         true,
       );
     });
@@ -347,8 +346,7 @@ describe('CardAuthentication Component', () => {
 
       fireEvent.press(toggleButton);
 
-      expect(getLoginTextInput('password-field')).toHaveProp(
-        'secureTextEntry',
+      expect(getLoginTextInput('password-field').props.secureTextEntry).toBe(
         false,
       );
     });
@@ -360,8 +358,7 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(toggleButton);
       fireEvent.press(toggleButton);
 
-      expect(getLoginTextInput('password-field')).toHaveProp(
-        'secureTextEntry',
+      expect(getLoginTextInput('password-field').props.secureTextEntry).toBe(
         true,
       );
     });
@@ -579,8 +576,7 @@ describe('CardAuthentication Component', () => {
     it('has accessibility labels for email input', () => {
       render();
 
-      expect(getLoginTextInput('email-field')).toHaveProp(
-        'accessibilityLabel',
+      expect(getLoginTextInput('email-field').props.accessibilityLabel).toBe(
         'Email',
       );
     });
@@ -588,8 +584,7 @@ describe('CardAuthentication Component', () => {
     it('has accessibility labels for password input', () => {
       render();
 
-      expect(getLoginTextInput('password-field')).toHaveProp(
-        'accessibilityLabel',
+      expect(getLoginTextInput('password-field').props.accessibilityLabel).toBe(
         'Password',
       );
     });
@@ -597,8 +592,7 @@ describe('CardAuthentication Component', () => {
     it('has email keyboard type for email input', () => {
       render();
 
-      expect(getLoginTextInput('email-field')).toHaveProp(
-        'keyboardType',
+      expect(getLoginTextInput('email-field').props.keyboardType).toBe(
         'email-address',
       );
     });
@@ -606,8 +600,7 @@ describe('CardAuthentication Component', () => {
     it('has secure text entry for password input', () => {
       render();
 
-      expect(getLoginTextInput('password-field')).toHaveProp(
-        'secureTextEntry',
+      expect(getLoginTextInput('password-field').props.secureTextEntry).toBe(
         true,
       );
     });
@@ -615,13 +608,9 @@ describe('CardAuthentication Component', () => {
     it('has correct return key types for form navigation', () => {
       render();
 
-      expect(getLoginTextInput('email-field')).toHaveProp(
-        'returnKeyType',
-        'next',
-      );
+      expect(getLoginTextInput('email-field').props.returnKeyType).toBe('next');
 
-      expect(getLoginTextInput('password-field')).toHaveProp(
-        'returnKeyType',
+      expect(getLoginTextInput('password-field').props.returnKeyType).toBe(
         'done',
       );
     });
