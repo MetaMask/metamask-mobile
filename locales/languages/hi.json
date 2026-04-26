@@ -6801,9 +6801,7 @@
       "perps_deposit": "फंड जोड़ें",
       "perps_withdraw": "निकालें",
       "predict_deposit": "प्रिडिक्शन फ़ंड जोड़ें",
-      "predict_withdraw": "निकालें",
-      "money_account_add_money": "फंड जोड़ें",
-      "money_account_transfer_money": "फंड विदड्रॉ करें"
+      "predict_withdraw": "निकालें"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",

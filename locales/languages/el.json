@@ -6801,9 +6801,7 @@
       "perps_deposit": "Προσθήκη κεφαλαίων",
       "perps_withdraw": "Ανάληψη",
       "predict_deposit": "Προσθήκη κεφαλαίων για Προβλέψεις",
-      "predict_withdraw": "Ανάληψη",
-      "money_account_add_money": "Προσθήκη κεφαλαίων",
-      "money_account_transfer_money": "Ανάληψη χρημάτων"
+      "predict_withdraw": "Ανάληψη"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",

@@ -6801,9 +6801,7 @@
       "perps_deposit": "Adicionar fundos",
       "perps_withdraw": "Sacar",
       "predict_deposit": "Adicionar fundos de previsão",
-      "predict_withdraw": "Sacar",
-      "money_account_add_money": "Adicionar fundos",
-      "money_account_transfer_money": "Sacar fundos"
+      "predict_withdraw": "Sacar"
     },
     "sub_title": {
       "permit": "Este site quer permissão para gastar seus tokens.",

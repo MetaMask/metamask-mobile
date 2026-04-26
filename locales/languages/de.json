@@ -6801,9 +6801,7 @@
       "perps_deposit": "Gelder hinzufügen",
       "perps_withdraw": "Auszahlen",
       "predict_deposit": "Prognosegelder hinzufügen",
-      "predict_withdraw": "Auszahlen",
-      "money_account_add_money": "Gelder hinzufügen",
-      "money_account_transfer_money": "Geldmittel auszahlen"
+      "predict_withdraw": "Auszahlen"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
