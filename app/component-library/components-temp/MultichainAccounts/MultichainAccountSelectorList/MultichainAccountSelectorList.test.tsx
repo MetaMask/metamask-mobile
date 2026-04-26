@@ -154,6 +154,35 @@ describe('MultichainAccountSelectorList', () => {
     expect(getByText('Wallet 2')).toBeTruthy();
   });
 
+  it('hides wallet section headers when there is only one wallet', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const account2 = createMockAccountGroup(
+      'keyring:wallet1/group2',
+      'Account 2',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+      account1,
+      account2,
+    ]);
+
+    const internalAccounts = createMockInternalAccountsFromGroups([
+      account1,
+      account2,
+    ]);
+    const { queryByText, getByText } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+    );
+
+    expect(queryByText('Wallet 1')).toBeNull();
+    expect(getByText('Account 1')).toBeTruthy();
+    expect(getByText('Account 2')).toBeTruthy();
+  });
+
   it('shows accounts correctly when there are multiple accounts with different categories', () => {
     const srpAccount = createMockAccountGroup(
       'keyring:srp-wallet/srp-group',
