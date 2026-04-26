@@ -9,6 +9,25 @@ import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.test
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
+// Mock SafeAreaInsetsContext so the Consumer receives insets instead of null
+jest.mock('react-native-safe-area-context', () => {
+  const actual = jest.requireActual('react-native-safe-area-context');
+  const insets = { top: 0, bottom: 0, left: 0, right: 0 };
+  return {
+    ...actual,
+    useSafeAreaInsets: () => insets,
+    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+    SafeAreaInsetsContext: {
+      ...actual.SafeAreaInsetsContext,
+      Consumer: ({
+        children,
+      }: {
+        children: (value: typeof insets) => React.ReactNode;
+      }) => children(insets),
+    },
+  };
+});
+
 // Mock ButtonIcon to pass through testID and onPress
 jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => {
   const { TouchableOpacity, View } = jest.requireActual('react-native');
