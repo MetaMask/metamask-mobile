@@ -259,8 +259,14 @@
         {
           "if": { "properties": { "action": { "const": "screenshot" } } },
           "then": {
+            "required": ["filename", "note"],
             "properties": {
-              "filename": { "type": "string", "description": "Screenshot label." }
+              "filename": { "type": "string", "minLength": 1, "description": "Screenshot label." },
+              "note": {
+                "type": "string",
+                "minLength": 3,
+                "description": "State-specific caption describing what the screenshot proves (e.g. 'AC1: Recent Activity skeleton with 3 shimmer rows'). Required to keep caption-confidence HIGH."
+              }
             }
           }
         },

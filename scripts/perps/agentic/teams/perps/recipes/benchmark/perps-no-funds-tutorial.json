@@ -92,11 +92,13 @@
         "screenshot-tutorial-complete": {
           "action": "screenshot",
           "filename": "evidence-tutorial-complete.png",
+          "note": "Onboarding tutorial completed — final continue button dismissed and market list ready",
           "next": "verify-market-view"
         },
         "screenshot-already-onboarded": {
           "action": "screenshot",
           "filename": "evidence-already-onboarded.png",
+          "note": "Already-onboarded path — tutorial skipped, market list visible directly",
           "next": "verify-market-view"
         },
         "verify-market-view": {
