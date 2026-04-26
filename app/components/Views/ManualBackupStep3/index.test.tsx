@@ -2,7 +2,7 @@ import React from 'react';
 import ManualBackupStep3 from './';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { Alert, BackHandler, View as RNView } from 'react-native';
+import { Alert, BackHandler } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -13,7 +13,10 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
-jest.mock('react-native-confetti-cannon', () => RNView);
+jest.mock('react-native-confetti-cannon', () => {
+  const { View } = jest.requireActual('react-native');
+  return View;
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -173,11 +176,11 @@ describe('ManualBackupStep3', () => {
     props = createProps(),
     contextValue: Record<string, unknown> = themeValue,
   ) => {
-    const ManualBackupStep3 = jest.requireActual('./index').default;
+    const ActualManualBackupStep3 = jest.requireActual('./index').default;
     return render(
       <Provider store={store}>
         <ThemeContext.Provider value={contextValue}>
-          <ManualBackupStep3 {...props} />
+          <ActualManualBackupStep3 {...props} />
         </ThemeContext.Provider>
       </Provider>,
     );
