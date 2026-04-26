@@ -344,10 +344,6 @@ class WalletView {
     return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.CONTAINER);
   }
 
-  get cashGetMusdButton(): DetoxElement {
-    return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.BUTTON);
-  }
-
   get getMusdButton(): DetoxElement {
     return Matchers.getElementByText('Get mUSD');
   }
@@ -1168,12 +1164,6 @@ class WalletView {
   async tapGetMusdButton(): Promise<void> {
     await Gestures.waitAndTap(this.getMusdButton, {
       elemDescription: 'Get mUSD button',
-    });
-  }
-
-  async tapCashGetMusdButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cashGetMusdButton, {
-      elemDescription: 'Cash section Get mUSD button',
     });
   }
 
