@@ -149,6 +149,20 @@ describe('TransactionDetails', () => {
       expect(mockTransactionDetailsSummary).toHaveBeenCalledTimes(1);
       expect(mockTransactionDetailsRetry).toHaveBeenCalledTimes(1);
     });
+
+    it('renders summary section exactly once for moneyAccountDeposit transactions', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockTransactionDetailsSummary).toHaveBeenCalledTimes(1);
+      expect(mockTransactionDetailsRetry).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getTitle', () => {
@@ -284,7 +298,7 @@ describe('TransactionDetails', () => {
 
       expect(mockSetOptions).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: strings('transaction_details.title.money_account_deposit'),
+          title: strings('transactions.money_account_deposit'),
         }),
       );
     });
@@ -302,7 +316,7 @@ describe('TransactionDetails', () => {
 
       expect(mockSetOptions).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: strings('transaction_details.title.money_account_withdraw'),
+          title: strings('transactions.money_account_withdraw'),
         }),
       );
     });
@@ -342,14 +356,16 @@ describe('TransactionDetails', () => {
     it.each([
       TransactionType.musdConversion,
       TransactionType.musdClaim,
+      TransactionType.moneyAccountDeposit,
+      TransactionType.moneyAccountWithdraw,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
     ])('includes %s', (type) => {
       expect(SUMMARY_SECTION_TYPES).toContain(type);
     });
 
-    it('contains exactly 4 transaction types', () => {
-      expect(SUMMARY_SECTION_TYPES).toHaveLength(4);
+    it('contains exactly 6 transaction types', () => {
+      expect(SUMMARY_SECTION_TYPES).toHaveLength(6);
     });
   });
 });

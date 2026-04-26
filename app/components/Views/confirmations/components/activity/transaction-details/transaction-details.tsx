@@ -28,6 +28,8 @@ import { TransactionDetailsAccountRow } from '../transaction-details-account-row
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
   TransactionType.musdConversion,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
 ];
