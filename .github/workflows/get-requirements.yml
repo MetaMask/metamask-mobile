@@ -5,9 +5,9 @@ name: Get workflow and job requirements
 on:
   workflow_call:
     outputs:
-      skip_jobs_in_merge_queue:
+      skip_everything:
         description: 'Whether all jobs should be skipped in merge-queue (branch is already up-to-date with latest commit)'
-        value: ${{ jobs.detect-changes.outputs.skip_jobs_in_merge_queue }}
+        value: ${{ jobs.detect-changes.outputs.skip_everything }}
       skip_e2e:
         description: 'Whether all E2E builds and tests should be skipped. True for any skip signal (labels or commit tag). Check block_merge_for_e2e_readiness separately to know if merge is also blocked'
         value: ${{ jobs.detect-changes.outputs.skip_e2e }}
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     outputs:
-      skip_jobs_in_merge_queue: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'true' || 'false' }}
+      skip_everything: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'true' || 'false' }}
       skip_e2e: ${{ steps.set-outputs.outputs.e2e_needed != 'true' && 'true' || 'false' }}
       android_e2e_needed: ${{ steps.set-outputs.outputs.android_final }}
       ios_e2e_needed: ${{ steps.set-outputs.outputs.ios_final }}
@@ -124,7 +124,7 @@ jobs:
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
-          E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_related_workflows_count }}
+          E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_relevant_workflows_count }}
           ANDROID_COUNT: ${{ steps.filter.outputs.android_count }}
           IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
         run: |
@@ -137,15 +137,18 @@ jobs:
 
           # Scheduled runs and push to main always test both platforms
           if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$GITHUB_EVENT_NAME" == "push" ]]; then
-            MSG="Building both platforms (scheduled or push to main)"
+            MSG="E2E for both platforms (scheduled or push to main)"
             ANDROID=true; IOS=true
+
+          # Fork PRs should not run E2E
+          elif [[ "$IS_FORK" == "true" ]]; then
+            MSG="Skipping E2E (fork PR)"
 
           # Hard skip signals (label / commit tag) ALWAYS win for PRs
           elif [[ "$SHOULD_SKIP_E2E" == "true" ]]; then
             MSG="Skipping E2E (skip signal)"
 
           # All changed files are ignorable AND no E2E-relevant workflow touched
-          # (e2e_related_workflows overrides the .github/** ignorable catch-all)
           elif [[ "$ALL_CHANGES_COUNT" -gt 0 &&
                   "$IGNORABLE_COUNT" -eq "$ALL_CHANGES_COUNT" &&
                   "$E2E_WORKFLOWS_COUNT" -eq 0 ]]; then
@@ -169,7 +172,7 @@ jobs:
             IOS=true
             CHANGED="$ALL_CHANGES_FILES"
 
-          # Conservative default: app code, yarn.lock, E2E workflows, mixed, or unknown
+          # Conservative default
           else
             MSG="E2E for both platforms"
             ANDROID=true; IOS=true

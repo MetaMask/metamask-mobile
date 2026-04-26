@@ -39,8 +39,9 @@ config_files: &config_files
   - '.gitignore'
 
 # CI/GITHUB FILES — overridden by e2e_related_workflows below
-github_files: &github_files
+ci_files: &ci_files
   - '.github/**'
+  - 'bitrise.yml' 
 
 # ALL IGNORABLE FILES - safe to skip E2E
 e2e_ignorable:
@@ -48,9 +49,9 @@ e2e_ignorable:
   - *asset_files
   - *low_level_test_files
   - *config_files
-  - *github_files
+  - *ci_files
 
-e2e_related_workflows:
+e2e_relevant_workflows:
   - '.github/workflows/ci.yml'
   - '.github/workflows/get-requirements.yml'
   - '.github/workflows/build-android-e2e.yml'
