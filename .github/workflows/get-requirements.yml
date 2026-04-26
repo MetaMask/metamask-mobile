@@ -24,7 +24,7 @@ on:
         description: 'Whether "pr-not-ready-for-e2e" label is still applied; blocks merge while true'
         value: ${{ jobs.detect-changes.outputs.block_merge_for_e2e_readiness }}
       run_smart_e2e_selection:
-        description: 'Whether the smart-e2e-selection AI job should run. False for non-PR events, forks, hard skips, or skip-smart-e2e-selection label.'
+        description: 'Whether the smart-e2e-selection job should run. False for non-PR events, forks, or hard E2E skips.'
         value: ${{ jobs.detect-changes.outputs.run_smart_e2e_selection }}
 
 jobs:
@@ -189,8 +189,7 @@ jobs:
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
                 "$E2E_NEEDED" == "true" && \
                 "$IS_FORK" != "true" && \
-                "$SHOULD_SKIP_E2E" != "true" && \
-                "$SKIP_SMART_SELECTION" != "true" ]]; then
+                "$SHOULD_SKIP_E2E" != "true" ]]; then
             RUN_SMART=true
           fi
 

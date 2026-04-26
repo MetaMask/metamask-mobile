@@ -1,9 +1,6 @@
 name: 'Smart E2E Selection'
 description: 'Run AI-powered E2E test selection based on code changes'
 inputs:
-  event-name:
-    description: 'GitHub event name (pull_request, workflow_dispatch, schedule, etc.)'
-    required: true
   claude-api-key:
     description: 'Anthropic Claude API key for AI analysis (primary provider)'
     required: false
@@ -33,11 +30,6 @@ inputs:
     description: 'PR base branch ref passed to the AI analysis script for diff comparison'
     required: false
     default: ''
-  is-draft:
-    description: 'Whether the PR is a draft'
-    required: false
-    default: 'false'
-
 outputs:
   ai_e2e_test_tags:
     description: 'E2E test tags to run (JSON array format)'
@@ -48,21 +40,38 @@ outputs:
   ai_performance_test_tags:
     description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
+
 runs:
   using: 'composite'
   steps:
+    - name: Check skip-smart-e2e-selection label
+      id: check-skip-label
+      if: inputs.pr-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        echo "SKIP=false" >> "$GITHUB_OUTPUT"
+        if gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json labels --jq '.labels[].name' | grep -qx "skip-smart-e2e-selection"; then
+          echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
+        fi
+
     - name: Checkout for PR analysis
+      if: steps.check-skip-label.outputs.SKIP != 'true'
       uses: actions/checkout@v4
       with:
         fetch-depth: 1 # Shallow clone - only need PR commit
 
     - name: Disable sparse checkout and restore all files
+      if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
       run: |
         git sparse-checkout disable
         git checkout HEAD -- .
 
     - name: Fetch base branch for comparison
+      if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
       run: |
         # Unshallow the repository first (if it's shallow)
@@ -71,11 +80,13 @@ runs:
         git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
 
     - name: Setup Node.js
+      if: steps.check-skip-label.outputs.SKIP != 'true'
       uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
 
     - name: Install minimal dependencies for AI analysis
+      if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
       run: |
         echo "📦 Installing only required packages for AI analysis..."
@@ -87,6 +98,7 @@ runs:
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
+      if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
       run: |
         echo "📋 Copying AI dependencies to workspace..."
@@ -103,21 +115,26 @@ runs:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
         E2E_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
         E2E_GEMINI_API_KEY: ${{ inputs.google-api-key }}
-        EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
         BASE_REF: ${{ inputs.base-ref }}
-        IS_DRAFT: ${{ inputs.is-draft }}
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
         echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
 
-        echo "✅ Running AI analysis for PR #$PR_NUMBER"
-        # The script will generate the GH output variables - don't fail if script errors
-        node .github/scripts/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
+        if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
+          echo "⏭️ Skipping AI analysis - skip-smart-e2e-selection label found"
+          echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
+          echo "SKIP_REASON=skip-smart-e2e-selection label found" >> "$GITHUB_OUTPUT"
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
+        else
+          echo "✅ Running AI analysis for PR #$PR_NUMBER"
+          # The script will generate the GH output variables - don't fail if script errors
+          node .github/scripts/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
+        fi
 
     - name: Set final outputs with fallback
       id: final-outputs
@@ -138,6 +155,7 @@ runs:
         else
           echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
         fi
+
     - name: Display AI Analysis Outputs
       if: always()
       shell: bash
@@ -185,25 +203,28 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
-        # Comment configuration (single source of truth)
         COMMENT_FILE="pr_comment.md"
         TITLE="## 🔍 Smart E2E Test Selection"
         FOOTER="[View GitHub Actions results](https://github.com/${{ inputs.repository }}/actions/runs/${{ github.run_id }})"
         MARKER="<!-- smart-e2e-selection -->"
         COMMENT_BODY=""
 
-        if [ -f "$COMMENT_FILE" ]; then
+        if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
+          SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
+          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
+
+All E2E tests pre-selected."
+        elif [ -f "$COMMENT_FILE" ]; then
           COMMENT_BODY=$(cat "$COMMENT_FILE")
         else
           COMMENT_BODY="⚠️ AI analysis was inconclusive. Selecting all E2E tests as a fallback, if applicable based on changed files."
         fi
 
-        # Build and post comment
         FULL_COMMENT="${TITLE}
-        ${COMMENT_BODY}
+${COMMENT_BODY}
 
-        ${FOOTER}
-        ${MARKER}"
+${FOOTER}
+${MARKER}"
 
         gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body "$FULL_COMMENT"
         echo "✅ Successfully created comment"
