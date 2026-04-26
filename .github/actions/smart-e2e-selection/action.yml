@@ -211,20 +211,14 @@ runs:
 
         if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
           SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
-          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
-
-All E2E tests pre-selected."
+          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}"$'\n\n'"All E2E tests pre-selected."
         elif [ -f "$COMMENT_FILE" ]; then
           COMMENT_BODY=$(cat "$COMMENT_FILE")
         else
           COMMENT_BODY="⚠️ AI analysis was inconclusive. Selecting all E2E tests as a fallback, if applicable based on changed files."
         fi
 
-        FULL_COMMENT="${TITLE}
-${COMMENT_BODY}
-
-${FOOTER}
-${MARKER}"
+        FULL_COMMENT="${TITLE}"$'\n'"${COMMENT_BODY}"$'\n\n'"${FOOTER}"$'\n'"${MARKER}"
 
         gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body "$FULL_COMMENT"
         echo "✅ Successfully created comment"
