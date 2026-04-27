@@ -7,11 +7,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../locales/i18n';
@@ -77,15 +77,16 @@ const PerpsNotificationBottomSheet: React.FC<
         </Text>
 
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.tooltips.notifications.turn_on_button')}
+          isFullWidth
           onPress={handleTurnOnNotifications}
           testID={`${testID}-turn-on-button`}
           style={styles.turnOnButton}
-          loading={loading}
-        />
+          isLoading={loading}
+        >
+          {strings('perps.tooltips.notifications.turn_on_button')}
+        </Button>
       </View>
     </BottomSheet>
   );
