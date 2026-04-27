@@ -18,11 +18,7 @@ import {
 } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
-import {
-  Button as DSButton,
-  ButtonVariant,
-  ButtonSize as ButtonSizeRNDesignSystem,
-} from '@metamask/design-system-react-native';
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
@@ -30,6 +26,11 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
@@ -594,39 +595,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
     [blockingPayAlerts],
   );
-
-  usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_ERROR,
-    conditions: [hasBlockingPayAlerts, blockingPayAlerts.length > 0],
-    resetConditions: [!hasBlockingPayAlerts],
-    properties: {
-      [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-        PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
-        typeof blockingPayAlerts[0]?.message === 'string'
-          ? blockingPayAlerts[0].message
-          : (blockingPayAlerts[0]?.title ??
-            blockingPayAlerts[0]?.key ??
-            'unknown_blocking_alert'),
-      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-    },
-  });
-
-  usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_ERROR,
-    conditions: [hasInsufficientPayTokenBalance],
-    resetConditions: [!hasInsufficientPayTokenBalance],
-    properties: {
-      [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
-      [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]:
-        PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.INSUFFICIENT_BALANCE,
-      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-    },
-  });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -1718,42 +1686,38 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           testID={PerpsOrderViewSelectorsIDs.KEYPAD}
         >
           <View style={styles.percentageButtonsContainer}>
-            <DSButton
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_25_PCT}
-              variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="25%"
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
-            >
-              25%
-            </DSButton>
-            <DSButton
+            />
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT}
-              variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="50%"
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
-            >
-              50%
-            </DSButton>
-            <DSButton
+            />
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_MAX}
-              variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
-            >
-              {strings('perps.deposit.max_button')}
-            </DSButton>
-            <DSButton
+            />
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_DONE}
-              variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label={strings('perps.deposit.done_button')}
               onPress={handleDonePress}
               style={styles.percentageButton}
-            >
-              {strings('perps.deposit.done_button')}
-            </DSButton>
+            />
           </View>
 
           <Keypad
@@ -1798,10 +1762,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           )}
 
           {buttonColorVariant === 'monochrome' ? (
-            <DSButton
-              variant={ButtonVariant.Primary}
-              size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={placeOrderLabel}
               onPress={() => handlePlaceOrder()}
               isDisabled={
                 !orderValidation.isValid ||
@@ -1812,11 +1777,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              loading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </DSButton>
+            />
           ) : (
             <ButtonSemantic
               severity={

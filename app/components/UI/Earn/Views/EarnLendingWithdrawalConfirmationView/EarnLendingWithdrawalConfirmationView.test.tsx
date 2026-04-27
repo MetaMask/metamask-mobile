@@ -36,6 +36,13 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
 import { RootState } from '../../../../../reducers';
 
+expect.addSnapshotSerializer({
+  // any is the expected type for the val parameter
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  test: (val: any) => val && val?.type === 'Image',
+  print: () => `<Image />`,
+});
+
 const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
 
 const mockGoBack = jest.fn();
@@ -213,8 +220,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('renders withdrawal confirmation with correct navbar title and cancel button', () => {
-    const { getByTestId } = renderWithProvider(
+  it('matches snapshot', () => {
+    const { toJSON } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {
         state: mockInitialState,
@@ -247,9 +254,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    expect(
-      getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1
@@ -273,7 +278,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    expect(getByText(strings('stake.advanced_details'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.advanced_details'))).toBeTruthy();
   });
 
   it('navigates back when cancel button is pressed', async () => {
@@ -1048,7 +1053,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         },
       );
 
-      expect(getByText('Test Wallet Group')).toBeOnTheScreen();
+      expect(getByText('Test Wallet Group')).toBeTruthy();
     });
 
     it('should display account name as fallback when account group metadata is not available', () => {
@@ -1084,7 +1089,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         },
       );
 
-      expect(getByText(mockSelectedAccount.metadata.name)).toBeOnTheScreen();
+      expect(getByText(mockSelectedAccount.metadata.name)).toBeTruthy();
     });
   });
 

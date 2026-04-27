@@ -4,10 +4,7 @@ import type { CardControllerMessenger } from './types';
 import { BaanxService } from './services/BaanxService';
 import { BaanxProvider } from './providers/BaanxProvider';
 import { resolveBaanxConfig } from './services/baanx-config';
-import {
-  resolveCardFeatureFlag,
-  type CardFeatureFlag,
-} from '../../../../selectors/featureFlagController/card';
+import type { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 
 /**
  * Initialize the CardController.
@@ -21,21 +18,17 @@ export const cardControllerInit: MessengerClientInitFunction<
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
 
-  const getCardFeatureFlag = () => {
-    const featureState = controllerMessenger.call(
-      'RemoteFeatureFlagController:getState',
-    );
-    return resolveCardFeatureFlag(
-      featureState.remoteFeatureFlags?.cardFeature as
-        | CardFeatureFlag
-        | undefined,
-    );
-  };
+  const featureState = controllerMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+  const cardFeatureFlag = featureState.remoteFeatureFlags?.cardFeature as
+    | CardFeatureFlag
+    | undefined;
 
   const baanxConfig = resolveBaanxConfig();
   const baanxProvider = new BaanxProvider({
     service: new BaanxService(baanxConfig),
-    getCardFeatureFlag,
+    cardFeatureFlag,
   });
 
   const controller = new CardController({

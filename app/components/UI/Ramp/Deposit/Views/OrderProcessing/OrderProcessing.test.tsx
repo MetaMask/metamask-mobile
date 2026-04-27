@@ -43,7 +43,6 @@ jest.mock('react-native', () => {
 
 jest.mock('../../../../../../reducers/fiatOrders', () => ({
   getOrderById: jest.fn(),
-  getDetectedGeolocation: jest.fn(),
 }));
 
 jest.mock('../../sdk', () => ({

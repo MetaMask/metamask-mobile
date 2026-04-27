@@ -91,20 +91,15 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       } else if (shouldNavigateBack && didNavigateBackRef.current) {
         Logger.log('[BottomSheet] navigation.goBack skipped (duplicate close)');
       }
-      const callbackBeforeOnClose = postCallback.current;
-      const hasCallbackBeforeOnClose = !!callbackBeforeOnClose;
+      const callback = postCallback.current;
+      const hasCallback = !!callback;
 
-      onClose?.(hasCallbackBeforeOnClose);
+      onClose?.(hasCallback);
 
-      // Overlay / hardware-back call `onCloseDialog` directly (no prior
-      // `onCloseBottomSheet`), so `postCallback` may only be set inside `onClose`
-      // (e.g. Perps handleClose → onCloseBottomSheet). Re-read after `onClose`.
-      const finalCallback =
-        postCallback.current ?? callbackBeforeOnClose ?? undefined;
-      if (!didRunPostCallbackRef.current && finalCallback) {
+      if (!didRunPostCallbackRef.current && hasCallback) {
         didRunPostCallbackRef.current = true;
         postCallback.current = undefined;
-        finalCallback();
+        callback?.();
       }
     }, [navigation, onClose, shouldNavigateBack]);
 

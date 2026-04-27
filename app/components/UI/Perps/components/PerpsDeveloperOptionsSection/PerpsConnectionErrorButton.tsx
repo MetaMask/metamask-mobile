@@ -1,9 +1,9 @@
 import React from 'react';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 
@@ -19,12 +19,11 @@ export const PerpsConnectionErrorButton = () => {
 
   return (
     <Button
-      variant={ButtonVariant.Secondary}
+      variant={ButtonVariants.Secondary}
       size={ButtonSize.Md}
-      isFullWidth
+      width={ButtonWidthTypes.Full}
+      label={strings('perps.developer_options.simulate_connection_error')}
       onPress={handleSimulateError}
-    >
-      {strings('perps.developer_options.simulate_connection_error')}
-    </Button>
+    />
   );
 };

@@ -14,7 +14,6 @@ import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
 import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
-import { MissingPriceModal } from './components/MissingPriceModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -83,10 +82,6 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL}
       component={PriceImpactModal}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL}
-      component={MissingPriceModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}

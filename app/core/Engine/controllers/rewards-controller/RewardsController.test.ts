@@ -15967,7 +15967,7 @@ describe('RewardsController', () => {
           controller.metadata,
           'includeInDebugSnapshot',
         ),
-      ).toEqual({});
+      ).toMatchSnapshot();
     });
   });
 
@@ -15978,54 +15978,13 @@ describe('RewardsController', () => {
         controller.metadata,
         'includeInStateLogs',
       ),
-    ).toEqual({
-      accounts: {},
-      activeAccount: null,
-      activeBoosts: {},
-      campaignParticipantStatus: {},
-      campaigns: {},
-      offDeviceSubscriptionAccounts: {},
-      ondoCampaignActivity: {},
-      ondoCampaignDeposits: {},
-      ondoCampaignLeaderboard: {},
-      ondoCampaignLeaderboardPositions: {},
-      ondoCampaignPortfolio: {},
-      pointsEstimateHistory: [],
-      pointsEvents: {},
-      seasonStatuses: {},
-      seasons: {},
-      subscriptionBenefits: {},
-      subscriptionReferralDetails: {},
-      subscriptions: {},
-      unlockedRewards: {},
-    });
+    ).toMatchSnapshot();
   });
 
   it('persists expected state', () => {
     expect(
       deriveStateFromMetadata(controller.state, controller.metadata, 'persist'),
-    ).toEqual({
-      accounts: {},
-      activeAccount: null,
-      activeBoosts: {},
-      campaignParticipantStatus: {},
-      campaigns: {},
-      offDeviceSubscriptionAccounts: {},
-      ondoCampaignActivity: {},
-      ondoCampaignDeposits: {},
-      ondoCampaignLeaderboard: {},
-      ondoCampaignLeaderboardPositions: {},
-      ondoCampaignPortfolio: {},
-      pointsEstimateHistory: [],
-      pointsEvents: {},
-      rewardsEnvUrl: null,
-      seasonStatuses: {},
-      seasons: {},
-      subscriptionBenefits: {},
-      subscriptionReferralDetails: {},
-      subscriptions: {},
-      unlockedRewards: {},
-    });
+    ).toMatchSnapshot();
   });
 
   it('exposes expected state to UI', () => {
@@ -16035,27 +15994,7 @@ describe('RewardsController', () => {
         controller.metadata,
         'usedInUi',
       ),
-    ).toEqual({
-      accounts: {},
-      activeAccount: null,
-      activeBoosts: {},
-      campaignParticipantStatus: {},
-      campaigns: {},
-      offDeviceSubscriptionAccounts: {},
-      ondoCampaignActivity: {},
-      ondoCampaignDeposits: {},
-      ondoCampaignLeaderboard: {},
-      ondoCampaignLeaderboardPositions: {},
-      ondoCampaignPortfolio: {},
-      pointsEvents: {},
-      rewardsEnvUrl: null,
-      seasonStatuses: {},
-      seasons: {},
-      subscriptionBenefits: {},
-      subscriptionReferralDetails: {},
-      subscriptions: {},
-      unlockedRewards: {},
-    });
+    ).toMatchSnapshot();
   });
 
   describe('#signRewardsMessage', () => {

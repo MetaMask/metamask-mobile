@@ -24,14 +24,16 @@ describe('UnstakingTimeCard', () => {
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
-  it('renders unstaking time title and estimated duration', () => {
-    const { getByText } = renderWithProvider(<UnstakingTimeCard />);
+  it('render matches snapshot', () => {
+    const { toJSON, getByText } = renderWithProvider(<UnstakingTimeCard />);
 
     const estimatedUnstakingTime = strings('stake.estimated_unstaking_time');
 
     expect(
       getByText(strings('tooltip_modal.unstaking_time.title')),
-    ).toBeOnTheScreen();
-    expect(getByText(estimatedUnstakingTime)).toBeOnTheScreen(); // 1 to 44 days
+    ).toBeDefined();
+    expect(getByText(estimatedUnstakingTime)).toBeDefined(); // 1 to 44 days
+
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -110,10 +110,9 @@ describe('AddressList', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', async () => {
-    const { findByText } = renderComponent(initialState);
-    expect(await findByText(textElements.yourAccounts)).toBeOnTheScreen();
-    expect(await findByText(textElements.contacts)).toBeOnTheScreen();
+  it('renders correctly', () => {
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders both my accounts and address book when onlyRenderAddressBook is false', async () => {

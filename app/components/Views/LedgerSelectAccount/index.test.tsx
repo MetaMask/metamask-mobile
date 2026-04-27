@@ -163,7 +163,6 @@ const defaultHardwareWalletValues = {
   },
   ensureDeviceReady: mockEnsureDeviceReady,
   setTargetWalletType: mockSetTargetWalletType,
-  setPendingOperationAddress: jest.fn(),
   showHardwareWalletError: mockShowHardwareWalletError,
   showAwaitingConfirmation: mockShowAwaitingConfirmation,
   hideAwaitingConfirmation: mockHideAwaitingConfirmation,

@@ -5,8 +5,8 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import BottomModal from '.';
 
 describe('BottomModal', () => {
-  it('renders children', () => {
-    const { getByText } = renderWithProvider(
+  it('should match snapshot', async () => {
+    const container = renderWithProvider(
       <BottomModal>
         <View>
           <Text>DUMMY</Text>
@@ -14,6 +14,6 @@ describe('BottomModal', () => {
       </BottomModal>,
       { state: {} },
     );
-    expect(getByText('DUMMY')).toBeOnTheScreen();
+    expect(container).toMatchSnapshot();
   });
 });

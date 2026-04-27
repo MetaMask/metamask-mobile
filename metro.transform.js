@@ -16,7 +16,8 @@ const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
 // All available features that can be used in code fences
 const availableFeatures = new Set([
   'flask',
-  'snaps',
+  'preinstalled-snaps',
+  'external-snaps',
   'beta',
   'keyring-snaps',
   'multi-srp',
@@ -29,7 +30,7 @@ const availableFeatures = new Set([
 
 // Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. Bitrise / local)
 const mainFeatureSet = new Set([
-  'snaps',
+  'preinstalled-snaps',
   'keyring-snaps',
   'multi-srp',
   'solana',
@@ -38,7 +39,7 @@ const mainFeatureSet = new Set([
 ]);
 const betaFeatureSet = new Set([
   'beta',
-  'snaps',
+  'preinstalled-snaps',
   'keyring-snaps',
   'multi-srp',
   'solana',
@@ -47,7 +48,8 @@ const betaFeatureSet = new Set([
 ]);
 const flaskFeatureSet = new Set([
   'flask',
-  'snaps',
+  'preinstalled-snaps',
+  'external-snaps',
   'keyring-snaps',
   'multi-srp',
   'bitcoin',

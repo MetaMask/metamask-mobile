@@ -49,7 +49,7 @@ describe('Main', () => {
     jest.resetAllMocks();
   });
 
-  it('renders without crashing', () => {
+  it('should render correctly', () => {
     const MainAppContainer = () => (
       <Provider store={mockStore(mockInitialState)}>
         <NavigationContainer>
@@ -58,12 +58,10 @@ describe('Main', () => {
       </Provider>
     );
     const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper.find(Provider)).toHaveLength(1);
-    expect(wrapper.find(NavigationContainer)).toHaveLength(1);
-    expect(wrapper.find(Main)).toHaveLength(1);
+    expect(wrapper).toMatchSnapshot();
   });
 
-  it('renders without crashing when isConnectionRemoved is true', () => {
+  it('should render correctly with isConnectionRemoved true', () => {
     const mockInitialStateWithConnectionRemoved = {
       user: {
         isConnectionRemoved: true,
@@ -78,8 +76,6 @@ describe('Main', () => {
       </Provider>
     );
     const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper.find(Provider)).toHaveLength(1);
-    expect(wrapper.find(NavigationContainer)).toHaveLength(1);
-    expect(wrapper.find(Main)).toHaveLength(1);
+    expect(wrapper).toMatchSnapshot();
   });
 });

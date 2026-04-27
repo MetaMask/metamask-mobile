@@ -13,6 +13,4 @@ export const NotificationPreferencesViewSelectorsIDs = {
     `notification-preferences-view-trader-toggle-${traderId}`,
   TRADER_ROW: (traderId: string) =>
     `notification-preferences-view-trader-row-${traderId}`,
-  TRADER_PRESS: (traderId: string) =>
-    `notification-preferences-view-trader-press-${traderId}`,
 };

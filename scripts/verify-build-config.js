@@ -84,7 +84,7 @@ const SECRETS_TO_VERIFY = [
 // Expected code fencing features per build type
 const EXPECTED_CODE_FENCING = {
   main: [
-    'snaps',
+    'preinstalled-snaps',
     'keyring-snaps',
     'multi-srp',
     'solana',
@@ -93,7 +93,8 @@ const EXPECTED_CODE_FENCING = {
   ],
   flask: [
     'flask',
-    'snaps',
+    'preinstalled-snaps',
+    'external-snaps',
     'keyring-snaps',
     'multi-srp',
     'solana',
