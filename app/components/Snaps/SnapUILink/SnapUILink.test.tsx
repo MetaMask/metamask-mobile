@@ -76,15 +76,14 @@ describe('SnapUILink', () => {
   });
 
   it('handles array children correctly', () => {
-    const { getByTestId } = render(
+    const { toJSON } = render(
       <SnapUILink href="https://metamask.io">
         {'Part 1 '}
         {'Part 2'}
       </SnapUILink>,
     );
 
-    const link = getByTestId('snaps-ui-link');
-    const textContent = link.props.children[0].toString();
+    const textContent = JSON.stringify(toJSON());
     expect(textContent).toContain('Part 1');
     expect(textContent).toContain('Part 2');
   });

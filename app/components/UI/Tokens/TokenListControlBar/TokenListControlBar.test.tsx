@@ -320,4 +320,26 @@ describe('TokenListControlBar', () => {
       expect(addTokenButton).toBeEnabled();
     });
   });
+
+  describe('showAddToken and hideSort (Cash view)', () => {
+    it('does not render add token button when showAddToken is false', () => {
+      const { queryByTestId } = renderComponent({
+        ...defaultProps,
+        showAddToken: false,
+      });
+
+      expect(queryByTestId('import-token-button')).toBeNull();
+    });
+
+    it('renders network filter when showAddToken is false', () => {
+      const { getByTestId } = renderComponent({
+        ...defaultProps,
+        showAddToken: false,
+      });
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER),
+      ).toBeOnTheScreen();
+    });
+  });
 });
