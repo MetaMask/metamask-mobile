@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
 
