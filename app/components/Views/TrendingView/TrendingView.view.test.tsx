@@ -194,7 +194,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     const { getAllByText } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
-      ['Now', 'Macro', 'RWAs', 'Crypto', 'Sports', 'Dapps'].forEach((label) => {
+      ['Now', 'Macro', 'RWAs', 'Crypto', 'Sports', 'Sites'].forEach((label) => {
         const elements = getAllByText(label);
         expect(elements.length).toBeGreaterThan(0);
         expect(elements[0]).toBeOnTheScreen();
