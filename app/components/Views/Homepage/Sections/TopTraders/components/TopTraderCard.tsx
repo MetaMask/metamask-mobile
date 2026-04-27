@@ -132,7 +132,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       {/* Follow / Following button pinned to bottom */}
       <Button
         variant={
-          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
         size={ButtonSize.Sm}
         twClassName="self-center"

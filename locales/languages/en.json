@@ -1044,7 +1044,8 @@
       "open": "Open",
       "closed": "Closed",
       "no_positions": "No positions yet",
-      "error_loading_profile": "Couldn't load profile"
+      "error_loading_profile": "Couldn't load profile",
+      "twitter_link": "View on X (Twitter)"
     },
     "trader_position": {
       "market_cap": "Market cap",

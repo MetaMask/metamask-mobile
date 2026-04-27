@@ -178,6 +178,7 @@ const TraderProfileView = () => {
               <ProfileHeader
                 profile={profile.profile}
                 followerCount={profile.followerCount}
+                twitterHandle={profile.socialHandles?.twitter}
               />
             )}
 
@@ -196,8 +197,8 @@ const TraderProfileView = () => {
                   <Button
                     variant={
                       isFollowing
-                        ? ButtonVariant.Primary
-                        : ButtonVariant.Secondary
+                        ? ButtonVariant.Secondary
+                        : ButtonVariant.Primary
                     }
                     isFullWidth
                     onPress={toggleFollow}

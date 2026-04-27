@@ -1,9 +1,18 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { Linking } from 'react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ProfileHeader from './ProfileHeader';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 import type { TraderProfile } from '@metamask/social-controllers';
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
+}));
 
 const baseProfile: TraderProfile = {
   profileId: 'trader-1',
@@ -92,5 +101,63 @@ describe('ProfileHeader', () => {
     );
 
     expect(screen.getByText('D')).toBeOnTheScreen();
+  });
+
+  describe('X (Twitter) icon', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('renders the X icon link when twitterHandle is provided', () => {
+      renderWithProvider(
+        <ProfileHeader
+          profile={baseProfile}
+          followerCount={45}
+          twitterHandle="dutchiono"
+        />,
+      );
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TWITTER_LINK),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the X icon link when twitterHandle is null', () => {
+      renderWithProvider(
+        <ProfileHeader
+          profile={baseProfile}
+          followerCount={45}
+          twitterHandle={null}
+        />,
+      );
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.TWITTER_LINK),
+      ).toBeNull();
+    });
+
+    it('does not render the X icon link when twitterHandle is undefined', () => {
+      renderWithProvider(
+        <ProfileHeader profile={baseProfile} followerCount={45} />,
+      );
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.TWITTER_LINK),
+      ).toBeNull();
+    });
+
+    it('calls Linking.openURL with the correct X URL when the icon is pressed', () => {
+      renderWithProvider(
+        <ProfileHeader
+          profile={baseProfile}
+          followerCount={45}
+          twitterHandle="dutchiono"
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TWITTER_LINK),
+      );
+
+      expect(Linking.openURL).toHaveBeenCalledTimes(1);
+      expect(Linking.openURL).toHaveBeenCalledWith('https://x.com/dutchiono');
+    });
   });
 });
