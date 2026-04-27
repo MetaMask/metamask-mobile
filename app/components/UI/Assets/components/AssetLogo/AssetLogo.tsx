@@ -26,13 +26,12 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
   }
 
   return (
-    <Box testID="token-avatar-image">
-      <AvatarToken
-        name={asset.symbol}
-        src={{ uri: asset.image }}
-        size={AvatarTokenSize.Lg}
-      />
-    </Box>
+    <AvatarToken
+      name={asset.symbol}
+      src={{ uri: asset.image }}
+      size={AvatarTokenSize.Lg}
+      testID="token-avatar-image"
+    />
   );
 };
 
