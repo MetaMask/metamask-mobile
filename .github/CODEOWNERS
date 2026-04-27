@@ -43,6 +43,10 @@ app/core/Engine/README.md                                   @MetaMask/mobile-pla
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
 app/core/DeeplinkManager                                    @MetaMask/mobile-platform
+# Deprecated BN.js helpers. Gated to discourage adding new exports; consumers
+# should migrate to app/util/number/bigint. See .eslintrc.js for the import
+# fence and bigint-migration-reference.test.ts for migration patterns.
+app/util/number/index.js                                    @MetaMask/mobile-platform
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
