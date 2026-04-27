@@ -18594,7 +18594,7 @@ describe('RewardsController', () => {
       };
 
       const accountState3: RewardsAccountState = {
-        account: CAIP_ACCOUNT_3,
+        account: cacheCheckCaipAccount3,
         hasOptedIn: true,
         subscriptionId: 'sub-3',
         perpsFeeDiscount: 1000,
@@ -18607,13 +18607,23 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [CAIP_ACCOUNT_1]: accountState1,
-            [CAIP_ACCOUNT_2]: accountState2,
-            [CAIP_ACCOUNT_3]: accountState3,
+            [cacheCheckCaipAccount1]: accountState1,
+            [cacheCheckCaipAccount2]: accountState2,
+            [cacheCheckCaipAccount3]: accountState3,
           },
           subscriptions: {},
         },
       });
+
+      // Re-apply spy on the newly created controller instance
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === ADDRESS_1) return cacheCheckCaipAccount1;
+          if (account.address === ADDRESS_2) return cacheCheckCaipAccount2;
+          if (account.address === ADDRESS_3) return cacheCheckCaipAccount3;
+          return null;
+        });
 
       // Act
       const result = controller.checkOptInStatusAgainstCache(
