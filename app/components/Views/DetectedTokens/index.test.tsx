@@ -112,10 +112,10 @@ describe('DetectedTokens Component', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('2 new tokens found')).toBeTruthy();
-    expect(getByText('0 TKN1')).toBeTruthy();
-    expect(getByText('0 TKN2')).toBeTruthy();
-    expect(getByText('Import (2)')).toBeTruthy();
+    expect(getByText('2 new tokens found')).toBeOnTheScreen();
+    expect(getByText('0 TKN1')).toBeOnTheScreen();
+    expect(getByText('0 TKN2')).toBeOnTheScreen();
+    expect(getByText('Import (2)')).toBeOnTheScreen();
   });
 
   it('renders zero-token state with disabled import button', () => {
@@ -133,8 +133,8 @@ describe('DetectedTokens Component', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('0 new token found')).toBeTruthy();
-    expect(getByText('Import (0)')).toBeTruthy();
+    expect(getByText('0 new token found')).toBeOnTheScreen();
+    expect(getByText('Import (0)')).toBeOnTheScreen();
     expect(
       getByTestId(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID).props.disabled,
     ).toBe(true);
