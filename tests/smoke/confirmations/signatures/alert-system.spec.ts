@@ -72,7 +72,9 @@ describe(SmokeConfirmations('Alert System - Signature'), () => {
   };
 
   describe('Security Alert API', () => {
-    it('should sign typed message', async () => {
+    // Moved to cv tests (alert-system-typed-sign-blockaid.view.test.tsx)
+    // eslint-disable-next-line jest/no-disabled-tests -- covered by component view tests
+    it.skip('should sign typed message', async () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
@@ -104,7 +106,9 @@ describe(SmokeConfirmations('Alert System - Signature'), () => {
       });
     });
 
-    it('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
+    // Moved to cv tests (alert-system-typed-sign-blockaid.view.test.tsx)
+    // eslint-disable-next-line jest/no-disabled-tests -- covered by component view tests
+    it.skip('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
