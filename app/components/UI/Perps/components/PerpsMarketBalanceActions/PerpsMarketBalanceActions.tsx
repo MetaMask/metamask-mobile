@@ -84,17 +84,17 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
-  // "Empty" gates on spendableBalance — the mode-aware usable collateral.
-  // A Standard-mode account with spot USDC but no perps collateral has
-  // totalBalance > 0 yet spendableBalance = 0; show the Add Funds CTA
-  // so the user isn't stranded on a $0 trade/withdraw surface.
+  const spendableBalance = perpsAccount?.spendableBalance || '0';
+  // "Empty" gates on totalBalance — venue equity. Accounts with all collateral
+  // tied up in open positions have spendableBalance = 0 but totalBalance > 0;
+  // they are funded users who should see the normal balance + Withdraw/Add Funds
+  // surface, not the $0 empty state.
   //
-  // During loading, spendableBalance may carry a sentinel string
+  // During loading, totalBalance may carry a sentinel string
   // (PERPS_CONSTANTS.FallbackDataDisplay = '--'). Treat non-finite parses
   // as empty so skeleton / empty-state renders until real data lands.
-  const spendableBalance = perpsAccount?.spendableBalance || '0';
-  const spendableBn = BigNumber(spendableBalance);
-  const isBalanceEmpty = !spendableBn.isFinite() || spendableBn.isZero();
+  const totalBn = BigNumber(totalBalance);
+  const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
 
   // Use hook for eligibility checks and action handlers
   // Determine button location based on whether balance is empty (empty state) or not (home)

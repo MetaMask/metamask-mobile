@@ -621,6 +621,41 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('Edge Cases', () => {
+    it('shows funded UI when spendableBalance is 0 but totalBalance > 0 (collateral locked in open positions)', () => {
+      // Arrange — account with all equity in margin: spendable=0, total>0
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '125.00',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+          marginUsed: '125.00',
+        },
+        isInitialLoading: false,
+        isLoading: false,
+        error: null,
+      });
+
+      // Act
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      // Assert — funded UI: real totalBalance + Withdraw + Add Funds (no $0 empty state)
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
+      ).toBeOnTheScreen();
+      expect(getByText('$125.00')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
     it('shows empty state when balance is zero', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
