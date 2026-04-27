@@ -15967,7 +15967,7 @@ describe('RewardsController', () => {
           controller.metadata,
           'includeInDebugSnapshot',
         ),
-      ).toMatchSnapshot();
+      ).toEqual({});
     });
   });
 
@@ -15978,13 +15978,54 @@ describe('RewardsController', () => {
         controller.metadata,
         'includeInStateLogs',
       ),
-    ).toMatchSnapshot();
+    ).toEqual({
+      accounts: {},
+      activeAccount: null,
+      activeBoosts: {},
+      campaignParticipantStatus: {},
+      campaigns: {},
+      offDeviceSubscriptionAccounts: {},
+      ondoCampaignActivity: {},
+      ondoCampaignDeposits: {},
+      ondoCampaignLeaderboard: {},
+      ondoCampaignLeaderboardPositions: {},
+      ondoCampaignPortfolio: {},
+      pointsEstimateHistory: [],
+      pointsEvents: {},
+      seasonStatuses: {},
+      seasons: {},
+      subscriptionBenefits: {},
+      subscriptionReferralDetails: {},
+      subscriptions: {},
+      unlockedRewards: {},
+    });
   });
 
   it('persists expected state', () => {
     expect(
       deriveStateFromMetadata(controller.state, controller.metadata, 'persist'),
-    ).toMatchSnapshot();
+    ).toEqual({
+      accounts: {},
+      activeAccount: null,
+      activeBoosts: {},
+      campaignParticipantStatus: {},
+      campaigns: {},
+      offDeviceSubscriptionAccounts: {},
+      ondoCampaignActivity: {},
+      ondoCampaignDeposits: {},
+      ondoCampaignLeaderboard: {},
+      ondoCampaignLeaderboardPositions: {},
+      ondoCampaignPortfolio: {},
+      pointsEstimateHistory: [],
+      pointsEvents: {},
+      rewardsEnvUrl: null,
+      seasonStatuses: {},
+      seasons: {},
+      subscriptionBenefits: {},
+      subscriptionReferralDetails: {},
+      subscriptions: {},
+      unlockedRewards: {},
+    });
   });
 
   it('exposes expected state to UI', () => {
@@ -15994,7 +16035,27 @@ describe('RewardsController', () => {
         controller.metadata,
         'usedInUi',
       ),
-    ).toMatchSnapshot();
+    ).toEqual({
+      accounts: {},
+      activeAccount: null,
+      activeBoosts: {},
+      campaignParticipantStatus: {},
+      campaigns: {},
+      offDeviceSubscriptionAccounts: {},
+      ondoCampaignActivity: {},
+      ondoCampaignDeposits: {},
+      ondoCampaignLeaderboard: {},
+      ondoCampaignLeaderboardPositions: {},
+      ondoCampaignPortfolio: {},
+      pointsEvents: {},
+      rewardsEnvUrl: null,
+      seasonStatuses: {},
+      seasons: {},
+      subscriptionBenefits: {},
+      subscriptionReferralDetails: {},
+      subscriptions: {},
+      unlockedRewards: {},
+    });
   });
 
   describe('#signRewardsMessage', () => {
@@ -19644,94 +19705,6 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('getOndoCampaignWinnerCode', () => {
-    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
-    const mockCampaignId = 'campaign-ondo-winner';
-    const mockSubscriptionId = 'sub-winner-1';
-
-    beforeEach(() => {
-      mockMessenger = {
-        subscribe: jest.fn(),
-        call: jest.fn(),
-        registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
-        unregisterActionHandler: jest.fn(),
-        publish: jest.fn(),
-        clearEventSubscriptions: jest.fn(),
-        registerInitialEventPayload: jest.fn(),
-        unsubscribe: jest.fn(),
-      } as unknown as jest.Mocked<RewardsControllerMessenger>;
-    });
-
-    it('returns null when rewards feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      const result = await disabledController.getOndoCampaignWinnerCode(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
-    it('fetches winner code from API and returns the value', async () => {
-      const ctrl = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      mockMessenger.call.mockResolvedValue('WINNER-CODE-ABC');
-
-      const result = await ctrl.getOndoCampaignWinnerCode(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getOndoCampaignWinnerCode',
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-      expect(result).toBe('WINNER-CODE-ABC');
-    });
-
-    it('propagates errors from the data service', async () => {
-      const ctrl = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      mockMessenger.call.mockRejectedValue(
-        new Error('Get winner code failed: 500'),
-      );
-
-      await expect(
-        ctrl.getOndoCampaignWinnerCode(mockCampaignId, mockSubscriptionId),
-      ).rejects.toThrow('Get winner code failed: 500');
-    });
-
-    it('logs when fetching winner code', async () => {
-      const ctrl = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      mockMessenger.call.mockResolvedValue('');
-      mockLogger.log.mockClear();
-
-      await ctrl.getOndoCampaignWinnerCode(mockCampaignId, mockSubscriptionId);
-
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching Ondo campaign winner code',
-      );
-    });
-  });
-
   describe('getOndoCampaignPortfolioPosition', () => {
     let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-ondo-portfolio';
@@ -20166,6 +20139,160 @@ describe('RewardsController', () => {
 
       expect(result).toEqual(mockDeposits);
       expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getOndoCampaignParticipantOutcome', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-outcome-123';
+    const mockSubscriptionId = 'sub-outcome-1';
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'finalized' as const,
+      winnerVerificationCode: 'WINNER-XYZ',
+      tierRank: 1,
+      tier: 'gold',
+    };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns null when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches outcome from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockOutcome);
+
+      const result = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignParticipantOutcome',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockOutcome);
+    });
+
+    it('returns cached outcome on second call within TTL', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockOutcome);
+
+      await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      mockMessenger.call.mockClear();
+
+      const result = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockOutcome);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null when API returns null and does not cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+
+      // A second call must re-fetch because null is not cached
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockResolvedValue(mockOutcome);
+      const second = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(second).toEqual(mockOutcome);
+    });
+
+    it('returns null and logs on API error', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('API error'));
+      mockLogger.log.mockClear();
+
+      const result = await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get Ondo campaign participant outcome:',
+        'API error',
+      );
+    });
+
+    it('logs when fetching fresh outcome', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockOutcome);
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching Ondo campaign participant outcome',
+      );
     });
   });
 });

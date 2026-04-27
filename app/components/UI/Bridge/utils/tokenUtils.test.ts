@@ -3,8 +3,8 @@ import {
   getNativeSourceToken,
   getDefaultDestToken,
   tokenMatchesQuery,
-  getSecurityWarnings,
 } from './tokenUtils';
+import { getSecurityWarnings } from './tokenSecurityUtils';
 import { BridgeToken } from '../types';
 import {
   getNativeAssetForChainId,
