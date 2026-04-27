@@ -228,9 +228,12 @@ function HeadlessHost() {
 
     const { quote, amount, assetId, currency, paymentMethodId } =
       currentSession.params;
-    // Resolve the catalog id for the quote's payment method when the
-    // caller didn't pin one explicitly. The native (Transak) path needs
-    // a catalog id to look up `selectedPaymentMethod.isManualBankTransfer`.
+    // Caller override wins. Otherwise `find` is a membership check on the
+    // loaded catalog, not a remap: when it matches, `?.id` equals
+    // `quote.quote.paymentMethod`; when the quote id is absent from
+    // `paymentMethods` (stale quote, filters, load race), we omit
+    // `ctx.paymentMethodId` instead of forwarding an unverified id, and
+    // `useContinueWithQuote` falls back to controller-selected payment method.
     const resolvedPaymentMethodId =
       paymentMethodId ??
       paymentMethods?.find((pm) => pm.id === quote.quote.paymentMethod)?.id;
