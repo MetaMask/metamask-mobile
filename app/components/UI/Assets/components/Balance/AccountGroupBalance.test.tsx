@@ -224,6 +224,7 @@ describe('AccountGroupBalance', () => {
     // Trigger re-render with new balance
     rerender(<AccountGroupBalance />);
 
+    // Balance should display immediately without waiting for timeout
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
       includeHiddenElements: true,
     });
@@ -285,6 +286,7 @@ describe('AccountGroupBalance', () => {
     // Trigger re-render
     rerender(<AccountGroupBalance />);
 
+    // Should show balance immediately after update (hasChanged condition)
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
         includeHiddenElements: true,
