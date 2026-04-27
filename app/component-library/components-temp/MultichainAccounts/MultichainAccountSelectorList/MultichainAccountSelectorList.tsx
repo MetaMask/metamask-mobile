@@ -9,10 +9,8 @@ import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
-import {
-  AccountGroupObject,
-  AccountWalletId,
-} from '@metamask/account-tree-controller';
+import { AccountWalletId } from '@metamask/account-api';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
