@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perps Position Liquidation — open long ETH, verify position exists",
+  "schema_version": 1,
   "description": "Mirrors smoke/perps/perps-position-liquidation.spec.ts. Opens a long ETH position and verifies it exists. Detox spec pushes price to trigger liquidation via commandQueueServer; recipe validates position open (liquidation trigger requires E2E mock infrastructure for price manipulation).",
   "validate": {
     "workflow": {
@@ -50,6 +51,7 @@
         "screenshot-position": {
           "action": "screenshot",
           "filename": "evidence-position-open-for-liquidation.png",
+          "note": "ETH long position open on PerpsMarketDetails with close button visible — liquidation precondition (price-trigger requires E2E mock)",
           "next": "cleanup"
         },
         "cleanup": {

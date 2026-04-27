@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perps No Funds Tutorial — walk through onboarding tutorial",
+  "schema_version": 1,
   "description": "Mirrors smoke/perps/perps-no-funds-tutorial.spec.ts. Resets first-time-user state and navigates to Perps. If tutorial shows, walks through 6 continue steps. If user already onboarded (funded account), verifies market list is visible. Teardown marks tutorial completed and navigates to PerpsHome for clean state.",
   "validate": {
     "workflow": {
@@ -92,11 +93,13 @@
         "screenshot-tutorial-complete": {
           "action": "screenshot",
           "filename": "evidence-tutorial-complete.png",
+          "note": "Onboarding tutorial completed — final continue button dismissed and market list ready",
           "next": "verify-market-view"
         },
         "screenshot-already-onboarded": {
           "action": "screenshot",
           "filename": "evidence-already-onboarded.png",
+          "note": "Already-onboarded path — tutorial skipped, market list visible directly",
           "next": "verify-market-view"
         },
         "verify-market-view": {

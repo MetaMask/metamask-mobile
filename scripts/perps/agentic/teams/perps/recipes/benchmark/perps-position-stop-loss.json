@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perps Position Stop Loss — open long ETH with SL, verify SL set",
+  "schema_version": 1,
   "description": "Mirrors smoke/perps/perps-position-stop-loss.spec.ts. Opens a long ETH position, sets a stop loss via tpsl-create flow. Detox spec uses custom SL price (2300) and pushes price to trigger; recipe uses SL preset and verifies SL is set (price trigger requires E2E mock).",
   "validate": {
     "workflow": {
@@ -49,6 +50,7 @@
         "screenshot-sl-set": {
           "action": "screenshot",
           "filename": "evidence-stop-loss-set.png",
+          "note": "ETH long position with stopLossPrice attached via tpsl-create — SL trigger live (price-based liquidation requires E2E mock)",
           "next": "cleanup"
         },
         "cleanup": {

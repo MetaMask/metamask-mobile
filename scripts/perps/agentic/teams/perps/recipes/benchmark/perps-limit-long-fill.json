@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perps Limit Long Fill — limit long ETH at Mid, verify order and fill",
+  "schema_version": 1,
   "description": "Mirrors smoke/perps/perps-limit-long-fill.spec.ts. Creates an ETH limit long at mid price via controller API, verifies the order appears, then waits for fill. Uses order-limit-place-controller flow (bypasses UI deposit path broken in dev mode).",
   "validate": {
     "workflow": {
@@ -35,6 +36,7 @@
         "screenshot-order": {
           "action": "screenshot",
           "filename": "evidence-limit-order-placed.png",
+          "note": "ETH limit long order placed at mid price — order present in PerpsController.getOpenOrders pre-fill",
           "next": "verify-order-or-fill"
         },
         "verify-order-or-fill": {
@@ -58,6 +60,7 @@
         "screenshot-filled": {
           "action": "screenshot",
           "filename": "evidence-limit-order-filled.png",
+          "note": "ETH limit order filled — position now in PerpsController.getPositions, order removed from open orders",
           "next": "cleanup"
         },
         "cleanup": {

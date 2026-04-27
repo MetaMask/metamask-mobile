@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perps Add Funds — navigate to deposit screen and enter amount",
+  "schema_version": 1,
   "description": "Mirrors smoke/perps/perps-add-funds.spec.ts. Navigates to Perps, taps Add Funds, and enters amount via keypad. Detox spec also confirms deposit via mock server; recipe validates the UI flow up to amount entry (deposit execution requires E2E mock infrastructure).",
   "validate": {
     "workflow": {
@@ -33,6 +34,7 @@
         "screenshot-perps-home": {
           "action": "screenshot",
           "filename": "evidence-perps-home.png",
+          "note": "PerpsHomeView loaded with Add Funds CTA visible — entry point for deposit flow",
           "next": "press-add-funds"
         },
         "press-add-funds": {
@@ -59,6 +61,7 @@
         "screenshot-amount-entered": {
           "action": "screenshot",
           "filename": "evidence-deposit-amount.png",
+          "note": "Deposit screen with $80 entered via keypad — UI flow up to amount confirmation (deposit execution requires E2E mock)",
           "next": "done"
         },
         "done": {
