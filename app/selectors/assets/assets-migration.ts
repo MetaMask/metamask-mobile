@@ -94,11 +94,6 @@ export const getAccountTrackerControllerAccountsByChainId =
         }
       }
 
-      // console.log('DEBUG XXX ACCOUNTS BY CHAIN ID', {
-      //   oldState: accountsByChainId,
-      //   newState: result,
-      // });
-
       return result;
     },
   );
@@ -253,6 +248,8 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
     (state) =>
+      state.engine?.backgroundState?.AssetsController?.customAssets ?? {},
+    (state) =>
       state.engine?.backgroundState?.AccountsController?.internalAccounts
         ?.accounts ?? {},
   ],
@@ -261,6 +258,7 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
     tokenBalances: TokenBalancesControllerState['tokenBalances'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsBalance: AssetsControllerState['assetsBalance'],
+    customAssets: AssetsControllerState['customAssets'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokenBalancesControllerState['tokenBalances'] => {
     if (!isAssetsUnifyStateEnabled) {
@@ -268,7 +266,6 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
     }
 
     const result: TokenBalancesControllerState['tokenBalances'] = {};
-
     for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
       const internalAccount = internalAccountsById[accountId];
       if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
@@ -276,7 +273,7 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
       }
 
       const accountAddress = internalAccount.address as Hex;
-      result[accountAddress] = {};
+      result[accountAddress] ??= {};
 
       for (const [assetId, assetBalance] of Object.entries(chainIdBalances)) {
         const metadata = assetsInfo[assetId];
@@ -286,7 +283,6 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
 
         const assetType = parseCaipAssetType(assetId as CaipAssetType);
 
-        // No need to check if the chain is EVM, we already filtered out non-EVM accounts
         const hexChainId = decimalToPrefixedHex(
           assetType.chain.reference,
         ) as Hex;
@@ -300,6 +296,50 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
         result[accountAddress][hexChainId][assetAddress] =
           // TODO: Use raw value from state when available
           parseBalanceWithDecimals(assetBalance.amount, metadata.decimals);
+      }
+    }
+
+    // Custom EVM tokens may have metadata (assetsInfo) but no balance
+    // in assetsBalance yet (the async fetch hasn't completed).  Add a
+    // zero-balance placeholder so selectAllEvmAssets doesn't filter them out.
+    for (const [accountId, assetIds] of Object.entries(customAssets)) {
+      const internalAccount = internalAccountsById[accountId];
+      if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
+        continue;
+      }
+
+      const accountAddress = internalAccount.address as Hex;
+      result[accountAddress] ??= {};
+      const accountBalances = assetsBalance[accountId] ?? {};
+
+      for (const assetId of assetIds) {
+        if (accountBalances[assetId]) {
+          continue;
+        }
+
+        const metadata = assetsInfo[assetId];
+        if (!metadata || metadata.type === 'native') {
+          continue;
+        }
+
+        const assetType = parseCaipAssetType(assetId);
+
+        if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+          continue;
+        }
+
+        const hexChainId = decimalToPrefixedHex(
+          assetType.chain.reference,
+        ) as Hex;
+        const assetAddress = toChecksumHexAddress(
+          assetType.assetReference,
+        ) as Hex;
+
+        if (!result[accountAddress]?.[hexChainId]?.[assetAddress]) {
+          result[accountAddress][hexChainId] ??= {};
+          result[accountAddress][hexChainId][assetAddress] =
+            parseBalanceWithDecimals('0', metadata.decimals);
+        }
       }
     }
 
@@ -590,22 +630,25 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
       }
 
       const assetType = parseCaipAssetType(assetId as CaipAssetType);
-      const price = assetsPrice[assetId];
 
-      // Skip if not a native asset, not evm or no price for that asset
+      // Skip if not a native asset or not evm
       if (
         metadata.type !== 'native' ||
-        assetType.chain.namespace !== KnownCaipNamespace.Eip155 ||
-        !price
+        assetType.chain.namespace !== KnownCaipNamespace.Eip155
       ) {
+        continue;
+      }
+
+      const price = assetsPrice[assetId];
+
+      if (price?.assetPriceType !== 'fungible') {
         continue;
       }
 
       result[metadata.symbol] = {
         conversionDate: price.lastUpdated / 1000,
         conversionRate: price.price,
-        // This cannot be populated unless the selected currency is already USD
-        usdConversionRate: currentCurrency === 'usd' ? price.price : null,
+        usdConversionRate: price.usdPrice,
       };
     }
 
@@ -647,11 +690,13 @@ export const getTokenRatesControllerMarketData = createDeepEqualSelector(
       FungibleAssetPrice, // TODO: A type discriminator to AssetPrice is needed to be added to avoid this cast, but it is safe for now
     ][]) {
       const assetType = parseCaipAssetType(assetId);
+
+      if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+        continue;
+      }
+
       const metadata = assetsInfo[assetId];
-      if (
-        !metadata ||
-        assetType.chain.namespace !== KnownCaipNamespace.Eip155
-      ) {
+      if (!metadata) {
         continue;
       }
 
