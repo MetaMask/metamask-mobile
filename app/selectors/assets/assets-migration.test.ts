@@ -40,15 +40,17 @@ const solanaTokenAssetId =
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
 const nativePolygonAssetId = 'eip155:137/slip44:966';
-const bitcoinNativeAssetId = 'bip122:000000000019d6689c085ae165831e93/slip44:0';
 const mockAccountId3 = 'mock-account-id-3';
 const mockAccountAddressLowercase2: Hex =
   '0x1234567890abcdef1234567890abcdef12345678';
-const enabledFlags = {
-  remoteFeatureFlags: {
-    [ASSETS_UNIFY_STATE_FLAG]: {
-      enabled: true,
-      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+
+const enabledFeatureFlagControllerState = {
+  RemoteFeatureFlagController: {
+    remoteFeatureFlags: {
+      [ASSETS_UNIFY_STATE_FLAG]: {
+        enabled: true,
+        featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      },
     },
   },
 };
@@ -91,8 +93,12 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
         },
       };
       const state = {
-        metamask: {
-          accountsByChainId: legacyAccountsByChainId,
+        engine: {
+          backgroundState: {
+            AccountTrackerController: {
+              accountsByChainId: legacyAccountsByChainId,
+            },
+          },
         },
       };
       const result = getAccountTrackerControllerAccountsByChainId(state);
@@ -105,34 +111,35 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives accountsByChainId from new state structure', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-          accountsByChainId: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-            [erc20AssetId]: { type: 'erc20', decimals: 6 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1.23456789' },
-              [erc20AssetId]: { amount: '1' },
-            },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [erc20AssetId]: { type: 'erc20', decimals: 6 },
               },
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1.23456789' },
+                  [erc20AssetId]: { amount: '1' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -153,25 +160,31 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
   describe('edge cases when enabled', () => {
     it('handles multiple chains for the same EVM account', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          accountsByChainId: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-            [nativePolygonAssetId]: { type: 'native', decimals: 18 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1' },
-              [nativePolygonAssetId]: { amount: '2' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [nativePolygonAssetId]: { type: 'native', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [nativePolygonAssetId]: { amount: '2' },
+                },
+              },
             },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -187,23 +200,29 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
     it('handles balance with 0 decimals', () => {
       const zeroDecNativeId = 'eip155:42/slip44:60';
       const state = {
-        metamask: {
-          ...enabledFlags,
-          accountsByChainId: {},
-          assetsInfo: {
-            [zeroDecNativeId]: { type: 'native', decimals: 0 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [zeroDecNativeId]: { amount: '42' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [zeroDecNativeId]: { type: 'native', decimals: 0 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [zeroDecNativeId]: { amount: '42' },
+                },
+              },
             },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -220,24 +239,30 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
       const unknownAssetId =
         'eip155:1/erc20:0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
       const state = {
-        metamask: {
-          ...enabledFlags,
-          accountsByChainId: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1' },
-              [unknownAssetId]: { amount: '500' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [unknownAssetId]: { amount: '500' },
+                },
+              },
             },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -250,25 +275,31 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
 
     it('skips non-native assets (ERC-20) from accountsByChainId', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          accountsByChainId: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-            [erc20AssetId]: { type: 'erc20', decimals: 6 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '5' },
-              [erc20AssetId]: { amount: '1000' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [erc20AssetId]: { type: 'erc20', decimals: 6 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '5' },
+                  [erc20AssetId]: { amount: '1000' },
+                },
+              },
             },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -283,23 +314,29 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
 
     it('truncates fractional digits exceeding decimals in parseBalanceWithDecimals', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          accountsByChainId: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 2 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1.23456' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 2 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1.23456' },
+                },
+              },
             },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -329,9 +366,13 @@ describe('getTokensControllerAllTokens', () => {
         },
       };
       const state = {
-        metamask: {
-          allTokens: legacyAllTokens,
-          allIgnoredTokens: {},
+        engine: {
+          backgroundState: {
+            TokensController: {
+              allTokens: legacyAllTokens,
+              allIgnoredTokens: {},
+            },
+          },
         },
       };
       const result = getTokensControllerAllTokens(state);
@@ -344,41 +385,41 @@ describe('getTokensControllerAllTokens', () => {
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives allTokens from new state structure', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-          allTokens: {},
-          allIgnoredTokens: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-            [erc20AssetId]: {
-              type: 'erc20',
-              decimals: 6,
-              symbol: 'USDC',
-              name: 'USD Coin',
-            },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1' },
-              [erc20AssetId]: { amount: '1000000' },
-            },
-          },
-          customAssets: {},
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  decimals: 6,
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                },
               },
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [erc20AssetId]: { amount: '1000000' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -405,29 +446,34 @@ describe('getTokensControllerAllTokens', () => {
   describe('edge cases when enabled', () => {
     it('includes tokens from customAssets not present in assetsBalance', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allTokens: {},
-          allIgnoredTokens: {},
-          assetsInfo: {
-            [erc20AssetId]: {
-              type: 'erc20',
-              decimals: 6,
-              symbol: 'USDC',
-              name: 'USD Coin',
-              image: 'https://example.com/usdc.png',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  decimals: 6,
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                  image: 'https://example.com/usdc.png',
+                },
+              },
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId]: [erc20AssetId as CaipAssetType],
+              },
             },
-          },
-          assetsBalance: {},
-          customAssets: {
-            [mockAccountId]: [erc20AssetId as CaipAssetType],
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -448,32 +494,37 @@ describe('getTokensControllerAllTokens', () => {
 
     it('deduplicates tokens present in both assetsBalance and customAssets', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allTokens: {},
-          allIgnoredTokens: {},
-          assetsInfo: {
-            [erc20AssetId]: {
-              type: 'erc20',
-              decimals: 6,
-              symbol: 'USDC',
-              name: 'USD Coin',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  decimals: 6,
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [erc20AssetId]: { amount: '1' },
+                },
+              },
+              customAssets: {
+                [mockAccountId]: [erc20AssetId as CaipAssetType],
+              },
             },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [erc20AssetId]: { amount: '1' },
-            },
-          },
-          customAssets: {
-            [mockAccountId]: [erc20AssetId as CaipAssetType],
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -488,23 +539,28 @@ describe('getTokensControllerAllTokens', () => {
       const unknownAssetId =
         'eip155:1/erc20:0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as CaipAssetType;
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allTokens: {},
-          allIgnoredTokens: {},
-          assetsInfo: {},
-          assetsBalance: {
-            [mockAccountId]: {
-              [unknownAssetId]: { amount: '1' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {},
+              assetsBalance: {
+                [mockAccountId]: {
+                  [unknownAssetId]: { amount: '1' },
+                },
+              },
+              customAssets: {},
             },
-          },
-          customAssets: {},
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -517,30 +573,35 @@ describe('getTokensControllerAllTokens', () => {
 
     it('skips native assets from allTokens (only ERC-20s)', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allTokens: {},
-          allIgnoredTokens: {},
-          assetsInfo: {
-            [nativeEthAssetId]: {
-              type: 'native',
-              decimals: 18,
-              symbol: 'ETH',
-              name: 'Ether',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  decimals: 18,
+                  symbol: 'ETH',
+                  name: 'Ether',
+                },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                },
+              },
+              customAssets: {},
             },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1' },
-            },
-          },
-          customAssets: {},
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -562,9 +623,13 @@ describe('getTokensControllerAllIgnoredTokens', () => {
         },
       };
       const state = {
-        metamask: {
-          allIgnoredTokens: legacyAllIgnoredTokens,
-          allTokens: {},
+        engine: {
+          backgroundState: {
+            TokensController: {
+              allIgnoredTokens: legacyAllIgnoredTokens,
+              allTokens: {},
+            },
+          },
         },
       };
       const result = getTokensControllerAllIgnoredTokens(state);
@@ -577,29 +642,29 @@ describe('getTokensControllerAllIgnoredTokens', () => {
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives allIgnoredTokens from new state structure', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-          allIgnoredTokens: {},
-          allTokens: {},
-          assetPreferences: {
-            [erc20AssetId]: { hidden: true },
-            [solanaTokenAssetId]: { hidden: true },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allIgnoredTokens: {}, allTokens: {} },
+            AssetsController: {
+              assetPreferences: {
+                [erc20AssetId]: { hidden: true },
+                [solanaTokenAssetId]: { hidden: true },
               },
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -618,20 +683,24 @@ describe('getTokensControllerAllIgnoredTokens', () => {
   describe('edge cases when enabled', () => {
     it('skips preferences with hidden set to false', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allIgnoredTokens: {},
-          allTokens: {},
-
-          assetPreferences: {
-            [erc20AssetId]: { hidden: false },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allIgnoredTokens: {}, allTokens: {} },
+            AssetsController: {
+              assetPreferences: {
+                [erc20AssetId]: { hidden: false },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -644,28 +713,33 @@ describe('getTokensControllerAllIgnoredTokens', () => {
 
     it('applies hidden tokens to all EVM accounts', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allIgnoredTokens: {},
-          allTokens: {},
-          assetPreferences: {
-            [erc20AssetId]: { hidden: true },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allIgnoredTokens: {}, allTokens: {} },
+            AssetsController: {
+              assetPreferences: {
+                [erc20AssetId]: { hidden: true },
               },
-              [mockAccountId3]: {
-                id: mockAccountId3,
-                address: mockAccountAddressLowercase2,
-                type: 'eip155:eoa',
-              },
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId3]: {
+                    id: mockAccountId3,
+                    address: mockAccountAddressLowercase2,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -684,13 +758,6 @@ describe('getTokensControllerAllIgnoredTokens', () => {
 });
 
 describe('getTokenBalancesControllerTokenBalances', () => {
-  const enabledFeatureFlags = {
-    [ASSETS_UNIFY_STATE_FLAG]: {
-      enabled: true,
-      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-    },
-  };
-
   const baseInternalAccounts = {
     accounts: {
       [mockAccountId]: {
@@ -715,8 +782,12 @@ describe('getTokenBalancesControllerTokenBalances', () => {
         },
       };
       const state = {
-        metamask: {
-          tokenBalances: legacyTokenBalances,
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {
+              tokenBalances: legacyTokenBalances,
+            },
+          },
         },
       };
       const result = getTokenBalancesControllerTokenBalances(state);
@@ -729,21 +800,25 @@ describe('getTokenBalancesControllerTokenBalances', () => {
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives tokenBalances from new state structure', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: enabledFeatureFlags,
-          tokenBalances: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-            [erc20AssetId]: { type: 'erc20', decimals: 6 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1.23456789' },
-              [erc20AssetId]: { amount: '1' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [erc20AssetId]: { type: 'erc20', decimals: 6 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1.23456789' },
+                  [erc20AssetId]: { amount: '1' },
+                },
+              },
+              customAssets: {},
             },
+            AccountsController: { internalAccounts: baseInternalAccounts },
           },
-          customAssets: {},
-          internalAccounts: baseInternalAccounts,
         },
       };
       const result = getTokenBalancesControllerTokenBalances(state);
@@ -768,22 +843,26 @@ describe('getTokenBalancesControllerTokenBalances', () => {
       ) as Hex;
 
       const state = {
-        metamask: {
-          remoteFeatureFlags: enabledFeatureFlags,
-          tokenBalances: {},
-          assetsInfo: {
-            [customTokenAssetId]: {
-              type: 'erc20',
-              decimals: 18,
-              symbol: 'aEthWETH',
-              name: 'Aave Ethereum WETH',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [customTokenAssetId]: {
+                  type: 'erc20',
+                  decimals: 18,
+                  symbol: 'aEthWETH',
+                  name: 'Aave Ethereum WETH',
+                },
+              },
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId]: [customTokenAssetId],
+              },
             },
+            AccountsController: { internalAccounts: baseInternalAccounts },
           },
-          assetsBalance: {},
-          customAssets: {
-            [mockAccountId]: [customTokenAssetId],
-          },
-          internalAccounts: baseInternalAccounts,
         },
       };
       const result = getTokenBalancesControllerTokenBalances(state);
@@ -799,21 +878,25 @@ describe('getTokenBalancesControllerTokenBalances', () => {
 
     it('does not overwrite real balance with zero placeholder', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: enabledFeatureFlags,
-          tokenBalances: {},
-          assetsInfo: {
-            [erc20AssetId]: { type: 'erc20', decimals: 6 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [erc20AssetId]: { amount: '1' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [erc20AssetId]: { type: 'erc20', decimals: 6 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [erc20AssetId]: { amount: '1' },
+                },
+              },
+              customAssets: {
+                [mockAccountId]: [erc20AssetId],
+              },
             },
+            AccountsController: { internalAccounts: baseInternalAccounts },
           },
-          customAssets: {
-            [mockAccountId]: [erc20AssetId],
-          },
-          internalAccounts: baseInternalAccounts,
         },
       };
       const result = getTokenBalancesControllerTokenBalances(state);
@@ -825,21 +908,25 @@ describe('getTokenBalancesControllerTokenBalances', () => {
 
     it('skips custom non-EVM tokens', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: enabledFeatureFlags,
-          tokenBalances: {},
-          assetsInfo: {
-            [solanaTokenAssetId]: {
-              type: 'token',
-              decimals: 6,
-              symbol: 'USDC',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [solanaTokenAssetId]: {
+                  type: 'token',
+                  decimals: 6,
+                  symbol: 'USDC',
+                },
+              },
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId2]: [solanaTokenAssetId],
+              },
             },
+            AccountsController: { internalAccounts: baseInternalAccounts },
           },
-          assetsBalance: {},
-          customAssets: {
-            [mockAccountId2]: [solanaTokenAssetId],
-          },
-          internalAccounts: baseInternalAccounts,
         },
       };
       const result = getTokenBalancesControllerTokenBalances(state);
@@ -853,24 +940,30 @@ describe('getTokenBalancesControllerTokenBalances', () => {
       const unknownAssetId =
         'eip155:1/erc20:0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
       const state = {
-        metamask: {
-          ...enabledFlags,
-          tokenBalances: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1' },
-              [unknownAssetId]: { amount: '999' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [unknownAssetId]: { amount: '999' },
+                },
+              },
             },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -886,31 +979,37 @@ describe('getTokenBalancesControllerTokenBalances', () => {
 
     it('handles multiple EVM accounts', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          tokenBalances: {},
-          assetsInfo: {
-            [erc20AssetId]: { type: 'erc20', decimals: 6 },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [erc20AssetId]: { amount: '10' },
-            },
-            [mockAccountId3]: {
-              [erc20AssetId]: { amount: '20' },
-            },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [erc20AssetId]: { type: 'erc20', decimals: 6 },
               },
-              [mockAccountId3]: {
-                id: mockAccountId3,
-                address: mockAccountAddressLowercase2,
-                type: 'eip155:eoa',
+              assetsBalance: {
+                [mockAccountId]: {
+                  [erc20AssetId]: { amount: '10' },
+                },
+                [mockAccountId3]: {
+                  [erc20AssetId]: { amount: '20' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId3]: {
+                    id: mockAccountId3,
+                    address: mockAccountAddressLowercase2,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -941,8 +1040,12 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
         [mockAccountId2]: [solanaTokenAssetId] as CaipAssetType[],
       };
       const state = {
-        metamask: {
-          accountsAssets: legacyAccountsAssets,
+        engine: {
+          backgroundState: {
+            MultichainAssetsController: {
+              accountsAssets: legacyAccountsAssets,
+            },
+          },
         },
       };
       const result = getMultiChainAssetsControllerAccountsAssets(state);
@@ -955,34 +1058,35 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives accountsAssets from new state structure for non-EVM accounts only', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-          accountsAssets: {},
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1' },
-              [erc20AssetId]: { amount: '1' },
-            },
-            [mockAccountId2]: {
-              [solanaTokenAssetId]: { amount: '100' },
-            },
-          },
-          customAssets: {},
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { accountsAssets: {} },
+            AssetsController: {
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [erc20AssetId]: { amount: '1' },
+                },
+                [mockAccountId2]: {
+                  [solanaTokenAssetId]: { amount: '100' },
+                },
               },
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+              customAssets: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -1001,25 +1105,31 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
       const extraSolAssetId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:So11111111111111111111111111111111111111112' as CaipAssetType;
       const state = {
-        metamask: {
-          ...enabledFlags,
-          accountsAssets: {},
-          assetsBalance: {
-            [mockAccountId2]: {
-              [solanaTokenAssetId]: { amount: '100' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { accountsAssets: {} },
+            AssetsController: {
+              assetsBalance: {
+                [mockAccountId2]: {
+                  [solanaTokenAssetId]: { amount: '100' },
+                },
+              },
+              customAssets: {
+                [mockAccountId2]: [
+                  solanaTokenAssetId as CaipAssetType,
+                  extraSolAssetId,
+                ],
+              },
             },
-          },
-          customAssets: {
-            [mockAccountId2]: [
-              solanaTokenAssetId as CaipAssetType,
-              extraSolAssetId,
-            ],
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -1034,21 +1144,27 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
 
     it('filters out EIP155 assets for non-EVM accounts', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          accountsAssets: {},
-          assetsBalance: {
-            [mockAccountId2]: {
-              [nativeEthAssetId]: { amount: '1' },
-              [solanaTokenAssetId]: { amount: '100' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { accountsAssets: {} },
+            AssetsController: {
+              assetsBalance: {
+                [mockAccountId2]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [solanaTokenAssetId]: { amount: '100' },
+                },
+              },
+              customAssets: {},
             },
-          },
-          customAssets: {},
-          internalAccounts: {
-            accounts: {
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -1061,20 +1177,26 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
 
     it('returns empty array when non-EVM account has only EIP155 assets', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          accountsAssets: {},
-          assetsBalance: {
-            [mockAccountId2]: {
-              [nativeEthAssetId]: { amount: '1' },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { accountsAssets: {} },
+            AssetsController: {
+              assetsBalance: {
+                [mockAccountId2]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                },
+              },
+              customAssets: {},
             },
-          },
-          customAssets: {},
-          internalAccounts: {
-            accounts: {
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -1100,8 +1222,12 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
         },
       };
       const state = {
-        metamask: {
-          assetsMetadata: legacyAssetsMetadata,
+        engine: {
+          backgroundState: {
+            MultichainAssetsController: {
+              assetsMetadata: legacyAssetsMetadata,
+            },
+          },
         },
       };
       const result = getMultiChainAssetsControllerAssetsMetadata(state);
@@ -1114,28 +1240,27 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives assetsMetadata from assetsInfo for non-EIP155 assets only', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-          assetsMetadata: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-            [erc20AssetId]: {
-              type: 'erc20',
-              decimals: 6,
-              symbol: 'USDC',
-              name: 'USD Coin',
-            },
-            [solanaTokenAssetId]: {
-              type: 'token',
-              decimals: 6,
-              symbol: 'USDC',
-              name: 'USD Coin',
-              image: 'https://example.com/sol-usdc.png',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { assetsMetadata: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  decimals: 6,
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                },
+                [solanaTokenAssetId]: {
+                  type: 'token',
+                  decimals: 6,
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                  image: 'https://example.com/sol-usdc.png',
+                },
+              },
             },
           },
         },
@@ -1163,15 +1288,19 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
   describe('edge cases when enabled', () => {
     it('defaults iconUrl to empty string when image is undefined', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          assetsMetadata: {},
-          assetsInfo: {
-            [solanaTokenAssetId]: {
-              type: 'token',
-              decimals: 9,
-              symbol: 'SOL',
-              name: 'Solana',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { assetsMetadata: {} },
+            AssetsController: {
+              assetsInfo: {
+                [solanaTokenAssetId]: {
+                  type: 'token',
+                  decimals: 9,
+                  symbol: 'SOL',
+                  name: 'Solana',
+                },
+              },
             },
           },
         },
@@ -1183,21 +1312,25 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
 
     it('excludes EIP155 assets from multichain metadata', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          assetsMetadata: {},
-          assetsInfo: {
-            [nativeEthAssetId]: {
-              type: 'native',
-              decimals: 18,
-              symbol: 'ETH',
-              name: 'Ether',
-            },
-            [erc20AssetId]: {
-              type: 'erc20',
-              decimals: 6,
-              symbol: 'USDC',
-              name: 'USD Coin',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { assetsMetadata: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  decimals: 18,
+                  symbol: 'ETH',
+                  name: 'Ether',
+                },
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  decimals: 6,
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                },
+              },
             },
           },
         },
@@ -1216,8 +1349,12 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
         [mockAccountId2]: [solanaTokenAssetId] as CaipAssetType[],
       };
       const state = {
-        metamask: {
-          allIgnoredAssets: legacyAllIgnoredAssets,
+        engine: {
+          backgroundState: {
+            MultichainAssetsController: {
+              allIgnoredAssets: legacyAllIgnoredAssets,
+            },
+          },
         },
       };
       const result = getMultiChainAssetsControllerAllIgnoredAssets(state);
@@ -1230,28 +1367,29 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives allIgnoredAssets from assetPreferences for non-EVM accounts only', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-          allIgnoredAssets: {},
-          assetPreferences: {
-            [erc20AssetId]: { hidden: true },
-            [solanaTokenAssetId]: { hidden: true },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { allIgnoredAssets: {} },
+            AssetsController: {
+              assetPreferences: {
+                [erc20AssetId]: { hidden: true },
+                [solanaTokenAssetId]: { hidden: true },
               },
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -1268,17 +1406,23 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
   describe('edge cases when enabled', () => {
     it('skips preferences with hidden set to false', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allIgnoredAssets: {},
-          assetPreferences: {
-            [solanaTokenAssetId]: { hidden: false },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { allIgnoredAssets: {} },
+            AssetsController: {
+              assetPreferences: {
+                [solanaTokenAssetId]: { hidden: false },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -1291,17 +1435,23 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
 
     it('skips EIP155 assets from ignored assets list', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allIgnoredAssets: {},
-          assetPreferences: {
-            [erc20AssetId]: { hidden: true },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { allIgnoredAssets: {} },
+            AssetsController: {
+              assetPreferences: {
+                [erc20AssetId]: { hidden: true },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -1314,18 +1464,24 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
 
     it('skips EVM accounts entirely', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          allIgnoredAssets: {},
-          assetPreferences: {
-            [solanaTokenAssetId]: { hidden: true },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: { allIgnoredAssets: {} },
+            AssetsController: {
+              assetPreferences: {
+                [solanaTokenAssetId]: { hidden: true },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
               },
             },
           },
@@ -1347,8 +1503,10 @@ describe('getMultiChainBalancesControllerBalances', () => {
         },
       };
       const state = {
-        metamask: {
-          balances: legacyBalances,
+        engine: {
+          backgroundState: {
+            MultichainBalancesController: { balances: legacyBalances },
+          },
         },
       };
       const result = getMultiChainBalancesControllerBalances(state);
@@ -1361,42 +1519,43 @@ describe('getMultiChainBalancesControllerBalances', () => {
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives balances from new state structure for non-EVM accounts only', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-          balances: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', decimals: 18 },
-            [erc20AssetId]: { type: 'erc20', decimals: 6, symbol: 'USDC' },
-            [solanaTokenAssetId]: {
-              type: 'token',
-              decimals: 6,
-              symbol: 'USDC',
-            },
-          },
-          assetsBalance: {
-            [mockAccountId]: {
-              [nativeEthAssetId]: { amount: '1' },
-              [erc20AssetId]: { amount: '1' },
-            },
-            [mockAccountId2]: {
-              [solanaTokenAssetId]: { amount: '250.5' },
-            },
-          },
-          internalAccounts: {
-            accounts: {
-              [mockAccountId]: {
-                id: mockAccountId,
-                address: mockAccountAddressLowercase,
-                type: 'eip155:eoa',
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainBalancesController: { balances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [erc20AssetId]: { type: 'erc20', decimals: 6, symbol: 'USDC' },
+                [solanaTokenAssetId]: {
+                  type: 'token',
+                  decimals: 6,
+                  symbol: 'USDC',
+                },
               },
-              [mockAccountId2]: {
-                id: mockAccountId2,
-                type: 'solana:data-account',
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [erc20AssetId]: { amount: '1' },
+                },
+                [mockAccountId2]: {
+                  [solanaTokenAssetId]: { amount: '250.5' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
               },
             },
           },
@@ -1418,8 +1577,10 @@ describe('getCurrencyRateControllerCurrentCurrency', () => {
     it('returns currentCurrency from state unchanged', () => {
       const legacyCurrentCurrency = 'eur';
       const state = {
-        metamask: {
-          currentCurrency: legacyCurrentCurrency,
+        engine: {
+          backgroundState: {
+            CurrencyRateController: { currentCurrency: legacyCurrentCurrency },
+          },
         },
       };
       const result = getCurrencyRateControllerCurrentCurrency(state);
@@ -1431,15 +1592,12 @@ describe('getCurrencyRateControllerCurrentCurrency', () => {
   describe('when assets unify state feature is enabled', () => {
     it('returns selectedCurrency from new state', () => {
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            CurrencyRateController: { currentCurrency: 'eur' },
+            AssetsController: { selectedCurrency: 'usd' },
           },
-          currentCurrency: 'eur',
-          selectedCurrency: 'usd',
         },
       };
       const result = getCurrencyRateControllerCurrentCurrency(state);
@@ -1460,8 +1618,10 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
         },
       };
       const state = {
-        metamask: {
-          currencyRates: legacyCurrencyRates,
+        engine: {
+          backgroundState: {
+            CurrencyRateController: { currencyRates: legacyCurrencyRates },
+          },
         },
       };
       const result = getCurrencyRateControllerCurrencyRates(state);
@@ -1476,58 +1636,63 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
       const lastUpdated = 1700000000000; // ms
       const mockNonFungibleAssetId = 'eip155:137/slip44:987654321';
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            CurrencyRateController: {
+              currentCurrency: 'eur',
+              currencyRates: {},
             },
-          },
-          currentCurrency: 'eur',
-          selectedCurrency: 'eur',
-          currencyRates: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', symbol: 'ETH', decimals: 18 },
-            [erc20AssetId]: {
-              type: 'erc20',
-              symbol: 'USDC',
-              decimals: 6,
-            },
-            [mockNonFungibleAssetId]: {
-              type: 'something',
-              symbol: 'SMT',
-            },
-          },
-          assetsPrice: {
-            [nativeEthAssetId]: {
-              assetPriceType: 'fungible',
-              id: 'eth-price',
-              price: 2500,
-              usdPrice: 3000,
-              lastUpdated,
-              marketCap: 300000000000,
-              allTimeHigh: 4000,
-              allTimeLow: 500,
-              totalVolume: 1000000,
-              high1d: 2600,
-              low1d: 2400,
-              circulatingSupply: 120000000,
-              dilutedMarketCap: 300000000000,
-              marketCapPercentChange1d: 2,
-              priceChange1d: 50,
-              pricePercentChange1h: 0.5,
-              pricePercentChange1d: 2,
-              pricePercentChange7d: 5,
-              pricePercentChange14d: 8,
-              pricePercentChange30d: 10,
-              pricePercentChange200d: 20,
-              pricePercentChange1y: 30,
-            },
-            [mockNonFungibleAssetId]: {
-              assetPriceType: 'something',
-              id: 'smt-price',
-              price: 0.5,
-              lastUpdated,
+            AssetsController: {
+              selectedCurrency: 'eur',
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  decimals: 6,
+                },
+                [mockNonFungibleAssetId]: {
+                  type: 'something',
+                  symbol: 'SMT',
+                },
+              },
+              assetsPrice: {
+                [nativeEthAssetId]: {
+                  assetPriceType: 'fungible',
+                  id: 'eth-price',
+                  price: 2500,
+                  usdPrice: 3000,
+                  lastUpdated,
+                  marketCap: 300000000000,
+                  allTimeHigh: 4000,
+                  allTimeLow: 500,
+                  totalVolume: 1000000,
+                  high1d: 2600,
+                  low1d: 2400,
+                  circulatingSupply: 120000000,
+                  dilutedMarketCap: 300000000000,
+                  marketCapPercentChange1d: 2,
+                  priceChange1d: 50,
+                  pricePercentChange1h: 0.5,
+                  pricePercentChange1d: 2,
+                  pricePercentChange7d: 5,
+                  pricePercentChange14d: 8,
+                  pricePercentChange30d: 10,
+                  pricePercentChange200d: 20,
+                  pricePercentChange1y: 30,
+                },
+                [mockNonFungibleAssetId]: {
+                  assetPriceType: 'something',
+                  id: 'smt-price',
+                  price: 0.5,
+                  lastUpdated,
+                },
+              },
             },
           },
         },
@@ -1575,8 +1740,10 @@ describe('getTokenRatesControllerMarketData', () => {
         },
       };
       const state = {
-        metamask: {
-          marketData: legacyMarketData,
+        engine: {
+          backgroundState: {
+            TokenRatesController: { marketData: legacyMarketData },
+          },
         },
       };
       const result = getTokenRatesControllerMarketData(state);
@@ -1592,77 +1759,84 @@ describe('getTokenRatesControllerMarketData', () => {
       const ethPriceInUsd = 2000;
       const usdcPriceInUsd = 1;
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates: {},
             },
-          },
-          marketData: {},
-          currentCurrency: 'usd',
-          selectedCurrency: 'usd',
-          currencyRates: {},
-          assetsInfo: {
-            [nativeEthAssetId]: { type: 'native', symbol: 'ETH', decimals: 18 },
-            [erc20AssetId]: {
-              type: 'erc20',
-              symbol: 'USDC',
-              decimals: 6,
+            AssetsController: {
+              selectedCurrency: 'usd',
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [nativeEthAssetId]: {
+                  assetPriceType: 'fungible',
+                  id: 'eth-price',
+                  price: ethPriceInUsd,
+                  usdPrice: ethPriceInUsd,
+                  lastUpdated,
+                  marketCap: 300e9,
+                  allTimeHigh: 4000,
+                  allTimeLow: 500,
+                  totalVolume: 1e9,
+                  high1d: 2100,
+                  low1d: 1900,
+                  circulatingSupply: 120e6,
+                  dilutedMarketCap: 300e9,
+                  marketCapPercentChange1d: 2,
+                  priceChange1d: 50,
+                  pricePercentChange1h: 0.5,
+                  pricePercentChange1d: 2,
+                  pricePercentChange7d: 5,
+                  pricePercentChange14d: 8,
+                  pricePercentChange30d: 10,
+                  pricePercentChange200d: 20,
+                  pricePercentChange1y: 30,
+                },
+                [erc20AssetId]: {
+                  assetPriceType: 'fungible',
+                  id: 'usdc-price',
+                  price: usdcPriceInUsd,
+                  usdPrice: usdcPriceInUsd,
+                  lastUpdated,
+                  marketCap: 30e9,
+                  allTimeHigh: 1.1,
+                  allTimeLow: 0.9,
+                  totalVolume: 100e9,
+                  high1d: 1.01,
+                  low1d: 0.99,
+                  circulatingSupply: 30e9,
+                  dilutedMarketCap: 30e9,
+                  marketCapPercentChange1d: 0,
+                  priceChange1d: 0,
+                  pricePercentChange1h: 0,
+                  pricePercentChange1d: 0,
+                  pricePercentChange7d: 0,
+                  pricePercentChange14d: 0,
+                  pricePercentChange30d: 0,
+                  pricePercentChange200d: 0,
+                  pricePercentChange1y: 0,
+                },
+              },
             },
-          },
-          assetsPrice: {
-            [nativeEthAssetId]: {
-              assetPriceType: 'fungible',
-              id: 'eth-price',
-              price: ethPriceInUsd,
-              usdPrice: ethPriceInUsd,
-              lastUpdated,
-              marketCap: 300e9,
-              allTimeHigh: 4000,
-              allTimeLow: 500,
-              totalVolume: 1e9,
-              high1d: 2100,
-              low1d: 1900,
-              circulatingSupply: 120e6,
-              dilutedMarketCap: 300e9,
-              marketCapPercentChange1d: 2,
-              priceChange1d: 50,
-              pricePercentChange1h: 0.5,
-              pricePercentChange1d: 2,
-              pricePercentChange7d: 5,
-              pricePercentChange14d: 8,
-              pricePercentChange30d: 10,
-              pricePercentChange200d: 20,
-              pricePercentChange1y: 30,
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { nativeCurrency: 'ETH' },
+              },
             },
-            [erc20AssetId]: {
-              assetPriceType: 'fungible',
-              id: 'usdc-price',
-              price: usdcPriceInUsd,
-              usdPrice: usdcPriceInUsd,
-              lastUpdated,
-              marketCap: 30e9,
-              allTimeHigh: 1.1,
-              allTimeLow: 0.9,
-              totalVolume: 100e9,
-              high1d: 1.01,
-              low1d: 0.99,
-              circulatingSupply: 30e9,
-              dilutedMarketCap: 30e9,
-              marketCapPercentChange1d: 0,
-              priceChange1d: 0,
-              pricePercentChange1h: 0,
-              pricePercentChange1d: 0,
-              pricePercentChange7d: 0,
-              pricePercentChange14d: 0,
-              pricePercentChange30d: 0,
-              pricePercentChange200d: 0,
-              pricePercentChange1y: 0,
-            },
-          },
-          networkConfigurationsByChainId: {
-            '0x1': { nativeCurrency: 'ETH' },
           },
         },
       };
@@ -1679,33 +1853,41 @@ describe('getTokenRatesControllerMarketData', () => {
   describe('edge cases when enabled', () => {
     it('skips non-EIP155 assets from marketData', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          marketData: {},
-          currentCurrency: 'usd',
-          selectedCurrency: 'usd',
-          currencyRates: {},
-          assetsInfo: {
-            [nativeEthAssetId]: {
-              type: 'native',
-              symbol: 'ETH',
-              decimals: 18,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates: {},
             },
-            [solanaTokenAssetId]: {
-              type: 'token',
-              symbol: 'USDC',
-              decimals: 6,
+            AssetsController: {
+              selectedCurrency: 'usd',
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+                [solanaTokenAssetId]: {
+                  type: 'token',
+                  symbol: 'USDC',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [nativeEthAssetId]: makeMockPrice({ id: 'eth', price: 2000 }),
+                [solanaTokenAssetId]: makeMockPrice({
+                  id: 'sol-usdc',
+                  price: 1,
+                }),
+              },
             },
-          },
-          assetsPrice: {
-            [nativeEthAssetId]: makeMockPrice({ id: 'eth', price: 2000 }),
-            [solanaTokenAssetId]: makeMockPrice({
-              id: 'sol-usdc',
-              price: 1,
-            }),
-          },
-          networkConfigurationsByChainId: {
-            '0x1': { nativeCurrency: 'ETH' },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { nativeCurrency: 'ETH' },
+              },
+            },
           },
         },
       };
@@ -1721,31 +1903,39 @@ describe('getTokenRatesControllerMarketData', () => {
       const unknownAssetId =
         'eip155:1/erc20:0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
       const state = {
-        metamask: {
-          ...enabledFlags,
-          marketData: {},
-          currentCurrency: 'usd',
-          selectedCurrency: 'usd',
-          currencyRates: {},
-          assetsInfo: {
-            [nativeEthAssetId]: {
-              type: 'native',
-              symbol: 'ETH',
-              decimals: 18,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates: {},
             },
-          },
-          assetsPrice: {
-            [nativeEthAssetId]: makeMockPrice({
-              id: 'eth',
-              price: 2000,
-            }),
-            [unknownAssetId]: makeMockPrice({
-              id: 'unknown',
-              price: 42,
-            }),
-          },
-          networkConfigurationsByChainId: {
-            '0x1': { nativeCurrency: 'ETH' },
+            AssetsController: {
+              selectedCurrency: 'usd',
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+              },
+              assetsPrice: {
+                [nativeEthAssetId]: makeMockPrice({
+                  id: 'eth',
+                  price: 2000,
+                }),
+                [unknownAssetId]: makeMockPrice({
+                  id: 'unknown',
+                  price: 42,
+                }),
+              },
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { nativeCurrency: 'ETH' },
+              },
+            },
           },
         },
       };
@@ -1756,24 +1946,32 @@ describe('getTokenRatesControllerMarketData', () => {
 
     it('skips assets when native currency conversion rate is unavailable', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          marketData: {},
-          currentCurrency: 'usd',
-          selectedCurrency: 'usd',
-          currencyRates: {},
-          assetsInfo: {
-            [erc20AssetId]: {
-              type: 'erc20',
-              symbol: 'USDC',
-              decimals: 6,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates: {},
             },
-          },
-          assetsPrice: {
-            [erc20AssetId]: makeMockPrice({ id: 'usdc', price: 1 }),
-          },
-          networkConfigurationsByChainId: {
-            '0x1': { nativeCurrency: 'ETH' },
+            AssetsController: {
+              selectedCurrency: 'usd',
+              assetsInfo: {
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [erc20AssetId]: makeMockPrice({ id: 'usdc', price: 1 }),
+              },
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { nativeCurrency: 'ETH' },
+              },
+            },
           },
         },
       };
@@ -1785,24 +1983,32 @@ describe('getTokenRatesControllerMarketData', () => {
     it('places native slip44 asset at getNativeTokenAddress', () => {
       const nativeTokenAddress = '0x0000000000000000000000000000000000000000';
       const state = {
-        metamask: {
-          ...enabledFlags,
-          marketData: {},
-          currentCurrency: 'usd',
-          selectedCurrency: 'usd',
-          currencyRates: {},
-          assetsInfo: {
-            [nativeEthAssetId]: {
-              type: 'native',
-              symbol: 'ETH',
-              decimals: 18,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates: {},
             },
-          },
-          assetsPrice: {
-            [nativeEthAssetId]: makeMockPrice({ id: 'eth', price: 2000 }),
-          },
-          networkConfigurationsByChainId: {
-            '0x1': { nativeCurrency: 'ETH' },
+            AssetsController: {
+              selectedCurrency: 'usd',
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+              },
+              assetsPrice: {
+                [nativeEthAssetId]: makeMockPrice({ id: 'eth', price: 2000 }),
+              },
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { nativeCurrency: 'ETH' },
+              },
+            },
           },
         },
       };
@@ -1818,41 +2024,52 @@ describe('getTokenRatesControllerMarketData', () => {
     it('converts all price fields to native currency denomination', () => {
       const ethPrice = 2500;
       const state = {
-        metamask: {
-          ...enabledFlags,
-          marketData: {},
-          currentCurrency: 'usd',
-          selectedCurrency: 'usd',
-          currencyRates: {},
-          assetsInfo: {
-            [nativeEthAssetId]: {
-              type: 'native',
-              symbol: 'ETH',
-              decimals: 18,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates: {},
             },
-            [erc20AssetId]: {
-              type: 'erc20',
-              symbol: 'USDC',
-              decimals: 6,
+            AssetsController: {
+              selectedCurrency: 'usd',
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [nativeEthAssetId]: makeMockPrice({
+                  id: 'eth',
+                  price: ethPrice,
+                }),
+                [erc20AssetId]: makeMockPrice({
+                  id: 'usdc',
+                  price: 1,
+                  marketCap: 30e9,
+                  allTimeHigh: 1.1,
+                  allTimeLow: 0.9,
+                  totalVolume: 100e9,
+                  high1d: 1.01,
+                  low1d: 0.99,
+                  dilutedMarketCap: 30e9,
+                  circulatingSupply: 30e9,
+                }),
+              },
             },
-          },
-          assetsPrice: {
-            [nativeEthAssetId]: makeMockPrice({ id: 'eth', price: ethPrice }),
-            [erc20AssetId]: makeMockPrice({
-              id: 'usdc',
-              price: 1,
-              marketCap: 30e9,
-              allTimeHigh: 1.1,
-              allTimeLow: 0.9,
-              totalVolume: 100e9,
-              high1d: 1.01,
-              low1d: 0.99,
-              dilutedMarketCap: 30e9,
-              circulatingSupply: 30e9,
-            }),
-          },
-          networkConfigurationsByChainId: {
-            '0x1': { nativeCurrency: 'ETH' },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { nativeCurrency: 'ETH' },
+              },
+            },
           },
         },
       };
@@ -1877,28 +2094,39 @@ describe('getTokenRatesControllerMarketData', () => {
       const orphanErc20AssetId =
         'eip155:1/erc20:0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
       const state = {
-        metamask: {
-          ...enabledFlags,
-          marketData: {},
-          currentCurrency: 'usd',
-          selectedCurrency: 'usd',
-          currencyRates: {},
-          assetsInfo: {
-            [nativeEthAssetId]: {
-              type: 'native',
-              symbol: 'ETH',
-              decimals: 18,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates: {},
             },
-          },
-          assetsPrice: {
-            [nativeEthAssetId]: makeMockPrice({ id: 'eth', price: ethPrice }),
-            [orphanErc20AssetId]: makeMockPrice({
-              id: 'orphan',
-              price: 999,
-            }),
-          },
-          networkConfigurationsByChainId: {
-            '0x1': { nativeCurrency: 'ETH' },
+            AssetsController: {
+              selectedCurrency: 'usd',
+              assetsInfo: {
+                [nativeEthAssetId]: {
+                  type: 'native',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+              },
+              assetsPrice: {
+                [nativeEthAssetId]: makeMockPrice({
+                  id: 'eth',
+                  price: ethPrice,
+                }),
+                [orphanErc20AssetId]: makeMockPrice({
+                  id: 'orphan',
+                  price: 999,
+                }),
+              },
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { nativeCurrency: 'ETH' },
+              },
+            },
           },
         },
       };
@@ -1943,8 +2171,12 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
         },
       };
       const state = {
-        metamask: {
-          conversionRates: legacyConversionRates,
+        engine: {
+          backgroundState: {
+            MultichainAssetsRatesController: {
+              conversionRates: legacyConversionRates,
+            },
+          },
         },
       };
       const result = getMultichainAssetsRatesControllerConversionRates(state);
@@ -1958,62 +2190,61 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
     it('derives conversionRates from assetsPrice for non-EVM assets only', () => {
       const lastUpdated = 1700000000000;
       const state = {
-        metamask: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-          conversionRates: {},
-          assetsPrice: {
-            [nativeEthAssetId]: {
-              assetPriceType: 'fungible',
-              id: 'eth-price',
-              price: 2000,
-              usdPrice: 2000,
-              lastUpdated,
-              marketCap: 300e9,
-              allTimeHigh: 4000,
-              allTimeLow: 500,
-              totalVolume: 1e9,
-              high1d: 2100,
-              low1d: 1900,
-              circulatingSupply: 120e6,
-              dilutedMarketCap: 300e9,
-              marketCapPercentChange1d: 2,
-              priceChange1d: 50,
-              pricePercentChange1h: 0.5,
-              pricePercentChange1d: 2,
-              pricePercentChange7d: 5,
-              pricePercentChange14d: 8,
-              pricePercentChange30d: 10,
-              pricePercentChange200d: 20,
-              pricePercentChange1y: 30,
-            },
-            [solanaTokenAssetId]: {
-              assetPriceType: 'fungible',
-              id: 'sol-usdc-price',
-              price: 1.02,
-              usdPrice: 1.02,
-              lastUpdated,
-              marketCap: 30e9,
-              allTimeHigh: 1.1,
-              allTimeLow: 0.95,
-              totalVolume: 100e9,
-              high1d: 1.03,
-              low1d: 1.01,
-              circulatingSupply: 30e9,
-              dilutedMarketCap: 30e9,
-              marketCapPercentChange1d: 0.5,
-              priceChange1d: 0.01,
-              pricePercentChange1h: 0.1,
-              pricePercentChange1d: 0.5,
-              pricePercentChange7d: 1,
-              pricePercentChange14d: 1.5,
-              pricePercentChange30d: 2,
-              pricePercentChange200d: 3,
-              pricePercentChange1y: 5,
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsRatesController: { conversionRates: {} },
+            AssetsController: {
+              assetsPrice: {
+                [nativeEthAssetId]: {
+                  assetPriceType: 'fungible',
+                  id: 'eth-price',
+                  price: 2000,
+                  usdPrice: 2000,
+                  lastUpdated,
+                  marketCap: 300e9,
+                  allTimeHigh: 4000,
+                  allTimeLow: 500,
+                  totalVolume: 1e9,
+                  high1d: 2100,
+                  low1d: 1900,
+                  circulatingSupply: 120e6,
+                  dilutedMarketCap: 300e9,
+                  marketCapPercentChange1d: 2,
+                  priceChange1d: 50,
+                  pricePercentChange1h: 0.5,
+                  pricePercentChange1d: 2,
+                  pricePercentChange7d: 5,
+                  pricePercentChange14d: 8,
+                  pricePercentChange30d: 10,
+                  pricePercentChange200d: 20,
+                  pricePercentChange1y: 30,
+                },
+                [solanaTokenAssetId]: {
+                  assetPriceType: 'fungible',
+                  id: 'sol-usdc-price',
+                  price: 1.02,
+                  usdPrice: 1.02,
+                  lastUpdated,
+                  marketCap: 30e9,
+                  allTimeHigh: 1.1,
+                  allTimeLow: 0.95,
+                  totalVolume: 100e9,
+                  high1d: 1.03,
+                  low1d: 1.01,
+                  circulatingSupply: 30e9,
+                  dilutedMarketCap: 30e9,
+                  marketCapPercentChange1d: 0.5,
+                  priceChange1d: 0.01,
+                  pricePercentChange1h: 0.1,
+                  pricePercentChange1d: 0.5,
+                  pricePercentChange7d: 1,
+                  pricePercentChange14d: 1.5,
+                  pricePercentChange30d: 2,
+                  pricePercentChange200d: 3,
+                  pricePercentChange1y: 5,
+                },
+              },
             },
           },
         },
@@ -2049,12 +2280,16 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
   describe('edge cases when enabled', () => {
     it('returns empty result when only EVM assets exist in assetsPrice', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          conversionRates: {},
-          assetsPrice: {
-            [nativeEthAssetId]: makeMockPrice({ id: 'eth', price: 2000 }),
-            [erc20AssetId]: makeMockPrice({ id: 'usdc', price: 1 }),
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsRatesController: { conversionRates: {} },
+            AssetsController: {
+              assetsPrice: {
+                [nativeEthAssetId]: makeMockPrice({ id: 'eth', price: 2000 }),
+                [erc20AssetId]: makeMockPrice({ id: 'usdc', price: 1 }),
+              },
+            },
           },
         },
       };
@@ -2066,20 +2301,24 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
     it('converts all market data fields to strings', () => {
       const lastUpdated = 1700000000000;
       const state = {
-        metamask: {
-          ...enabledFlags,
-          conversionRates: {},
-          assetsPrice: {
-            [solanaTokenAssetId]: makeMockPrice({
-              id: 'sol-usdc',
-              price: 1.5,
-              lastUpdated,
-              allTimeHigh: 2.0,
-              allTimeLow: 0.8,
-              circulatingSupply: 1e9,
-              marketCap: 1.5e9,
-              totalVolume: 5e8,
-            }),
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsRatesController: { conversionRates: {} },
+            AssetsController: {
+              assetsPrice: {
+                [solanaTokenAssetId]: makeMockPrice({
+                  id: 'sol-usdc',
+                  price: 1.5,
+                  lastUpdated,
+                  allTimeHigh: 2.0,
+                  allTimeLow: 0.8,
+                  circulatingSupply: 1e9,
+                  marketCap: 1.5e9,
+                  totalVolume: 5e8,
+                }),
+              },
+            },
           },
         },
       };
@@ -2098,10 +2337,14 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
 
     it('handles empty assetsPrice', () => {
       const state = {
-        metamask: {
-          ...enabledFlags,
-          conversionRates: {},
-          assetsPrice: {},
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsRatesController: { conversionRates: {} },
+            AssetsController: {
+              assetsPrice: {},
+            },
+          },
         },
       };
       const result = getMultichainAssetsRatesControllerConversionRates(state);
