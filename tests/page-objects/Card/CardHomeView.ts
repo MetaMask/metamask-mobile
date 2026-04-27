@@ -1,7 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { CardHomeSelectors } from '../../../app/components/UI/Card/Views/CardHome/CardHome.testIds';
-import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 
 class CardHomeView {
   get tryAgainButton(): DetoxElement {
@@ -29,12 +28,6 @@ class CardHomeView {
   get addFundsBottomSheetSwapOption(): DetoxElement {
     return Matchers.getElementByID(
       CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
-    );
-  }
-
-  get advancedCardManagementItem(): DetoxElement {
-    return Matchers.getElementByID(
-      CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM,
     );
   }
 
@@ -75,23 +68,6 @@ class CardHomeView {
     await Gestures.waitAndTap(this.addFundsBottomSheetSwapOption, {
       elemDescription: 'Add Funds Bottom Sheet Swap Option in Card Home View',
     });
-  }
-
-  async tapAdvancedCardManagementItem(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.advancedCardManagementItem,
-      Matchers.getIdentifier(CardHomeSelectors.CARD_VIEW_TITLE),
-      { elemDescription: 'Advanced Card Management Item in Card Home View' },
-    );
-    await Gestures.waitAndTap(this.advancedCardManagementItem, {
-      elemDescription: 'Advanced Card Management Item in Card Home View',
-    });
-  }
-
-  async cardDashboardVisible(): Promise<void> {
-    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
-      .toBeVisible()
-      .withTimeout(10000);
   }
 }
 

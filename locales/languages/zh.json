@@ -7746,8 +7746,6 @@
         "manage_spending_limit": "管理限额",
         "manage_spending_limit_description_restricted": "限额消费已开启",
         "manage_spending_limit_description_full": "全部权限已开启",
-        "manage_card": "管理卡片",
-        "advanced_card_management_description": "查看活动、返现、冻结卡等",
         "travel_title": "MetaMask Travel",
         "travel_description": "预订酒店享高达 70% 折扣",
         "card_tos_title": "条款和条件",
