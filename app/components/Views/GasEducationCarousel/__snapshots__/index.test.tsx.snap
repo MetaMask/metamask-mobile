@@ -69,6 +69,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
             <RCTScrollView
               alwaysBounceVertical={false}
               automaticallyAdjustContentInsets={false}
+              collapsable={false}
               contentOffset={
                 {
                   "x": 0,

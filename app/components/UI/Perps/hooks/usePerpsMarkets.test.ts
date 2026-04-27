@@ -256,7 +256,7 @@ describe('usePerpsMarkets', () => {
       });
 
       // Act - start refresh and wait for state to flush
-      let refreshPromise: Promise<void>;
+      let refreshPromise: Promise<void> = Promise.resolve();
       await act(async () => {
         refreshPromise = result.current.refresh();
       });
@@ -267,7 +267,7 @@ describe('usePerpsMarkets', () => {
       // Complete refresh
       await act(async () => {
         resolveRefresh();
-        await refreshPromise!;
+        await refreshPromise;
       });
 
       // Assert - no longer refreshing

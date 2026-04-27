@@ -67,8 +67,9 @@ describe('DepositTextField', () => {
   });
 
   it('should apply custom container style when provided', () => {
+    const containerStyle = { marginTop: 20 };
     const { toJSON } = render(
-      <DepositTextField {...defaultProps} containerStyle={{ marginTop: 20 }} />,
+      <DepositTextField {...defaultProps} containerStyle={containerStyle} />,
     );
     expect(toJSON()).toMatchSnapshot();
   });

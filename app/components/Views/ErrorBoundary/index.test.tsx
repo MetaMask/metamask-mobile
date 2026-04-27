@@ -29,7 +29,7 @@ jest.mock('../../../util/Logger', () => ({
 jest.mock(
   'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
   () => {
-    const { View } = require('react-native');
+    const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: View,

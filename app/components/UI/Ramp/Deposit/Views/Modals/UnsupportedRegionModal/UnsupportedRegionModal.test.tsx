@@ -31,7 +31,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock(
   '../../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const ReactMock = require('react');
+    const ReactMock = jest.requireActual('react');
     const MockBottomSheet = ReactMock.forwardRef(
       (
         { children }: { children: React.ReactNode },

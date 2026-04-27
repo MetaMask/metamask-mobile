@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import DiscoveryTab from './DiscoveryTab';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
@@ -10,7 +9,10 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 
 jest.mock(
   'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
-  () => ({ __esModule: true, default: View }),
+  () => ({
+    __esModule: true,
+    default: jest.requireActual('react-native').View,
+  }),
 );
 
 const mockNavigation = {

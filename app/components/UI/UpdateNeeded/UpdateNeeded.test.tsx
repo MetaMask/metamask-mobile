@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderScreen } from '../../..//util/test/renderWithProvider';
 import { UpdateNeeded } from './';
 import { fireEvent } from '@testing-library/react-native';
