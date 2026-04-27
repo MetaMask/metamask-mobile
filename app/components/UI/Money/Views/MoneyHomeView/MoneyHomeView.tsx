@@ -73,7 +73,11 @@ const MoneyHomeView = () => {
   // // eslint-disable-next-line no-alert
   const handleMenuPress = displayUnderConstructionAlert;
 
-  const handleAddPress = displayUnderConstructionAlert;
+  const handleAddPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
+  }, [navigation]);
   const handleTransferPress = displayUnderConstructionAlert;
   const handleCardPress = displayUnderConstructionAlert;
   const handleApyInfoPress = displayUnderConstructionAlert;
@@ -94,7 +98,6 @@ const MoneyHomeView = () => {
   const handleLearnMorePress = useCallback(() => {
     Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
   }, []);
-  const handleAddMoneyPress = displayUnderConstructionAlert;
   const handleHowItWorksHeaderPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
   }, [navigation]);
@@ -230,7 +233,7 @@ const MoneyHomeView = () => {
           />
         )}
       </ScrollView>
-      <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />
+      <MoneyFooter onAddMoneyPress={handleAddPress} />
     </Box>
   );
 };
