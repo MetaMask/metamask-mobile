@@ -12,6 +12,9 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
     if (key === 'predict.order.confirm') {
       return 'Confirm';
     }
+    if (key === 'predict.order.retry') {
+      return 'Retry';
+    }
     return key;
   }),
 }));
@@ -331,6 +334,43 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByText(/Yes/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('when isRetry is true', () => {
+    it('renders Retry label instead of outcome title and price', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isRetry
+        />,
+      );
+
+      expect(screen.getByText('Retry')).toBeOnTheScreen();
+      expect(screen.queryByText(/Yes/)).not.toBeOnTheScreen();
+    });
+
+    it('renders Retry label even when isSheetMode is also true', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isSheetMode
+          isRetry
+        />,
+      );
+
+      expect(screen.getByText('Retry')).toBeOnTheScreen();
+      expect(screen.queryByText('Confirm')).not.toBeOnTheScreen();
     });
   });
 });
