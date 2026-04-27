@@ -12,9 +12,10 @@ const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
 
 interface MockRouteParams {
-  traderId: string;
-  traderName: string;
-  tokenSymbol: string;
+  positionId?: string;
+  traderId?: string;
+  traderName?: string;
+  tokenSymbol?: string;
   position?: Position;
 }
 

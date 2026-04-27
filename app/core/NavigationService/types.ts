@@ -224,6 +224,29 @@ export interface NestedNavigationParams {
 
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
+type TraderPositionViewParams =
+  | {
+      positionId: string;
+      traderId?: never;
+      // Temporary display placeholders for notification deeplinks:
+      // - traderName
+      // - tokenSymbol
+      // Remove these once the positionId hydration flow can fetch real
+      // position details.
+      traderName: string;
+      tokenSymbol: string;
+      traderImageUrl?: string;
+      position?: never;
+    }
+  | {
+      positionId?: never;
+      traderId: string;
+      traderName: string;
+      traderImageUrl?: string;
+      tokenSymbol: string;
+      position: Position;
+    };
+
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
@@ -558,13 +581,7 @@ export interface RootStackParamList extends ParamListBase {
   // Social Leaderboard routes
   TopTradersView: undefined;
   TraderProfileView: { traderId: string; traderName: string };
-  TraderPositionView: {
-    traderId: string;
-    traderName: string;
-    traderImageUrl?: string;
-    tokenSymbol: string;
-    position?: Position;
-  };
+  TraderPositionView: TraderPositionViewParams;
 
   // Misc routes
   LockScreen: undefined;
