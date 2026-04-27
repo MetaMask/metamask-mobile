@@ -11,10 +11,10 @@ import {
   type Transaction,
 } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
+import { encodeErc20ApproveCalldata } from '../../../../core/Engine/controllers/card-controller/utils/encodeErc20ApproveCalldata';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { useCardSDK } from '../sdk';
 import { CardNetwork, CardFundingToken } from '../types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
@@ -76,8 +76,8 @@ interface SignCardMessageResult {
  * Flow: Token -> Signature -> Approval Transaction -> Completion
  */
 export const useCardDelegation = (token?: CardFundingToken | null) => {
-  const { sdk } = useCardSDK();
-  const { KeyringController, TransactionController } = Engine.context;
+  const { KeyringController, TransactionController, CardController } =
+    Engine.context;
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
@@ -133,7 +133,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
       signatureMessage: string,
       delegationJWTToken: string,
     ) => {
-      if (!sdk || !token?.delegationContract) {
+      if (!token?.delegationContract) {
         throw new Error('Missing token configuration');
       }
 
@@ -154,7 +154,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
         token.decimals ?? 18,
       ).toString();
 
-      const transactionData = sdk.encodeApproveTransaction(
+      const transactionData = encodeErc20ApproveCalldata(
         token.delegationContract,
         amountInMinimalUnits,
       );
@@ -193,10 +193,10 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
             async (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
                 try {
-                  await sdk.completeDelegation({
+                  await CardController.approveFunding({
                     address,
                     network: params.network,
-                    currency: params.currency.toLowerCase(),
+                    currency: params.currency,
                     amount: params.amount,
                     txHash: actualTxHash,
                     sigHash: signature,
@@ -234,7 +234,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
         rethrowAsUserCancelledIfApplicable(error);
       }
     },
-    [sdk, token, TransactionController, ensureNetworkExists],
+    [token, TransactionController, ensureNetworkExists, CardController],
   );
 
   /**
@@ -256,7 +256,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
       signatureMessage: string,
       delegationJWTToken: string,
     ) => {
-      if (!sdk || !token?.delegationContract) {
+      if (!token?.delegationContract) {
         throw new Error('Missing token configuration');
       }
       if (!token?.stagingTokenAddress && !token?.address) {
@@ -371,10 +371,10 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
         });
 
         // Complete the delegation with the backend API after confirmation
-        await sdk.completeDelegation({
+        await CardController.approveFunding({
           address,
           network: params.network,
-          currency: params.currency.toLowerCase(),
+          currency: params.currency,
           amount: params.amount,
           txHash,
           sigHash: signature,
@@ -391,7 +391,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
         rethrowAsUserCancelledIfApplicable(error);
       }
     },
-    [sdk, token],
+    [token, CardController],
   );
 
   const signSolanaMessage = useCallback(
@@ -438,10 +438,6 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
    */
   const submitDelegation = useCallback(
     async (params: DelegationParams) => {
-      if (!sdk) {
-        throw new Error('Card SDK not available');
-      }
-
       setState({ isLoading: true, error: null });
 
       const metricsProps = {
@@ -473,13 +469,13 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
           throw new Error('No account found');
         }
 
-        // Step 1: Generate delegation token (pass faucet flag if user needs gas)
-        const { token: delegationJWTToken, nonce } =
-          await sdk.generateDelegationToken(
-            params.network,
+        // Step 1: Delegation session (pass faucet flag if user needs gas)
+        const { delegationToken: delegationJWTToken, nonce } =
+          await CardController.fetchDelegationChallenge({
+            network: params.network,
             address,
-            needsFaucet,
-          );
+            faucet: needsFaucet,
+          });
 
         // Step 2: Generate and sign SIWE message
         const signatureMessage = generateSignatureMessage(
@@ -548,7 +544,6 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
       }
     },
     [
-      sdk,
       selectAccountByScope,
       generateSignatureMessage,
       KeyringController,
@@ -559,6 +554,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
       trackEvent,
       createEventBuilder,
       needsFaucet,
+      CardController,
     ],
   );
 

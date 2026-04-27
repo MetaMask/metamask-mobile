@@ -1,6 +1,5 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { TransactionType } from '@metamask/transaction-controller';
-import { numberToHex, type Hex, type Json } from '@metamask/utils';
+import { type Json } from '@metamask/utils';
 import Logger from '../../../../util/Logger';
 import {
   CARD_CONTROLLER_NAME,
@@ -30,9 +29,9 @@ import {
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type DelegationChallengeResponse,
   type FundingApprovalParams,
   type ICardProvider,
-  type WalletOperations,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import { isEthAccount } from '../../../Multichain/utils';
@@ -838,39 +837,23 @@ export class CardController extends BaseController<
         'Funding approval not supported',
       );
     }
-    const wallet = this.#buildWalletOperations();
-    return provider.approveFunding(params, tokens, wallet);
+    return provider.approveFunding(params, tokens);
   }
 
-  #buildWalletOperations(): WalletOperations {
-    return {
-      signMessage: async (address: string, message: string) => {
-        const hex = `0x${Buffer.from(message, 'utf8').toString('hex')}`;
-        return this.messenger.call('KeyringController:signPersonalMessage', {
-          data: hex,
-          from: address,
-        });
-      },
-      submitTransaction: async (txParams, chainId) => {
-        const chainNumber = parseInt(chainId.split(':')[1], 10);
-        const hexChainId = numberToHex(chainNumber) as Hex;
-        const networkClientId = this.messenger.call(
-          'NetworkController:findNetworkClientIdByChainId',
-          hexChainId,
-        );
-        const { result } = await this.messenger.call(
-          'TransactionController:addTransaction',
-          txParams,
-          {
-            networkClientId,
-            origin: 'metamask',
-            type: TransactionType.tokenMethodApprove,
-            requireApproval: true,
-          },
-        );
-        return result;
-      },
-    };
+  async fetchDelegationChallenge(params: {
+    network: string;
+    address: string;
+    faucet?: boolean;
+  }): Promise<DelegationChallengeResponse> {
+    const tokens = await this.requireValidTokens();
+    const provider = this.getActiveProvider();
+    if (!provider.fetchDelegationChallenge) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Delegation challenge not supported',
+      );
+    }
+    return provider.fetchDelegationChallenge(params, tokens);
   }
 
   // -- Push Provisioning --
