@@ -63,8 +63,8 @@ describe('migration 133', () => {
     const result = migrate(cloneDeep(state)) as ValidState;
 
     expect(
-      result.engine.backgroundState.AuthenticationController.srpSessionData,
-    ).toStrictEqual(srpSessionData);
+      result.engine.backgroundState.AuthenticationController,
+    ).toStrictEqual({ isSignedIn: false, srpSessionData });
   });
 
   it('does nothing when AuthenticationController is missing', () => {
