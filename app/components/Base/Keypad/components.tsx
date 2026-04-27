@@ -18,6 +18,13 @@ import {
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 
+// TODO: @MetaMask/design-system-engineers
+// Use the concrete Box component props here instead of BoxProps.
+// In MetaMask Mobile, extending BoxProps in forwarding wrappers can fail TS checks
+// because consumer code may resolve older @types/react-native callback types while
+// MMDS Box resolves React Native bundled types. Deriving props from the component
+// keeps wrapper props aligned with the actual JSX contract until the library-level
+// typing story is unified.
 type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 const createStyles = (colors: Colors) =>
