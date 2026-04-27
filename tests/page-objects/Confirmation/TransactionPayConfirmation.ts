@@ -323,7 +323,7 @@ class TransactionPayConfirmation {
         const resolvedFilter = await asPlaywrightElement(networkFilter);
         await PlaywrightAssertions.expectElementToBeVisible(resolvedFilter, {
           timeout: 15000,
-          description: 'Ethereum filter should be visible',
+          description: 'Network filter should be visible',
         });
 
         if (await PlatformDetector.isIOS()) {

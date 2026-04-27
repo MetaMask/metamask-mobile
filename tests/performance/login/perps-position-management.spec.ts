@@ -57,7 +57,6 @@ test.describe(PerformancePreps, () => {
       );
 
       await loginToAppPlaywright();
-      test.setTimeout(10 * 60 * 1000);
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
