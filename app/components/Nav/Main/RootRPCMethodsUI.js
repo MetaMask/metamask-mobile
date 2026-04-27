@@ -44,42 +44,37 @@ const RootRPCMethodsUI = (props) => {
     showHardwareWalletError,
   } = useHardwareWallet();
 
-  const trackCancelledTransaction = useCallback(
-    (error) => {
-      const message = error?.message ?? '';
+  const isCancelledError = useCallback((error) => {
+    const message = error?.message ?? '';
+    return (
+      message.startsWith(KEYSTONE_TX_CANCELED) ||
+      message.startsWith(STX_NO_HASH_ERROR)
+    );
+  }, []);
 
-      if (
-        !message.startsWith(KEYSTONE_TX_CANCELED) &&
-        !message.startsWith(STX_NO_HASH_ERROR)
-      ) {
-        return false;
-      }
-
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-        ).build(),
-      );
-      return true;
-    },
-    [trackEvent, createEventBuilder],
-  );
+  const trackTransactionCancelledEvent = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED).build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const handleAutoSignError = useCallback(
     (error) => {
-      if (trackCancelledTransaction(error)) {
+      if (isCancelledError(error)) {
+        trackTransactionCancelledEvent();
         return true;
       }
 
       Logger.error(error, 'error while trying to send transaction (Main)');
       return false;
     },
-    [trackCancelledTransaction],
+    [isCancelledError, trackTransactionCancelledEvent],
   );
 
   const showAutoSignError = useCallback(
     (error) => {
-      if (trackCancelledTransaction(error)) {
+      if (isCancelledError(error)) {
+        trackTransactionCancelledEvent();
         return true;
       }
 
@@ -91,7 +86,7 @@ const RootRPCMethodsUI = (props) => {
       Logger.error(error, 'error while trying to send transaction (Main)');
       return false;
     },
-    [trackCancelledTransaction],
+    [isCancelledError, trackTransactionCancelledEvent],
   );
 
   const autoSign = useCallback(
