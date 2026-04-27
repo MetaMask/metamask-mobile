@@ -399,6 +399,7 @@ function BuildQuote() {
   const debouncedAmountLimitError = useDebouncedValue(amountLimitError);
   const displayedAmountLimitError =
     amountLimitError === debouncedAmountLimitError ? amountLimitError : null;
+  const hasSettledQuoteAmount = amountAsNumber === debouncedPollingAmount;
   const quoteFetchEnabled = !!(
     walletAddress &&
     selectedPaymentMethod &&
@@ -655,6 +656,7 @@ function BuildQuote() {
 
   const hasNoQuotes =
     hasAmount &&
+    hasSettledQuoteAmount &&
     !selectedQuoteLoading &&
     !quoteFetchError &&
     quotesResponse !== null &&

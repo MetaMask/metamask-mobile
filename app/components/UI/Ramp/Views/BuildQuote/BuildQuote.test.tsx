@@ -722,6 +722,68 @@ describe('BuildQuote', () => {
       expect(queryByText('Maximum purchase is $80.00')).not.toBeOnTheScreen();
     });
 
+    it('suppresses stale provider limit errors while the debounced quote amount catches up', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 20,
+        maxAmount: 1000,
+      });
+      let debouncedAmount = 12;
+      const staleDebouncedLimitError = 'Minimum purchase is $20.00';
+      mockUseParams.mockReturnValue({ amount: 123 });
+      mockUseDebouncedValue.mockImplementation((value: unknown) =>
+        typeof value === 'number' ? debouncedAmount : staleDebouncedLimitError,
+      );
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+      mockUseRampsQuotes.mockImplementation((options) => {
+        if (!options) {
+          return defaultQuotesHookResult(options);
+        }
+
+        return (options as { amount: number }).amount === 12
+          ? {
+              data: {
+                success: [],
+                error: [
+                  {
+                    provider: 'moonpay',
+                    error: 'Minimum purchase is 20 USD',
+                  },
+                ],
+              },
+              loading: false,
+              error: null,
+            }
+          : defaultQuotesHookResult(options);
+      });
+
+      const { queryByText, rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 12,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+      expect(queryByText('Minimum purchase is $20.00')).not.toBeOnTheScreen();
+      expect(queryByText('Minimum purchase is 20 USD')).not.toBeOnTheScreen();
+
+      debouncedAmount = 123;
+      rerender(<BuildQuote />);
+
+      expect(queryByText('Minimum purchase is 20 USD')).not.toBeOnTheScreen();
+      expect(queryByText('Powered by MoonPay')).toBeOnTheScreen();
+    });
+
     it('fetches quotes normally when the amount is within provider limits', () => {
       const providerWithLimits = buildProviderWithLimits({
         minAmount: 50,
