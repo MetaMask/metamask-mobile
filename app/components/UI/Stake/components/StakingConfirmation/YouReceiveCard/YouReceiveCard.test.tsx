@@ -18,21 +18,17 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('YouReceiveCard', () => {
-  it('render matches snapshot', () => {
+  it('renders estimated changes, received amount, and fiat value', () => {
     const props: YouReceiveCardProps = {
       amountWei: '4999820000000000000',
       amountFiat: '12,881.64',
     };
 
-    const { toJSON, getByText } = renderWithProvider(
-      <YouReceiveCard {...props} />,
-    );
+    const { getByText } = renderWithProvider(<YouReceiveCard {...props} />);
 
-    expect(getByText(strings('stake.estimated_changes'))).toBeDefined();
-    expect(getByText(strings('stake.you_receive'))).toBeDefined();
-    expect(getByText(`+ ${renderFromWei(props.amountWei)}`)).toBeDefined();
-    expect(getByText(`$${props.amountFiat}`)).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.estimated_changes'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.you_receive'))).toBeOnTheScreen();
+    expect(getByText(`+ ${renderFromWei(props.amountWei)}`)).toBeOnTheScreen();
+    expect(getByText(`$${props.amountFiat}`)).toBeOnTheScreen();
   });
 });

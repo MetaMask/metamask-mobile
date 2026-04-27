@@ -164,7 +164,8 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      expect(getByTestId(PerpsStopLossPromptSelectorsIDs.LOADING)).toBeTruthy();
+      // Button's internal spinner is shown
+      expect(getByTestId('spinner-container')).toBeTruthy();
       // Button still exists but shows loading indicator
       expect(
         getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
@@ -185,8 +186,8 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      // Loading indicator is shown, no toggle to interact with
-      expect(getByTestId(PerpsStopLossPromptSelectorsIDs.LOADING)).toBeTruthy();
+      // Button's internal spinner is shown, no toggle to interact with
+      expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
     it('formats price correctly', () => {

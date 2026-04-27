@@ -285,8 +285,8 @@ describe('PerpsOpenOrderCard', () => {
       const cancelButton = screen.getByTestId(
         PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
       );
-      // Check that the button has disabled prop
-      expect(cancelButton.props.disabled).toBe(true);
+      // Check that the button is disabled
+      expect(cancelButton).toBeDisabled();
     });
 
     it('shows geo block modal when cancel button is pressed and user is not eligible', () => {
