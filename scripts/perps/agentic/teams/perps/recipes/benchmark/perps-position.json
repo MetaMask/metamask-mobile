@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perps Position — open long ETH with TP, close position",
+  "schema_version": 1,
   "description": "Mirrors smoke/perps/perps-position.spec.ts. Opens a long ETH position, sets TP/SL, then closes it. Detox spec sets custom TP during order; recipe uses tpsl-create flow after position open (equivalent coverage, reuses existing flow).",
   "validate": {
     "workflow": {

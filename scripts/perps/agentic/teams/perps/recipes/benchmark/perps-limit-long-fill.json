@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perps Limit Long Fill — limit long ETH at Mid, verify order and fill",
+  "schema_version": 1,
   "description": "Mirrors smoke/perps/perps-limit-long-fill.spec.ts. Creates an ETH limit long at mid price via controller API, verifies the order appears, then waits for fill. Uses order-limit-place-controller flow (bypasses UI deposit path broken in dev mode).",
   "validate": {
     "workflow": {

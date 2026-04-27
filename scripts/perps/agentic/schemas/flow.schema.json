@@ -11,6 +11,10 @@
       "type": "string",
       "description": "Human-readable title. May contain {{param}} template tokens that resolve at runtime."
     },
+    "schema_version": {
+      "type": ["string", "number"],
+      "description": "Opt-in strict-validation marker. Set to 1 to require fields like screenshot `note`. Recipes without this field (legacy/demo) only get console warnings instead of validation errors. Bump in future versions when adopting additional strict rules."
+    },
     "pr": {
       "type": ["string", "number"],
       "description": "Associated PR number (informational)."
@@ -259,13 +263,13 @@
         {
           "if": { "properties": { "action": { "const": "screenshot" } } },
           "then": {
-            "required": ["filename", "note"],
+            "required": ["filename"],
             "properties": {
               "filename": { "type": "string", "minLength": 1, "description": "Screenshot label." },
               "note": {
                 "type": "string",
                 "minLength": 3,
-                "description": "State-specific caption describing what the screenshot proves (e.g. 'AC1: Recent Activity skeleton with 3 shimmer rows'). Required to keep caption-confidence HIGH."
+                "description": "State-specific caption describing what the screenshot proves (e.g. 'AC1: Recent Activity skeleton with 3 shimmer rows'). Required when top-level schema_version is set (>= 1). Recipes without schema_version (legacy) only get a console warning."
               }
             }
           }

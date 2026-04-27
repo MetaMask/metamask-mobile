@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perf — Perps add funds flow timing",
+  "schema_version": 1,
   "description": "Mirrors performance/login/perps-add-funds.spec.ts. Ensures tutorial is completed via setup, then navigates to Perps, opens Add Funds, and types amount. Teardown navigates back to PerpsHome.",
   "validate": {
     "workflow": {

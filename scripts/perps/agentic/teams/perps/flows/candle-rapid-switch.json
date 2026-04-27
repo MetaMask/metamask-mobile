@@ -1,5 +1,6 @@
 {
   "title": "Rapid market switching — validates candles load and no rate-limit/abort errors across BTC→ETH→SOL→HYPE→BTC→ETH",
+  "schema_version": 1,
   "inputs": {
     "screenshot_filename": {
       "type": "string",

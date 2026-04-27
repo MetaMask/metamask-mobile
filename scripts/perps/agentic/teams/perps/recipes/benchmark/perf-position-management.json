@@ -1,5 +1,6 @@
 {
   "title": "Benchmark: Perf — Perps position open and close BTC",
+  "schema_version": 1,
   "description": "Mirrors performance/login/perps-position-management.spec.ts. Opens a BTC long position and closes it. Performance spec measures timing with 40x leverage; recipe uses default leverage via trade-open-market flow.",
   "validate": {
     "workflow": {
