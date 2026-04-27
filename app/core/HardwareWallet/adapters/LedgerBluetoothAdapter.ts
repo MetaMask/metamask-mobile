@@ -516,6 +516,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           '[LedgerBluetoothAdapter] Failed to send open app command:',
           openError,
         );
+        await this.#closeTransport();
       }
     } else {
       try {
@@ -527,6 +528,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           '[LedgerBluetoothAdapter] Failed to close app:',
           closeError,
         );
+        await this.#closeTransport();
       }
     }
   }
@@ -565,9 +567,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   async #closeTransport(): Promise<void> {
     const transport = this.#transport;
     const deviceId = this.#deviceId;
-    if (transport) {
-      this.#transport = null;
-      try {
+    this.#transport = null;
+
+    try {
+      if (transport) {
         if (deviceId) {
           // TransportBLE.close() queues a delayed disconnect (5s timeout).
           // Force an immediate BLE disconnection so in-flight signing is
@@ -576,9 +579,14 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         } else {
           await transport.close();
         }
-      } catch {
-        // Ignore close errors — device may already be disconnected
+      } else if (deviceId) {
+        // Transport already cleared (e.g. by #handleDisconnect) but device
+        // ID still set — force BLE cleanup so the OS stack doesn't keep a
+        // stale connection that blocks the next TransportBLE.open() call.
+        await TransportBLE.disconnectDevice(deviceId);
       }
+    } catch {
+      // Ignore close errors — device may already be disconnected
     }
   }
 
@@ -667,16 +675,30 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   /**
    * Check if error is a transient BLE error that can be retried
    * (disconnects during app switch, pairing failures during reconnect, etc.)
+   *
+   * Checks error name first, then falls back to message-based detection
+   * for BLE errors that use generic Error names after a device power-cycle.
    */
   #isTransientBleError(error: unknown): boolean {
     if (!(error instanceof Error)) return false;
+
     const transientBleErrorNames: readonly string[] = [
       ...DISCONNECT_ERROR_NAMES,
       'PairingFailed',
       'PeerRemovedPairing',
       'BleError',
     ];
-    return transientBleErrorNames.includes(error.name);
+    if (transientBleErrorNames.includes(error.name)) return true;
+
+    const message = error.message?.toLowerCase() ?? '';
+    return (
+      message.includes('disconnected') ||
+      message.includes('connection lost') ||
+      message.includes('gatt') ||
+      message.includes('ble error') ||
+      message.includes('bluetooth connection') ||
+      message.includes('bluetooth transfer')
+    );
   }
 
   /**

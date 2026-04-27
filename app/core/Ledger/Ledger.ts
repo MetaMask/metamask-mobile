@@ -18,7 +18,7 @@ import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
-import { isEthAppNotOpenError } from './ledgerErrors';
+import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -191,6 +191,9 @@ export const getLedgerAccountsByOperation = async (
     /* istanbul ignore next */
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
+    }
+    if (isDisconnectError(e)) {
+      throw new Error(strings('ledger.ledger_disconnected'));
     }
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }
