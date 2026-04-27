@@ -3517,7 +3517,6 @@
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor böswilligen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie eine Anfrage genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
     "smart_account_dapp_requests_heading": "Anfragen für Smart-Konten von Dapps",
-    "smart_account_dapp_requests_desc": "Lassen Sie Dapps die Smart-Konto-Funktionen für Standardkonten anfordern. Dies wirkt sich nicht auf bereits bestehende Smart-Konten aus.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Schalten Sie Smart Transactions für zuverlässigere und sicherere Transaktionen auf unterstützten Netzwerken ein.",
     "smart_transactions_learn_more": "Mehr erfahren",
