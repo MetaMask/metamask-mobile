@@ -613,7 +613,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
         }
       >
-        {order.statusDescription && (
+        {order.statusDescription && TERMINAL_STATUSES.has(order.status) && (
           <Box twClassName={showCloseButton ? 'mb-4' : ''}>
             <TouchableOpacity onPress={handleInfoPress}>
               <Text
