@@ -1,6 +1,11 @@
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
 
+// E2E: Patch WebSocket BEFORE any other imports that might use it
+// This allows us to intercept Solana snap WebSocket connections
+import { patchWebSocketForE2E } from './app/util/test/e2eWebSocketPatch';
+patchWebSocketForE2E();
+
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
 import 'react-native-gesture-handler';
