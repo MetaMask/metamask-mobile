@@ -478,6 +478,37 @@ describe('OAuthRehydration', () => {
       });
     });
 
+    it('tracks typed seedless controller failures with controller metadata', async () => {
+      const seedlessError = new SeedlessOnboardingControllerError(
+        SeedlessOnboardingControllerErrorType.AuthenticationError,
+        'SeedlessOnboardingController - Authentication failed',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+      mockTrackOnboarding.mockClear();
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'wrongPassword');
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+            properties: expect.objectContaining({
+              error_origin: 'seedless_controller',
+              error_type: 'seedless_authentication_error',
+            }),
+          }),
+          expect.any(Function),
+        );
+      });
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        seedlessError,
+        expect.objectContaining({
+          tags: expect.objectContaining({ view: 'Login' }),
+        }),
+      );
+    });
+
     it('handles too many login attempts with countdown', async () => {
       const tooManyAttemptsError =
         new SeedlessOnboardingControllerRecoveryError(
@@ -546,7 +577,7 @@ describe('OAuthRehydration', () => {
 
     it('sanitizes seedless error message by removing controller prefix', async () => {
       const seedlessError = new Error(
-        'SeedlessOnboardingController - Something went wrong',
+        'SeedlessOnboardingController- Something went wrong',
       );
       mockUnlockWallet.mockRejectedValue(seedlessError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
@@ -558,12 +589,90 @@ describe('OAuthRehydration', () => {
       });
     });
 
+    it('only strips the seedless controller prefix when it starts the message', async () => {
+      const seedlessError = new Error(
+        'Wrapped error: SeedlessOnboardingController - Something went wrong',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+        expect(errorElement.props.children).toBe(
+          'Wrapped error: SeedlessOnboardingController - Something went wrong',
+        );
+      });
+    });
+
     it('prompts seedless relogin for non-oauth seedless failure', async () => {
       mockRoute.mockReturnValue({
         params: { locked: true, oauthLoginSuccess: false },
       });
       const seedlessError = new Error(
         'SeedlessOnboardingController - Vault corrupted',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        expect(mockPromptSeedlessRelogin).toHaveBeenCalled();
+      });
+    });
+
+    it('prompts seedless relogin for non-oauth typed controller errors', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
+      const seedlessError = new SeedlessOnboardingControllerError(
+        SeedlessOnboardingControllerErrorType.AuthenticationError,
+        'SeedlessOnboardingController - Authentication failed',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        expect(mockPromptSeedlessRelogin).toHaveBeenCalled();
+      });
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        seedlessError,
+        expect.objectContaining({
+          tags: expect.objectContaining({ view: 'Re-login' }),
+        }),
+      );
+    });
+
+    it('shows password outdated message for non-oauth PasswordRecentlyUpdated errors', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
+      const seedlessError = new SeedlessOnboardingControllerError(
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+        expect(errorElement.props.children).toContain(
+          strings('login.seedless_password_outdated'),
+        );
+      });
+      expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
+    });
+
+    it('prompts seedless relogin for unrecognized recovery errors in non-oauth flows', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'SeedlessOnboardingController - Unexpected recovery failure',
       );
       mockUnlockWallet.mockRejectedValue(seedlessError);
 
@@ -898,7 +1007,32 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('sets errorToThrow for unknown oauth errors when metrics disabled', async () => {
+    it('tracks unknown oauth errors with the unclassified error origin', async () => {
+      const unknownError = new Error(
+        'SeedlessOnboardingController - Unknown crash',
+      );
+      mockIsEnabled.mockReturnValue(true);
+      mockUnlockWallet.mockRejectedValue(unknownError);
+      mockTrackOnboarding.mockClear();
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+            properties: expect.objectContaining({
+              error_type: 'unknown_error',
+              error_origin: 'seedless_unclassified',
+            }),
+          }),
+          expect.any(Function),
+        );
+      });
+    });
+
+    it('does not throw for unknown oauth errors when metrics disabled', async () => {
       const unknownError = new Error(
         'SeedlessOnboardingController - Unknown crash',
       );
@@ -907,13 +1041,14 @@ describe('OAuthRehydration', () => {
 
       expect(() => renderWithProvider(<OAuthRehydration />)).not.toThrow();
 
-      // The errorToThrow is set, but since ErrorBoundary catches it, we verify
-      // captureException is NOT called
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId, 'password123');
 
       await waitFor(() => {
         expect(mockCaptureException).not.toHaveBeenCalled();
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).toBeOnTheScreen();
       });
     });
   });

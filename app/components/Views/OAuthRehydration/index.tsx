@@ -97,9 +97,15 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { analytics } from '../../../util/analytics/analytics';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import {
+  ErrorOrigin,
+  getRehydrationErrorTypeForSeedlessControllerCode,
+} from '../../../util/analytics/loginFailureAnalytics';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
+
+const SEEDLESS_CONTROLLER_PREFIX = /^SeedlessOnboardingController\s*-\s*/;
 
 const FOX_IMAGE_SIZE = Device.isIos() ? 175 : 150;
 const foxImageStyle = {
@@ -111,6 +117,9 @@ const foxImageStyle = {
 interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
+
+const sanitizeSeedlessControllerErrorMessage = (message: string) =>
+  message.replace(SEEDLESS_CONTROLLER_PREFIX, '');
 
 const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
@@ -129,7 +138,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
 
   const [password, setPassword] = useState('');
-  const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
@@ -231,6 +239,26 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [saveOnboardingEvent],
   );
 
+  const trackRehydrationFailure = useCallback(
+    (properties: Record<string, string | boolean | number>) => {
+      if (!isComingFromOauthOnboarding) {
+        return;
+      }
+
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: accountType,
+        failed_attempts: rehydrationFailedAttempts,
+        ...properties,
+      });
+    },
+    [
+      accountType,
+      isComingFromOauthOnboarding,
+      rehydrationFailedAttempts,
+      track,
+    ],
+  );
+
   const [biometryChoice, setBiometryChoice] = useState(true);
 
   const promptBiometricFailedAlert = useCallback(async () => {
@@ -300,6 +328,25 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [],
   );
 
+  const captureOauthRehydrationError = useCallback(
+    (seedlessError: Error) => {
+      if (!isComingFromOauthOnboarding) {
+        return;
+      }
+
+      if (isMetricsEnabled()) {
+        captureException(seedlessError, {
+          tags: {
+            view: 'Login',
+            context: 'OAuth rehydration failed - user consented to analytics',
+          },
+        });
+        return;
+      }
+    },
+    [isComingFromOauthOnboarding, isMetricsEnabled],
+  );
+
   const handleSeedlessOnboardingControllerError = useCallback(
     (
       seedlessError:
@@ -334,58 +381,73 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           seedlessError.message ===
           SeedlessOnboardingControllerErrorMessage.IncorrectPassword
         ) {
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: accountType,
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
-            });
-          }
+          trackRehydrationFailure({
+            error_type: 'incorrect_password',
+            error_origin: ErrorOrigin.SeedlessRecovery,
+          });
           setError(strings('login.invalid_password'));
           return;
-        } else if (
+        }
+
+        if (
           seedlessError.message ===
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
         ) {
-          // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+          const failedAttempts =
+            seedlessError.data?.numberOfAttempts ?? rehydrationFailedAttempts;
+
           if (seedlessError.data?.numberOfAttempts !== undefined) {
             setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
           }
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: accountType,
-              failed_attempts:
-                seedlessError.data?.numberOfAttempts ??
-                rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
-            });
-          }
+
+          trackRehydrationFailure({
+            failed_attempts: failedAttempts,
+            error_type: 'too_many_login_attempts',
+            error_origin: ErrorOrigin.SeedlessRecovery,
+          });
+
           if (typeof seedlessError.data?.remainingTime === 'number') {
-            tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
+            tooManyAttemptsError(seedlessError.data.remainingTime).catch(
               () => null,
             );
           }
+
           return;
         }
-      } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
+      }
+
+      if (seedlessError instanceof SeedlessOnboardingControllerError) {
         if (
           seedlessError.code ===
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
         ) {
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: accountType,
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'unknown_error',
-            });
-          }
+          trackRehydrationFailure({
+            error_type: getRehydrationErrorTypeForSeedlessControllerCode(
+              seedlessError.code,
+            ),
+            error_origin: ErrorOrigin.SeedlessController,
+          });
           setError(strings('login.seedless_password_outdated'));
           return;
         }
-      } else if (!isComingFromOauthOnboarding) {
-        // new password relogin failed
-        // for non oauth login (rehydration) failure, prompt user to reset and rehydrate
-        // do we want to capture and report the error?
+
+        if (isComingFromOauthOnboarding) {
+          trackRehydrationFailure({
+            error_type: getRehydrationErrorTypeForSeedlessControllerCode(
+              seedlessError.code,
+            ),
+            error_origin: ErrorOrigin.SeedlessController,
+          });
+
+          setError(
+            sanitizeSeedlessControllerErrorMessage(seedlessError.message),
+          );
+          captureOauthRehydrationError(seedlessError);
+          return;
+        }
+      }
+
+      if (!isComingFromOauthOnboarding) {
         if (isMetricsEnabled()) {
           captureException(seedlessError, {
             tags: {
@@ -395,50 +457,29 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             },
           });
         }
+
         Logger.error(seedlessError, 'Error in Unlock Screen');
         promptSeedlessRelogin();
         return;
       }
 
-      const errMessage = seedlessError.message.replace(
-        'SeedlessOnboardingController - ',
-        '',
-      );
-      setError(errMessage);
-
-      if (isComingFromOauthOnboarding) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: accountType,
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'unknown_error',
-        });
-
-        if (isMetricsEnabled()) {
-          captureException(seedlessError, {
-            tags: {
-              view: 'Login',
-              context: 'OAuth rehydration failed - user consented to analytics',
-            },
-          });
-        } else {
-          setErrorToThrow(
-            new Error(`OAuth rehydration failed: ${seedlessError.message}`),
-          );
-        }
-      }
+      setError(sanitizeSeedlessControllerErrorMessage(seedlessError.message));
+      trackRehydrationFailure({
+        error_type: 'unknown_error',
+        error_origin: ErrorOrigin.SeedlessUnclassified,
+      });
+      captureOauthRehydrationError(seedlessError);
     },
     [
-      rehydrationFailedAttempts,
-      setRehydrationFailedAttempts,
-      track,
-      tooManyAttemptsError,
+      captureOauthRehydrationError,
+      isComingFromOauthOnboarding,
       isMetricsEnabled,
       netInfo,
       navigation,
-      setErrorToThrow,
       promptSeedlessRelogin,
-      isComingFromOauthOnboarding,
-      accountType,
+      rehydrationFailedAttempts,
+      tooManyAttemptsError,
+      trackRehydrationFailure,
     ],
   );
 
@@ -485,6 +526,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             account_type: accountType,
             failed_attempts: rehydrationFailedAttempts,
             error_type: 'incorrect_password',
+            error_origin: ErrorOrigin.VaultDecrypt,
           });
         }
         handlePasswordError(loginErrorMessage);
@@ -516,6 +558,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           account_type: accountType,
           failed_attempts: rehydrationFailedAttempts,
           error_type: isPasscodeNotSet ? 'passcode_not_set' : 'unknown_error',
+          error_origin: isPasscodeNotSet
+            ? ErrorOrigin.DevicePasscode
+            : ErrorOrigin.UnlockWallet,
         });
       }
 
@@ -712,13 +757,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     downloadStateLogs(fullState, false);
   };
 
-  const ThrowErrorIfNeeded = () => {
-    if (errorToThrow) {
-      throw errorToThrow;
-    }
-    return null;
-  };
-
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);
     setError(null);
@@ -795,12 +833,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       </Button>
     );
   return (
-    <ErrorBoundary
-      navigation={navigation}
-      view="OAuthRehydration"
-      useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
-    >
-      <ThrowErrorIfNeeded />
+    <ErrorBoundary navigation={navigation} view="OAuthRehydration">
       <SafeAreaView
         style={[
           tw.style('flex-1'),
