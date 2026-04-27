@@ -249,13 +249,67 @@ const PriceAdvanced = ({
 
   const visibleToMs = lastBarTime;
 
-  // Map the visible OHLCV window into the LineGraph point format.
-  const graphPoints = useMemo<GraphPoint[]>(() => {
-    if (ohlcvData.length === 0 || visibleFromMs == null) return [];
-    return ohlcvData
-      .filter((bar) => bar.time >= visibleFromMs)
-      .map((bar) => ({ value: bar.close, date: new Date(bar.time) }));
-  }, [ohlcvData, visibleFromMs]);
+  // Build graph points by trimming to the visible window and resampling to a
+  // fixed point count. Fixed cardinality lets react-native-graph interpolate
+  // cleanly between timeframes — variable counts cause two-stage animations
+  // (rebuild then settle).
+  const NORMALIZED_POINT_COUNT = 100;
+  const buildGraphPoints = useCallback(
+    (data: typeof ohlcvData, fromMs: number): GraphPoint[] => {
+      if (data.length === 0) return [];
+      const trimmed = data.filter((bar) => bar.time >= fromMs);
+      if (trimmed.length === 0) return [];
+
+      if (trimmed.length <= NORMALIZED_POINT_COUNT) {
+        const points = trimmed.map((bar) => ({
+          value: bar.close,
+          date: new Date(bar.time),
+        }));
+        if (points.length >= 2 && points.length < NORMALIZED_POINT_COUNT) {
+          const result: GraphPoint[] = [];
+          const step = (points.length - 1) / (NORMALIZED_POINT_COUNT - 1);
+          for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
+            const rawIdx = i * step;
+            const lo = Math.floor(rawIdx);
+            const hi = Math.min(lo + 1, points.length - 1);
+            const t = rawIdx - lo;
+            result.push({
+              value: points[lo].value * (1 - t) + points[hi].value * t,
+              date: new Date(
+                points[lo].date.getTime() * (1 - t) +
+                  points[hi].date.getTime() * t,
+              ),
+            });
+          }
+          return result;
+        }
+        return points;
+      }
+      const result: GraphPoint[] = [];
+      const step = (trimmed.length - 1) / (NORMALIZED_POINT_COUNT - 1);
+      for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
+        const idx = Math.round(i * step);
+        const bar = trimmed[idx];
+        result.push({ value: bar.close, date: new Date(bar.time) });
+      }
+      return result;
+    },
+    [],
+  );
+
+  // Commit a new point set only when the underlying ohlcvData *array reference*
+  // changes (i.e. a fresh fetch landed). This prevents a re-window of the
+  // previous fetch's data while the new fetch is still in-flight.
+  const [graphPoints, setGraphPoints] = useState<GraphPoint[]>([]);
+  const committedDataRef = useRef<typeof ohlcvData | null>(null);
+  if (
+    ohlcvData !== committedDataRef.current &&
+    ohlcvData.length > 0 &&
+    visibleFromMs != null
+  ) {
+    committedDataRef.current = ohlcvData;
+    setGraphPoints(buildGraphPoints(ohlcvData, visibleFromMs));
+  }
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
@@ -347,7 +401,7 @@ const PriceAdvanced = ({
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
             variant={TextVariant.DisplayLg}
           >
-            {showPriceSkeleton ? (
+            {isLoading ? (
               <View style={styles.loadingPrice}>
                 <SkeletonPlaceholder
                   backgroundColor={theme.colors.background.section}
@@ -366,7 +420,7 @@ const PriceAdvanced = ({
           </Text>
         )}
         <Text allowFontScaling={false}>
-          {showPriceSkeleton ? (
+          {isLoading ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
                 backgroundColor={theme.colors.background.section}
@@ -471,7 +525,6 @@ const PriceAdvanced = ({
       <View style={styles.timeRangeContainer}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
-            isChartLoading={chartLoading}
             selected={timeRange}
             onSelect={handleTimeRangeSelect}
             chartType={chartType}
