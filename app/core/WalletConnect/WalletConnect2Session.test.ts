@@ -15,7 +15,7 @@ import Device from '../../util/device';
 import { Minimizer } from '../NativeModules';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
-import { Hex, CaipChainId } from '@metamask/utils';
+import { Hex, CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
 
 jest.mock('../AppConstants', () => ({
@@ -100,6 +100,9 @@ jest.mock('../Engine/Engine', () => {
           .mockReturnValue(() => ({ result: true })),
       },
     },
+    controllerMessenger: {
+      call: jest.fn().mockResolvedValue('snap-result'),
+    },
   };
   return {
     __esModule: true,
@@ -107,6 +110,7 @@ jest.mock('../Engine/Engine', () => {
     context: mockEngine.context,
   };
 });
+jest.mock('../Engine', () => jest.requireMock('../Engine/Engine'));
 jest.mock('../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
@@ -133,14 +137,6 @@ jest.mock('./wc-utils', () => ({
   hideWCLoadingState: jest.fn(),
   showWCLoadingState: jest.fn(),
   checkWCPermissions: jest.fn().mockResolvedValue(true),
-  getScopedPermissions: jest.fn().mockResolvedValue({
-    eip155: {
-      chains: ['eip155:1'],
-      methods: ['eth_sendTransaction'],
-      events: ['chainChanged', 'accountsChanged'],
-      accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
-    },
-  }),
   normalizeOrigin: jest.fn().mockImplementation((url) => url),
   getHostname: jest.fn().mockReturnValue('example.com'),
 }));
@@ -410,7 +406,7 @@ describe('WalletConnect2Session', () => {
       id: '1',
       topic: 'test-topic',
       params: {
-        chainId: '0x2',
+        chainId: 'eip155:9999',
         request: {
           method: 'eth_sendTransaction',
           params: [],
@@ -422,9 +418,6 @@ describe('WalletConnect2Session', () => {
         },
       },
     };
-
-    const { checkWCPermissions } = jest.requireMock('./wc-utils');
-    checkWCPermissions.mockResolvedValueOnce(false);
 
     await session.handleRequest(requestEvent as any);
 
@@ -537,6 +530,122 @@ describe('WalletConnect2Session', () => {
     session.updateSession = originalUpdateSession;
   });
 
+  it('subscribes to chain changes', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
+
+    // Mock initial chain ID
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    const handleChainChangeSpy = jest.spyOn(
+      session as any,
+      'handleChainChange',
+    );
+
+    // Change the chain ID
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(handleChainChangeSpy).toHaveBeenCalledWith(2);
+
+    subscriberCallback();
+    expect(handleChainChangeSpy).toHaveBeenCalledTimes(1);
+
+    handleChainChangeSpy.mockRestore();
+  });
+
+  it('does not trigger handleChainChange when handler is already running', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
+
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    (session as any).isHandlingChainChange = true;
+
+    const handleChainChangeSpy = jest.spyOn(
+      session as any,
+      'handleChainChange',
+    );
+
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(handleChainChangeSpy).not.toHaveBeenCalled();
+
+    handleChainChangeSpy.mockRestore();
+  });
+
+  it('logs warning on handleChainChange error', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation(
+      (callback: () => void) => {
+        subscriberCallback = callback;
+      },
+    );
+
+    const devLoggerSpy = jest.spyOn(DevLogger, 'log').mockImplementation();
+
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    const error = new Error('Chain change failed');
+    jest
+      .spyOn(session as any, 'handleChainChange')
+      .mockRejectedValueOnce(error);
+
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(devLoggerSpy).toHaveBeenCalledWith(
+      'WC2::store.subscribe Error handling chain change:',
+      error,
+    );
+
+    devLoggerSpy.mockRestore();
+  });
   describe('redirect', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -1047,7 +1156,7 @@ describe('WalletConnect2Session', () => {
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
     });
 
-    it('handles eth_sendTransaction correctly with valid chainId that it has permissions for', async () => {
+    it('handles eth_sendTransaction correctly with valid chainId and tracks request topic mapping', async () => {
       jest.mock('./wc-utils', () => jest.requireActual('./wc-utils'));
       const requestId = Math.floor(Math.random() * 1000000);
       const request: WalletKitTypes.SessionRequest = {
