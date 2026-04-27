@@ -8,9 +8,16 @@
  * WalletConnect code path.
  */
 
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { tronAdapter } from './tron';
+///: END:ONLY_INCLUDE_IF
 import type { NonEvmChainAdapter } from './types';
 
-const adapters: NonEvmChainAdapter[] = [];
+const adapters: NonEvmChainAdapter[] = [
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  tronAdapter,
+  ///: END:ONLY_INCLUDE_IF
+];
 
 const byNamespace = new Map<string, NonEvmChainAdapter>(
   adapters.map((adapter) => [adapter.namespace, adapter]),
