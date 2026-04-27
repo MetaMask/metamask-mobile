@@ -277,7 +277,8 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPositions &&
         getCampaignStatus(campaign) === 'active',
       showStatsSummarySection: hasPositions,
-      showPortfolioSection: isOptedIn && hasPositions,
+      showPortfolioSection:
+        isOptedIn && hasPositions && getCampaignStatus(campaign) !== 'complete',
       showLeaderboardSection: true,
     };
   }, [campaign, isOptedIn, hasPositions]);
@@ -523,6 +524,9 @@ const OndoCampaignDetailsView: React.FC = () => {
                       currentUserReferralCode={referralCode}
                       userPosition={leaderboardUserPosition}
                       campaignId={effectiveCampaignId}
+                      isCampaignComplete={
+                        getCampaignStatus(campaign) === 'complete'
+                      }
                     />
                   </Box>
                 </>

@@ -1505,6 +1505,62 @@ describe('OndoCampaignDetailsView', () => {
     });
   });
 
+  describe('positions section visibility', () => {
+    it('hides the positions section when campaign is complete, even if opted in with positions', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-campaign-portfolio')).toBeNull();
+    });
+
+    it('shows the positions section when campaign is active, opted in with positions', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-campaign-portfolio')).toBeDefined();
+    });
+  });
+
   describe('portfolio and leaderboard navigation', () => {
     const setupOptedInWithPositions = () => {
       mockUseRewardCampaigns.mockReturnValue({
