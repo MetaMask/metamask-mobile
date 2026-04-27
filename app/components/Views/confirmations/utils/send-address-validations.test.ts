@@ -7,8 +7,6 @@ import {
   validateSolanaAddress,
   validateTronAddress,
 } from './send-address-validations';
-import { memoizedGetTokenStandardAndDetails, TokenDetailsERC20 } from './token';
-
 jest.mock('./token', () => ({
   memoizedGetTokenStandardAndDetails: jest.fn().mockResolvedValue(undefined),
 }));
@@ -20,10 +18,6 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-
-const mockMemoizedGetTokenStandardAndDetails = jest.mocked(
-  memoizedGetTokenStandardAndDetails,
-);
 
 describe('validateHexAddress', () => {
   it('returns error if address is burn address', async () => {
@@ -70,20 +64,13 @@ describe('validateHexAddress', () => {
     ).toStrictEqual({});
   });
 
-  it('returns warning if address is contract address', async () => {
-    mockMemoizedGetTokenStandardAndDetails.mockResolvedValue({
-      standard: 'ERC20',
-    } as unknown as TokenDetailsERC20);
+  it('does not flag token contract addresses (handled in send flow alerts)', async () => {
     expect(
       await validateHexAddress(
         '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
         '0x1',
       ),
-    ).toStrictEqual({
-      allowAcknowledge: true,
-      error:
-        'This address is a token contract address. If you send tokens to this address, you will lose them.',
-    });
+    ).toStrictEqual({});
   });
 });
 
