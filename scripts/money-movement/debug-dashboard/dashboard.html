@@ -391,6 +391,14 @@
         color: var(--cyan);
         background: rgba(121, 192, 255, 0.1);
       }
+      .method-cache-badge.trigger-websocket {
+        color: var(--green);
+        background: rgba(63, 185, 80, 0.15);
+      }
+      .method-cache-badge.trigger-polling {
+        color: var(--yellow);
+        background: rgba(210, 153, 34, 0.14);
+      }
       .method-time {
         color: var(--text-dim);
         font-size: 10px;
@@ -589,41 +597,194 @@
         display: flex;
         flex-direction: column;
       }
-      .widget-entry {
-        padding: 8px 12px;
-        margin: 4px 8px;
-        border-radius: 6px;
+      .ws-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+      }
+      .ws-hero {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .ws-card {
         border: 1px solid var(--border);
-        font-family: var(--font-mono);
+        border-radius: 10px;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(88, 166, 255, 0.12),
+            transparent 45%
+          ),
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.02),
+            rgba(255, 255, 255, 0)
+          ),
+          var(--bg-secondary);
+        padding: 12px;
+        min-height: 98px;
+      }
+      .ws-card-label {
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.9px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .ws-card-value {
+        margin-top: 8px;
+        color: var(--text-primary);
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .ws-card-subtext {
+        margin-top: 8px;
+        color: var(--text-muted);
         font-size: 11px;
-        cursor: pointer;
-        background: var(--bg-secondary);
+        line-height: 16px;
+        font-family: var(--font-mono);
       }
-      .widget-entry:hover {
-        border-color: var(--blue);
-        background: rgba(136, 198, 255, 0.04);
-      }
-      .widget-entry.has-error {
-        border-left: 3px solid var(--red);
-      }
-      .widget-entry.has-error .widget-status {
-        color: var(--red);
-      }
-      .widget-status-ok {
+      .ws-card-value.connected {
         color: var(--green);
       }
-      .widget-response-body {
-        margin-top: 6px;
-        padding: 6px 8px;
-        background: var(--bg-primary);
-        border-radius: 4px;
+      .ws-card-value.disconnected {
+        color: var(--red);
+      }
+      .ws-card-value.idle {
+        color: var(--yellow);
+      }
+      .ws-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 10px;
+        min-height: 0;
+      }
+      .ws-panel {
         border: 1px solid var(--border);
-        white-space: pre-wrap;
-        word-break: break-all;
-        max-height: 300px;
-        overflow-y: auto;
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--bg-secondary);
+        min-height: 260px;
+        display: flex;
+        flex-direction: column;
+      }
+      .ws-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .ws-panel-title {
         font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+      .ws-panel-note {
+        font-size: 10px;
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+      }
+      .ws-panel-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px 12px;
+      }
+      .ws-order-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-content: flex-start;
+      }
+      .ws-order-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: var(--bg-primary);
         color: var(--text-secondary);
+        font-family: var(--font-mono);
+        font-size: 11px;
+      }
+      .ws-order-pill-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 0 4px rgba(121, 192, 255, 0.08);
+      }
+      .ws-event-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .ws-event-entry {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px;
+        background: var(--bg-primary);
+      }
+      .ws-event-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ws-event-code {
+        color: var(--purple);
+        font-weight: 700;
+        font-size: 11px;
+        font-family: var(--font-mono);
+      }
+      .ws-event-status {
+        color: var(--green);
+        background: rgba(63, 185, 80, 0.12);
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .ws-event-time {
+        margin-left: auto;
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+        font-size: 10px;
+      }
+      .ws-event-order {
+        margin-top: 8px;
+        color: var(--text-secondary);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        word-break: break-all;
+      }
+      .ws-event-meta {
+        margin-top: 6px;
+        color: var(--text-dim);
+        font-size: 10px;
+      }
+      .ws-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 140px;
+        color: var(--text-dim);
+        text-align: center;
+        padding: 18px;
+        line-height: 18px;
+      }
+      @media (max-width: 1080px) {
+        .ws-hero {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .ws-grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -676,9 +837,67 @@
       <div class="resize-handle" id="resizeHandle"></div>
       <div class="panel panel-methods" id="panelMethods">
         <div class="tabs">
+          <div class="tab" data-tab="websockets">WebSockets</div>
           <div class="tab active" data-tab="methods">Methods</div>
           <div class="tab" data-tab="patches">Patches</div>
-          <div class="tab" data-tab="widget">Widget URL</div>
+        </div>
+        <div class="tab-panel" id="tabWebsockets">
+          <div class="ws-shell">
+            <div class="ws-hero">
+              <div class="ws-card">
+                <div class="ws-card-label">Pusher</div>
+                <div class="ws-card-value disconnected" id="wsConnectionValue">
+                  Idle
+                </div>
+                <div class="ws-card-subtext" id="wsConnectionMeta">
+                  Waiting for a tracked Transak order
+                </div>
+              </div>
+              <div class="ws-card">
+                <div class="ws-card-label">Subscribed Orders</div>
+                <div class="ws-card-value" id="wsSubscribedCount">0</div>
+                <div class="ws-card-subtext" id="wsSubscribedMeta">
+                  No active order channels
+                </div>
+              </div>
+              <div class="ws-card">
+                <div class="ws-card-label">Last Socket Event</div>
+                <div class="ws-card-value" id="wsLastEventValue">None</div>
+                <div class="ws-card-subtext" id="wsLastEventMeta">
+                  No Transak websocket events received yet
+                </div>
+              </div>
+              <div class="ws-card">
+                <div class="ws-card-label">Refresh Proof</div>
+                <div class="ws-card-value" id="wsProofValue">None</div>
+                <div class="ws-card-subtext" id="wsProofMeta">
+                  Waiting to correlate a websocket event with a getOrder refresh
+                </div>
+              </div>
+            </div>
+            <div class="ws-grid">
+              <div class="ws-panel">
+                <div class="ws-panel-header">
+                  <div class="ws-panel-title">Subscribed Order Channels</div>
+                  <div class="ws-panel-note" id="wsHeartbeat">
+                    No heartbeat yet
+                  </div>
+                </div>
+                <div class="ws-panel-body">
+                  <div class="ws-order-list" id="wsOrderList"></div>
+                </div>
+              </div>
+              <div class="ws-panel">
+                <div class="ws-panel-header">
+                  <div class="ws-panel-title">Live Event Timeline</div>
+                  <div class="ws-panel-note">Newest first</div>
+                </div>
+                <div class="ws-panel-body">
+                  <div class="ws-event-list" id="wsEventList"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="tab-panel active" id="tabMethods">
           <div class="panel-body" id="methodsBody">
@@ -698,18 +917,6 @@
               <div class="empty-state-text">No state patches yet</div>
               <div class="empty-state-hint">
                 Patches appear when controller state changes
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="tab-panel" id="tabWidget">
-          <div class="panel-body" id="widgetBody">
-            <div class="empty-state" id="widgetEmpty">
-              <div class="empty-state-icon">&#x1F4CE;</div>
-              <div class="empty-state-text">No widget URL requests yet</div>
-              <div class="empty-state-hint">
-                Use an <strong>aggregator</strong> provider (MoonPay, Banxa, etc.),
-                not Transak Native. Change amount, tap Continue on Build Quote.
               </div>
             </div>
           </div>
@@ -734,6 +941,12 @@
 
         let ws = null;
         let currentState = null;
+        let currentWsStatus = {
+          connected: false,
+          subscribedOrderIds: [],
+          timestamp: null,
+        };
+        let wsEvents = [];
         const expandedPaths = new Set();
         const STATE_SECTIONS = [
           'userRegion',
@@ -807,8 +1020,19 @@
         const methodsEmpty = document.getElementById('methodsEmpty');
         const patchesBody = document.getElementById('patchesBody');
         const patchesEmpty = document.getElementById('patchesEmpty');
-        const widgetBody = document.getElementById('widgetBody');
-        const widgetEmpty = document.getElementById('widgetEmpty');
+        const wsConnectionValue =
+          document.getElementById('wsConnectionValue');
+        const wsConnectionMeta = document.getElementById('wsConnectionMeta');
+        const wsSubscribedCount =
+          document.getElementById('wsSubscribedCount');
+        const wsSubscribedMeta = document.getElementById('wsSubscribedMeta');
+        const wsLastEventValue = document.getElementById('wsLastEventValue');
+        const wsLastEventMeta = document.getElementById('wsLastEventMeta');
+        const wsProofValue = document.getElementById('wsProofValue');
+        const wsProofMeta = document.getElementById('wsProofMeta');
+        const wsOrderList = document.getElementById('wsOrderList');
+        const wsEventList = document.getElementById('wsEventList');
+        const wsHeartbeat = document.getElementById('wsHeartbeat');
         const btnClear = document.getElementById('btnClear');
         const btnCollapseAll = document.getElementById('btnCollapseAll');
         const btnExpandAll = document.getElementById('btnExpandAll');
@@ -887,8 +1111,15 @@
             case 'method':
               renderMethod(msg);
               break;
-            case 'widget-url-request':
-              if (msg.details) renderWidgetRequest(msg.details);
+            case 'ws-status':
+              currentWsStatus = msg;
+              renderWsStatus();
+              break;
+            case 'ws-event':
+              wsEvents.unshift(msg);
+              wsEvents = wsEvents.slice(0, 100);
+              renderWsEvents();
+              renderWsStatus();
               break;
             case 'mobile-connected':
               statusText.textContent = 'Mobile connected';
@@ -897,6 +1128,114 @@
               statusText.textContent = 'Mobile disconnected';
               break;
           }
+        }
+
+        function renderWsStatus() {
+          const { connected, subscribedOrderIds, timestamp } = currentWsStatus;
+          const hasActiveChannels = subscribedOrderIds.length > 0;
+          wsConnectionValue.textContent = hasActiveChannels
+            ? 'Tracking'
+            : connected
+              ? 'Warm'
+              : 'Idle';
+          wsConnectionValue.classList.toggle('connected', hasActiveChannels);
+          wsConnectionValue.classList.toggle(
+            'disconnected',
+            !hasActiveChannels && !connected,
+          );
+          wsConnectionValue.classList.toggle(
+            'idle',
+            !hasActiveChannels && connected,
+          );
+          wsConnectionMeta.textContent = hasActiveChannels
+            ? `Listening on ${subscribedOrderIds.length} order channel${subscribedOrderIds.length === 1 ? '' : 's'}`
+            : connected
+              ? 'Pusher client still initialized, but no active order channels'
+              : timestamp
+                ? `No active socket session at ${formatTime(timestamp)}`
+                : 'Waiting for websocket status from mobile';
+
+          wsSubscribedCount.textContent = String(subscribedOrderIds.length);
+          wsSubscribedMeta.textContent =
+            subscribedOrderIds.length > 0
+              ? `${subscribedOrderIds.length} active Transak order channel${subscribedOrderIds.length === 1 ? '' : 's'}`
+              : 'No active order channels';
+          wsHeartbeat.textContent = timestamp
+            ? `Heartbeat ${formatTime(timestamp)}`
+            : 'No heartbeat yet';
+
+          if (subscribedOrderIds.length === 0) {
+            wsOrderList.innerHTML = trustedHtml(
+              '<div class="ws-empty">No subscribed orders yet.<br />Create or resume a pending Transak order to watch channels appear here.</div>',
+            );
+          } else {
+            wsOrderList.innerHTML = trustedHtml(
+              subscribedOrderIds
+                .map(
+                  (orderId) =>
+                    `<div class="ws-order-pill"><span class="ws-order-pill-dot"></span>${esc(orderId)}</div>`,
+                )
+                .join(''),
+            );
+          }
+
+          const latestWsRefreshProof = Array.from(
+            methodsBody.querySelectorAll('.method-entry'),
+          ).find(
+            (entry) =>
+              entry.getAttribute('data-refresh-trigger') === 'websocket',
+          );
+
+          if (latestWsRefreshProof) {
+            wsProofValue.textContent = 'Socket-led';
+            const orderId =
+              latestWsRefreshProof.getAttribute('data-order-id') || 'order';
+            const eventType =
+              latestWsRefreshProof.getAttribute('data-correlated-event') ||
+              'ORDER_*';
+            wsProofMeta.textContent = `${eventType} was followed immediately by getOrder(${orderId})`;
+          } else {
+            wsProofValue.textContent = 'None';
+            wsProofMeta.textContent =
+              'Waiting to correlate a websocket event with a getOrder refresh';
+          }
+
+          if (wsEvents.length > 0) {
+            wsLastEventValue.textContent = wsEvents[0].eventType.replace(
+              'ORDER_',
+              '',
+            );
+            wsLastEventMeta.textContent = `${wsEvents[0].status} for ${wsEvents[0].transakOrderId}`;
+          } else {
+            wsLastEventValue.textContent = 'None';
+            wsLastEventMeta.textContent =
+              'No Transak websocket events received yet';
+          }
+        }
+
+        function renderWsEvents() {
+          if (wsEvents.length === 0) {
+            wsEventList.innerHTML = trustedHtml(
+              '<div class="ws-empty">Waiting for Transak websocket events.<br />When an order update arrives, it will appear here instantly.</div>',
+            );
+            return;
+          }
+
+          wsEventList.innerHTML = trustedHtml(
+            wsEvents
+              .map(
+                (event) => `<div class="ws-event-entry">
+                <div class="ws-event-top">
+                  <span class="ws-event-code">${esc(event.eventType)}</span>
+                  <span class="ws-event-status">${esc(event.status || 'UNKNOWN')}</span>
+                  <span class="ws-event-time">${formatTime(event.timestamp)}</span>
+                </div>
+                <div class="ws-event-order">${esc(event.transakOrderId)}</div>
+                <div class="ws-event-meta">Live event received from the order-specific Transak channel.</div>
+              </div>`,
+              )
+              .join(''),
+          );
         }
 
         function renderState() {
@@ -1150,9 +1489,9 @@
                 );
             }
             if (keys.length > 3) parts.push('...');
-            return `<div class="method-result-summary">→ {${parts.join(', ')}}</div>`;
+            return `<div class="method-result-summary">\u2192 {${parts.join(', ')}}</div>`;
           }
-          return `<div class="method-result-summary">→ ${esc(truncate(JSON.stringify(msg.result), 60))}</div>`;
+          return `<div class="method-result-summary">\u2192 ${esc(truncate(JSON.stringify(msg.result), 60))}</div>`;
         }
 
         function formatRequestUrl(url) {
@@ -1175,6 +1514,16 @@
           return '';
         }
 
+        function getRefreshTriggerBadgeHtml(msg) {
+          if (msg.refreshTrigger === 'websocket') {
+            return '<span class="method-cache-badge trigger-websocket">socket</span>';
+          }
+          if (msg.refreshTrigger === 'polling') {
+            return '<span class="method-cache-badge trigger-polling">poll</span>';
+          }
+          return '';
+        }
+
         function renderMethod(msg) {
           if (HIDDEN_METHODS.has(msg.name)) return;
           methodsEmpty.style.display = 'none';
@@ -1186,18 +1535,29 @@
           const argsHtml = formatMethodArgs(msg.name, msg.args);
           const summaryHtml = getMethodResultSummary(msg);
           const cacheBadge = getCacheBadgeHtml(msg.cacheStatus);
+          const refreshBadge = getRefreshTriggerBadgeHtml(msg);
           const urlHtml = formatRequestUrl(msg.requestUrl);
           el.innerHTML = trustedHtml(`<div class="method-header">
         <span class="method-name">${esc(msg.name)}</span>
         <span class="method-time">${formatTime(msg.timestamp)}</span>
-        <span class="method-badges">${cacheBadge}<span class="method-duration ${dc}">${msg.duration != null ? msg.duration + 'ms' : ''}</span></span>
+        <span class="method-badges">${refreshBadge}${cacheBadge}<span class="method-duration ${dc}">${msg.duration != null ? msg.duration + 'ms' : ''}</span></span>
       </div>
       ${urlHtml}${argsHtml}${summaryHtml}
       <div class="method-detail">
         ${msg.requestUrl ? `<div><strong>Request URL:</strong>\n${esc(msg.requestUrl)}</div>\n` : ''}<div><strong>Args:</strong>\n${formatJsonSafe(msg.args)}</div>
+        ${msg.refreshTrigger ? `<div><strong>Refresh Trigger:</strong> ${esc(msg.refreshTrigger)}${msg.correlatedEventType ? ` (${esc(msg.correlatedEventType)})` : ''}</div>` : ''}
         ${msg.error ? `<div class="method-error"><strong>Error:</strong> ${esc(msg.error)}</div>` : ''}
         ${msg.result !== undefined ? `<div><strong>Result:</strong>\n${formatJsonSafe(msg.result)}</div>` : ''}
       </div>`);
+          if (msg.refreshTrigger) {
+            el.setAttribute('data-refresh-trigger', msg.refreshTrigger);
+          }
+          if (msg.orderId) {
+            el.setAttribute('data-order-id', msg.orderId);
+          }
+          if (msg.correlatedEventType) {
+            el.setAttribute('data-correlated-event', msg.correlatedEventType);
+          }
           el.addEventListener('click', () => {
             el.querySelector('.method-detail').classList.toggle('open');
           });
@@ -1209,51 +1569,7 @@
           else methodsBody.insertBefore(el, methodsBody.firstChild);
           while (methodsBody.children.length > 501)
             methodsBody.removeChild(methodsBody.lastChild);
-        }
-
-        function renderWidgetRequest(d) {
-          if (!d || typeof d !== 'object') return;
-          widgetEmpty.style.display = 'none';
-          const el = document.createElement('div');
-          el.className =
-            'widget-entry' + (d.ok ? '' : ' has-error');
-          const statusHtml = d.status != null
-            ? `<span class="widget-status ${d.ok ? 'widget-status-ok' : ''}">${d.status} ${esc(d.statusText || '')}</span>`
-            : d.error
-              ? `<span class="widget-status">Error: ${esc(d.error)}</span>`
-              : '';
-          let bodyHtml = '';
-          if (d.responseBody) {
-            bodyHtml = `<div class="widget-response-body">${esc(d.responseBody)}</div>`;
-          } else if (d.error) {
-            bodyHtml = `<div class="widget-response-body method-error">${esc(d.error)}</div>`;
-          }
-          el.innerHTML = trustedHtml(`<div class="method-header">
-        <span class="method-time">${formatTime(d.timestamp)}</span>
-        <span class="method-badges"><span class="method-duration">${d.duration}ms</span> ${statusHtml}</span>
-      </div>
-      <div class="method-url"><span class="method-url-label">URL</span><a class="method-url-value" href="${esc(d.url)}" target="_blank" rel="noopener" title="${esc(d.url)}">${esc(truncate(d.url, 120))}</a></div>
-      ${bodyHtml}
-      <div class="method-detail" style="display:none">
-        <div><strong>Full URL:</strong>\n${esc(d.url)}</div>
-        ${d.status != null ? `<div><strong>Status:</strong> ${d.status} ${esc(d.statusText || '')}</div>` : ''}
-        ${d.error ? `<div class="method-error"><strong>Error:</strong> ${esc(d.error)}</div>` : ''}
-        ${d.responseBody ? `<div><strong>Response body:</strong>\n${esc(d.responseBody)}</div>` : ''}
-        <div><strong>Duration:</strong> ${d.duration}ms</div>
-      </div>`);
-          el.addEventListener('click', () => {
-            const detail = el.querySelector('.method-detail');
-            detail.style.display =
-              detail.style.display === 'none' ? 'block' : 'none';
-          });
-          el.querySelectorAll('.method-url-value').forEach((link) => {
-            link.addEventListener('click', (e) => e.stopPropagation());
-          });
-          if (widgetBody.firstChild === widgetEmpty)
-            widgetBody.insertBefore(el, widgetEmpty.nextSibling);
-          else widgetBody.insertBefore(el, widgetBody.firstChild);
-          while (widgetBody.children.length > 101)
-            widgetBody.removeChild(widgetBody.lastChild);
+          renderWsStatus();
         }
 
         function formatPatchValue(val) {
@@ -1372,9 +1688,14 @@
           patchesBody.innerHTML = '';
           patchesBody.appendChild(patchesEmpty);
           patchesEmpty.style.display = '';
-          widgetBody.innerHTML = '';
-          widgetBody.appendChild(widgetEmpty);
-          widgetEmpty.style.display = '';
+          wsEvents = [];
+          currentWsStatus = {
+            connected: false,
+            subscribedOrderIds: [],
+            timestamp: null,
+          };
+          renderWsEvents();
+          renderWsStatus();
         });
         btnCollapseAll.addEventListener('click', () => {
           openSections.clear();
@@ -1386,6 +1707,8 @@
           renderState();
         });
         stateSearch.addEventListener('input', () => renderState());
+        renderWsEvents();
+        renderWsStatus();
         connect();
       })();
     </script>
