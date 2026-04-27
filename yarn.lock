@@ -2038,7 +2038,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.24.0, @babel/runtime@npm:^7.24.1, @babel/runtime@npm:^7.25.0, @babel/runtime@npm:^7.25.7, @babel/runtime@npm:^7.26.9, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.24.0, @babel/runtime@npm:^7.24.1, @babel/runtime@npm:^7.25.0, @babel/runtime@npm:^7.25.7, @babel/runtime@npm:^7.26.9, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.9.2":
   version: 7.28.4
   resolution: "@babel/runtime@npm:7.28.4"
   checksum: 10/6c9a70452322ea80b3c9b2a412bcf60771819213a67576c8cec41e88a95bb7bf01fc983754cda35dc19603eef52df22203ccbf7777b9d6316932f9fb77c25163
@@ -21221,17 +21221,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"adbkit-apkreader@npm:^3.1.2":
-  version: 3.2.0
-  resolution: "adbkit-apkreader@npm:3.2.0"
-  dependencies:
-    bluebird: "npm:^3.4.7"
-    debug: "npm:~4.1.1"
-    yauzl: "npm:^2.7.0"
-  checksum: 10/b5c06575c09636b6f606427451ac101452eabd5239caaa4d54ee51b5aad1fc0603e5d7095a7d5f7b519c9c2bb4c607337a871472c9b9c0a18d0260fbccf7f13e
-  languageName: node
-  linkType: hard
-
 "aes-js@npm:3.0.0":
   version: 3.0.0
   resolution: "aes-js@npm:3.0.0"
@@ -21646,22 +21635,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appium-adb@npm:^9.11.4":
-  version: 9.14.11
-  resolution: "appium-adb@npm:9.14.11"
+"appium-adb@npm:^14.3.2":
+  version: 14.3.2
+  resolution: "appium-adb@npm:14.3.2"
   dependencies:
-    "@appium/support": "npm:^4.0.0"
-    adbkit-apkreader: "npm:^3.1.2"
+    "@appium/support": "npm:^7.0.0-rc.1"
     async-lock: "npm:^1.0.0"
-    asyncbox: "npm:^2.6.0"
+    asyncbox: "npm:^6.0.1"
     bluebird: "npm:^3.4.7"
-    ini: "npm:^4.1.1"
+    ini: "npm:^6.0.0"
     lodash: "npm:^4.0.0"
-    lru-cache: "npm:^10.0.0"
+    lru-cache: "npm:^11.1.0"
     semver: "npm:^7.0.0"
-    source-map-support: "npm:^0.x"
-    teen_process: "npm:^2.0.1"
-  checksum: 10/54e1eebbd5511c22c472576f6f126581a1161fbf2f45a1a00c60c668859c7272d222854801ec86f5e60667280f381aac61df4ec4d5afb822ff2b020e6ea4b0ae
+    teen_process: "npm:^4.0.4"
+  checksum: 10/bee186855068b96ae3209a090a774417417a14e1ec31e6f99c2788e5e8fb00465970bd419ceec02673949c1a1fe9958fd377ac4ccc69a0877b085a412286df72
   languageName: node
   linkType: hard
 
@@ -22680,16 +22667,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"asyncbox@npm:^2.6.0":
-  version: 2.9.2
-  resolution: "asyncbox@npm:2.9.2"
+"asyncbox@npm:^6.0.1":
+  version: 6.1.0
+  resolution: "asyncbox@npm:6.1.0"
   dependencies:
-    "@babel/runtime": "npm:^7.0.0"
-    bluebird: "npm:^3.5.1"
-    es6-mapify: "npm:^1.1.0"
-    lodash: "npm:^4.17.4"
-    source-map-support: "npm:^0.5.5"
-  checksum: 10/12cd4ee15b729df19f9843186de27146a20c74c23ca64d650615de28db58ec475b3343a78370b4d707362a1a1d67808f3403f3a0dc100ff1698ca897e448eac4
+    p-limit: "npm:^7.2.0"
+  checksum: 10/e866abad8019f96588feae2309bc1867b59d5f8f8b20ced7b3be6079ebc56aa22cd77606c2b09e9eb92df4d99930a1da987c02ab84cb10c31ea7e0146919b492
   languageName: node
   linkType: hard
 
@@ -26099,15 +26082,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:~4.1.1":
-  version: 4.1.1
-  resolution: "debug@npm:4.1.1"
-  dependencies:
-    ms: "npm:^2.1.1"
-  checksum: 10/19bd01e5b1e5869eacfb8e1ee9873dc90e1f90edfd9c460e388326b163e662189af291fcb67e3614dcfbeae29c1c7780a9a7b4bcea39b201316abdc058be89be
-  languageName: node
-  linkType: hard
-
 "debug@npm:~4.3.1, debug@npm:~4.3.2":
   version: 4.3.7
   resolution: "debug@npm:4.3.7"
@@ -27769,15 +27743,6 @@ __metadata:
   version: 4.1.1
   resolution: "es6-error@npm:4.1.1"
   checksum: 10/48483c25701dc5a6376f39bbe2eaf5da0b505607ec5a98cd3ade472c1939242156660636e2e508b33211e48e88b132d245341595c067bd4a95ac79fa7134da06
-  languageName: node
-  linkType: hard
-
-"es6-mapify@npm:^1.1.0":
-  version: 1.2.0
-  resolution: "es6-mapify@npm:1.2.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.0.0"
-  checksum: 10/ecae04b5d1912d657ae287d0c5aba8a3181997bad7bfa4289c57b70b343d69d793b08b5dd266f4e9bba127799c9807e6118b5990d7532ef63c2259962df629fc
   languageName: node
   linkType: hard
 
@@ -32391,13 +32356,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ini@npm:^4.1.1":
-  version: 4.1.1
-  resolution: "ini@npm:4.1.1"
-  checksum: 10/64c7102301742a7527bb17257d18451410eacf63b4b5648a20e108816c355c21c4e8a1761bbcbf3fe8c4ded3297f1b832b885d5e3e485d781e293ebfaf56fea6
-  languageName: node
-  linkType: hard
-
 "ini@npm:^5.0.0":
   version: 5.0.0
   resolution: "ini@npm:5.0.0"
@@ -36060,7 +36018,7 @@ __metadata:
     "@welldone-software/why-did-you-render": "npm:^8.0.1"
     "@xmldom/xmldom": "npm:^0.8.13"
     appium: "npm:^2.12.1"
-    appium-adb: "npm:^9.11.4"
+    appium-adb: "npm:^14.3.2"
     appium-chromium-driver: "npm:^2.0.2"
     appium-uiautomator2-driver: "npm:4.2.7"
     appium-xcuitest-driver: "npm:5.16.1"
@@ -38641,6 +38599,15 @@ __metadata:
   dependencies:
     yocto-queue: "npm:^1.0.0"
   checksum: 10/01d9d70695187788f984226e16c903475ec6a947ee7b21948d6f597bed788e3112cc7ec2e171c1d37125057a5f45f3da21d8653e04a3a793589e12e9e80e756b
+  languageName: node
+  linkType: hard
+
+"p-limit@npm:^7.2.0":
+  version: 7.3.0
+  resolution: "p-limit@npm:7.3.0"
+  dependencies:
+    yocto-queue: "npm:^1.2.1"
+  checksum: 10/bd3f3487ec84401e2cbf243122eef11813edacb621a27808e60a425646d0e75a79514acc2c01e39c41911550dbae5ef0f0ab01caa61cfc1c541cd17a19e8f01b
   languageName: node
   linkType: hard
 
@@ -44088,7 +44055,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map-support@npm:0.5.21, source-map-support@npm:^0.5.16, source-map-support@npm:^0.5.17, source-map-support@npm:^0.5.5, source-map-support@npm:^0.x, source-map-support@npm:~0.5.20, source-map-support@npm:~0.5.21":
+"source-map-support@npm:0.5.21, source-map-support@npm:^0.5.16, source-map-support@npm:^0.5.17, source-map-support@npm:^0.x, source-map-support@npm:~0.5.20, source-map-support@npm:~0.5.21":
   version: 0.5.21
   resolution: "source-map-support@npm:0.5.21"
   dependencies:
@@ -45165,6 +45132,16 @@ __metadata:
     shell-quote: "npm:^1.8.1"
     source-map-support: "npm:^0.x"
   checksum: 10/08d9f01667c10b01067b4fa0641514af8f1e21f2773d1c665b1d10e762dcb1c7e77bec55537f5430bb53fa79aa41c2d7c853cfe83ba4d630ca0e704da14ee27d
+  languageName: node
+  linkType: hard
+
+"teen_process@npm:^4.0.4":
+  version: 4.1.1
+  resolution: "teen_process@npm:4.1.1"
+  dependencies:
+    lodash: "npm:^4.17.21"
+    shell-quote: "npm:^1.8.1"
+  checksum: 10/9aa16a9a8f664844430bc5e62efd93a2ac4090ba07f9f8a01157ff818bca3fdda525b4657dd6c708671ccc77e70d2649c1fe960e9aa60cc82b6a7d75b6fb6b9c
   languageName: node
   linkType: hard
 
@@ -48251,7 +48228,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yauzl@npm:2.10.0, yauzl@npm:^2.10.0, yauzl@npm:^2.7.0":
+"yauzl@npm:2.10.0, yauzl@npm:^2.10.0":
   version: 2.10.0
   resolution: "yauzl@npm:2.10.0"
   dependencies:
@@ -48296,6 +48273,13 @@ __metadata:
   version: 1.0.0
   resolution: "yocto-queue@npm:1.0.0"
   checksum: 10/2cac84540f65c64ccc1683c267edce396b26b1e931aa429660aefac8fbe0188167b7aee815a3c22fa59a28a58d898d1a2b1825048f834d8d629f4c2a5d443801
+  languageName: node
+  linkType: hard
+
+"yocto-queue@npm:^1.2.1":
+  version: 1.2.2
+  resolution: "yocto-queue@npm:1.2.2"
+  checksum: 10/92dd9880c324dbc94ff4b677b7d350ba8d835619062b7102f577add7a59ab4d87f40edc5a03d77d369dfa9d11175b1b2ec4a06a6f8a5d8ce5d1306713f66ee41
   languageName: node
   linkType: hard
 

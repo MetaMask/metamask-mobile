@@ -613,7 +613,7 @@
     "@wdio/protocols": "^9.27.0",
     "@welldone-software/why-did-you-render": "^8.0.1",
     "appium": "^2.12.1",
-    "appium-adb": "^9.11.4",
+    "appium-adb": "^14.3.2",
     "appium-chromium-driver": "^2.0.2",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "5.16.1",
