@@ -1,5 +1,8 @@
 import AppConstants from '../../../../core/AppConstants';
 
+/** Fallback when Baanx omits `refresh_token_expires_in` (seconds). */
+export const DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 90 * 24 * 60 * 60;
+
 /**
  * Returns the Baanx API base URL for the given MetaMask environment.
  * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses process.env.BAANX_API_URL (set by builds.yml).

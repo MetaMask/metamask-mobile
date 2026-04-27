@@ -29,6 +29,33 @@ const AUTH_TOKENS: CardAuthTokens = {
   location: 'us',
 };
 
+/** Unsigned JWT payload segment only — enough for `app_id` decoding in provider. */
+function buildAccessTokenJwt(appId: 'FOX' | 'FOX_US'): string {
+  const json = JSON.stringify({ app_id: appId });
+  const payload = base64UrlEncodeUtf8(json);
+
+  return `h.${payload}.s`;
+}
+
+interface BufferFromUtf8 {
+  from(
+    data: string,
+    encoding: 'utf8',
+  ): { toString(encoding: 'base64'): string };
+}
+
+function base64UrlEncodeUtf8(input: string): string {
+  const BufferCtor = (globalThis as { Buffer?: BufferFromUtf8 }).Buffer;
+  if (!BufferCtor) {
+    throw new Error('Buffer is not available in this test environment');
+  }
+  return BufferCtor.from(input, 'utf8')
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/[=]/g, '');
+}
+
 function createMockService(): jest.Mocked<BaanxService> {
   return {
     get: jest.fn(),
@@ -56,8 +83,8 @@ describe('BaanxProvider', () => {
       expect(provider.id).toBe('baanx');
     });
 
-    it('declares email_password auth method', () => {
-      expect(provider.capabilities.authMethod).toBe('email_password');
+    it('declares oauth2 auth method', () => {
+      expect(provider.capabilities.authMethod).toBe('oauth2');
     });
 
     it('supports funding approval on linea and base', () => {
@@ -71,8 +98,8 @@ describe('BaanxProvider', () => {
       expect(provider.capabilities.supportsFreeze).toBe(true);
     });
 
-    it('supports OTP', () => {
-      expect(provider.capabilities.supportsOTP).toBe(true);
+    it('does not support OTP', () => {
+      expect(provider.capabilities.supportsOTP).toBe(false);
     });
   });
 
@@ -1113,387 +1140,246 @@ describe('BaanxProvider', () => {
   });
 
   describe('initiateAuth', () => {
-    it('returns auth session with PKCE params in metadata', async () => {
-      service.get.mockResolvedValue({
-        token: 'init-token',
-        url: 'https://...',
-      });
-
+    it('returns oauth2 session and sets service location from country', async () => {
       const session = await provider.initiateAuth('US');
 
-      expect(session.id).toBe('init-token');
-      expect(session.currentStep).toStrictEqual({ type: 'email_password' });
-      expect(session._metadata).toStrictEqual({
-        initiateToken: 'init-token',
-        location: 'us',
-        state: 'mock-state-123',
-        codeVerifier: 'mock-verifier',
-      });
-    });
-
-    it('sends PKCE challenge and client credentials as query params', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-
-      await provider.initiateAuth('US');
-
-      const calledPath = (service.get as jest.Mock).mock.calls[0][0] as string;
-      expect(calledPath).toContain('code_challenge=mock-challenge');
-      expect(calledPath).toContain('code_challenge_method=S256');
-      expect(calledPath).toContain('state=mock-state-123');
-      expect(calledPath).toContain('client_id=test-api-key');
-      expect(calledPath).toContain('client_secret=test-api-key');
+      expect(session.currentStep).toStrictEqual({ type: 'oauth2' });
+      expect(session.id.startsWith('oauth2-')).toBe(true);
+      expect(session._metadata).toStrictEqual({ location: 'us' });
+      expect(service.setLocation).toHaveBeenCalledWith('us');
     });
   });
 
   describe('submitCredentials', () => {
-    it('returns onboardingRequired when login response has phase', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
+    const redirectUri = 'https://link.metamask.io/card-oauth';
 
-      service.post.mockResolvedValue({
-        userId: 'user-123',
-        phase: 'PHONE_NUMBER',
-        isOtpRequired: false,
-        phoneNumber: null,
-        accessToken: 'login-token',
-        verificationState: 'UNVERIFIED',
-        isLinked: false,
+    it('exchanges authorization code via oauth2 token endpoint', async () => {
+      const accessJwt = buildAccessTokenJwt('FOX_US');
+      service.request.mockResolvedValue({
+        access_token: accessJwt,
+        refresh_token: 'rt',
+        expires_in: 3600,
+        refresh_token_expires_in: 86400,
       });
+
+      const session = await provider.initiateAuth('international');
 
       const result = await provider.submitCredentials(session, {
-        type: 'email_password',
-        email: 'test@example.com',
-        password: 'pass',
-      });
-
-      expect(result.done).toBe(false);
-      expect(result.nextStep).toBeUndefined();
-      expect(result.onboardingRequired).toStrictEqual({
-        sessionId: 'user-123',
-        phase: 'PHONE_NUMBER',
-      });
-    });
-
-    it('completes auth with PKCE code_verifier and validates state', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockResolvedValue({
-        userId: 'user-1',
-        phase: null,
-        isOtpRequired: false,
-        phoneNumber: null,
-        accessToken: 'login-token',
-        verificationState: 'VERIFIED',
-        isLinked: true,
-      });
-      service.request
-        .mockResolvedValueOnce({
-          state: 'mock-state-123',
-          url: '',
-          code: 'auth-code',
-        })
-        .mockResolvedValueOnce({
-          access_token: 'final-access',
-          refresh_token: 'final-refresh',
-          expires_in: 3600,
-          refresh_token_expires_in: 86400,
-        });
-
-      const result = await provider.submitCredentials(session, {
-        type: 'email_password',
-        email: 'test@example.com',
-        password: 'pass',
+        type: 'oauth2',
+        code: 'code-1',
+        codeVerifier: 'verifier-1',
+        redirectUri,
       });
 
       expect(result.done).toBe(true);
-      expect(result.tokenSet?.accessToken).toBe('final-access');
-
-      const tokenExchangeCall = service.request.mock.calls[1];
-      expect(tokenExchangeCall[1]).toStrictEqual(
+      expect(result.tokenSet?.accessToken).toBe(accessJwt);
+      expect(result.tokenSet?.location).toBe('us');
+      expect(service.setLocation).toHaveBeenCalledWith('us');
+      expect(service.request).toHaveBeenCalledWith(
+        '/v1/auth/oauth2/token',
         expect.objectContaining({
-          body: expect.objectContaining({
-            code_verifier: 'mock-verifier',
-            redirect_uri: 'https://example.com',
-          }),
-          headers: expect.objectContaining({
-            'x-secret-key': 'test-api-key',
-          }),
+          method: 'POST',
+          body: expect.stringContaining('grant_type=authorization_code'),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          location: 'international',
+          timeout: 30_000,
         }),
       );
     });
 
-    it('returns OTP step with userId stored in session metadata', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+    it('includes PKCE and client fields in form body', async () => {
+      const accessJwt = buildAccessTokenJwt('FOX');
+      service.request.mockResolvedValue({
+        access_token: accessJwt,
+        refresh_token: 'rt',
+        expires_in: 3600,
+      });
       const session = await provider.initiateAuth('US');
 
-      service.post.mockResolvedValueOnce({
-        userId: 'user-1',
-        phase: null,
-        isOtpRequired: true,
-        phoneNumber: '+1234',
-        accessToken: null,
-        verificationState: 'VERIFIED',
-        isLinked: true,
+      await provider.submitCredentials(session, {
+        type: 'oauth2',
+        code: 'c',
+        codeVerifier: 'v',
+        redirectUri,
       });
 
-      const result = await provider.submitCredentials(session, {
-        type: 'email_password',
-        email: 'test@example.com',
-        password: 'pass',
-      });
+      const [, opts] = (service.request as jest.Mock).mock.calls[0];
+      const params = new URLSearchParams(opts.body as string);
 
-      expect(result.done).toBe(false);
-      expect(result.nextStep).toStrictEqual({
-        type: 'otp',
-        destination: '+1234',
-      });
-      expect(session._metadata.otpUserId).toBe('user-1');
+      expect(params.get('grant_type')).toBe('authorization_code');
+      expect(params.get('code')).toBe('c');
+      expect(params.get('code_verifier')).toBe('v');
+      expect(params.get('redirect_uri')).toBe(redirectUri);
+      expect(params.get('client_id')).toBe('test-api-key');
     });
 
-    it('completes auth when re-submitting credentials with otpCode', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockResolvedValueOnce({
-        userId: 'user-1',
-        phase: null,
-        isOtpRequired: false,
-        phoneNumber: null,
-        accessToken: 'login-token-after-otp',
-        verificationState: 'VERIFIED',
-        isLinked: true,
-      });
-      service.request
-        .mockResolvedValueOnce({
-          state: 'mock-state-123',
-          url: '',
-          code: 'auth-code',
-        })
-        .mockResolvedValueOnce({
-          access_token: 'final-access',
-          refresh_token: 'final-refresh',
-          expires_in: 3600,
-          refresh_token_expires_in: 86400,
-        });
-
-      const result = await provider.submitCredentials(session, {
-        type: 'email_password',
-        email: 'test@example.com',
-        password: 'pass',
-        otpCode: '123456',
-      });
-
-      expect(result.done).toBe(true);
-      expect(result.tokenSet?.accessToken).toBe('final-access');
-
-      const loginCall = service.post.mock.calls[0];
-      expect(loginCall[1]).toStrictEqual(
-        expect.objectContaining({ otpCode: '123456' }),
-      );
-    });
-
-    it('throws on OAuth state mismatch', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockResolvedValue({
-        userId: 'user-1',
-        phase: null,
-        isOtpRequired: false,
-        phoneNumber: null,
-        accessToken: 'login-token',
-        verificationState: 'VERIFIED',
-        isLinked: true,
-      });
-      service.request.mockResolvedValueOnce({
-        state: 'wrong-state',
-        url: '',
-        code: 'auth-code',
-      });
-
+    it('throws when session metadata location is missing', async () => {
       await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-        }),
-      ).rejects.toThrow('OAuth state mismatch');
-    });
-
-    it('maps OAuth completion errors to CardProviderError', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockResolvedValue({
-        userId: 'user-1',
-        phase: null,
-        isOtpRequired: false,
-        phoneNumber: null,
-        accessToken: 'login-token',
-        verificationState: 'VERIFIED',
-        isLinked: true,
-      });
-      service.request.mockRejectedValue(
-        new CardApiError(500, '/v1/auth/oauth/authorize', 'Server error'),
-      );
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-        }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.ServerError,
-      });
-    });
-
-    it('throws for unsupported credential type', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'siwe',
-          signature: '0x...',
-        }),
-      ).rejects.toThrow('Unsupported credential type');
-    });
-
-    it('throws AccountDisabled when response contains disabled message', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockRejectedValue(
-        new CardApiError(
-          403,
-          '/v1/auth/login',
-          'Your account has been disabled',
+        provider.submitCredentials(
+          {
+            id: 'x',
+            currentStep: { type: 'oauth2' },
+            _metadata: {},
+          },
+          {
+            type: 'oauth2',
+            code: 'c',
+            codeVerifier: 'v',
+            redirectUri,
+          },
         ),
-      );
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-        }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.AccountDisabled,
-      });
+      ).rejects.toThrow('missing location');
     });
 
-    it('throws InvalidOtp on 400 when otpCode is present', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockRejectedValue(
-        new CardApiError(400, '/v1/auth/login', 'Bad request'),
-      );
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-          otpCode: '123456',
-        }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.InvalidOtp,
+    it('throws when OAuth2 response has no access token', async () => {
+      service.request.mockResolvedValue({
+        refresh_token: 'rt',
+        expires_in: 3600,
       });
-    });
-
-    it('throws InvalidCredentials on 401', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
       const session = await provider.initiateAuth('US');
-
-      service.post.mockRejectedValue(
-        new CardApiError(401, '/v1/auth/login', 'Unauthorized'),
-      );
 
       await expect(
         provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
+          type: 'oauth2',
+          code: 'c',
+          codeVerifier: 'v',
+          redirectUri,
         }),
       ).rejects.toMatchObject({
         code: CardProviderErrorCode.InvalidCredentials,
       });
     });
 
-    it('throws ServerError on 500', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+    it('throws when access token JWT app_id is unknown', async () => {
+      const payload = base64UrlEncodeUtf8(JSON.stringify({ app_id: 'OTHER' }));
+      const badJwt = `h.${payload}.s`;
+      service.request.mockResolvedValue({
+        access_token: badJwt,
+        refresh_token: 'rt',
+        expires_in: 3600,
+      });
       const session = await provider.initiateAuth('US');
 
-      service.post.mockRejectedValue(
-        new CardApiError(500, '/v1/auth/login', 'Internal server error'),
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'oauth2',
+          code: 'c',
+          codeVerifier: 'v',
+          redirectUri,
+        }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidCredentials,
+      });
+    });
+
+    it('maps token exchange CardApiError to CardProviderError', async () => {
+      const session = await provider.initiateAuth('US');
+      service.request.mockRejectedValue(
+        new CardApiError(401, '/v1/auth/oauth2/token', 'Unauthorized'),
       );
 
       await expect(
         provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
+          type: 'oauth2',
+          code: 'c',
+          codeVerifier: 'v',
+          redirectUri,
         }),
       ).rejects.toMatchObject({
-        code: CardProviderErrorCode.ServerError,
-      });
-    });
-  });
-
-  describe('executeStepAction', () => {
-    it('posts userId to the OTP trigger endpoint', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      session._metadata.otpUserId = 'user-1';
-      service.post.mockResolvedValue({});
-
-      await provider.executeStepAction(session);
-
-      expect(service.post).toHaveBeenCalledWith('/v1/auth/login/otp', {
-        userId: 'user-1',
+        code: CardProviderErrorCode.InvalidCredentials,
       });
     });
 
-    it('throws when no userId in session metadata', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+    it('throws for unsupported credential type', async () => {
       const session = await provider.initiateAuth('US');
 
-      await expect(provider.executeStepAction(session)).rejects.toThrow(
-        'executeStepAction: session missing otpUserId',
-      );
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'email_password',
+          email: 'a@b.com',
+          password: 'p',
+        }),
+      ).rejects.toThrow('Unsupported credential type');
     });
   });
 
   describe('logout', () => {
-    it('calls logout endpoint', async () => {
-      service.post.mockResolvedValue({});
+    it('revokes access and refresh via oauth2/revoke in parallel', async () => {
+      service.request.mockResolvedValue({});
 
       await provider.logout(AUTH_TOKENS);
 
-      expect(service.post).toHaveBeenCalledWith(
-        '/v1/auth/logout',
-        {},
-        AUTH_TOKENS,
-      );
+      expect(service.request).toHaveBeenCalledWith('/v1/auth/oauth2/revoke', {
+        method: 'POST',
+        body: {
+          token: AUTH_TOKENS.accessToken,
+          token_hint: 'access_token',
+        },
+        location: 'us',
+        timeout: 30_000,
+      });
+      expect(service.request).toHaveBeenCalledWith('/v1/auth/oauth2/revoke', {
+        method: 'POST',
+        body: {
+          token: AUTH_TOKENS.refreshToken,
+          token_hint: 'refresh_token',
+        },
+        location: 'us',
+        timeout: 30_000,
+      });
+      expect(service.post).not.toHaveBeenCalled();
     });
 
-    it('propagates error when logout fails', async () => {
-      service.post.mockRejectedValue(
-        new CardApiError(500, '/v1/auth/logout', 'Internal server error'),
+    it('revokes only access when there is no refresh token', async () => {
+      service.request.mockResolvedValue({});
+      const accessOnly = { ...AUTH_TOKENS, refreshToken: undefined };
+
+      await provider.logout(accessOnly);
+
+      expect(service.request).toHaveBeenCalledTimes(1);
+      expect(service.request).toHaveBeenCalledWith('/v1/auth/oauth2/revoke', {
+        method: 'POST',
+        body: {
+          token: accessOnly.accessToken,
+          token_hint: 'access_token',
+        },
+        location: 'us',
+        timeout: 30_000,
+      });
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
+    it('resolves without calling legacy logout when revoke requests fail', async () => {
+      service.request.mockRejectedValue(
+        new CardApiError(400, '/v1/auth/oauth2/revoke', 'Bad request'),
       );
 
-      await expect(provider.logout(AUTH_TOKENS)).rejects.toThrow();
+      await expect(provider.logout(AUTH_TOKENS)).resolves.toBeUndefined();
+
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
+    it('resolves when refresh revoke fails after access revoke succeeds', async () => {
+      service.request
+        .mockResolvedValueOnce({})
+        .mockRejectedValueOnce(
+          new CardApiError(400, '/v1/auth/oauth2/revoke', 'Bad request'),
+        );
+
+      await expect(provider.logout(AUTH_TOKENS)).resolves.toBeUndefined();
+
+      expect(service.request).toHaveBeenCalledTimes(2);
+      expect(service.post).not.toHaveBeenCalled();
     });
   });
 
   describe('refreshTokens', () => {
     it('returns new token set from refresh endpoint', async () => {
+      const newAccess = buildAccessTokenJwt('FOX_US');
       service.request.mockResolvedValue({
-        access_token: 'new-access',
+        access_token: newAccess,
         refresh_token: 'new-refresh',
         expires_in: 7200,
         refresh_token_expires_in: 172800,
@@ -1501,18 +1387,18 @@ describe('BaanxProvider', () => {
 
       const result = await provider.refreshTokens(AUTH_TOKENS);
 
-      expect(result.accessToken).toBe('new-access');
+      expect(result.accessToken).toBe(newAccess);
       expect(result.refreshToken).toBe('new-refresh');
       expect(result.location).toBe('us');
       expect(service.request).toHaveBeenCalledWith(
-        '/v1/auth/oauth/token',
+        '/v1/auth/oauth2/token',
         expect.objectContaining({
           method: 'POST',
           body: {
             grant_type: 'refresh_token',
             refresh_token: 'test-refresh',
           },
-          headers: { 'x-secret-key': 'test-api-key' },
+          location: 'us',
         }),
       );
     });
@@ -2505,108 +2391,6 @@ describe('BaanxProvider', () => {
       );
 
       await expect(provider.getFundingConfig(AUTH_TOKENS)).rejects.toThrow();
-    });
-  });
-
-  describe('mapLoginError edge cases', () => {
-    it('returns Unknown for a plain Error (non-CardApiError)', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockRejectedValue(new Error('Network failure'));
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-        }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.Unknown,
-      });
-    });
-
-    it('returns Unknown on 400 without otpCode', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockRejectedValue(
-        new CardApiError(400, '/v1/auth/login', 'Bad request'),
-      );
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-        }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.Unknown,
-      });
-    });
-
-    it('returns Timeout on 408', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockRejectedValue(
-        new CardApiError(408, '/v1/auth/login', 'Request Timeout'),
-      );
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-        }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.Timeout,
-      });
-    });
-
-    it('returns Network on statusCode 0 (no HTTP response)', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-      const session = await provider.initiateAuth('US');
-
-      service.post.mockRejectedValue(new CardApiError(0, '/v1/auth/login', ''));
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-        }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.Network,
-      });
-    });
-  });
-
-  describe('completeAuth metadata validation', () => {
-    it('throws when session metadata is missing required fields', async () => {
-      const session = {
-        id: 'test',
-        currentStep: { type: 'email_password' as const },
-        _metadata: {},
-      };
-
-      service.post.mockResolvedValue({
-        userId: 'user-1',
-        phase: null,
-        isOtpRequired: false,
-        phoneNumber: null,
-        accessToken: 'login-token',
-        verificationState: 'VERIFIED',
-        isLinked: true,
-      });
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'test@example.com',
-          password: 'pass',
-        }),
-      ).rejects.toThrow('Invalid auth session');
     });
   });
 

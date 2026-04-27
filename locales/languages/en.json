@@ -7918,6 +7918,7 @@
       "password_label": "Password",
       "login_button": "Log in",
       "signup_button": "Sign up",
+      "oauth_description": "Continue with your MetaMask account to sign in securely.",
       "errors": {
         "invalid_credentials": "Invalid login details",
         "invalid_otp_code": "Incorrect code, please try again",
@@ -7930,7 +7931,13 @@
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later."
+        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "oauth": {
+          "access_denied": "Authentication was denied. Please try again.",
+          "temporarily_unavailable": "Service temporarily unavailable. Please try again later.",
+          "login_required": "Please log in to continue.",
+          "session_expired": "Your session has expired. Please log in again."
+        }
       }
     },
     "card_otp_authentication": {
