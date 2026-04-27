@@ -187,6 +187,8 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { chompApiServiceInit } from './controllers/chomp-api-service-init';
+import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -391,6 +393,8 @@ export class Engine {
         CardController: cardControllerInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        ChompApiService: chompApiServiceInit,
+        MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -623,6 +627,9 @@ export class Engine {
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      ChompApiService: messengerClientsByName.ChompApiService,
+      MoneyAccountUpgradeController:
+        messengerClientsByName.MoneyAccountUpgradeController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1418,6 +1425,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
+      MoneyAccountUpgradeController,
     } = instance.context;
 
     return {
@@ -1493,6 +1501,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
+      MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
     };
   },
 

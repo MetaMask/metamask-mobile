@@ -8180,6 +8180,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/chomp-api-service@npm:1.0.0, @metamask/chomp-api-service@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/chomp-api-service@npm:1.0.0"
+  dependencies:
+    "@metamask/base-data-service": "npm:^0.1.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+    "@tanstack/query-core": "npm:^4.43.0"
+  checksum: 10/dcf3edb5766a0793df3b1426aff99327095d7cbaf0b6a57ffa3ea11e5b168e9e1be508be7e245e10de0b26cfc0d9e4d646533737dbffb41f5e3b5896515310d3
+  languageName: node
+  linkType: hard
+
 "@metamask/client-controller@npm:^1.0.1":
   version: 1.0.1
   resolution: "@metamask/client-controller@npm:1.0.1"
@@ -9210,6 +9224,18 @@ __metadata:
     "@metamask/messenger": "npm:^1.1.0"
     async-mutex: "npm:^0.5.0"
   checksum: 10/62d34c42ea388d621346277cfaf9038cd80b87dccfaade8b93d3cec087b9c77ec5ec71ff9f30c02a3f566ac71ec4e8234761cb775f11896a8cf85583b8e6ed06
+  languageName: node
+  linkType: hard
+
+"@metamask/money-account-upgrade-controller@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/money-account-upgrade-controller@npm:1.0.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/chomp-api-service": "npm:^1.0.0"
+    "@metamask/keyring-controller": "npm:^25.2.0"
+    "@metamask/messenger": "npm:^1.1.1"
+  checksum: 10/f3b54b4f464a17858853b160b1c5b4ecc634fae9bc354ae86139bc1f97e1ce1fb2cfa845d6db643c264b27538736478a9d976de693ba2cb5e84972186982c084
   languageName: node
   linkType: hard
 
@@ -35857,6 +35883,7 @@ __metadata:
     "@metamask/browser-playground": "npm:0.3.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.3.0"
+    "@metamask/chomp-api-service": "npm:1.0.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/compliance-controller": "npm:2.0.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
@@ -35909,6 +35936,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/money-account-balance-service": "npm:^0.2.0"
     "@metamask/money-account-controller": "npm:^0.1.0"
+    "@metamask/money-account-upgrade-controller": "npm:^1.0.0"
     "@metamask/multichain-account-service": "npm:^8.0.1"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:1.2.5"
