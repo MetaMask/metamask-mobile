@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
   Box,
   Text,
@@ -51,6 +53,7 @@ interface QuickBuyFooterProps {
     React.SetStateAction<BridgeToken | undefined>
   >;
   sourceBalanceFiat: string | undefined;
+  isTotalLoading: boolean;
   isConfirmDisabled: boolean;
   isConfirmLoading: boolean;
   getButtonLabel: () => string;
@@ -75,6 +78,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   setIsSourcePickerOpen,
   setSelectedSourceToken,
   sourceBalanceFiat,
+  isTotalLoading,
   isConfirmDisabled,
   isConfirmLoading,
   getButtonLabel,
@@ -82,6 +86,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   onConfirm,
   colors,
 }) => {
+  const tw = useTailwind();
   const isPriceImpactSafe = !priceImpactViewData.icon;
   const [isTotalExpanded, setIsTotalExpanded] = useState(!isPriceImpactSafe);
   return (
@@ -221,9 +226,20 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
                   color={colors.icon.alternative}
                 />
               </Box>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {totalAmountUsd}
-              </Text>
+              {isTotalLoading ? (
+                <Skeleton
+                  width={56}
+                  height={20}
+                  style={tw.style('rounded-md')}
+                />
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {totalAmountUsd}
+                </Text>
+              )}
             </Box>
           </TouchableOpacity>
 

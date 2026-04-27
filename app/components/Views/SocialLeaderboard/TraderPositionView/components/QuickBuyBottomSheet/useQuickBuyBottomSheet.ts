@@ -89,6 +89,7 @@ export interface UseQuickBuyBottomSheetResult {
   // quote state
   isQuoteLoading: boolean;
   isSubmittingTx: boolean;
+  isTotalLoading: boolean;
   // warnings (banner-level; can stack)
   isHardwareSolanaBlocked: boolean;
   priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
@@ -280,9 +281,11 @@ export function useQuickBuyBottomSheet(
   const totalAmountUsd = useMemo(() => {
     const inputNum = parseFloat(usdAmount);
     if (!usdAmount || isNaN(inputNum)) return '$0';
-    if (networkFeeRawUsd === null) return `$${inputNum.toFixed(2)}`;
-    return `$${(inputNum + networkFeeRawUsd).toFixed(2)}`;
-  }, [usdAmount, networkFeeRawUsd]);
+    if (activeQuote && networkFeeRawUsd !== null) {
+      return `$${(inputNum + networkFeeRawUsd).toFixed(2)}`;
+    }
+    return '$0';
+  }, [usdAmount, activeQuote, networkFeeRawUsd]);
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceTokenAmount,
@@ -426,6 +429,9 @@ export function useQuickBuyBottomSheet(
     isPriceImpactError ||
     !walletAddress;
 
+  const isTotalLoading =
+    hasValidAmount && (isQuoteLoading || isPendingQuoteRefresh);
+
   const isConfirmLoading =
     isSubmittingTx ||
     isAwaitingQuote ||
@@ -468,6 +474,7 @@ export function useQuickBuyBottomSheet(
     totalAmountUsd,
     isQuoteLoading,
     isSubmittingTx,
+    isTotalLoading,
     isHardwareSolanaBlocked,
     priceImpactViewData,
     isPriceImpactError,

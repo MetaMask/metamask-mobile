@@ -61,6 +61,7 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     formattedPriceImpact,
     totalAmountUsd,
     isQuoteLoading,
+    isTotalLoading,
     isHardwareSolanaBlocked,
     priceImpactViewData,
     isPriceImpactError,
@@ -121,6 +122,7 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
             setIsSourcePickerOpen={setIsSourcePickerOpen}
             setSelectedSourceToken={setSelectedSourceToken}
             sourceBalanceFiat={sourceBalanceFiat}
+            isTotalLoading={isTotalLoading}
             isConfirmDisabled={isConfirmDisabled}
             isConfirmLoading={isConfirmLoading}
             getButtonLabel={getButtonLabel}

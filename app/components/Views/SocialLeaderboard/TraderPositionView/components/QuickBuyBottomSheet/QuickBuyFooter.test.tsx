@@ -117,6 +117,7 @@ const defaultProps = {
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
   sourceBalanceFiat: '$2000.00',
+  isTotalLoading: false,
   isConfirmDisabled: false,
   isConfirmLoading: false,
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
@@ -178,6 +179,33 @@ describe('QuickBuyFooter', () => {
 
       expect(setSelectedSourceToken).toHaveBeenCalledWith(usdcToken);
       expect(setIsSourcePickerOpen).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('total row', () => {
+    it('shows skeleton when isTotalLoading is true', () => {
+      renderWithProvider(
+        <QuickBuyFooter
+          {...defaultProps}
+          isTotalLoading
+          totalAmountUsd="$20.50"
+        />,
+      );
+
+      expect(screen.getByTestId('skeleton-view')).toBeOnTheScreen();
+      expect(screen.queryByText('$20.50')).toBeNull();
+    });
+
+    it('shows the total value when isTotalLoading is false', () => {
+      renderWithProvider(
+        <QuickBuyFooter
+          {...defaultProps}
+          isTotalLoading={false}
+          totalAmountUsd="$20.50"
+        />,
+      );
+
+      expect(screen.getByText('$20.50')).toBeOnTheScreen();
     });
   });
 

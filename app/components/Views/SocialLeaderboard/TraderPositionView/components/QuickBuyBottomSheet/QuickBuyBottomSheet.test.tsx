@@ -158,6 +158,7 @@ const buildHookResult = (
   totalAmountUsd: '$0',
   isQuoteLoading: false,
   isSubmittingTx: false,
+  isTotalLoading: false,
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
     textColor: TextColor.TextAlternative,
