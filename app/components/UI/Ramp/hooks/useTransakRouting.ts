@@ -14,6 +14,7 @@ import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
+import { createV2EnterEmailNavDetails } from '../Views/NativeFlow/EnterEmail';
 import { createKycWebviewNavDetails } from '../Views/NativeFlow/KycWebview';
 import useAnalytics from './useAnalytics';
 import { showV2OrderToast } from '../utils/v2OrderToast';
@@ -29,10 +30,22 @@ import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { useRampsOrders } from './useRampsOrders';
 
 interface RampStackParamList {
-  RampVerifyIdentity: { quote: TransakBuyQuote };
+  /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
+  RampVerifyIdentity: {
+    quote: TransakBuyQuote;
+    headlessSessionId?: string;
+    amount?: string;
+    currency?: string;
+    assetId?: string;
+  };
+  /** `baseRouteParams` are merged here too — see `navigateToBasicInfoCallback`. */
   RampBasicInfo: {
     quote: TransakBuyQuote;
     previousFormData?: BasicInfoFormData & AddressFormData;
+    headlessSessionId?: string;
+    amount?: string;
+    currency?: string;
+    assetId?: string;
   };
   RampBankDetails: { orderId: string; shouldUpdate?: boolean };
   RampOrderProcessing: { orderId: string };
@@ -209,11 +222,17 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         index: 1,
         routes: [
           baseEntry,
-          { name: Routes.RAMP.VERIFY_IDENTITY, params: { quote } },
+          {
+            name: Routes.RAMP.VERIFY_IDENTITY,
+            params: {
+              quote,
+              ...(baseRouteParams ?? {}),
+            },
+          },
         ],
       });
     },
-    [navigation, buildBaseRouteEntry],
+    [navigation, buildBaseRouteEntry, baseRouteParams],
   );
 
   const navigateToBasicInfoCallback = useCallback(
@@ -233,12 +252,16 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           baseEntry,
           {
             name: Routes.RAMP.BASIC_INFO,
-            params: { quote, previousFormData },
+            params: {
+              quote,
+              previousFormData,
+              ...(baseRouteParams ?? {}),
+            },
           },
         ],
       });
     },
-    [navigation, buildBaseRouteEntry],
+    [navigation, buildBaseRouteEntry, baseRouteParams],
   );
 
   const navigateToBankDetailsCallback = useCallback(
@@ -622,7 +645,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       } catch (error) {
         if (isHttpUnauthorized(error)) {
           await logoutFromProvider(false);
-          navigation.navigate(Routes.RAMP.ENTER_EMAIL);
+          const hid = baseRouteParams?.headlessSessionId;
+          if (typeof hid === 'string' && hid.length > 0) {
+            navigation.navigate(
+              ...createV2EnterEmailNavDetails({ headlessSessionId: hid }),
+            );
+          } else {
+            navigation.navigate(Routes.RAMP.ENTER_EMAIL);
+          }
           return;
         }
         throw error;
@@ -630,6 +660,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     },
     [
       navigation,
+      baseRouteParams,
       getKycRequirement,
       getAdditionalRequirements,
       getUserDetails,

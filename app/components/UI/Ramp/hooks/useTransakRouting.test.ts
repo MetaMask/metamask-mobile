@@ -273,6 +273,53 @@ describe('useTransakRouting', () => {
       );
     });
 
+    it('merges baseRouteParams onto BasicInfo when KYC is NOT_SUBMITTED (headless)', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1234567890',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-abc' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-abc' },
+            }),
+            expect.objectContaining({
+              name: 'RampBasicInfo',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                headlessSessionId: 'headless-buy-abc',
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
     it('navigates to webview for non-manual bank transfer when KYC is APPROVED', async () => {
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',
@@ -911,6 +958,40 @@ describe('useTransakRouting', () => {
             expect.objectContaining({
               name: 'RampVerifyIdentity',
               params: expect.objectContaining({ quote: mockQuote }),
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('merges baseRouteParams onto VerifyIdentity so headlessSessionId survives the reset', () => {
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-xyz' },
+        }),
+      );
+
+      act(() => {
+        result.current.navigateToVerifyIdentity({
+          quote: mockQuote as never,
+          amount: 30,
+        });
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: [
+            expect.objectContaining({
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-xyz' },
+            }),
+            expect.objectContaining({
+              name: 'RampVerifyIdentity',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                headlessSessionId: 'headless-buy-xyz',
+              }),
             }),
           ],
         }),
