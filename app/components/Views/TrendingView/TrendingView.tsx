@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
+import { TabViewProps } from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
@@ -25,13 +26,7 @@ import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunct
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import { RefreshConfig } from './components/Sections/Section';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
-import { TabView } from './tabs/TabView';
-import { NowTabPanel } from './tabs/NowTabPanel';
-import { MacroTabPanel } from './tabs/MacroTabPanel';
-import { RwasTabPanel } from './tabs/RwasTabPanel';
-import { CryptoTabPanel } from './tabs/CryptoTabPanel';
-import { SportsTabPanel } from './tabs/SportsTabPanel';
-import { DappsTabPanel } from './tabs/DappsTabPanel';
+import { ExploreTabPanel } from './tabs/ExploreTabPanels';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -138,6 +133,14 @@ export const ExploreFeed: React.FC = () => {
     }));
   }, []);
 
+  const exploreTabPanelProps = {
+    refreshConfig,
+    refreshing,
+    onRefresh: handleRefresh,
+    colors,
+    tw,
+  };
+
   return (
     <SafeAreaView
       edges={{ top: 'additive' }}
@@ -171,60 +174,56 @@ export const ExploreFeed: React.FC = () => {
 
         {isBasicFunctionalityEnabled ? (
           <TabsList tabsListContentTwClassName="px-0 pb-3">
-            <TabView key="now" tabLabel={strings('trending.tabs.now')}>
-              <NowTabPanel
-                refreshConfig={refreshConfig}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                colors={colors}
-                tw={tw}
-              />
-            </TabView>
-            <TabView key="macro" tabLabel={strings('trending.tabs.macro')}>
-              <MacroTabPanel
-                refreshConfig={refreshConfig}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                colors={colors}
-                tw={tw}
-              />
-            </TabView>
-            <TabView key="rwas" tabLabel={strings('trending.tabs.rwas')}>
-              <RwasTabPanel
-                refreshConfig={refreshConfig}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                colors={colors}
-                tw={tw}
-              />
-            </TabView>
-            <TabView key="crypto" tabLabel={strings('trending.tabs.crypto')}>
-              <CryptoTabPanel
-                refreshConfig={refreshConfig}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                colors={colors}
-                tw={tw}
-              />
-            </TabView>
-            <TabView key="sports" tabLabel={strings('trending.tabs.sports')}>
-              <SportsTabPanel
-                refreshConfig={refreshConfig}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                colors={colors}
-                tw={tw}
-              />
-            </TabView>
-            <TabView key="dapps" tabLabel={strings('trending.tabs.dapps')}>
-              <DappsTabPanel
-                refreshConfig={refreshConfig}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                colors={colors}
-                tw={tw}
-              />
-            </TabView>
+            <Box
+              key="now"
+              twClassName="flex-1"
+              {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="now" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="macro"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.macro'),
+              } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="macro" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="rwas"
+              twClassName="flex-1"
+              {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="rwas" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="crypto"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.crypto'),
+              } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="crypto" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="sports"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.sports'),
+              } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="sports" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="dapps"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.dapps'),
+              } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="dapps" {...exploreTabPanelProps} />
+            </Box>
           </TabsList>
         ) : (
           <BasicFunctionalityEmptyState />

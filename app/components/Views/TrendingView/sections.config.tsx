@@ -201,10 +201,10 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
  * To add a new section (EVERYTHING IN THIS FILE):
  * 1. Add the section ID to the SectionId type above
  * 2. Add the config to SECTIONS_CONFIG. For **Explore omni-search**, add it in `useExploreSearchSectionsData` in `useExploreSearch.ts` only if it should appear in search.
- * 3. Add the section to `DEFAULT_HOME_ORDER` and/or `DEFAULT_SEARCH_ORDER` as needed, or to the matching tab panel’s colocated section hook under `tabs/<TabName>/`
+ * 3. Add the section to `DEFAULT_HOME_ORDER` and/or `DEFAULT_SEARCH_ORDER` as needed, or wire it in `useExploreTabPanelSections` in `tabs/ExploreTabPanels.tsx` for a non-Now tab
  *
  * The section will automatically appear in:
- * - The **Now** tab (via `DEFAULT_HOME_ORDER` / `tabs/Now/NowTabPanel`); `sites` is only on the Crypto tab. **Stocks** appears on both **Now** and **RWAs** where applicable
+ * - The **Now** tab (via `DEFAULT_HOME_ORDER`); `sites` is only on the Dapps tab. **Stocks** appears on both **Now** and **RWAs** where applicable
  * - Other tab hooks when you list them
  * - Search results
  * - Section headers with "View All" navigation
