@@ -14,6 +14,10 @@ import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeSeedlessOnboarding } from '../../tags';
+import {
+  completeSocialLoginOnboarding,
+  lockAndResetWalletToOnboarding,
+} from './utils';
 
 describe(SmokeSeedlessOnboarding('Google Login - Existing User'), () => {
   beforeAll(async () => {
@@ -22,30 +26,29 @@ describe(SmokeSeedlessOnboarding('Google Login - Existing User'), () => {
 
   beforeEach(async () => {
     E2EOAuthHelpers.reset();
-    E2EOAuthHelpers.configureGoogleExistingUser();
+    E2EOAuthHelpers.configureGoogleNewUser();
   });
 
-  it('shows Account Already Exists screen for existing Google user', async () => {
+  it('registers new user then re-logins as existing user and sees Account Already Exists', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureGoogleExistingUser();
+          oAuthMockttpService.configureGoogleNewUser();
           await oAuthMockttpService.setup(mockServer);
         },
       },
       async () => {
-        await Assertions.expectElementToBeVisible(OnboardingView.container, {
-          description: 'Onboarding screen should be visible',
-        });
+        await completeSocialLoginOnboarding('google');
+
+        await lockAndResetWalletToOnboarding();
 
         await OnboardingView.tapCreateWallet();
 
         await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-          description:
-            'Onboarding sheet with social login options should appear',
+          description: 'Onboarding sheet should appear for second login',
         });
 
         await OnboardingSheet.tapGoogleLoginButton();
@@ -72,39 +75,6 @@ describe(SmokeSeedlessOnboarding('Google Login - Existing User'), () => {
             description: 'Use different login method button should be visible',
           },
         );
-      },
-    );
-  });
-
-  it('can tap Login button on Account Already Exists screen', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder({ onboarding: true }).build(),
-        restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureGoogleExistingUser();
-          await oAuthMockttpService.setup(mockServer);
-        },
-      },
-      async () => {
-        await Assertions.expectElementToBeVisible(OnboardingView.container, {
-          description: 'Onboarding screen should be visible',
-        });
-
-        await OnboardingView.tapCreateWallet();
-
-        await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-          description: 'Onboarding sheet should appear',
-        });
-
-        await OnboardingSheet.tapGoogleLoginButton();
-
-        await SocialLoginView.isAccountFoundScreenVisible();
-
-        await SocialLoginView.tapLoginButton();
-
-        console.log('[E2E] Login button tapped successfully');
       },
     );
   });

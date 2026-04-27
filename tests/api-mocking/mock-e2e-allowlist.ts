@@ -6,6 +6,9 @@ export const ALLOWLISTED_HOSTS = [
   '127.0.0.1',
   'localhost',
   '10.0.2.2', // Android emulator host
+  'auth-service.uat-api.cx.metamask.io',
+  '*.node.web3auth.io',
+  '*.uat-node.web3auth.io',
   'api.tenderly.co',
   'rpc.tenderly.co',
   'virtual.mainnet.rpc.tenderly.co',
