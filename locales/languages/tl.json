@@ -3200,6 +3200,8 @@
     "network_delete": "Kapag tinanggal mo ang network na ito, kakailanganin mo itong idagdag muli para makita ang mga asset mo sa network na ito",
     "networks_default_cta": "Gamitin ang network na ito",
     "add_rpc_url": "Magdagdag ng RPC URL",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "Magdagdag ng URL ng block explorer",
     "networks_desc": "Magdagdag at mag-edit ng mga custom na RPC network",
     "networks_enabled": "Mga Naka-enable na Network",
@@ -3517,6 +3519,7 @@
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "smart_account_dapp_requests_heading": "Mga kahilingan na smart account mula sa dapps",
+    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "Mga Smart Transaction",
     "smart_transactions_opt_in_desc_supported_networks": "I-on ang mga Smart na Transaksyon para sa mas maaasahan at ligtas na mga transaksyon sa mga suportadong network.",
     "smart_transactions_learn_more": "Matuto pa",
@@ -3793,13 +3796,16 @@
     "risky": "Mapanganib",
     "malicious_token_title": "Mapanganib na token",
     "malicious_token_description": "Ang {{symbol}} ay isang mapaminsalang token. Iwasang makipag-ugnayan o i-trade ito.",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "Na-verify na token",
     "verified_token_description": "Ang {{symbol}} ay aktibong tini-trade at malawakang kinikilala. Ang verification ay hindi pag-eendorso ng MetaMask.",
-    "risky_token_title": "Mapanganib na token",
-    "risky_token_description": "Natuklasan ang mga senyales ng pag-iingat sa {{symbol}}. Maingat na magsaliksik bago i-trade ang token na ito.",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "Natuklasan ang mga senyales ng malubhang panganib sa {{symbol}}. Inirerekomenda namin na huwag i-trade ang token na ito.",
     "got_it": "Nakuha ko",
     "proceed": "Magpatuloy",
+    "continue_anyway": "Continue anyway",
     "cancel": "Kanselahin",
     "data_unavailable": "Hindi available ang data ng seguridad",
     "subtitle_known": "Walang natuklasang mga senyales ng panganib. Laging saliksikin ang anumang asset bago mag-trade.",
@@ -3832,7 +3838,64 @@
     "suspicious": "Kahina-hinala",
     "malicious_label": "Mapaminsala",
     "more": "iba pa",
-    "evaluation_disclaimer": "Ang pagsusuri sa seguridad na ito ay para sa ebalwasyon lamang at hindi nangangahulugan ng pag-eendorso o rekomendasyon na mag-trade."
+    "evaluation_disclaimer": "Ang pagsusuri sa seguridad na ito ay para sa ebalwasyon lamang at hindi nangangahulugan ng pag-eendorso o rekomendasyon na mag-trade.",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "Mga detalye ng account",
@@ -5572,8 +5635,8 @@
     "more_to_complete": "higit pa para makumpleto ang pag-swap na ito.",
     "more_gas_to_complete": "higit pa para sa gas para makumpleto ang pag-swap na ito.",
     "token_marketplace": "Token marketplace",
-    "market_price_unavailable_title": "Tingnan ang iyong rate bago magpatuloy",
-    "market_price_unavailable": "Hindi available ang presyo sa market at hindi batid ang epekto ng presyo. Paki-verify na kumportable ka sa dami ng mga token na matatanggap mo bago mag-swap.",
+    "market_price_unavailable_title": "No price information",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "Kaibahan sa presyo na {{amount}}",
     "price_difference_title": "Kaibahan sa presyo",
     "price_difference_body": "Ang kaibahan sa mga presyo sa merkado ay maaaring maapektuhan ng mga bayarin na kinukuha ng mga intermediary, laki ng merkado, laki ng trade, o hindi pagkaepektibo ng merkado.",
@@ -6387,7 +6450,10 @@
       "add": "Idagdag",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "Idagdag",
@@ -6421,7 +6487,12 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% cashback",
-      "get_now": "Kunin ngayon"
+      "get_now": "Kunin ngayon",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "Ano ang makukuha mo",
@@ -7073,6 +7144,11 @@
     "token_warning_malicious_banner": "Ang{{token}} ay isang mapaminsalang token. Maging maingat sa pakikipag-ugnayan sa token na ito.",
     "token_warning_modal_suspicious_title": "Kahina-hinalang token",
     "token_warning_modal_malicious_title": "Mapanganib na token",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "Mawawalan ka ng {{priceImpactFiat}} sa trade na ito"
   },
   "quote_expired_modal": {
@@ -8076,12 +8152,12 @@
       "step4_title_referral_validating": "Bina-validate ang referral code...",
       "step4_referral_input_error": "Hindi valid na referral code",
       "title": "Simulang makaipon ng mga reward",
-      "description": "Sumali sa mga campaign at makahanap ng mga maki-claim na benepisyo",
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "Sumali sa Mga Reward",
       "sign_up_loading": "Sumasali...",
       "legal_disclaimer_1": "Sa pagsali, sumasang-ayon ka sa",
-      "legal_disclaimer_2": "Mga Tuntunin",
-      "legal_disclaimer_3": ". Mao-opt in ang lahat ng account sa device na ito.",
+      "legal_disclaimer_2": "Terms of Use",
+      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "Matuto pa",
       "referral_prompt": "May referral code ka ba?",
       "referral_hide": "Itago ang code",
@@ -8405,13 +8481,9 @@
       "previous_title": "Nakaraan",
       "empty_state": "Walang mga campaign na available",
       "error_title": "Hindi mai-load ang mga campaign",
-      "error_description": "Hindi namin mai-load ang mga campaign. Pakisubukan muli.",
+      "error_description": "We couldn't load any campaigns. Please try again.",
       "retry_button": "Subukang muli",
       "refreshing": "Nire-refresh..."
-    },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8422,10 +8494,38 @@
       "mail_subject": "Ondo campaign prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
-      "close_a11y": "Close",
-      "error_title": "Could not load your winning code",
-      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
-      "error_retry": "Try again"
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Campaign has ended.",
+        "description": "We're determining the results. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Campaign results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
+      }
     }
   },
   "time": {

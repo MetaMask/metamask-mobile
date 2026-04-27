@@ -3200,6 +3200,8 @@
     "network_delete": "Εάν διαγράψετε αυτό το δίκτυο, θα πρέπει να το προσθέσετε ξανά για να δείτε τα περιουσιακά σας στοιχεία σε αυτό το δίκτυο",
     "networks_default_cta": "Χρήση αυτού του δικτύου",
     "add_rpc_url": "Προσθήκη διεύθυνσης URL του RPC",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "Προσθήκη διεύθυνσης URL στο block explorer",
     "networks_desc": "Προσθέστε και επεξεργαστείτε προσαρμοσμένα δίκτυα RPC",
     "networks_enabled": "Ενεργοποιημένα δίκτυα",
@@ -3517,6 +3519,7 @@
     "security_alerts": "Ειδοποιήσεις ασφαλείας",
     "security_alerts_desc": "Αυτή η λειτουργία σας ειδοποιεί για κακόβουλη δραστηριότητα, ελέγχοντας τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Κάνετε πάντα τη δική σας ενδελεχή έρευνα πριν εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα ανιχνεύσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου.",
     "smart_account_dapp_requests_heading": "Αιτήματα έξυπνου λογαριασμού από αποκεντρωμένες εφαρμογές (dapps)",
+    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "Έξυπνες Συναλλαγές",
     "smart_transactions_opt_in_desc_supported_networks": "Ενεργοποιήστε τις Έξυπνες Συναλλαγές για πιο αξιόπιστες και ασφαλείς συναλλαγές σε υποστηριζόμενα δίκτυα.",
     "smart_transactions_learn_more": "Μάθετε περισσότερα",
@@ -3793,13 +3796,16 @@
     "risky": "Επικίνδυνο",
     "malicious_token_title": "Κακόβουλο token",
     "malicious_token_description": "Το {{symbol}} είναι κακόβουλο token. Αποφύγετε την αλληλεπίδραση μαζί του ή να κάνετε συναλλαγές.",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "Επαληθευμένο token",
     "verified_token_description": "Το {{symbol}} έχει υψηλή αναγνωρισιμότητα και είναι ευρέως γνωστό. Η επαλήθευση δεν αποτελεί έγκριση από το MetaMask.",
-    "risky_token_title": "Επικίνδυνο token",
-    "risky_token_description": "Εντοπίστηκαν προειδοποιητικές ενδείξεις για το {{symbol}}. Κάντε προσεκτική έρευνα πριν προχωρήσετε σε συναλλαγές με αυτό το token.",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "Εντοπίστηκαν σοβαρές ενδείξεις κινδύνου για το {{symbol}}. Συνιστούμε να μην κάνετε συναλλαγές με αυτό το token.",
     "got_it": "Κατανοητό",
     "proceed": "Συνεχίστε",
+    "continue_anyway": "Continue anyway",
     "cancel": "Ακύρωση",
     "data_unavailable": "Τα δεδομένα ασφαλείας δεν είναι διαθέσιμα",
     "subtitle_known": "Δεν εντοπίστηκαν ενδείξεις κινδύνου. Να ερευνάτε πάντα κάθε ψηφιακό περιουσιακό στοιχείο πριν κάνετε συναλλαγές.",
@@ -3832,7 +3838,64 @@
     "suspicious": "Ύποπτο",
     "malicious_label": "Κακόβουλο",
     "more": "περισσότερα",
-    "evaluation_disclaimer": "Αυτή η αξιολόγηση ασφαλείας παρέχεται αποκλειστικά για ενημερωτικούς σκοπούς και δεν αποτελεί έγκριση ή σύσταση για συναλλαγές."
+    "evaluation_disclaimer": "Αυτή η αξιολόγηση ασφαλείας παρέχεται αποκλειστικά για ενημερωτικούς σκοπούς και δεν αποτελεί έγκριση ή σύσταση για συναλλαγές.",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "Στοιχεία λογαριασμού",
@@ -5572,8 +5635,8 @@
     "more_to_complete": "περισσότερα για να ολοκληρώσετε αυτήν την ανταλλαγή.",
     "more_gas_to_complete": "περισσότερα τέλη συναλλαγών για να ολοκληρώσετε αυτήν την ανταλλαγή.",
     "token_marketplace": "Χώρος αγοράς των tokens",
-    "market_price_unavailable_title": "Ελέγξτε την τιμή σας πριν συνεχίσετε",
-    "market_price_unavailable": "Η τιμή της αγοράς δεν είναι διαθέσιμη και επομένως ο αντίκτυπος στην τιμή δεν έχει προσδιοριστεί. Βεβαιωθείτε ότι συμφωνείτε με το ποσό των tokens που θα λάβετε πριν από την ανταλλαγή.",
+    "market_price_unavailable_title": "No price information",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "Διαφορά τιμής {{amount}}",
     "price_difference_title": "Διαφορά τιμής",
     "price_difference_body": "Η διαφορά στις τιμές της αγοράς μπορεί να επηρεάζεται από τις αμοιβές που εισπράττουν οι μεσάζοντες, το μέγεθος της αγοράς, το μέγεθος των συναλλαγών ή τις ανεπάρκειες της αγοράς.",
@@ -6387,7 +6450,10 @@
       "add": "Προσθήκη",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "Προσθήκη",
@@ -6421,7 +6487,12 @@
       "virtual_card": "Εικονική κάρτα",
       "metal_card": "Μεταλλική κάρτα",
       "cashback": "{{percentage}}% επιστροφή χρημάτων",
-      "get_now": "Αποκτήστε την τώρα"
+      "get_now": "Αποκτήστε την τώρα",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "Τι σας προσφέρει",
@@ -7073,6 +7144,11 @@
     "token_warning_malicious_banner": "Το {{token}} είναι κακόβουλο token. Να είστε προσεκτικοί όταν αλληλεπιδράτε με αυτό.",
     "token_warning_modal_suspicious_title": "Ύποπτο token",
     "token_warning_modal_malicious_title": "Κακόβουλο token",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "Θα χάσετε {{priceImpactFiat}} σε αυτή τη συναλλαγή"
   },
   "quote_expired_modal": {
@@ -8076,12 +8152,12 @@
       "step4_title_referral_validating": "Έλεγχος κωδικού παραπομπής…",
       "step4_referral_input_error": "Μη έγκυρος κωδικός παραπομπής",
       "title": "Ξεκινήστε να κερδίζετε ανταμοιβές",
-      "description": "Συμμετέχετε σε καμπάνιες και βρείτε ανταμοιβές που μπορείτε να διεκδικήσετε",
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "Εγγραφείτε για Ανταμοιβές",
       "sign_up_loading": "Εγγραφή...",
       "legal_disclaimer_1": "Με τη συμμετοχή σας, συμφωνείτε με τους",
-      "legal_disclaimer_2": "Όρους",
-      "legal_disclaimer_3": ". Όλοι οι λογαριασμοί σε αυτή τη συσκευή θα συμμετέχουν.",
+      "legal_disclaimer_2": "Terms of Use",
+      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "Μάθετε περισσότερα",
       "referral_prompt": "Έχετε κωδικό παραπομπής;",
       "referral_hide": "Απόκρυψη κωδικού",
@@ -8405,13 +8481,9 @@
       "previous_title": "Προηγούμενο",
       "empty_state": "Δεν υπάρχουν διαθέσιμες καμπάνιες",
       "error_title": "Δεν ήταν δυνατή η φόρτωση των καμπανιών",
-      "error_description": "Δεν μπορέσαμε να φορτώσουμε τις καμπάνιες. Προσπαθήστε ξανά.",
+      "error_description": "We couldn't load any campaigns. Please try again.",
       "retry_button": "Επανάληψη",
       "refreshing": "Ανανεώνεται..."
-    },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8422,10 +8494,38 @@
       "mail_subject": "Ondo campaign prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
-      "close_a11y": "Close",
-      "error_title": "Could not load your winning code",
-      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
-      "error_retry": "Try again"
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Campaign has ended.",
+        "description": "We're determining the results. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Campaign results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
+      }
     }
   },
   "time": {

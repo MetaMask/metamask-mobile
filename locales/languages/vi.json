@@ -3200,6 +3200,8 @@
     "network_delete": "Nếu xóa mạng này, bạn sẽ cần thêm lại mạng này để xem các tài sản của mình trong mạng này",
     "networks_default_cta": "Sử dụng mạng này",
     "add_rpc_url": "Thêm URL RPC",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "Thêm URL trình khám phá khối",
     "networks_desc": "Thêm và sửa mạng RPC tùy chỉnh",
     "networks_enabled": "Mạng đã bật",
@@ -3517,6 +3519,7 @@
     "security_alerts": "Cảnh báo bảo mật",
     "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",
     "smart_account_dapp_requests_heading": "Yêu cầu tài khoản thông minh từ dapp",
+    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "Giao dịch thông minh",
     "smart_transactions_opt_in_desc_supported_networks": "Bật Giao dịch thông minh để có các giao dịch đáng tin cậy và an toàn hơn trên các mạng được hỗ trợ.",
     "smart_transactions_learn_more": "Tìm hiểu thêm",
@@ -3793,13 +3796,16 @@
     "risky": "Rủi ro",
     "malicious_token_title": "Token độc hại",
     "malicious_token_description": "{{symbol}} là một token độc hại. Tránh tương tác hoặc giao dịch với token này.",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "Token đã xác minh",
     "verified_token_description": "{{symbol}} đang được giao dịch tích cực và được công nhận rộng rãi. Việc xác minh không phải là sự chứng thực của MetaMask.",
-    "risky_token_title": "Token rủi ro",
-    "risky_token_description": "Phát hiện tín hiệu cảnh báo đối với {{symbol}}. Hãy nghiên cứu kỹ trước khi giao dịch token này.",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "Phát hiện tín hiệu rủi ro nghiêm trọng đối với {{symbol}}. Chúng tôi khuyến nghị không giao dịch token này.",
     "got_it": "Tôi đã hiểu",
     "proceed": "Tiếp tục",
+    "continue_anyway": "Continue anyway",
     "cancel": "Hủy",
     "data_unavailable": "Không có dữ liệu bảo mật",
     "subtitle_known": "Không phát hiện tín hiệu rủi ro. Luôn nghiên cứu bất kỳ tài sản nào trước khi giao dịch.",
@@ -3832,7 +3838,64 @@
     "suspicious": "Đáng ngờ",
     "malicious_label": "Độc hại",
     "more": "thêm",
-    "evaluation_disclaimer": "Đánh giá bảo mật này chỉ nhằm mục đích thẩm định và không cấu thành sự chứng thực hoặc khuyến nghị giao dịch."
+    "evaluation_disclaimer": "Đánh giá bảo mật này chỉ nhằm mục đích thẩm định và không cấu thành sự chứng thực hoặc khuyến nghị giao dịch.",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "Chi tiết tài khoản",
@@ -5572,8 +5635,8 @@
     "more_to_complete": "để hoàn thành giao dịch hoán đổi này.",
     "more_gas_to_complete": "phí gas để hoàn thành giao dịch hoán đổi này.",
     "token_marketplace": "Thị trường token",
-    "market_price_unavailable_title": "Kiểm tra tỷ giá trước khi tiếp tục",
-    "market_price_unavailable": "Giá thị trường không có sẵn và do đó không thể xác định mức tác động giá. Vui lòng xác minh rằng bạn cảm thấy thoải mái với số lượng Token bạn sẽ nhận được trước khi hoán đổi.",
+    "market_price_unavailable_title": "No price information",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "Mức chênh lệch giá là {{amount}}",
     "price_difference_title": "Mức chênh lệch giá",
     "price_difference_body": "Mức chênh lệch giá thị trường có thể bị ảnh hưởng bởi các khoản phí do bên trung gian thu, quy mô thị trường, quy mô giao dịch hoặc sự kém hiệu quả của thị trường.",
@@ -6387,7 +6450,10 @@
       "add": "Thêm",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "Thêm",
@@ -6421,7 +6487,12 @@
       "virtual_card": "Thẻ ảo",
       "metal_card": "Thẻ kim loại",
       "cashback": "Hoàn tiền {{percentage}}%",
-      "get_now": "Nhận ngay"
+      "get_now": "Nhận ngay",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "Những gì bạn nhận được",
@@ -7073,6 +7144,11 @@
     "token_warning_malicious_banner": "{{token}} là một token độc hại. Hãy cẩn trọng khi tương tác với token này.",
     "token_warning_modal_suspicious_title": "Token đáng ngờ",
     "token_warning_modal_malicious_title": "Token độc hại",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "Bạn sẽ mất {{priceImpactFiat}} trong giao dịch này"
   },
   "quote_expired_modal": {
@@ -8076,12 +8152,12 @@
       "step4_title_referral_validating": "Đang xác minh mã giới thiệu...",
       "step4_referral_input_error": "Mã giới thiệu không hợp lệ",
       "title": "Bắt đầu kiếm phần thưởng",
-      "description": "Tham gia các chiến dịch và tìm các quyền lợi có thể nhận",
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "Tham gia chương trình Phần thưởng",
       "sign_up_loading": "Đang tham gia...",
       "legal_disclaimer_1": "Bằng việc tham gia, bạn đồng ý với",
-      "legal_disclaimer_2": "Điều khoản",
-      "legal_disclaimer_3": ". Tất cả tài khoản trên thiết bị này sẽ được đăng ký tham gia.",
+      "legal_disclaimer_2": "Terms of Use",
+      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "Tìm hiểu thêm",
       "referral_prompt": "Có mã giới thiệu?",
       "referral_hide": "Ẩn mã",
@@ -8405,13 +8481,9 @@
       "previous_title": "Trước đó",
       "empty_state": "Không có chiến dịch nào",
       "error_title": "Không thể tải các chiến dịch",
-      "error_description": "Chúng tôi không thể tải các chiến dịch. Vui lòng thử lại.",
+      "error_description": "We couldn't load any campaigns. Please try again.",
       "retry_button": "Thử lại",
       "refreshing": "Đang làm mới..."
-    },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8422,10 +8494,38 @@
       "mail_subject": "Ondo campaign prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
-      "close_a11y": "Close",
-      "error_title": "Could not load your winning code",
-      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
-      "error_retry": "Try again"
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Campaign has ended.",
+        "description": "We're determining the results. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Campaign results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
+      }
     }
   },
   "time": {

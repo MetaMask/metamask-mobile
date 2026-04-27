@@ -3200,6 +3200,8 @@
     "network_delete": "Если вы удалите эту сеть, вам нужно будет добавить ее снова, чтобы просмотреть свои активы в этой сети",
     "networks_default_cta": "Использовать эту сеть",
     "add_rpc_url": "Добавить URL-адрес RPC",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "Добавить URL обозревателя блоков",
     "networks_desc": "Добавляйте и редактируйте пользовательские сети RPC",
     "networks_enabled": "Включенные сети",
@@ -3517,6 +3519,7 @@
     "security_alerts": "Оповещения безопасности",
     "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика.",
     "smart_account_dapp_requests_heading": "Запросы на создание смарт-счетов от dapps",
+    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "Умные транзакции",
     "smart_transactions_opt_in_desc_supported_networks": "Включите функцию «Умные транзакции» для более надежных и безопасных транзакций в поддерживаемых сетях.",
     "smart_transactions_learn_more": "Подробнее",
@@ -3793,13 +3796,16 @@
     "risky": "Рискованный",
     "malicious_token_title": "Вредоносный токен",
     "malicious_token_description": "{{symbol}} — это вредоносный токен. Избегайте взаимодействия с ним или торговли им.",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "Проверенный токен",
     "verified_token_description": "{{symbol}} активно торгуется и широко известен. Подтверждение не является одобрением со стороны MetaMask.",
-    "risky_token_title": "Рискованный токен",
-    "risky_token_description": "В отношении {{symbol}} обнаружены предупреждающие сигналы. Перед началом торговли этим токеном внимательно изучите информацию.",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "Обнаружены серьезные сигналы риска для {{symbol}}. Мы рекомендуем воздержаться от торговли этим токеном.",
     "got_it": "Понятно",
     "proceed": "Продолжить",
+    "continue_anyway": "Continue anyway",
     "cancel": "Отмена",
     "data_unavailable": "Данные о безопасности недоступны",
     "subtitle_known": "Сигналы риска не обнаружены. Всегда проводите анализ любого актива перед совершением сделки.",
@@ -3832,7 +3838,64 @@
     "suspicious": "Подозрительный",
     "malicious_label": "Вредоносный",
     "more": "больше",
-    "evaluation_disclaimer": "Данный обзор безопасности носит исключительно ознакомительный характер и не является рекомендацией или одобрением для совершения сделок."
+    "evaluation_disclaimer": "Данный обзор безопасности носит исключительно ознакомительный характер и не является рекомендацией или одобрением для совершения сделок.",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "Сведения о счете",
@@ -5572,8 +5635,8 @@
     "more_to_complete": "для выполнения этого обмена.",
     "more_gas_to_complete": "больше для газа для выполнения этого обмена.",
     "token_marketplace": "Торговая площадка токенов",
-    "market_price_unavailable_title": "Проверьте свой тариф, прежде чем продолжить",
-    "market_price_unavailable": "Рыночная цена недоступна, поэтому влияние на цену неизвестно. Перед обменом убедитесь, что вас устраивает количество токенов, которое вы получите.",
+    "market_price_unavailable_title": "No price information",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "Разница в цене {{amount}}",
     "price_difference_title": "Разница в цене",
     "price_difference_body": "На разницу в рыночных ценах могут влиять комиссии посредников, размер рынка, размер сделки или неэффективность рынка.",
@@ -6387,7 +6450,10 @@
       "add": "Добавить",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "Добавить",
@@ -6421,7 +6487,12 @@
       "virtual_card": "Виртуальная карта",
       "metal_card": "Металлическая карта",
       "cashback": "{{percentage}}% кешбэка",
-      "get_now": "Получить сейчас"
+      "get_now": "Получить сейчас",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "Что вы получаете",
@@ -7073,6 +7144,11 @@
     "token_warning_malicious_banner": "{{token}} — это вредоносный токен. Будьте осторожны при взаимодействии с ним.",
     "token_warning_modal_suspicious_title": "Подозрительный токен",
     "token_warning_modal_malicious_title": "Вредоносный токен",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "Вы потеряете {{priceImpactFiat}} на этой сделке"
   },
   "quote_expired_modal": {
@@ -8076,12 +8152,12 @@
       "step4_title_referral_validating": "Проверка реферального кода...",
       "step4_referral_input_error": "Недействительный реферальный код",
       "title": "Начните получать награды",
-      "description": "Участвуйте в кампаниях и находите доступные бонусы",
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "Присоединиться к Rewards",
       "sign_up_loading": "Присоединение...",
       "legal_disclaimer_1": "Присоединяясь, вы соглашаетесь с",
-      "legal_disclaimer_2": "Условиями",
-      "legal_disclaimer_3": ". Будет дано согласие в отношении всех счетов на этом устройстве.",
+      "legal_disclaimer_2": "Terms of Use",
+      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "Узнайте подробнее",
       "referral_prompt": "Есть реферальный код?",
       "referral_hide": "Скрыть код",
@@ -8405,13 +8481,9 @@
       "previous_title": "Предыдущее",
       "empty_state": "Нет доступных кампаний",
       "error_title": "Не удалось загрузить кампании",
-      "error_description": "Нам не удалось загрузить кампании. Повторите попытку.",
+      "error_description": "We couldn't load any campaigns. Please try again.",
       "retry_button": "Повтор",
       "refreshing": "Обновление..."
-    },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8422,10 +8494,38 @@
       "mail_subject": "Ondo campaign prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
-      "close_a11y": "Close",
-      "error_title": "Could not load your winning code",
-      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
-      "error_retry": "Try again"
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Campaign has ended.",
+        "description": "We're determining the results. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Campaign results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
+      }
     }
   },
   "time": {

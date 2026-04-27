@@ -3200,6 +3200,8 @@
     "network_delete": "अगर आप इस नेटवर्क को हटाते हैं, तो आपको इस नेटवर्क में अपने एसेट देखने के लिए इसे फिर से जोड़ना होगा",
     "networks_default_cta": "इस नेटवर्क का प्रयोग करें",
     "add_rpc_url": "RPC URL जोड़ें",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "ब्लॉक एक्सप्लोरर URL जोड़ें",
     "networks_desc": "कस्टम RPC नेटवर्क को जोड़ें और संपादित करें",
     "networks_enabled": "चालू किए गए नेटवर्क्स",
@@ -3517,6 +3519,7 @@
     "security_alerts": "सुरक्षा चेतावनियाँ",
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
     "smart_account_dapp_requests_heading": "dapps से स्मार्ट अकाउंट रिक्वेस्ट",
+    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "स्मार्ट ट्रांसेक्शन",
     "smart_transactions_opt_in_desc_supported_networks": "समर्थित नेटवर्क पर अधिक विश्वसनीय और सुरक्षित ट्रांसेक्शन के लिए स्मार्ट ट्रांसेक्शन चालू करें।",
     "smart_transactions_learn_more": "ज़्यादा जानें",
@@ -3793,13 +3796,16 @@
     "risky": "जोखिम से भरा",
     "malicious_token_title": "बुरी नीयत वाला टोकन",
     "malicious_token_description": "{{symbol}} एक बुरी नीयत वाला टोकन है। इसके साथ इंटरैक्ट करने या इसे ट्रेड करने से बचें।",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "सत्यापित टोकन",
     "verified_token_description": "{{symbol}} एक्टिवली ट्रेड किया जाता है और यह काफ़ी जाना-माना है। वेरिफ़िकेशन को MetaMask मेटामास्क द्वारा समर्थन नहीं है।",
-    "risky_token_title": "जोखिम भरा टोकन",
-    "risky_token_description": "{{symbol}} पर चेतावनी के संकेत मिले हैं। इस टोकन में ट्रेड करने से पहले ध्यान से रिसर्च करें।",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "{{symbol}} पर गंभीर जोखिम के संकेत मिले हैं। हम इस टोकन में ट्रेड न करने की सलाह देते हैं।",
     "got_it": "समझ गए",
     "proceed": "आगे बढ़ें",
+    "continue_anyway": "Continue anyway",
     "cancel": "कैंसिल करें",
     "data_unavailable": "सुरक्षा डेटा उपलब्ध नहीं है",
     "subtitle_known": "जोखिम का कोई संकेत नहीं मिला। ट्रेड करने से पहले किसी भी एसेट में रिसर्च ज़रूर करें।",
@@ -3832,7 +3838,64 @@
     "suspicious": "संदिग्ध",
     "malicious_label": "बुरी नीयत वाला",
     "more": "अधिक",
-    "evaluation_disclaimer": "यह सिक्योरिटी रिव्यू सिर्फ़ इवैल्यूएशन के लिए है और यह ट्रेड के लिए एंडोर्समेंट या रिकमेंडेशन नहीं है।"
+    "evaluation_disclaimer": "यह सिक्योरिटी रिव्यू सिर्फ़ इवैल्यूएशन के लिए है और यह ट्रेड के लिए एंडोर्समेंट या रिकमेंडेशन नहीं है।",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "अकाउंट का विवरण",
@@ -5572,8 +5635,8 @@
     "more_to_complete": "ज्यादा ताकि इस स्वैप को पूरा करें",
     "more_gas_to_complete": "गैस के लिए ज्यादा ताकि इस स्वैप को पूरा करें।",
     "token_marketplace": "टोकन मार्केटप्लेस",
-    "market_price_unavailable_title": "आगे बढ़ने से पहले अपने दर जांच लें",
-    "market_price_unavailable": "बाजार की कीमत उपलब्ध नहीं है और इसलिए कीमत का प्रभाव अज्ञात है। कृपया सत्यापित करें कि स्वैप करने से पहले मिलने वाले टोकन की रकम के साथ आप सहज हैं।",
+    "market_price_unavailable_title": "No price information",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "{{amount}} की कीमत में अंतर",
     "price_difference_title": "कीमत में अंतर",
     "price_difference_body": "बाजार की कीमत में अंतर बिचौलियों द्वारा लिये जाने वाले शुल्क, बाजार का आकार, व्यापार का आकार, या बाजार की अक्षमता से प्रभावित हो सकता है।",
@@ -6387,7 +6450,10 @@
       "add": "जोड़ें",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "जोड़ें",
@@ -6421,7 +6487,12 @@
       "virtual_card": "वर्चुअल कार्ड",
       "metal_card": "मेटल कार्ड",
       "cashback": "{{percentage}}% कैशबैक",
-      "get_now": "अभी पाएं"
+      "get_now": "अभी पाएं",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "आपको क्या मिलता है",
@@ -7073,6 +7144,11 @@
     "token_warning_malicious_banner": "{{token}} एक बदनीयत वाला टोकन है। इस टोकन के साथ लेन-देन करते समय सावधानी बरतें।",
     "token_warning_modal_suspicious_title": "संदिग्ध टोकन",
     "token_warning_modal_malicious_title": "बुरी नीयत वाला टोकन",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "इस ट्रेड में आपको {{priceImpactFiat}} का नुकसान होगा"
   },
   "quote_expired_modal": {
@@ -8076,12 +8152,12 @@
       "step4_title_referral_validating": "रेफरल कोड मान्य किया जा रहा है…",
       "step4_referral_input_error": "रेफरल कोड ग़लत है",
       "title": "रिवॉर्ड कमाना शुरू करें",
-      "description": "कैंपेन में शामिल हों और क्लेम करने लायक फ़ायदे पाएं",
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "रिवॉर्ड में शामिल हों",
       "sign_up_loading": "शामिल हो रहे हैं...",
       "legal_disclaimer_1": "शामिल होकर, आप सहमत होते हैं",
-      "legal_disclaimer_2": "शर्तें",
-      "legal_disclaimer_3": "। इस डिवाइस पर सभी अकाउंट ऑप्ट इन हो जाएंगे।",
+      "legal_disclaimer_2": "Terms of Use",
+      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "ज़्यादा जानें",
       "referral_prompt": "क्या आपके पास रेफ़रल कोड है?",
       "referral_hide": "कोड छिपाएँ",
@@ -8405,13 +8481,9 @@
       "previous_title": "पिछला",
       "empty_state": "कोई कैंपेन उपलब्ध नहीं है",
       "error_title": "कैंपेन लोड नहीं हो पा रहे हैं",
-      "error_description": "हम कैंपेन लोड नहीं कर पाए। कृपया फिर से कोशिश करें।",
+      "error_description": "We couldn't load any campaigns. Please try again.",
       "retry_button": "फिर से प्रयास करें",
       "refreshing": "रिफ्रेश हो रहा है..."
-    },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8422,10 +8494,38 @@
       "mail_subject": "Ondo campaign prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
-      "close_a11y": "Close",
-      "error_title": "Could not load your winning code",
-      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
-      "error_retry": "Try again"
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Campaign has ended.",
+        "description": "We're determining the results. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Campaign results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
+      }
     }
   },
   "time": {
