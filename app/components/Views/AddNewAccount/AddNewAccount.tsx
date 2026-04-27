@@ -10,7 +10,7 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // External dependencies.
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
@@ -182,14 +182,11 @@ const AddNewAccount = ({
   return (
     <SafeAreaView testID={AddNewAccountIds.CONTAINER}>
       <Fragment>
-        <SheetHeader
-          title={
-            showSRPList
-              ? strings('accounts.select_secret_recovery_phrase')
-              : addAccountTitle
-          }
-          onBack={handleOnBack}
-        />
+        <BottomSheetHeader onBack={handleOnBack}>
+          {showSRPList
+            ? strings('accounts.select_secret_recovery_phrase')
+            : addAccountTitle}
+        </BottomSheetHeader>
         {showSRPList ? (
           <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
         ) : (
