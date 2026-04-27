@@ -7,6 +7,8 @@ import {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PositionTokenAvatar from './PositionTokenAvatar';
 import type { Position } from '@metamask/social-controllers';
+import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 jest.mock('@metamask/design-system-react-native', () => ({
   ...jest.requireActual('@metamask/design-system-react-native'),
@@ -26,7 +28,30 @@ jest.mock('../utils/chainMapping', () => ({
   ),
 }));
 
+jest.mock(
+  '../../../../component-library/components/Badges/BadgeWrapper',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => null),
+    BadgePosition: { BottomRight: 'bottom-right' },
+  }),
+);
+
+jest.mock(
+  '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => null),
+  }),
+);
+
+jest.mock('../../../../util/networks', () => ({
+  getNetworkImageSource: jest.fn(() => ({ uri: 'network.png' })),
+}));
+
 const MockAvatarToken = AvatarToken as jest.Mock;
+const MockBadgeWrapper = BadgeWrapper as jest.Mock;
+const MockBadgeNetwork = BadgeNetwork as jest.Mock;
 
 const lastAvatarTokenProps = () =>
   MockAvatarToken.mock.calls[MockAvatarToken.mock.calls.length - 1][0] as {
@@ -212,6 +237,42 @@ describe('PositionTokenAvatar', () => {
 
     expect(lastAvatarTokenProps().src).toEqual({
       uri: 'https://static.cx.metamask.io/eip155:8453.png',
+    });
+  });
+
+  describe('showChainBadge', () => {
+    it('wraps the avatar in BadgeWrapper when showChainBadge is true and the chain resolves', () => {
+      renderWithProvider(
+        <PositionTokenAvatar position={basePosition} showChainBadge />,
+      );
+
+      expect(MockBadgeWrapper).toHaveBeenCalled();
+    });
+
+    it('passes a BadgeNetwork as the badgeElement when showChainBadge is true', () => {
+      renderWithProvider(
+        <PositionTokenAvatar position={basePosition} showChainBadge />,
+      );
+
+      const badgeElement = MockBadgeWrapper.mock.calls[0][0]
+        .badgeElement as React.ReactElement;
+      expect(badgeElement.type).toBe(MockBadgeNetwork);
+    });
+
+    it('does not wrap the avatar in BadgeWrapper when showChainBadge is false by default', () => {
+      renderWithProvider(<PositionTokenAvatar position={basePosition} />);
+
+      expect(MockBadgeWrapper).not.toHaveBeenCalled();
+    });
+
+    it('does not wrap the avatar in BadgeWrapper when the chain is unsupported', () => {
+      const position = { ...basePosition, chain: 'unsupported' };
+
+      renderWithProvider(
+        <PositionTokenAvatar position={position} showChainBadge />,
+      );
+
+      expect(MockBadgeWrapper).not.toHaveBeenCalled();
     });
   });
 });
