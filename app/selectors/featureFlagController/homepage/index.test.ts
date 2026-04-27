@@ -1,6 +1,7 @@
 import {
   selectHomepageSectionsV1Enabled,
   selectHubPageDiscoveryTabsABTest,
+  selectWalletHomeOnboardingStepsEnabled,
 } from '.';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
@@ -105,6 +106,23 @@ describe('Homepage Feature Flag Selectors', () => {
         coreMCU589AbtestHubPageDiscoveryTabs: 'unknown_variant',
       });
       expect(result).toEqual({ variantName: 'control', isActive: false });
+    });
+  });
+
+  describe('selectWalletHomeOnboardingStepsEnabled', () => {
+    it('returns true when remote flag is valid and enabled', () => {
+      const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({
+        walletHomeOnboardingSteps: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is absent', () => {
+      const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({});
+      expect(result).toBe(false);
     });
   });
 });

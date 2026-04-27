@@ -1,4 +1,5 @@
 import React, { useCallback, useLayoutEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
@@ -12,6 +13,8 @@ import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { setWalletHomeOnboardingStepsEligible } from '../../../actions/onboarding';
+import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboarding/walletHomeOnboardingStepsEligibility';
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
@@ -53,6 +56,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const tw = useTailwind();
 
@@ -67,6 +71,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   };
 
   const handleOnDone = useCallback(() => {
+    if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
+      dispatch(setWalletHomeOnboardingStepsEligible(true));
+    }
+
     const onOnboardingSuccess = async () => {
       // Run discovery on all account providers (EVM and non-EVM)
       await discoverAccounts(
@@ -75,7 +83,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     };
     onOnboardingSuccess();
     onDone();
-  }, [onDone]);
+  }, [dispatch, onDone, successFlow]);
 
   const getTitleString = () => {
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
