@@ -23,6 +23,7 @@ export enum HeaderSearchVariant {
 // MMDS Box resolves React Native bundled types. Deriving props from the component
 // keeps wrapper props aligned with the actual JSX contract until the library-level
 // typing story is unified.
+// https://github.com/MetaMask/metamask-design-system/issues/1115
 type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 /**
