@@ -478,7 +478,7 @@ export const securityAlertResponse = {
     from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
     meta: {
       analytics: {
-        request_platform: undefined,
+        remote_request_platform: undefined,
         request_source: 'In-App-Browser',
       },
       channelId: undefined,
