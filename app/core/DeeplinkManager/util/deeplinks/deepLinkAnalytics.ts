@@ -467,6 +467,8 @@ const routeExtractors: Record<
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
   [DeepLinkRoute.MMC_MWP]: extractMmcMwpProperties,
+  [DeepLinkRoute.SDK_CONNECT]: extractInvalidProperties,
+  [DeepLinkRoute.SDK_MMSDK]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -599,6 +601,11 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.CARD_HOME;
     case ACTIONS.NFT:
       return DeepLinkRoute.NFT;
+    case ACTIONS.CONNECT:
+    case ACTIONS.ANDROID_SDK:
+      return DeepLinkRoute.SDK_CONNECT;
+    case ACTIONS.MMSDK:
+      return DeepLinkRoute.SDK_MMSDK;
     default:
       return DeepLinkRoute.INVALID;
   }

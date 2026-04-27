@@ -212,6 +212,23 @@ async function handleUniversalLink({
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
     const wcURL = params?.uri || mappedUrlObj.href;
+
+    // Fire DEEP_LINK_USED for SDK deeplinks (they previously bypassed all analytics)
+    const sdkRoute = isSupportedAction(action)
+      ? mapSupportedActionToRoute(action)
+      : DeepLinkRoute.INVALID;
+
+    trackDeepLinkAnalytics({
+      url,
+      route: sdkRoute,
+      urlParams: params || {},
+      branchParams: {},
+      signatureStatus: SignatureStatus.MISSING,
+      interstitialShown: false,
+      interstitialDisabled: false,
+      interstitialAction: InterstitialState.NOT_SHOWN,
+    });
+
     handleMetaMaskDeeplink({
       handled,
       wcURL,

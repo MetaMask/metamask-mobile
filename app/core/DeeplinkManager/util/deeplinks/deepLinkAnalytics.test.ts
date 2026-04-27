@@ -463,6 +463,21 @@ describe('deepLinkAnalytics', () => {
         expect(result).toBe(expectedRoute);
       },
     );
+
+    it('maps CONNECT action to SDK_CONNECT route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.CONNECT);
+      expect(result).toBe(DeepLinkRoute.SDK_CONNECT);
+    });
+
+    it('maps MMSDK action to SDK_MMSDK route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.MMSDK);
+      expect(result).toBe(DeepLinkRoute.SDK_MMSDK);
+    });
+
+    it('maps ANDROID_SDK action to SDK_CONNECT route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.ANDROID_SDK);
+      expect(result).toBe(DeepLinkRoute.SDK_CONNECT);
+    });
   });
 
   describe('extractRouteFromUrl', () => {
