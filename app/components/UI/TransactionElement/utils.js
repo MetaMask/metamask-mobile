@@ -839,13 +839,6 @@ function decodeConfirmTx(args) {
   const renderTo = renderFullAddress(to);
   const chainId = txChainId;
 
-  const tokenList =
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
-      ?.data || [];
-  let symbol;
-  if (renderTo in tokenList) {
-    symbol = tokenList[renderTo].symbol;
-  }
   let transactionType;
   if (actionKey === strings('transactions.approve'))
     transactionType = TRANSACTION_TYPES.APPROVE;
@@ -874,7 +867,7 @@ function decodeConfirmTx(args) {
   const transactionElement = {
     renderTo,
     renderFrom,
-    actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
+    actionKey,
     value: renderTotalEth,
     fiatValue: renderTotalEthFiat,
     transactionType,

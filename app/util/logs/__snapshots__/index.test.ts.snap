@@ -804,9 +804,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "TokenBalancesController": {
         "tokenBalances": {},
       },
-      "TokenListController": {
-        "tokensChainsCache": {},
-      },
+      "TokenListController": {},
       "TokenRatesController": {
         "marketData": {},
       },
@@ -1624,9 +1622,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "TokenBalancesController": {
         "tokenBalances": {},
       },
-      "TokenListController": {
-        "tokensChainsCache": {},
-      },
+      "TokenListController": {},
       "TokenRatesController": {
         "marketData": {},
       },

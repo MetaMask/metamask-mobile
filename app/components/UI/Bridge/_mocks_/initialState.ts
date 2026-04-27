@@ -586,31 +586,6 @@ export const initialState = {
           [optimismChainId]: true,
         },
       },
-      TokenListController: {
-        tokensChainsCache: {
-          [ethChainId]: {
-            timestamp: Date.now(),
-            data: {
-              [ethToken1Address]: {
-                name: 'Token One',
-                symbol: 'TOKEN1',
-                decimals: 18,
-                address: ethToken1Address,
-                iconUrl: 'https://token1.com/logo.png',
-                occurrences: 1,
-                aggregators: [],
-              },
-              [ethToken2Address]: {
-                name: 'Hello Token',
-                symbol: 'HELLO',
-                decimals: 18,
-                address: ethToken2Address,
-                iconUrl: 'https://token2.com/logo.png',
-              },
-            },
-          },
-        },
-      },
       KeyringController: {
         vault: '',
         isUnlocked: true,
