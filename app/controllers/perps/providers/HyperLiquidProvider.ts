@@ -4589,16 +4589,16 @@ export class HyperLiquidProvider implements PerpsProvider {
         ntli,
       });
 
-      // Guard: confirm total spendable (perps + spot) can cover margin addition
+      // Guard: confirm spendableBalance can cover margin addition.
+      // spendableBalance is already mode-aware (includes free spot in Unified,
+      // excludes it in Standard), so no extra spot fetch needed.
       if (amountFloat > 0) {
         const accountState = await this.getAccountState();
-        const perpsSpendable = parseFloat(accountState.spendableBalance);
-        const spotBalance = await this.#getSpotUsdcBalance();
-        const totalSpendable = perpsSpendable + spotBalance;
+        const spendable = parseFloat(accountState.spendableBalance);
 
-        if (totalSpendable < amountFloat) {
+        if (spendable < amountFloat) {
           throw new Error(
-            `Insufficient balance for margin addition: need ${amountFloat}, available ${totalSpendable.toFixed(2)} (perps: ${perpsSpendable.toFixed(2)}, spot: ${spotBalance.toFixed(2)})`,
+            `Insufficient balance for margin addition: need ${amountFloat}, available ${spendable.toFixed(2)}`,
           );
         }
       }
@@ -6920,71 +6920,27 @@ export class HyperLiquidProvider implements PerpsProvider {
         sufficientBalance: withdrawAmount <= withdrawableBalance,
       });
 
-      // Sweep spot → perps when perps withdrawable alone is insufficient
-      if (withdrawAmount > withdrawableBalance) {
-        const shortfall = withdrawAmount - withdrawableBalance;
-        const spotBalance = await this.#getSpotUsdcBalance();
-
+      // Validate against withdrawableBalance — the mode-aware cap.
+      // No spot sweep: withdrawableBalance already reflects what withdraw3
+      // can pull. In Unified mode HL handles cross-wallet internally; in
+      // Standard mode spot is not withdrawable via perps.
+      const balanceValidation = validateBalance(
+        withdrawAmount,
+        withdrawableBalance,
+      );
+      if (!balanceValidation.isValid) {
         this.#deps.debugLogger.log(
-          'HyperLiquidProvider: WITHDRAW SWEEP CHECK',
+          'HyperLiquidProvider: INSUFFICIENT BALANCE',
           {
+            error: balanceValidation.error,
+            requestedAmount: withdrawAmount,
             withdrawableBalance,
-            withdrawAmount,
-            shortfall,
-            spotBalance,
+            difference: withdrawAmount - withdrawableBalance,
           },
         );
-
-        if (spotBalance < shortfall) {
-          const balanceValidation = validateBalance(
-            withdrawAmount,
-            withdrawableBalance,
-          );
-          this.#deps.debugLogger.log(
-            'HyperLiquidProvider: INSUFFICIENT BALANCE',
-            {
-              error: balanceValidation.error,
-              requestedAmount: withdrawAmount,
-              withdrawableBalance,
-              difference: shortfall,
-            },
-          );
-          throw new Error(
-            balanceValidation.error ??
-              PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
-          );
-        }
-
-        // Transfer shortfall from spot to perps so withdraw3 can cover full amount
-        const userAddress =
-          await this.#walletService.getUserAddressWithDefault();
-        this.#deps.debugLogger.log(
-          'HyperLiquidProvider: SWEEPING SPOT TO PERPS',
-          { amount: shortfall },
-        );
-
-        const sweepResult = await exchangeClient.sendAsset({
-          destination: userAddress,
-          sourceDex: 'spot',
-          destinationDex: '',
-          token: await this.#getUsdcTokenId(),
-          amount: shortfall.toString(),
-        });
-
-        if (sweepResult.status !== 'ok') {
-          throw new Error(
-            'Failed to transfer spot balance to perps for withdrawal',
-          );
-        }
-
-        this.#deps.debugLogger.log(
-          '✅ HyperLiquidProvider: SPOT TO PERPS SWEEP COMPLETE',
-        );
-      } else {
-        this.#deps.debugLogger.log(
-          '✅ HyperLiquidProvider: BALANCE SUFFICIENT',
-        );
+        throw new Error(balanceValidation.error);
       }
+      this.#deps.debugLogger.log('✅ HyperLiquidProvider: BALANCE SUFFICIENT');
 
       // Step 6: Execute withdrawal via HyperLiquid SDK (API call)
       this.#deps.debugLogger.log('HyperLiquidProvider: CALLING WITHDRAW3 API', {
