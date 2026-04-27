@@ -77,23 +77,40 @@ const RootRPCMethodsUI = (props) => {
     [trackCancelledTransaction],
   );
 
-  const autoSign = useCallback(
-    async (transactionMeta) => {
-      const walletType = getHardwareWalletTypeForAddress(
-        transactionMeta.txParams.from,
-      );
-
-      if (!walletType) {
-        return;
+  const showAutoSignError = useCallback(
+    (error) => {
+      if (trackCancelledTransaction(error)) {
+        return true;
       }
 
-      // As the `TransactionController:unapprovedTransactionAdded` event is emitted
-      // before the approval request is added to `ApprovalController`, we need to wait
-      // for the next tick to make sure the approval request is present when auto-approve it
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      Alert.alert(
+        strings('transactions.transaction_error'),
+        error && error.message,
+        [{ text: strings('navigation.ok') }],
+      );
+      Logger.error(error, 'error while trying to send transaction (Main)');
+      return false;
+    },
+    [trackCancelledTransaction],
+  );
 
-      if (walletType === HardwareWalletType.Qr) {
-        try {
+  const autoSign = useCallback(
+    async (transactionMeta) => {
+      try {
+        const walletType = getHardwareWalletTypeForAddress(
+          transactionMeta.txParams.from,
+        );
+
+        if (!walletType) {
+          return;
+        }
+
+        // As the `TransactionController:unapprovedTransactionAdded` event is emitted
+        // before the approval request is added to `ApprovalController`, we need to wait
+        // for the next tick to make sure the approval request is present when auto-approve it
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        if (walletType === HardwareWalletType.Qr) {
           props.navigation.navigate(
             ...createQRSigningTransactionModalNavDetails({
               transactionId: transactionMeta.id,
@@ -102,48 +119,37 @@ const RootRPCMethodsUI = (props) => {
             }),
           );
           return;
-        } catch (error) {
-          if (!trackCancelledTransaction(error)) {
-            Alert.alert(
-              strings('transactions.transaction_error'),
-              error && error.message,
-              [{ text: strings('navigation.ok') }],
-            );
-            Logger.error(
-              error,
-              'error while trying to send transaction (Main)',
-            );
-          }
-          return;
         }
-      }
 
-      await executeHardwareWalletOperation({
-        address: transactionMeta.txParams.from,
-        operationType: 'transaction',
-        ensureDeviceReady,
-        setPendingOperationAddress,
-        showAwaitingConfirmation,
-        hideAwaitingConfirmation,
-        showHardwareWalletError,
-        onError: handleAutoSignError,
-        execute: async () => {
-          await Engine.context.ApprovalController.acceptRequest(
-            transactionMeta.id,
-            undefined,
-            {
-              waitForResult: true,
-            },
-          );
-        },
-        onRejected: () => {
-          Engine.rejectPendingApproval(
-            transactionMeta.id,
-            new Error('User rejected the transaction'),
-            { ignoreMissing: true, logErrors: false },
-          );
-        },
-      });
+        await executeHardwareWalletOperation({
+          address: transactionMeta.txParams.from,
+          operationType: 'transaction',
+          ensureDeviceReady,
+          setPendingOperationAddress,
+          showAwaitingConfirmation,
+          hideAwaitingConfirmation,
+          showHardwareWalletError,
+          onError: handleAutoSignError,
+          execute: async () => {
+            await Engine.context.ApprovalController.acceptRequest(
+              transactionMeta.id,
+              undefined,
+              {
+                waitForResult: true,
+              },
+            );
+          },
+          onRejected: () => {
+            Engine.rejectPendingApproval(
+              transactionMeta.id,
+              new Error('User rejected the transaction'),
+              { ignoreMissing: true, logErrors: false },
+            );
+          },
+        });
+      } catch (error) {
+        showAutoSignError(error);
+      }
     },
     [
       props.navigation,
@@ -152,8 +158,8 @@ const RootRPCMethodsUI = (props) => {
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
       showHardwareWalletError,
-      trackCancelledTransaction,
       handleAutoSignError,
+      showAutoSignError,
     ],
   );
 

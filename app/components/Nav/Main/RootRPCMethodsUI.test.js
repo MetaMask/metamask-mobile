@@ -199,6 +199,40 @@ describe('RootRPCMethodsUI', () => {
       expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalled();
     });
+
+    it('surfaces unexpected errors from hardware wallet type lookup', async () => {
+      const error = new Error('Unable to read hardware wallet account');
+      mockGetHardwareWalletTypeForAddress.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      render(<RootRPCMethodsUI navigation={{ navigate: jest.fn() }} />);
+
+      const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
+      const handleUnapprovedTransaction = subscribeCall[1];
+      handleUnapprovedTransaction({
+        id: 'tx-lookup-error',
+        txParams: { from: LEDGER_ADDRESS },
+      });
+
+      await expect(
+        capturedAutoSign({
+          id: 'tx-lookup-error',
+          txParams: { from: LEDGER_ADDRESS },
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Transaction error',
+        error.message,
+        [{ text: 'OK' }],
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'error while trying to send transaction (Main)',
+      );
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+    });
   });
 
   it('tracks DAPP_TRANSACTION_CANCELLED when the shared hardware wallet flow handles a keystone cancel', async () => {
