@@ -57,6 +57,6 @@ describe('CollapsibleSection', () => {
 
     expect(getByText('Row 1')).toBeDefined();
 
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

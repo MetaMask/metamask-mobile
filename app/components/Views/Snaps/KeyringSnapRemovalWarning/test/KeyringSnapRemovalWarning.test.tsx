@@ -125,11 +125,11 @@ describe('KeyringSnapRemovalWarning', () => {
 
     const continueButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CONTINUE);
     expect(continueButton).toBeTruthy();
-    // Button text verified via queryByText
+    expect(queryByText('Continue')).toBeTruthy();
 
     const cancelButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CANCEL);
     expect(cancelButton).toBeTruthy();
-    // Button text verified via queryByText
+    expect(queryByText('Cancel')).toBeTruthy();
 
     const warningBannerTitle = queryByText(
       'Be sure you can access any accounts created by this Snap on your own before removing it',
