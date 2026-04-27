@@ -1,5 +1,10 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, type TextStyle } from 'react-native';
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  type TextStyle,
+} from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -92,14 +97,17 @@ const SiteRecentsTileRowItem: React.FC<SiteRecentsTileRowItemProps> = ({
         <Box
           style={tw.style('overflow-hidden rounded-full border border-muted')}
         >
-          <WebsiteIcon
-            /* Same favicon path as URL autocomplete (cache + fetch via useFavicon) */
-            url={site.url}
-            title={site.name}
-            style={styles.websiteIcon}
-            textStyle={websiteIconTextStyle}
-            icon={site.logoUrl}
-          />
+          {site.logoSource ? (
+            <Image source={site.logoSource} style={styles.websiteIcon} />
+          ) : (
+            <WebsiteIcon
+              url={site.url}
+              title={site.name}
+              style={styles.websiteIcon}
+              textStyle={websiteIconTextStyle}
+              icon={site.logoUrl}
+            />
+          )}
         </Box>
         <Icon
           name={IconName.Arrow2UpRight}

@@ -17,7 +17,8 @@ export type SectionId =
   | 'stocks'
   | 'sites'
   | 'dapps_recents'
-  | 'dapps_favorites';
+  | 'dapps_favorites'
+  | 'dapps_networks';
 
 export type SectionIcon =
   | { source: 'local'; name: LocalIconName }
@@ -44,6 +45,8 @@ export interface RowItemSearchProps {
 export interface SectionConfig {
   id: SectionId;
   title: string;
+  /** Optional grey subtitle rendered below the section title. */
+  subtitle?: string;
   icon: SectionIcon;
   viewAllAction: (navigation: AppNavigationProp) => void;
   /**

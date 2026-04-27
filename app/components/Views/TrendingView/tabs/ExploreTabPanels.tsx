@@ -197,6 +197,7 @@ const useExploreTabPanelSections = (
           sections: [
             SECTIONS_CONFIG.dapps_recents,
             SECTIONS_CONFIG.dapps_favorites,
+            SECTIONS_CONFIG.dapps_networks,
             SECTIONS_CONFIG.sites,
           ],
         };

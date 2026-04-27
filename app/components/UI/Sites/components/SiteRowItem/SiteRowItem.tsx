@@ -1,5 +1,10 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  type ImageSourcePropType,
+} from 'react-native';
 import {
   Box,
   Text,
@@ -17,7 +22,10 @@ export interface SiteData {
   name: string;
   url: string;
   displayUrl: string;
+  /** Remote URL string — passed to WebsiteIcon for favicon lookup. */
   logoUrl?: string;
+  /** Local bundled image (require result) — rendered directly with <Image>, takes priority over logoUrl. */
+  logoSource?: ImageSourcePropType;
   featured?: boolean;
   /**
    * When true, applies additional padding around the logo image.
@@ -48,12 +56,16 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
       {/* Logo */}
       <Box twClassName="flex-row items-center flex-1">
         <Box twClassName="w-10 h-10 rounded-full border border-muted mr-4 overflow-hidden items-center justify-center">
-          <WebsiteIcon
-            url={site.url}
-            title={site.name}
-            icon={site.logoUrl}
-            style={websiteIconStyle}
-          />
+          {site.logoSource ? (
+            <Image source={site.logoSource} style={websiteIconStyle} />
+          ) : (
+            <WebsiteIcon
+              url={site.url}
+              title={site.name}
+              icon={site.logoUrl}
+              style={websiteIconStyle}
+            />
+          )}
         </Box>
         {/* Site Info */}
         <Box twClassName="flex-1">

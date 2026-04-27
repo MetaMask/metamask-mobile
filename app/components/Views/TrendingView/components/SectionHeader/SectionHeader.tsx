@@ -1,5 +1,10 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { SectionId, SECTIONS_CONFIG } from '../../sections.config';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -21,14 +26,27 @@ const TrendingSectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
   const showViewAll = sectionConfig.showViewAllInHeader !== false;
 
   return (
-    <SectionHeader
-      testID={`section-header-view-all-${sectionId}`}
-      title={sectionConfig.title}
-      onPress={
-        showViewAll ? () => sectionConfig.viewAllAction(navigation) : undefined
-      }
-      twClassName="px-0 mb-2"
-    />
+    <>
+      <SectionHeader
+        testID={`section-header-view-all-${sectionId}`}
+        title={sectionConfig.title}
+        onPress={
+          showViewAll
+            ? () => sectionConfig.viewAllAction(navigation)
+            : undefined
+        }
+        twClassName={`px-0 ${sectionConfig.subtitle ? 'mb-0.5' : 'mb-2'}`}
+      />
+      {sectionConfig.subtitle && (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="mb-2"
+        >
+          {sectionConfig.subtitle}
+        </Text>
+      )}
+    </>
   );
 };
 
