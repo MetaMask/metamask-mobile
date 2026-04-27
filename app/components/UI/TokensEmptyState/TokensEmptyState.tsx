@@ -3,7 +3,7 @@ import { Image } from 'react-native';
 import {
   TabEmptyState,
   type TabEmptyStateProps,
-} from '../../../component-library/components-temp/TabEmptyState';
+} from '@metamask/design-system-react-native';
 import { useAssetFromTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
