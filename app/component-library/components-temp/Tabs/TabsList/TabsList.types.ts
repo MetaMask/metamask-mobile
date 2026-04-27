@@ -2,7 +2,9 @@
 import React from 'react';
 
 // External dependencies.
-import { BoxProps } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+
+type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 // Internal dependencies.
 import { TabsBarProps } from '../TabsBar/TabsBar.types';
@@ -30,7 +32,7 @@ export interface TabViewProps {
 /**
  * TabsList component props
  */
-export interface TabsListProps extends BoxProps {
+export interface TabsListProps extends BoxComponentProps {
   /**
    * Array of tab items or React children with tabLabel prop
    * Supports both single child and array of children
