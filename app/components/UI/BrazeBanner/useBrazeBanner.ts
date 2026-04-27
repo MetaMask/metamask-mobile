@@ -41,13 +41,14 @@ export interface UseBrazeBannerResult {
  * - `image_url`    URL for the image displayed on the left of the card.
  * - `cta_label`    Call-to-action text shown below the body (only when no title).
  */
-const PROP_BANNER_NAME = 'banner_name';
+const PROP_BANNER_NAME = 'campaign_name';
 const PROP_DISMISSABLE = 'dismissable';
 const PROP_DEEPLINK = 'deeplink';
 const PROP_TITLE = 'title';
 const PROP_BODY = 'body';
 const PROP_IMAGE_URL = 'image_url';
 const PROP_CTA_LABEL = 'cta_label';
+const PROP_VARIANT_NAME = 'variant_name';
 
 /**
  * Drives the BrazeBanner state machine.
@@ -188,6 +189,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     if (!banner || dismissedRef.current) return;
 
     const bannerName = getRawStringProp(banner, PROP_BANNER_NAME);
+    const variantName = getRawStringProp(banner, PROP_VARIANT_NAME);
     const dismissable = getRawBooleanProp(banner, PROP_DISMISSABLE);
 
     dismissedRef.current = true;
@@ -198,7 +200,10 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     // Test sends are treated as non-dismissable (session-only, no Braze event).
     if (bannerName !== null && dismissable === true && !banner.isTestSend) {
       dispatch(setLastDismissedBrazeBanner(bannerName));
-      dismissBrazeBanner({ [PROP_BANNER_NAME]: bannerName });
+      dismissBrazeBanner({
+        [PROP_BANNER_NAME]: bannerName,
+        ...(variantName !== null && { [PROP_VARIANT_NAME]: variantName }),
+      });
     }
   }, [banner, dispatch]);
 
@@ -210,6 +215,9 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     ? getRawStringOrImageProp(banner, PROP_IMAGE_URL)
     : null;
   const ctaLabel = banner ? getRawStringProp(banner, PROP_CTA_LABEL) : null;
+  const variantName = banner
+    ? getRawStringProp(banner, PROP_VARIANT_NAME)
+    : null;
 
   Logger.log('[BrazeBanner] Banner', {
     bannerName,
@@ -226,9 +234,10 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       bannerName
         ? {
             [PROP_BANNER_NAME]: bannerName,
+            ...(variantName !== null && { [PROP_VARIANT_NAME]: variantName }),
           }
         : null,
-    [bannerName],
+    [bannerName, variantName],
   );
 
   return {
