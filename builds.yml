@@ -129,7 +129,7 @@ _signing_flask_uat: &signing_flask_uat
 
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -139,7 +139,7 @@ _code_fencing_main: &code_fencing_main
 # Beta code fencing features (main + beta feature)
 _code_fencing_beta: &code_fencing_beta
   - beta
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -148,7 +148,7 @@ _code_fencing_beta: &code_fencing_beta
 
 # Experimental code fencing features (main + experimental)
 _code_fencing_experimental: &code_fencing_experimental
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -159,8 +159,7 @@ _code_fencing_experimental: &code_fencing_experimental
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
   - flask
-  - preinstalled-snaps
-  - external-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana

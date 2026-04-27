@@ -20,14 +20,10 @@ import {
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
-  selectTokenWarnings as selectTokenWarningsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
   formatChainIdToHex,
-  TokenFeatureType,
-  type TokenFeature,
   type QuoteStreamCompleteData,
-  QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -692,12 +688,6 @@ export const selectIsBridgeEnabledSource = createSelector(
   selectIsBridgeEnabledSourceFactory,
   (_: RootState, chainId: Hex | CaipChainId) => chainId,
   (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
-);
-
-export const selectDestTokenWarning = createSelector(
-  selectControllerFields,
-  (controllerFields): TokenFeature | undefined =>
-    selectTokenWarningsBase(controllerFields)?.[0],
 );
 
 export const selectQuoteStreamComplete = (

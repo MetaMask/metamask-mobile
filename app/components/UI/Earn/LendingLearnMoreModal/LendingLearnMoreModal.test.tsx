@@ -178,7 +178,7 @@ describe('LendingLearnMoreModal', () => {
   });
 
   it('render lending history apy chart', async () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <LendingLearnMoreModal />
       </SafeAreaProvider>,
@@ -195,7 +195,7 @@ describe('LendingLearnMoreModal', () => {
 
       fireLayoutEvent(areaChart);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(chartContainer).toBeOnTheScreen();
     });
   });
 

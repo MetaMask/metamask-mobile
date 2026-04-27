@@ -621,6 +621,33 @@ describe('CampaignStatsSummary', () => {
 
   // ── Campaign complete state ───────────────────────────────────────
 
+  it('hides IneligibleTag from rank cell suffix when isCampaignComplete=true', () => {
+    const { queryByTestId } = render(
+      <CampaignStatsSummary {...baseProps} isIneligible isCampaignComplete />,
+    );
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
+    ).toBeNull();
+  });
+
+  it('hides PendingTag from rank cell suffix when isCampaignComplete=true and position is pending', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 3,
+    };
+    const { queryByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        isCampaignComplete
+      />,
+    );
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toBeNull();
+  });
+
   it('hides qualified card when isCampaignComplete=true', () => {
     const { queryByText } = render(
       <CampaignStatsSummary
@@ -656,6 +683,24 @@ describe('CampaignStatsSummary', () => {
       />,
     );
     expect(queryByText('Qualify for this rank')).toBeNull();
+  });
+
+  it('hides market value cell when isCampaignComplete=true', () => {
+    const { queryByTestId } = render(
+      <CampaignStatsSummary {...baseProps} isCampaignComplete />,
+    );
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
+    ).toBeNull();
+  });
+
+  it('shows market value cell when isCampaignComplete=false', () => {
+    const { getByTestId } = render(
+      <CampaignStatsSummary {...baseProps} isCampaignComplete={false} />,
+    );
+    expect(
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
+    ).toBeDefined();
   });
 
   it('shows outcome banner when isCampaignComplete=true and outcome is provided', () => {
