@@ -365,6 +365,96 @@ describe('useTransactionConfirm', () => {
     );
   });
 
+  describe('isGasFeeSponsored override', () => {
+    it('clears isGasFeeSponsored when gasless is not supported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: false,
+        isSupported: false,
+        pending: false,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: false,
+        }),
+      });
+    });
+
+    it('preserves isGasFeeSponsored when gasless is supported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: true,
+        isSupported: true,
+        pending: false,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: true,
+        }),
+      });
+    });
+
+    it('clears isGasFeeSponsored even without selectedGasFeeToken', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: false,
+        isSupported: false,
+        pending: false,
+      });
+
+      useSelectedGasFeeTokenMock.mockReturnValue(
+        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      );
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: false,
+        }),
+      });
+    });
+  });
+
   describe('handleSmartTransaction', () => {
     beforeEach(() => {
       useGaslessSupportedSmartTransactionsMock.mockReturnValue({
