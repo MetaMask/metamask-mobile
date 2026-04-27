@@ -647,8 +647,23 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           await logoutFromProvider(false);
           const hid = baseRouteParams?.headlessSessionId;
           if (typeof hid === 'string' && hid.length > 0) {
+            // Match BasicInfo logout: OtpCode requires amount, currency, and
+            // assetId in params to re-fetch the Transak quote after re-auth.
+            // Without them it navigates to HEADLESS_HOST while the session is
+            // already `continued`, so the Host effect never re-runs (stuck loader).
+            const resolvedAmount =
+              amount != null
+                ? String(amount)
+                : quote.fiatAmount != null
+                  ? String(quote.fiatAmount)
+                  : undefined;
             navigation.navigate(
-              ...createV2EnterEmailNavDetails({ headlessSessionId: hid }),
+              ...createV2EnterEmailNavDetails({
+                headlessSessionId: hid,
+                amount: resolvedAmount,
+                currency: quote.fiatCurrency || fiatCurrency || undefined,
+                assetId: selectedToken?.assetId,
+              }),
             );
           } else {
             navigation.navigate(Routes.RAMP.ENTER_EMAIL);
@@ -661,6 +676,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     [
       navigation,
       baseRouteParams,
+      fiatCurrency,
+      selectedToken?.assetId,
       getKycRequirement,
       getAdditionalRequirements,
       getUserDetails,
