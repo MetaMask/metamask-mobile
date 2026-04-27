@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
 import Engine from '../../../../core/Engine';
 import { type Position } from '@metamask/perps-controller';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -345,6 +346,54 @@ describe('usePerpsCloseAllPositions', () => {
     expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 
+  it('navigates to PERPS_HOME when handleKeepPositions called and canGoBack returns false', () => {
+    // Arrange
+    const positions = [createMockPosition()];
+    mockNavigation.canGoBack.mockReturnValue(false);
+    const { result } = renderHook(() => usePerpsCloseAllPositions(positions));
+
+    // Act
+    act(() => {
+      result.current.handleKeepPositions();
+    });
+
+    // Assert
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
+  });
+
+  it('navigates to PERPS_HOME when handleCloseAll succeeds and canGoBack returns false', async () => {
+    // Arrange
+    const positions = [createMockPosition()];
+    const mockResult = {
+      success: true,
+      successCount: 1,
+      failureCount: 0,
+      results: [],
+    };
+    (
+      Engine.context.PerpsController.closePositions as jest.Mock
+    ).mockResolvedValue(mockResult);
+    mockNavigation.canGoBack.mockReturnValue(false);
+    const { result } = renderHook(() => usePerpsCloseAllPositions(positions));
+
+    // Act
+    await act(async () => {
+      await result.current.handleCloseAll();
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(result.current.isClosing).toBe(false);
+    });
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
+  });
+
   it('does nothing when handleCloseAll called with no positions', async () => {
     // Arrange
     const { result } = renderHook(() => usePerpsCloseAllPositions(null));
@@ -408,6 +457,7 @@ describe('usePerpsCloseAllPositions', () => {
     (
       Engine.context.PerpsController.closePositions as jest.Mock
     ).mockResolvedValue(mockResult);
+    mockNavigation.canGoBack.mockReturnValue(true);
     const calculations = {
       totalMargin: '1000',
       totalPnl: '100',
