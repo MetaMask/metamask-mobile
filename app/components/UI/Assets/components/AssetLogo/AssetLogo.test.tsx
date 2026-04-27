@@ -45,13 +45,16 @@ describe('AssetLogo', () => {
     );
 
     const assetAvatar = UNSAFE_getByType(AvatarToken);
-    expect(assetAvatar.props).toStrictEqual({
-      name: 'TEST',
-      src: {
-        uri: 'https://example.com/image.png',
-      },
-      size: AvatarTokenSize.Lg,
-    });
+    expect(assetAvatar.props).toEqual(
+      expect.objectContaining({
+        name: 'TEST',
+        src: {
+          uri: 'https://example.com/image.png',
+        },
+        size: AvatarTokenSize.Lg,
+        testID: 'token-avatar-image',
+      }),
+    );
   });
 
   it('renders asset logo for native asset', () => {
