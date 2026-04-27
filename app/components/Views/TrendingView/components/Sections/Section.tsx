@@ -28,10 +28,15 @@ const Section: React.FC<SectionProps> = ({
 
   // Notify parent when data is empty
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !section.omitEmptyStateCheck) {
       toggleSectionEmptyState(data.length === 0);
     }
-  }, [data.length, isLoading, toggleSectionEmptyState]);
+  }, [
+    data.length,
+    isLoading,
+    toggleSectionEmptyState,
+    section.omitEmptyStateCheck,
+  ]);
 
   // Notify parent when loading
   useEffect(() => {

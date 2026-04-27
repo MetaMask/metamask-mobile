@@ -1,21 +1,145 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Box,
   IconName as DSIconName,
 } from '@metamask/design-system-react-native';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
-import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
+import {
+  usePredictMarketData,
+  type UsePredictMarketDataResult,
+} from '../../../UI/Predict/hooks/usePredictMarketData';
 import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import PredictMarketRowItem from '../../../UI/Predict/components/PredictMarketRowItem';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import SectionCarrousel from '../components/Sections/SectionTypes/SectionCarrousel';
+import AllSportsPillSection from '../components/Sections/SectionTypes/AllSportsPillSection';
+import type { PillOption } from '../components/Sections/SectionTypes/PillRow';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { fuseSearch, PREDICTIONS_FUSE_OPTIONS } from './search-utils';
 import type { SectionConfig, SectionId } from './types';
 
 type PredictCategory = 'trending' | 'sports' | 'crypto' | 'politics';
+
+const ALL_SPORTS_PAGE_SIZE = 20;
+
+/**
+ * Explore “All sports” pill tabs: order = pill order, left to right.
+ * Add a row here and a matching `usePredictMarketData` call below (Rules of Hooks).
+ * https://gamma-api.polymarket.com/tags
+ */
+const ALL_SPORTS_EXPLORE_TABS = [
+  {
+    key: 'basketball',
+    labelKey: 'trending.basketball',
+    customQueryParams: 'tag_id=28',
+  },
+  {
+    key: 'football',
+    labelKey: 'trending.football',
+    customQueryParams: 'tag_id=10',
+  },
+  {
+    key: 'soccer',
+    labelKey: 'trending.soccer',
+    customQueryParams: 'tag_id=100350',
+  },
+] as const;
+
+type ExploreSportTabKey = (typeof ALL_SPORTS_EXPLORE_TABS)[number]['key'];
+
+/** Passed as `data[0]` from `useAllSportsExploreSectionData` to `AllSportsPillSection`. */
+export interface ExploreKeyedMarketsSectionPayload {
+  pills: PillOption[];
+  marketsByKey: Record<string, UsePredictMarketDataResult>;
+  activeKey: string;
+  selectSport: (key: string) => void;
+}
+
+const useAllSportsExploreSectionData = (): {
+  data: unknown[];
+  isLoading: boolean;
+  refetch: () => Promise<void>;
+} => {
+  const [activeKey, setActiveKey] = useState<ExploreSportTabKey>(
+    ALL_SPORTS_EXPLORE_TABS[0].key,
+  );
+  const [loadedKeys, setLoadedKeys] = useState(
+    () => new Set<string>([ALL_SPORTS_EXPLORE_TABS[0].key]),
+  );
+
+  const basketball = usePredictMarketData({
+    category: 'sports',
+    customQueryParams: ALL_SPORTS_EXPLORE_TABS[0].customQueryParams,
+    pageSize: ALL_SPORTS_PAGE_SIZE,
+    enabled: loadedKeys.has(ALL_SPORTS_EXPLORE_TABS[0].key),
+  });
+  const football = usePredictMarketData({
+    category: 'sports',
+    customQueryParams: ALL_SPORTS_EXPLORE_TABS[1].customQueryParams,
+    pageSize: ALL_SPORTS_PAGE_SIZE,
+    enabled: loadedKeys.has(ALL_SPORTS_EXPLORE_TABS[1].key),
+  });
+  const soccer = usePredictMarketData({
+    category: 'sports',
+    customQueryParams: ALL_SPORTS_EXPLORE_TABS[2].customQueryParams,
+    pageSize: ALL_SPORTS_PAGE_SIZE,
+    enabled: loadedKeys.has(ALL_SPORTS_EXPLORE_TABS[2].key),
+  });
+
+  const marketsByKey = useMemo(
+    () =>
+      ({ basketball, football, soccer }) as Record<
+        string,
+        UsePredictMarketDataResult
+      >,
+    [basketball, football, soccer],
+  );
+
+  const pills = useMemo<PillOption[]>(
+    () =>
+      ALL_SPORTS_EXPLORE_TABS.map((tab) => ({
+        key: tab.key,
+        name: strings(tab.labelKey),
+      })),
+    [],
+  );
+
+  const selectSport = useCallback((key: string) => {
+    if (!ALL_SPORTS_EXPLORE_TABS.some((t) => t.key === key)) {
+      return;
+    }
+    setActiveKey(key as ExploreSportTabKey);
+    setLoadedKeys((prev) => new Set(prev).add(key));
+  }, []);
+
+  const refetch = useCallback(async () => {
+    const entries: [string, UsePredictMarketDataResult][] = [
+      ['basketball', basketball],
+      ['football', football],
+      ['soccer', soccer],
+    ];
+    await Promise.all(
+      entries
+        .filter(([key]) => loadedKeys.has(key))
+        .map(([, hook]) => hook.refetch()),
+    );
+  }, [loadedKeys, basketball, football, soccer]);
+
+  return {
+    data: [
+      {
+        pills,
+        marketsByKey,
+        activeKey,
+        selectSport,
+      } satisfies ExploreKeyedMarketsSectionPayload,
+    ],
+    isLoading: false,
+    refetch,
+  };
+};
 
 const makePredictionsSection = ({
   id,
@@ -98,4 +222,28 @@ export const predictionsSections = {
     testIdPrefix: 'predict-rwa-politics-market-row-item',
     tab: 'politics',
   }),
+
+  all_sports: {
+    id: 'all_sports',
+    title: strings('trending.all_sports'),
+    icon: { source: 'design-system', name: DSIconName.Speedometer },
+    showViewAllInHeader: false,
+    omitEmptyStateCheck: true,
+    viewAllAction: () => {
+      /* no view-all for this section */
+    },
+    getItemIdentifier: (item) => (item as Partial<PredictMarketType>).id ?? '',
+    RowItem: ({ item }) => (
+      <Box twClassName="py-2">
+        <PredictMarket market={item as PredictMarketType} isCarousel />
+      </Box>
+    ),
+    OverrideRowItemSearch: ({ item }) => (
+      <PredictMarketRowItem market={item as PredictMarketType} />
+    ),
+    Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    OverrideSkeletonSearch: SiteSkeleton,
+    Section: AllSportsPillSection,
+    useSectionData: useAllSportsExploreSectionData,
+  } satisfies SectionConfig,
 };

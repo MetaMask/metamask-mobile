@@ -191,7 +191,12 @@ const useExploreTabPanelSections = (
         return { sections: next };
       }
       case 'sports':
-        return { sections: [SECTIONS_CONFIG.sports_predictions] };
+        return {
+          sections: [
+            SECTIONS_CONFIG.sports_predictions,
+            SECTIONS_CONFIG.all_sports,
+          ],
+        };
       case 'dapps':
         return {
           sections: [

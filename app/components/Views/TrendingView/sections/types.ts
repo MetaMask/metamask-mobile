@@ -18,7 +18,8 @@ export type SectionId =
   | 'sites'
   | 'dapps_recents'
   | 'dapps_favorites'
-  | 'dapps_networks';
+  | 'dapps_networks'
+  | 'all_sports';
 
 export type SectionIcon =
   | { source: 'local'; name: LocalIconName }
@@ -59,6 +60,11 @@ export interface SectionConfig {
    * @default true
    */
   showViewMoreTile?: boolean;
+  /**
+   * When true, Section.tsx skips the empty-state check for this section.
+   * Use for sections that manage their own data fetching internally.
+   */
+  omitEmptyStateCheck?: boolean;
   /** Returns a stable identifier for an item (e.g. assetId, symbol, url) used in analytics */
   getItemIdentifier: (item: unknown) => string;
   RowItem: React.ComponentType<RowItemProps>;

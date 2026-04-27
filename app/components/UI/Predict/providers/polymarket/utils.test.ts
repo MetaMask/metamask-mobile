@@ -3255,7 +3255,7 @@ describe('polymarket utils', () => {
         expect(callUrl).toContain('tag_id=198');
       });
 
-      it('ignores customQueryParams for non-hot categories', async () => {
+      it('appends customQueryParams to standard category pagination queries', async () => {
         const mockResponse = {
           data: [mockEvent],
         };
@@ -3275,7 +3275,31 @@ describe('polymarket utils', () => {
         await getParsedMarketsFromPolymarketApi(params);
 
         expect(mockFetch).toHaveBeenCalledWith(
-          'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&order=volume24hr',
+          'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&order=volume24hr&tag_id=149',
+        );
+      });
+
+      it('appends customQueryParams for sports category', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'sports',
+          customQueryParams: 'tag_id=10',
+          limit: 20,
+          offset: 0,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&tag_slug=sports&order=volume24hr&tag_id=10',
         );
       });
     });
