@@ -389,12 +389,18 @@ if [ "$PLAT" = "ios" ]; then
   if [ -z "$BOOTED" ]; then
     $CHECK_ONLY && fail "Simulator $SIM_LABEL is not booted"
     echo "  Booting $SIM_LABEL..."
+    # Open Simulator.app first so the daemon binds a UI window when the device boots.
+    open -a Simulator 2>/dev/null || true
     xcrun simctl boot "$SIM_TARGET" 2>/dev/null || true
-    sleep 3
-    # Verify it actually booted
-    BOOTED=$(xcrun simctl list devices | grep "$SIM_LABEL" | grep "Booted" || true)
+    # Cold boot transitions Shutdown -> Booting -> Booted; poll up to 60s.
+    BOOTED=""
+    for _ in $(seq 1 60); do
+      BOOTED=$(xcrun simctl list devices | grep "$SIM_LABEL" | grep "Booted" || true)
+      [ -n "$BOOTED" ] && break
+      sleep 1
+    done
     if [ -z "$BOOTED" ]; then
-      fail "Failed to boot simulator $SIM_LABEL"
+      fail "Failed to boot simulator $SIM_LABEL within 60s"
     fi
     ok "Simulator booted: $SIM_LABEL"
   else
@@ -444,6 +450,8 @@ if [ "$PLAT" = "ios" ]; then
     set +e
     eval "$EXPO_CMD" >"$BUILD_LOG" 2>&1 &
     EXPO_PID=$!
+    # Drop the bg job from bash's jobs table so kill_tree's SIGTERM doesn't print "Terminated: 15".
+    disown "$EXPO_PID" 2>/dev/null || true
 
     watch_log "$BUILD_LOG" "$EXPO_PID" 3 &
     WATCH_PID=$!

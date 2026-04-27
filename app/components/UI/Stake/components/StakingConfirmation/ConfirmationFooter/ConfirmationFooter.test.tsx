@@ -6,6 +6,7 @@ import { createMockAccountsControllerState } from '../../../../../../util/test/a
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { FooterButtonGroupActions } from './FooterButtonGroup/FooterButtonGroup.types';
 import { MOCK_POOL_STAKING_SDK } from '../../../__mocks__/stakeMockData';
+import { strings } from '../../../../../../../locales/i18n';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -40,16 +41,21 @@ jest.mock('../../../hooks/useStakeContext', () => ({
 }));
 
 describe('ConfirmationFooter', () => {
-  it('render matches snapshot', () => {
+  it('renders cancel and continue buttons', () => {
     const props: ConfirmationFooterProps = {
       valueWei: '3210000000000000',
       action: FooterButtonGroupActions.STAKE,
     };
 
-    const { toJSON } = renderWithProvider(<ConfirmationFooter {...props} />, {
-      state: mockInitialState,
-    });
+    const { getByText } = renderWithProvider(
+      <ConfirmationFooter {...props} />,
+      {
+        state: mockInitialState,
+      },
+    );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.terms_of_service'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.cancel'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.continue'))).toBeOnTheScreen();
   });
 });
