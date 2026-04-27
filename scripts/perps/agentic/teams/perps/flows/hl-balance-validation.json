@@ -1,5 +1,6 @@
 {
     "title": "HL balance validation — phase={{phaseLabel}} expectedMode={{expectedMode}}",
+    "schema_version": 1,
     "description": "Captures and asserts the three balance readouts the TAT-3016 hotfix touches: (1) PerpsController.state.accountState (availableBalance vs availableToTradeBalance), (2) PerpsMarketDetails balance text (perps-market-available-balance-text — gates order-entry Long/Add-Funds CTA), (3) PerpsWithdraw balance text (perps-withdraw-available-balance-text — must show availableBalance only, never the spot fold). Screenshots per screen tagged with phaseLabel for reviewer before/after comparison. Fold invariant (trade >= avail) is asserted unconditionally. expectedMode='unified' additionally asserts the fold amount is non-trivial when spot USDC is present; expectedMode='standard' asserts withdrawable==availableBalance (no leak from fold into the withdrawable path).",
     "inputs": {
       "expectedMode": {
@@ -82,6 +83,7 @@
           "screenshot-market-list": {
             "action": "screenshot",
             "filename": "tat3016-{{phaseLabel}}-market-list.png",
+            "note": "PerpsMarketListView available-balance text in {{phaseLabel}} phase — must reflect availableToTradeBalance (gates Long/Add-Funds CTA)",
             "next": "nav-withdraw"
           },
           "nav-withdraw": {
@@ -121,6 +123,7 @@
           "screenshot-withdraw": {
             "action": "screenshot",
             "filename": "tat3016-{{phaseLabel}}-withdraw.png",
+            "note": "PerpsWithdraw available-balance text in {{phaseLabel}} phase — must show availableBalance only, never the spot-fold amount (TAT-3016 hotfix invariant)",
             "next": "nav-market-details"
           },
           "nav-market-details": {
@@ -172,6 +175,7 @@
           "screenshot-order-form": {
             "action": "screenshot",
             "filename": "tat3016-{{phaseLabel}}-order-form.png",
+            "note": "BTC order form in {{phaseLabel}} phase — pay-with should default to Perps balance when availableToTradeBalance > 0; place-order button mounted",
             "next": "back-to-wallet"
           },
           "back-to-wallet": {

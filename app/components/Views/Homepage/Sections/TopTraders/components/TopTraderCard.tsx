@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import {
   Box,
   Text,
@@ -132,10 +133,20 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       {/* Follow / Following button pinned to bottom */}
       <Button
         variant={
-          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
         size={ButtonSize.Sm}
-        twClassName="self-center"
+        isFullWidth
+        style={
+          trader.isFollowing
+            ? undefined
+            : { backgroundColor: lightTheme.colors.primary.default }
+        }
+        textProps={
+          trader.isFollowing
+            ? undefined
+            : { style: { color: lightTheme.colors.overlay.inverse } }
+        }
         onPress={() => onFollowPress(trader.id)}
       >
         {trader.isFollowing
