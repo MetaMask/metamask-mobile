@@ -22,6 +22,16 @@ export enum AccountConnectScreens {
   MaliciousWarning = 'MaliciousWarning',
 }
 
+export interface PageMeta {
+  url?: string;
+  title?: string;
+  icon?: ImageSourcePropType;
+  channelId?: string;
+  isIframe?: boolean;
+  iframeOrigin?: string;
+  analytics?: Record<string, string | undefined>;
+}
+
 export interface AccountConnectParams {
   hostInfo: {
     metadata: {
@@ -29,6 +39,7 @@ export interface AccountConnectParams {
       id: string;
       isEip1193Request?: boolean;
       promptToCreateSolanaAccount?: boolean;
+      pageMeta?: PageMeta;
     };
     permissions: {
       [Caip25EndowmentPermissionName]?: {
@@ -36,6 +47,7 @@ export interface AccountConnectParams {
         caveats: [{ type: string; value: Caip25CaveatValue }];
       };
     } & RequestedPermissions;
+    pageMeta?: PageMeta;
   };
   permissionRequestId: string;
 }

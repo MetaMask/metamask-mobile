@@ -103,6 +103,7 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { getIframeProperties } from '../../../util/metrics/getIframeProperties';
 import { isSnapId } from '@metamask/snaps-utils';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
@@ -369,6 +370,29 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const originSource = useOriginSource({ origin: channelIdOrHostname });
 
+  const pageMeta = hostInfo?.pageMeta ?? hostInfo?.metadata?.pageMeta;
+  const iframeProps = useMemo(() => {
+    const isIframeRequest = Boolean(pageMeta?.isIframe);
+    return getIframeProperties({
+      isIframe: isIframeRequest,
+      // For iframe requests the iframe's own origin comes from injected-JS
+      // detection on the BrowserTab (pageMeta.iframeOrigin). Non-iframe
+      // flows (SDK, WalletConnect, top-level pages) fall back to the
+      // top-level origin so the cross-origin check stays false.
+      origin: isIframeRequest
+        ? (pageMeta?.iframeOrigin ?? '')
+        : (channelIdOrHostname ?? ''),
+      // pageMeta.url is a full URL; getIframeProperties normalizes it to
+      // an origin before comparing.
+      topLevelOrigin: isIframeRequest ? pageMeta?.url : undefined,
+    });
+  }, [
+    pageMeta?.isIframe,
+    pageMeta?.iframeOrigin,
+    pageMeta?.url,
+    channelIdOrHostname,
+  ]);
+
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
     // Extract the address list from the internalAccounts array
@@ -418,6 +442,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...iframeProps,
             ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
@@ -432,6 +457,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       originSource,
       hostInfo.metadata.isEip1193Request,
       hostInfo.permissions,
+      iframeProps,
     ],
   );
 
@@ -481,15 +507,24 @@ const AccountConnect = (props: AccountConnectProps) => {
       trackDappViewedEvent({
         hostname: hostnameFromUrlObj,
         numberOfConnectedAccounts,
+        isIframe: pageMeta?.isIframe,
+        iframeOrigin: pageMeta?.iframeOrigin,
       }),
-    [hostnameFromUrlObj],
+    [hostnameFromUrlObj, pageMeta?.isIframe, pageMeta?.iframeOrigin],
   );
 
   const handleConnect = useCallback(async () => {
+    const {
+      pageMeta: _pageMetaFromHostInfo,
+      metadata: hostInfoMetadata,
+      ...hostInfoRest
+    } = hostInfo;
+    const { pageMeta: _pageMetaFromMetadata, ...metadataWithoutPageMeta } =
+      hostInfoMetadata;
     const request: PermissionsRequest = {
-      ...hostInfo,
+      ...hostInfoRest,
       metadata: {
-        ...hostInfo.metadata,
+        ...metadataWithoutPageMeta,
         origin: channelIdOrHostname,
       },
       permissions: {
@@ -529,6 +564,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...iframeProps,
             ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
@@ -567,6 +603,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectedChainIds,
     requestedCaip25CaveatValue,
     referrer,
+    iframeProps,
   ]);
 
   // This only handles EVM

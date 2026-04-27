@@ -12,6 +12,7 @@ import {
   getAllScopesFromPermission,
 } from '@metamask/chain-agnostic-permission';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { getIframeProperties } from '../../../util/metrics/getIframeProperties';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
 import { isEqual } from 'lodash';
 import { useSDKV2Connection } from '../../hooks/useSDKV2Connection';
@@ -71,6 +72,22 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     const isMultichainRequest =
       !approvalRequest?.requestData?.metadata?.isEip1193Request;
 
+    const pageMeta =
+      requestData?.pageMeta ?? requestData?.metadata?.pageMeta ?? {};
+    const isIframeRequest = Boolean(pageMeta?.isIframe);
+    const iframeProps = getIframeProperties({
+      isIframe: isIframeRequest,
+      // For iframe requests the iframe's own origin is detected by injected
+      // JS on the BrowserTab and forwarded via pageMeta.iframeOrigin. For
+      // non-iframe flows we fall back to the request's top-level origin.
+      origin: isIframeRequest
+        ? (pageMeta?.iframeOrigin ?? '')
+        : (approvalRequest?.requestData?.metadata?.origin ?? ''),
+      // pageMeta.url is a full URL (e.g. https://host/path); getIframeProperties
+      // normalizes it to an origin internally before comparison.
+      topLevelOrigin: isIframeRequest ? pageMeta?.url : undefined,
+    });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
         .addProperties({
@@ -79,6 +96,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           request_source: originSource.requestSource,
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
+          ...iframeProps,
           ...(anonId ? { remote_session_id: anonId } : {}),
         })
         .build(),

@@ -102,6 +102,10 @@ export interface RPCMethodsMiddleParameters {
   // For MM SDK
   isMMSDK: boolean;
   analytics: { [key: string]: string | boolean };
+  // Iframe context ref – read lazily so the middleware sees updates
+  // that arrive after bridge initialisation (the IFRAME_DETECTION_SCRIPT
+  // runs after page load, i.e. after the bridge is already created).
+  iframeContext?: { current: { isIframe: boolean; iframeOrigin?: string } };
 }
 
 // Also used by WalletConnect.js.
@@ -309,6 +313,7 @@ export const getRpcMethodMiddlewareHooks = ({
   analytics,
   channelId,
   getSource,
+  iframeContext,
 }: {
   origin: string;
   url: MutableRefObject<string>;
@@ -317,6 +322,7 @@ export const getRpcMethodMiddlewareHooks = ({
   analytics: { [key: string]: string | boolean };
   channelId?: string;
   getSource: () => string;
+  iframeContext?: { current: { isIframe: boolean; iframeOrigin?: string } };
 }) => ({
   getCaveat: ({
     target,
@@ -376,6 +382,8 @@ export const getRpcMethodMiddlewareHooks = ({
                     request_platform: analytics?.platform,
                     ...withRemoteSessionId(analytics),
                   },
+                  isIframe: Boolean(iframeContext?.current.isIframe),
+                  iframeOrigin: iframeContext?.current.iframeOrigin,
                 },
               },
             },
@@ -422,6 +430,8 @@ export const getRpcMethodMiddleware = ({
   isMMSDK,
   // For analytics
   analytics,
+  // Iframe context
+  iframeContext,
 }: RPCMethodsMiddleParameters) => {
   // Make sure to always have the correct origin
   hostname = hostname
@@ -447,6 +457,7 @@ export const getRpcMethodMiddleware = ({
     analytics,
     channelId,
     getSource,
+    iframeContext,
   });
 
   DevLogger.log(
@@ -495,6 +506,8 @@ export const getRpcMethodMiddleware = ({
               request_platform: analytics?.platform,
               ...withRemoteSessionId(analytics),
             },
+            isIframe: Boolean(iframeContext?.current.isIframe),
+            iframeOrigin: iframeContext?.current.iframeOrigin,
           },
         },
         id: random(),
@@ -670,6 +683,14 @@ export const getRpcMethodMiddleware = ({
                     {
                       metadata: {
                         isEip1193Request: true,
+                        pageMeta: {
+                          url: url.current,
+                          title: title.current,
+                          icon: icon.current,
+                          channelId,
+                          isIframe: Boolean(iframeContext?.current.isIframe),
+                          iframeOrigin: iframeContext?.current.iframeOrigin,
+                        },
                       },
                     },
                   ),

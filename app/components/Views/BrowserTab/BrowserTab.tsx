@@ -29,6 +29,7 @@ import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
   SCROLL_TRACKER_SCRIPT,
+  IFRAME_DETECTION_SCRIPT,
 } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
@@ -195,6 +196,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onDisconnect: () => void;
       onMessage: (message: Record<string, unknown>) => void;
     }>();
+    const iframeContextRef = useRef<{
+      isIframe: boolean;
+      iframeOrigin?: string;
+    }>({ isIframe: false });
     const searchEngine = useSelector(selectSearchEngine);
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
@@ -460,6 +465,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       trackDappViewedEvent({
         hostname,
         numberOfConnectedAccounts: connectedAccounts.length,
+        isIframe: iframeContextRef.current.isIframe,
+        iframeOrigin: iframeContextRef.current.iframeOrigin,
       });
     }, []);
 
@@ -509,7 +516,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         setEntryScriptWeb3(
           entryScriptWeb3Fetched +
             SPA_urlChangeListener +
-            SCROLL_TRACKER_SCRIPT,
+            SCROLL_TRACKER_SCRIPT +
+            IFRAME_DETECTION_SCRIPT,
         );
       };
 
@@ -874,16 +882,24 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             scrollY.value = dataParsed.payload?.scrollY || 0;
             return;
           }
-          if (
-            dataParsed.type === 'IFRAME_DETECTED' &&
-            Array.isArray(dataParsed.iframeUrls) &&
-            dataParsed.iframeUrls.length > 0
-          ) {
-            const validIframeUrls = dataParsed.iframeUrls.filter(
-              (url: unknown): url is string =>
-                typeof url === 'string' && url.trim().length > 0,
-            );
+          if (dataParsed.type === 'IFRAME_DETECTED') {
+            iframeContextRef.current = {
+              isIframe: Boolean(dataParsed.isIframe),
+              iframeOrigin: undefined,
+            };
+
+            const validIframeUrls = Array.isArray(dataParsed.iframeUrls)
+              ? dataParsed.iframeUrls.filter(
+                  (url: unknown): url is string =>
+                    typeof url === 'string' && url.trim().length > 0,
+                )
+              : [];
+
             if (validIframeUrls.length > 0) {
+              const { origin: firstIframeOrigin } = new URLParse(
+                validIframeUrls[0],
+              );
+              iframeContextRef.current.iframeOrigin = firstIframeOrigin;
               checkIFrameUrls(validIframeUrls);
             }
             return;
@@ -931,6 +947,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               isWalletConnect: false,
               isMMSDK: false,
               analytics: {},
+              // Pass the ref so the middleware reads the latest iframe context
+              // lazily at RPC-request time (after IFRAME_DETECTION_SCRIPT runs).
+              iframeContext: iframeContextRef,
             }),
           isMainFrame,
         });
@@ -1017,6 +1036,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         sendActiveAccount(nativeEvent.url);
 
         iconRef.current = undefined;
+        iframeContextRef.current = { isIframe: false };
 
         initializeBackgroundBridge(urlOrigin, true);
       },

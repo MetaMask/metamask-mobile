@@ -659,21 +659,32 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     navigateToUrlInEthPhishingModal(null); // No URL means just go back to safety without navigating to a new page
   }, [navigateToUrlInEthPhishingModal]);
 
+  const pageMeta = hostInfo?.pageMeta ?? hostInfo?.metadata?.pageMeta;
+
   const triggerDappViewedEvent = useCallback(
     (numberOfConnectedAccounts: number) =>
       // Track dapp viewed event
       trackDappViewedEvent({
         hostname: hostnameFromUrlObj,
         numberOfConnectedAccounts,
+        isIframe: pageMeta?.isIframe,
+        iframeOrigin: pageMeta?.iframeOrigin,
       }),
-    [hostnameFromUrlObj],
+    [hostnameFromUrlObj, pageMeta?.isIframe, pageMeta?.iframeOrigin],
   );
 
   const handleConnect = useCallback(async () => {
+    const {
+      pageMeta: _pageMetaFromHostInfo,
+      metadata: hostInfoMetadata,
+      ...hostInfoRest
+    } = hostInfo;
+    const { pageMeta: _pageMetaFromMetadata, ...metadataWithoutPageMeta } =
+      hostInfoMetadata;
     const request: PermissionsRequest = {
-      ...hostInfo,
+      ...hostInfoRest,
       metadata: {
-        ...hostInfo.metadata,
+        ...metadataWithoutPageMeta,
         origin: channelIdOrHostname,
       },
       permissions: {

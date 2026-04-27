@@ -5,6 +5,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { analytics } from '../../../util/analytics/analytics';
 import { prefixUrlWithProtocol } from '../../browser';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { getIframeProperties } from '../getIframeProperties';
 
 /**
  * Tracks Dapp viewed event
@@ -14,19 +15,31 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
  * @param params - The parameter object for the tracking function
  * @param params.hostname - Hostname of the Dapp
  * @param params.numberOfConnectedAccounts - Number of connected accounts that are connected to the Dapp
+ * @param params.isIframe - Whether the dapp is running inside an iframe
+ * @param params.iframeOrigin - The origin of the iframe, if applicable
  */
 const trackDappViewedEvent = ({
   hostname,
   numberOfConnectedAccounts,
+  isIframe = false,
+  iframeOrigin,
 }: {
   hostname: string;
   numberOfConnectedAccounts: number;
+  isIframe?: boolean;
+  iframeOrigin?: string;
 }) => {
   const visitedDappsByHostname =
     store.getState().browser.visitedDappsByHostname;
   const isFirstVisit = !visitedDappsByHostname?.[hostname];
   const internalAccounts = selectInternalAccounts(store.getState());
   const numberOfWalletAccounts = Object.keys(internalAccounts).length;
+
+  const iframeProps = getIframeProperties({
+    isIframe,
+    origin: iframeOrigin ?? hostname,
+    topLevelOrigin: isIframe ? hostname : undefined,
+  });
 
   // Add Dapp hostname to viewed dapps
   store.dispatch(addToViewedDapp(hostname));
@@ -39,6 +52,7 @@ const trackDappViewedEvent = ({
         number_of_accounts: numberOfWalletAccounts,
         number_of_accounts_connected: numberOfConnectedAccounts,
         source: 'in-app browser',
+        ...iframeProps,
       })
       .build(),
   );
