@@ -84,6 +84,35 @@ jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageSectionsV1Enabled: jest.fn(() => mockHomepageSectionsEnabled),
 }));
 
+// Control carousel/braze banner flags per test (default off so existing tests are unaffected)
+let mockCarouselBannersEnabled = false;
+let mockBrazeBannerHomeEnabled = false;
+jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
+  selectCarouselBannersFlag: jest.fn(() => mockCarouselBannersEnabled),
+  selectContentfulCarouselEnabledFlag: jest.fn(() => false),
+}));
+jest.mock('../../UI/BrazeBanner/selectors/featureFlags', () => ({
+  selectBrazeBannerHomeFlag: jest.fn(() => mockBrazeBannerHomeEnabled),
+}));
+
+const BRAZE_BANNER_TEST_ID = 'braze-banner-mock';
+const CAROUSEL_TEST_ID = 'carousel-mock';
+
+jest.mock('../../UI/BrazeBanner', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID={BRAZE_BANNER_TEST_ID} />,
+  };
+});
+
+jest.mock('../../UI/Carousel', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    Carousel: () => <View testID={CAROUSEL_TEST_ID} />,
+  };
+});
+
 // Capture the HomepageScrollContext value by rendering a context-aware mock Homepage.
 // The mock is only invoked when mockHomepageSectionsEnabled=true (sections flag on),
 // so existing tests that leave the flag false are completely unaffected.
@@ -1754,6 +1783,72 @@ describe('HomepageScrollContext callbacks', () => {
 
     expect(resetFound).toBe(true);
     expect(capturedContext.getVisitMaxDepth()).toBe(-1);
+  });
+});
+
+describe('home banner priority', () => {
+  const mockNavigation = {
+    navigate: jest.fn(),
+    setOptions: jest.fn(),
+    setParams: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCarouselBannersEnabled = false;
+    mockBrazeBannerHomeEnabled = false;
+  });
+
+  afterEach(() => {
+    mockCarouselBannersEnabled = false;
+    mockBrazeBannerHomeEnabled = false;
+  });
+
+  it('renders nothing when both flags are off', () => {
+    const { queryByTestId } = renderWithProvider(
+      <Wallet navigation={mockNavigation as never} currentRouteName="Wallet" />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(BRAZE_BANNER_TEST_ID)).toBeNull();
+    expect(queryByTestId(CAROUSEL_TEST_ID)).toBeNull();
+  });
+
+  it('renders Carousel when only carousel flag is on', () => {
+    mockCarouselBannersEnabled = true;
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <Wallet navigation={mockNavigation as never} currentRouteName="Wallet" />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(CAROUSEL_TEST_ID)).toBeTruthy();
+    expect(queryByTestId(BRAZE_BANNER_TEST_ID)).toBeNull();
+  });
+
+  it('renders BrazeBanner when only braze flag is on', () => {
+    mockBrazeBannerHomeEnabled = true;
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <Wallet navigation={mockNavigation as never} currentRouteName="Wallet" />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(BRAZE_BANNER_TEST_ID)).toBeTruthy();
+    expect(queryByTestId(CAROUSEL_TEST_ID)).toBeNull();
+  });
+
+  it('renders BrazeBanner and suppresses Carousel when both flags are on', () => {
+    mockBrazeBannerHomeEnabled = true;
+    mockCarouselBannersEnabled = true;
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <Wallet navigation={mockNavigation as never} currentRouteName="Wallet" />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(BRAZE_BANNER_TEST_ID)).toBeTruthy();
+    expect(queryByTestId(CAROUSEL_TEST_ID)).toBeNull();
   });
 });
 

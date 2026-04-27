@@ -14,6 +14,8 @@
 #import <ReactCommon/RCTTurboModuleManager.h>
 
 #import <react/config/ReactNativeConfig.h>
+#import <React/RCTComponentViewFactory.h>
+#import "BrazeBannerView.h"
 
 static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
@@ -130,6 +132,14 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 - (id<RCTTurboModule>)getModuleInstanceFromClass:(Class)moduleClass
 {
   return RCTAppSetupDefaultModuleFromClass(moduleClass);
+}
+
+/// Register the `BrazeBannerView` for use as a Fabric component.
+- (NSDictionary<NSString *, Class<RCTComponentViewProtocol>> *)thirdPartyFabricComponents
+{
+  NSMutableDictionary *dictionary = [super thirdPartyFabricComponents].mutableCopy;
+  dictionary[@"BrazeBannerView"] = [BrazeBannerView class];
+  return dictionary;
 }
 
 #endif

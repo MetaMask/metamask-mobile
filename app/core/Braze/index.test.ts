@@ -3,8 +3,14 @@ import {
   clearBrazeUser,
   getBrazePlugin,
   resetBrazePluginForTesting,
+  refreshBrazeBanners,
+  logBrazeBannerImpression,
+  logBrazeBannerClick,
+  dismissBrazeBanner,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
+import Braze from '@braze/react-native-sdk';
+import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from './constants';
 
 const mockGetSessionProfile = jest.fn();
 const mockSetBrazeProfileId = jest.fn();
@@ -86,6 +92,55 @@ describe('Braze service', () => {
       clearBrazeUser();
 
       expect(mockSetBrazeProfileId).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('logBrazeBannerImpression', () => {
+    it('calls logBannerImpression with the placementId', () => {
+      logBrazeBannerImpression('placement-1', 'campaign-abc');
+
+      expect(Braze.logBannerImpression).toHaveBeenCalledWith('placement-1');
+    });
+
+    it('calls logCustomEvent with Banner Impression and bannerId', () => {
+      logBrazeBannerImpression('placement-1', 'campaign-abc');
+
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Impression', {
+        bannerId: 'campaign-abc',
+      });
+    });
+
+    it('passes null bannerId to logCustomEvent when bannerId is null', () => {
+      logBrazeBannerImpression('placement-1', null);
+
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Impression', {
+        bannerId: null,
+      });
+    });
+  });
+
+  describe('logBrazeBannerClick', () => {
+    it('calls logBannerClick with the placementId and null', () => {
+      logBrazeBannerClick('placement-1');
+
+      expect(Braze.logBannerClick).toHaveBeenCalledWith('placement-1', null);
+    });
+  });
+
+  describe('dismissBrazeBanner', () => {
+    it('sets a custom user attribute keyed on bannerId', () => {
+      dismissBrazeBanner('campaign-xyz');
+
+      expect(Braze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'banner-dismissed-campaign-xyz',
+        true,
+      );
+    });
+
+    it('requests an immediate data flush after setting the attribute', () => {
+      dismissBrazeBanner('campaign-xyz');
+
+      expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
     });
   });
 });
