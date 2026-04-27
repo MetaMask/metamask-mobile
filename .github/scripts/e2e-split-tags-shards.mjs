@@ -4,7 +4,11 @@ import { spawn } from 'node:child_process';
 import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 // 1) Find all specs files that include the given E2E tags
-// 2) Compute sharding split (evenly across runners)
+// 2) Compute sharding split using time-based bin-packing when
+//    tests/e2e-test-timings.json is present (restored from the
+//    `e2e-test-timings-baseline` artifact produced by the `prepare-e2e-timings`
+//    CI job, sourced from main first, then the current PR branch). Otherwise
+//    fall back to equal-count alphabetical split.
 // 3) On re-runs, skip passed tests and only run failed/not-executed tests
 // 4) Flaky test detector mechanism in PRs (test retries)
 // 5) Log and run the selected specs for the given shard split
@@ -24,6 +28,16 @@ const env = {
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
 };
 // Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
+
+const TIMINGS_FILE = path.resolve('tests/e2e-test-timings.json');
+
+/**
+ * Match timing DB keys (always POSIX-style in JSON) to spec paths from any OS.
+ * @param {string} filePath
+ */
+function timingLookupKey(filePath) {
+  return filePath.split(path.sep).join('/');
+}
 
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
 if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
@@ -171,7 +185,8 @@ function ceilDiv(a, b) {
 }
 
 /**
- * Split files evenly across runners
+ * Split files evenly across runners by count (alphabetical slicing).
+ * Fallback when no timings file is available.
  * @param {*} files - The files to split
  * @param {*} splitNumber - The number of the split (1-based index)
  * @param {*} totalSplits - The total number of splits
@@ -182,6 +197,113 @@ function computeShardingSplit(files, splitNumber, totalSplits) {
   const startIndex = (splitNumber - 1) * filesPerSplit;
   const endIndex = Math.min(startIndex + filesPerSplit, files.length);
   return files.slice(startIndex, endIndex);
+}
+
+/**
+ * @returns {{ [filePath: string]: { ios?: number, android?: number } } | null}
+ */
+function loadTestTimings() {
+  if (!fs.existsSync(TIMINGS_FILE)) {
+    console.log(`ℹ️  No timings file at ${TIMINGS_FILE} — equal-count split.`);
+    return null;
+  }
+  try {
+    const raw = JSON.parse(fs.readFileSync(TIMINGS_FILE, 'utf8'));
+    return raw.timings ?? null;
+  } catch (e) {
+    console.warn(`⚠️  Could not parse timings file: ${e.message} — equal-count split.`);
+    return null;
+  }
+}
+
+/**
+ * @param {number[]} values
+ * @param {number} fallback
+ */
+function computeMedian(values, fallback = 60) {
+  if (values.length === 0) return fallback;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
+}
+
+/**
+ * @param {string[]} files
+ * @param {{ [filePath: string]: { ios?: number, android?: number } }} timings
+ * @param {string} platform
+ * @param {number} splitNumber
+ * @param {number} totalSplits
+ */
+function binPackShards(files, timings, platform, splitNumber, totalSplits) {
+  const platformKey = platform.toLowerCase() === 'ios' ? 'ios' : 'android';
+
+  const knownDurations = files
+    .map((f) => timings[timingLookupKey(f)]?.[platformKey])
+    .filter((t) => typeof t === 'number' && t > 0);
+
+  const medianDuration = computeMedian(knownDurations, 60);
+  const unknownFiles = files.filter(
+    (f) => typeof timings[timingLookupKey(f)]?.[platformKey] !== 'number',
+  );
+
+  if (unknownFiles.length > 0) {
+    console.log(`ℹ️  ${unknownFiles.length} file(s) without recorded timing — median fallback ${medianDuration.toFixed(1)}s:`);
+    unknownFiles.forEach((f) => console.log(`     - ${f}`));
+  }
+
+  const filesWithDuration = files.map((f) => ({
+    file: f,
+    duration: timings[timingLookupKey(f)]?.[platformKey] ?? medianDuration,
+  }));
+
+  filesWithDuration.sort((a, b) => b.duration - a.duration);
+
+  const shards = Array.from({ length: totalSplits }, (_, i) => ({
+    index: i + 1,
+    files: [],
+    totalDuration: 0,
+  }));
+
+  for (const { file, duration } of filesWithDuration) {
+    const lightest = shards.reduce(
+      (min, s) => (s.totalDuration < min.totalDuration ? s : min),
+      shards[0],
+    );
+    lightest.files.push(file);
+    lightest.totalDuration += duration;
+  }
+
+  console.log(`\n📊 Estimated shard durations (${platformKey}, ${totalSplits} shards):`);
+  for (const shard of shards) {
+    const totalSec = Math.round(shard.totalDuration);
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    const marker = shard.index === splitNumber ? ' ← this runner' : '';
+    console.log(`   Shard ${shard.index}: ~${mins}m${String(secs).padStart(2, '0')}s (${shard.files.length} files)${marker}`);
+  }
+
+  const thisShard = shards.find((s) => s.index === splitNumber);
+  return thisShard ? thisShard.files : [];
+}
+
+/**
+ * @param {string[]} files
+ * @param {number} splitNumber
+ * @param {number} totalSplits
+ * @param {string} platform
+ */
+function selectShardFiles(files, splitNumber, totalSplits, platform) {
+  const timings = loadTestTimings();
+
+  if (timings && Object.keys(timings).length > 0) {
+    console.log(`⏱️  Time-based sharding (from ${TIMINGS_FILE})`);
+    return binPackShards(files, timings, platform, splitNumber, totalSplits);
+  }
+
+  console.log('📦 Equal-count sharding (no timings)');
+  return computeShardingSplit(files, splitNumber, totalSplits);
 }
 
 /**
@@ -328,21 +450,24 @@ function applyFlakinessDetection(splitFiles) {
   return expanded;
 }
 
-async function main() {
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
 
-  console.log("🚀 Starting E2E tests...");
+async function main() {
+  console.log('🚀 Starting E2E tests...');
   console.log(`GitHub Actions: attempt ${env.RUN_ATTEMPT}`);
 
   // 1) Find all specs files that include the given E2E tags
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
-  let allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
+  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
-
-  // 2) Compute sharding split (evenly across runners)
-  const splitFiles = computeShardingSplit(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS);
+  // 2) Shard by measured times when timings JSON exists, else by file count
+  const splitFiles = selectShardFiles(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS, env.PLATFORM);
   let runFiles = [...splitFiles];
+
   if (runFiles.length === 0) {
     console.log(`⚠️  No test files for split ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (only ${allMatches.length} test files found, but ${env.TOTAL_SPLITS} runners configured).`);
     console.log(`    💡 Tip: Reduce shard splits or add more tests to this tag ${env.TEST_SUITE_TAG}`);
@@ -416,7 +541,7 @@ async function main() {
       console.log('\n 🤖 Running Android tests for build type: ', env.METAMASK_BUILD_TYPE);
       await runYarn(`test:e2e:android:${env.METAMASK_BUILD_TYPE}:ci`, args);
     }
-    console.log("✅ Test execution completed");
+    console.log('✅ Test execution completed');
   } catch (err) {
     console.error(err.message || String(err));
     process.exit(1);

@@ -17,6 +17,8 @@ on:
 permissions:
   contents: read
   id-token: write
+  pull-requests: write
+  actions: read
 
 jobs:
   confirmations-ios-smoke:
@@ -221,7 +223,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI')
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -229,7 +231,7 @@ jobs:
       platform: ios
       test_suite_tag: 'SmokeMultiChainAPI'
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
@@ -354,3 +356,16 @@ jobs:
           name: test-e2e-ios-json-report
           path: test/test-results/test-runs-ios.json
           retention-days: 7
+
+      - name: Post slow E2E shard warning on PR
+        if: github.event.pull_request.number
+        continue-on-error: true
+        env:
+          PLATFORM: ios
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_BLOB_REF: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          THRESHOLD_MINUTES: '15'
+        run: node .github/scripts/e2e-post-slow-shard-warning.mjs

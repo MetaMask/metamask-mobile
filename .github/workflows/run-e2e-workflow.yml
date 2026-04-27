@@ -108,6 +108,25 @@ jobs:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
+      # E2E timings baseline is produced by the `prepare-e2e-timings` job earlier in this run
+      # (sourced from the latest main artifact, falling back to the current branch). If the
+      # artifact is missing, the split script uses equal-count alphabetical sharding.
+      - name: Download E2E timings baseline
+        id: e2e-timings-baseline
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-test-timings-baseline
+          path: tests
+
+      - name: Log E2E timings baseline
+        run: |
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "tests/e2e-test-timings.json: present ($(wc -c < tests/e2e-test-timings.json) bytes)"
+          else
+            echo "tests/e2e-test-timings.json: missing — split script will use equal-count sharding"
+          fi
+
       - name: Set up E2E environment
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env

@@ -534,6 +534,78 @@ jobs:
 
   # Main E2E tests
 
+  prepare-e2e-timings:
+    name: 'Prepare E2E test timings'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    # Resolves a baseline tests/e2e-test-timings.json by downloading the most recent
+    # `e2e-test-timings` artifact from main; if none found, falls back to the current
+    # PR head branch. The result is published as `e2e-test-timings-baseline` so smoke
+    # E2E jobs in this run can consume it via actions/download-artifact@v4. If neither
+    # source has an artifact, no baseline is uploaded and the split script falls back
+    # to equal-count alphabetical sharding.
+    if: github.event_name != 'merge_group'
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      has-baseline: ${{ steps.fetch.outputs.has-baseline }}
+    steps:
+      - name: Fetch latest e2e-test-timings artifact
+        id: fetch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          find_run_id() {
+            local branch="$1"
+            gh api -X GET "repos/${REPO}/actions/artifacts?name=e2e-test-timings&per_page=100" \
+              --jq "[.artifacts[] | select(.expired == false) | select(.workflow_run.head_branch == \"${branch}\")][0].workflow_run.id // empty"
+          }
+
+          mkdir -p tests
+          RUN_ID="$(find_run_id main || true)"
+          SRC=""
+          if [ -n "${RUN_ID}" ]; then
+            SRC="main (run ${RUN_ID})"
+          elif [ -n "${PR_BRANCH:-}" ] && [ "${PR_BRANCH}" != "main" ]; then
+            RUN_ID="$(find_run_id "${PR_BRANCH}" || true)"
+            [ -n "${RUN_ID}" ] && SRC="branch ${PR_BRANCH} (run ${RUN_ID})"
+          fi
+
+          if [ -z "${RUN_ID}" ]; then
+            echo "ℹ️  No previous e2e-test-timings artifact found (main or PR branch)."
+            echo "    Split script will use equal-count alphabetical sharding."
+            echo "has-baseline=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "⬇️  Downloading e2e-test-timings from ${SRC}"
+          if ! gh run download "${RUN_ID}" --repo "${REPO}" --name e2e-test-timings --dir tests; then
+            echo "::warning::Failed to download artifact from run ${RUN_ID}"
+            echo "has-baseline=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "✅ Restored tests/e2e-test-timings.json ($(wc -c < tests/e2e-test-timings.json) bytes)"
+            echo "    Source: ${SRC}"
+            echo "has-baseline=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Artifact downloaded but tests/e2e-test-timings.json missing"
+            echo "has-baseline=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload baseline for this run
+        if: steps.fetch.outputs.has-baseline == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-timings-baseline
+          path: tests/e2e-test-timings.json
+          retention-days: 1
+
   build-android-apks:
     name: 'Build Android APKs'
     if: >-
@@ -560,7 +632,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+      pull-requests: write
+      actions: read
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -602,7 +676,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+      pull-requests: write
+      actions: read
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -621,7 +697,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -638,7 +714,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -656,7 +732,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
@@ -851,6 +927,117 @@ jobs:
           fi
 
           echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+
+  update-e2e-timings:
+    name: 'Update E2E test timings'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    # Runs after smoke E2E completes: takes the baseline produced by `prepare-e2e-timings`
+    # (or starts fresh if missing), merges JUnit durations from all shards, and uploads
+    # the result as the `e2e-test-timings` artifact. That artifact becomes the baseline
+    # for future runs (looked up by `prepare-e2e-timings`). Non-blocking for the merge gate.
+    if: >-
+      ${{
+        !cancelled() &&
+        (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) &&
+        (needs.e2e-smoke-tests-android.result == 'success' || needs.e2e-smoke-tests-ios.result == 'success')
+      }}
+    needs: [e2e-smoke-tests-android, e2e-smoke-tests-ios]
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Download E2E timings baseline
+        id: e2e-timings-baseline
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-test-timings-baseline
+          path: tests
+
+      - name: Log E2E timings baseline
+        run: |
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "Baseline timings file present ($(wc -c < tests/e2e-test-timings.json) bytes)"
+          else
+            echo "No baseline timings file before merge (first run on this branch / main has no artifact yet)"
+          fi
+
+      - name: Download JUnit artifacts from this run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-e2e-*-junit-results
+          path: junit-artifacts
+          merge-multiple: false
+
+      - name: Merge timing data from all shards
+        run: |
+          set -euo pipefail
+          shopt -s globstar nullglob
+          processed=0
+          for xmlfile in junit-artifacts/**/junit.xml; do
+            dir=$(basename "$(dirname "$xmlfile")")
+            if echo "$dir" | grep -qE -- '-ios-smoke-'; then
+              platform="ios"
+            elif echo "$dir" | grep -qE -- '-android-smoke-'; then
+              platform="android"
+            elif echo "$dir" | grep -qF 'validate-e2e-fixtures'; then
+              platform="ios"
+            elif echo "$dir" | grep -qE -- '-ios-'; then
+              platform="ios"
+            elif echo "$dir" | grep -qE -- '-android-'; then
+              platform="android"
+            else
+              echo "::warning::Could not infer platform from artifact dir \"$dir\"; defaulting to android"
+              platform="android"
+            fi
+            echo "📊 Processing $xmlfile (platform: $platform)"
+            PLATFORM="$platform" \
+            JUNIT_REPORT_PATH="$xmlfile" \
+            TIMINGS_FILE="tests/e2e-test-timings.json" \
+              node .github/scripts/e2e-update-test-timings.mjs \
+              && processed=$((processed + 1)) \
+              || echo "⚠️  Failed for $xmlfile (non-blocking)"
+          done
+          echo "✅ Processed $processed shard(s)"
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "📄 Timing DB now has $(node -e "const f=require('./tests/e2e-test-timings.json'); console.log(Object.keys(f.timings||{}).length)") entries"
+          else
+            echo "📄 No timings file written"
+          fi
+
+      - name: Check timings file for upload
+        id: e2e-timings-file
+        run: |
+          if [ -f tests/e2e-test-timings.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload updated timings artifact (source of truth for next runs)
+        if: steps.e2e-timings-file.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-timings
+          path: tests/e2e-test-timings.json
+          retention-days: 90
 
   check-all-jobs-pass:
     name: Check all jobs pass
