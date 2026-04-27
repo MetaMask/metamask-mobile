@@ -46,22 +46,26 @@ const getApproveTitle = (approveTransactionData?: ApproveTransactionData) => {
   let title = strings('confirm.title.permit');
   let subTitle = strings('confirm.sub_title.permit');
 
+  // Revoke intent should take precedence immediately, even when token metadata
+  // is still loading on first render.
+  if (isRevoke) {
+    title = strings('confirm.title.permit_revoke');
+    subTitle = strings('confirm.sub_title.permit_revoke');
+  }
+
   if (tokenStandard === TokenStandard.ERC20) {
-    if (isRevoke) {
-      title = strings('confirm.title.permit_revoke');
-      subTitle = strings('confirm.sub_title.permit_revoke');
-    }
+    // Uses default approve/revoke copy for ERC20.
   }
   if (
     tokenStandard === TokenStandard.ERC721 ||
     tokenStandard === TokenStandard.ERC1155
   ) {
-    title = strings('confirm.title.permit_NFTs');
-    subTitle = strings('confirm.sub_title.permit_NFTs');
-
     if (isRevoke) {
       title = strings('confirm.title.permit_revoke');
       subTitle = strings('confirm.sub_title.permit_revoke_NFTs');
+    } else {
+      title = strings('confirm.title.permit_NFTs');
+      subTitle = strings('confirm.sub_title.permit_NFTs');
     }
   }
 

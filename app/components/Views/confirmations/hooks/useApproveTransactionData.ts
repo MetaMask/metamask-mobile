@@ -58,6 +58,36 @@ export interface ApproveTransactionData {
   tokenSymbol?: string;
 }
 
+function getProvisionalRevokeState({
+  fourByteCode,
+  parsedData,
+}: {
+  fourByteCode?: string;
+  parsedData?: ReturnType<typeof parseStandardTokenTransactionData>;
+}): boolean {
+  const args = parsedData?.args ?? [];
+
+  switch (fourByteCode) {
+    case APPROVAL_4BYTE_SELECTORS.APPROVE: {
+      const [spender, amountOrTokenId] = args;
+      return (
+        amountOrTokenId?.toString() === ZERO_AMOUNT ||
+        spender?.toLowerCase?.() === ZERO_ADDRESS.toLowerCase()
+      );
+    }
+    case APPROVAL_4BYTE_SELECTORS.SET_APPROVAL_FOR_ALL: {
+      const approved = args[1];
+      return !approved;
+    }
+    case APPROVAL_4BYTE_SELECTORS.PERMIT2_APPROVE: {
+      const amount = args[2];
+      return amount?.toString() === ZERO_AMOUNT;
+    }
+    default:
+      return false;
+  }
+}
+
 /**
  * Hook to parse and extract approval transaction data from current transaction.
  *
@@ -106,15 +136,24 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
   // Memoize the entire parsed approval data
   const parsedApproveData = useMemo((): ApproveTransactionData => {
-    if (!transactionMetadata || isTokenStandardPending || !parsedData) {
+    if (!transactionMetadata || !parsedData) {
       return {
         isLoading: true,
       };
     }
 
+    if (isTokenStandardPending) {
+      return {
+        isLoading: true,
+        isRevoke: getProvisionalRevokeState({ fourByteCode, parsedData }),
+      };
+    }
+
+    const tokenDecimals = details?.decimalsNumber ?? 0;
+
     const result: ApproveTransactionData = {
       approveMethod: undefined,
-      decimals: details?.decimalsNumber,
+      decimals: tokenDecimals,
       isLoading: false,
       isRevoke: false,
       tokenStandard: tokenStandard as TokenStandard,
@@ -136,14 +175,14 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
           const { amount: amountInDecimals, rawAmount } =
             calculateApprovalTokenAmount(
               amount?.toString() as string,
-              details.decimalsNumber,
+              tokenDecimals,
             );
           result.amount = amountInDecimals;
           result.rawAmount = rawAmount;
           result.isRevoke = amount?.toString() === ZERO_AMOUNT;
           result.tokenBalance = calculateTokenBalance(
             tokenBalance ?? '0',
-            details.decimalsNumber,
+            tokenDecimals,
           );
         }
 
@@ -156,7 +195,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         const { amount: amountInDecimals, rawAmount } =
           calculateApprovalTokenAmount(
             amount?.toString() as string,
-            details.decimalsNumber,
+            tokenDecimals,
           );
         result.amount = amountInDecimals;
         result.rawAmount = rawAmount;
@@ -168,7 +207,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
             : ApproveMethod.INCREASE_ALLOWANCE;
         result.tokenBalance = calculateTokenBalance(
           tokenBalance ?? '0',
-          details.decimalsNumber,
+          tokenDecimals,
         );
         break;
       }
@@ -186,7 +225,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         const { amount: amountInDecimals, rawAmount } =
           calculateApprovalTokenAmount(
             amount?.toString() as string,
-            details.decimalsNumber,
+            tokenDecimals,
           );
         result.amount = amountInDecimals;
         result.rawAmount = rawAmount;
@@ -195,7 +234,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         result.approveMethod = ApproveMethod.PERMIT2_APPROVE;
         result.tokenBalance = calculateTokenBalance(
           tokenBalance ?? '0',
-          details.decimalsNumber,
+          tokenDecimals,
         );
         break;
       }
@@ -207,8 +246,8 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
     return result;
   }, [
-    details.decimalsNumber,
-    details.symbol,
+    details?.decimalsNumber,
+    details?.symbol,
     isTokenStandardPending,
     tokenStandard,
     fourByteCode,
