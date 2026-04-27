@@ -6800,9 +6800,7 @@
       "perps_deposit": "資金を追加",
       "perps_withdraw": "出金",
       "predict_deposit": "予測資金を追加",
-      "predict_withdraw": "出金",
-      "money_account_deposit": "資金を追加",
-      "money_account_withdraw": "出金"
+      "predict_withdraw": "出金"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",

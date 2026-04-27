@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { StyleProp, ViewStyle } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
@@ -9,7 +10,9 @@ import { useTransactionAccountOverride } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import AccountSelector from '../AccountSelector';
 
-const PayAccountSelector: React.FC = () => {
+const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
+  style,
+}) => {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
   const accountOverride = useTransactionAccountOverride();
@@ -43,11 +46,17 @@ const PayAccountSelector: React.FC = () => {
     ? strings('confirm.label.from')
     : undefined;
 
+  const selectorTitle = isMoneyAccountDeposit
+    ? strings('bridge.select_account')
+    : strings('bridge.select_recipient');
+
   return (
     <AccountSelector
       label={label}
+      selectorTitle={selectorTitle}
       selectedAddress={accountOverride}
       onAccountSelected={handleAccountSelected}
+      style={style}
     />
   );
 };

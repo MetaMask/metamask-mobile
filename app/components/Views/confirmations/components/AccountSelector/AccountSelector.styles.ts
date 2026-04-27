@@ -8,8 +8,6 @@ const stylesheet = (params: { theme: Theme }) => {
     container: {
       paddingVertical: 12,
       paddingHorizontal: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
     },
     row: {
       flexDirection: 'row',
@@ -22,18 +20,14 @@ const stylesheet = (params: { theme: Theme }) => {
       gap: 8,
       flexShrink: 1,
     },
-    modalContainer: {
+    /** Full-screen wrapper for transparent Modal so BottomSheet can fill the window. */
+    modalRoot: {
       flex: 1,
-      backgroundColor: theme.colors.background.default,
     },
-    modalHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
+    /** Lets the account list consume remaining height under HeaderCompactStandard inside BottomSheet. */
+    modalSheetBody: {
+      flex: 1,
+      minHeight: 0,
     },
     accountText: {
       flexShrink: 1,

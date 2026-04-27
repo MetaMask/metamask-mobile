@@ -6800,9 +6800,7 @@
       "perps_deposit": "充值",
       "perps_withdraw": "提取",
       "predict_deposit": "存入预测资金",
-      "predict_withdraw": "提取",
-      "money_account_deposit": "充值",
-      "money_account_withdraw": "提取资金"
+      "predict_withdraw": "提取"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",

@@ -6873,8 +6873,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_deposit": "Add funds",
-      "money_account_withdraw": "Withdraw funds"
+      "money_account_add_money": "Add money",
+      "money_account_transfer_money": "Transfer money"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -7070,6 +7070,7 @@
     "receive_at": "Receive at",
     "recipient": "Recipient",
     "select_recipient": "Select recipient",
+    "select_account": "Select account",
     "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",

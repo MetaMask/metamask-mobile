@@ -9,6 +9,7 @@ import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
+import { AccountWalletId } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import { useStyles } from '../../../hooks';
@@ -136,6 +137,32 @@ const MultichainAccountSelectorList = ({
       .filter((section) => section.data.length > 0);
   }, [walletSections, debouncedSearchText, matchesSearch]);
 
+  /** Deduplicate by wallet id (account tree can list the same wallet under multiple map keys). */
+  const uniqueWalletSections = useMemo((): WalletSection[] => {
+    const byWalletId = new Map<AccountWalletId, WalletSection>();
+    for (const section of filteredWalletSections) {
+      const wid = section.walletId;
+      const existing = byWalletId.get(wid);
+      if (existing) {
+        const seen = new Set(existing.data.map((g) => g.id));
+        let merged = existing.data;
+        for (const group of section.data) {
+          if (!seen.has(group.id)) {
+            merged = [...merged, group];
+            seen.add(group.id);
+          }
+        }
+        byWalletId.set(wid, { ...existing, data: merged });
+      } else {
+        byWalletId.set(wid, {
+          ...section,
+          data: [...section.data],
+        });
+      }
+    }
+    return Array.from(byWalletId.values());
+  }, [filteredWalletSections]);
+
   const trimmedSearchText = useMemo(
     () => debouncedSearchText.trim(),
     [debouncedSearchText],
@@ -144,10 +171,10 @@ const MultichainAccountSelectorList = ({
   const shouldShowExternalAccount = useMemo(
     () =>
       Boolean(trimmedSearchText) &&
-      filteredWalletSections.length === 0 &&
+      uniqueWalletSections.length === 0 &&
       showExternalAccountOnEmptySearch,
     [
-      filteredWalletSections.length,
+      uniqueWalletSections.length,
       showExternalAccountOnEmptySearch,
       trimmedSearchText,
     ],
@@ -166,7 +193,7 @@ const MultichainAccountSelectorList = ({
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
     const items: FlattenedMultichainAccountListItem[] = [];
 
-    if (filteredWalletSections.length === 0) {
+    if (uniqueWalletSections.length === 0) {
       if (shouldShowExternalAccount) {
         items.push({
           type: 'external',
@@ -179,11 +206,15 @@ const MultichainAccountSelectorList = ({
       return items;
     }
 
-    filteredWalletSections.forEach((section) => {
-      items.push({
-        type: 'header',
-        data: { title: section.title, walletName: section.walletName },
-      });
+    const showWalletSectionHeaders = uniqueWalletSections.length > 1;
+
+    uniqueWalletSections.forEach((section) => {
+      if (showWalletSectionHeaders) {
+        items.push({
+          type: 'header',
+          data: { title: section.title, walletName: section.walletName },
+        });
+      }
 
       section.data.forEach((accountGroup) => {
         items.push({
@@ -201,7 +232,7 @@ const MultichainAccountSelectorList = ({
 
     return items;
   }, [
-    filteredWalletSections,
+    uniqueWalletSections,
     isExternalAddressValid,
     shouldShowExternalAccount,
     trimmedSearchText,

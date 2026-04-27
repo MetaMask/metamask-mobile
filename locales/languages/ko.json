@@ -6800,9 +6800,7 @@
       "perps_deposit": "자금 추가",
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
-      "predict_withdraw": "출금",
-      "money_account_deposit": "자금 추가",
-      "money_account_withdraw": "자금 출금"
+      "predict_withdraw": "출금"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
