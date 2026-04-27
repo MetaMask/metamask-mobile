@@ -1,4 +1,3 @@
-import compareVersions from 'compare-versions';
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import packageJson from '../../../../package.json';
