@@ -88,6 +88,41 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
+// Mock design-system Button to behave like TouchableOpacity in tests
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        <Text>{label ?? children}</Text>
+      </TouchableOpacity>
+    ),
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
+      Sm: 'Sm',
+    },
+  };
+});
+
 // Mock Text component
 jest.mock('../../../../../component-library/components/Texts/Text', () => {
   const { Text } = jest.requireActual('react-native');

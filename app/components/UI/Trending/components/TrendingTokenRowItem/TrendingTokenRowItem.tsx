@@ -22,12 +22,13 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   Icon,
+  IconAlert,
   IconSize,
   Text as DesignSystemText,
   TextVariant as DesignSystemTextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { getSecurityBadgeConfig } from '../../../SecurityTrust/utils/securityUtils';
+import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 import {
   caipChainIdToHex,
   getCaipChainIdFromAssetId,
@@ -172,8 +173,8 @@ const TrendingTokenRowItem = ({
   );
 
   const securityBadge = useMemo(
-    () => getSecurityBadgeConfig(token.securityData),
-    [token.securityData],
+    () => getResultTypeConfig(token.securityData?.resultType).badge,
+    [token.securityData?.resultType],
   );
 
   // Parse price change percentage from API (comes as string like "-3.44" or "+0.456")
@@ -297,12 +298,22 @@ const TrendingTokenRowItem = ({
             {token?.name ?? token?.symbol}
           </Text>
           {securityBadge && securityBadge.label === null && (
-            <Icon
-              name={securityBadge.icon}
-              size={IconSize.Sm}
-              color={securityBadge.iconColor}
-              testID="security-badge-icon"
-            />
+            <>
+              {securityBadge.iconAlertSeverity ? (
+                <IconAlert
+                  severity={securityBadge.iconAlertSeverity}
+                  size={IconSize.Sm}
+                  testID="security-badge-icon"
+                />
+              ) : (
+                <Icon
+                  name={securityBadge.icon}
+                  size={IconSize.Sm}
+                  color={securityBadge.iconColor}
+                  testID="security-badge-icon"
+                />
+              )}
+            </>
           )}
           {securityBadge && securityBadge.label !== null && (
             <Box
@@ -310,11 +321,18 @@ const TrendingTokenRowItem = ({
               alignItems={BoxAlignItems.Center}
               twClassName={`rounded min-w-[22px] px-1.5 gap-1 shrink-0 ${securityBadge.bg}`}
             >
-              <Icon
-                name={securityBadge.icon}
-                size={IconSize.Sm}
-                color={securityBadge.iconColor}
-              />
+              {securityBadge.iconAlertSeverity ? (
+                <IconAlert
+                  severity={securityBadge.iconAlertSeverity}
+                  size={IconSize.Sm}
+                />
+              ) : (
+                <Icon
+                  name={securityBadge.icon}
+                  size={IconSize.Sm}
+                  color={securityBadge.iconColor}
+                />
+              )}
               <DesignSystemText
                 variant={DesignSystemTextVariant.BodySm}
                 color={securityBadge.textColor}
