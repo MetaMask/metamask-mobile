@@ -75,10 +75,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:
             navigation.navigate(Routes.WALLET.HOME, {
-              screen: Routes.WALLET.TAB_STACK_FLOW,
-              params: {
-                screen: Routes.WALLET_VIEW,
-              },
+              screen: Routes.WALLET_VIEW,
             });
             break;
           case Routes.MODAL.WALLET_ACTIONS:
