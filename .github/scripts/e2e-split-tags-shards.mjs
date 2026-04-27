@@ -23,7 +23,7 @@ const env = {
   RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
 };
-// Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
+// Example of format of CHANGED_FILES: app/components/Foo.tsx tests/e2e/specs/Bar.js
 
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
 if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');

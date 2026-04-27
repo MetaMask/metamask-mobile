@@ -1,0 +1,70 @@
+# Filter rules for determining `ci` workflow requirements
+# Used with dorny/paths-filter action
+#
+# Each filter creates two outputs:
+# - {filter_name}: 'true'/'false' if any changed files match any filter rules
+# - {filter_name}_count: number of matching files
+#
+# E2E STRATEGY: Use separate filters to detect different file types non E2E related.
+# Conservative approach - add only files that safely allow skipping E2E tests.
+
+# DOCUMENTATION FILES
+documentation_files: &documentation_files
+  - '**/*.{md,mdx,txt}'
+  - 'docs/**'
+  - 'LICENSE'
+
+# ASSET FILES
+asset_files: &asset_files
+  - '**/*.{svg,png}'
+
+# LOW LEVEL TEST FILES
+low_level_test_files: &low_level_test_files
+  - '**/*.test.{js,ts,tsx,jsx}'
+  - '**/*.stories.*'
+  - '**/*.snap'
+
+# CONFIG FILES
+config_files: &config_files
+  - '.eslint*'
+  - '.prettier*'
+  - 'tailwind.config.js'
+  - 'sonar-project.properties'
+  - 'codecov.yml'
+  - 'crowdin.yml'
+  - 'coverage-thresholds.json'
+  - '.editorconfig'
+  - '.watchmanconfig'
+  - '.gitignore'
+
+# CI/GITHUB FILES — overridden by e2e_related_workflows below
+ci_files: &ci_files
+  - '.github/**'
+  - 'bitrise.yml' 
+
+# ALL IGNORABLE FILES - safe to skip E2E
+e2e_ignorable:
+  - *documentation_files
+  - *asset_files
+  - *low_level_test_files
+  - *config_files
+  - *ci_files
+
+e2e_relevant_workflows:
+  - '.github/workflows/ci.yml'
+  - '.github/workflows/get-requirements.yml'
+  - '.github/workflows/build-android-e2e.yml'
+  - '.github/workflows/build-ios-e2e.yml'
+  - '.github/workflows/run-e2e-*.yml'
+  - '.github/workflows/update-e2e-fixtures.yml'
+  - '.github/workflows/build.yml'
+  - '.github/scripts/e2e-*.mjs'
+
+android:
+  - 'android/**'
+
+ios:
+  - 'ios/**'
+
+all_changes:
+  - '**'
