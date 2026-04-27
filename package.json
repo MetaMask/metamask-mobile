@@ -210,7 +210,8 @@
     "@metamask/keyring-api@npm:^21.5.0": "21.6.0",
     "@metamask/keyring-api@npm:^21.6.0": "23.0.1",
     "@metamask/keyring-api@npm:^22.0.0": "23.0.1",
-    "@metamask/keyring-api@npm:^23.0.1": "23.0.1"
+    "@metamask/keyring-api@npm:^23.0.1": "23.0.1",
+    "@metamask/assets-controllers@npm:^104.3.0": "patch:@metamask/assets-controllers@npm%3A104.3.0#~/.yarn/patches/@metamask-assets-controllers-npm-104.3.0-b8fa78faa5.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -237,7 +238,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^6.0.0",
-    "@metamask/assets-controllers": "^104.2.0",
+    "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A104.3.0#~/.yarn/patches/@metamask-assets-controllers-npm-104.3.0-b8fa78faa5.patch",
     "@metamask/authenticated-user-storage": "^1.0.0",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
