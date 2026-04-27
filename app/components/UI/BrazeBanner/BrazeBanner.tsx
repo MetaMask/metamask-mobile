@@ -71,14 +71,6 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
 
   return (
     <Box testID={BRAZE_BANNER_TEST_IDS.CONTAINER} style={tw.style('mx-4')}>
-      {status === 'loading' && (
-        <Skeleton
-          height={BANNER_HEIGHT}
-          twClassName="rounded-xl"
-          testID={BRAZE_BANNER_TEST_IDS.SKELETON}
-        />
-      )}
-
       {status === 'visible' && body && (
         <Pressable
           testID={BRAZE_BANNER_TEST_IDS.PRESSABLE}

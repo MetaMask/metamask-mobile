@@ -219,16 +219,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     ? getRawStringProp(banner, PROP_VARIANT_NAME)
     : null;
 
-  Logger.log('[BrazeBanner] Banner', {
-    bannerName,
-    deeplink,
-    title,
-    body,
-    imageUrl,
-    ctaLabel,
-    isTest: banner?.isTestSend,
-  });
-
   const eventProperties = useMemo(
     () =>
       bannerName
