@@ -63,16 +63,7 @@ jest.mock('../../constants/ota', () => ({
   OTA_VERSION: 'v1',
 }));
 
-const expoUpdatesMockValues: {
-  updateId: string;
-  isEmbeddedLaunch: boolean;
-  channel: string;
-  runtimeVersion: string;
-  manifest: {
-    metadata?: { updateGroup?: string };
-    extra?: { expoClient?: { owner?: string; slug?: string } };
-  };
-} = {
+jest.mock('expo-updates', () => ({
   updateId: 'test-update-id-123',
   isEmbeddedLaunch: false,
   channel: 'production',
@@ -88,9 +79,19 @@ const expoUpdatesMockValues: {
       },
     },
   },
-};
+}));
 
-jest.mock('expo-updates', () => expoUpdatesMockValues);
+// eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
+const mockExpoUpdatesValues = require('expo-updates') as {
+  updateId: string;
+  isEmbeddedLaunch: boolean;
+  channel: string;
+  runtimeVersion: string;
+  manifest: {
+    metadata?: { updateGroup?: string };
+    extra?: { expoClient?: { owner?: string; slug?: string } };
+  };
+};
 
 describe('deriveSentryEnvironment', () => {
   it('returns flask-production for non-dev production environment and flask build type', async () => {
@@ -1113,13 +1114,13 @@ describe('rewriteReport', () => {
 });
 
 describe('setEASUpdateContext', () => {
-  const manifestMock = expoUpdatesMockValues.manifest;
+  const manifestMock = mockExpoUpdatesValues.manifest;
   const scopeMock = { setTag: jest.fn() };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetGlobalScope.mockReturnValue(scopeMock as unknown as Scope);
-    expoUpdatesMockValues.isEmbeddedLaunch = false;
+    mockExpoUpdatesValues.isEmbeddedLaunch = false;
 
     manifestMock.metadata = {
       updateGroup: 'test-group-id',
@@ -1138,11 +1139,11 @@ describe('setEASUpdateContext', () => {
     expect(mockedGetGlobalScope).toHaveBeenCalledTimes(1);
     expect(scopeMock.setTag).toHaveBeenCalledWith(
       'expo-update-id',
-      expoUpdatesMockValues.updateId,
+      mockExpoUpdatesValues.updateId,
     );
     expect(scopeMock.setTag).toHaveBeenCalledWith(
       'expo-is-embedded-update',
-      expoUpdatesMockValues.isEmbeddedLaunch,
+      mockExpoUpdatesValues.isEmbeddedLaunch,
     );
     expect(scopeMock.setTag).toHaveBeenCalledWith(
       'expo-update-group-id',
@@ -1158,13 +1159,13 @@ describe('setEASUpdateContext', () => {
     );
     expect(scopeMock.setTag).toHaveBeenCalledWith(
       'expo-runtime-version',
-      expoUpdatesMockValues.runtimeVersion,
+      mockExpoUpdatesValues.runtimeVersion,
     );
   });
 
   it('marks debug url as not applicable for embedded updates without metadata', () => {
     manifestMock.metadata = undefined;
-    expoUpdatesMockValues.isEmbeddedLaunch = true;
+    mockExpoUpdatesValues.isEmbeddedLaunch = true;
 
     setEASUpdateContext();
 

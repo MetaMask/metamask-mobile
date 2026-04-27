@@ -51,7 +51,7 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-const testCallbackBaseDeeplink = 'test://test-callback-base-deeplink/';
+const mockCallbackBaseDeeplink = 'test://test-callback-base-deeplink/';
 
 jest.mock('../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
@@ -61,7 +61,9 @@ jest.mock('../sdk', () => ({
       getSellOrderFromCallback: jest.fn(),
     }),
   },
-  callbackBaseDeeplink: testCallbackBaseDeeplink,
+  get callbackBaseDeeplink() {
+    return mockCallbackBaseDeeplink;
+  },
 }));
 
 const defaultState = merge({}, initialRootState, {
@@ -115,7 +117,7 @@ describe('useInAppBrowser', () => {
       const testFiatSymbol = 'TEST';
       await result.current(buyAction, testProvider, testAmount, testFiatSymbol);
       expect(buyAction.createWidget).toHaveBeenCalledWith(
-        `${testCallbackBaseDeeplink}on-ramp${testProvider.id}`,
+        `${mockCallbackBaseDeeplink}on-ramp${testProvider.id}`,
       );
     });
 
