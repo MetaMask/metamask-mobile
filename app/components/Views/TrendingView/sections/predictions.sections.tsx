@@ -24,32 +24,26 @@ type PredictCategory = 'trending' | 'sports' | 'crypto' | 'politics';
 
 const ALL_SPORTS_PAGE_SIZE = 20;
 
-/**
- * Explore “All sports” pill tabs: order = pill order, left to right.
- * Add a row here and a matching `usePredictMarketData` call below (Rules of Hooks).
- * https://gamma-api.polymarket.com/tags
- */
-const ALL_SPORTS_EXPLORE_TABS = [
-  {
-    key: 'basketball',
-    labelKey: 'trending.basketball',
-    customQueryParams: 'tag_id=28',
-  },
-  {
-    key: 'football',
-    labelKey: 'trending.football',
-    customQueryParams: 'tag_id=10',
-  },
-  {
-    key: 'soccer',
-    labelKey: 'trending.soccer',
-    customQueryParams: 'tag_id=100350',
-  },
-] as const;
+// To add a sport: add a row here AND a usePredictMarketData call in the hook below (Rules of Hooks).
+// Tag IDs: https://gamma-api.polymarket.com/tags
+const BASKETBALL = {
+  key: 'basketball',
+  labelKey: 'trending.basketball',
+  customQueryParams: 'tag_id=28',
+} as const;
+const FOOTBALL = {
+  key: 'football',
+  labelKey: 'trending.football',
+  customQueryParams: 'tag_id=10',
+} as const;
+const SOCCER = {
+  key: 'soccer',
+  labelKey: 'trending.soccer',
+  customQueryParams: 'tag_id=100350',
+} as const;
+const ALL_SPORTS_TABS = [BASKETBALL, FOOTBALL, SOCCER] as const;
 
-type ExploreSportTabKey = (typeof ALL_SPORTS_EXPLORE_TABS)[number]['key'];
-
-/** Passed as `data[0]` from `useAllSportsExploreSectionData` to `AllSportsPillSection`. */
+/** Passed via `data[0]` from `useAllSportsExploreSectionData` to `AllSportsPillSection`. */
 export interface ExploreKeyedMarketsSectionPayload {
   pills: PillOption[];
   marketsByKey: Record<string, UsePredictMarketDataResult>;
@@ -62,44 +56,33 @@ const useAllSportsExploreSectionData = (): {
   isLoading: boolean;
   refetch: () => Promise<void>;
 } => {
-  const [activeKey, setActiveKey] = useState<ExploreSportTabKey>(
-    ALL_SPORTS_EXPLORE_TABS[0].key,
-  );
-  const [loadedKeys, setLoadedKeys] = useState(
-    () => new Set<string>([ALL_SPORTS_EXPLORE_TABS[0].key]),
+  const [activeKey, setActiveKey] = useState<string>(BASKETBALL.key);
+  const [loadedKeys, setLoadedKeys] = useState<Set<string>>(
+    () => new Set([BASKETBALL.key]),
   );
 
   const basketball = usePredictMarketData({
     category: 'sports',
-    customQueryParams: ALL_SPORTS_EXPLORE_TABS[0].customQueryParams,
+    customQueryParams: BASKETBALL.customQueryParams,
     pageSize: ALL_SPORTS_PAGE_SIZE,
-    enabled: loadedKeys.has(ALL_SPORTS_EXPLORE_TABS[0].key),
+    enabled: loadedKeys.has(BASKETBALL.key),
   });
   const football = usePredictMarketData({
     category: 'sports',
-    customQueryParams: ALL_SPORTS_EXPLORE_TABS[1].customQueryParams,
+    customQueryParams: FOOTBALL.customQueryParams,
     pageSize: ALL_SPORTS_PAGE_SIZE,
-    enabled: loadedKeys.has(ALL_SPORTS_EXPLORE_TABS[1].key),
+    enabled: loadedKeys.has(FOOTBALL.key),
   });
   const soccer = usePredictMarketData({
     category: 'sports',
-    customQueryParams: ALL_SPORTS_EXPLORE_TABS[2].customQueryParams,
+    customQueryParams: SOCCER.customQueryParams,
     pageSize: ALL_SPORTS_PAGE_SIZE,
-    enabled: loadedKeys.has(ALL_SPORTS_EXPLORE_TABS[2].key),
+    enabled: loadedKeys.has(SOCCER.key),
   });
-
-  const marketsByKey = useMemo(
-    () =>
-      ({ basketball, football, soccer }) as Record<
-        string,
-        UsePredictMarketDataResult
-      >,
-    [basketball, football, soccer],
-  );
 
   const pills = useMemo<PillOption[]>(
     () =>
-      ALL_SPORTS_EXPLORE_TABS.map((tab) => ({
+      ALL_SPORTS_TABS.map((tab) => ({
         key: tab.key,
         name: strings(tab.labelKey),
       })),
@@ -107,31 +90,27 @@ const useAllSportsExploreSectionData = (): {
   );
 
   const selectSport = useCallback((key: string) => {
-    if (!ALL_SPORTS_EXPLORE_TABS.some((t) => t.key === key)) {
-      return;
-    }
-    setActiveKey(key as ExploreSportTabKey);
+    setActiveKey(key);
     setLoadedKeys((prev) => new Set(prev).add(key));
   }, []);
 
+  const { refetch: refetchBasketball } = basketball;
+  const { refetch: refetchFootball } = football;
+  const { refetch: refetchSoccer } = soccer;
+
   const refetch = useCallback(async () => {
-    const entries: [string, UsePredictMarketDataResult][] = [
-      ['basketball', basketball],
-      ['football', football],
-      ['soccer', soccer],
-    ];
-    await Promise.all(
-      entries
-        .filter(([key]) => loadedKeys.has(key))
-        .map(([, hook]) => hook.refetch()),
-    );
-  }, [loadedKeys, basketball, football, soccer]);
+    const tasks: Promise<void>[] = [];
+    if (loadedKeys.has(BASKETBALL.key)) tasks.push(refetchBasketball());
+    if (loadedKeys.has(FOOTBALL.key)) tasks.push(refetchFootball());
+    if (loadedKeys.has(SOCCER.key)) tasks.push(refetchSoccer());
+    await Promise.all(tasks);
+  }, [loadedKeys, refetchBasketball, refetchFootball, refetchSoccer]);
 
   return {
     data: [
       {
         pills,
-        marketsByKey,
+        marketsByKey: { basketball, football, soccer },
         activeKey,
         selectSport,
       } satisfies ExploreKeyedMarketsSectionPayload,
