@@ -194,9 +194,9 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     setStatus('dismissed');
 
     // Persist the dismissal and notify Braze only when the campaign explicitly
-    // sets both `banner_id` and `dismissable: true`. Without both flags the
-    // dismissal is session-only (nothing stored, nothing filtered at startup).
-    if (bannerName !== null && dismissable === true) {
+    // sets both `banner_name` and `dismissable: true`
+    // Test sends are treated as non-dismissable (session-only, no Braze event).
+    if (bannerName !== null && dismissable === true && !banner.isTestSend) {
       dispatch(setLastDismissedBrazeBanner(bannerName));
       dismissBrazeBanner({ [PROP_BANNER_NAME]: bannerName });
     }
@@ -218,6 +218,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     body,
     imageUrl,
     ctaLabel,
+    isTest: banner?.isTestSend,
   });
 
   const eventProperties = useMemo(
