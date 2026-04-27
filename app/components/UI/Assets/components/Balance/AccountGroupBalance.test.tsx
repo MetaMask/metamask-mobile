@@ -224,10 +224,6 @@ describe('AccountGroupBalance', () => {
     // Trigger re-render with new balance
     rerender(<AccountGroupBalance />);
 
-    // Balance should display immediately without waiting for timeout.
-    // The new DSRN Skeleton hides children with `accessibilityElementsHidden`
-    // while loading, so include hidden elements to assert the balance node is
-    // present in the tree (matches pre-migration assertion behavior).
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
       includeHiddenElements: true,
     });
@@ -289,10 +285,6 @@ describe('AccountGroupBalance', () => {
     // Trigger re-render
     rerender(<AccountGroupBalance />);
 
-    // Should show balance immediately after update (hasChanged condition).
-    // The new DSRN Skeleton hides children with `accessibilityElementsHidden`
-    // while loading, so include hidden elements to assert the balance node is
-    // present in the tree (matches pre-migration assertion behavior).
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
         includeHiddenElements: true,
