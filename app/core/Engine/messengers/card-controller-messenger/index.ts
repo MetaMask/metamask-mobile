@@ -39,6 +39,8 @@ export function getCardControllerMessenger(
       'AccountTreeController:stateChange',
       'KeyringController:unlock',
       'TransactionController:transactionConfirmed',
+      'RemoteFeatureFlagController:stateChange',
+      'KeyringController:unlock',
     ],
   });
 

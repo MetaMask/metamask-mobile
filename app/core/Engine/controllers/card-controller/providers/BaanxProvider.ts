@@ -59,7 +59,6 @@ import {
   OnboardingStepResult,
   RegistrationSettings,
   RegistrationStatus,
-  WalletOperations,
   FundingAssetStatus,
   CardProviderError,
   CardProviderErrorCode,
@@ -237,17 +236,24 @@ export class BaanxProvider implements ICardProvider {
     supportsCashback: true,
   };
   private readonly service: BaanxService;
-  private readonly cardFeatureFlag: CardFeatureFlag | null;
+  private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
 
   constructor({
     service,
     cardFeatureFlag,
+    getCardFeatureFlag,
   }: {
     service: BaanxService;
     cardFeatureFlag?: CardFeatureFlag;
+    getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
   }) {
     this.service = service;
-    this.cardFeatureFlag = cardFeatureFlag ?? null;
+    this.getCardFeatureFlag = () =>
+      getCardFeatureFlag?.() ?? cardFeatureFlag ?? null;
+  }
+
+  private get cardFeatureFlag(): CardFeatureFlag | null {
+    return this.getCardFeatureFlag();
   }
 
   // -- Auth --
@@ -607,16 +613,35 @@ export class BaanxProvider implements ICardProvider {
   async approveFunding(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
-    _wallet: WalletOperations,
   ): Promise<void> {
+    if (
+      params.txHash === undefined ||
+      params.sigHash === undefined ||
+      params.sigMessage === undefined ||
+      params.token === undefined
+    ) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'approveFunding requires txHash, sigHash, sigMessage, and delegation token',
+      );
+    }
+
+    const isSolana = params.network === 'solana';
+    const endpoint = isSolana
+      ? '/v1/delegation/solana/post-approval'
+      : '/v1/delegation/evm/post-approval';
+
     await this.service.post(
-      '/v1/delegation/evm/post-approval',
+      endpoint,
       {
-        walletAddress: params.address,
-        amount: params.amount,
-        currency: params.currency,
+        address: params.address,
         network: params.network,
-        faucet: params.faucet ?? false,
+        currency: params.currency.toLowerCase(),
+        amount: params.amount,
+        txHash: params.txHash,
+        sigHash: params.sigHash,
+        sigMessage: params.sigMessage,
+        token: params.token,
       },
       tokens,
     );
