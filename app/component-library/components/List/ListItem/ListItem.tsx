@@ -20,6 +20,7 @@ import {
  * @deprecated Please update your code to use `ListItem` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/ListItem/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#listitem-component Migration docs}
  * @since @metamask/design-system-react-native@0.11.0
  */
 const ListItem: React.FC<ListItemProps> = ({

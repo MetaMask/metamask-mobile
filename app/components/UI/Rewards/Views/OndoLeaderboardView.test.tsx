@@ -358,4 +358,61 @@ describe('OndoLeaderboardView', () => {
       expect.objectContaining({ defaultTier: 'MID' }),
     );
   });
+
+  describe('isCampaignComplete behavior', () => {
+    const completeCampaign = {
+      ...mockCampaign,
+      startDate: '2024-01-01T00:00:00Z',
+      endDate: '2024-01-02T00:00:00Z',
+    };
+
+    const pendingPosition = {
+      rank: 8,
+      projectedTier: 'STARTER',
+      qualified: false,
+      qualifiedDays: 3,
+      totalInTier: 100,
+      rateOfReturn: 0.05,
+      currentUsdValue: 5000,
+      totalUsdDeposited: 4000,
+      netDeposit: 3500,
+      neighbors: [],
+      computedAt: '2024-01-01T00:00:00Z',
+    };
+
+    it('does not show Pending tag when campaign is complete and position is not qualified', () => {
+      mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+        selector({
+          rewards: { referralCode: null, campaigns: [completeCampaign] },
+        }),
+      );
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: pendingPosition,
+      });
+      const { queryByText } = render(<OndoLeaderboardView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.pending'),
+      ).toBeNull();
+    });
+
+    it('passes isCampaignComplete=true to OndoLeaderboard when campaign is complete', () => {
+      mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+        selector({
+          rewards: { referralCode: null, campaigns: [completeCampaign] },
+        }),
+      );
+      render(<OndoLeaderboardView />);
+      expect(mockOndoLeaderboard).toHaveBeenCalledWith(
+        expect.objectContaining({ isCampaignComplete: true }),
+      );
+    });
+
+    it('passes isCampaignComplete=false to OndoLeaderboard when campaign is active', () => {
+      render(<OndoLeaderboardView />);
+      expect(mockOndoLeaderboard).toHaveBeenCalledWith(
+        expect.objectContaining({ isCampaignComplete: false }),
+      );
+    });
+  });
 });

@@ -187,6 +187,10 @@ export const PredictPositionSelectorsIDs = {
 export const PredictBuyPreviewSelectorsIDs = {
   // Buy/Place bet button
   PLACE_BET_BUTTON: 'predict-buy-preview-place-bet-button',
+
+  // Inline error banners (sheet mode)
+  PRICE_CHANGED_BANNER: 'predict-buy-preview-price-changed-banner',
+  ORDER_FAILED_BANNER: 'predict-buy-preview-order-failed-banner',
 } as const;
 
 // ========================================
