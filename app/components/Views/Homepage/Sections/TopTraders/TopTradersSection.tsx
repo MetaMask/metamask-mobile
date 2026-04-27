@@ -130,7 +130,7 @@ const TopTradersSection = forwardRef<
           {!isLoading && traders.length > 0 && (
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName="w-[200px] self-stretch"
+              twClassName="w-[200px] h-[180px]"
               testID="top-traders-view-more-card"
             />
           )}
