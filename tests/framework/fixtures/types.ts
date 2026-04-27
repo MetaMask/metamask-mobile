@@ -221,6 +221,7 @@ export interface FixtureState {
 export interface Fixture {
   state: FixtureState;
   asyncState: Record<string, string>;
+  filesystemStorage?: Record<string, string>;
 }
 
 // ─── Method parameter types ───────────────────────────────────────────────────
