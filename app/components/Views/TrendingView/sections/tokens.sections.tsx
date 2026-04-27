@@ -10,13 +10,10 @@ import {
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { useRwaTokens } from '../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
-import TrendingTokenTileCard from '../components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCard';
-import TrendingTokenTileCardSkeleton from '../components/Sections/SectionTypes/TrendingTokenTileCard/TrendingTokenTileCardSkeleton';
-import { useTrendingTokenTileSparklines } from '../components/Sections/SectionTypes/TrendingTokenTileCard/useTrendingTokenTileSparklines';
+import SectionCard from '../components/Sections/SectionTypes/SectionCard';
 import SectionPills from '../components/Sections/SectionTypes/SectionPills/SectionPills';
 import SectionPillsSkeleton from '../components/Sections/SectionTypes/SectionPills/SectionPillsSkeleton';
 import CryptoMoversPillItem from '../components/Sections/SectionTypes/CryptoMoversPillItem/CryptoMoversPillItem';
-import TileSection from '../components/Sections/SectionTypes/TileSection';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -26,44 +23,19 @@ import {
   CRYPTO_MOVERS_SEARCH_FILTER_CONTEXT,
   DEFAULT_TOKENS_FILTER_CONTEXT,
 } from './search-utils';
-import { useTrendingTokenPress } from '../hooks/useTrendingTokenPress';
 import type { SectionConfig } from './types';
 
-// ─── Shared tile row item (tokens + stocks) ───────────────────────────────────
-
-const TrendingTokenTileItem: SectionConfig['RowItem'] = ({
+/** Explore home list row for trending tokens and RWAs; `DEFAULT_TOKENS_FILTER_CONTEXT` for analytics. */
+const TrendingTokenHomeRowItem: SectionConfig['RowItem'] = ({
   item,
   index,
-  extra,
-}) => {
-  const token = item as TrendingAsset;
-  const sparklines =
-    (extra as { sparklines?: Record<string, number[]> })?.sparklines ?? {};
-  const { onPress } = useTrendingTokenPress({
-    token,
-    index,
-    filterContext: DEFAULT_TOKENS_FILTER_CONTEXT,
-  });
-  return (
-    <TrendingTokenTileCard
-      token={token}
-      sparklineData={sparklines[token.assetId]}
-      onPress={onPress}
-      testID={`trending-token-tile-card-${token.assetId}`}
-    />
-  );
-};
-
-// ─── Shared tile extra hook (tokens + stocks) ─────────────────────────────────
-
-const useTrendingTileExtra = (items: unknown[]) => {
-  const { sparklines } = useTrendingTokenTileSparklines(
-    items as TrendingAsset[],
-  );
-  return { sparklines };
-};
-
-// ─── Section configs ──────────────────────────────────────────────────────────
+}) => (
+  <TrendingTokenRowItem
+    token={item as TrendingAsset}
+    position={index}
+    filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
+  />
+);
 
 export const tokensSections = {
   tokens: {
@@ -74,7 +46,7 @@ export const tokensSections = {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
     getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
-    RowItem: TrendingTokenTileItem,
+    RowItem: TrendingTokenHomeRowItem,
     OverrideRowItemSearch: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -82,10 +54,9 @@ export const tokensSections = {
         filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
       />
     ),
-    useTileExtra: useTrendingTileExtra,
-    Skeleton: TrendingTokenTileCardSkeleton,
+    Skeleton: TrendingTokensSkeleton,
     OverrideSkeletonSearch: TrendingTokensSkeleton,
-    Section: TileSection,
+    Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch({
         searchQuery,
@@ -156,7 +127,7 @@ export const tokensSections = {
       navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
     },
     getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
-    RowItem: TrendingTokenTileItem,
+    RowItem: TrendingTokenHomeRowItem,
     OverrideRowItemSearch: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -164,10 +135,9 @@ export const tokensSections = {
         filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
       />
     ),
-    useTileExtra: useTrendingTileExtra,
-    Skeleton: TrendingTokenTileCardSkeleton,
+    Skeleton: TrendingTokensSkeleton,
     OverrideSkeletonSearch: TrendingTokensSkeleton,
-    Section: TileSection,
+    Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useRwaTokens({ searchQuery });
       return { data, isLoading, refetch };

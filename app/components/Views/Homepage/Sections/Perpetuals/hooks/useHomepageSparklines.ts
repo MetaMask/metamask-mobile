@@ -5,7 +5,6 @@ import {
   TimeDuration,
   type CandleData,
 } from '@metamask/perps-controller';
-import { downsample } from '../../../../../../util/sparklines';
 
 const SPARKLINE_TARGET_POINTS = 50;
 const SPARKLINE_CANDLE_COUNT = 96; // 24h of 15-min candles
@@ -13,6 +12,16 @@ const SPARKLINE_CANDLE_COUNT = 96; // 24h of 15-min candles
 export interface UseHomepageSparklinesResult {
   sparklines: Record<string, number[]>;
   refresh: () => void;
+}
+
+function downsample(data: number[], targetLength: number): number[] {
+  if (data.length <= targetLength) return data;
+  const result: number[] = [];
+  const step = (data.length - 1) / (targetLength - 1);
+  for (let i = 0; i < targetLength; i++) {
+    result.push(data[Math.round(i * step)]);
+  }
+  return result;
 }
 
 function extractCloses(candleData: CandleData): number[] {

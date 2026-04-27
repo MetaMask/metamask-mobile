@@ -59,7 +59,7 @@ export interface SectionConfig {
   getItemIdentifier: (item: unknown) => string;
   RowItem: React.ComponentType<RowItemProps>;
   OverrideRowItemSearch?: React.ComponentType<RowItemSearchProps>;
-  /** Batches any per-tile subscriptions (sparklines, watchlist) for the slice of items shown in the carousel. */
+  /** Optional batched props passed as `extra` (e.g. perps tiles: sparklines + watchlist). */
   useTileExtra?: (items: unknown[]) => unknown;
   Skeleton: React.ComponentType;
   OverrideSkeletonSearch?: React.ComponentType;

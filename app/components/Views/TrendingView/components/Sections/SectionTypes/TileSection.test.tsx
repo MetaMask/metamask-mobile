@@ -3,9 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import TileSection from './TileSection';
 import { SECTIONS_CONFIG } from '../../../sections.config';
 
-const mockUseTileExtra = jest.fn((_items: unknown[]) => ({
-  sparklines: {},
-}));
+const mockUseTileExtra = jest.fn((_items: unknown[]) => ({}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn(), dispatch: jest.fn() }),
@@ -57,7 +55,7 @@ const createItems = (count: number) =>
 describe('TileSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTileExtra.mockReturnValue({ sparklines: {} });
+    mockUseTileExtra.mockReturnValue({});
   });
 
   it('renders skeleton when loading', () => {
