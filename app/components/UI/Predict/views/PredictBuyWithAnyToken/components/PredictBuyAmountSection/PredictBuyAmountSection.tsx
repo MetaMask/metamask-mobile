@@ -11,7 +11,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import Skeleton from '../../../../../../../component-library/components/Skeleton/Skeleton';
+import Skeleton from '../../../../../../../component-library/components-temp/Skeleton/Skeleton';
 import { formatPrice } from '../../../../utils/format';
 import PredictAmountDisplay from '../../../../components/PredictAmountDisplay';
 import type { PredictKeypadHandles } from '../../../../components/PredictKeypad';
