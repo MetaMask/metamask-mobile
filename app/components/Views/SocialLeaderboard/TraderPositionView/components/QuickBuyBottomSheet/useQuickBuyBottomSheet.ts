@@ -10,7 +10,7 @@ import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
-import { isNumberValue } from '../../../../../../util/number';
+import { isNumberValue , dotAndCommaDecimalFormatter } from '../../../../../../util/number';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { useGasFeeEstimates } from '../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import {
@@ -356,7 +356,7 @@ export function useQuickBuyBottomSheet(
   }, []);
 
   const handleAmountChange = useCallback((text: string) => {
-    const cleaned = text.replace(/[^0-9.]/g, '');
+    const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
     const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
     const parts = normalized.split('.');
     if (parts.length > 2) return;
