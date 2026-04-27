@@ -4589,6 +4589,20 @@ export class HyperLiquidProvider implements PerpsProvider {
         ntli,
       });
 
+      // Guard: confirm total spendable (perps + spot) can cover margin addition
+      if (amountFloat > 0) {
+        const accountState = await this.getAccountState();
+        const perpsSpendable = parseFloat(accountState.spendableBalance);
+        const spotBalance = await this.#getSpotUsdcBalance();
+        const totalSpendable = perpsSpendable + spotBalance;
+
+        if (totalSpendable < amountFloat) {
+          throw new Error(
+            `Insufficient balance for margin addition: need ${amountFloat}, available ${totalSpendable.toFixed(2)} (perps: ${perpsSpendable.toFixed(2)}, spot: ${spotBalance.toFixed(2)})`,
+          );
+        }
+      }
+
       // Call SDK to update isolated margin
       const exchangeClient = this.#clientService.getExchangeClient();
       const result = await exchangeClient.updateIsolatedMargin({
