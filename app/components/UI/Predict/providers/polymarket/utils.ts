@@ -628,9 +628,6 @@ export function buildOutcomeGroups(
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
-export const isMoneylineMarket = (market: PolymarketApiMarket): boolean =>
-  market.sportsMarketType?.toLowerCase() === 'moneyline';
-
 const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
   isMoneylineLikeMarketType(market.sportsMarketType);
 
@@ -653,7 +650,7 @@ const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
     return market.groupItemTitle.replace(/-(?=\d)/, '');
   }
 
-  if (isMoneylineMarket(market)) {
+  if (isMoneylineLikeMarket(market)) {
     return market.groupItemTitle || market.question;
   }
   return market.groupItemTitle;

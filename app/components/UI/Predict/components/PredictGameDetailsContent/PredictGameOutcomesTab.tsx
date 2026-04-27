@@ -225,16 +225,26 @@ const buildMoneylineButtons = (
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
 ): PredictSportOutcomeButton[] => {
-  const sorted = sortMoneylineOutcomes(outcomes, game);
-  return sorted.map((outcome, i) => {
+  const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
+    (outcome) => outcome.tokens[0] !== undefined,
+  );
+
+  return sortedWithTokens.flatMap((outcome, i) => {
     const yesToken = outcome.tokens[0];
-    return {
-      label: yesToken.shortTitle ?? yesToken.title,
-      price: Math.round(yesToken.price * 100),
-      onPress: () => onBuyPress(outcome, yesToken),
-      variant: getButtonVariant(i, sorted.length, true),
-      teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
-    };
+
+    if (!yesToken) {
+      return [];
+    }
+
+    return [
+      {
+        label: yesToken.shortTitle ?? yesToken.title,
+        price: Math.round(yesToken.price * 100),
+        onPress: () => onBuyPress(outcome, yesToken),
+        variant: getButtonVariant(i, sortedWithTokens.length, true),
+        teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
+      },
+    ];
   });
 };
 

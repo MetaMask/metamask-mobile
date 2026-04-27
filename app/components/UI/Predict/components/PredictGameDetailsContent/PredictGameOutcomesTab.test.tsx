@@ -1011,6 +1011,48 @@ describe('PredictGameOutcomesTab', () => {
 
       expect(mockOnBuyPress).toHaveBeenCalledWith(outcomeB, tokenB);
     });
+
+    it('skips outcomes without tokens when building moneyline buttons', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'ml-home',
+          groupItemThreshold: 0,
+          groupItemTitle: 'Home Win',
+          tokens: [createToken({ shortTitle: 'HOM', price: 0.55 })],
+        }),
+        createOutcome({
+          id: 'ml-empty',
+          groupItemThreshold: 1,
+          groupItemTitle: 'Draw',
+          tokens: [],
+        }),
+        createOutcome({
+          id: 'ml-away',
+          groupItemThreshold: 2,
+          groupItemTitle: 'Away Win',
+          tokens: [createToken({ shortTitle: 'AWY', price: 0.45 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons).toHaveLength(2);
+      expect(mockCapturedCards[0].buttons[0].label).toBe('HOM');
+      expect(mockCapturedCards[0].buttons[1].label).toBe('AWY');
+    });
   });
 
   describe('moneyline sorting without thresholds', () => {
