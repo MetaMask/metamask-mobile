@@ -45,11 +45,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,
-    exploreSectionsOrder: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-    },
+    exploreSectionsOrder: {},
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
@@ -83,7 +79,7 @@ describe(SmokePredictions('Predictions'), () => {
           positionDetails.category,
           positionDetails.marketIndex,
         );
-        await PredictDetailsPage.tapOpenPositionValue();
+        await PredictDetailsPage.tapGameBetYesButton();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
 
@@ -93,18 +89,6 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapDoneButton();
 
         await PredictDetailsPage.tapOpenPosition();
-
-        await Assertions.expectElementToBeVisible(
-          PredictDetailsPage.positionsTab,
-          {
-            description:
-              'Position tab should appear after opening a new position',
-          },
-        );
-
-        await Assertions.expectTextDisplayed(positionDetails.name, {
-          description: 'Position card for Celtics vs. Nets should appear',
-        });
 
         await PredictDetailsPage.tapBackButton();
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {

@@ -24,6 +24,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -44,11 +45,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     carouselBanners: false,
-    exploreSectionsOrder: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-    },
+    exploreSectionsOrder: {},
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
@@ -73,7 +70,9 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 
-        await PredictDetailsPage.tapCashOutButton();
+        await PredictDetailsPage.tapGameCashOutButton(
+          SPURS_PELICANS_POSITION_ID,
+        );
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
         await Assertions.expectElementToBeVisible(

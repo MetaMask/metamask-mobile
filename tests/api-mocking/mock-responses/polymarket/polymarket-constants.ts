@@ -36,6 +36,10 @@ export const CONDITIONAL_TOKENS_CONTRACT_ADDRESS =
 export const POLYGON_EIP7702_CONTRACT_ADDRESS =
   '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B';
 
+// Predict position ID for Spurs vs. Pelicans
+export const SPURS_PELICANS_POSITION_ID =
+  '110743925263777693447488608878982152642205002490046349037358337248548507433643';
+
 // EIP-7702 format: 0xef01 (magic byte) + 00 (padding) + 20-byte contract address
 // This format indicates an EOA is upgraded with EIP-7702
 export const EIP7702_CODE_FORMAT = (contractAddress: string): string => {

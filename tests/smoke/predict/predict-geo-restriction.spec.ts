@@ -22,6 +22,9 @@ import {
   POLYMARKET_GEO_BLOCKED_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
+import { getEventsPayloads } from '../../helpers/analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
 import {
   geoBlockedPredictActionExpectations,
   geoBlockedCashoutExpectations,
@@ -34,11 +37,7 @@ const setupGeoBlockedBase = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,
-    exploreSectionsOrder: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-    },
+    exploreSectionsOrder: {},
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
@@ -124,7 +123,9 @@ describe(
           await WalletView.scrollAndTapPredictionsPosition(
             'Spurs vs. Pelicans',
           );
-          await PredictDetailsPage.tapCashOutButton();
+          await PredictDetailsPage.tapGameCashOutButton(
+            SPURS_PELICANS_POSITION_ID,
+          );
 
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
