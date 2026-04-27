@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Braze, { Banner } from '@braze/react-native-sdk';
 import { useDispatch, useSelector } from 'react-redux';
 import { dismissBrazeBanner, getBannerForPlacement } from '../../../core/Braze';
@@ -10,13 +10,15 @@ import {
   getRawStringOrImageProp,
   getRawStringProp,
 } from './brazeBannerProperties';
+import Logger from '../../../util/Logger';
 
 export type BrazeBannerStatus = 'loading' | 'visible' | 'empty' | 'dismissed';
 
 export interface UseBrazeBannerResult {
   status: BrazeBannerStatus;
   banner: Banner | null;
-  bannerId: string | null;
+  bannerName: string | null;
+  eventProperties: { [key: string]: unknown } | null;
   title: string | null;
   body: string | null;
   imageUrl: string | null;
@@ -39,7 +41,7 @@ export interface UseBrazeBannerResult {
  * - `image_url`    URL for the image displayed on the left of the card.
  * - `cta_label`    Call-to-action text shown below the body (only when no title).
  */
-const PROP_BANNER_ID = 'banner_id';
+const PROP_BANNER_NAME = 'banner_name';
 const PROP_DISMISSABLE = 'dismissable';
 const PROP_DEEPLINK = 'deeplink';
 const PROP_TITLE = 'title';
@@ -97,7 +99,11 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     (candidate: Banner | null) => {
       if (dismissedRef.current) return;
 
-      if (candidate?.isControl || candidate?.placementId !== placementId) {
+      // null means no cached/available banner — stay in loading state and
+      // wait for a bannerCardsUpdated event or the skeleton timeout.
+      if (candidate === null) return;
+
+      if (candidate.isControl || candidate.placementId !== placementId) {
         // Control-group assignment or no banner for this placement.
         clearNoResponseTimeout();
         setStatus('empty');
@@ -109,10 +115,10 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         return; // wait for a meaningful banner
       }
 
-      const bannerId = getRawStringProp(candidate, PROP_BANNER_ID);
+      const bannerName = getRawStringProp(candidate, PROP_BANNER_NAME);
       if (
-        bannerId !== null &&
-        bannerId === lastDismissedBrazeBannerRef.current
+        bannerName !== null &&
+        bannerName === lastDismissedBrazeBannerRef.current
       ) {
         // This banner was explicitly dismissed last session - skip it.
         return;
@@ -181,7 +187,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   const dismiss = useCallback(() => {
     if (!banner || dismissedRef.current) return;
 
-    const bannerId = getRawStringProp(banner, PROP_BANNER_ID);
+    const bannerName = getRawStringProp(banner, PROP_BANNER_NAME);
     const dismissable = getRawBooleanProp(banner, PROP_DISMISSABLE);
 
     dismissedRef.current = true;
@@ -190,13 +196,13 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     // Persist the dismissal and notify Braze only when the campaign explicitly
     // sets both `banner_id` and `dismissable: true`. Without both flags the
     // dismissal is session-only (nothing stored, nothing filtered at startup).
-    if (bannerId !== null && dismissable === true) {
-      dispatch(setLastDismissedBrazeBanner(bannerId));
-      dismissBrazeBanner(bannerId);
+    if (bannerName !== null && dismissable === true) {
+      dispatch(setLastDismissedBrazeBanner(bannerName));
+      dismissBrazeBanner({ [PROP_BANNER_NAME]: bannerName });
     }
   }, [banner, dispatch]);
 
-  const bannerId = banner ? getRawStringProp(banner, PROP_BANNER_ID) : null;
+  const bannerName = banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null;
   const deeplink = banner ? getRawStringProp(banner, PROP_DEEPLINK) : null;
   const title = banner ? getRawStringProp(banner, PROP_TITLE) : null;
   const body = banner ? getRawStringProp(banner, PROP_BODY) : null;
@@ -205,10 +211,30 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     : null;
   const ctaLabel = banner ? getRawStringProp(banner, PROP_CTA_LABEL) : null;
 
+  Logger.log('[BrazeBanner] Banner', {
+    bannerName,
+    deeplink,
+    title,
+    body,
+    imageUrl,
+    ctaLabel,
+  });
+
+  const eventProperties = useMemo(
+    () =>
+      bannerName
+        ? {
+            [PROP_BANNER_NAME]: bannerName,
+          }
+        : null,
+    [bannerName],
+  );
+
   return {
     status,
     banner,
-    bannerId,
+    bannerName,
+    eventProperties,
     title,
     body,
     imageUrl,

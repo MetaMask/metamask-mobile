@@ -97,25 +97,23 @@ describe('Braze service', () => {
 
   describe('logBrazeBannerImpression', () => {
     it('calls logBannerImpression with the placementId', () => {
-      logBrazeBannerImpression('placement-1', 'campaign-abc');
+      logBrazeBannerImpression('placement-1', { banner_id: 'campaign-abc' });
 
       expect(Braze.logBannerImpression).toHaveBeenCalledWith('placement-1');
     });
 
-    it('calls logCustomEvent with Banner Impression and bannerId', () => {
-      logBrazeBannerImpression('placement-1', 'campaign-abc');
+    it('calls logCustomEvent with Banner Impression and the supplied properties', () => {
+      logBrazeBannerImpression('placement-1', { banner_id: 'campaign-abc' });
 
       expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Impression', {
-        bannerId: 'campaign-abc',
+        banner_id: 'campaign-abc',
       });
     });
 
-    it('passes null bannerId to logCustomEvent when bannerId is null', () => {
+    it('skips logCustomEvent when properties is null', () => {
       logBrazeBannerImpression('placement-1', null);
 
-      expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Impression', {
-        bannerId: null,
-      });
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
     });
   });
 
@@ -128,17 +126,17 @@ describe('Braze service', () => {
   });
 
   describe('dismissBrazeBanner', () => {
-    it('sets a custom user attribute keyed on bannerId', () => {
-      dismissBrazeBanner('campaign-xyz');
+    it('logs a Banner Dismissed custom event with the supplied properties', () => {
+      dismissBrazeBanner({ banner_id: 'campaign-xyz', placement_id: 'home' });
 
-      expect(Braze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'banner-dismissed-campaign-xyz',
-        true,
-      );
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Dismissed', {
+        banner_id: 'campaign-xyz',
+        placement_id: 'home',
+      });
     });
 
-    it('requests an immediate data flush after setting the attribute', () => {
-      dismissBrazeBanner('campaign-xyz');
+    it('requests an immediate data flush after logging the event', () => {
+      dismissBrazeBanner({ banner_id: 'campaign-xyz' });
 
       expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
     });

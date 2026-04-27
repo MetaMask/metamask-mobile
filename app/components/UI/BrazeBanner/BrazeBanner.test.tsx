@@ -139,7 +139,7 @@ jest.mock('./BrazeBannerCard', () => {
 // Helpers
 // ---------------------------------------------------------------------------
 function makeRawProperties(props: {
-  bannerId?: string;
+  bannerName?: string;
   dismissable?: boolean;
   deeplink?: string;
   body?: string;
@@ -148,8 +148,8 @@ function makeRawProperties(props: {
     // body is always set so the banner transitions to visible
     body: { type: 'string', value: props.body ?? 'Default body text' },
   };
-  if (props.bannerId !== undefined)
-    result.banner_id = { type: 'string', value: props.bannerId };
+  if (props.bannerName !== undefined)
+    result.banner_name = { type: 'string', value: props.bannerName };
   if (props.dismissable !== undefined)
     result.dismissable = { type: 'boolean', value: props.dismissable };
   if (props.deeplink !== undefined)
@@ -161,7 +161,7 @@ function makeBanner(
   overrides: Partial<{
     trackingId: string;
     placementId: string;
-    bannerId: string;
+    bannerName: string;
     dismissable: boolean;
     deeplink: string;
     body: string;
@@ -174,7 +174,7 @@ function makeBanner(
     isTestSend: false,
     expiresAt: -1,
     properties: makeRawProperties({
-      bannerId: overrides.bannerId,
+      bannerName: overrides.bannerName,
       dismissable: overrides.dismissable,
       deeplink: overrides.deeplink,
       body: overrides.body,
@@ -280,13 +280,13 @@ describe('BrazeBanner', () => {
     assertBannerState(queryByTestId, 'loading');
   });
 
-  it('renders nothing when incoming banner bannerId matches lastDismissedBrazeBanner', () => {
+  it('renders nothing when incoming banner bannerName matches lastDismissedBrazeBanner', () => {
     mockLastDismissed = 'campaign-xyz';
     const { queryByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    fireBannerEvent([makeBanner({ bannerId: 'campaign-xyz' })]);
+    fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
 
     // Dismissed banner is skipped; hook stays in loading so skeleton remains visible
     assertBannerState(queryByTestId, 'loading');
@@ -298,7 +298,7 @@ describe('BrazeBanner', () => {
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    fireBannerEvent([makeBanner({ bannerId: 'new-campaign' })]);
+    fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
 
     assertBannerState(queryByTestId, 'visible');
   });
@@ -316,13 +316,13 @@ describe('BrazeBanner', () => {
     assertBannerState(queryByTestId, 'empty');
   });
 
-  it('dispatches setLastDismissedBrazeBanner on dismiss when banner_id and dismissable:true are set', () => {
+  it('dispatches setLastDismissedBrazeBanner on dismiss when banner_name and dismissable:true are set', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
     fireBannerEvent([
-      makeBanner({ bannerId: 'campaign-xyz', dismissable: true }),
+      makeBanner({ bannerName: 'campaign-xyz', dismissable: true }),
     ]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
@@ -331,7 +331,7 @@ describe('BrazeBanner', () => {
     );
   });
 
-  it('does not dispatch when banner has no bannerId', () => {
+  it('does not dispatch when banner has no bannerName', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
@@ -376,16 +376,16 @@ describe('BrazeBanner', () => {
   it('calls logBrazeBannerImpression when the banner becomes visible', () => {
     render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
 
-    fireBannerEvent([makeBanner({ bannerId: 'campaign-abc' })]);
+    fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
 
     expect(mockLogBrazeBannerImpression).toHaveBeenCalledWith(
       TEST_PLACEMENT_ID,
-      'campaign-abc',
+      { banner_name: 'campaign-abc' },
     );
     expect(mockLogBrazeBannerImpression).toHaveBeenCalledTimes(1);
   });
 
-  it('calls logBrazeBannerImpression with null bannerId when bannerId is absent', () => {
+  it('calls logBrazeBannerImpression with null properties when bannerName is absent', () => {
     render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
 
     fireBannerEvent([makeBanner()]);

@@ -97,13 +97,14 @@ export function refreshBrazeBanners(
 }
 
 /**
- * Set a custom user attribute to track banner dismissals and flush the event immediately.
+ * Log a `Banner Dismissed` custom event with the supplied properties and flush immediately.
  */
-export function dismissBrazeBanner(bannerId: string): void {
+export function dismissBrazeBanner(properties: {
+  [key: string]: unknown;
+}): void {
   try {
-    const dismissalAttribute = `banner-dismissed-${bannerId}`;
-    Logger.log('[Braze] Setting custom user attribute', { dismissalAttribute });
-    Braze.setCustomUserAttribute(dismissalAttribute, true);
+    Logger.log('[Braze] Dismissing banner', properties);
+    Braze.logCustomEvent('Banner Dismissed', properties);
     Braze.requestImmediateDataFlush();
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner dismissal');
@@ -112,17 +113,21 @@ export function dismissBrazeBanner(bannerId: string): void {
 
 /**
  * Log a Braze banner impression and a corresponding `Banner Impression`
- * custom event tagged with the campaign's `bannerId` property.
+ * custom event with the supplied properties.
+ *
+ * Pass `null` when there are no extra properties to attach (e.g. the banner
+ * has no `banner_id`). The SDK `logBannerImpression` call always fires;
+ * `logCustomEvent` is skipped when `properties` is null.
  */
 export function logBrazeBannerImpression(
   placementId: string,
-  bannerId: string | null,
+  properties: { [key: string]: unknown } | null,
 ): void {
   try {
     Braze.logBannerImpression(placementId);
 
-    if (bannerId) {
-      Braze.logCustomEvent('Banner Impression', { banner_id: bannerId });
+    if (properties) {
+      Braze.logCustomEvent('Banner Impression', properties);
     }
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner impression');
@@ -130,8 +135,7 @@ export function logBrazeBannerImpression(
 }
 
 /**
- * Log a Braze banner click and a corresponding `Banner Click`
- * custom event tagged with the campaign's `bannerId` property.
+ * Log a Braze banner click
  */
 export function logBrazeBannerClick(placementId: string): void {
   try {

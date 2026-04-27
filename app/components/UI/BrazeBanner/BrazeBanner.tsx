@@ -36,7 +36,7 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
   const tw = useTailwind();
   const {
     status,
-    bannerId,
+    eventProperties,
     title,
     body,
     imageUrl,
@@ -47,9 +47,9 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
 
   useEffect(() => {
     if (status === 'visible') {
-      logBrazeBannerImpression(placementId, bannerId);
+      logBrazeBannerImpression(placementId, eventProperties);
     }
-  }, [status, placementId, bannerId]);
+  }, [status, placementId, eventProperties]);
 
   const handlePress = useCallback(() => {
     if (!deeplink) return;
