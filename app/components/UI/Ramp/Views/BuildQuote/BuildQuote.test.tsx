@@ -1739,9 +1739,12 @@ describe('BuildQuote', () => {
         // selectedToken. tokenStateIsSettled is false during this render.
         mockUseParams.mockReturnValue({ assetId: 'eip155:1/slip44:999' });
 
-        const { queryByText, getByTestId } = renderWithProvider(<BuildQuote />, {
-          state: initialRootState,
-        });
+        const { queryByText, getByTestId } = renderWithProvider(
+          <BuildQuote />,
+          {
+            state: initialRootState,
+          },
+        );
 
         expect(queryByText('Powered by MoonPay')).not.toBeOnTheScreen();
         expect(
