@@ -329,8 +329,8 @@ export const PerpsWithdrawViewSelectorsIDs = {
   RECEIVE_VALUE: 'perps-withdraw-receive-value',
   FEE_VALUE: 'perps-withdraw-fee-value',
   TIME_VALUE: 'perps-withdraw-time-value',
-  // Must render availableBalance only (not availableToTradeBalance):
-  // withdraw does not offer spot collateral.
+  // Renders withdrawableBalance (provider handles any spot→perps sweep
+  // internally, so the field already reflects the max that can exit).
   AVAILABLE_BALANCE_TEXT: 'perps-withdraw-available-balance-text',
 };
 

@@ -30,10 +30,10 @@ export function useInsufficientPerpsBalanceAlert({
   const quotes = useTransactionPayQuotes();
   const hasQuotes = Boolean(quotes?.length);
 
-  const availableBalance = useSelector(
+  const withdrawableBalance = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.accountState
-        ?.availableBalance,
+        ?.withdrawableBalance,
   );
 
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
@@ -46,9 +46,9 @@ export function useInsufficientPerpsBalanceAlert({
     if (!isPerpsWithdraw) return false;
 
     if (
-      availableBalance !== undefined &&
-      availableBalance !== null &&
-      new BigNumber(availableBalance).isLessThan(amountHuman)
+      withdrawableBalance !== undefined &&
+      withdrawableBalance !== null &&
+      new BigNumber(withdrawableBalance).isLessThan(amountHuman)
     ) {
       return true;
     }
@@ -78,7 +78,7 @@ export function useInsufficientPerpsBalanceAlert({
     hasQuotes,
     isPendingInput,
     isPerpsWithdraw,
-    availableBalance,
+    withdrawableBalance,
     totals,
   ]);
 

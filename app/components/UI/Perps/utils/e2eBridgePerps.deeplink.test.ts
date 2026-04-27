@@ -33,7 +33,7 @@ jest.mock(
     PerpsE2EMockService: {
       getInstance: () => ({
         reset: jest.fn(),
-        getMockAccountState: () => ({ availableBalance: '10000.00' }),
+        getMockAccountState: () => ({ spendableBalance: '10000.00' }),
         getMockPositions: () => [],
         getMockMarkets: () => [],
         mockPushPrice,

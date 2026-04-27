@@ -50,7 +50,8 @@ const mockPosition: Position = {
 };
 
 const mockAccountState: AccountState = {
-  availableBalance: '10000',
+  spendableBalance: '10000',
+  withdrawableBalance: '10000',
   marginUsed: '800',
   unrealizedPnl: '100',
   returnOnEquity: '0.03',

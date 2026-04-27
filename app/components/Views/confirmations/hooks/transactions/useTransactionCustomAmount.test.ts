@@ -499,7 +499,8 @@ describe('useTransactionCustomAmount', () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
           accountState: {
-            availableBalance: '500.00',
+            spendableBalance: '500.00',
+            withdrawableBalance: '500.00',
           },
         },
       };
@@ -524,7 +525,8 @@ describe('useTransactionCustomAmount', () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
           accountState: {
-            availableBalance: '50.389',
+            spendableBalance: '50.389',
+            withdrawableBalance: '50.389',
           },
         },
       };
@@ -551,7 +553,8 @@ describe('useTransactionCustomAmount', () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
           accountState: {
-            availableBalance: '500.00',
+            spendableBalance: '500.00',
+            withdrawableBalance: '500.00',
           },
         },
       };
@@ -577,7 +580,8 @@ describe('useTransactionCustomAmount', () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
           accountState: {
-            availableBalance: '500.00',
+            spendableBalance: '500.00',
+            withdrawableBalance: '500.00',
           },
         },
       };

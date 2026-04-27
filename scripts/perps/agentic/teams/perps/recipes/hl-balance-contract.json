@@ -1,0 +1,372 @@
+{
+  "pr": "29303",
+  "title": "TAT-3047 validation — single-account state machine (parametric)",
+  "jira": "TAT-3047",
+  "description": "Single-account validation. Reviewer picks the fixture via `--input address=0x...` (default Trading). Recipe entry probes for open positions/orders and routes to one of two paths: Path A (clean account) runs the full Unified ↔ Standard mode-flip state machine to prove the mode-aware fold gate; Path B (positions present, e.g. Trading with HIP-3 hold) skips mode flips (HL rejects them while positions exist) and exercises the spot-fold math under non-trivial spot.hold. Manual reproduction steps map each state to an HL-web action: docs/perps/perps-account-abstraction-and-balance-contract.md#manual-reproduction. Recovery: if Path A crashes mid-mode-flip, the account is left in Standard — restore via `hl-provision-fixture abstraction=unifiedAccount transferDirection=none` standalone or by toggling 'Disable Unified Account Mode' off in HL web settings.",
+  "acceptance_criteria": [
+    "AC1: Three-field contract present, no legacy keys, on the runtime-selected account.",
+    "AC2: Controller balances reconcile against raw HL REST under both Unified and (Path A only) Standard modes.",
+    "AC3: PerpsWithdrawView renders folded withdrawableBalance (not \\$0) when account is Unified spot-funded.",
+    "AC4: PerpsMarketListView header renders spendableBalance.",
+    "AC5: useWithdrawValidation enables Continue when typed amount ≤ withdrawable.",
+    "AC6: Over-amount strictly exceeds withdrawableBalance (field contract supplies real data to validation hook).",
+    "AC7 (Path A): hyperLiquidModeFoldsSpot gate keeps spendable/withdrawable perps-only on Standard mode."
+  ],
+  "inputs": {
+    "address": {
+      "type": "string",
+      "default": "0x316BDE155acd07609872a56Bc32CcfB0B13201fA",
+      "description": "EVM address to validate against. Default: Trading. Pass via `--input address=0x...` to switch fixtures."
+    }
+  },
+  "initial_conditions": {
+    "testnet": false
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "entry": "gate-check-route",
+      "nodes": {
+        "gate-check-route": {
+          "description": "Capture entry route; if inside Perps views, navigate home first so the recipe runs from a clean baseline.",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({ currentRoute: (function(){ try { var r = __AGENTIC__.getRoute(); return r ? r.name : 'unknown'; } catch(e) { return 'unknown'; } })() })",
+          "assert": { "operator": "neq", "field": "currentRoute", "value": "unknown" },
+          "next": "gate-route-switch"
+        },
+        "gate-route-switch": {
+          "action": "switch",
+          "cases": [
+            { "when": { "operator": "eq", "field": "last.currentRoute", "value": "PerpsWithdraw" }, "next": "go-home" },
+            { "when": { "operator": "eq", "field": "last.currentRoute", "value": "PerpsMarketListView" }, "next": "go-home" },
+            { "when": { "operator": "eq", "field": "last.currentRoute", "value": "PerpsHomeView" }, "next": "go-home" }
+          ],
+          "default": "select-account"
+        },
+        "go-home": {
+          "action": "navigate",
+          "target": "WalletView",
+          "next": "select-account"
+        },
+
+        "select-account": {
+          "description": "Switch to the parametric address (defaults to Trading). Subsequent flow calls take the same address so a manual --input override drives the entire recipe.",
+          "action": "select_account",
+          "address": "{{address}}",
+          "next": "wait-account"
+        },
+        "wait-account": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ready:!!r,hasSpendable:typeof r.spendableBalance==='string'})}).catch(function(e){return JSON.stringify({ready:false,error:String(e)})})",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "ready", "value": true },
+              { "operator": "eq", "field": "hasSpendable", "value": true }
+            ]
+          },
+          "timeout_ms": 30000,
+          "next": "preflight-probe"
+        },
+        "preflight-probe": {
+          "description": "Classify account into Path A (clean — full mode-flip matrix) or Path B (positions/orders present — limited matrix). HL rejects userSetAbstraction when positions/orders/TWAPs exist, so the path choice is forced by venue state, not preference.",
+          "action": "eval_async",
+          "expression": "(function(){var addr='{{address}}'.toLowerCase();var base='https://api.hyperliquid.xyz/info';return Promise.all([fetch(base,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'clearinghouseState',user:addr})}).then(function(r){return r.json()}),fetch(base,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'openOrders',user:addr})}).then(function(r){return r.json()}),fetch(base,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'spotClearinghouseState',user:addr})}).then(function(r){return r.json()}),fetch(base,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'userAbstraction',user:addr})}).then(function(r){return r.json()})]).then(function(res){var perps=res[0]||{};var orders=res[1]||[];var spot=res[2]||{};var mode=res[3];var positions=(perps.assetPositions||[]).length;var pendingOrders=Array.isArray(orders)?orders.length:0;var usdc=((spot.balances)||[]).find(function(b){return b.coin==='USDC'})||{};var perpsWithdrawable=parseFloat(perps.withdrawable||'0');var spotTotal=parseFloat(usdc.total||'0');var spotHold=parseFloat(usdc.hold||'0');var freeSpot=Math.max(0,spotTotal-spotHold);var totalUsdc=perpsWithdrawable+freeSpot;return JSON.stringify({address:addr,pathA:positions===0&&pendingOrders===0,positions:positions,pendingOrders:pendingOrders,mode:mode,perpsWithdrawable:perpsWithdrawable,spotTotal:spotTotal,spotHold:spotHold,freeSpot:freeSpot,totalUsdc:totalUsdc,hasFunds:totalUsdc>=1})})})()",
+          "assert": {
+            "all": [
+              { "operator": "not_null", "field": "address" },
+              { "operator": "eq", "field": "hasFunds", "value": true }
+            ]
+          },
+          "save_as": "preflight",
+          "timeout_ms": 30000,
+          "next": "shared-contract"
+        },
+
+        "shared-contract": {
+          "description": "Mode-agnostic shape check — runs on both paths.",
+          "action": "call",
+          "ref": "perps/hl-balance-contract-check",
+          "params": {
+            "address": "{{address}}",
+            "phaseLabel": "shared-entry"
+          },
+          "next": "shared-math"
+        },
+        "shared-math": {
+          "description": "Mode-agnostic math check — runs on both paths. Uses controller subAccountBreakdown as perps truth + HL REST spot. Fold expectation = whatever the runtime mode dictates (Unified default).",
+          "action": "call",
+          "ref": "perps/hl-balance-math-check",
+          "params": {
+            "address": "{{address}}",
+            "phaseLabel": "shared-entry"
+          },
+          "next": "shared-ui-checks"
+        },
+        "shared-ui-checks": {
+          "description": "PerpsMarketListView + PerpsWithdrawView assertions + keypad valid/over checks. These run on both paths; on a spot-only Unified account they prove TAT-3047's primary fix (withdraw shows real number, not $0).",
+          "action": "navigate",
+          "target": "PerpsMarketListView",
+          "next": "shared-wait-market-list"
+        },
+        "shared-wait-market-list": {
+          "action": "wait_for",
+          "expression": "JSON.stringify({mounted:!!(globalThis.__AGENTIC__&&__AGENTIC__.findFiberByTestId&&__AGENTIC__.findFiberByTestId('perps-market-available-balance-text'))})",
+          "assert": { "operator": "eq", "field": "mounted", "value": true },
+          "timeout_ms": 15000,
+          "next": "shared-assert-market-list"
+        },
+        "shared-assert-market-list": {
+          "description": "AC4: PerpsMarketBalanceActions header text matches accountState.spendableBalance.",
+          "action": "eval_sync",
+          "expression": "(function(){try{var display=__AGENTIC__.getTextByTestId('perps-market-available-balance-text')||'';var s=Engine.context.PerpsController.state.accountState||{};var spendable=parseFloat(s.spendableBalance||'0');var spendableFloor=Math.floor(spendable);var matches=display.length>0&&display.indexOf(String(spendableFloor))>=0;return JSON.stringify({display:display,spendable:spendable,displayMatchesSpendable:matches})}catch(e){return JSON.stringify({error:String(e)})}})()",
+          "assert": { "operator": "eq", "field": "displayMatchesSpendable", "value": true },
+          "next": "shared-screenshot-market-list"
+        },
+        "shared-screenshot-market-list": {
+          "action": "screenshot",
+          "filename": "shared-market-list.png",
+          "next": "shared-nav-withdraw"
+        },
+        "shared-nav-withdraw": {
+          "action": "navigate",
+          "target": "PerpsWithdraw",
+          "next": "shared-wait-withdraw"
+        },
+        "shared-wait-withdraw": {
+          "action": "wait_for",
+          "expression": "JSON.stringify({mounted:!!(globalThis.__AGENTIC__&&__AGENTIC__.findFiberByTestId&&__AGENTIC__.findFiberByTestId('perps-withdraw-available-balance-text'))})",
+          "assert": { "operator": "eq", "field": "mounted", "value": true },
+          "timeout_ms": 15000,
+          "next": "shared-assert-withdraw"
+        },
+        "shared-assert-withdraw": {
+          "description": "AC3: PerpsWithdrawView renders accountState.withdrawableBalance, not $0.",
+          "action": "eval_sync",
+          "expression": "(function(){try{var display=__AGENTIC__.getTextByTestId('perps-withdraw-available-balance-text')||'';var s=Engine.context.PerpsController.state.accountState||{};var withdrawable=parseFloat(s.withdrawableBalance||'0');var withdrawableFloor=Math.floor(withdrawable);var matches=display.length>0&&display.indexOf(String(withdrawableFloor))>=0;var showsZero=display.indexOf('$0.00')>=0||display.indexOf('$0 ')>=0;return JSON.stringify({display:display,withdrawable:withdrawable,displayMatchesWithdrawable:matches,displayShowsZero:showsZero})}catch(e){return JSON.stringify({error:String(e)})}})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "displayMatchesWithdrawable", "value": true },
+              { "operator": "eq", "field": "displayShowsZero", "value": false }
+            ]
+          },
+          "next": "shared-screenshot-withdraw"
+        },
+        "shared-screenshot-withdraw": {
+          "action": "screenshot",
+          "filename": "shared-withdraw-folded.png",
+          "next": "shared-valid-clear"
+        },
+        "shared-valid-clear": {
+          "description": "AC5: typing $1 leaves Continue button enabled (validation hook says input ≤ withdrawable).",
+          "action": "clear_keypad",
+          "count": 12,
+          "next": "shared-valid-digits"
+        },
+        "shared-valid-digits": {
+          "action": "type_keypad",
+          "value": "1",
+          "next": "shared-assert-valid"
+        },
+        "shared-assert-valid": {
+          "action": "wait_for",
+          "expression": "(function(){try{var fiber=__AGENTIC__.findFiberByTestId('continue-button');var props=fiber&&fiber.memoizedProps;return JSON.stringify({buttonMounted:!!fiber,disabled:!!(props&&props.disabled)})}catch(e){return JSON.stringify({error:String(e)})}})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "buttonMounted", "value": true },
+              { "operator": "eq", "field": "disabled", "value": false }
+            ]
+          },
+          "timeout_ms": 3000,
+          "next": "shared-over-clear"
+        },
+        "shared-over-clear": {
+          "description": "AC6: $99999 strictly exceeds withdrawable on any reasonable fixture; recipe asserts contract supplies the real data.",
+          "action": "clear_keypad",
+          "count": 12,
+          "next": "shared-over-digits"
+        },
+        "shared-over-digits": {
+          "action": "type_keypad",
+          "value": "99999",
+          "next": "shared-assert-over"
+        },
+        "shared-assert-over": {
+          "action": "eval_sync",
+          "expression": "(function(){try{var s=Engine.context.PerpsController.state.accountState||{};var w=parseFloat(s.withdrawableBalance||'0');return JSON.stringify({withdrawable:w,overAmount:99999,overExceedsWithdrawable:99999>w})}catch(e){return JSON.stringify({error:String(e)})}})()",
+          "assert": {
+            "all": [
+              { "operator": "gt", "field": "withdrawable", "value": 0 },
+              { "operator": "eq", "field": "overExceedsWithdrawable", "value": true }
+            ]
+          },
+          "next": "go-home-before-paths"
+        },
+
+        "go-home-before-paths": {
+          "action": "navigate",
+          "target": "WalletView",
+          "next": "path-switch"
+        },
+
+        "path-switch": {
+          "description": "Route to Path A (full mode-flip) or Path B (positions present — perps↔spot transfers only).",
+          "action": "switch",
+          "cases": [
+            { "when": { "operator": "eq", "field": "vars.preflight.pathA", "value": true }, "next": "pathA-flip-standard", "label": "PATH A — clean account, full mode-flip matrix" },
+            { "when": { "operator": "eq", "field": "vars.preflight.pathA", "value": false }, "next": "pathB-shift-spot", "label": "PATH B — positions present, transfer-only matrix" }
+          ],
+          "default": "done"
+        },
+
+        "pathA-flip-standard": {
+          "description": "Path A — Unified → Standard. Equivalent to checking 'Disable Unified Account Mode' in HL web settings.",
+          "action": "call",
+          "ref": "perps/hl-provision-fixture",
+          "params": {
+            "abstraction": "disabled",
+            "transferDirection": "none"
+          },
+          "next": "pathA-wait-standard"
+        },
+        "pathA-wait-standard": {
+          "description": "Bite on HL-side propagation: poll userAbstraction REST until 'disabled'. Catches the userSetAbstraction-returned-ok-before-validators-propagate race.",
+          "action": "wait_for",
+          "expression": "(function(){var addr='{{address}}'.toLowerCase();return fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'userAbstraction',user:addr})}).then(function(r){return r.json()}).then(function(mode){return JSON.stringify({mode:mode,isStandard:mode==='disabled'})}).catch(function(e){return JSON.stringify({mode:null,isStandard:false,error:String(e)})})})()",
+          "assert": { "operator": "eq", "field": "isStandard", "value": true },
+          "timeout_ms": 30000,
+          "next": "pathA-contract-standard"
+        },
+        "pathA-contract-standard": {
+          "description": "Contract shape stays mode-agnostic on Standard.",
+          "action": "call",
+          "ref": "perps/hl-balance-contract-check",
+          "params": {
+            "address": "{{address}}",
+            "phaseLabel": "pathA-standard"
+          },
+          "next": "pathA-math-standard"
+        },
+        "pathA-math-standard": {
+          "description": "Math in Standard with foldIntoCollateral=false: spendable/withdrawable must match Σ(breakdown) without spot fold.",
+          "action": "call",
+          "ref": "perps/hl-balance-math-check",
+          "params": {
+            "address": "{{address}}",
+            "phaseLabel": "pathA-standard-no-fold",
+            "foldIntoCollateral": false
+          },
+          "next": "pathA-fold-correctness"
+        },
+        "pathA-fold-correctness": {
+          "description": "AC7: Standard-mode regression guard — quantify inflation vs Σ(breakdown) and assert ≤ ε. Inlined here because it's the only Standard-mode call site; math-check{foldIntoCollateral=false} above already proves the gate, this node turns it into a delta a reviewer can read in the trace.",
+          "action": "eval_async",
+          "expression": "(function(){var addr='{{address}}'.toLowerCase();var minSignal=0.5;var eps=0.05;return fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'spotClearinghouseState',user:addr})}).then(function(r){return r.json()}).then(function(spot){var usdc=((spot&&spot.balances)||[]).find(function(b){return b.coin==='USDC'})||{};var t=parseFloat(usdc.total||'0');var h=parseFloat(usdc.hold||'0');var free=Math.max(0,t-h);var s=Engine.context.PerpsController.state.accountState||{};var breakdown=s.subAccountBreakdown||{};var perpsOnlySpendable=0;var perpsOnlyWithdrawable=0;Object.keys(breakdown).forEach(function(k){var e=breakdown[k]||{};perpsOnlySpendable+=parseFloat(e.spendableBalance||'0');perpsOnlyWithdrawable+=parseFloat(e.withdrawableBalance||'0')});var actualSpendable=parseFloat(s.spendableBalance||'0');var actualWithdrawable=parseFloat(s.withdrawableBalance||'0');var spendableInflation=actualSpendable-perpsOnlySpendable;var withdrawableInflation=actualWithdrawable-perpsOnlyWithdrawable;return JSON.stringify({phase:'pathA-standard-fold-quantified',spot:{total:t,hold:h,free:free},standardSemanticExpected:{spendable:perpsOnlySpendable,withdrawable:perpsOnlyWithdrawable},adapterActual:{spendable:actualSpendable,withdrawable:actualWithdrawable},observedInflation:{spendable:spendableInflation,withdrawable:withdrawableInflation},freeSpotMeaningful:free>=minSignal,spendableMatchesPerpsOnly:Math.abs(spendableInflation)<=eps,withdrawableMatchesPerpsOnly:Math.abs(withdrawableInflation)<=eps,standardModeCorrect:Math.abs(spendableInflation)<=eps&&Math.abs(withdrawableInflation)<=eps})})})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "freeSpotMeaningful", "value": true },
+              { "operator": "eq", "field": "standardModeCorrect", "value": true }
+            ]
+          },
+          "timeout_ms": 20000,
+          "next": "pathA-restore-unified"
+        },
+        "pathA-restore-unified": {
+          "description": "Path A teardown — flip back to Unified. If anything below this fails, account stays in Standard; recover per the recipe-level recovery note.",
+          "action": "call",
+          "ref": "perps/hl-provision-fixture",
+          "params": {
+            "abstraction": "unifiedAccount",
+            "transferDirection": "none"
+          },
+          "next": "pathA-wait-restored"
+        },
+        "pathA-wait-restored": {
+          "description": "Bite on HL-side propagation back to Unified before the post-restore contract check runs.",
+          "action": "wait_for",
+          "expression": "(function(){var addr='{{address}}'.toLowerCase();return fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:'userAbstraction',user:addr})}).then(function(r){return r.json()}).then(function(mode){return JSON.stringify({mode:mode,isUnified:mode==='unifiedAccount'})}).catch(function(e){return JSON.stringify({mode:null,isUnified:false,error:String(e)})})})()",
+          "assert": { "operator": "eq", "field": "isUnified", "value": true },
+          "timeout_ms": 30000,
+          "next": "pathA-verify-restored"
+        },
+        "pathA-verify-restored": {
+          "description": "Shape survives Unified → Standard → Unified round trip.",
+          "action": "call",
+          "ref": "perps/hl-balance-contract-check",
+          "params": {
+            "address": "{{address}}",
+            "phaseLabel": "pathA-restored"
+          },
+          "next": "done"
+        },
+
+        "pathB-shift-spot": {
+          "description": "Path B — exercise the spot-fold math under non-trivial spot.hold (e.g. Trading's HIP-3 margin lock). usdClassTransfer is allowed even with positions, so we shift any free perps margin to spot to grow the fold delta, then restore.",
+          "action": "call",
+          "ref": "perps/hl-provision-fixture",
+          "params": {
+            "abstraction": "none",
+            "transferDirection": "to-spot",
+            "transferAmount": "max"
+          },
+          "next": "pathB-contract-shifted"
+        },
+        "pathB-contract-shifted": {
+          "description": "Shape after spot shift — should be unchanged (mode hasn't flipped).",
+          "action": "call",
+          "ref": "perps/hl-balance-contract-check",
+          "params": {
+            "address": "{{address}}",
+            "phaseLabel": "pathB-spot-shifted"
+          },
+          "next": "pathB-math-shifted"
+        },
+        "pathB-math-shifted": {
+          "description": "Math under shifted spot. spot.hold from positions remains intact; controller total must not double-count it (regression vector).",
+          "action": "call",
+          "ref": "perps/hl-balance-math-check",
+          "params": {
+            "address": "{{address}}",
+            "phaseLabel": "pathB-spot-shifted"
+          },
+          "next": "pathB-restore"
+        },
+        "pathB-restore": {
+          "description": "Restore — pull free spot back to perps. Positions stay untouched.",
+          "action": "call",
+          "ref": "perps/hl-provision-fixture",
+          "params": {
+            "abstraction": "none",
+            "transferDirection": "to-perp",
+            "transferAmount": "max"
+          },
+          "next": "done"
+        },
+
+        "done": { "action": "end", "status": "pass" }
+      },
+      "setup": [
+        {
+          "id": "setup-ensure-mainnet",
+          "description": "Recipe targets HyperLiquid mainnet (real fixtures, real userAbstraction). Force isTestnet=false so a stale testnet toggle from a prior run can't poison the validation.",
+          "action": "toggle_testnet",
+          "enabled": false
+        },
+        {
+          "id": "setup-wait-mainnet",
+          "description": "Bite on the controller flipping back to mainnet before the graph runs.",
+          "action": "wait_for",
+          "expression": "JSON.stringify({ isTestnet: Engine.context.PerpsController.state.isTestnet })",
+          "assert": { "operator": "eq", "field": "isTestnet", "value": false },
+          "timeout_ms": 15000
+        }
+      ],
+      "teardown": [
+        {
+          "id": "teardown-nav-home",
+          "action": "navigate",
+          "target": "WalletView"
+        }
+      ]
+    }
+  }
+}

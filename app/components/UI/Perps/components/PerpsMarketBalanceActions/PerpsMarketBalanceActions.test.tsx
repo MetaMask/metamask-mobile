@@ -312,7 +312,8 @@ const mockUseConfirmNavigation = useConfirmNavigation as jest.Mock;
 describe('PerpsMarketBalanceActions', () => {
   const defaultPerpsAccount = {
     totalBalance: '10.57',
-    availableBalance: '10.57',
+    spendableBalance: '10.57',
+    withdrawableBalance: '10.57',
     marginUsed: '0.00',
     totalUSDBalance: 10.57,
     positions: [],
@@ -511,7 +512,8 @@ describe('PerpsMarketBalanceActions', () => {
         account: {
           ...defaultPerpsAccount,
           totalBalance: '15.50',
-          availableBalance: '15.50',
+          spendableBalance: '15.50',
+          withdrawableBalance: '15.50',
         },
         isInitialLoading: false,
         isLoading: false,
@@ -577,7 +579,8 @@ describe('PerpsMarketBalanceActions', () => {
         account: {
           ...defaultPerpsAccount,
           totalBalance: '0',
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
         },
         isInitialLoading: false,
         isLoading: false,
@@ -618,13 +621,49 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('Edge Cases', () => {
+    it('shows funded UI when spendableBalance is 0 but totalBalance > 0 (collateral locked in open positions)', () => {
+      // Arrange — account with all equity in margin: spendable=0, total>0
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '125.00',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+          marginUsed: '125.00',
+        },
+        isInitialLoading: false,
+        isLoading: false,
+        error: null,
+      });
+
+      // Act
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      // Assert — funded UI: real totalBalance + Withdraw + Add Funds (no $0 empty state)
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
+      ).toBeOnTheScreen();
+      expect(getByText('$125.00')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
     it('shows empty state when balance is zero', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           ...defaultPerpsAccount,
           totalBalance: '0.00',
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
         },
         isInitialLoading: false,
         isLoading: false,

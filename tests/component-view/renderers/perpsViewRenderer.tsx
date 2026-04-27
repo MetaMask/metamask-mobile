@@ -56,7 +56,8 @@ const testConnectionValue: PerpsConnectionContextValue = {
 
 /** Minimal account so usePerpsLiveAccount sets isInitialLoading=false; non-zero totalBalance so PerpsTabControlBar shows balance button */
 const initialAccount = {
-  availableBalance: '1',
+  spendableBalance: '1',
+  withdrawableBalance: '1',
   totalBalance: '1',
   marginUsed: '0',
   unrealizedPnl: '0',

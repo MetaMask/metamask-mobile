@@ -70,7 +70,7 @@ describe('usePerpsOrderValidation', () => {
     orderForm: defaultOrderForm,
     positionSize: '0.002',
     assetPrice: 50000,
-    availableBalance: 1000,
+    spendableBalance: 1000,
     marginRequired: '10.00',
   };
 
@@ -160,7 +160,7 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          availableBalance: 5,
+          spendableBalance: 5,
           marginRequired: '10.00',
         }),
       );
@@ -433,7 +433,7 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          availableBalance: 5,
+          spendableBalance: 5,
           marginRequired: '10.00',
         }),
       );

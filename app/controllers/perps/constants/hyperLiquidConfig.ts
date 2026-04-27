@@ -411,7 +411,7 @@ export const MAINNET_HIP3_CONFIG = {
  * HIP-3 margin management configuration
  * Controls margin buffers and auto-rebalance behavior for HIP-3 DEXes with isolated margin
  *
- * Background: HyperLiquid validates availableBalance >= totalRequiredMargin BEFORE reallocating
+ * Background: HyperLiquid validates spendableBalance >= totalRequiredMargin BEFORE reallocating
  * existing locked margin. This requires temporary over-funding when increasing positions,
  * followed by automatic cleanup to minimize locked capital.
  */

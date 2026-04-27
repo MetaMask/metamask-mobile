@@ -29,8 +29,8 @@ export const useWithdrawValidation = ({
   const isTestnet = perpsNetwork === 'testnet';
 
   // Truncate to 2 decimal places so validation matches the displayed balance.
-  const availableBalance = useMemo(() => {
-    const balance = account?.availableBalance || '0';
+  const withdrawableBalance = useMemo(() => {
+    const balance = account?.withdrawableBalance || '0';
     return truncateToTwoDecimals(parseCurrencyString(balance)).toString();
   }, [account]);
 
@@ -49,11 +49,11 @@ export const useWithdrawValidation = ({
 
   // Validation checks
   const hasInsufficientBalance = useMemo(() => {
-    if (!withdrawAmount || !availableBalance) return false;
+    if (!withdrawAmount || !withdrawableBalance) return false;
     return (
-      Number.parseFloat(withdrawAmount) > Number.parseFloat(availableBalance)
+      Number.parseFloat(withdrawAmount) > Number.parseFloat(withdrawableBalance)
     );
-  }, [withdrawAmount, availableBalance]);
+  }, [withdrawAmount, withdrawableBalance]);
 
   const isBelowMinimum = useMemo(() => {
     if (!withdrawAmount) return false;
@@ -92,7 +92,7 @@ export const useWithdrawValidation = ({
     );
 
   return {
-    availableBalance,
+    withdrawableBalance,
     withdrawalRoute,
     hasInsufficientBalance,
     isBelowMinimum,

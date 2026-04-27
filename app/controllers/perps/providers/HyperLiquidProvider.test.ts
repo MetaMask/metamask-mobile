@@ -181,6 +181,9 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   spotClearinghouseState: jest.fn().mockResolvedValue({
     balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
   }),
+  // Mode-aware fold gate reads userAbstraction; default to unifiedAccount
+  // so tests that predated the gate still see spot folded into spendable/withdrawable.
+  userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
   meta: jest.fn().mockResolvedValue({
     universe: [
       { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -4180,7 +4183,8 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            availableBalance: '5000',
+            spendableBalance: '5000',
+            withdrawableBalance: '5000',
           }),
           writable: true,
         });
@@ -4214,7 +4218,8 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            availableBalance: '5000',
+            spendableBalance: '5000',
+            withdrawableBalance: '5000',
           }),
           writable: true,
         });
@@ -5442,6 +5447,7 @@ describe('HyperLiquidProvider', () => {
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
         meta: jest.fn().mockResolvedValue({
           universe: [
             { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -5573,6 +5579,7 @@ describe('HyperLiquidProvider', () => {
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
         meta: jest.fn().mockResolvedValue({
           universe: [
             { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -8899,6 +8906,9 @@ describe('HyperLiquidProvider', () => {
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
         spotClearinghouseState: jest.fn().mockResolvedValue({ balances: [] }),
+        // Mode-aware fold gate requires userAbstraction on standalone info
+        // clients as well; default to unifiedAccount for pre-existing tests.
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
       };
     });
 
@@ -9107,7 +9117,8 @@ describe('HyperLiquidProvider', () => {
 
         // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
         expect(result).toEqual({
-          availableBalance: '--',
+          spendableBalance: '--',
+          withdrawableBalance: '--',
           totalBalance: '--',
           marginUsed: '--',
           unrealizedPnl: '--',

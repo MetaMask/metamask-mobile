@@ -352,7 +352,8 @@
         },
         "PerpsController": {
           "accountState": {
-            "availableBalance": "8000.00",
+            "spendableBalance": "8000.00",
+            "withdrawableBalance": "8000.00",
             "marginUsed": "2000.00",
             "returnOnEquity": "0",
             "totalBalance": "10000.00",

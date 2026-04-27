@@ -262,7 +262,8 @@ describe('PerpsStreamManager', () => {
     ]);
     jest.spyOn(testStreamManager.account, 'getSnapshot').mockReturnValue({
       totalBalance: '5000',
-      availableBalance: '4000',
+      spendableBalance: '4000',
+      withdrawableBalance: '4000',
       marginUsed: '1000',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -3473,7 +3474,8 @@ describe('PerpsStreamManager', () => {
 
     const mockAccountState: AccountState = {
       totalBalance: '10000',
-      availableBalance: '5000',
+      spendableBalance: '5000',
+      withdrawableBalance: '5000',
       unrealizedPnl: '1000',
       marginUsed: '4000',
       returnOnEquity: '0.1',
