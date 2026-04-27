@@ -30,7 +30,7 @@ jobs:
   check-diff:
     name: Check diff
     runs-on: macos-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-skip-merge-queue
     steps:
@@ -81,7 +81,7 @@ jobs:
   dedupe:
     name: Dedupe
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-skip-merge-queue
     steps:
@@ -117,7 +117,7 @@ jobs:
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-skip-merge-queue
     steps:
@@ -146,7 +146,7 @@ jobs:
   scripts:
     name: Run `${{ matrix.scripts }}`
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-skip-merge-queue
     strategy:
@@ -189,7 +189,7 @@ jobs:
   js-bundle-size-check:
     name: JS bundle size check
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-skip-merge-queue
     steps:
@@ -227,7 +227,7 @@ jobs:
     name: Ship JS bundle size check
     runs-on: ubuntu-latest
     needs: [js-bundle-size-check]
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     steps:
       - uses: actions/checkout@v4
 
@@ -267,7 +267,7 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-skip-merge-queue
     steps:
@@ -283,7 +283,7 @@ jobs:
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-skip-merge-queue
     strategy:
@@ -339,7 +339,7 @@ jobs:
   merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
     needs: [unit-tests, component-view-tests]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -446,7 +446,7 @@ jobs:
   component-view-tests:
     name: Component view tests
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-skip-merge-queue
     strategy:
@@ -536,12 +536,13 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
+    # [CI-DEV] Gate restored: only builds when Android-impacting files changed.
+    # When no build files changed, provide-android-artifact reuses the last artifact (~2-3 min).
     if: >-
       ${{
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
-        (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        needs.needs_e2e_build.outputs.android_changed == 'true'
       }}
     permissions:
       contents: read
@@ -554,31 +555,127 @@ jobs:
       keystore_target: 'qa'
     secrets: inherit
 
-  e2e-smoke-tests-android:
-    name: 'Android E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
-    with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-    secrets: inherit
-
-  build-ios-apps:
-    name: 'Build iOS Apps'
+  provide-android-artifact:
+    name: 'Provide Android APKs (reuse — no native changes)'
+    # Runs when no Android-impacting files changed: downloads APK from last successful
+    # CI run on this branch (or falls back to main), then re-uploads to this run.
+    # Takes ~2-3 min vs ~20 min for a full build + environment setup.
     if: >-
       ${{
         github.event_name != 'merge_group' &&
         !github.event.pull_request.head.repo.fork &&
-        (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        needs.needs_e2e_build.outputs.android_changed == 'false'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    needs: [needs_e2e_build, smart-e2e-selection]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Find and re-upload Android APK artifacts from last completed run
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          WORKFLOW="ci.yml"
+          RUN_ID=""
+
+          echo "🔍 Looking for last completed run with Android APK artifacts..."
+          # Use status=completed (not success) so we find runs where build succeeded
+          # but later test steps failed — the APK artifact is still valid.
+
+          for TRY_BRANCH in "$BRANCH" "main"; do
+            echo "  Checking branch: $TRY_BRANCH"
+
+            while IFS= read -r run_id; do
+              [ -z "$run_id" ] && continue
+              count=$(gh api "repos/$REPO/actions/runs/$run_id/artifacts?per_page=50" \
+                --jq '[.artifacts[] | select((.name == "main-e2e-release.apk" or .name == "main-e2e-release-androidTest.apk") and .expired == false)] | length' \
+                2>/dev/null || echo "0")
+              if [ "$count" -ge 2 ]; then
+                RUN_ID="$run_id"
+                echo "  ✅ Found artifacts in run $run_id on branch '$TRY_BRANCH'"
+                break
+              fi
+            done < <(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$TRY_BRANCH&status=completed&per_page=10" \
+              --jq '.workflow_runs[].id' 2>/dev/null | head -8 || echo "")
+
+            [ -n "$RUN_ID" ] && break
+          done
+
+          if [ -z "$RUN_ID" ]; then
+            echo "❌ No suitable Android APK artifacts found in recent completed runs"
+            exit 1
+          fi
+
+          mkdir -p re-upload/apk re-upload/test-apk
+
+          for artifact_name in "main-e2e-release.apk" "main-e2e-release-androidTest.apk"; do
+            echo "⬇️ Downloading $artifact_name from run $RUN_ID..."
+            artifact_url=$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts?per_page=50" \
+              --jq ".artifacts[] | select(.name == \"$artifact_name\") | .archive_download_url")
+
+            if [ "$artifact_name" = "main-e2e-release.apk" ]; then
+              dest="re-upload/apk"
+            else
+              dest="re-upload/test-apk"
+            fi
+
+            curl -sL -H "Authorization: Bearer $GH_TOKEN" "$artifact_url" -o artifact.zip
+            unzip -o artifact.zip -d "$dest/"
+            rm artifact.zip
+            echo "  ✅ $artifact_name downloaded ($(ls $dest/ | wc -l) files)"
+          done
+
+      - name: Re-upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-e2e-release.apk
+          path: re-upload/apk/
+          retention-days: 7
+
+      - name: Re-upload Android Test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-e2e-release-androidTest.apk
+          path: re-upload/test-apk/
+          retention-days: 7
+
+  e2e-smoke-tests-android:
+    name: 'Android E2E Smoke Tests'
+    # [CI-DEV] Hardcoded CiSanityCheck tag — re-enable smart selection before merging.
+    # Depends on either build-android-apks (when files changed) or provide-android-artifact (reuse).
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        !cancelled() &&
+        (needs.build-android-apks.result == 'success' || needs.provide-android-artifact.result == 'success')
+      }}
+    permissions:
+      contents: read
+      id-token: write
+      checks: write
+      pull-requests: write
+    needs: [needs_e2e_build, build-android-apks, provide-android-artifact, smart-e2e-selection]
+    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: '["CiSanityCheck"]'
+    secrets: inherit
+
+  build-ios-apps:
+    name: 'Build iOS Apps'
+    # [CI-DEV] Gate restored: only builds when iOS-impacting files changed.
+    # When no build files changed, provide-ios-artifact reuses the last artifact (~2-3 min).
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        needs.needs_e2e_build.outputs.ios_changed == 'true'
       }}
     permissions:
       contents: read
@@ -587,37 +684,125 @@ jobs:
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
+  provide-ios-artifact:
+    name: 'Provide iOS App (reuse — no native changes)'
+    # Runs when no iOS-impacting files changed: downloads the .app from last successful
+    # CI run on this branch (or falls back to main), then re-uploads to this run.
+    # Takes ~2-3 min vs ~20 min for a full build + environment setup.
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        needs.needs_e2e_build.outputs.ios_changed == 'false'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    needs: [needs_e2e_build, smart-e2e-selection]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Find and re-upload iOS App artifact from last successful run
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          WORKFLOW="ci.yml"
+          RUN_ID=""
+          ARTIFACT_NAME="main-qa-MetaMask.app"
+
+          echo "🔍 Looking for last completed run with iOS App artifact..."
+          # Use status=completed (not success) — build artifact is valid even if later
+          # test steps failed. Also: iOS build uses metamask_environment='qa' by default,
+          # so artifact is named main-qa-MetaMask.app (not main-e2e-MetaMask.app).
+
+          for TRY_BRANCH in "$BRANCH" "main"; do
+            echo "  Checking branch: $TRY_BRANCH"
+
+            while IFS= read -r run_id; do
+              [ -z "$run_id" ] && continue
+              count=$(gh api "repos/$REPO/actions/runs/$run_id/artifacts?per_page=50" \
+                --jq "[.artifacts[] | select(.name == \"$ARTIFACT_NAME\" and .expired == false)] | length" \
+                2>/dev/null || echo "0")
+              if [ "$count" -ge 1 ]; then
+                RUN_ID="$run_id"
+                echo "  ✅ Found artifact in run $run_id on branch '$TRY_BRANCH'"
+                break
+              fi
+            done < <(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?branch=$TRY_BRANCH&status=completed&per_page=10" \
+              --jq '.workflow_runs[].id' 2>/dev/null | head -8 || echo "")
+
+            [ -n "$RUN_ID" ] && break
+          done
+
+          if [ -z "$RUN_ID" ]; then
+            echo "❌ No suitable iOS App artifact found in recent completed runs"
+            exit 1
+          fi
+
+          echo "⬇️ Downloading $ARTIFACT_NAME from run $RUN_ID..."
+          artifact_url=$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts?per_page=50" \
+            --jq ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .archive_download_url")
+
+          curl -sL -H "Authorization: Bearer $GH_TOKEN" "$artifact_url" -o artifact.zip
+          mkdir -p re-upload/app
+          unzip -o artifact.zip -d re-upload/app/
+          rm artifact.zip
+          echo "✅ iOS artifact downloaded ($(ls re-upload/app/ | wc -l) top-level entries)"
+
+      - name: Re-upload iOS App
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-qa-MetaMask.app
+          path: re-upload/app/
+          retention-days: 7
+
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
-    needs: [needs_e2e_build, build-ios-apps, smart-e2e-selection]
+    # [CI-DEV] Gate updated: waits for either build-ios-apps or provide-ios-artifact.
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !cancelled() &&
+        (needs.build-ios-apps.result == 'success' || needs.provide-ios-artifact.result == 'success')
+      }}
+    needs: [needs_e2e_build, build-ios-apps, provide-ios-artifact, smart-e2e-selection]
     steps:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    # [CI-DEV] Hardcoded CiSanityCheck tag — re-enable smart selection before merging.
+    # Must check ios-tests-ready.result explicitly: !cancelled() alone is true even when
+    # ios-tests-ready is skipped (skipped ≠ cancelled in GitHub Actions).
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        !cancelled() &&
+        needs.ios-tests-ready.result == 'success'
+      }}
     permissions:
       contents: read
       id-token: write
+      checks: write
+      pull-requests: write
     needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
+      selected_tags: '["CiSanityCheck"]'
     secrets: inherit
 
   # Flask E2E tests
 
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     permissions:
       contents: read
       id-token: write
@@ -634,7 +819,7 @@ jobs:
 
   e2e-smoke-tests-ios-flask:
     name: 'iOS Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     permissions:
       contents: read
       id-token: write
@@ -652,7 +837,7 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     permissions:
       contents: read
       id-token: write
@@ -671,7 +856,7 @@ jobs:
   report-fixture-validation:
     name: 'Report Fixture Validation'
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs: [validate-e2e-fixtures]
     permissions:
       pull-requests: write
@@ -699,7 +884,7 @@ jobs:
     name: SonarCloud analysis
     runs-on: ubuntu-latest
     needs: merge-unit-and-component-view-tests
-    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     steps:
       - uses: actions/checkout@v3
         with:
@@ -744,7 +929,7 @@ jobs:
     name: SonarCloud quality gate status
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -798,61 +983,21 @@ jobs:
           fi
 
   all-jobs-pass:
+    # [CI-DEV] Simplified — most non-e2e jobs are disabled for pipeline testing.
+    # Re-enable the full needs list and logic before merging.
     name: All jobs pass
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
-    needs:
-      [
-        check-diff,
-        dedupe,
-        scripts,
-        unit-tests,
-        component-view-tests,
-        check-workflows,
-        js-bundle-size-check,
-        sonar-cloud-quality-gate-status,
-      ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
     steps:
       - name: Set jobs passed status
         id: jobs-passed-status
-        env:
-          NEEDS_CONTEXT: ${{ toJSON(needs) }}
-          EVENT_NAME: ${{ github.event_name }}
-          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
         run: |
-          # Check results of all required jobs dynamically
-          # On merge_group events, "skipped" is acceptable (some jobs intentionally skip)
-          # On fork PRs, "skipped" is acceptable (secret-dependent jobs are intentionally skipped)
-          # On other events (push to main), all jobs must succeed
-
-          FAILED="false"
-
-          while read -r job_name result; do
-            if [[ "$result" == "failure" ]] || [[ "$result" == "cancelled" ]]; then
-              echo "::error::Job '$job_name' failed with result: $result"
-              FAILED="true"
-            elif [[ "$result" == "skipped" ]]; then
-              if [[ "$EVENT_NAME" == "merge_group" ]] || [[ "$IS_FORK" == "true" ]]; then
-                echo "Job '$job_name' was skipped (OK for merge_group events and fork PRs)"
-              else
-                echo "::error::Job '$job_name' was unexpectedly skipped on $EVENT_NAME event"
-                FAILED="true"
-              fi
-            else
-              echo "Job '$job_name' passed"
-            fi
-          done < <(echo "$NEEDS_CONTEXT" | jq -r 'to_entries[] | "\(.key) \(.value.result)"')
-
-          if [[ "$FAILED" == "true" ]]; then
-            echo "Some required jobs failed"
-            exit 1
-          fi
-
           echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
 
   check-all-jobs-pass:
+    # [CI-DEV] Flask tests removed from needs/checks — re-enable before merging.
     name: Check all jobs pass
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
@@ -860,10 +1005,12 @@ jobs:
       - check-skip-merge-queue
       - all-jobs-pass
       - needs_e2e_build
+      - build-android-apks
+      - provide-android-artifact
+      - build-ios-apps
+      - provide-ios-artifact
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
-      - e2e-smoke-tests-android-flask
-      - e2e-smoke-tests-ios-flask
     env:
       SKIPPED: ${{ needs.check-skip-merge-queue.outputs.skip-merge-queue == 'true' }}
     steps:
@@ -880,34 +1027,17 @@ jobs:
             exit 1
           fi
 
-          # Check E2E jobs only if they should have run
-          if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
-            # Accept both 'success' and 'skipped' as valid results
-            # 'skipped' occurs during merge_group events or when jobs are intentionally skipped
-            # Only fail on 'failure' or 'cancelled'
-            ANDROID_RESULT="${{ needs.e2e-smoke-tests-android.result }}"
-            if [[ "$ANDROID_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
-              echo "Android E2E tests failed (result: $ANDROID_RESULT)"
-              exit 1
-            fi
+          # [CI-DEV] Always check E2E results (android_changed gate removed)
+          ANDROID_RESULT="${{ needs.e2e-smoke-tests-android.result }}"
+          if [[ "$ANDROID_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
+            echo "Android E2E tests failed (result: $ANDROID_RESULT)"
+            exit 1
+          fi
 
-            IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
-            if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
-              echo "iOS E2E tests failed (result: $IOS_RESULT)"
-              exit 1
-            fi
-
-            ANDROID_FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
-            if [[ "$ANDROID_FLASK_RESULT" == "failure" ]] || [[ "$ANDROID_FLASK_RESULT" == "cancelled" ]]; then
-              echo "Android Flask E2E tests failed (result: $ANDROID_FLASK_RESULT)"
-              exit 1
-            fi
-
-            IOS_FLASK_RESULT="${{ needs.e2e-smoke-tests-ios-flask.result }}"
-            if [[ "$IOS_FLASK_RESULT" == "failure" ]] || [[ "$IOS_FLASK_RESULT" == "cancelled" ]]; then
-              echo "iOS Flask E2E tests failed (result: $IOS_FLASK_RESULT)"
-              exit 1
-            fi
+          IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
+          if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
+            echo "iOS E2E tests failed (result: $IOS_RESULT)"
+            exit 1
           fi
 
           echo "All required jobs passed"
@@ -915,8 +1045,7 @@ jobs:
   log-merge-group-failure:
     name: Log merge group failure
     runs-on: ubuntu-latest
-    # Only run this job if the merge group event fails, skip on forks
-    if: ${{ github.event_name == 'merge_group' && failure() }}
+    if: false # [CI-DEV] Disabled for e2e pipeline testing — re-enable before merging
     needs:
       - check-all-jobs-pass
     steps:
