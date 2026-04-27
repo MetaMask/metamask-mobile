@@ -412,10 +412,19 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     try {
       DevLogger.log('[LedgerBluetoothAdapter] Checking app...');
+      const abortController = new AbortController();
       const currentAppName = await this.#withTimeout(
-        connectLedgerHardware(this.#transport, deviceId),
+        connectLedgerHardware(
+          this.#transport,
+          deviceId,
+          abortController.signal,
+        ),
         LEDGER_OPERATION_TIMEOUT_MS,
         'Device unresponsive',
+        () => {
+          abortController.abort();
+          return this.#closeTransport();
+        },
       );
       DevLogger.log('[LedgerBluetoothAdapter] Got app name:', currentAppName);
 
@@ -460,6 +469,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         eth.getAddress("44'/60'/0'/0/0", false),
         LEDGER_OPERATION_TIMEOUT_MS,
         'Device unresponsive during verification',
+        () => this.#closeTransport(),
       );
       DevLogger.log('[LedgerBluetoothAdapter] Device verified unlocked!');
 
@@ -509,7 +519,12 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         DevLogger.log(
           '[LedgerBluetoothAdapter] Requesting Ethereum app to open...',
         );
-        await openEthereumAppOnLedger();
+        await this.#withTimeout(
+          openEthereumAppOnLedger(),
+          LEDGER_OPERATION_TIMEOUT_MS,
+          'Device unresponsive while opening Ethereum app',
+          () => this.#closeTransport(),
+        );
         DevLogger.log('[LedgerBluetoothAdapter] Open app command sent');
       } catch (openError) {
         DevLogger.log(
@@ -520,7 +535,12 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     } else {
       try {
         DevLogger.log('[LedgerBluetoothAdapter] Closing wrong app:', appName);
-        await closeRunningAppOnLedger();
+        await this.#withTimeout(
+          closeRunningAppOnLedger(),
+          LEDGER_OPERATION_TIMEOUT_MS,
+          'Device unresponsive while closing current app',
+          () => this.#closeTransport(),
+        );
         DevLogger.log('[LedgerBluetoothAdapter] Close app command sent');
       } catch (closeError) {
         DevLogger.log(
@@ -713,18 +733,28 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     promise: Promise<T>,
     timeoutMs: number,
     errorMessage: string,
+    onTimeout?: () => void | Promise<void>,
   ): Promise<T> {
     const timeoutError = new Error(errorMessage);
     timeoutError.name = 'LedgerTimeoutError';
 
     let timeoutId: ReturnType<typeof setTimeout>;
+    let timedOut = false;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => reject(timeoutError), timeoutMs);
+      timeoutId = setTimeout(() => {
+        timedOut = true;
+        reject(timeoutError);
+      }, timeoutMs);
     });
 
-    return Promise.race([promise, timeoutPromise]).finally(() =>
-      clearTimeout(timeoutId),
-    );
+    return Promise.race([promise, timeoutPromise]).finally(() => {
+      clearTimeout(timeoutId);
+      if (!timedOut || !onTimeout) {
+        return;
+      }
+
+      Promise.resolve(onTimeout()).catch(() => undefined);
+    });
   }
 
   /**
