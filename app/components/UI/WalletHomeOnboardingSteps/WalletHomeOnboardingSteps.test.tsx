@@ -169,6 +169,28 @@ describe('WalletHomeOnboardingSteps', () => {
     ).toBe(2);
   });
 
+  it('shows first-step shell with awaiting hero and disabled primary when isAwaitingBalance', () => {
+    const { getByTestId } = renderWithProvider(
+      <WalletHomeOnboardingSteps testID="steps-root" isAwaitingBalance />,
+      {
+        state: {
+          onboarding: {
+            ...baseOnboarding,
+            walletHomeOnboardingSteps: {
+              suppressedReason: null,
+              stepIndex: 2,
+            },
+          },
+          engine: { backgroundState },
+        },
+      },
+    );
+
+    expect(getByTestId('steps-root-hero-awaiting-balance')).toBeOnTheScreen();
+    expect(getByTestId('steps-root-hero-fund')).toBeOnTheScreen();
+    expect(getByTestId(primaryTestId)).toBeDisabled();
+  });
+
   it('renders fund hero and progress for step 0', () => {
     const { getByTestId } = renderSteps();
 
