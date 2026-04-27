@@ -57,6 +57,9 @@ jobs:
           # Validate branch matches release/x.y.z or release/x.y.z-ota (OTA hotfix) format
           if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
             VERSION="${BRANCH_NAME#release/}"
+            # Strip `-ota` suffix: it is a branch-name convention only. Downstream consumers
+            # (build-announce display "RC X.Y.Z", test-plan artifact name) expect strict X.Y.Z.
+            VERSION="${VERSION%-ota}"
             echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
             echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
           else
