@@ -236,17 +236,24 @@ export class BaanxProvider implements ICardProvider {
     supportsCashback: true,
   };
   private readonly service: BaanxService;
-  private readonly cardFeatureFlag: CardFeatureFlag | null;
+  private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
 
   constructor({
     service,
     cardFeatureFlag,
+    getCardFeatureFlag,
   }: {
     service: BaanxService;
     cardFeatureFlag?: CardFeatureFlag;
+    getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
   }) {
     this.service = service;
-    this.cardFeatureFlag = cardFeatureFlag ?? null;
+    this.getCardFeatureFlag = () =>
+      getCardFeatureFlag?.() ?? cardFeatureFlag ?? null;
+  }
+
+  private get cardFeatureFlag(): CardFeatureFlag | null {
+    return this.getCardFeatureFlag();
   }
 
   // -- Auth --
