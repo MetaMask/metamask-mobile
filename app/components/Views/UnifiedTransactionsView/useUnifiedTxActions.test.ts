@@ -78,7 +78,11 @@ jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
 }));
 
 jest.mock('@metamask/rpc-errors', () => ({
+  ...jest.requireActual('@metamask/rpc-errors'),
   providerErrors: {
+    ...jest.requireActual<typeof import('@metamask/rpc-errors')>(
+      '@metamask/rpc-errors',
+    ).providerErrors,
     userRejectedRequest: jest.fn(() => ({ code: 4001 })),
   },
 }));

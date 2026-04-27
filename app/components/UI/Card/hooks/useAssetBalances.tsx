@@ -7,7 +7,6 @@ import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import Engine from '../../../../core/Engine';
 import { balanceToFiatNumber } from '../../../../util/number';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
@@ -16,6 +15,12 @@ import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import {
+  getCurrencyRateControllerCurrencyRates,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllTokens,
+} from '../../../../selectors/assets/assets-migration';
 import { CARD_CHAIN_IDS } from '../constants';
 
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
@@ -84,17 +89,12 @@ export interface AssetBalanceInfo {
 export const useAssetBalances = (
   tokens: CardFundingToken[],
 ): Map<string, AssetBalanceInfo> => {
-  const { MultichainAssetsRatesController, TokenRatesController } =
-    Engine.context;
   const tokensWithBalance = useTokensWithBalance({
     chainIds: CARD_CHAIN_IDS,
   });
 
   // Get raw state needed for asset lookups - these are stable references from Redux
-  const allAssets = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.TokensController.allTokens,
-  );
+  const allAssets = useSelector(getTokensControllerAllTokens);
   const allDetectedTokens = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.TokensController.allDetectedTokens,
@@ -104,9 +104,10 @@ export const useAssetBalances = (
       state.engine.backgroundState.NetworkController
         .networkConfigurationsByChainId,
   );
-  const currencyRates = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.CurrencyRateController.currencyRates,
+  const currencyRates = useSelector(getCurrencyRateControllerCurrencyRates);
+  const marketData = useSelector(getTokenRatesControllerMarketData);
+  const conversionRates = useSelector(
+    getMultichainAssetsRatesControllerConversionRates,
   );
 
   // Build the walletAssetsMap in useMemo using raw state
@@ -182,28 +183,21 @@ export const useAssetBalances = (
 
         const conversionRate = currencyRateEntry?.conversionRate;
 
-        const marketData =
-          TokenRatesController?.state?.marketData?.[chainId]?.[
-            token.address?.toLowerCase() as Hex
-          ];
+        const tokenMarketData =
+          marketData?.[chainId]?.[token.address?.toLowerCase() as Hex];
 
         // Only require conversionRate to be present (marketData is optional)
         if (conversionRate !== undefined && conversionRate !== null) {
           map.set(`${chainId}-${token.address?.toLowerCase()}`, {
             conversionRate,
-            marketData,
+            marketData: tokenMarketData,
           });
         }
       }
     });
 
     return map;
-  }, [
-    tokens,
-    networkConfigs,
-    currencyRates,
-    TokenRatesController?.state?.marketData,
-  ]);
+  }, [tokens, networkConfigs, currencyRates, marketData]);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
 
@@ -256,8 +250,6 @@ export const useAssetBalances = (
       token: CardFundingToken,
       balanceToUse: string,
     ): { balanceFiat: string; rawFiatNumber: number | undefined } => {
-      const conversionRates =
-        MultichainAssetsRatesController?.state?.conversionRates;
       const assetKey =
         `${token.caipChainId}/token:${token.address}` as `${string}:${string}/${string}:${string}`;
       const assetConversionRate = conversionRates?.[assetKey];
@@ -307,7 +299,7 @@ export const useAssetBalances = (
         rawFiatNumber: undefined,
       };
     },
-    [MultichainAssetsRatesController?.state?.conversionRates, currentCurrency],
+    [conversionRates, currentCurrency],
   );
 
   // Helper: Calculate fiat with market data
@@ -534,8 +526,7 @@ export const useAssetBalances = (
               logo: buildTokenIconUrl(_token.caipChainId, _token.address ?? ''),
             } as TokenI);
 
-        const allMarketDataForChain =
-          TokenRatesController?.state?.marketData?.[chainId] || {};
+        const allMarketDataForChain = marketData?.[chainId] || {};
 
         const derivedBalance = deriveBalanceFromAssetMarketDetails(
           mockAsset,
@@ -605,7 +596,7 @@ export const useAssetBalances = (
     [
       calculateFiatFromMarketData,
       calculateProportionalFiat,
-      TokenRatesController?.state?.marketData,
+      marketData,
       currentCurrency,
     ],
   );

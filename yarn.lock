@@ -7885,7 +7885,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^6.0.0, @metamask/assets-controller@npm:^6.1.0":
+"@metamask/assets-controller@npm:^6.1.0":
   version: 6.1.0
   resolution: "@metamask/assets-controller@npm:6.1.0"
   dependencies:
@@ -7922,7 +7922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^104.2.0, @metamask/assets-controllers@npm:^104.3.0":
+"@metamask/assets-controllers@npm:^104.3.0":
   version: 104.3.0
   resolution: "@metamask/assets-controllers@npm:104.3.0"
   dependencies:
@@ -35845,8 +35845,8 @@ __metadata:
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
-    "@metamask/assets-controller": "npm:^6.0.0"
-    "@metamask/assets-controllers": "npm:^104.2.0"
+    "@metamask/assets-controller": "npm:^6.1.0"
+    "@metamask/assets-controllers": "npm:^104.3.0"
     "@metamask/authenticated-user-storage": "npm:^1.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.1"
