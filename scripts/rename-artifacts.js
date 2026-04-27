@@ -10,7 +10,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
 const platform = process.argv[2];
 
@@ -72,9 +72,11 @@ if (!buildType || !environment) {
  */
 function findFiles(dir, pattern) {
   try {
-    const output = execSync(`find "${dir}" -name "${pattern}" -type f 2>/dev/null || true`, {
-      encoding: 'utf8',
-    }).trim();
+    const output = execFileSync(
+      'find',
+      [dir, '-name', pattern, '-type', 'f'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+    ).trim();
     return output ? output.split('\n') : [];
   } catch {
     return [];
@@ -86,9 +88,11 @@ function findFiles(dir, pattern) {
  */
 function findDirs(dir, pattern) {
   try {
-    const output = execSync(`find "${dir}" -name "${pattern}" -type d 2>/dev/null || true`, {
-      encoding: 'utf8',
-    }).trim();
+    const output = execFileSync(
+      'find',
+      [dir, '-name', pattern, '-type', 'd'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+    ).trim();
     return output ? output.split('\n') : [];
   } catch {
     return [];
@@ -277,18 +281,22 @@ function renameIos() {
     const oldApp = path.join(simProductsDir, `${appName}.app`);
     if (fs.existsSync(oldApp)) {
       const newApp = path.join(simProductsDir, `${newSimBaseName}.app`);
-      execSync(`cp -r "${oldApp}" "${newApp}"`);
+      execFileSync('cp', ['-r', oldApp, newApp], { stdio: 'inherit' });
       console.log(`✅ Renamed simulator .app: ${newApp}`);
 
       const zipPath = path.join(simProductsDir, `${newSimBaseName}.zip`);
-      execSync(
-        `ditto -c -k --sequesterRsrc --keepParent "${newApp}" "${zipPath}"`,
+      execFileSync(
+        'ditto',
+        ['-c', '-k', '--sequesterRsrc', '--keepParent', newApp, zipPath],
+        { stdio: 'inherit' },
       );
       console.log(`✅ Zipped: ${zipPath}`);
 
       const doubleZipPath = path.join(simProductsDir, `${newSimBaseName}.app.zip`);
-      execSync(
-        `ditto -c -k --sequesterRsrc "${zipPath}" "${doubleZipPath}"`,
+      execFileSync(
+        'ditto',
+        ['-c', '-k', '--sequesterRsrc', zipPath, doubleZipPath],
+        { stdio: 'inherit' },
       );
       console.log(`✅ Double-zipped (outer contains inner .zip): ${doubleZipPath}`);
 
@@ -330,8 +338,10 @@ function renameIos() {
         __dirname,
         `../ios/build/${newDeviceBaseName}.xcarchive.zip`,
       );
-      execSync(
-        `ditto -c -k --sequesterRsrc --keepParent "${oldArchive}" "${archiveZip}"`,
+      execFileSync(
+        'ditto',
+        ['-c', '-k', '--sequesterRsrc', '--keepParent', oldArchive, archiveZip],
+        { stdio: 'inherit' },
       );
       console.log(`✅ Zipped archive: ${archiveZip}`);
       setGithubOutput('ios_archive_path', archiveZip);
