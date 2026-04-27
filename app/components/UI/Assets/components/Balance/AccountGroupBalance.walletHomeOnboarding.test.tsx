@@ -1,5 +1,6 @@
 import React from 'react';
 import { act } from '@testing-library/react-native';
+
 import AccountGroupBalance from './AccountGroupBalance';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';

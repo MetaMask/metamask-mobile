@@ -17,7 +17,7 @@ describe('shouldMarkWalletHomeOnboardingStepsEligible', () => {
     expect(shouldMarkWalletHomeOnboardingStepsEligible(flow)).toBe(false);
   });
 
-  it('returns true when successFlow is undefined (legacy call sites)', () => {
-    expect(shouldMarkWalletHomeOnboardingStepsEligible(undefined)).toBe(true);
+  it('returns false when successFlow is undefined so callers must pass an explicit flow', () => {
+    expect(shouldMarkWalletHomeOnboardingStepsEligible(undefined)).toBe(false);
   });
 });
