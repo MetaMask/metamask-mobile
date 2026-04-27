@@ -17,7 +17,8 @@ import { DEFAULT_AVATARICON_SIZE } from './AvatarIcon.constants';
 /**
  * @deprecated Please update your code to use `AvatarIcon` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarIcon/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarIcon/README.md | MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#avataricon-component | Migration Guide}
  */
 const AvatarIcon = ({
   size = DEFAULT_AVATARICON_SIZE,

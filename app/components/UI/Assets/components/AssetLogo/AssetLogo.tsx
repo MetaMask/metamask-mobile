@@ -1,7 +1,9 @@
 import React from 'react';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { TokenI } from '../../../Tokens/types';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import styleSheet from './AssetLogo.styles';
@@ -25,8 +27,8 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
   return (
     <AvatarToken
       name={asset.symbol}
-      imageSource={{ uri: asset.image }}
-      size={AvatarSize.Lg}
+      src={{ uri: asset.image }}
+      size={AvatarTokenSize.Lg}
     />
   );
 };
