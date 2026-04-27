@@ -126,8 +126,9 @@ describe('MusdAggregatedRow', () => {
   });
 
   describe('handleTokenRowPress', () => {
-    it('navigates to Cash tokens full view when Money Home is disabled', () => {
+    it('navigates to Cash tokens full view when Money Home is disabled and education seen', () => {
       mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+      mockSelectMusdConversionEducationSeen.mockReturnValue(true);
 
       renderWithProvider(<MusdAggregatedRow />);
 
@@ -135,17 +136,21 @@ describe('MusdAggregatedRow', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        undefined,
       );
     });
 
-    it('navigates to Money Home when Money Home is enabled', () => {
+    it('navigates to Money Home when Money Home is enabled and education seen', () => {
       mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+      mockSelectMusdConversionEducationSeen.mockReturnValue(true);
 
       renderWithProvider(<MusdAggregatedRow />);
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
+        screen: Routes.MONEY.HOME,
+      });
     });
 
     it('navigates to education screen with returnTo when user has not seen education', () => {
@@ -174,10 +179,11 @@ describe('MusdAggregatedRow', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        undefined,
       );
     });
 
-    it('navigates to MONEY.ROOT when isMoneyHomeEnabled is true (regardless of education)', () => {
+    it('navigates to education screen with Money Home returnTo when isMoneyHomeEnabled and education not seen', () => {
       mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
       mockSelectMusdConversionEducationSeen.mockReturnValue(false);
 
@@ -185,7 +191,15 @@ describe('MusdAggregatedRow', () => {
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          returnTo: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        },
+      });
     });
   });
 });

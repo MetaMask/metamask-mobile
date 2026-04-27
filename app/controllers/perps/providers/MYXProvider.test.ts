@@ -31,6 +31,7 @@ jest.mock('../services/MYXWalletService', () => ({
     createEthersSigner: jest.fn().mockReturnValue({}),
     createWalletClient: jest.fn().mockReturnValue({}),
     getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+    getCurrentAccountId: jest.fn().mockResolvedValue('eip155:421614:0xuser123'),
   })),
 }));
 jest.mock('../utils/myxAdapter', () => ({
@@ -911,6 +912,9 @@ describe('MYXProvider', () => {
         createEthersSigner: jest.fn().mockReturnValue({}),
         createWalletClient: jest.fn().mockReturnValue({}),
         getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+        getCurrentAccountId: jest
+          .fn()
+          .mockResolvedValue('eip155:421614:0xuser123'),
       }));
 
       const { createMockMessenger: createMsg } = jest.requireActual(
@@ -1139,6 +1143,9 @@ describe('MYXProvider', () => {
         createEthersSigner: jest.fn().mockReturnValue({}),
         createWalletClient: jest.fn().mockReturnValue({}),
         getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+        getCurrentAccountId: jest
+          .fn()
+          .mockResolvedValue('eip155:421614:0xuser123'),
       }));
 
       const messenger = createMockMessenger();

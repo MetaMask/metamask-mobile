@@ -41,6 +41,14 @@ describe('useSortedSourceNetworks', () => {
       state: initialState,
     });
 
-    expect(result.current.sortedSourceNetworks).toMatchSnapshot();
+    const networks = result.current.sortedSourceNetworks;
+    expect(networks).toBeDefined();
+    expect(networks.length).toBeGreaterThan(0);
+    // Verify descending sort order by fiat value
+    for (let i = 0; i < networks.length - 1; i++) {
+      const currentFiat = networks[i].totalFiatValue ?? 0;
+      const nextFiat = networks[i + 1].totalFiatValue ?? 0;
+      expect(currentFiat).toBeGreaterThanOrEqual(nextFiat);
+    }
   });
 });

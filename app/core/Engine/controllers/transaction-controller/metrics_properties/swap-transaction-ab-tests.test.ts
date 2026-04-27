@@ -68,7 +68,16 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
     const request = createMockRequest();
 
     expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
-      properties: { active_ab_tests: abTests },
+      properties: {
+        active_ab_tests: [
+          {
+            key: 'homeTMCU470AbtestTrendingSections',
+            value: 'trendingSections',
+            key_value_pair:
+              'homeTMCU470AbtestTrendingSections=trendingSections',
+          },
+        ],
+      },
       sensitiveProperties: {},
     });
   });
@@ -86,7 +95,16 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
     });
 
     expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
-      properties: { active_ab_tests: abTests },
+      properties: {
+        active_ab_tests: [
+          {
+            key: 'homeTMCU470AbtestTrendingSections',
+            value: 'trendingSections',
+            key_value_pair:
+              'homeTMCU470AbtestTrendingSections=trendingSections',
+          },
+        ],
+      },
       sensitiveProperties: {},
     });
   });

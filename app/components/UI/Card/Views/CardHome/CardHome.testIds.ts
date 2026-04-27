@@ -6,7 +6,6 @@ export const CardHomeSelectors = {
   PRIVACY_TOGGLE_BUTTON: 'privacy-toggle-button',
   ADD_FUNDS_BUTTON: 'add-funds-button',
   CHANGE_ASSET_BUTTON: 'change-asset-button',
-  ADVANCED_CARD_MANAGEMENT_ITEM: 'advanced-card-management-item',
   TRAVEL_ITEM: 'travel-item',
   CARD_TOS_ITEM: 'card-tos-item',
   LOGOUT_ITEM: 'logout-item',
