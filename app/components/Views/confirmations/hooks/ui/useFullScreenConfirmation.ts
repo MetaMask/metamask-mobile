@@ -2,6 +2,7 @@ import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { FULL_SCREEN_CONFIRMATIONS } from '../../constants/confirmations';
+import TransactionTypes from '../../../../../core/TransactionTypes';
 import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../useApprovalRequest';
@@ -22,6 +23,9 @@ const getIsFullScreenConfirmation = (
     approvalRequest?.type === ApprovalType.Transaction &&
     transactionMetadata
   ) {
+    if (transactionMetadata.origin === TransactionTypes.MMM_CARD) {
+      return true;
+    }
     return hasTransactionType(transactionMetadata, FULL_SCREEN_CONFIRMATIONS);
   }
 

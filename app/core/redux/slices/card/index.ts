@@ -1,6 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
+import type {
+  CardFundingToken,
+  LimitType,
+} from '../../../../components/UI/Card/types';
 
 export interface OnboardingState {
   onboardingId: string | null;
@@ -8,10 +12,20 @@ export interface OnboardingState {
   consentSetId: string | null;
 }
 
+export interface CardDelegationState {
+  flow: 'onboarding' | 'manage' | 'enable' | null;
+  canChangeToken: boolean;
+  selectedToken: CardFundingToken | null;
+  limitType: LimitType;
+  customLimit: string;
+  isSubmitting: boolean;
+}
+
 export interface CardSliceState {
   hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
+  delegation: CardDelegationState;
 }
 
 export const initialState: CardSliceState = {
@@ -22,6 +36,14 @@ export const initialState: CardSliceState = {
     consentSetId: null,
   },
   isDaimoDemo: false,
+  delegation: {
+    flow: null,
+    canChangeToken: true,
+    selectedToken: null,
+    limitType: 'full',
+    customLimit: '',
+    isSubmitting: false,
+  },
 };
 
 const name = 'card';
@@ -52,6 +74,37 @@ const slice = createSlice({
         contactVerificationId: null,
         consentSetId: null,
       };
+    },
+    setDelegationFlow: (
+      state,
+      action: PayloadAction<{
+        flow: CardDelegationState['flow'];
+        canChangeToken: boolean;
+        selectedToken: CardFundingToken | null;
+      }>,
+    ) => {
+      state.delegation.flow = action.payload.flow;
+      state.delegation.canChangeToken = action.payload.canChangeToken;
+      state.delegation.selectedToken = action.payload.selectedToken;
+    },
+    setDelegationSelectedToken: (
+      state,
+      action: PayloadAction<CardFundingToken>,
+    ) => {
+      state.delegation.selectedToken = action.payload;
+    },
+    setDelegationLimit: (
+      state,
+      action: PayloadAction<{ limitType: LimitType; customLimit: string }>,
+    ) => {
+      state.delegation.limitType = action.payload.limitType;
+      state.delegation.customLimit = action.payload.customLimit;
+    },
+    setDelegationSubmitting: (state, action: PayloadAction<boolean>) => {
+      state.delegation.isSubmitting = action.payload;
+    },
+    resetDelegationState: (state) => {
+      state.delegation = initialState.delegation;
     },
   },
 });
@@ -88,6 +141,16 @@ export const selectConsentSetId = createSelector(
   (card) => card.onboarding.consentSetId,
 );
 
+export const selectCardDelegationState = createSelector(
+  selectCardState,
+  (card) => card.delegation,
+);
+
+export const selectDelegationIsSubmitting = createSelector(
+  selectCardState,
+  (card) => card.delegation.isSubmitting,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -97,4 +160,9 @@ export const {
   setConsentSetId,
   resetOnboardingState,
   setIsDaimoDemo,
+  setDelegationFlow,
+  setDelegationSelectedToken,
+  setDelegationLimit,
+  setDelegationSubmitting,
+  resetDelegationState,
 } = actions;

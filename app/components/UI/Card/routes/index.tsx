@@ -4,12 +4,13 @@ import {
   StackNavigationOptions,
 } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
+import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
-import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
@@ -22,16 +23,15 @@ import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import PasswordBottomSheet from '../components/PasswordBottomSheet';
-import { colors } from '../../../../styles/common';
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
-import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
+import { SolanaCardDelegationScreen } from '../Views/SolanaCardDelegation/SolanaCardDelegationScreen';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -65,49 +65,6 @@ export const cardDefaultNavigationOptions = ({
   headerRight: () => <View />,
 });
 
-export const cardSpendingLimitNavigationOptions = ({
-  navigation,
-  route,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-  route: { params?: { flow?: 'manage' | 'enable' | 'onboarding' } };
-}): StackNavigationOptions => {
-  const flow = route.params?.flow || 'manage';
-  const isOnboardingFlow = flow === 'onboarding';
-
-  return {
-    headerLeft: () =>
-      isOnboardingFlow ? (
-        <View />
-      ) : (
-        <ButtonIcon
-          style={headerStyle.icon}
-          size={ButtonIconSize.Md}
-          iconName={IconName.ArrowLeft}
-          onPress={() => navigation.goBack()}
-        />
-      ),
-    headerTitle: () => <View />,
-    headerRight: () =>
-      isOnboardingFlow ? (
-        <ButtonIcon
-          style={headerStyle.icon}
-          size={ButtonIconSize.Md}
-          iconName={IconName.Close}
-          onPress={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: Routes.CARD.HOME }],
-            })
-          }
-        />
-      ) : (
-        <View />
-      ),
-    gestureEnabled: !isOnboardingFlow,
-  };
-};
-
 export const cardChooseYourCardNavigationOptions = ({
   navigation,
   route,
@@ -138,6 +95,7 @@ export const cardChooseYourCardNavigationOptions = ({
 const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const isCardholder = useSelector(selectIsCardholder);
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   const initialRouteName = useMemo(
     () =>
@@ -183,14 +141,19 @@ const MainRoutes = () => {
         options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
-        name={Routes.CARD.SPENDING_LIMIT}
-        component={SpendingLimit}
-        options={cardSpendingLimitNavigationOptions}
-      />
-      <Stack.Screen
         name={Routes.CARD.ONBOARDING.ROOT}
         component={OnboardingNavigator}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        options={emptyNavHeaderOptions}
+        component={Confirm}
+      />
+      <Stack.Screen
+        name={Routes.CARD.SOLANA_CARD_DELEGATION}
+        component={SolanaCardDelegationScreen}
+        options={cardDefaultNavigationOptions}
       />
     </Stack.Navigator>
   );
@@ -231,10 +194,6 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.VIEW_PIN}
       component={ViewPinBottomSheet}
-    />
-    <ModalsStack.Screen
-      name={Routes.CARD.MODALS.SPENDING_LIMIT_OPTIONS}
-      component={SpendingLimitOptionsSheet}
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.WAITLIST_FORM}

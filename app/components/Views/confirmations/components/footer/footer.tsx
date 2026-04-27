@@ -35,13 +35,16 @@ import {
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
+import TransactionTypes from '../../../../../core/TransactionTypes';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
+import { CardDelegationFooter } from '../info/card-delegation-info/card-delegation-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
+  'cardDelegation',
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
@@ -186,10 +189,17 @@ export const Footer = () => {
     },
   ];
 
+  if (transactionMetadata?.origin === TransactionTypes.MMM_CARD) {
+    return <CardDelegationFooter />;
+  }
+
   const isFooterVisible =
     isFooterVisibleFlag ??
     (!transactionMetadata ||
-      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
+      !hasTransactionType(
+        transactionMetadata,
+        HIDE_FOOTER_BY_DEFAULT_TYPES as readonly TransactionType[],
+      ));
 
   if (!isFooterVisible) {
     return null;

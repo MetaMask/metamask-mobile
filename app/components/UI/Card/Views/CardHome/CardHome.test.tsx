@@ -268,6 +268,17 @@ jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
 }));
 
+const mockPrepareAndNavigate = jest.fn();
+jest.mock(
+  '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction',
+  () => ({
+    useCardDelegationTransaction: () => ({
+      prepareAndNavigate: mockPrepareAndNavigate,
+      isLoading: false,
+    }),
+  }),
+);
+
 jest.mock('../../hooks/useCardFreeze', () => ({
   __esModule: true,
   default: jest.fn(() => mockUseCardFreeze()),
@@ -3470,8 +3481,7 @@ describe('CardHome Component', () => {
 
         // Then: navigates to spending limit screen (delegation)
         await waitFor(() => {
-          expect(mockNavigate).toHaveBeenCalledWith(
-            Routes.CARD.SPENDING_LIMIT,
+          expect(mockPrepareAndNavigate).toHaveBeenCalledWith(
             expect.objectContaining({
               flow: 'manage',
             }),
@@ -5771,8 +5781,7 @@ describe('CardHome Component', () => {
 
       // Then: navigates to SpendingLimit with flow param only
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.SPENDING_LIMIT,
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith(
           expect.objectContaining({
             flow: 'manage',
           }),
@@ -5827,8 +5836,7 @@ describe('CardHome Component', () => {
 
       // Then: navigates to SpendingLimit (delegation) instead of ChooseYourCard
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.SPENDING_LIMIT,
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith(
           expect.objectContaining({
             flow: 'manage',
           }),
@@ -5883,8 +5891,7 @@ describe('CardHome Component', () => {
 
       // Then: navigates to SpendingLimit (delegation) instead of ChooseYourCard
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.SPENDING_LIMIT,
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith(
           expect.objectContaining({
             flow: 'manage',
           }),
@@ -5939,8 +5946,7 @@ describe('CardHome Component', () => {
 
       // Then: navigates to SpendingLimit (delegation), not ChooseYourCard
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.SPENDING_LIMIT,
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith(
           expect.objectContaining({
             flow: 'manage',
           }),
@@ -5984,8 +5990,7 @@ describe('CardHome Component', () => {
 
       // Then: navigates to delegation since no shipping address is available
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.SPENDING_LIMIT,
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith(
           expect.objectContaining({
             flow: 'manage',
           }),

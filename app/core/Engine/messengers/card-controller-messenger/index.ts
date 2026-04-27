@@ -34,8 +34,15 @@ export function getCardControllerMessenger(
       'KeyringController:signPersonalMessage',
       'NetworkController:findNetworkClientIdByChainId',
       'TransactionController:addTransaction',
+      'SnapController:handleRequest',
     ],
-    events: ['AccountTreeController:stateChange', 'KeyringController:unlock'],
+    events: [
+      'AccountTreeController:stateChange',
+      'KeyringController:unlock',
+      'TransactionController:transactionConfirmed',
+      'TransactionController:transactionFailed',
+      'MultichainTransactionsController:stateChange',
+    ],
   });
 
   return messenger;

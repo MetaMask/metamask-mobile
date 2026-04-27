@@ -43,6 +43,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
+const mockPrepareAndNavigate = jest.fn();
+jest.mock(
+  '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction',
+  () => ({
+    useCardDelegationTransaction: () => ({
+      prepareAndNavigate: mockPrepareAndNavigate,
+      isLoading: false,
+    }),
+  }),
+);
+
 jest.mock('../../util/cardTokenVault', () => ({
   getCardBaanxToken: jest.fn(),
 }));
@@ -586,7 +597,7 @@ describe('Complete Component', () => {
       });
     });
 
-    it('navigates to SpendingLimit when nextDestination is card_home', async () => {
+    it('calls prepareAndNavigate with onboarding flow when nextDestination is card_home', async () => {
       (useRoute as jest.Mock).mockReturnValue({
         params: { nextDestination: 'card_home' },
       });
@@ -596,13 +607,9 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(
-          Routes.CARD.SPENDING_LIMIT,
-          { flow: 'onboarding' },
-        );
-        expect(mockNavigationDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ routeName: Routes.CARD.SPENDING_LIMIT }),
-        );
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith({
+          flow: 'onboarding',
+        });
       });
     });
 

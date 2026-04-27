@@ -16,6 +16,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
+import { useCardDelegationTransaction } from '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction';
 import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
 import {
   Box,
@@ -50,6 +51,8 @@ const Complete = () => {
   const tw = useTailwind();
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { prepareAndNavigate: prepareCardDelegation } =
+    useCardDelegationTransaction();
   const route =
     useRoute<RouteProp<{ params: CompleteRouteParams }, 'params'>>();
   const nextDestination = route.params?.nextDestination;
@@ -87,11 +90,7 @@ const Complete = () => {
       if (nextDestination === 'card_home') {
         // Coming from authenticated flow KYC approval - go to CardHome
         dispatch(resetOnboardingState());
-        navigation.dispatch(
-          StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
-            flow: 'onboarding',
-          }),
-        );
+        await prepareCardDelegation({ flow: 'onboarding' });
         return;
       }
 

@@ -178,6 +178,29 @@ const CardHome = () => {
     }
   }, [route.params?.showDeeplinkToast, toastRef]);
 
+  // --- Delegation success toast ---
+  useEffect(
+    () =>
+      Engine.controllerMessenger.subscribe(
+        'CardController:delegationCompleted',
+        ({ flow: completedFlow }: { flow: string | null }) => {
+          if (completedFlow !== 'onboarding' && toastRef?.current) {
+            toastRef.current.showToast({
+              variant: ToastVariants.Icon,
+              labelOptions: [
+                { label: strings('card.card_spending_limit.update_success') },
+              ],
+              iconName: IconName.Confirmation,
+              iconColor: theme.colors.success.default,
+              backgroundColor: theme.colors.success.muted,
+              hasNoTimeout: false,
+            });
+          }
+        },
+      ),
+    [toastRef, theme],
+  );
+
   // --- Freeze error toast ---
   useEffect(() => {
     if ((actions.freeze.error || actions.unfreeze.error) && toastRef?.current) {

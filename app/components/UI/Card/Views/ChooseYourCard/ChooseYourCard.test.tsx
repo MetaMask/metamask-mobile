@@ -9,6 +9,7 @@ import { CardType } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
+const mockPrepareAndNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -41,6 +42,16 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction',
+  () => ({
+    useCardDelegationTransaction: () => ({
+      prepareAndNavigate: mockPrepareAndNavigate,
+      isLoading: false,
+    }),
+  }),
+);
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -279,17 +290,20 @@ describe('ChooseYourCard', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to spending limit for virtual card in onboarding flow', () => {
+    it('calls prepareAndNavigate with onboarding flow for virtual card in onboarding flow', async () => {
       const { getByTestId } = render(<ChooseYourCard />);
 
       fireEvent.press(getByTestId(ChooseYourCardSelectors.CONTINUE_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
-        flow: 'onboarding',
+      await waitFor(() => {
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith({
+          flow: 'onboarding',
+        });
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to spending limit with manage flow when flow is home and virtual card selected', () => {
+    it('calls prepareAndNavigate with manage flow when flow is home and virtual card selected', async () => {
       mockUseParams.mockImplementationOnce(() => ({
         flow: 'home',
         shippingAddress: undefined,
@@ -299,9 +313,10 @@ describe('ChooseYourCard', () => {
 
       fireEvent.press(getByTestId(ChooseYourCardSelectors.CONTINUE_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
-        flow: 'manage',
+      await waitFor(() => {
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith({ flow: 'manage' });
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

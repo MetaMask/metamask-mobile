@@ -9,6 +9,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockPrepareAndNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -24,14 +25,18 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       dispatch: mockDispatch,
     }),
-    StackActions: {
-      replace: jest.fn((routeName, params) => ({
-        type: 'REPLACE',
-        payload: { name: routeName, params },
-      })),
-    },
   };
 });
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction',
+  () => ({
+    useCardDelegationTransaction: () => ({
+      prepareAndNavigate: mockPrepareAndNavigate,
+      isLoading: false,
+    }),
+  }),
+);
 
 let mockFromUpgrade = false;
 
@@ -189,20 +194,15 @@ describe('OrderCompleted', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to SpendingLimit via StackActions.replace during onboarding flow', () => {
+    it('calls prepareAndNavigate with onboarding flow during onboarding', () => {
       mockFromUpgrade = false;
-      const { StackActions } = jest.requireMock('@react-navigation/native');
       const { getByTestId } = render(<OrderCompleted />);
 
       fireEvent.press(getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON));
 
-      expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.CARD.SPENDING_LIMIT,
-        { flow: 'onboarding' },
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'REPLACE' }),
-      );
+      expect(mockPrepareAndNavigate).toHaveBeenCalledWith({
+        flow: 'onboarding',
+      });
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -213,7 +213,7 @@ describe('OrderCompleted', () => {
       fireEvent.press(getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockPrepareAndNavigate).not.toHaveBeenCalled();
     });
   });
 });

@@ -63,11 +63,6 @@ jest.mock('../Views/CardAuthentication/CardAuthentication', () => {
   return () => <View testID="card-authentication" />;
 });
 
-jest.mock('../Views/SpendingLimit/SpendingLimit', () => {
-  const { View } = require('react-native');
-  return () => <View testID="spending-limit" />;
-});
-
 jest.mock('../Views/ChooseYourCard/ChooseYourCard', () => {
   const { View } = require('react-native');
   return () => <View testID="choose-your-card" />;
@@ -149,7 +144,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'Cashback',
     AUTHENTICATION: 'CardAuthentication',
-    SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
     },

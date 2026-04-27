@@ -35,6 +35,10 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { CardDelegationInfoSkeleton } from '../info/card-delegation-info/card-delegation-info';
+import { CardDelegationFooter } from '../info/card-delegation-info/card-delegation-footer';
+import { useSelector } from 'react-redux';
+import { selectDelegationIsSubmitting } from '../../../../../core/redux/slices/card';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -53,6 +57,7 @@ export enum ConfirmationLoader {
   CustomAmount = 'customAmount',
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
+  CardDelegation = 'cardDelegation',
 }
 
 export interface ConfirmationParams {
@@ -151,7 +156,7 @@ export const Confirm = ({
     }
   }, [approvalRequest]);
 
-  // Show spinner if there is no approvalRequest
+  // Show Loader if there is no approvalRequest
   if (!approvalRequest) {
     return <Loader />;
   }
@@ -195,6 +200,7 @@ function Loader() {
   const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
   const params = useParams<ConfirmationParams>();
   const loader = params?.loader ?? ConfirmationLoader.Default;
+  const isDelegationSubmitting = useSelector(selectDelegationIsSubmitting);
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
@@ -216,6 +222,25 @@ function Loader() {
     return (
       <InfoLoader testId="confirm-loader-transfer" loader={loader}>
         <TransferInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.CardDelegation) {
+    if (isDelegationSubmitting) {
+      return (
+        <SafeAreaView
+          style={styles.flatContainer}
+          testID="confirm-loader-card-delegation-submitting"
+        >
+          <CardDelegationInfoSkeleton />
+          <CardDelegationFooter />
+        </SafeAreaView>
+      );
+    }
+    return (
+      <InfoLoader testId="confirm-loader-card-delegation" loader={loader}>
+        <CardDelegationInfoSkeleton />
       </InfoLoader>
     );
   }
@@ -250,7 +275,8 @@ function InfoLoader({
       >
         {children}
       </ScrollView>
-      {loader === ConfirmationLoader.Transfer && <FooterSkeleton />}
+      {(loader === ConfirmationLoader.Transfer ||
+        loader === ConfirmationLoader.CardDelegation) && <FooterSkeleton />}
     </SafeAreaView>
   );
 }

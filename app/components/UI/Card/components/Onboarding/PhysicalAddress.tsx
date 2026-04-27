@@ -43,6 +43,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import Logger from '../../../../../util/Logger';
+import { useCardDelegationTransaction } from '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction';
 import { Linking } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Checkbox from '../../../../../component-library/components/Checkbox';
@@ -234,6 +235,8 @@ const PhysicalAddress = () => {
   );
   const { userCountry: selectedCountry } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { prepareAndNavigate: prepareCardDelegation } =
+    useCardDelegationTransaction();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
@@ -571,10 +574,14 @@ const PhysicalAddress = () => {
                   params: { flow: 'onboarding', shippingAddress },
                 });
               } else {
-                stopPollingAndNavigate({
-                  name: Routes.CARD.SPENDING_LIMIT,
-                  params: { flow: 'onboarding' },
-                });
+                shouldContinuePolling = false;
+                if (pollingIntervalRef.current) {
+                  clearInterval(pollingIntervalRef.current);
+                  pollingIntervalRef.current = null;
+                }
+                setIsPollingVerification(false);
+                dispatch(resetOnboardingState());
+                await prepareCardDelegation({ flow: 'onboarding' });
               }
             } else if (currentVerificationState === 'REJECTED') {
               // KYC rejected - show failure screen

@@ -91,6 +91,17 @@ jest.mock('../../hooks/useUpdateFundingPriority', () => ({
 
 jest.mock('../../../../../util/Logger');
 
+const mockPrepareAndNavigate = jest.fn();
+jest.mock(
+  '../../../../Views/confirmations/hooks/card/useCardDelegationTransaction',
+  () => ({
+    useCardDelegationTransaction: () => ({
+      prepareAndNavigate: mockPrepareAndNavigate,
+      isLoading: false,
+    }),
+  }),
+);
+
 // Create a mock tailwind function that can be called and has a style method
 const mockTw = Object.assign(
   jest.fn((className: string) => ({ className })),
@@ -695,7 +706,7 @@ describe('AssetSelectionBottomSheet', () => {
       );
     });
 
-    it('navigates to spending limit for not enabled token', () => {
+    it('calls prepareAndNavigate for not enabled token', async () => {
       const token = createMockToken({
         fundingStatus: FundingStatus.NotEnabled,
       });
@@ -708,22 +719,19 @@ describe('AssetSelectionBottomSheet', () => {
 
       fireEvent.press(getByText(/USDC on/));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.SPENDING_LIMIT,
-        expect.objectContaining({
-          flow: 'manage',
-          selectedToken: expect.objectContaining({
-            address: token.address,
-            symbol: token.symbol,
-            name: token.name,
-            decimals: token.decimals,
-            caipChainId: token.caipChainId,
-            walletAddress: token.walletAddress,
-            fundingStatus: token.fundingStatus,
-            spendableBalance: token.spendableBalance,
+      await waitFor(() => {
+        expect(mockPrepareAndNavigate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            flow: 'manage',
+            token: expect.objectContaining({
+              address: token.address,
+              symbol: token.symbol,
+            }),
+            canChangeToken: true,
           }),
-        }),
-      );
+        );
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('updates priority for enabled token', async () => {
@@ -910,14 +918,14 @@ describe('AssetSelectionBottomSheet', () => {
         tokensWithAllowances: [token],
         delegationSettings,
         selectionOnly: true,
-        callerRoute: Routes.CARD.SPENDING_LIMIT,
+        callerRoute: Routes.CARD.HOME,
         callerParams,
       });
 
       fireEvent.press(getByText(/EURe on/));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.SPENDING_LIMIT,
+        Routes.CARD.HOME,
         expect.objectContaining({
           ...callerParams,
           returnedSelectedToken: expect.objectContaining({

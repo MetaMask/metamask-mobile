@@ -464,7 +464,6 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
-    SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
@@ -486,6 +485,7 @@ const Routes = {
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
     },
+    SOLANA_CARD_DELEGATION: 'SolanaCardDelegation',
     MODALS: {
       ID: 'CardModals',
       ADD_FUNDS: 'CardAddFundsModal',
@@ -496,7 +496,6 @@ const Routes = {
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
       VIEW_PIN: 'CardViewPinModal',
-      SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
     },
   },
