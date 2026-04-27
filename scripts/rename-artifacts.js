@@ -286,7 +286,7 @@ function renameIos() {
       );
       console.log(`✅ Zipped: ${zipPath}`);
 
-      const doubleZipPath = path.join(simProductsDir, `${newSimBaseName}.double.zip`);
+      const doubleZipPath = path.join(simProductsDir, `${newSimBaseName}.app.zip`);
       execSync(
         `ditto -c -k --sequesterRsrc "${zipPath}" "${doubleZipPath}"`,
       );
