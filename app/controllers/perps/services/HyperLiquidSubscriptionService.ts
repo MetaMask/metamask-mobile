@@ -200,9 +200,6 @@ export class HyperLiquidSubscriptionService {
   // mode flip immediately.
   readonly #abstractionModeLastWsRefreshAtByUser = new Map<string, number>();
 
-  // Minimum interval between WS-driven userAbstraction refreshes. Balances
-  // picking up HL-web mode flips promptly against avoiding REST quota burn.
-
   // In-flight promises for WS-triggered refreshes, keyed by user so concurrent
   // ticks for the same wallet share one fetch while account switches can start
   // their own refresh immediately.
