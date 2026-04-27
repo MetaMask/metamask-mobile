@@ -8,8 +8,9 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       marginBottom: 16,
-      paddingTop: 8,
-      paddingBottom: 24,
+      paddingTop: 32,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
     },
     header: {
       flexDirection: 'row',
@@ -22,26 +23,11 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 4,
     },
-    listContainer: {
-      gap: 1,
-      paddingHorizontal: 16,
-    },
     activityItem: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingVertical: 12,
       paddingHorizontal: 16,
-      backgroundColor: colors.background.section,
-    },
-    activityItemFirst: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
-      paddingTop: 16,
-    },
-    activityItemLast: {
-      borderBottomLeftRadius: 12,
-      borderBottomRightRadius: 12,
-      paddingBottom: 16,
     },
     leftSection: {
       flexDirection: 'row',
@@ -49,7 +35,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     iconContainer: {
-      marginRight: 12,
+      marginRight: 16,
     },
     activityInfo: {
       flex: 1,

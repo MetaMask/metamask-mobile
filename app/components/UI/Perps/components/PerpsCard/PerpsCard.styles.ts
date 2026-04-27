@@ -22,7 +22,7 @@ const styleSheet = (params: { theme: Theme; vars: { iconSize: number } }) => {
       width: iconSize,
       height: iconSize,
       borderRadius: iconSize / 2,
-      marginRight: 12,
+      marginRight: 16,
     },
     cardInfo: {
       flex: 1,

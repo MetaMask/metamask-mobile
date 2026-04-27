@@ -104,7 +104,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
           twClassName="mb-3"
           style={headerStyle}
         />
-        <View style={[styles.contentContainer, contentContainerStyle]}>
+        <View style={contentContainerStyle}>
           <PerpsRowSkeleton count={5} />
         </View>
       </View>
@@ -125,7 +125,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
         twClassName="mb-3"
         style={headerStyle}
       />
-      <View style={[styles.contentContainer, contentContainerStyle]}>
+      <View style={contentContainerStyle}>
         <PerpsMarketList
           markets={markets}
           sortBy={sortBy}
