@@ -47,6 +47,13 @@
 		</intent>
 	</queries>
 
+	<!-- Veriff library permission label is user-facing metadata; override so tooling does not treat it as the app name. -->
+	<permission
+		android:name="${applicationId}.VERIFF_STATUS_BROADCAST_PERMISSION"
+		android:label="@string/app_name"
+		android:protectionLevel="signature"
+		tools:replace="android:label" />
+
 	<application
 		android:name=".MainApplication"
 		android:label="@string/app_name"
