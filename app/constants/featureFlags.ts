@@ -17,6 +17,7 @@ export enum FeatureFlagNames {
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
+  hapticsKillSwitch = 'hapticsKillSwitch',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<

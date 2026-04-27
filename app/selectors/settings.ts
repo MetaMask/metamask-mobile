@@ -33,6 +33,12 @@ export const selectDeepLinkModalDisabled = createSelector(
     Boolean(settingsState.deepLinkModalDisabled),
 );
 
+export const selectHapticsEnabled = createSelector(
+  selectSettings,
+  (settingsState: Record<string, unknown>) =>
+    settingsState.hapticsEnabled !== false,
+);
+
 export const selectAvatarAccountType = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>

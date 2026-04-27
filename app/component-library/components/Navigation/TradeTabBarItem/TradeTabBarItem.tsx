@@ -5,7 +5,7 @@ import {
   PressableProps,
   useWindowDimensions,
 } from 'react-native';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import Icon, { IconColor, IconName, IconSize } from '../../Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import Animated, {
@@ -57,7 +57,7 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
   }));
 
   const handleOnPress = useCallback(() => {
-    impactAsync(ImpactFeedbackStyle.Medium);
+    playImpact(ImpactMoment.TabChange);
     setIsActive((active) => !active);
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

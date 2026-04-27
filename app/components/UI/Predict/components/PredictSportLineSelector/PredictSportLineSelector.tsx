@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { playSelection } from '../../../../../util/haptics';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -83,7 +83,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
 
   const selectWithHaptics = useCallback(
     (line: number) => {
-      impactAsync(ImpactFeedbackStyle.Light);
+      playSelection();
       onSelectLine(line);
     },
     [onSelectLine],

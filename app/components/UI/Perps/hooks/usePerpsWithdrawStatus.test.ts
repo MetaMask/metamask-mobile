@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../util/haptics';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -67,21 +67,21 @@ describe('usePerpsWithdrawStatus', () => {
             iconName: IconName.Loading,
             hasNoTimeout: false,
             labelOptions: [{ label: 'Withdrawal in progress', isBold: true }],
-            hapticsType: NotificationFeedbackType.Warning,
+            hapticsType: NotificationMoment.Warning,
           } as PerpsToastOptions,
           withdrawalSuccess: jest.fn(() => ({
             variant: ToastVariants.Icon,
             iconName: IconName.CheckBold,
             hasNoTimeout: false,
             labelOptions: [{ label: 'Withdrawal successful', isBold: true }],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           })),
           withdrawalFailed: jest.fn(() => ({
             variant: ToastVariants.Icon,
             iconName: IconName.Warning,
             hasNoTimeout: false,
             labelOptions: [{ label: 'Withdrawal failed', isBold: true }],
-            hapticsType: NotificationFeedbackType.Error,
+            hapticsType: NotificationMoment.Error,
           })),
         },
       },

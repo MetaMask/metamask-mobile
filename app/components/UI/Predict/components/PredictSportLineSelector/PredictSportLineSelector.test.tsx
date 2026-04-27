@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictSportLineSelector from './PredictSportLineSelector';
 import { PREDICT_SPORT_LINE_SELECTOR_TEST_IDS } from './PredictSportLineSelector.testIds';
-
 const mockWithTiming = jest.fn((v: number) => v);
 
 jest.mock('react-native-reanimated', () => {
@@ -34,10 +33,7 @@ jest.mock('@react-native-masked-view/masked-view', () =>
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(),
-  ImpactFeedbackStyle: { Light: 'light' },
-}));
+jest.mock('../../../../../util/haptics');
 
 const TEST_ID = 'line-selector';
 const IDS = PREDICT_SPORT_LINE_SELECTOR_TEST_IDS;
@@ -207,8 +203,10 @@ describe('PredictSportLineSelector', () => {
   });
 
   it('fires haptic feedback on line tap', () => {
-    const { impactAsync } = jest.requireMock('expo-haptics') as {
-      impactAsync: jest.Mock;
+    const { playSelection } = jest.requireMock(
+      '../../../../../util/haptics',
+    ) as {
+      playSelection: jest.Mock;
     };
     const { getByText } = render(
       <PredictSportLineSelector {...defaultProps} />,
@@ -216,12 +214,14 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByText('4.5'));
 
-    expect(impactAsync).toHaveBeenCalledWith('light');
+    expect(playSelection).toHaveBeenCalled();
   });
 
   it('fires haptic feedback on arrow tap', () => {
-    const { impactAsync } = jest.requireMock('expo-haptics') as {
-      impactAsync: jest.Mock;
+    const { playSelection } = jest.requireMock(
+      '../../../../../util/haptics',
+    ) as {
+      playSelection: jest.Mock;
     };
     const { getByTestId } = render(
       <PredictSportLineSelector {...defaultProps} />,
@@ -229,7 +229,7 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByTestId(arrowRightId));
 
-    expect(impactAsync).toHaveBeenCalledWith('light');
+    expect(playSelection).toHaveBeenCalled();
   });
 
   it('does not call onSelectLine when selectedLine is not in lines', () => {

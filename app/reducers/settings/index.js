@@ -9,6 +9,7 @@ const initialState = {
   hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
   deepLinkModalDisabled: false,
+  hapticsEnabled: true,
   // Perps chart preferences
   perpsChartPreferences: {
     preferredCandlePeriod: '15m', // Default to 15 minutes
@@ -66,6 +67,11 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         deepLinkModalDisabled: action.deepLinkModalDisabled,
+      };
+    case 'SET_HAPTICS_ENABLED':
+      return {
+        ...state,
+        hapticsEnabled: action.hapticsEnabled,
       };
     case 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD':
       return {
