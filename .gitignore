@@ -178,6 +178,7 @@ github-tools/
 
 # AI coding agents development files
 *.local.md
+*.local.json
 temp/
 /temp/
 .agent/
