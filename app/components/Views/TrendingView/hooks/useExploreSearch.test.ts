@@ -100,6 +100,10 @@ jest.mock('../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
 }));
 
 /** Avoid circular load: sections.config → sections/index → section RowItems → sections.config */
+jest.mock('../components/Sections/SectionTypes/AllSportsPillSection', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 jest.mock(
   '../components/Sections/SectionTypes/SectionPills/SectionPills',
   () => ({

@@ -107,6 +107,12 @@ jest.mock(
   }),
 );
 jest.mock(
+  '../../UI/Sites/hooks/useBrowserFavoritesSites/useBrowserFavoritesSites',
+  () => ({
+    useBrowserFavoritesSites: jest.fn(() => ({ sites: [], isLoading: false })),
+  }),
+);
+jest.mock(
   './components/Sections/SectionTypes/SectionPills/SectionPills',
   () => () => null,
 );

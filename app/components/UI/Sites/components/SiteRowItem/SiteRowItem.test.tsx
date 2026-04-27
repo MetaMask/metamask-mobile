@@ -2,6 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import SiteRowItem, { type SiteData } from './SiteRowItem';
 
+jest.mock('../../../WebsiteIcon', () => jest.fn(() => null));
+
 describe('SiteRowItem', () => {
   const mockOnPress = jest.fn();
 

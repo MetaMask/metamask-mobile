@@ -18,8 +18,6 @@ import {
 import type { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-const sessionManager = TrendingFeedSessionManager.getInstance();
-
 export const useTrendingTokenPress = ({
   token,
   index,
@@ -56,7 +54,7 @@ export const useTrendingTokenPress = ({
       const rawPct = token.priceChangePct?.[key];
       const pricePercentChange = rawPct ? parseFloat(String(rawPct)) : 0;
 
-      sessionManager.trackTokenClick({
+      TrendingFeedSessionManager.getInstance().trackTokenClick({
         token_symbol: token.symbol,
         token_address: assetParams.address,
         token_name: token.name,

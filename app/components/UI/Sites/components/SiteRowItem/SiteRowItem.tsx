@@ -3,6 +3,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  View,
   type ImageSourcePropType,
 } from 'react-native';
 import {
@@ -40,9 +41,10 @@ interface SiteRowItemProps {
   onRemoveFavorite?: () => void;
 }
 
-const websiteIconStyle = StyleSheet.create({
+const { icon: websiteIconStyle, iconWithPadding } = StyleSheet.create({
   icon: { width: 40, height: 40, borderRadius: 20 },
-}).icon;
+  iconWithPadding: { width: 40, height: 40, borderRadius: 20, padding: 6 },
+});
 
 const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
   const tw = useTailwind();
@@ -57,14 +59,25 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
       <Box twClassName="flex-row items-center flex-1">
         <Box twClassName="w-10 h-10 rounded-full border border-muted mr-4 overflow-hidden items-center justify-center">
           {site.logoSource ? (
-            <Image source={site.logoSource} style={websiteIconStyle} />
-          ) : (
-            <WebsiteIcon
-              url={site.url}
-              title={site.name}
-              icon={site.logoUrl}
+            <Image
+              testID="site-logo-image"
+              source={site.logoSource}
               style={websiteIconStyle}
             />
+          ) : site.logoUrl ? (
+            <Image
+              testID="site-logo-image"
+              source={{ uri: site.logoUrl }}
+              style={site.logoNeedsPadding ? iconWithPadding : websiteIconStyle}
+            />
+          ) : (
+            <View testID="site-logo-fallback">
+              <WebsiteIcon
+                url={site.url}
+                title={site.name}
+                style={websiteIconStyle}
+              />
+            </View>
           )}
         </Box>
         {/* Site Info */}
