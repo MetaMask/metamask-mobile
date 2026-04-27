@@ -70,6 +70,28 @@ const actButtonPress = async (elem: ReactTestInstance) => {
   }
 };
 
+/**
+ * The `tokens` section lives in the Crypto tab. Navigate there before
+ * querying elements that belong to that section.
+ */
+const navigateToCryptoTab = async (
+  getAllByText: RenderAPI['getAllByText'],
+  getByTestId: RenderAPI['getByTestId'],
+) => {
+  // Tab component renders the label twice (hidden + visible), so use getAllByText
+  const cryptoTabElements = getAllByText('Crypto');
+  await actButtonPress(cryptoTabElements[0]);
+
+  await waitFor(
+    () => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS),
+      ).toBeOnTheScreen();
+    },
+    { timeout: 5000 },
+  );
+};
+
 describeForPlatforms('ExploreFeed - Component Tests', () => {
   beforeEach(() => {
     setupTrendingApiFetchMock(mockTrendingTokensData);
@@ -80,7 +102,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('Explore screen shows safe area, header and title and user can open trending full view', async () => {
-    const { getByTestId, getByText } = renderTrendingViewWithRoutes();
+    const { getByTestId, getByText, getAllByText } =
+      renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
@@ -98,6 +121,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
+    await navigateToCryptoTab(getAllByText, getByTestId);
+
     const viewAllButton = getByTestId(
       TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
     );
@@ -112,17 +137,20 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user sees trending tokens section with mocked data', async () => {
-    const { findAllByText, getByText, queryByTestId } =
+    const { getByTestId, getAllByText, getByText, queryByTestId } =
       renderTrendingViewWithRoutes();
 
-    await waitFor(async () => {
-      const ethRows = await findAllByText('Ethereum');
-      expect(ethRows.length).toBeGreaterThan(0);
-      expect(ethRows[0]).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+      expect(getByText('Crypto movers')).toBeOnTheScreen();
     });
 
+    await navigateToCryptoTab(getAllByText, getByTestId);
+
     await waitFor(() => {
-      expect(getByText('Crypto movers')).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
     });
 
     await assertTrendingTokenRowsVisibility({
@@ -148,13 +176,16 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user navigates to trending tokens full view', async () => {
-    const { getByTestId, queryByTestId } = renderTrendingViewWithRoutes();
+    const { getByTestId, getAllByText, queryByTestId } =
+      renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
       ).toBeOnTheScreen();
     });
+
+    await navigateToCryptoTab(getAllByText, getByTestId);
 
     const viewAllButton = getByTestId(
       TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
@@ -260,7 +291,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       return mockTrendingTokensData;
     });
 
-    const { findByText, getByTestId, queryByTestId } =
+    const { findByText, getByTestId, getAllByText, queryByTestId } =
       renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -268,6 +299,8 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
         getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
       ).toBeOnTheScreen();
     });
+
+    await navigateToCryptoTab(getAllByText, getByTestId);
 
     const viewAllButton = getByTestId(
       TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
@@ -318,7 +351,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
   });
 
   it('user can search on trending tokens full view', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
+    const { findByTestId, getByTestId, getAllByText, queryByTestId } =
       renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -326,6 +359,8 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
         getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
       ).toBeOnTheScreen();
     });
+
+    await navigateToCryptoTab(getAllByText, getByTestId);
 
     const viewAllButton = getByTestId(
       TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
