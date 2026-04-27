@@ -32,6 +32,10 @@ jobs:
           # Validate branch matches release/x.y.z or release/x.y.z-ota (OTA hotfix) format
           if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
             VERSION="${BRANCH_NAME#release/}"
+            # Strip `-ota` suffix: it is a branch-name convention only. The published
+            # `version` output uses strict X.Y.Z to match the rest of the release pipeline
+            # (see build-rc-auto.yml, create-bug-report.yml).
+            VERSION="${VERSION%-ota}"
             echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
             echo "is-valid=true" >> "$GITHUB_OUTPUT"
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
