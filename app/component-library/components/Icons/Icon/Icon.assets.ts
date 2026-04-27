@@ -177,6 +177,8 @@ import peopleSVG from './assets/people.svg';
 import personcancelSVG from './assets/person-cancel.svg';
 import pinSVG from './assets/pin.svg';
 import plantSVG from './assets/plant.svg';
+import portfolioSVG from './assets/portfolio.svg';
+import predictSVG from './assets/predict.svg';
 import plugSVG from './assets/plug.svg';
 import plusandminusSVG from './assets/plus-and-minus.svg';
 import policyalertSVG from './assets/policy-alert.svg';
@@ -461,6 +463,8 @@ export const assetByIconName: AssetByIconName = {
   [IconName.PersonCancel]: personcancelSVG,
   [IconName.Pin]: pinSVG,
   [IconName.Plant]: plantSVG,
+  [IconName.Portfolio]: portfolioSVG,
+  [IconName.Predict]: predictSVG,
   [IconName.Plug]: plugSVG,
   [IconName.PlusAndMinus]: plusandminusSVG,
   [IconName.PolicyAlert]: policyalertSVG,

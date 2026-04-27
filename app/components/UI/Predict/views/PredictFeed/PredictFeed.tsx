@@ -628,7 +628,11 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
 };
 
-const PredictFeed: React.FC = () => {
+interface PredictFeedProps {
+  hideHeader?: boolean;
+}
+
+const PredictFeed: React.FC<PredictFeedProps> = ({ hideHeader = false }) => {
   const {
     tabs,
     activeIndex,
@@ -738,27 +742,29 @@ const PredictFeed: React.FC = () => {
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        <Box
-          style={tw.style('z-20', {
-            backgroundColor: colors.background.default,
-          })}
-        >
-          <HeaderCompactStandard
-            includesTopInset
-            title={strings('wallet.predict')}
-            onBack={handleBackPress}
-            backButtonProps={{
-              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-            }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: showSearch,
-                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-              },
-            ]}
-          />
-        </Box>
+        {!hideHeader && (
+          <Box
+            style={tw.style('z-20', {
+              backgroundColor: colors.background.default,
+            })}
+          >
+            <HeaderCompactStandard
+              includesTopInset
+              title={strings('wallet.predict')}
+              onBack={handleBackPress}
+              backButtonProps={{
+                testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+              }}
+              endButtonIconProps={[
+                {
+                  iconName: IconName.Search,
+                  onPress: showSearch,
+                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+                },
+              ]}
+            />
+          </Box>
+        )}
 
         <Box twClassName="flex-1 relative">
           <AnimatedHeader
