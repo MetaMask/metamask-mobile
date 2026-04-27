@@ -42,6 +42,13 @@ export async function vendorImpact(moment: HapticImpactMoment): Promise<void> {
   await impactAsync(IMPACT_STYLE_MAP[moment]);
 }
 
+/** Direct Expo impact style — for dev preview / tooling only (not gated at call site). */
+export async function vendorImpactRaw(
+  style: ImpactFeedbackStyle,
+): Promise<void> {
+  await impactAsync(style);
+}
+
 export async function vendorSelection(): Promise<void> {
   await selectionAsync();
 }

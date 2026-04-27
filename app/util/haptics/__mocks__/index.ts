@@ -16,6 +16,8 @@ export const useHaptics = m.useHaptics;
 export const ImpactMoment = m.ImpactMoment;
 export const NotificationMoment = m.NotificationMoment;
 
+export { ImpactFeedbackStyle } from 'expo-haptics';
+
 export type {
   HapticMoment,
   HapticImpactMoment,
