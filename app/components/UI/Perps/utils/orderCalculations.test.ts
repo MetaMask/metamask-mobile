@@ -261,7 +261,6 @@ describe('orderCalculations', () => {
       // Arrange
       const params = {
         spendableBalance: 0,
-        withdrawableBalance: 0,
         assetPrice: 50000,
         assetSzDecimals: 6,
         leverage: 10,
@@ -278,7 +277,6 @@ describe('orderCalculations', () => {
       // Arrange
       const params = {
         spendableBalance: 1000,
-        withdrawableBalance: 1000,
         assetPrice: 0,
         assetSzDecimals: 6,
         leverage: 10,
@@ -295,7 +293,6 @@ describe('orderCalculations', () => {
       // Arrange
       const params = {
         spendableBalance: 1000,
-        withdrawableBalance: 1000,
         assetPrice: 50000,
         assetSzDecimals: undefined as unknown as number,
         leverage: 10,
@@ -312,7 +309,6 @@ describe('orderCalculations', () => {
       // Arrange
       const params = {
         spendableBalance: 100,
-        withdrawableBalance: 100,
         assetPrice: 50000,
         assetSzDecimals: 6,
         leverage: 10,
@@ -330,7 +326,6 @@ describe('orderCalculations', () => {
       // Arrange
       const params = {
         spendableBalance: 50,
-        withdrawableBalance: 50,
         assetPrice: 30000,
         assetSzDecimals: 4,
         leverage: 100,
@@ -348,7 +343,6 @@ describe('orderCalculations', () => {
       // Arrange
       const params = {
         spendableBalance: 10,
-        withdrawableBalance: 10,
         assetPrice: 50000,
         assetSzDecimals: 6,
         leverage: 5,
@@ -366,7 +360,6 @@ describe('orderCalculations', () => {
       // Arrange - case where theoretical max is 1000 (100 * 10)
       const params = {
         spendableBalance: 100,
-        withdrawableBalance: 100,
         assetPrice: 50000,
         assetSzDecimals: 6,
         leverage: 10,

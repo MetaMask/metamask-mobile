@@ -37,6 +37,12 @@ export const usePerpsDepositStatus = () => {
   // Track if we're expecting a deposit
   const expectingDepositRef = useRef(false);
   const prevSpendableBalanceRef = useRef<string>('0');
+  const liveAccountRef = useRef(liveAccount);
+
+  // Keep ref in sync without re-subscribing the transaction handler.
+  useEffect(() => {
+    liveAccountRef.current = liveAccount;
+  }, [liveAccount]);
 
   // Get deposit state from controller
   const depositInProgress = useSelector(
@@ -79,7 +85,8 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.status === TransactionStatus.approved
       ) {
         expectingDepositRef.current = true;
-        prevSpendableBalanceRef.current = liveAccount?.spendableBalance || '0';
+        prevSpendableBalanceRef.current =
+          liveAccountRef.current?.spendableBalance || '0';
 
         const processingTimeSeconds = isArbUSDCDeposit ? 0 : 60; // hardcoded to 1 minute to avoid estimation failures of multiple bridges
 
@@ -103,12 +110,9 @@ export const usePerpsDepositStatus = () => {
         handleTransactionApproved,
       );
     };
-  }, [
-    PerpsToastOptions.accountManagement.deposit,
-    bridgeQuotes,
-    liveAccount?.spendableBalance,
-    showToast,
-  ]);
+    // liveAccount.spendableBalance is read via ref to avoid rebinding the
+    // messenger listener on every balance fluctuation.
+  }, [PerpsToastOptions.accountManagement.deposit, showToast]);
 
   // Watch for spendable-balance increases when expecting a deposit. Using
   // totalBalance here is incorrect because unrealized PnL can move it without
