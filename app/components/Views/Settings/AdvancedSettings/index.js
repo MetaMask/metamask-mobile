@@ -380,7 +380,7 @@ class AdvancedSettings extends PureComponent {
                 'app_settings.smart_account_dapp_requests_heading',
               )}
               description={strings(
-                'app_settings.smart_account_dapp_requests_desc',
+                'app_settings.smart_account_dapp_requests_desc_v2',
               )}
               value={!dismissSmartAccountSuggestionEnabled}
               onValueChange={(val) =>
