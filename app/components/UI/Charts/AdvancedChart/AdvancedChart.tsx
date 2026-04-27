@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
   forwardRef,
+  memo,
 } from 'react';
 import { Linking, View } from 'react-native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -100,6 +101,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       height,
     });
     const webViewRef = useRef<WebView>(null);
+    const chartMountTimeRef = useRef<number>(Date.now());
+    const webViewInstanceStartTimeRef = useRef<number>(Date.now());
     const [chartReadyCount, setChartReadyCount] = useState(0);
     const isChartReady = chartReadyCount > 0;
     const [webViewError, setWebViewError] = useState<string | null>(null);
@@ -136,8 +139,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
     useEffect(() => {
-      setChartReadyCount(0);
-      setWebViewLoaded(false);
+      webViewInstanceStartTimeRef.current = Date.now();
+      // setChartReadyCount(0);
+      // setWebViewLoaded(false);
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
@@ -180,6 +184,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (ohlcvSeriesKey === undefined) {
         return;
       }
+      webViewInstanceStartTimeRef.current = Date.now();
       setChartReadyCount(0);
       setWebViewLoaded(false);
       setLayoutSettling(false);
@@ -301,7 +306,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         if (!message) return;
 
         switch (message.type) {
-          case 'CHART_READY':
+          case 'CHART_READY': {
+            const timeSinceWebViewStart =
+              Date.now() - webViewInstanceStartTimeRef.current;
+            // eslint-disable-next-line no-console
+            console.log(`[perf] Chart ready (${timeSinceWebViewStart}ms)`);
             activeIndicatorsRef.current.clear();
             prevPositionLinesRef.current = undefined;
             prevChartTypeRef.current = undefined;
@@ -311,11 +320,19 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             setWebViewError(null);
             onChartReady?.();
             break;
+          }
 
-          case 'CHART_LAYOUT_SETTLED':
+          case 'CHART_LAYOUT_SETTLED': {
+            const timeSinceWebViewStart =
+              Date.now() - webViewInstanceStartTimeRef.current;
+            // eslint-disable-next-line no-console
+            console.log(
+              `[perf] Chart layout settled (${timeSinceWebViewStart}ms)`,
+            );
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
             break;
+          }
 
           case 'INDICATOR_ADDED':
             activeIndicatorsRef.current.add(message.payload.name);
@@ -565,6 +582,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [lineChrome, chartReadyCount, postMessage]);
 
+    // Log when chart becomes fully visible
+    useEffect(() => {
+      const shouldShowSkeleton = isLoading || !isChartReady || layoutSettling;
+      if (!shouldShowSkeleton && isChartReady) {
+        const timeSinceWebViewStart =
+          Date.now() - webViewInstanceStartTimeRef.current;
+        // eslint-disable-next-line no-console
+        console.log(`[perf] Chart fully visible (${timeSinceWebViewStart}ms)`);
+      }
+    }, [isLoading, isChartReady, layoutSettling]);
+
     // ---- Render ----
 
     if (webViewError) {
@@ -617,4 +645,5 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
 AdvancedChart.displayName = 'AdvancedChart';
 
-export default AdvancedChart;
+// Wrap in memo to prevent unnecessary re-renders when parent updates
+export default memo(AdvancedChart);

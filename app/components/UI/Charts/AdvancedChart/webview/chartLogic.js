@@ -97,6 +97,9 @@ function scheduleChartLayoutSettledNotify() {
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         if (window.chartWidget && window.isChartReady) {
+          sendToReactNative('DEBUG', {
+            message: '[perf] Chart layout settled',
+          });
           sendToReactNative('CHART_LAYOUT_SETTLED', {});
         }
       });
@@ -3579,6 +3582,7 @@ function initChart() {
           }
         : undefined;
 
+    var widgetCreateTime = Date.now();
     window.chartWidget = new TradingView.widget({
       symbol: window.currentSymbol,
       interval: window.currentResolution || '5',
@@ -3709,6 +3713,15 @@ function initChart() {
       } catch (e) {}
 
       subscribeLastCloseLabelUpdates();
+
+      var onChartReadyTime = Date.now();
+      var widgetInitDuration = onChartReadyTime - widgetCreateTime;
+      sendToReactNative('DEBUG', {
+        message:
+          '[perf] TradingView chart ready (' +
+          widgetInitDuration +
+          'ms since widget creation)',
+      });
 
       sendToReactNative('CHART_READY', {});
 
