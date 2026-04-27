@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectBrowserHistory } from '../../../../../reducers/browser/selectors';
+import { prefixUrlWithProtocol } from '../../../../../util/browser';
+import { selectBrowserHistoryWithType } from '../../../../../selectors/browser';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 import { extractDisplayUrl } from '../useSiteData/useSitesData';
 
@@ -11,17 +12,9 @@ interface HistoryEntry {
   name: string;
 }
 
-const addProtocolIfMissing = (raw: string): string => {
-  const trimmed = raw.trim();
-  return trimmed.startsWith('http://') || trimmed.startsWith('https://')
-    ? trimmed
-    : `https://${trimmed}`;
-};
-
 const normalizeUrlKey = (raw: string): string => {
   try {
-    const withProtocol = addProtocolIfMissing(raw);
-    const u = new URL(withProtocol);
+    const u = new URL(prefixUrlWithProtocol(raw.trim()));
     u.hash = '';
     const path = u.pathname.replace(/\/$/, '') || '/';
     return `${u.origin}${path}`;
@@ -31,8 +24,7 @@ const normalizeUrlKey = (raw: string): string => {
 };
 
 const toSiteData = (entry: HistoryEntry, index: number): SiteData => {
-  const url = addProtocolIfMissing(entry.url);
-
+  const url = prefixUrlWithProtocol(entry.url.trim());
   return {
     id: `browser-recent-${normalizeUrlKey(url)}-${index}`,
     name: entry.name?.trim() || extractDisplayUrl(url),
@@ -50,25 +42,18 @@ export const useBrowserRecentsSites = (): {
   isLoading: boolean;
   refetch: () => Promise<void>;
 } => {
-  const history = useSelector(selectBrowserHistory) as HistoryEntry[];
+  // selectBrowserHistoryWithType returns history already reversed (most recent first)
+  const history = useSelector(selectBrowserHistoryWithType) as HistoryEntry[];
 
   const data = useMemo(() => {
     const seen = new Set<string>();
     const out: SiteData[] = [];
 
-    for (
-      let i = history.length - 1;
-      i >= 0 && out.length < MAX_RECENT_SITES;
-      i--
-    ) {
-      const entry = history[i];
-      if (!entry?.url) {
-        continue;
-      }
+    for (const entry of history) {
+      if (out.length >= MAX_RECENT_SITES) break;
+      if (!entry?.url) continue;
       const key = normalizeUrlKey(entry.url);
-      if (seen.has(key)) {
-        continue;
-      }
+      if (seen.has(key)) continue;
       seen.add(key);
       out.push(toSiteData(entry, out.length));
     }

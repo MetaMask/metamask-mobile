@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Logger from '../../../../../util/Logger';
+import { prefixUrlWithProtocol } from '../../../../../util/browser';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 
 interface ApiDappResponse {
@@ -71,14 +72,20 @@ export const extractDisplayUrl = (url: string): string => {
   }
 };
 
+export const matchesSiteQuery = (site: SiteData, query: string): boolean => {
+  const q = query.toLowerCase();
+  return (
+    site.name.toLowerCase().includes(q) ||
+    site.displayUrl.toLowerCase().includes(q) ||
+    site.url.toLowerCase().includes(q)
+  );
+};
+
 const isPortfolioSiteUrl = (url: string): boolean => {
   try {
-    const trimmedUrl = url.trim();
-    const normalizedUrl =
-      trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
-        ? trimmedUrl
-        : `https://${trimmedUrl}`;
-    return new URL(normalizedUrl).hostname === PORTFOLIO_HOSTNAME;
+    return (
+      new URL(prefixUrlWithProtocol(url.trim())).hostname === PORTFOLIO_HOSTNAME
+    );
   } catch {
     return false;
   }
@@ -174,17 +181,10 @@ export const useSitesData = (searchQuery?: string): UseSitesDataResult => {
 
   // Filter sites locally based on search query
   const sites = useMemo(() => {
-    if (!searchQuery?.trim()) {
-      return allSites;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-    return allSites.filter(
-      (site) =>
-        site.name.toLowerCase().includes(query) ||
-        site.displayUrl.toLowerCase().includes(query) ||
-        site.url.toLowerCase().includes(query),
-    );
+    const query = searchQuery?.trim() ?? '';
+    return query
+      ? allSites.filter((site) => matchesSiteQuery(site, query))
+      : allSites;
   }, [allSites, searchQuery]);
 
   return { sites, isLoading, error, refetch };

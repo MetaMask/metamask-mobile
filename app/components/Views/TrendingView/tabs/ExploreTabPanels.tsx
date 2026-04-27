@@ -194,7 +194,11 @@ const useExploreTabPanelSections = (
         return { sections: [SECTIONS_CONFIG.sports_predictions] };
       case 'dapps':
         return {
-          sections: [SECTIONS_CONFIG.dapps_recents, SECTIONS_CONFIG.sites],
+          sections: [
+            SECTIONS_CONFIG.dapps_recents,
+            SECTIONS_CONFIG.dapps_favorites,
+            SECTIONS_CONFIG.sites,
+          ],
         };
       default: {
         const exhaustive: never = tab;

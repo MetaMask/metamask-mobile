@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, Image } from 'react-native';
+import React from 'react';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import {
   Box,
   Text,
@@ -7,8 +7,10 @@ import {
   Icon,
   IconName,
   IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import WebsiteIcon from '../../../WebsiteIcon';
 
 export interface SiteData {
   id: string;
@@ -27,16 +29,15 @@ export interface SiteData {
 interface SiteRowItemProps {
   site: SiteData;
   onPress: () => void;
+  onRemoveFavorite?: () => void;
 }
 
-const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
-  const tw = useTailwind();
-  const [imageError, setImageError] = useState(false);
+const websiteIconStyle = StyleSheet.create({
+  icon: { width: 40, height: 40, borderRadius: 20 },
+}).icon;
 
-  // Reset error state when site changes (for list recycling)
-  useEffect(() => {
-    setImageError(false);
-  }, [site.id, site.logoUrl]);
+const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
+  const tw = useTailwind();
 
   return (
     <TouchableOpacity
@@ -46,38 +47,43 @@ const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
     >
       {/* Logo */}
       <Box twClassName="flex-row items-center flex-1">
-        {site.logoUrl && !imageError ? (
-          <Box
-            twClassName={`w-10 h-10 rounded-full bg-white border border-muted mr-4 overflow-hidden items-center justify-center ${site.logoNeedsPadding ? 'p-1' : 'p-0.1'}`}
-          >
-            <Image
-              testID="site-logo-image"
-              source={{ uri: site.logoUrl }}
-              style={tw.style('w-full h-full')}
-              resizeMode="contain"
-              onError={() => setImageError(true)}
-            />
-          </Box>
-        ) : (
-          <Box
-            testID="site-logo-fallback"
-            twClassName="w-10 h-10 mr-4 items-center justify-center"
-          >
-            <Icon name={IconName.Global} size={IconSize.Lg} />
-          </Box>
-        )}
+        <Box twClassName="w-10 h-10 rounded-full border border-muted mr-4 overflow-hidden items-center justify-center">
+          <WebsiteIcon
+            url={site.url}
+            title={site.name}
+            icon={site.logoUrl}
+            style={websiteIconStyle}
+          />
+        </Box>
         {/* Site Info */}
         <Box twClassName="flex-1">
-          <Text variant={TextVariant.BodyMd} style={tw.style('font-medium')}>
+          <Text
+            variant={TextVariant.BodyMd}
+            style={tw.style('font-medium')}
+            numberOfLines={1}
+          >
             {site.name}
           </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative"
+            numberOfLines={1}
+          >
             {site.displayUrl}
           </Text>
         </Box>
       </Box>
-      {/* Arrow Icon */}
-      <Box twClassName="ml-3">
+      {/* Action Icons */}
+      <Box twClassName="ml-3 flex-row items-center gap-3">
+        {onRemoveFavorite && (
+          <TouchableOpacity onPress={onRemoveFavorite} hitSlop={8}>
+            <Icon
+              name={IconName.StarFilled}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
+          </TouchableOpacity>
+        )}
         <Icon name={IconName.Arrow2UpRight} size={IconSize.Md} />
       </Box>
     </TouchableOpacity>

@@ -16,7 +16,8 @@ export type SectionId =
   | 'crypto_perps'
   | 'stocks'
   | 'sites'
-  | 'dapps_recents';
+  | 'dapps_recents'
+  | 'dapps_favorites';
 
 export type SectionIcon =
   | { source: 'local'; name: LocalIconName }

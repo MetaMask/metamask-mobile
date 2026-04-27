@@ -6,11 +6,13 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 interface SiteRowItemWrapperProps {
   site: SiteData;
   navigation: AppNavigationProp;
+  onRemoveFavorite?: () => void;
 }
 
 const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({
   site,
   navigation,
+  onRemoveFavorite,
 }) => {
   const handlePress = () => {
     navigation.navigate(Routes.BROWSER.HOME, {
@@ -23,7 +25,13 @@ const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({
     });
   };
 
-  return <SiteRowItem site={site} onPress={handlePress} />;
+  return (
+    <SiteRowItem
+      site={site}
+      onPress={handlePress}
+      onRemoveFavorite={onRemoveFavorite}
+    />
+  );
 };
 
 export default SiteRowItemWrapper;

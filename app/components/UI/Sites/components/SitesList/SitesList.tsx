@@ -8,17 +8,25 @@ export interface SitesListProps {
   sites: SiteData[];
   refreshControl?: React.ReactElement;
   ListFooterComponent?: React.ReactElement | null;
+  onRemoveFavorite?: (site: SiteData) => void;
 }
 
 const SitesList: React.FC<SitesListProps> = ({
   sites,
   refreshControl,
   ListFooterComponent,
+  onRemoveFavorite,
 }) => {
   const navigation = useNavigation();
 
   const renderSiteItem = ({ item }: { item: SiteData }) => (
-    <SiteRowItemWrapper site={item} navigation={navigation} />
+    <SiteRowItemWrapper
+      site={item}
+      navigation={navigation}
+      onRemoveFavorite={
+        onRemoveFavorite ? () => onRemoveFavorite(item) : undefined
+      }
+    />
   );
 
   return (
