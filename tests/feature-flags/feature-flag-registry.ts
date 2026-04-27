@@ -4196,20 +4196,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyAccountVaultConfig: {
-    name: 'moneyAccountVaultConfig',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      accountantAddress: '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173',
-      boringVault: '0xB5F07d769dD60fE54c97dd53101181073DDf21b2',
-      chainId: '0x',
-      lensAddress: '0x846a7832022350434B5cC006d07cc9c782469660',
-      tellerAddress: '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   predictClobV2: {
     name: 'predictClobV2',
     type: FeatureFlagType.Remote,
