@@ -140,10 +140,6 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
-      if (isE2EMockOAuth()) {
-        return QAMockOAuthService.mockSeedlessHandleResult(accountName);
-      }
-
       const authConnectionConfig = getAuthConnectionIdFromClientId({
         clientId,
         authConnection,
@@ -202,8 +198,16 @@ export class OAuthService {
   #handleMockOAuthLogin = async (
     loginHandler: BaseLoginHandler,
   ): Promise<HandleOAuthLoginResult> => {
+    const loginResult = await loginHandler.login();
+    const mockEmail = (loginResult as unknown as Record<string, unknown>)
+      ?.email as string | undefined;
+
     const { data, userId, accountName } =
-      await QAMockOAuthService.exchangeTokens(loginHandler);
+      await QAMockOAuthService.exchangeTokens(
+        loginHandler,
+        global.fetch,
+        mockEmail,
+      );
 
     this.updateLocalState({ userId, accountName });
 
@@ -214,6 +218,14 @@ export class OAuthService {
     );
 
     this.#dispatchPostLogin(result);
+
+    ReduxService.store.dispatch(
+      setSeedlessOnboarding({
+        clientId: loginHandler.options.clientId,
+        authConnection: loginHandler.authConnection,
+      }),
+    );
+
     return result;
   };
 

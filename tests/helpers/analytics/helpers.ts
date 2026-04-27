@@ -152,4 +152,6 @@ export const onboardingEvents = {
   ONBOARDING_TOUR_SKIPPED: 'Onboarding Tour Skipped',
   ONBOARDING_TOUR_COMPLETED: 'Onboarding Tour Completed',
   WALLET_SECURITY_SKIP_CONFIRMED: 'Wallet Security Skip Confirmed',
+  METRICS_OPT_IN: 'Metrics Opt In',
+  SOCIAL_LOGIN_COMPLETED: 'Social Login Completed',
 };
