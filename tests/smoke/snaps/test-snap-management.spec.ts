@@ -10,6 +10,8 @@ import SnapSettingsView from '../../page-objects/Settings/SnapSettingsView';
 import { Assertions } from '../../framework';
 import BrowserView from '../../page-objects/Browser/BrowserView';
 import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
+import { Mockttp } from 'mockttp';
+import { mockDialogSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -20,6 +22,9 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockDialogSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();
