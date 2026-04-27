@@ -216,8 +216,8 @@ jest.mock('../../../util/trace', () => ({
 // that occur when fireEvent triggers re-renders with native-driven animated
 // scroll components (Animated.forkEvent used internally in the HOC).
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  const React = require('react');
-  const { View } = require('react-native');
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
   return {
     KeyboardAwareScrollView: ({
       children,
@@ -238,8 +238,8 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 // nativeEventEmitter.addListener, which fails in the test environment.
 // Pressable does not use native-driver Animated, so it avoids this issue.
 jest.mock('../../UI/ActionView', () => {
-  const React = require('react');
-  const { View, Pressable, Text } = require('react-native');
+  const React = jest.requireActual('react');
+  const { View, Pressable, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({

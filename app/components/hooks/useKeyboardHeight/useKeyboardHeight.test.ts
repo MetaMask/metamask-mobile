@@ -14,18 +14,28 @@ describe('useKeyboardHeight', () => {
 
     jest
       .spyOn(Keyboard, 'addListener')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockImplementation((eventName: string, callback: any) => {
-        if (eventName === 'keyboardDidShow') {
-          showListener = callback;
-          return { remove: mockRemove1 } as any;
-        }
-        if (eventName === 'keyboardDidHide') {
-          hideListener = callback;
-          return { remove: mockRemove2 } as any;
-        }
-        return { remove: jest.fn() } as any;
-      });
+      .mockImplementation(
+        (
+          eventName: string,
+          callback: Parameters<typeof Keyboard.addListener>[1],
+        ) => {
+          if (eventName === 'keyboardDidShow') {
+            showListener = callback as typeof showListener;
+            return { remove: mockRemove1 } as unknown as ReturnType<
+              typeof Keyboard.addListener
+            >;
+          }
+          if (eventName === 'keyboardDidHide') {
+            hideListener = callback as typeof hideListener;
+            return { remove: mockRemove2 } as unknown as ReturnType<
+              typeof Keyboard.addListener
+            >;
+          }
+          return { remove: jest.fn() } as unknown as ReturnType<
+            typeof Keyboard.addListener
+          >;
+        },
+      );
   });
 
   afterEach(() => {

@@ -48,24 +48,32 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
   () => {
-    const ReactMock = require('react');
-    const { View } = require('react-native');
+    const ReactMock = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ReactMock.forwardRef(({ children, onClose }: any, ref: any) => {
-        ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: (callback?: () => void) => {
-            onClose?.();
-            callback?.();
-          },
-        }));
-        return ReactMock.createElement(
-          View,
-          { testID: 'mock-bottom-sheet' },
-          children,
-        );
-      }),
+      default: ReactMock.forwardRef(
+        (
+          {
+            children,
+            onClose,
+          }: { children: React.ReactNode; onClose?: () => void },
+          ref: React.Ref<unknown>,
+        ) => {
+          ReactMock.useImperativeHandle(ref, () => ({
+            onOpenBottomSheet: jest.fn(),
+            onCloseBottomSheet: (callback?: () => void) => {
+              onClose?.();
+              callback?.();
+            },
+          }));
+          return ReactMock.createElement(
+            View,
+            { testID: 'mock-bottom-sheet' },
+            children,
+          );
+        },
+      ),
     };
   },
 );
@@ -73,11 +81,19 @@ jest.mock(
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
   () => {
-    const ReactMock = require('react');
-    const { View } = require('react-native');
+    const ReactMock = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ children, onClose, ...props }: any) =>
+      default: ({
+        children,
+        onClose,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        onClose?: () => void;
+        [key: string]: unknown;
+      }) =>
         ReactMock.createElement(
           View,
           { testID: 'header', ...props },
@@ -94,11 +110,21 @@ jest.mock(
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter',
   () => {
-    const ReactMock = require('react');
-    const { View, TouchableOpacity, Text } = require('react-native');
+    const ReactMock = jest.requireActual('react');
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ onPress, buttonLabel, buttonPropsArray, ...props }: any) => {
+      default: ({
+        onPress,
+        buttonLabel,
+        buttonPropsArray,
+        ...props
+      }: {
+        onPress?: () => void;
+        buttonLabel?: string;
+        buttonPropsArray?: { onPress?: () => void; label?: string }[];
+        [key: string]: unknown;
+      }) => {
         const handlePress = onPress || buttonPropsArray?.[0]?.onPress;
         const label = buttonLabel || buttonPropsArray?.[0]?.label || 'Got it';
         return ReactMock.createElement(
