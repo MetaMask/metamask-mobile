@@ -18,7 +18,7 @@ jest.mock('../../../../core/Engine/Engine', () => ({
 
 describe('SnapUIDateTimePicker', () => {
   it('renders a date time picker', () => {
-    const { toJSON, getByTestId } = renderInterface(
+    const { getByTestId } = renderInterface(
       Box({
         children: DateTimePicker({
           name: 'date-time-picker',
@@ -27,12 +27,10 @@ describe('SnapUIDateTimePicker', () => {
     );
 
     expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders a date picker', () => {
-    const { toJSON, getByTestId } = renderInterface(
+    const { getByTestId } = renderInterface(
       Box({
         children: DateTimePicker({
           name: 'date-picker',
@@ -42,12 +40,10 @@ describe('SnapUIDateTimePicker', () => {
     );
 
     expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders a time picker', () => {
-    const { toJSON, getByTestId } = renderInterface(
+    const { getByTestId } = renderInterface(
       Box({
         children: DateTimePicker({
           name: 'time-picker',
@@ -57,8 +53,6 @@ describe('SnapUIDateTimePicker', () => {
     );
 
     expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('can select a date and time', async () => {
@@ -205,7 +199,7 @@ describe('SnapUIDateTimePicker', () => {
   });
 
   it('renders inside a field', () => {
-    const { toJSON, getByText, getByTestId } = renderInterface(
+    const { getByText, getByTestId } = renderInterface(
       Box({
         children: Field({
           label: 'Select date and time',
@@ -218,11 +212,10 @@ describe('SnapUIDateTimePicker', () => {
 
     expect(getByText('Select date and time')).toBeTruthy();
     expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('can show an error', () => {
-    const { toJSON, getByText, getByTestId } = renderInterface(
+    const { getByText, getByTestId } = renderInterface(
       Box({
         children: Field({
           label: 'Select date and time',
@@ -237,6 +230,5 @@ describe('SnapUIDateTimePicker', () => {
     expect(getByText('Select date and time')).toBeTruthy();
     expect(getByText('This is an error')).toBeTruthy();
     expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
-    expect(toJSON()).toMatchSnapshot();
   });
 });

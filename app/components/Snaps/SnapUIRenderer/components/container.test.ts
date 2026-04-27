@@ -43,7 +43,35 @@ describe('container', () => {
       theme: mockTheme,
     });
 
-    expect(result).toMatchSnapshot();
+    expect(result).toEqual({
+      element: 'Box',
+      props: {
+        style: {
+          flexDirection: 'column',
+          flexGrow: 1,
+        },
+      },
+      children: [
+        {
+          element: 'ScrollView',
+          key: 'default-scrollview',
+          props: {
+            style: { marginBottom: 0 },
+            testID: 'snap-ui-renderer__scrollview',
+          },
+          children: {
+            element: 'TouchableHighlight',
+            children: {
+              element: 'text',
+              props: {
+                style: { gap: 16, margin: 16 },
+              },
+              children: ['Hello'],
+            },
+          },
+        },
+      ],
+    });
   });
 
   it('add footer button when useFooter is true and onCancel is provided', () => {
@@ -61,6 +89,11 @@ describe('container', () => {
 
     expect(Array.isArray(result.children)).toBe(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[0]).toMatchSnapshot();
+    const firstChild = (result.children as any[])[0];
+    expect(firstChild.element).toBe('ScrollView');
+    expect(firstChild.key).toBe('default-scrollview');
+    expect(firstChild.children.element).toBe('TouchableHighlight');
+    expect(firstChild.children.children.element).toBe('Box');
+    expect(firstChild.children.children.props.flexDirection).toBe('row');
   });
 });

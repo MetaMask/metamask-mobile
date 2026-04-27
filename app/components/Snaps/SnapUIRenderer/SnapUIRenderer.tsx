@@ -71,7 +71,13 @@ const SnapUIRendererComponent = ({
   );
 
   if (isLoading || !content) {
-    return <ActivityIndicator size="large" color={Colors.primary} />;
+    return (
+      <ActivityIndicator
+        testID="snap-ui-renderer__loading"
+        size="large"
+        color={Colors.primary}
+      />
+    );
   }
 
   const { state: initialState } = interfaceState;

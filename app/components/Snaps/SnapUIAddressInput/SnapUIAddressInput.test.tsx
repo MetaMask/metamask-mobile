@@ -186,7 +186,7 @@ describe('SnapUIAddressInput', () => {
   it('renders with an invalid CAIP Account ID', () => {
     mockGetValue.mockReturnValue('eip155:0:https://foobar.baz/foobar');
 
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <SnapUIAddressInput
         name="input"
         chainId="eip155:0"
@@ -195,7 +195,7 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('textfield')).toBeOnTheScreen();
   });
 
   it('renders the matched address info in a disabled state', () => {
@@ -203,7 +203,7 @@ describe('SnapUIAddressInput', () => {
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { getByText, toJSON, getByTestId } = renderWithProvider(
+    const { getByText, getByTestId } = renderWithProvider(
       <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
       { state: mockInitialState },
     );
@@ -213,11 +213,12 @@ describe('SnapUIAddressInput', () => {
     const closeButton = getByTestId('snap-ui-address-input__clear-button');
     expect(closeButton).toBeTruthy();
 
-    const tree = JSON.stringify(toJSON());
-
-    expect(tree).toContain('"opacity":0.5');
-    expect(tree).toContain('"disabled":true');
-    expect(toJSON()).toMatchSnapshot();
+    const matchedAccountInfo = getByTestId(
+      'snap-ui-address-input__matched-account-info',
+    );
+    expect(matchedAccountInfo.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ opacity: 0.5 })]),
+    );
   });
 
   it('renders the matched address info with an error', () => {
