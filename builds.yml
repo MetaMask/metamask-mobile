@@ -129,7 +129,7 @@ _signing_flask_uat: &signing_flask_uat
 
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -139,7 +139,7 @@ _code_fencing_main: &code_fencing_main
 # Beta code fencing features (main + beta feature)
 _code_fencing_beta: &code_fencing_beta
   - beta
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -148,7 +148,7 @@ _code_fencing_beta: &code_fencing_beta
 
 # Experimental code fencing features (main + experimental)
 _code_fencing_experimental: &code_fencing_experimental
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -159,8 +159,7 @@ _code_fencing_experimental: &code_fencing_experimental
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
   - flask
-  - preinstalled-snaps
-  - external-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -285,7 +284,7 @@ builds:
   # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
   main-dev:
     github_environment: build-exp
-    signing: *signing_uat
+    # signing: *signing_uat  # Temporarily using GitHub secrets for iOS signing; restore when migrated to AWS
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
@@ -306,7 +305,12 @@ builds:
       IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
       DEV_OAUTH_CONFIG: 'true'
-    secrets: *secrets
+    # secrets: *secrets  # Temporarily overridden to include iOS signing secrets; restore when migrated to AWS
+    secrets:
+      <<: *secrets
+      IOS_SIGNING_KEYSTORE: 'IOS_SIGNING_KEYSTORE'
+      IOS_SIGNING_KEYSTORE_PASSWORD: 'IOS_SIGNING_KEYSTORE_PASSWORD'
+      IOS_SIGNING_PROFILE: 'IOS_SIGNING_PROFILE'
     code_fencing: *code_fencing_main
 
   # ---------------------------------------------------------------------------
