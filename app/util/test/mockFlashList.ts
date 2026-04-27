@@ -27,9 +27,9 @@ export const flashListMock = () => {
         scrollToOffset: jest.fn(),
       }));
       if (!data || data.length === 0) {
-        return ListEmptyComponent
-          ? React.createElement(ListEmptyComponent)
-          : null;
+        if (!ListEmptyComponent) return null;
+        if (React.isValidElement(ListEmptyComponent)) return ListEmptyComponent;
+        return React.createElement(ListEmptyComponent as React.ComponentType);
       }
       return React.createElement(
         View,
