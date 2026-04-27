@@ -15,8 +15,13 @@ import {
   selectDestAddress,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectBridgeFeatureFlags,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 
 jest.mock('react-redux', () => ({
@@ -116,10 +121,24 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectDestAddress: jest.fn(),
   selectIsEvmNonEvmBridge: jest.fn(),
   selectIsNonEvmNonEvmBridge: jest.fn(),
+  selectIsSolanaSourced: jest.fn(),
+  selectBridgeFeatureFlags: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/address', () => ({
+  isHardwareAccount: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../UI/Bridge/hooks/usePriceImpactViewData', () => ({
+  usePriceImpactViewData: jest.fn(),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -183,6 +202,19 @@ const setupDefaultMocks = () => {
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
   (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
+  (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(false);
+  (selectBridgeFeatureFlags as unknown as jest.Mock).mockReturnValue({
+    priceImpactThreshold: { warning: 0.05, error: 0.25 },
+  });
+  (
+    selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
+  ).mockReturnValue('0xWALLET');
+  (usePriceImpactViewData as jest.Mock).mockReturnValue({
+    textColor: TextColor.TextAlternative,
+    icon: undefined,
+    title: 'bridge.price_impact_info_title',
+    description: 'bridge.price_impact_info_description',
+  });
 
   (useQuickBuySetup as jest.Mock).mockReturnValue({
     chainId: '0x1',
@@ -307,14 +339,28 @@ describe('useQuickBuyBottomSheet', () => {
       );
     });
 
-    it('returns insufficient funds label when source balance is too low', () => {
+    it('returns the insufficient-funds label when source balance is too low', () => {
       (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() =>
         useQuickBuyBottomSheet(createPosition(), jest.fn()),
       );
 
+      expect(result.current.buttonError).toBe('insufficient_balance');
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_funds');
+    });
+
+    it('returns the insufficient-gas label when gas is short', () => {
+      (useHasSufficientGas as jest.Mock).mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      expect(result.current.buttonError).toBe('insufficient_gas');
+      expect(result.current.getButtonLabel()).toBe('bridge.insufficient_gas');
+
+      (useHasSufficientGas as jest.Mock).mockReturnValue(true);
     });
   });
 
@@ -513,6 +559,90 @@ describe('useQuickBuyBottomSheet', () => {
 
       expect(result.current.isConfirmDisabled).toBe(true);
       expect(result.current.isConfirmLoading).toBe(true);
+    });
+
+    const settleQuote = () => {
+      const quoteState: {
+        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
+        destTokenAmount: string | undefined;
+        isQuoteLoading: boolean;
+        isNoQuotesAvailable: boolean;
+        quoteFetchError: null;
+        isActiveQuoteForCurrentTokenPair: boolean;
+      } = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        position: createPosition(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+      rerender(props);
+
+      return { result, rerender, props };
+    };
+
+    it('is disabled when a hardware wallet sources from Solana', () => {
+      (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+      const { isHardwareAccount } = jest.requireMock(
+        '../../../../../../util/address',
+      );
+      isHardwareAccount.mockReturnValue(true);
+
+      const { result } = settleQuote();
+
+      expect(result.current.isHardwareSolanaBlocked).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+
+      isHardwareAccount.mockReturnValue(false);
+    });
+
+    it('is disabled when the price impact exceeds the error threshold', () => {
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
+        activeQuote: {
+          quote: { priceData: { priceImpact: '0.30' } },
+        },
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      }));
+
+      const props = {
+        position: createPosition(),
+        onClose: jest.fn(),
+      };
+      const { result } = renderHook(
+        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      expect(result.current.isPriceImpactError).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
     });
   });
 

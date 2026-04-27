@@ -13,6 +13,8 @@ import {
   BoxJustifyContent,
   AvatarToken,
   AvatarTokenSize,
+  Icon as IconDS,
+  IconSize as IconSizeDS,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
@@ -26,6 +28,7 @@ import { getNetworkImageSource } from '../../../../../../util/networks';
 import type { Hex } from '@metamask/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import type { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import SourceTokenPicker from './SourceTokenPicker';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -41,6 +44,7 @@ interface QuickBuyFooterProps {
   formattedSlippage: string;
   formattedMinimumReceived: string;
   formattedPriceImpact: string;
+  priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
   totalAmountUsd: string;
   sourceToken: BridgeToken | undefined;
   sourceChainId: Hex | undefined;
@@ -73,6 +77,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   formattedSlippage,
   formattedMinimumReceived,
   formattedPriceImpact,
+  priceImpactViewData,
   totalAmountUsd,
   sourceToken,
   sourceChainId,
@@ -96,7 +101,8 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   onConfirm,
   colors,
 }) => {
-  const [isTotalExpanded, setIsTotalExpanded] = useState(false);
+  const isPriceImpactSafe = !priceImpactViewData.icon;
+  const [isTotalExpanded, setIsTotalExpanded] = useState(!isPriceImpactSafe);
   return (
     <Box twClassName="w-full">
       {/* Preset pills */}
@@ -308,12 +314,30 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
                 >
                   {strings('social_leaderboard.quick_buy.price_impact')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  testID="quick-buy-price-impact"
                 >
-                  {formattedPriceImpact}
-                </Text>
+                  {priceImpactViewData.icon && (
+                    <IconDS
+                      name={priceImpactViewData.icon.name}
+                      size={IconSizeDS.Sm}
+                      color={priceImpactViewData.icon.color}
+                    />
+                  )}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={
+                      priceImpactViewData.icon
+                        ? priceImpactViewData.textColor
+                        : TextColor.TextDefault
+                    }
+                  >
+                    {formattedPriceImpact}
+                  </Text>
+                </Box>
               </Box>
             </Box>
           )}

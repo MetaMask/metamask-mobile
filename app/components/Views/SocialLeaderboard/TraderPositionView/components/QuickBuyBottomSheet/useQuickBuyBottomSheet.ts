@@ -22,6 +22,8 @@ import {
   selectDestAddress,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectBridgeFeatureFlags,
   setIsSubmittingTx,
 } from '../../../../../../core/redux/slices/bridge';
 import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
@@ -29,15 +31,33 @@ import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalanc
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
 import { useInitialSlippage } from '../../../../../UI/Bridge/hooks/useInitialSlippage';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import {
+  parsePriceImpact,
+  exceedsPriceImpactErrorThreshold,
+} from '../../../../../UI/Bridge/utils/getPriceImpactViewData';
 import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useRecipientInitialization } from '../../../../../UI/Bridge/hooks/useRecipientInitialization';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../../util/address';
 import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { calcTokenValue } from '../../../../../../util/transactions';
+
+export type QuickBuyButtonError =
+  | 'insufficient_balance'
+  | 'insufficient_gas'
+  | 'no_quotes';
+
+const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
+  insufficient_balance: 'bridge.insufficient_funds',
+  insufficient_gas: 'bridge.insufficient_gas',
+  no_quotes: 'social_leaderboard.quick_buy.no_quotes',
+};
 
 export interface UseQuickBuyBottomSheetResult {
   // refs
@@ -77,8 +97,12 @@ export interface UseQuickBuyBottomSheetResult {
   hasRewardsError: boolean;
   accountOptedIn: boolean | null;
   rewardsAccountScope: InternalAccount | null;
-  // button state
-  hasError: boolean;
+  // warnings (banner-level; can stack)
+  isHardwareSolanaBlocked: boolean;
+  priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
+  isPriceImpactError: boolean;
+  // button state (priority-encoded; the Buy button surfaces at most one)
+  buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
   isConfirmDisabled: boolean;
   isConfirmLoading: boolean;
@@ -106,6 +130,15 @@ export function useQuickBuyBottomSheet(
   const destAddress = useSelector(selectDestAddress);
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
+  const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareAddress = selectedAddress
+    ? !!isHardwareAccount(selectedAddress)
+    : false;
+  const isHardwareSolanaBlocked = isHardwareAddress && Boolean(isSolanaSourced);
 
   const {
     chainId: destChainId,
@@ -238,6 +271,19 @@ export function useQuickBuyBottomSheet(
     if (!priceImpact) return '-';
     return `${(Number(priceImpact) * 100).toFixed(2)}%`;
   }, [activeQuote]);
+
+  const priceImpactViewData = usePriceImpactViewData(
+    activeQuote?.quote?.priceData?.priceImpact,
+  );
+
+  const isPriceImpactError = useMemo(
+    () =>
+      exceedsPriceImpactErrorThreshold(
+        parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact),
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      ),
+    [activeQuote, bridgeFeatureFlags],
+  );
 
   const totalAmountUsd = useMemo(() => {
     const inputNum = parseFloat(usdAmount);
@@ -411,6 +457,8 @@ export function useQuickBuyBottomSheet(
     hasSufficientGas === false ||
     isSubmittingTx ||
     hasError ||
+    isHardwareSolanaBlocked ||
+    isPriceImpactError ||
     !walletAddress;
 
   const isConfirmLoading =
@@ -419,13 +467,19 @@ export function useQuickBuyBottomSheet(
     isPendingQuoteRefresh ||
     (isQuoteLoading && !activeQuote && hasCompleteQuoteInputs);
 
+  const buttonError: QuickBuyButtonError | null = hasInsufficientBalance
+    ? 'insufficient_balance'
+    : hasSufficientGas === false
+      ? 'insufficient_gas'
+      : hasError
+        ? 'no_quotes'
+        : null;
+
   const getButtonLabel = useCallback(() => {
-    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
-    if (hasSufficientGas === false) return strings('bridge.insufficient_gas');
+    if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
-    if (hasError) return strings('social_leaderboard.quick_buy.unavailable');
     return strings('social_leaderboard.trader_position.buy');
-  }, [hasInsufficientBalance, hasSufficientGas, isSubmittingTx, hasError]);
+  }, [buttonError, isSubmittingTx]);
 
   return {
     hiddenInputRef,
@@ -457,7 +511,10 @@ export function useQuickBuyBottomSheet(
     hasRewardsError,
     accountOptedIn,
     rewardsAccountScope,
-    hasError,
+    isHardwareSolanaBlocked,
+    priceImpactViewData,
+    isPriceImpactError,
+    buttonError,
     hasValidAmount,
     isConfirmDisabled,
     isConfirmLoading,

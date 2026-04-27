@@ -17,6 +17,7 @@ import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import QuickBuyHeader from './QuickBuyHeader';
 import QuickBuyAmountInput from './QuickBuyAmountInput';
+import QuickBuyBanners from './QuickBuyBanners';
 import QuickBuyFooter from './QuickBuyFooter';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 
@@ -67,7 +68,9 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     shouldShowRewardsFallbackZero,
     hasRewardsError,
     rewardsAccountScope,
-    hasError,
+    isHardwareSolanaBlocked,
+    priceImpactViewData,
+    isPriceImpactError,
     hasValidAmount,
     isConfirmDisabled,
     isConfirmLoading,
@@ -94,11 +97,19 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
             estimatedReceiveAmount={estimatedReceiveAmount}
             isQuoteLoading={isQuoteLoading}
             hasValidAmount={hasValidAmount}
-            hasError={hasError}
             hiddenInputRef={hiddenInputRef}
             onAmountAreaPress={handleAmountAreaPress}
             onAmountChange={handleAmountChange}
             colors={colors}
+          />
+
+          <QuickBuyBanners
+            isHardwareSolanaBlocked={isHardwareSolanaBlocked}
+            isPriceImpactError={isPriceImpactError}
+            isPriceImpactWarning={
+              !isPriceImpactError && !!priceImpactViewData.icon
+            }
+            formattedPriceImpact={formattedPriceImpact}
           />
 
           <QuickBuyFooter
@@ -107,8 +118,9 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
             formattedSlippage={formattedSlippage}
             formattedMinimumReceived={formattedMinimumReceived}
             formattedPriceImpact={formattedPriceImpact}
-            totalAmountUsd={totalAmountUsd}
+            priceImpactViewData={priceImpactViewData}
             sourceToken={sourceToken}
+            totalAmountUsd={totalAmountUsd}
             sourceChainId={sourceChainId}
             sourceTokenOptions={sourceTokenOptions}
             selectedSourceToken={selectedSourceToken}
