@@ -29,7 +29,8 @@ export const flashListMock = () => {
       if (!data || data.length === 0) {
         if (!ListEmptyComponent) return null;
         if (React.isValidElement(ListEmptyComponent)) return ListEmptyComponent;
-        return React.createElement(ListEmptyComponent as React.ComponentType);
+        const EmptyComponent = ListEmptyComponent as React.ComponentType;
+        return React.createElement(EmptyComponent);
       }
       return React.createElement(
         View,
