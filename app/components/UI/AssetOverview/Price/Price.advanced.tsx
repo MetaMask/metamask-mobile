@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -20,11 +20,20 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 import { LineGraph, GraphPoint } from 'react-native-graph';
+import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
+import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
+import {
+  ChartType,
+  type ChartInteractedPayload,
+  type CrosshairData,
+  type IndicatorType,
+} from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
+import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import {
   Box,
   FontWeight,
@@ -35,7 +44,10 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
+import { setTokenOverviewChartType } from '../../../../actions/user';
 import { usePriceChart } from '../PriceChart/PriceChart.context';
+
+const EMPTY_INDICATORS: IndicatorType[] = [];
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -52,7 +64,6 @@ export interface PriceAdvancedProps {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
-  onTimePeriodChange?: (period: string) => void;
 }
 
 const PriceAdvanced = ({
@@ -62,20 +73,63 @@ const PriceAdvanced = ({
   currentCurrency,
   comparePrice,
   isLoading,
-  onTimePeriodChange,
 }: PriceAdvancedProps) => {
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
+  const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
+    null,
+  );
   const { setIsChartBeingTouched } = usePriceChart();
 
-  // Scrub state: when the user pans the chart, show the scrubbed price
+  // Scrub state: when the user pans the line chart, show the scrubbed price
   const [scrubPrice, setScrubPrice] = useState<number | null>(null);
   const isScrubbing = scrubPrice !== null;
 
   const handlePointSelected = useCallback((point: GraphPoint) => {
     setScrubPrice(point.value);
   }, []);
+
+  const handleCrosshairMove = useCallback(
+    (data: CrosshairData | null) => setCrosshairData(data),
+    [],
+  );
+
+  const handleChartInteracted = useCallback(
+    (payload: ChartInteractedPayload) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: payload.interaction_type,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+
+  const handleChartTradingViewClicked = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_TRADINGVIEW_CLICKED).build(),
+    );
+  }, [createEventBuilder, trackEvent]);
+
+  const toggleChartType = useCallback(() => {
+    const next =
+      chartType === ChartType.Candles ? ChartType.Line : ChartType.Candles;
+    if (next !== ChartType.Candles) {
+      setCrosshairData(null);
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_TYPE_CHANGED)
+        .addProperties({
+          chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
+        })
+        .build(),
+    );
+    dispatch(setTokenOverviewChartType(next));
+  }, [chartType, createEventBuilder, trackEvent, dispatch]);
 
   const handleTouchStart = useCallback(() => {
     setIsChartBeingTouched(true);
@@ -99,10 +153,8 @@ const PriceAdvanced = ({
           .build(),
       );
       setTimeRange(range);
-      const config = TIME_RANGE_CONFIGS[range];
-      onTimePeriodChange?.(config.timePeriod);
     },
-    [createEventBuilder, timeRange, trackEvent, onTimePeriodChange],
+    [createEventBuilder, timeRange, trackEvent],
   );
 
   const assetId = useMemo(() => {
@@ -116,16 +168,40 @@ const PriceAdvanced = ({
   }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
 
+  const ohlcvSeriesKey = useMemo(
+    () =>
+      `${assetId}|${config.timePeriod}|${config.interval}|${currentCurrency}`,
+    [assetId, config.timePeriod, config.interval, currentCurrency],
+  );
+
   const {
     ohlcvData,
     isLoading: chartLoading,
     error: chartError,
+    hasMore,
+    nextCursor,
   } = useOHLCVChart({
     assetId,
     timePeriod: config.timePeriod,
     interval: config.interval,
     vsCurrency: currentCurrency,
   });
+
+  const ohlcvPagination = useMemo(
+    () => ({
+      nextCursor,
+      hasMore,
+      assetId,
+      vsCurrency: currentCurrency,
+    }),
+    [nextCursor, hasMore, assetId, currentCurrency],
+  );
+
+  const visibleFromMs = useMemo(() => {
+    const lastBar = ohlcvData[ohlcvData.length - 1];
+    if (!lastBar) return undefined;
+    return lastBar.time - config.durationMs;
+  }, [ohlcvData, config.durationMs]);
 
   // Normalize + trim helper (pure function, no hooks).
   const NORMALIZED_POINT_COUNT = 100;
@@ -200,9 +276,7 @@ const PriceAdvanced = ({
   // When scrubbing, compute price/diff from the scrubbed point vs first point in range
   const firstPointPrice = graphPoints.length > 0 ? graphPoints[0].value : 0;
   const displayPrice = isScrubbing ? scrubPrice : currentPrice;
-  const displayDiff = isScrubbing
-    ? scrubPrice - firstPointPrice
-    : priceDiff;
+  const displayDiff = isScrubbing ? scrubPrice - firstPointPrice : priceDiff;
   const displayCompare = isScrubbing ? firstPointPrice : comparePrice;
 
   const chartColor =
@@ -314,6 +388,9 @@ const PriceAdvanced = ({
         </Text>
       </View>
       <Box twClassName={showEmptyState ? 'mt-3 mb-6' : 'mt-3'}>
+        {crosshairData && chartType === ChartType.Candles && (
+          <OHLCVBar data={crosshairData} currency={currentCurrency} />
+        )}
         <View
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
@@ -334,13 +411,30 @@ const PriceAdvanced = ({
                 {strings('asset_overview.no_chart_data.description')}
               </Text>
             </View>
+          ) : chartType === ChartType.Candles ? (
+            <AdvancedChart
+              ohlcvData={ohlcvData}
+              ohlcvSeriesKey={ohlcvSeriesKey}
+              height={CHART_HEIGHT}
+              showVolume
+              volumeOverlay
+              chartType={chartType}
+              indicators={EMPTY_INDICATORS}
+              lineChrome={advancedChartLineChromePresets.tokenOverview}
+              isLoading={chartLoading}
+              ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
+              onCrosshairMove={handleCrosshairMove}
+              onChartInteracted={handleChartInteracted}
+              onChartTradingViewClicked={handleChartTradingViewClicked}
+            />
           ) : (
             <LineGraph
               animated
               points={graphPoints}
               color={chartColor}
               gradientFillColors={gradientColors}
-              style={{ width: '100%', height: CHART_HEIGHT }}
+              style={styles.lineGraph}
               enablePanGesture
               enableIndicator
               indicatorPulsating
@@ -360,7 +454,7 @@ const PriceAdvanced = ({
               selected={timeRange}
               onSelect={handleTimeRangeSelect}
               chartType={chartType}
-              onChartTypeToggle={() => {}}
+              onChartTypeToggle={toggleChartType}
             />
           </View>
         </View>

@@ -15,7 +15,6 @@ interface PriceSharedProps {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
-  onTimePeriodChange?: (period: string) => void;
 }
 
 /**
@@ -33,10 +32,10 @@ const Price = (props: PriceProps) => {
   const isAdvancedChartEnabled = useSelector(
     selectTokenOverviewAdvancedChartEnabled,
   );
-  const { asset, prices, timePeriod, isLoading, onTimePeriodChange, ...rest } = props;
+  const { asset, prices, timePeriod, isLoading, ...rest } = props;
 
   if (isAdvancedChartEnabled) {
-    return <PriceAdvanced asset={asset} isLoading={isLoading} onTimePeriodChange={onTimePeriodChange} {...rest} />;
+    return <PriceAdvanced asset={asset} isLoading={isLoading} {...rest} />;
   }
   return (
     <PriceLegacy

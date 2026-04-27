@@ -35958,7 +35958,7 @@ __metadata:
     react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:^2.25.0"
     react-native-get-random-values: "npm:^1.8.0"
-    react-native-graph: "file:/tmp/react-native-graph-1.1.0.tgz"
+    react-native-graph: "npm:1.2.0"
     react-native-gzip: "npm:^1.1.0"
     react-native-i18n: "npm:2.0.15"
     react-native-in-app-review: "npm:^4.3.3"
@@ -40499,15 +40499,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-graph@file:/tmp/react-native-graph-1.1.0.tgz::locator=metamask%40workspace%3A.":
-  version: 1.1.0
-  resolution: "react-native-graph@file:/tmp/react-native-graph-1.1.0.tgz#/tmp/react-native-graph-1.1.0.tgz::hash=d45eef&locator=metamask%40workspace%3A."
+"react-native-graph@npm:1.2.0":
+  version: 1.2.0
+  resolution: "react-native-graph@npm:1.2.0"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-reanimated: "*"
     react-native-worklets: "*"
-  checksum: 10/8227aa0261b5455d52e0ff27f09f5f13146a5bce4e3e8344c3e4e48c1ac931202eadf21db5c7584877556001ec11f2eac0e1050cea406ad7a51fd958d77ebda9
+  checksum: 10/6d95ea6dd1bd30abcfec3b0600b2a7fbdd1a19e925239aff6bc5483e783d42966c3e44cf161f16f1321785809c5384e9e7c44915d443e8fc2ba2f716f688f04a
   languageName: node
   linkType: hard
 

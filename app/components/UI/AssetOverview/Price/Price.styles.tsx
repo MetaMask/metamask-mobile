@@ -1,5 +1,6 @@
 import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, ViewStyle } from 'react-native';
+import { TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT } from './tokenOverviewChart.constants';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -27,6 +28,10 @@ const styleSheet = (params: { theme: Theme }) => {
     chartContainer: {
       width: '100%',
       alignSelf: 'stretch',
+    } as ViewStyle,
+    lineGraph: {
+      width: '100%',
+      height: CHART_HEIGHT,
     } as ViewStyle,
     /** Figma: column, py 12, align start, gap 10; child row is full width */
     timeRangeContainer: {
