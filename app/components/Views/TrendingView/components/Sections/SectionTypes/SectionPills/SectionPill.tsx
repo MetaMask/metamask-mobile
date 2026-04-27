@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable } from 'react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { isCaipChainId } from '@metamask/utils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -13,8 +14,11 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { TimeOption } from '../../../../../../UI/Trending/components/TrendingTokensBottomSheet';
-import { getPriceChangeFieldKey } from '../../../../../../UI/Trending/components/TrendingTokenRowItem/utils';
-import useNetworkBadgeSource from '../../../../../../UI/Trending/hooks/useNetworkBadgeSource';
+import {
+  getCaipChainIdFromAssetId,
+  getNetworkBadgeSource,
+  getPriceChangeFieldKey,
+} from '../../../../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import TrendingTokenLogo from '../../../../../../UI/Trending/components/TrendingTokenLogo';
 import Badge, {
   BadgeVariant,
@@ -39,7 +43,11 @@ const SectionPill: React.FC<SectionPillProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const networkBadgeImageSource = useNetworkBadgeSource(token.assetId);
+  const networkBadgeImageSource = useMemo(() => {
+    const caipChainId = getCaipChainIdFromAssetId(token.assetId);
+    if (!isCaipChainId(caipChainId)) return undefined;
+    return getNetworkBadgeSource(caipChainId);
+  }, [token.assetId]);
 
   const { changeLabel, textColor, showChange } = useMemo(() => {
     const key = getPriceChangeFieldKey(TimeOption.TwentyFourHours);

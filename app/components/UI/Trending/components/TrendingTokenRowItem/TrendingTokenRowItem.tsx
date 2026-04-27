@@ -1,7 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
   TextVariant,
@@ -38,16 +36,13 @@ import {
 } from './utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { PopularList } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
-import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { TimeOption } from '../TrendingTokensBottomSheet';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
-import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
-import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import { useTrendingTokenPress } from '../../hooks/useTrendingTokenPress/useTrendingTokenPress';
 
 /**
  * Gets the text color for price percentage change
@@ -144,27 +139,10 @@ const TrendingTokenRowItem = ({
   testIdInstanceKey,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-  const { addPopularNetwork } = useAddPopularNetwork();
-  const sessionManager = TrendingFeedSessionManager.getInstance();
 
-  // Memoize derived values
   const caipChainId = useMemo(
     () => getCaipChainIdFromAssetId(token.assetId),
     [token.assetId],
-  );
-
-  const assetParams = useMemo(
-    () =>
-      getAssetNavigationParams(
-        token,
-        tokenDetailsSource,
-        transactionActiveAbTests,
-      ),
-    [token, tokenDetailsSource, transactionActiveAbTests],
   );
 
   const networkBadgeImageSource = useMemo(
@@ -177,83 +155,32 @@ const TrendingTokenRowItem = ({
     [token.securityData?.resultType],
   );
 
-  // Parse price change percentage from API (comes as string like "-3.44" or "+0.456")
-  // Use the correct field based on selected time option
   const priceChangeFieldKey = getPriceChangeFieldKey(selectedTimeOption);
   const pricePercentChangeString = token.priceChangePct?.[priceChangeFieldKey];
   const pricePercentChange = pricePercentChangeString
     ? parseFloat(pricePercentChangeString)
     : undefined;
 
-  // Determine the color for percentage change
-  // Handle 0 as neutral (not positive or negative)
   const hasPercentageChange =
     pricePercentChange !== undefined && !isNaN(pricePercentChange);
   const isPositiveChange = hasPercentageChange && pricePercentChange > 0;
+
+  const { onPress: defaultOnPress } = useTrendingTokenPress({
+    token,
+    index: position,
+    filterContext,
+    tokenDetailsSource,
+    transactionActiveAbTests,
+    selectedTimeOption,
+  });
 
   const handlePress = useCallback(async () => {
     if (onPress) {
       onPress(token);
       return;
     }
-
-    if (!assetParams) return;
-
-    // Track token click event BEFORE navigation to ensure capture
-    if (position !== undefined && filterContext) {
-      sessionManager.trackTokenClick({
-        token_symbol: token.symbol,
-        token_address: assetParams.address,
-        token_name: token.name,
-        chain_id: assetParams.chainId,
-        position,
-        price_usd: parseFloat(token.price) || 0,
-        price_change_pct: pricePercentChange ?? 0,
-        time_filter: filterContext.timeFilter,
-        sort_option: filterContext.sortOption || PriceChangeOption.PriceChange,
-        network_filter: filterContext.networkFilter,
-        is_search_result: filterContext.isSearchResult,
-      });
-    }
-
-    const isNetworkAdded = Boolean(networkConfigurations[caipChainId]);
-
-    if (!isNetworkAdded) {
-      const popularNetwork = PopularList.find(
-        (network) => network.chainId === assetParams.chainId,
-      );
-
-      if (popularNetwork) {
-        // Add the network directly without showing confirmation modal
-        // addPopularNetwork handles both enabling the network in the filter
-        // and switching to it (shouldSwitchNetwork defaults to true)
-        try {
-          await addPopularNetwork(popularNetwork);
-        } catch (error) {
-          // If network addition fails, don't navigate
-          console.error('Failed to add network:', error);
-          return;
-        }
-      }
-    }
-
-    // Use push so we always open a new Asset screen for the tapped token.
-    // This prevents issues such as dismissing screens like Bridge instead
-    // of navigating forward to the new token.
-    navigation.dispatch(StackActions.push('Asset', assetParams));
-  }, [
-    onPress,
-    assetParams,
-    caipChainId,
-    navigation,
-    networkConfigurations,
-    addPopularNetwork,
-    position,
-    filterContext,
-    pricePercentChange,
-    token,
-    sessionManager,
-  ]);
+    await defaultOnPress();
+  }, [onPress, token, defaultOnPress]);
 
   const rowTestId = testIdInstanceKey
     ? `trending-token-row-item-${testIdInstanceKey}-${token.assetId}`

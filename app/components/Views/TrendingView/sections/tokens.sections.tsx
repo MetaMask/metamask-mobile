@@ -13,7 +13,7 @@ import { useRwaTokens } from '../../../UI/Trending/hooks/useRwaTokens/useRwaToke
 import SectionCard from '../components/Sections/SectionTypes/SectionCard';
 import SectionPills from '../components/Sections/SectionTypes/SectionPills/SectionPills';
 import SectionPillsSkeleton from '../components/Sections/SectionTypes/SectionPills/SectionPillsSkeleton';
-import { useTrendingTokenPress } from '../hooks/useTrendingTokenPress';
+import { useTrendingTokenPress } from '../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 import SectionPill from '../components/Sections/SectionTypes/SectionPills/SectionPill';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
