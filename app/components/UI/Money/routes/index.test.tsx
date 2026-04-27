@@ -2,7 +2,7 @@ import React from 'react';
 import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
-import { MoneyScreenStack } from './index';
+import { MoneyModalStack, MoneyScreenStack } from './index';
 
 const EXPECTED_CARD_BACKGROUND = '#money-test-bg';
 
@@ -55,6 +55,10 @@ jest.mock('../Views/MoneyActivityView', () => () => (
   <MockView testID="mock-money-activity-view" />
 ));
 
+jest.mock('../components/MoneyAddMoneySheet', () => () => (
+  <MockView testID="mock-money-add-money-sheet" />
+));
+
 describe('MoneyScreenStack', () => {
   it('registers Money home and activity screens', () => {
     const { getByTestId } = renderWithProvider(<MoneyScreenStack />, {
@@ -81,5 +85,15 @@ describe('MoneyScreenStack', () => {
     });
 
     expect(getByTestId('money-header-hidden')).toBeOnTheScreen();
+  });
+});
+
+describe('MoneyModalStack', () => {
+  it('registers the Add money sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId('money-screen-MoneyAddMoneySheet')).toBeOnTheScreen();
   });
 });
