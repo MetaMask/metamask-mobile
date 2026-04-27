@@ -4,13 +4,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import type { Hex } from '@metamask/utils';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
-import { isNumberValue , dotAndCommaDecimalFormatter } from '../../../../../../util/number';
+import {
+  isNumberValue,
+  dotAndCommaDecimalFormatter,
+} from '../../../../../../util/number';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { useGasFeeEstimates } from '../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import {
@@ -26,7 +28,6 @@ import {
   selectBridgeFeatureFlags,
   setIsSubmittingTx,
 } from '../../../../../../core/redux/slices/bridge';
-import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
@@ -88,15 +89,6 @@ export interface UseQuickBuyBottomSheetResult {
   // quote state
   isQuoteLoading: boolean;
   isSubmittingTx: boolean;
-  // rewards
-  estimatedPoints: number | null;
-  isRewardsLoading: boolean;
-  shouldShowLiveRewardsEstimate: boolean;
-  shouldShowRewardsOptInCta: boolean;
-  shouldShowRewardsFallbackZero: boolean;
-  hasRewardsError: boolean;
-  accountOptedIn: boolean | null;
-  rewardsAccountScope: InternalAccount | null;
   // warnings (banner-level; can stack)
   isHardwareSolanaBlocked: boolean;
   priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
@@ -292,18 +284,6 @@ export function useQuickBuyBottomSheet(
     return `$${(inputNum + networkFeeRawUsd).toFixed(2)}`;
   }, [usdAmount, networkFeeRawUsd]);
 
-  const {
-    estimatedPoints,
-    isLoading: isRewardsLoading,
-    shouldShowRewardsRow,
-    hasError: hasRewardsError,
-    accountOptedIn,
-    rewardsAccountScope,
-  } = useRewards({
-    activeQuote,
-    isQuoteLoading,
-  });
-
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceTokenAmount,
     token: sourceToken,
@@ -312,21 +292,6 @@ export function useQuickBuyBottomSheet(
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
-
-  const shouldShowLiveRewardsEstimate = Boolean(
-    shouldShowRewardsRow && accountOptedIn,
-  );
-  const shouldShowRewardsOptInCta = Boolean(
-    shouldShowRewardsRow && !accountOptedIn && rewardsAccountScope,
-  );
-  const hasRewardsQuoteContext = Boolean(
-    sourceTokenAmount && walletAddress && activeQuote,
-  );
-  const shouldShowRewardsFallbackZero = Boolean(
-    hasRewardsQuoteContext &&
-      !shouldShowLiveRewardsEstimate &&
-      !shouldShowRewardsOptInCta,
-  );
 
   const { submitBridgeTx } = useSubmitBridgeTx();
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
@@ -503,14 +468,6 @@ export function useQuickBuyBottomSheet(
     totalAmountUsd,
     isQuoteLoading,
     isSubmittingTx,
-    estimatedPoints,
-    isRewardsLoading,
-    shouldShowLiveRewardsEstimate,
-    shouldShowRewardsOptInCta,
-    shouldShowRewardsFallbackZero,
-    hasRewardsError,
-    accountOptedIn,
-    rewardsAccountScope,
     isHardwareSolanaBlocked,
     priceImpactViewData,
     isPriceImpactError,

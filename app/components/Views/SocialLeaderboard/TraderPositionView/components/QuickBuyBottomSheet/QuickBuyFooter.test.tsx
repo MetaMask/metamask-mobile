@@ -117,13 +117,6 @@ const defaultProps = {
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
   sourceBalanceFiat: '$2000.00',
-  estimatedPoints: null,
-  isRewardsLoading: false,
-  shouldShowLiveRewardsEstimate: false,
-  shouldShowRewardsOptInCta: false,
-  shouldShowRewardsFallbackZero: false,
-  hasRewardsError: false,
-  rewardsAccountScope: null,
   isConfirmDisabled: false,
   isConfirmLoading: false,
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
@@ -185,21 +178,6 @@ describe('QuickBuyFooter', () => {
 
       expect(setSelectedSourceToken).toHaveBeenCalledWith(usdcToken);
       expect(setIsSourcePickerOpen).toHaveBeenCalledWith(false);
-    });
-  });
-
-  describe('est. points row', () => {
-    it('renders the rewards animation when a live estimate is available', () => {
-      renderWithProvider(
-        <QuickBuyFooter
-          {...defaultProps}
-          shouldShowLiveRewardsEstimate
-          estimatedPoints={42}
-        />,
-      );
-
-      expect(screen.getByTestId('mock-rewards-animation')).toBeOnTheScreen();
-      expect(screen.getByText('42 pts')).toBeOnTheScreen();
     });
   });
 

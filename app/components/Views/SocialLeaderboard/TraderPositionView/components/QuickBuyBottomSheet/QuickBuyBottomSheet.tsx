@@ -61,13 +61,6 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     formattedPriceImpact,
     totalAmountUsd,
     isQuoteLoading,
-    estimatedPoints,
-    isRewardsLoading,
-    shouldShowLiveRewardsEstimate,
-    shouldShowRewardsOptInCta,
-    shouldShowRewardsFallbackZero,
-    hasRewardsError,
-    rewardsAccountScope,
     isHardwareSolanaBlocked,
     priceImpactViewData,
     isPriceImpactError,
@@ -128,13 +121,6 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
             setIsSourcePickerOpen={setIsSourcePickerOpen}
             setSelectedSourceToken={setSelectedSourceToken}
             sourceBalanceFiat={sourceBalanceFiat}
-            estimatedPoints={estimatedPoints}
-            isRewardsLoading={isRewardsLoading}
-            shouldShowLiveRewardsEstimate={shouldShowLiveRewardsEstimate}
-            shouldShowRewardsOptInCta={shouldShowRewardsOptInCta}
-            shouldShowRewardsFallbackZero={shouldShowRewardsFallbackZero}
-            hasRewardsError={hasRewardsError}
-            rewardsAccountScope={rewardsAccountScope}
             isConfirmDisabled={isConfirmDisabled}
             isConfirmLoading={isConfirmLoading}
             getButtonLabel={getButtonLabel}
