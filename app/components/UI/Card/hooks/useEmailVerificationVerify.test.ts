@@ -92,6 +92,7 @@ describe('useEmailVerificationVerify', () => {
       profileId: mockProfileId,
       identifierId: 'mock-identifier-id',
       metaMetricsId: 'mock-metametrics-id',
+      canonicalProfileId: mockProfileId,
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
@@ -309,6 +310,7 @@ describe('useEmailVerificationVerify', () => {
         profileId: '',
         identifierId: 'mock-identifier-id',
         metaMetricsId: 'mock-metametrics-id',
+        canonicalProfileId: '',
       });
       mockEmailVerificationVerify.mockResolvedValue(mockVerifyResponse);
 
