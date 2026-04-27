@@ -165,6 +165,16 @@ post_install do |installer|
     end
   end
 
+  # Workaround for fmt consteval issue with Xcode 26+ Clang
+  installer.pods_project.targets.each do |target|
+    if target.name == 'fmt'
+      target.build_configurations.each do |config|
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'FMT_CONSTEVAL=constexpr'
+      end
+    end
+  end
+
   # This is necessary for Xcode 14, because it signs resource bundles by default
   # when building for devices.
   installer.target_installation_results.pod_target_installation_results
