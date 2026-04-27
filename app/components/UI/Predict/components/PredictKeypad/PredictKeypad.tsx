@@ -1,10 +1,11 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
 import { View } from 'react-native';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import Keypad from '../../../../Base/Keypad';
 
 interface PredictKeypadProps {
@@ -147,33 +148,37 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
           <View style={tw.style('px-4 mb-3')}>
             <View style={tw.style('flex-row space-between gap-2')}>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                label="$20"
                 onPress={() => handleKeypadAmountPress(20)}
                 style={tw.style('flex-1 h-12')}
-              />
+              >
+                $20
+              </Button>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                label="$50"
                 onPress={() => handleKeypadAmountPress(50)}
                 style={tw.style('flex-1 h-12')}
-              />
+              >
+                $50
+              </Button>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                label="$100"
                 onPress={() => handleKeypadAmountPress(100)}
                 style={tw.style('flex-1 h-12')}
-              />
+              >
+                $100
+              </Button>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Md}
-                label="Done"
                 onPress={handleDonePress}
                 style={tw.style('flex-1 h-12')}
-              />
+              >
+                Done
+              </Button>
             </View>
           </View>
         )}

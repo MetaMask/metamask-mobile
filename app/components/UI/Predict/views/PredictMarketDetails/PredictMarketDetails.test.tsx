@@ -719,7 +719,7 @@ const getActionButtonText = (button: ReactTestInstance) =>
 
 const getActionButtons = () =>
   screen
-    .getAllByTestId('button')
+    .getAllByRole('button')
     .filter((button) => getActionButtonText(button).includes('¢'));
 
 const getActionButtonPrice = (button: ReactTestInstance) => {
