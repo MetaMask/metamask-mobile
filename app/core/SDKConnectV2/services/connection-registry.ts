@@ -182,7 +182,7 @@ export class ConnectionRegistry {
         remote_session_id: conn.metadata?.analytics?.remote_session_id ?? id,
         transport_type: TransportType.MWP,
         sdk_version: conn.metadata?.sdk?.version,
-        sdk_platform: conn.metadata?.sdk?.platform,
+        remote_request_platform: conn.metadata?.sdk?.platform,
         found_in_store: true,
       });
       return;
@@ -257,7 +257,7 @@ export class ConnectionRegistry {
           connReq.sessionRequest.id,
         transport_type: TransportType.MWP,
         sdk_version: connReq.metadata.sdk.version,
-        sdk_platform: connReq.metadata.sdk.platform,
+        remote_request_platform: connReq.metadata.sdk.platform,
       });
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
@@ -304,7 +304,7 @@ export class ConnectionRegistry {
           'unknown',
         transport_type: TransportType.MWP,
         sdk_version: connReq?.metadata?.sdk?.version,
-        sdk_platform: connReq?.metadata?.sdk?.platform,
+        remote_request_platform: connReq?.metadata?.sdk?.platform,
         failure_reason: error instanceof Error ? error.message : String(error),
       });
 
