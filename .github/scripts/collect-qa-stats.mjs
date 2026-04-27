@@ -41,26 +41,12 @@
 import { readFile, writeFile, mkdir, readdir, access } from 'fs/promises';
 import { constants as fsConstants } from 'fs';
 import { execSync } from 'child_process';
-import { join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
 
-/**
- * When set, all GitHub API calls are bypassed and artifacts are read directly
- * from subdirectories of this folder. Each subdirectory name is treated as
- * the artifact name (e.g. `test-e2e-main-confirmations-android-smoke-1/junit.xml`).
- *
- * Used for local development and unit tests; production runs leave it unset.
- */
-const LOCAL_FIXTURES_DIR = process.env.LOCAL_QA_STATS_FIXTURES_DIR
-  ? resolve(process.env.LOCAL_QA_STATS_FIXTURES_DIR)
-  : null;
-
-if (!GITHUB_TOKEN && !LOCAL_FIXTURES_DIR) {
-  throw new Error('Missing required GITHUB_TOKEN env var (or LOCAL_QA_STATS_FIXTURES_DIR for local runs)');
-}
+if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 
 
 // ---------------------------------------------------------------------------
@@ -125,10 +111,6 @@ async function getLatestCiRunId() {
 
 async function getRunId() {
   if (_runId) return _runId;
-  if (LOCAL_FIXTURES_DIR) {
-    _runId = 'local-fixtures';
-    return _runId;
-  }
   _runId = await getLatestCiRunId();
   return _runId;
 }
@@ -141,15 +123,6 @@ async function getRunId() {
  */
 async function getArtifactList() {
   if (_artifactList) return _artifactList;
-
-  if (LOCAL_FIXTURES_DIR) {
-    const entries = await readdir(LOCAL_FIXTURES_DIR, { withFileTypes: true });
-    _artifactList = entries
-      .filter((e) => e.isDirectory())
-      .map((e) => ({ name: e.name, archive_download_url: null }));
-    console.log(`[run] LOCAL_QA_STATS_FIXTURES_DIR set — using ${_artifactList.length} fixture artifact(s) from ${LOCAL_FIXTURES_DIR}`);
-    return _artifactList;
-  }
 
   const runId = await getRunId();
   const artifacts = [];
@@ -187,12 +160,6 @@ async function getArtifactList() {
  * @returns {Promise<string>} Path to the directory containing the extracted files
  */
 async function downloadArtifact(artifactName) {
-  if (LOCAL_FIXTURES_DIR) {
-    const localDir = join(LOCAL_FIXTURES_DIR, artifactName);
-    await access(localDir, fsConstants.F_OK);
-    return localDir;
-  }
-
   const artifacts = await getArtifactList();
   const artifact = artifacts.find((a) => a.name === artifactName);
   const runId = await getRunId();
@@ -1187,12 +1154,7 @@ async function main() {
     { namespace: 'e2e_test_times', collect: collectE2ETestTimes },
     { namespace: 'metametrics', collect: collectMetametricsQaStats },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
-    // The feature-flag collector shells out to ts-node and depends on a full
-    // workspace install. Skip it in local fixture mode so the smoke test
-    // stays self-contained.
-    ...(LOCAL_FIXTURES_DIR
-      ? []
-      : [{ namespace: 'feature_flags', collect: collectFeatureFlagCoverage }]),
+    { namespace: 'feature_flags', collect: collectFeatureFlagCoverage },
   ];
 
   for (const { namespace, collect } of collectors) {
@@ -1211,14 +1173,7 @@ async function main() {
   console.log(`✅ QA stats written to ${outputPath}:`, stats);
 }
 
-// Only execute when run directly (e.g. `node collect-qa-stats.mjs`). When the
-// module is imported (unit tests), skip the side-effecting `main()` invocation.
-const isDirectInvocation =
-  process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
-
-if (isDirectInvocation) {
-  main().catch((err) => {
-    console.error('\n❌ Unexpected error:', err);
-    process.exit(1);
-  });
-}
+main().catch((err) => {
+  console.error('\n❌ Unexpected error:', err);
+  process.exit(1);
+});
