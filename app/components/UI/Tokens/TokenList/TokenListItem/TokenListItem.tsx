@@ -505,6 +505,8 @@ export const TokenListItem = React.memo(
 
     return (
       <TouchableOpacity
+        accessible={false}
+        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
         onPress={() => {
           onItemPress?.(asset);
         }}
@@ -513,8 +515,8 @@ export const TokenListItem = React.memo(
             asset.isNative || isMusdAsset ? null : showRemoveMenu;
           onLongPress?.(asset);
         }}
+        activeOpacity={0.7}
         style={styles.itemWrapper}
-        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
       >
         {/* Column: 1 - Token logo */}
         <BadgeWrapper
@@ -656,7 +658,7 @@ export const TokenListItem = React.memo(
                     </Text>
                   ) : (
                     <TouchableOpacity
-                      disabled={!secondaryBalanceDisplay.onPress}
+                      accessible={false}
                       onPress={secondaryBalanceDisplay.onPress}
                       testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
                     >

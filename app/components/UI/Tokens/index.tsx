@@ -270,7 +270,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               maxItems={maxItems}
               isFullView={isFullView}
               listFooterComponent={listFooterComponent}
-              refreshControl={refreshControl}
             />
           </>
         );

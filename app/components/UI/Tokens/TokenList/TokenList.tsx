@@ -41,12 +41,6 @@ interface TokenListProps {
   maxItems?: number;
   isFullView?: boolean;
   listFooterComponent?: React.ReactElement;
-  /**
-   * Optional external RefreshControl. When provided, overrides the internal
-   * one wired via `refreshing` + `onRefresh` so callers can compose their own
-   * refresh orchestrator (e.g. Money Hub).
-   */
-  refreshControl?: React.ReactElement;
 }
 
 const TokenListComponent = ({
@@ -59,7 +53,6 @@ const TokenListComponent = ({
   maxItems,
   isFullView = false,
   listFooterComponent,
-  refreshControl,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -171,6 +164,7 @@ const TokenListComponent = ({
     <Box
       twClassName={'bg-default'}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+      accessible={false}
     >
       {displayTokenKeys.map((item, index) => (
         <TokenListItem
@@ -190,6 +184,7 @@ const TokenListComponent = ({
             variant={ButtonVariant.Secondary}
             onPress={handleViewAllTokens}
             isFullWidth
+            testID={WalletViewSelectorsIDs.VIEW_ALL_TOKENS_BUTTON}
           >
             {strings('wallet.view_all_tokens')}
           </Button>
@@ -207,14 +202,12 @@ const TokenListComponent = ({
         renderItem={renderTokenListItem}
         keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
         refreshControl={
-          refreshControl ?? (
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
-          )
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
         }
         extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
