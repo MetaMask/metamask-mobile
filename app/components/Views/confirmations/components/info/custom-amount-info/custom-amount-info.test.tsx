@@ -37,7 +37,6 @@ import { useTransactionConfirm } from '../../../hooks/transactions/useTransactio
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -61,33 +60,19 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
     canSelectWithdrawToken: false,
   })),
 }));
-jest.mock('../../../../../../util/transaction-controller', () => ({
-  updateEditableParams: jest.fn(),
-}));
+jest.mock('../../../../../../util/transaction-controller', () => ({}));
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
-      setTransactionConfig: jest.fn(),
+      updateFiatPayment: jest.fn(),
     },
   },
 }));
-jest.mock('../../AccountSelector', () => {
-  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+jest.mock('../../PayAccountSelector', () => {
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      onAccountSelected,
-    }: {
-      onAccountSelected: (address: string) => void;
-      selectedAddress?: string;
-    }) => (
-      <TouchableOpacity
-        testID="account-selector"
-        onPress={() => onAccountSelected('0xTestRecipient')}
-      >
-        <Text>Select account</Text>
-      </TouchableOpacity>
-    ),
+    default: () => <View testID="pay-account-selector" />,
   };
 });
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
@@ -408,55 +393,16 @@ describe('CustomAmountInfo', () => {
     expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('does not render AccountSelector for non-moneyAccountWithdraw transactions', () => {
-    const { queryByTestId } = render();
+  it('renders PayAccountSelector when supportAccountSelection is true', () => {
+    const { getByTestId } = render({ supportAccountSelection: true });
 
-    expect(queryByTestId('account-selector')).toBeNull();
+    expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
   });
 
-  it('renders AccountSelector for moneyAccountWithdraw transactions', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountWithdraw,
-      txParams: { from: '0x123' },
-    } as never);
+  it('does not render PayAccountSelector when supportAccountSelection is false', () => {
+    const { queryByTestId } = render({ supportAccountSelection: false });
 
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountWithdraw,
-    });
-
-    expect(getByTestId('account-selector')).toBeOnTheScreen();
-  });
-
-  it('calls setTransactionConfig with accountOverride when withdraw account is selected', async () => {
-    const setTransactionConfigMock = jest.mocked(
-      Engine.context.TransactionPayController.setTransactionConfig,
-    );
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: 'mock-tx-id',
-      type: TransactionType.moneyAccountWithdraw,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountWithdraw,
-    });
-
-    await act(async () => {
-      fireEvent.press(getByTestId('account-selector'));
-    });
-
-    expect(setTransactionConfigMock).toHaveBeenCalledWith(
-      'mock-tx-id',
-      expect.any(Function),
-    );
-
-    const configCallback = setTransactionConfigMock.mock.calls[0][1] as (
-      config: Record<string, unknown>,
-    ) => void;
-    const config: Record<string, unknown> = {};
-    configCallback(config);
-    expect(config.accountOverride).toBe('0xTestRecipient');
+    expect(queryByTestId('pay-account-selector')).toBeNull();
   });
 
   it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
@@ -499,62 +445,18 @@ describe('CustomAmountInfo', () => {
     ).toBeNull();
   });
 
-  it('renders AccountSelector for moneyAccountDeposit transactions', () => {
+  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
 
     const { getByTestId } = render({
+      supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
-    expect(getByTestId('account-selector')).toBeOnTheScreen();
-  });
-
-  it('renders AccountSelector for moneyAccountDeposit when txParams.from is undefined', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountDeposit,
-      txParams: {},
-    } as never);
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-
-    expect(getByTestId('account-selector')).toBeOnTheScreen();
-  });
-
-  it('calls setTransactionConfig with accountOverride when deposit account is selected', async () => {
-    const setTransactionConfigMock = jest.mocked(
-      Engine.context.TransactionPayController.setTransactionConfig,
-    );
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: 'mock-tx-id',
-      type: TransactionType.moneyAccountDeposit,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-
-    await act(async () => {
-      fireEvent.press(getByTestId('account-selector'));
-    });
-
-    expect(setTransactionConfigMock).toHaveBeenCalledWith(
-      'mock-tx-id',
-      expect.any(Function),
-    );
-
-    const configCallback = setTransactionConfigMock.mock.calls[0][1] as (
-      config: Record<string, unknown>,
-    ) => void;
-    const config: Record<string, unknown> = {};
-    configCallback(config);
-    expect(config.accountOverride).toBe('0xTestRecipient');
+    expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
   });
 
   describe('hasMax percentage button', () => {

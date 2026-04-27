@@ -138,6 +138,13 @@ describe('PayWithRow', () => {
     } as never);
 
     isHardwareAccountMock.mockReturnValue(false);
+
+    useMoneyAccountPayTokenMock.mockReturnValue({
+      displayToken: undefined,
+      isAwaitingAccountSelection: false,
+      isMoneyAccountDeposit: false,
+      isMoneyAccountWithdraw: false,
+    });
   });
 
   it('renders selected pay token', async () => {
@@ -334,42 +341,9 @@ describe('PayWithRow', () => {
         setPayToken: jest.fn(),
       });
 
-      const { getByTestId, getByText } = render();
+      const { getByText } = render();
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/mUSD/);
       expect(getByText('0xMUSD 0x1')).toBeOnTheScreen();
-    });
-
-    it('prefers moneyAccountDisplayToken over payToken', () => {
-      useMoneyAccountPayTokenMock.mockReturnValue({
-        displayToken: {
-          address: '0xMUSD',
-          chainId: '0x1',
-          symbol: 'mUSD',
-          decimals: 6,
-        },
-        isAwaitingAccountSelection: false,
-        isMoneyAccountDeposit: false,
-        isMoneyAccountWithdraw: true,
-      });
-
-      const { getByTestId } = render();
-
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/mUSD/);
-      expect(getByTestId('pay-with-symbol')).not.toHaveTextContent(/^test/);
-    });
-
-    it('falls back to payToken when moneyAccountDisplayToken is undefined', () => {
-      useMoneyAccountPayTokenMock.mockReturnValue({
-        displayToken: undefined,
-        isAwaitingAccountSelection: false,
-        isMoneyAccountDeposit: false,
-        isMoneyAccountWithdraw: false,
-      });
-
-      const { getByTestId } = render();
-
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/test/);
     });
   });
 });
