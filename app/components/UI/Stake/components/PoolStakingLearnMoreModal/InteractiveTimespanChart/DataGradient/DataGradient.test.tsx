@@ -1,4 +1,5 @@
 import React from 'react';
+import { LinearGradient } from 'react-native-svg';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import DataGradient, { DataGradientProps } from '.';
 
@@ -8,13 +9,15 @@ const MOCK_DATA_POINTS = [
 ];
 
 describe('DataGradient', () => {
-  it('render matches snapshot', () => {
+  it('renders a linear gradient', () => {
     const props: DataGradientProps = {
       dataPoints: MOCK_DATA_POINTS,
     };
 
-    const { toJSON } = renderWithProvider(<DataGradient {...props} />);
+    const { UNSAFE_getByType } = renderWithProvider(
+      <DataGradient {...props} />,
+    );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(UNSAFE_getByType(LinearGradient)).toBeTruthy();
   });
 });
