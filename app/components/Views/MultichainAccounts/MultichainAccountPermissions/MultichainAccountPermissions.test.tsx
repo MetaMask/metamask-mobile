@@ -511,9 +511,7 @@ describe('MultichainAccountPermissions', () => {
 
       const updateButton = getByTestId('multiconnect-connect-network-button');
       await act(async () => {
-        await act(async () => {
-          fireEvent.press(updateButton);
-        });
+        fireEvent.press(updateButton);
       });
 
       // Assert - The component renders correctly and handles network selection

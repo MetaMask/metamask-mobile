@@ -164,7 +164,7 @@ describe('KeyringSnapRemovalWarning', () => {
     const continueButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CONTINUE);
     expect(continueButton).toBeTruthy();
     expect(continueButton).toBeDisabled();
-    // Button text verified via queryByText
+    expect(continueButton).toHaveTextContent('Remove Snap');
 
     const textInput = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);
     expect(textInput).toBeTruthy();

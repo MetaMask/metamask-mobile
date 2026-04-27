@@ -248,7 +248,7 @@ describe('SnapSettings with non keyring snap', () => {
   });
 
   it('renders correctly', () => {
-    const { getAllByTestId, getByTestId, getByText } = renderWithProvider(
+    const { getAllByTestId, getByTestId } = renderWithProvider(
       <SnapSettings />,
       {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

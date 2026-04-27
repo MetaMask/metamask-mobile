@@ -322,8 +322,8 @@ describe('PerpsClosePositionView', () => {
 
       // Assert
       expect(
-        confirmButton.props.accessibilityState?.disabled ??
-          confirmButton.props.disabled,
+        confirmButton.props.disabled ||
+          confirmButton.props.accessibilityState?.disabled,
       ).toBe(true);
     });
 
@@ -407,8 +407,8 @@ describe('PerpsClosePositionView', () => {
 
       // Assert
       expect(
-        confirmButton.props.accessibilityState?.disabled ??
-          confirmButton.props.disabled,
+        confirmButton.props.disabled ||
+          confirmButton.props.accessibilityState?.disabled,
       ).toBe(true);
     });
   });
@@ -1058,8 +1058,8 @@ describe('PerpsClosePositionView', () => {
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
       );
       expect(
-        confirmButton.props.accessibilityState?.disabled ??
-          confirmButton.props.disabled,
+        confirmButton.props.disabled ||
+          confirmButton.props.accessibilityState?.disabled,
       ).toBe(true);
     });
 

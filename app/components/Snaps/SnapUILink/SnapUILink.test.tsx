@@ -31,7 +31,7 @@ describe('SnapUILink', () => {
     expect(children[1].props.style).toEqual({ width: 4 });
 
     const icon = getByTestId('snaps-ui-link-icon');
-    expect(icon).toBeTruthy();
+    expect(icon.props.name).toBe(IconName.Export);
   });
 
   it('opens URL when pressed with valid https URL', () => {

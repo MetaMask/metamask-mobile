@@ -1,55 +1,11 @@
 import React from 'react';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 
-// FlashList v2 jestSetup is broken (RecyclerView not exported from main index).
-// Provide a simple mock that renders items directly.
+// FlashList v2 mock - see app/util/test/mockFlashList.ts
 jest.mock('@shopify/flash-list', () => {
-  const ReactMock = jest.requireActual('react');
-  const { View, ScrollView } = jest.requireActual('react-native');
-  const actual = jest.requireActual('@shopify/flash-list');
-
-  const MockFlashList = ReactMock.forwardRef(
-    (
-      props: {
-        data: unknown[];
-        renderItem: (info: {
-          item: unknown;
-          index: number;
-        }) => React.ReactElement;
-        keyExtractor: (item: unknown, index: number) => string;
-        ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
-      },
-      ref: React.ForwardedRef<unknown>,
-    ) => {
-      const { data, renderItem, keyExtractor, ListEmptyComponent } = props;
-      ReactMock.useImperativeHandle(ref, () => ({
-        scrollToIndex: jest.fn(),
-        scrollToOffset: jest.fn(),
-      }));
-      if (!data || data.length === 0) {
-        return ListEmptyComponent
-          ? ReactMock.createElement(ListEmptyComponent)
-          : null;
-      }
-      return ReactMock.createElement(
-        View,
-        null,
-        data.map((item: unknown, index: number) => {
-          const key = keyExtractor ? keyExtractor(item, index) : String(index);
-          return ReactMock.createElement(
-            ReactMock.Fragment,
-            { key },
-            renderItem({ item, index }),
-          );
-        }),
-      );
-    },
-  );
-
-  return {
-    ...actual,
-    FlashList: MockFlashList,
-  };
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { flashListMock } = require('../../../../util/test/mockFlashList');
+  return flashListMock();
 });
 
 jest.mock('react-native-gesture-handler', () => {
