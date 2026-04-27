@@ -1081,9 +1081,9 @@ describe('ConfirmEmail Component', () => {
         fireEvent.changeText(codeFieldInput, '123456');
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.CONFIRM_MODAL,
-        params: expect.objectContaining({
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.MODALS.CONFIRM_MODAL,
+        {
           title: 'You already have an account',
           description:
             'The email address test@example.com is already associated with a Card account.',
@@ -1091,8 +1091,9 @@ describe('ConfirmEmail Component', () => {
             label: 'Log in',
           }),
           onClose: expect.any(Function),
-        }),
-      });
+          icon: 'UserCheck',
+        },
+      );
     });
 
     it('passes correct icon to confirm modal when account exists', async () => {
@@ -1124,11 +1125,9 @@ describe('ConfirmEmail Component', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.MODALS.ID,
+        Routes.CARD.MODALS.CONFIRM_MODAL,
         expect.objectContaining({
-          params: expect.objectContaining({
-            icon: 'UserCheck',
-          }),
+          icon: 'UserCheck',
         }),
       );
     });
@@ -1152,8 +1151,8 @@ describe('ConfirmEmail Component', () => {
       });
 
       mockNavigate.mockImplementation((_route, params) => {
-        if (params?.params?.confirmAction?.onPress) {
-          capturedOnPress = params.params.confirmAction.onPress;
+        if (params?.confirmAction?.onPress) {
+          capturedOnPress = params.confirmAction.onPress;
         }
       });
 
@@ -1200,8 +1199,8 @@ describe('ConfirmEmail Component', () => {
       });
 
       mockNavigate.mockImplementation((_route, params) => {
-        if (params?.params?.onClose) {
-          capturedOnClose = params.params.onClose;
+        if (params?.onClose) {
+          capturedOnClose = params.onClose;
         }
       });
 
