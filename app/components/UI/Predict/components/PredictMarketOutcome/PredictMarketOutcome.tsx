@@ -111,81 +111,74 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 
   return (
     <View style={styles.marketContainer}>
-      <View style={styles.marketHeader}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 gap-3"
-        >
-          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden self-start">
-            {getImageUrl() ? (
-              <Image
-                source={{ uri: getImageUrl() }}
-                style={tw.style('w-full h-full')}
-                resizeMode="cover"
-              />
-            ) : (
-              <Box twClassName="w-full h-full bg-muted" />
-            )}
-          </Box>
-          <Box twClassName="flex-1 -mt-1">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="w-full gap-3"
+      >
+        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden self-start">
+          {getImageUrl() ? (
+            <Image
+              source={{ uri: getImageUrl() }}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
+            />
+          ) : (
+            <Box twClassName="w-full h-full bg-muted" />
+          )}
+        </Box>
+        <Box twClassName="flex-1 -mt-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            style={tw.style('font-medium')}
+          >
+            {getTitle()}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
+          </Text>
+        </Box>
+        {isClosed && outcomeToken ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
             <Text
               variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              style={tw.style('font-medium')}
+              twClassName="font-medium"
+              color={
+                outcomeToken.price === 1
+                  ? TextColor.TextDefault
+                  : TextColor.TextAlternative
+              }
             >
-              {getTitle()}
+              {outcomeToken.price === 1
+                ? strings('predict.outcome_winner')
+                : strings('predict.outcome_loser')}
             </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
-            </Text>
-          </Box>
-          <Box>
-            {isClosed && outcomeToken ? (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-1"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="font-medium"
-                  color={
-                    outcomeToken.price === 1
-                      ? TextColor.TextDefault
-                      : TextColor.TextAlternative
-                  }
-                >
-                  {outcomeToken.price === 1
-                    ? strings('predict.outcome_winner')
-                    : strings('predict.outcome_loser')}
-                </Text>
-                {outcomeToken.price === 1 && (
-                  <Icon
-                    name={IconName.Confirmation}
-                    size={IconSize.Md}
-                    color={
-                      outcomeToken.price === 1
-                        ? TextColor.SuccessDefault
-                        : TextColor.TextMuted
-                    }
-                  />
-                )}
-              </Box>
-            ) : (
-              <Text
-                style={tw.style('text-[20px] font-medium')}
-                color={TextColor.TextDefault}
-              >
-                {getYesPercentage()}
-              </Text>
+            {outcomeToken.price === 1 && (
+              <Icon
+                name={IconName.Confirmation}
+                size={IconSize.Md}
+                color={
+                  outcomeToken.price === 1
+                    ? TextColor.SuccessDefault
+                    : TextColor.TextMuted
+                }
+              />
             )}
           </Box>
-        </Box>
-      </View>
+        ) : (
+          <Text
+            style={tw.style('text-[20px] font-medium')}
+            color={TextColor.TextDefault}
+          >
+            {getYesPercentage()}
+          </Text>
+        )}
+      </Box>
       {!isClosed && (
         <View style={styles.buttonContainer}>
           <Button

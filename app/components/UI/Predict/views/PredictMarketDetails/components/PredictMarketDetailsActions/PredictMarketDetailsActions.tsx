@@ -95,99 +95,94 @@ const PredictMarketDetailsActions = memo(
       );
     };
 
+    const content = (() => {
+      if (!isClaimablePositionsLoading && hasPositivePnl) {
+        return (
+          <PredictClaimButton
+            onPress={onClaimPress}
+            isLoading={isClaimPending}
+            testID={PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON}
+          />
+        );
+      }
+
+      if (marketStatus === PredictMarketStatus.OPEN && singleOutcomeMarket) {
+        const firstOpenOutcome = openOutcomes[0];
+        const yesToken =
+          firstOpenOutcome?.tokens?.[0] ?? market?.outcomes?.[0]?.tokens?.[0];
+        const noToken =
+          firstOpenOutcome?.tokens?.[1] ?? market?.outcomes?.[0]?.tokens?.[1];
+        const yesTitle = yesToken?.title ?? '';
+        const noTitle = noToken?.title ?? '';
+        const useStackedLabels =
+          shouldUseStackedActionButtonLabel(yesTitle) ||
+          shouldUseStackedActionButtonLabel(noTitle);
+        const getActionButtonStyle = (backgroundClassName: string) =>
+          tw.style(
+            'flex-1',
+            backgroundClassName,
+            useStackedLabels && {
+              height: 'auto',
+              minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
+              paddingVertical: 8,
+            },
+          );
+        return (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            alignItems={BoxAlignItems.Center}
+            twClassName="w-full mt-4 gap-3"
+          >
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              style={getActionButtonStyle('bg-success-muted')}
+              label={renderActionButtonLabel({
+                title: yesTitle,
+                price: yesPercentage,
+                color: TextColor.SuccessDefault,
+                useStackedLabels,
+              })}
+              onPress={() => {
+                if (yesToken) {
+                  onBuyPress(yesToken);
+                }
+              }}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              style={getActionButtonStyle('bg-error-muted')}
+              label={renderActionButtonLabel({
+                title: noTitle,
+                price: 100 - yesPercentage,
+                color: TextColor.ErrorDefault,
+                useStackedLabels,
+              })}
+              onPress={() => {
+                if (noToken) {
+                  onBuyPress(noToken);
+                }
+              }}
+            />
+          </Box>
+        );
+      }
+
+      if (isMarketLoading) {
+        return <PredictDetailsButtonsSkeleton />;
+      }
+
+      return null;
+    })();
+
+    if (!content) return null;
+
     return (
-      <>
-        {(() => {
-          if (!isClaimablePositionsLoading && hasPositivePnl) {
-            return (
-              <PredictClaimButton
-                onPress={onClaimPress}
-                isLoading={isClaimPending}
-                testID={PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON}
-              />
-            );
-          }
-
-          if (
-            marketStatus === PredictMarketStatus.OPEN &&
-            singleOutcomeMarket
-          ) {
-            // use openOutcomes for real-time (CLOB) prices
-            const firstOpenOutcome = openOutcomes[0];
-            const yesToken =
-              firstOpenOutcome?.tokens?.[0] ??
-              market?.outcomes?.[0]?.tokens?.[0];
-            const noToken =
-              firstOpenOutcome?.tokens?.[1] ??
-              market?.outcomes?.[0]?.tokens?.[1];
-            const yesTitle = yesToken?.title ?? '';
-            const noTitle = noToken?.title ?? '';
-            const useStackedLabels =
-              shouldUseStackedActionButtonLabel(yesTitle) ||
-              shouldUseStackedActionButtonLabel(noTitle);
-            const getActionButtonStyle = (backgroundClassName: string) =>
-              tw.style(
-                'flex-1',
-                backgroundClassName,
-                useStackedLabels && {
-                  height: 'auto',
-                  minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
-                  paddingVertical: 8,
-                },
-              );
-            return (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                justifyContent={BoxJustifyContent.Between}
-                alignItems={BoxAlignItems.Center}
-                twClassName="w-full mt-4 gap-3"
-              >
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  style={getActionButtonStyle('bg-success-muted')}
-                  label={renderActionButtonLabel({
-                    title: yesTitle,
-                    price: yesPercentage,
-                    color: TextColor.SuccessDefault,
-                    useStackedLabels,
-                  })}
-                  onPress={() => {
-                    if (yesToken) {
-                      onBuyPress(yesToken);
-                    }
-                  }}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  style={getActionButtonStyle('bg-error-muted')}
-                  label={renderActionButtonLabel({
-                    title: noTitle,
-                    price: 100 - yesPercentage,
-                    color: TextColor.ErrorDefault,
-                    useStackedLabels,
-                  })}
-                  onPress={() => {
-                    if (noToken) {
-                      onBuyPress(noToken);
-                    }
-                  }}
-                />
-              </Box>
-            );
-          }
-
-          // Show skeleton buttons while loading
-          if (isMarketLoading) {
-            return <PredictDetailsButtonsSkeleton />;
-          }
-
-          return null;
-        })()}
-      </>
+      <Box twClassName="px-3 bg-default border-t border-muted">{content}</Box>
     );
   },
 );
