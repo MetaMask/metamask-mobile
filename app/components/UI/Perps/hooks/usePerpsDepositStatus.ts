@@ -6,7 +6,6 @@ import {
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 import type { RootState } from '../../../../reducers';
 import {
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
@@ -53,18 +52,6 @@ export const usePerpsDepositStatus = () => {
   const lastDepositResult = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.lastDepositResult ?? null,
-  );
-
-  // Get the internal transaction ID from the controller. Needed to get bridge quotes.
-  const lastDepositTransactionId = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.PerpsController?.lastDepositTransactionId ??
-      null,
-  );
-
-  // For Perps deposits this array typically contains only one element.
-  const bridgeQuotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, lastDepositTransactionId ?? ''),
   );
 
   // Listen for PerpsDeposit approval - Used to display deposit in progress toast
