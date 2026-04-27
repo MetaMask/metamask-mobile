@@ -38,10 +38,6 @@ jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
   useNetworkName: () => 'Ethereum Mainnet',
 }));
 
-jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
-}));
-
 const mockInitiateCustomConversion = jest.fn();
 jest.mock('../../../../UI/Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({

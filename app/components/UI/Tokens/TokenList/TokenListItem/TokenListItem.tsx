@@ -22,7 +22,6 @@ import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativ
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectIsMusdConversionFlowEnabledFlag,
-  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
@@ -94,7 +93,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -207,10 +205,6 @@ export const TokenListItem = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
-    const isQuickConvertEnabled = useSelector(
-      selectMusdQuickConvertEnabledFlag,
-    );
-
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
@@ -304,9 +298,7 @@ export const TokenListItem = React.memo(
             return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
           }
 
-          return isQuickConvertEnabled
-            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+          return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
         };
 
         trackEvent(
@@ -344,7 +336,6 @@ export const TokenListItem = React.memo(
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -360,7 +351,6 @@ export const TokenListItem = React.memo(
       createEventBuilder,
       hasSeenConversionEducationScreen,
       initiateCustomConversion,
-      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);

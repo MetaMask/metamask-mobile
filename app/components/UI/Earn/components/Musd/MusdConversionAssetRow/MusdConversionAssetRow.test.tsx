@@ -27,8 +27,8 @@ jest.mock('../../EarnNetworkAvatar', () => ({
 import { useStyles } from '../../../../../hooks/useStyles';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
-import ConvertTokenRow, { ConvertTokenRowTestIds } from './index';
-import { ConvertTokenRowProps } from './ConvertTokenRow.types';
+import MusdConversionAssetRow, { MusdConversionAssetRowTestIds } from './index';
+import { MusdConversionAssetRowProps } from './MusdConversionAssetRow.types';
 
 const mockUseStyles = useStyles as jest.MockedFunction<typeof useStyles>;
 
@@ -59,11 +59,11 @@ const createMockStyles = () => ({
   errorText: {},
 });
 
-describe('ConvertTokenRow', () => {
+describe('MusdConversionAssetRow', () => {
   const mockOnMaxPress = jest.fn();
   const mockOnEditPress = jest.fn();
 
-  const defaultProps: ConvertTokenRowProps = {
+  const defaultProps: MusdConversionAssetRowProps = {
     token: createMockToken(),
     onMaxPress: mockOnMaxPress,
     onEditPress: mockOnEditPress,
@@ -84,66 +84,85 @@ describe('ConvertTokenRow', () => {
   });
 
   describe('rendering', () => {
-    it('renders container with convert-token-row-container testID', () => {
+    it('renders container with musd-conversion-asset-row-container testID', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} />,
-        { state: initialRootState },
-      );
-
-      expect(getByTestId(ConvertTokenRowTestIds.CONTAINER)).toBeOnTheScreen();
-    });
-
-    it('renders token icon with convert-token-row-token-icon testID', () => {
-      const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} />,
-        { state: initialRootState },
-      );
-
-      expect(getByTestId(ConvertTokenRowTestIds.TOKEN_ICON)).toBeOnTheScreen();
-    });
-
-    it('renders token balance with convert-token-row-token-balance testID', () => {
-      const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} />,
+        <MusdConversionAssetRow {...defaultProps} />,
         { state: initialRootState },
       );
 
       expect(
-        getByTestId(ConvertTokenRowTestIds.TOKEN_BALANCE),
+        getByTestId(MusdConversionAssetRowTestIds.CONTAINER),
       ).toBeOnTheScreen();
     });
 
-    it('renders token name with convert-token-row-token-name testID', () => {
+    it('renders token icon with musd-conversion-asset-row-token-icon testID', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} />,
+        <MusdConversionAssetRow {...defaultProps} />,
         { state: initialRootState },
       );
 
-      expect(getByTestId(ConvertTokenRowTestIds.TOKEN_NAME)).toBeOnTheScreen();
+      expect(
+        getByTestId(MusdConversionAssetRowTestIds.TOKEN_ICON),
+      ).toBeOnTheScreen();
     });
 
-    it('renders Max button with convert-token-row-max-button testID when not pending', () => {
+    it('renders token balance with musd-conversion-asset-row-token-balance testID', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} isConversionPending={false} />,
+        <MusdConversionAssetRow {...defaultProps} />,
         { state: initialRootState },
       );
 
-      expect(getByTestId(ConvertTokenRowTestIds.MAX_BUTTON)).toBeOnTheScreen();
+      expect(
+        getByTestId(MusdConversionAssetRowTestIds.TOKEN_BALANCE),
+      ).toBeOnTheScreen();
     });
 
-    it('renders Edit button with convert-token-row-edit-button testID when not pending', () => {
+    it('renders token name with musd-conversion-asset-row-token-name testID', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} isConversionPending={false} />,
+        <MusdConversionAssetRow {...defaultProps} />,
         { state: initialRootState },
       );
 
-      expect(getByTestId(ConvertTokenRowTestIds.EDIT_BUTTON)).toBeOnTheScreen();
+      expect(
+        getByTestId(MusdConversionAssetRowTestIds.TOKEN_NAME),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders Max button with musd-conversion-asset-row-max-button testID when not pending', () => {
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetRow
+          {...defaultProps}
+          isConversionPending={false}
+        />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders Edit button with musd-conversion-asset-row-edit-button testID when not pending', () => {
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetRow
+          {...defaultProps}
+          isConversionPending={false}
+        />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByTestId(MusdConversionAssetRowTestIds.EDIT_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('renders error message when errorMessage prop is provided', () => {
       const errorMessage = 'Conversion failed';
       const { getByText } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} errorMessage={errorMessage} />,
+        <MusdConversionAssetRow
+          {...defaultProps}
+          errorMessage={errorMessage}
+        />,
         { state: initialRootState },
       );
 
@@ -152,7 +171,7 @@ describe('ConvertTokenRow', () => {
 
     it('does not render error message when errorMessage is undefined', () => {
       const { queryByText } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} />,
+        <MusdConversionAssetRow {...defaultProps} />,
         { state: initialRootState },
       );
 
@@ -161,7 +180,7 @@ describe('ConvertTokenRow', () => {
 
     it('does not render error message when errorMessage is empty string', () => {
       const { queryByText } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} errorMessage="" />,
+        <MusdConversionAssetRow {...defaultProps} errorMessage="" />,
         { state: initialRootState },
       );
 
@@ -171,7 +190,7 @@ describe('ConvertTokenRow', () => {
     it('displays token symbol in token name', () => {
       const token = createMockToken({ symbol: 'USDT' });
       const { getByText } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} token={token} />,
+        <MusdConversionAssetRow {...defaultProps} token={token} />,
         { state: initialRootState },
       );
 
@@ -182,57 +201,63 @@ describe('ConvertTokenRow', () => {
   describe('pending state', () => {
     it('hides Max and Edit buttons when isConversionPending is true', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} isConversionPending />,
+        <MusdConversionAssetRow {...defaultProps} isConversionPending />,
         { state: initialRootState },
       );
 
-      expect(getByTestId(ConvertTokenRowTestIds.CONTAINER)).toBeOnTheScreen();
-      expect(queryByTestId(ConvertTokenRowTestIds.MAX_BUTTON)).toBeNull();
-      expect(queryByTestId(ConvertTokenRowTestIds.EDIT_BUTTON)).toBeNull();
+      expect(
+        getByTestId(MusdConversionAssetRowTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(MusdConversionAssetRowTestIds.EDIT_BUTTON),
+      ).toBeNull();
     });
   });
 
   describe('disabled button behavior', () => {
     it('Max button has isDisabled true when areActionsDisabled is true', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} areActionsDisabled />,
+        <MusdConversionAssetRow {...defaultProps} areActionsDisabled />,
         { state: initialRootState },
       );
 
-      const maxButton = getByTestId(ConvertTokenRowTestIds.MAX_BUTTON);
+      const maxButton = getByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON);
 
       expect(maxButton.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('Edit button has isDisabled true when areActionsDisabled is true', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} areActionsDisabled />,
+        <MusdConversionAssetRow {...defaultProps} areActionsDisabled />,
         { state: initialRootState },
       );
 
-      const editButton = getByTestId(ConvertTokenRowTestIds.EDIT_BUTTON);
+      const editButton = getByTestId(MusdConversionAssetRowTestIds.EDIT_BUTTON);
 
       expect(editButton.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('Max button has isDisabled false when areActionsDisabled is false', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} areActionsDisabled={false} />,
+        <MusdConversionAssetRow {...defaultProps} areActionsDisabled={false} />,
         { state: initialRootState },
       );
 
-      const maxButton = getByTestId(ConvertTokenRowTestIds.MAX_BUTTON);
+      const maxButton = getByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON);
 
       expect(maxButton.props.accessibilityState?.disabled).toBe(false);
     });
 
     it('Edit button has isDisabled false when areActionsDisabled is false', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} areActionsDisabled={false} />,
+        <MusdConversionAssetRow {...defaultProps} areActionsDisabled={false} />,
         { state: initialRootState },
       );
 
-      const editButton = getByTestId(ConvertTokenRowTestIds.EDIT_BUTTON);
+      const editButton = getByTestId(MusdConversionAssetRowTestIds.EDIT_BUTTON);
 
       expect(editButton.props.accessibilityState?.disabled).toBe(false);
     });
@@ -242,7 +267,7 @@ describe('ConvertTokenRow', () => {
     it('calls onMaxPress with token when Max button is pressed and not disabled', async () => {
       const token = createMockToken({ symbol: 'DAI' });
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow
+        <MusdConversionAssetRow
           {...defaultProps}
           token={token}
           areActionsDisabled={false}
@@ -251,7 +276,7 @@ describe('ConvertTokenRow', () => {
         { state: initialRootState },
       );
 
-      const maxButton = getByTestId(ConvertTokenRowTestIds.MAX_BUTTON);
+      const maxButton = getByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON);
 
       await act(async () => {
         fireEvent.press(maxButton);
@@ -264,7 +289,7 @@ describe('ConvertTokenRow', () => {
     it('calls onEditPress with token when Edit button is pressed and not disabled', async () => {
       const token = createMockToken({ symbol: 'USDT' });
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow
+        <MusdConversionAssetRow
           {...defaultProps}
           token={token}
           areActionsDisabled={false}
@@ -273,7 +298,7 @@ describe('ConvertTokenRow', () => {
         { state: initialRootState },
       );
 
-      const editButton = getByTestId(ConvertTokenRowTestIds.EDIT_BUTTON);
+      const editButton = getByTestId(MusdConversionAssetRowTestIds.EDIT_BUTTON);
 
       await act(async () => {
         fireEvent.press(editButton);
@@ -285,7 +310,7 @@ describe('ConvertTokenRow', () => {
 
     it('does not call onMaxPress when Max button is pressed and areActionsDisabled is true', async () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow
+        <MusdConversionAssetRow
           {...defaultProps}
           areActionsDisabled
           isConversionPending={false}
@@ -293,7 +318,7 @@ describe('ConvertTokenRow', () => {
         { state: initialRootState },
       );
 
-      const maxButton = getByTestId(ConvertTokenRowTestIds.MAX_BUTTON);
+      const maxButton = getByTestId(MusdConversionAssetRowTestIds.MAX_BUTTON);
 
       await act(async () => {
         fireEvent.press(maxButton);
@@ -304,7 +329,7 @@ describe('ConvertTokenRow', () => {
 
     it('does not call onEditPress when Edit button is pressed and areActionsDisabled is true', async () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow
+        <MusdConversionAssetRow
           {...defaultProps}
           areActionsDisabled
           isConversionPending={false}
@@ -312,7 +337,7 @@ describe('ConvertTokenRow', () => {
         { state: initialRootState },
       );
 
-      const editButton = getByTestId(ConvertTokenRowTestIds.EDIT_BUTTON);
+      const editButton = getByTestId(MusdConversionAssetRowTestIds.EDIT_BUTTON);
 
       await act(async () => {
         fireEvent.press(editButton);
@@ -331,14 +356,14 @@ describe('ConvertTokenRow', () => {
       jest.mocked(useFiatFormatter).mockReturnValue(mockFormatFiat);
 
       const { getByText, getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} token={token} />,
+        <MusdConversionAssetRow {...defaultProps} token={token} />,
         { state: initialRootState },
       );
 
       expect(mockFormatFiat).toHaveBeenCalled();
       expect(getByText('$123.45')).toBeOnTheScreen();
       expect(
-        getByTestId(ConvertTokenRowTestIds.TOKEN_BALANCE),
+        getByTestId(MusdConversionAssetRowTestIds.TOKEN_BALANCE),
       ).toBeOnTheScreen();
     });
 
@@ -352,7 +377,7 @@ describe('ConvertTokenRow', () => {
       jest.mocked(useFiatFormatter).mockReturnValue(mockFormatFiat);
 
       const { getByText } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} token={token} />,
+        <MusdConversionAssetRow {...defaultProps} token={token} />,
         { state: initialRootState },
       );
 
@@ -370,7 +395,7 @@ describe('ConvertTokenRow', () => {
       jest.mocked(useFiatFormatter).mockReturnValue(mockFormatFiat);
 
       const { getByText } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} token={token} />,
+        <MusdConversionAssetRow {...defaultProps} token={token} />,
         { state: initialRootState },
       );
 

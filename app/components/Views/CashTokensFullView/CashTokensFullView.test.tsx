@@ -158,9 +158,6 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('../../Views/confirmations/hooks/useNetworkName', () => ({
   useNetworkName: () => 'Ethereum Mainnet',
 }));
-jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
-}));
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(),
   selectMoneyHomeScreenEnabledFlag: jest.fn(() => false),

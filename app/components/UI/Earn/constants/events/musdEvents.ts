@@ -12,7 +12,6 @@ const EVENT_LOCATIONS = {
   CONVERSION_EDUCATION_SCREEN: 'conversion_education_screen',
   CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
   BUY_SCREEN: 'buy_screen', // Buy mUSD screen.
-  QUICK_CONVERT_HOME_SCREEN: 'quick_convert_home_screen',
   QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN:
     'quick_convert_max_bottom_sheet_confirmation_screen',
   CUSTOM_AMOUNT_NAVBAR: 'custom_amount_navbar',
