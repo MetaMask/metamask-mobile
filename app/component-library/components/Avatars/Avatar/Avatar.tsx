@@ -17,11 +17,23 @@ import { AvatarTokenProps } from './variants/AvatarToken/AvatarToken.types';
 import { AvatarProps, AvatarVariant } from './Avatar.types';
 
 /**
- * @deprecated Please update your code to use the individual avatar components from `@metamask/design-system-react-native`
- * such as `AvatarAccount`, `AvatarFavicon`, `AvatarIcon`, `AvatarNetwork`, or `AvatarToken`.
+ * @deprecated This polymorphic `Avatar` wrapper is legacy. Replace usages with the
+ * specific MMDS avatar variant that matches the `variant` provided here:
+ * `AvatarAccount`, `AvatarFavicon`, `AvatarIcon`, `AvatarNetwork`, or `AvatarToken`.
+ * It should never be replaced by `AvatarBase`.
+ *
  * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarBase/README.md | MMDS README}
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#avatarbase-component | Migration Guide}
+ *
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarAccount/README.md | AvatarAccount — MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#avataraccount-component | AvatarAccount — Migration Guide}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarFavicon/README.md | AvatarFavicon — MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#avatarfavicon-component | AvatarFavicon — Migration Guide}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarIcon/README.md | AvatarIcon — MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#avataricon-component | AvatarIcon — Migration Guide}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarNetwork/README.md | AvatarNetwork — MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#avatarnetwork-component | AvatarNetwork — Migration Guide}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarToken/README.md | AvatarToken — MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#avatartoken-component | AvatarToken — Migration Guide}
  */
 const Avatar = ({ variant, ...props }: AvatarProps) => {
   switch (variant) {
