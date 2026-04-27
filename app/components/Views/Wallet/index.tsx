@@ -15,7 +15,10 @@ import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 
 import {
   ActivityIndicator,
+  Animated,
   DeviceEventEmitter,
+  Easing,
+  type LayoutChangeEvent,
   Linking,
   RefreshControl,
   ScrollView,
@@ -135,7 +138,9 @@ import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
-import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import AccountGroupBalance, {
+  type PostOnboardingStepsSurfaceChangeSource,
+} from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -160,6 +165,13 @@ import AppConstants from '../../../core/AppConstants';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
+import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
+import {
+  WALLET_HOME_POST_ONBOARDING_CURTAIN_LAYOUT_WAIT_MS,
+  WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_DOWN_MS,
+  WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_UP_MS,
+  WALLET_HOME_POST_ONBOARDING_CURTAIN_TOP_HOLD_MS,
+} from '../../UI/WalletHomeOnboardingSteps';
 import { setIsConnectionRemoved } from '../../../actions/user';
 import {
   IconColor,
@@ -189,7 +201,6 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
-
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
@@ -217,6 +228,39 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
+    },
+    /** Preserves `styles.wrapper` gap between balance and actions. */
+    walletTopCluster: {
+      flexDirection: 'column',
+      gap: 16,
+      zIndex: 1,
+    },
+    /**
+     * While the post-onboarding curtain runs, outer cluster height is animated; clip
+     * inner content if it overflows during the checklist → balance swap.
+     */
+    walletTopClusterLocked: {
+      overflow: 'hidden',
+    },
+    /**
+     * Curtain target: the homepage + carousel slide UP over the cluster on the last
+     * post-onboarding step, the cluster swaps content underneath, then they slide DOWN
+     * to reveal the new balance. Solid background + zIndex above the cluster so the
+     * cluster stays hidden during the rise.
+     */
+    walletPostOnboardingMainBelowCluster: {
+      zIndex: 2,
+      elevation: 10,
+      backgroundColor: colors.background.default,
+    },
+    /**
+     * `overflow: hidden` clips the curtain when it rises above the stage's top edge —
+     * keeps it from peeking into the banner area on different device heights and
+     * makes the cluster swap underneath invisible to the user.
+     */
+    walletPostOnboardingStage: {
+      position: 'relative',
+      overflow: 'hidden',
     },
     headerEndAccessoryContainer: {
       alignItems: 'flex-end',
@@ -595,6 +639,31 @@ const Wallet = ({
     hideWalletMainActionsForPostOnboardingSteps,
     setHideWalletMainActionsForPostOnboardingSteps,
   ] = useState(false);
+  /**
+   * Curtain animation state — homepage slides up over the cluster, swap runs
+   * underneath, then homepage + cluster height animate down in lockstep.
+   *
+   * Mid-swap stability: the cluster's outer height is pinned (`walletTopClusterHeightAnim`
+   * + `isWalletTopClusterHeightLocked`) so the homepage's natural Y does not shift when
+   * checklist → balance reflows (avoids Android bridge / layout races with `setValue`).
+   * Inner `onLayout` tracks natural height; fall animates outer height and translateY
+   * together (`useNativeDriver: false`) so they share one JS frame clock.
+   *
+   * - `homepageCurtainTranslateY`: homepage container translateY.
+   * - `walletTopClusterHeightAnim`: locked outer cluster height during the curtain.
+   * - `walletTopClusterInnerHeightRef`: latest inner (natural) cluster height.
+   * - `walletHomePostOnboardingCurtainActiveRef`: blocks surface-active handler from
+   * un-hiding main actions during the curtain; we toggle them in the coordinator.
+   */
+  const homepageCurtainTranslateY = useRef(new Animated.Value(0)).current;
+  const walletTopClusterHeightAnim = useRef(new Animated.Value(0)).current;
+  const [isWalletTopClusterHeightLocked, setIsWalletTopClusterHeightLocked] =
+    useState(false);
+  const walletTopClusterInnerHeightRef = useRef(0);
+  const walletTopClusterLayoutListenerRef = useRef<
+    ((height: number) => void) | null
+  >(null);
+  const walletHomePostOnboardingCurtainActiveRef = useRef(false);
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
@@ -688,11 +757,128 @@ const Wallet = ({
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
 
   const handlePostOnboardingStepsSurfaceActiveChange = useCallback(
-    (active: boolean) => {
-      setHideWalletMainActionsForPostOnboardingSteps(active);
+    (active: boolean, _source?: PostOnboardingStepsSurfaceChangeSource) => {
+      if (active) {
+        setHideWalletMainActionsForPostOnboardingSteps(true);
+      } else if (!walletHomePostOnboardingCurtainActiveRef.current) {
+        // Only un-hide actions when the surface is leaving for a non-curtain reason
+        // (e.g. eligibility flag flip, unmount). The curtain flow toggles them
+        // itself before measuring the post-swap cluster height.
+        setHideWalletMainActionsForPostOnboardingSteps(false);
+      }
     },
     [],
   );
+
+  const handleWalletTopClusterInnerLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      walletTopClusterInnerHeightRef.current = height;
+      const listener = walletTopClusterLayoutListenerRef.current;
+      if (listener) {
+        listener(height);
+      }
+    },
+    [],
+  );
+
+  /**
+   * After `flow_completed`, wait for inner cluster `onLayout` to report a height
+   * different from the pre-swap height (avoids resolving on a stale layout pass).
+   * Falls back to the latest inner height after a timeout.
+   */
+  const waitForPostSwapInnerClusterLayout = useCallback(
+    (preSwapInnerHeight: number) =>
+      new Promise<number>((resolve) => {
+        let settled = false;
+        const finish = (height: number) => {
+          if (settled) return;
+          settled = true;
+          walletTopClusterLayoutListenerRef.current = null;
+          resolve(Math.max(height, 0));
+        };
+        walletTopClusterLayoutListenerRef.current = (height) => {
+          if (preSwapInnerHeight <= 0 || height !== preSwapInnerHeight) {
+            finish(height);
+          }
+        };
+        setTimeout(() => {
+          finish(walletTopClusterInnerHeightRef.current);
+        }, WALLET_HOME_POST_ONBOARDING_CURTAIN_LAYOUT_WAIT_MS);
+      }),
+    [],
+  );
+
+  /**
+   * Coordinated curtain: lock cluster outer height → rise → swap → measure inner
+   * post-swap height → parallel fall (translateY + outer height) → unlock.
+   */
+  const runWalletHomePostOnboardingCurtain = useCallback(async () => {
+    if (walletHomePostOnboardingCurtainActiveRef.current) return;
+    walletHomePostOnboardingCurtainActiveRef.current = true;
+
+    const startHeight = walletTopClusterInnerHeightRef.current;
+    if (startHeight <= 0) {
+      Logger.error(
+        new Error(
+          'Wallet: post-onboarding curtain skipped — cluster inner height not measured yet',
+        ),
+      );
+      setHideWalletMainActionsForPostOnboardingSteps(false);
+      dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+      walletHomePostOnboardingCurtainActiveRef.current = false;
+      return;
+    }
+
+    walletTopClusterHeightAnim.setValue(startHeight);
+    setIsWalletTopClusterHeightLocked(true);
+    homepageCurtainTranslateY.setValue(0);
+
+    await new Promise<void>((resolve) => {
+      Animated.timing(homepageCurtainTranslateY, {
+        toValue: -startHeight,
+        duration: WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_UP_MS,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: false,
+      }).start(() => resolve());
+    });
+
+    setHideWalletMainActionsForPostOnboardingSteps(false);
+    dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+
+    const newHeight = await waitForPostSwapInnerClusterLayout(startHeight);
+
+    if (WALLET_HOME_POST_ONBOARDING_CURTAIN_TOP_HOLD_MS > 0) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, WALLET_HOME_POST_ONBOARDING_CURTAIN_TOP_HOLD_MS),
+      );
+    }
+
+    await new Promise<void>((resolve) => {
+      Animated.parallel([
+        Animated.timing(homepageCurtainTranslateY, {
+          toValue: 0,
+          duration: WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_DOWN_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+        Animated.timing(walletTopClusterHeightAnim, {
+          toValue: newHeight,
+          duration: WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_DOWN_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+      ]).start(() => resolve());
+    });
+
+    setIsWalletTopClusterHeightLocked(false);
+    walletHomePostOnboardingCurtainActiveRef.current = false;
+  }, [
+    dispatch,
+    homepageCurtainTranslateY,
+    walletTopClusterHeightAnim,
+    waitForPostSwapInnerClusterLayout,
+  ]);
 
   const onReceive = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -1210,7 +1396,10 @@ const Wallet = ({
     assetsDefiPositionsEnabled;
 
   const scrollViewContentStyle = useMemo(
-    () => [styles.wrapper, { flex: undefined, flexGrow: 0 }],
+    () => [
+      styles.wrapper,
+      { flex: undefined, flexGrow: 0, overflow: 'visible' as const },
+    ],
     [styles.wrapper],
   );
 
@@ -1327,49 +1516,77 @@ const Wallet = ({
         ) : null}
         <NetworkConnectionBanner />
       </View>
-      <>
-        <AccountGroupBalance
-          onPostOnboardingStepsSurfaceActiveChange={
-            handlePostOnboardingStepsSurfaceActiveChange
+      <View style={styles.walletPostOnboardingStage}>
+        <Animated.View
+          style={
+            isWalletTopClusterHeightLocked
+              ? [
+                  styles.walletTopClusterLocked,
+                  { height: walletTopClusterHeightAnim },
+                ]
+              : undefined
           }
-        />
-
-        {!hideWalletMainActionsForPostOnboardingSteps ? (
-          <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
-            displaySwapsButton={displaySwapsButton}
-            goToSwaps={goToSwaps}
-            onReceive={onReceive}
-            onSend={onSend}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-          />
-        ) : null}
-
-        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-        {isHomepageSectionsV1Enabled ? (
-          <>
-            {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
-            <HomepageScrollContext.Provider value={homepageScrollContextValue}>
-              <Homepage ref={homepageRef} />
-            </HomepageScrollContext.Provider>
-          </>
-        ) : (
-          <>
-            {isFocused && <AssetPollingProvider />}
-            <WalletTokensTabView
-              ref={walletTokensTabViewRef}
-              navigation={navigation}
-              onChangeTab={onChangeTab}
-              defiEnabled={defiEnabled}
-              collectiblesEnabled={collectiblesEnabled}
+        >
+          <View
+            style={styles.walletTopCluster}
+            onLayout={handleWalletTopClusterInnerLayout}
+          >
+            <AccountGroupBalance
+              onCoordinatedFlowExit={runWalletHomePostOnboardingCurtain}
+              onPostOnboardingStepsSurfaceActiveChange={
+                handlePostOnboardingStepsSurfaceActiveChange
+              }
             />
-          </>
-        )}
-      </>
+
+            {!hideWalletMainActionsForPostOnboardingSteps ? (
+              <AssetDetailsActions
+                displayBuyButton={displayBuyButton}
+                displaySwapsButton={displaySwapsButton}
+                goToSwaps={goToSwaps}
+                onReceive={onReceive}
+                onSend={onSend}
+                buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+                swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+                sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+                receiveButtonActionID={
+                  WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
+                }
+              />
+            ) : null}
+          </View>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.walletPostOnboardingMainBelowCluster,
+            { transform: [{ translateY: homepageCurtainTranslateY }] },
+          ]}
+        >
+          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+
+          {isHomepageSectionsV1Enabled ? (
+            <>
+              {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
+              <HomepageScrollContext.Provider
+                value={homepageScrollContextValue}
+              >
+                <Homepage ref={homepageRef} />
+              </HomepageScrollContext.Provider>
+            </>
+          ) : (
+            <>
+              {isFocused && <AssetPollingProvider />}
+              <WalletTokensTabView
+                ref={walletTokensTabViewRef}
+                navigation={navigation}
+                onChangeTab={onChangeTab}
+                defiEnabled={defiEnabled}
+                collectiblesEnabled={collectiblesEnabled}
+              />
+            </>
+          )}
+        </Animated.View>
+      </View>
     </>
   );
   const renderLoader = useCallback(
