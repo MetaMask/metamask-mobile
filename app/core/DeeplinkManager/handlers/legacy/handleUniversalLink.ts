@@ -212,12 +212,23 @@ async function handleUniversalLink({
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
     const wcURL = params?.uri || mappedUrlObj.href;
+    // `handleMetaMaskDeeplink` is async (it awaits `SDKConnect.init` so the
+    // connect/mmsdk branches can't race init). We deliberately don't await
+    // it here — the call is fire-and-forget from the deeplink pipeline's
+    // perspective — but we must still surface rejections (including the
+    // synchronous `INTERNAL_ORIGINS` security throw) so they don't become
+    // silent unhandled promise rejections.
     handleMetaMaskDeeplink({
       handled,
       wcURL,
       origin: source,
       params,
       url: mappedUrl,
+    }).catch((err) => {
+      Logger.error(
+        err as Error,
+        'DeepLinkManager: handleMetaMaskDeeplink failed',
+      );
     });
     return;
   }
@@ -291,39 +302,36 @@ async function handleUniversalLink({
   const { params } = extractURLParams(url);
 
   /**
-   * Branch.io parameters for analytics context.
-   * Fetched once and reused across all analytics contexts to avoid duplicate API calls.
-   * May be undefined if fetch fails, times out, or returns empty/null data.
-   * Used by detectAppInstallation to determine app installation status.
+   * Fire-and-forget Branch.io params fetch. Resolves to the params if Branch
+   * returns valid data within 500 ms, or `undefined` otherwise (timeout /
+   * error / empty response). Passed as a promise into the analytics context
+   * so the interstitial / handler flow is not blocked on Branch — only
+   * `trackDeepLinkAnalytics` (itself fire-and-forget) awaits the result.
+   * Timeout and error paths are logged so we retain observability on Branch
+   * being slow or broken.
    */
-  let branchParams: BranchParams | undefined;
-  try {
-    // Add timeout to prevent blocking deep link processing
-    const rawParams = await Promise.race([
-      branch.getLatestReferringParams(),
-      new Promise<never>((_, reject) =>
-        setTimeout(
-          () => reject(new Error('Branch.io params fetch timeout')),
-          500,
-        ),
-      ),
-    ]);
-
-    // Validate before casting - handle null/empty edge cases
-    if (
+  const branchParamsPromise: Promise<BranchParams | undefined> = Promise.race([
+    // Promise.resolve tolerates mocks that return a non-Promise synchronously.
+    Promise.resolve(branch.getLatestReferringParams()).then((rawParams) =>
       rawParams &&
       typeof rawParams === 'object' &&
       Object.keys(rawParams).length > 0
-    ) {
-      branchParams = rawParams as BranchParams;
-    }
-  } catch (error) {
+        ? (rawParams as BranchParams)
+        : undefined,
+    ),
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error('Branch.io params fetch timeout')),
+        500,
+      ),
+    ),
+  ]).catch((error) => {
     Logger.error(
       error as Error,
       'DeepLinkManager: Error getting Branch.io params',
     );
-    // branchParams remains undefined
-  }
+    return undefined;
+  });
 
   // Build analytics context - determine signature status
   // Check if signature parameter exists and has a value
@@ -363,7 +371,7 @@ async function handleUniversalLink({
       url,
       route,
       urlParams: params || {},
-      branchParams,
+      branchParamsPromise,
       signatureStatus,
       interstitialShown: false,
       interstitialDisabled,
@@ -399,7 +407,7 @@ async function handleUniversalLink({
         url,
         route,
         urlParams: params || {},
-        branchParams,
+        branchParamsPromise,
         signatureStatus,
         interstitialShown: false, // Initially false, will be set to true when modal is shown
         interstitialDisabled,

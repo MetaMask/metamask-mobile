@@ -89,8 +89,15 @@ export interface DeepLinkAnalyticsContext {
   /** Extracted route from the URL */
   route: DeepLinkRoute;
 
-  /** Branch.io parameters for app installation detection */
+  /** Branch.io parameters for app installation detection. */
   branchParams?: BranchParams;
+
+  /**
+   * Fire-and-forget Branch.io fetch started by `handleUniversalLink` so the
+   * interstitial / handler flow isn't blocked on it. Awaited later by
+   * `createDeepLinkUsedEventBuilder` when building the analytics event.
+   */
+  branchParamsPromise?: Promise<BranchParams | undefined>;
 
   /** URL parameters */
   urlParams: Partial<DeeplinkUrlParams>;

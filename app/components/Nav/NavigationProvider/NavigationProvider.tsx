@@ -6,7 +6,10 @@ import {
   Theme,
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { onNavigationReady } from '../../../actions/navigation';
+import {
+  onNavigationReady,
+  setCurrentRoute,
+} from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
 import {
@@ -40,13 +43,28 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   }
 
   /**
-   * Triggers when the navigation is ready
+   * Dispatches the currently-focused leaf route name into redux so sagas
+   * (notably the deeplink pipeline) can observe navigation transitions via
+   * `take(SET_CURRENT_ROUTE)` instead of polling the navigation ref.
+   */
+  const dispatchCurrentRoute = () => {
+    const routeName = NavigationService.navigation?.getCurrentRoute?.()?.name;
+    if (routeName) {
+      dispatch(setCurrentRoute(routeName));
+    }
+  };
+
+  /**
+   * Triggers when the navigation is ready. React Navigation does NOT fire
+   * `onStateChange` on initial mount, so we seed the redux current route
+   * here — otherwise the deeplink saga would read the `undefined` initial
+   * state and race against the first real navigation.
    */
   const onReady = () => {
     // End trace when navigation is ready
     endTrace({ name: TraceName.NavInit });
-    // Dispatch navigation ready action, used by sagas
     dispatch(onNavigationReady());
+    dispatchCurrentRoute();
   };
 
   /**
@@ -66,6 +84,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       // The actual app background is handled by individual screens
       theme={{ colors: { background: 'transparent' } } as Theme}
       onReady={onReady}
+      onStateChange={dispatchCurrentRoute}
       ref={setNavigationRef}
     >
       <Stack.Navigator

@@ -15,6 +15,8 @@ import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import Logger from '../../../../../util/Logger';
+import type { DeepLinkAnalyticsContext } from '../../../types/deepLinkAnalytics.types';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
@@ -130,6 +132,11 @@ describe('handleUniversalLink', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // `handleMetaMaskDeeplink` is async and its returned promise is
+    // `.catch`ed by the call site. The auto-mock returns `undefined`, so
+    // restore the async contract for all tests by default.
+    mockHandleMetaMaskDeeplink.mockResolvedValue(undefined);
+
     mockSDKConnectGetInstance.mockImplementation(() => ({
       getConnections: jest.fn(),
       connectToChannel: jest.fn(),
@@ -178,6 +185,46 @@ describe('handleUniversalLink', () => {
         });
       },
     );
+
+    // `handleMetaMaskDeeplink` is async and deliberately not awaited here.
+    // Make sure rejections are observed (logged) rather than surfacing as
+    // unhandled promise rejections — this covers the synchronous security
+    // throw for `INTERNAL_ORIGINS` and any rejection from `SDKConnect.init`.
+    it('swallows and logs rejections from handleMetaMaskDeeplink', async () => {
+      const loggerErrorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      const rejectionError = new Error(
+        'External transactions cannot use internal origins',
+      );
+      mockHandleMetaMaskDeeplink.mockRejectedValueOnce(rejectionError);
+
+      const testUrl = `https://link.metamask.io/${ACTIONS.CONNECT}`;
+      const { urlObj: testUrlObj } = extractURLParams(
+        `metamask://${ACTIONS.CONNECT}`,
+      );
+
+      await expect(
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: testUrl,
+          source: 'origin',
+        }),
+      ).resolves.not.toThrow();
+
+      // Flush the promise attached via `.catch` at the call site.
+      await Promise.resolve();
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        rejectionError,
+        'DeepLinkManager: handleMetaMaskDeeplink failed',
+      );
+
+      loggerErrorSpy.mockRestore();
+    });
   });
 
   describe('ACTIONS.BUY_CRYPTO', () => {
@@ -1994,7 +2041,7 @@ describe('handleUniversalLink', () => {
 
     let mockAnalytics: MockMetricsInstance;
     let mockCreateEventBuilder: jest.MockedFunction<
-      () => Promise<MockEventBuilder>
+      (context: DeepLinkAnalyticsContext) => Promise<MockEventBuilder>
     >;
     const { analytics } = jest.requireMock(
       '../../../../../util/analytics/analytics',
@@ -2023,13 +2070,13 @@ describe('handleUniversalLink', () => {
       };
       analytics.trackEvent = mockAnalytics.trackEvent;
 
-      mockCreateEventBuilder = jest.fn(() =>
+      mockCreateEventBuilder = jest.fn((_context: DeepLinkAnalyticsContext) =>
         Promise.resolve({
           addProperties: jest.fn().mockReturnThis(),
           addSensitiveProperties: jest.fn().mockReturnThis(),
           build: jest.fn().mockReturnValue({ eventName: 'DEEP_LINK_USED' }),
         }),
-      );
+      ) as typeof mockCreateEventBuilder;
       createDeepLinkUsedEventBuilder.mockImplementation(mockCreateEventBuilder);
     });
 
@@ -2382,12 +2429,22 @@ describe('handleUniversalLink', () => {
         getLatestReferringParams: jest.Mock;
       };
 
+      // Pull the promise passed to createDeepLinkUsedEventBuilder and await
+      // it so we can assert on the *resolved* value. The handler no longer
+      // awaits the Branch fetch itself — it passes the Promise through to
+      // analytics instead.
+      const getResolvedBranchParams = async (): Promise<unknown> => {
+        const lastCallContext = mockCreateEventBuilder.mock.calls.at(-1)?.[0];
+        expect(lastCallContext?.branchParamsPromise).toBeInstanceOf(Promise);
+        return await lastCallContext?.branchParamsPromise;
+      };
+
       beforeEach(() => {
         jest.clearAllMocks();
         branch.getLatestReferringParams.mockClear();
       });
 
-      it('includes branchParams in analytics context for whitelisted actions', async () => {
+      it('forwards resolved Branch params to analytics for whitelisted actions', async () => {
         const mockBranchParams = {
           '+clicked_branch_link': true,
           '+is_first_session': false,
@@ -2410,14 +2467,12 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: mockBranchParams,
-          }),
+        await expect(getResolvedBranchParams()).resolves.toEqual(
+          mockBranchParams,
         );
       });
 
-      it('includes branchParams in analytics context for modal display path', async () => {
+      it('forwards resolved Branch params to analytics for modal display path', async () => {
         const mockBranchParams = {
           '+clicked_branch_link': true,
           '+is_first_session': true,
@@ -2448,14 +2503,12 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: mockBranchParams,
-          }),
+        await expect(getResolvedBranchParams()).resolves.toEqual(
+          mockBranchParams,
         );
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io returns null', async () => {
+      it('resolves Branch promise to undefined when Branch.io returns null', async () => {
         branch.getLatestReferringParams.mockResolvedValue(null);
 
         url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
@@ -2474,14 +2527,10 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
+        await expect(getResolvedBranchParams()).resolves.toBeUndefined();
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io returns empty object', async () => {
+      it('resolves Branch promise to undefined when Branch.io returns empty object', async () => {
         branch.getLatestReferringParams.mockResolvedValue({});
 
         url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
@@ -2500,14 +2549,10 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
+        await expect(getResolvedBranchParams()).resolves.toBeUndefined();
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io fetch fails', async () => {
+      it('resolves Branch promise to undefined when Branch.io fetch fails', async () => {
         branch.getLatestReferringParams.mockRejectedValue(
           new Error('Branch.io error'),
         );
@@ -2528,18 +2573,56 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
+        await expect(getResolvedBranchParams()).resolves.toBeUndefined();
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io fetch times out', async () => {
+      it('resolves Branch promise to undefined when Branch.io fetch exceeds 500 ms', async () => {
+        jest.useFakeTimers();
+        try {
+          branch.getLatestReferringParams.mockImplementation(
+            () =>
+              new Promise((resolve) => {
+                setTimeout(() => resolve({}), 1000);
+              }),
+          );
+
+          url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
+          urlObj = {
+            hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+            pathname: `/${ACTIONS.WC}`,
+            href: url,
+          } as ReturnType<typeof extractURLParams>['urlObj'];
+
+          const handlerDone = handleUniversalLink({
+            instance,
+            handled,
+            urlObj,
+            browserCallBack: mockBrowserCallBack,
+            url,
+            source: 'test-source',
+          });
+
+          // Advance past the 500 ms timeout but not the 1000 ms Branch resolve.
+          await jest.advanceTimersByTimeAsync(600);
+          await handlerDone;
+
+          await expect(getResolvedBranchParams()).resolves.toBeUndefined();
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      it('does not block the handler path when Branch.io is slow (>500 ms)', async () => {
+        // Slow Branch fetch — 2 s — should NOT delay the analytics event
+        // emission. Before the fire-and-forget refactor, this call would
+        // await Branch inside `handleUniversalLink` and block modal/handler
+        // for up to 500 ms. After the refactor, the event builder is called
+        // synchronously within the same tick; only `trackDeepLinkAnalytics`
+        // awaits the promise internally.
         branch.getLatestReferringParams.mockImplementation(
           () =>
             new Promise((resolve) => {
-              setTimeout(() => resolve({}), 1000);
+              setTimeout(() => resolve({ '+clicked_branch_link': true }), 2000);
             }),
         );
 
@@ -2550,6 +2633,7 @@ describe('handleUniversalLink', () => {
           href: url,
         } as ReturnType<typeof extractURLParams>['urlObj'];
 
+        const start = Date.now();
         await handleUniversalLink({
           instance,
           handled,
@@ -2558,13 +2642,15 @@ describe('handleUniversalLink', () => {
           url,
           source: 'test-source',
         });
+        const elapsed = Date.now() - start;
 
-        // Should still proceed with undefined branchParams
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
+        // Analytics was triggered synchronously relative to the handler flow
+        // — even though Branch itself will take 2 s to resolve, the event
+        // builder was called without waiting.
+        expect(mockCreateEventBuilder).toHaveBeenCalled();
+        // Generous bound to avoid CI flakiness, tight enough to fail if we
+        // regressed to awaiting Branch (which would push this >=500 ms).
+        expect(elapsed).toBeLessThan(200);
       });
     });
   });
