@@ -13,6 +13,7 @@ import {
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { ThemeContext } from '../../../util/theme';
+import { DetectedTokensSelectorIDs } from './DetectedTokensView.testIds';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -117,7 +118,7 @@ describe('DetectedTokens Component', () => {
     expect(getByText('Import (2)')).toBeTruthy();
   });
 
-  it('renders nothing when no detected tokens', () => {
+  it('renders zero-token state with disabled import button', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectDetectedTokens) return [];
       if (selector === selectAllDetectedTokensFlat) return [];
@@ -126,14 +127,17 @@ describe('DetectedTokens Component', () => {
       return {};
     });
 
-    const { queryByText } = render(
+    const { getByText, getByTestId } = render(
       <ThemeContext.Provider value={mockTheme}>
         <DetectedTokens />
       </ThemeContext.Provider>,
     );
 
-    expect(queryByText('new tokens found')).toBeNull();
-    expect(queryByText('Import')).toBeNull();
+    expect(getByText('0 new token found')).toBeTruthy();
+    expect(getByText('Import (0)')).toBeTruthy();
+    expect(
+      getByTestId(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID).props.disabled,
+    ).toBe(true);
   });
 
   it('navigates to confirmation on "Hide All" button press', () => {

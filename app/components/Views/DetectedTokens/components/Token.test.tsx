@@ -111,17 +111,17 @@ describe('Token Component', () => {
   });
 
   it('renders checkbox as checked when token is selected', () => {
-    const { getByText } = renderComponent(true);
+    const { getByTestId } = renderComponent(true);
 
-    expect(getByText('0 ABC')).toBeTruthy();
-    expect(getByText('Token address:')).toBeTruthy();
+    const checkbox = getByTestId('token-select-checkbox');
+    expect(checkbox.props.accessibilityState.checked).toBe(true);
   });
 
   it('renders checkbox as unchecked when token is not selected', () => {
-    const { getByText } = renderComponent(false);
+    const { getByTestId } = renderComponent(false);
 
-    expect(getByText('0 ABC')).toBeTruthy();
-    expect(getByText('Token address:')).toBeTruthy();
+    const checkbox = getByTestId('token-select-checkbox');
+    expect(checkbox.props.accessibilityState.checked).toBe(false);
   });
 
   it('copies address to clipboard and triggers alert', async () => {
