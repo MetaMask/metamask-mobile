@@ -16,7 +16,7 @@ import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 import { SEARCH_ENGINE_URLS, SearchEngine } from '../../../../../util/browser';
 import AppConstants from '../../../../../core/AppConstants';
 
-type BoxStyle = React.ComponentProps<typeof Box>['style'];
+type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
@@ -28,7 +28,7 @@ export interface SitesSearchFooterProps {
    * @returns
    */
   onPress?: (url: string) => void;
-  containerStyle?: BoxStyle;
+  containerStyle?: BoxComponentProps['style'];
 }
 
 /**
