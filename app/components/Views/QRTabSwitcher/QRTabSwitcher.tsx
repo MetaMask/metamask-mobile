@@ -10,7 +10,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import { HeaderBase } from '@metamask/design-system-react-native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
 export enum QRTabSwitcherScreens {

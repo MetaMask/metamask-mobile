@@ -3,7 +3,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import { HeaderBase } from '@metamask/design-system-react-native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -44,6 +44,8 @@ const TokensFullView = () => {
       <AssetPollingProvider />
       <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
         <HeaderBase
+          testID="header"
+          titleTestID="header-title"
           startAccessory={
             <ButtonIcon
               size={ButtonIconSizes.Md}

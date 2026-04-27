@@ -15,7 +15,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import { HeaderBase } from '@metamask/design-system-react-native';
 import {
   IconColor,
   IconName,
