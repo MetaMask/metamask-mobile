@@ -94,10 +94,17 @@ const sectionIdToCategory = (sectionId: SectionId): UrlAutocompleteCategory => {
     case 'sites':
       return UrlAutocompleteCategory.Sites;
     case 'tokens':
+    case 'crypto_movers':
       return UrlAutocompleteCategory.Tokens;
     case 'perps':
+    case 'rwa_perps':
+    case 'macro_stocks_commodity_perps':
+    case 'crypto_perps':
       return UrlAutocompleteCategory.Perps;
     case 'predictions':
+    case 'sports_predictions':
+    case 'crypto_predictions':
+    case 'politics_predictions':
       return UrlAutocompleteCategory.Predictions;
     default:
       return UrlAutocompleteCategory.Sites;
@@ -290,11 +297,15 @@ const SearchContent: React.FC<SearchContentProps> = ({
 
         switch (sectionId) {
           case 'tokens':
+          case 'crypto_movers':
             transformedData = (sectionData as TrendingAsset[])
               .filter((asset) => asset?.assetId)
               .map(transformTokenResult);
             break;
           case 'perps':
+          case 'rwa_perps':
+          case 'macro_stocks_commodity_perps':
+          case 'crypto_perps':
             transformedData = (sectionData as PerpsMarketData[])
               .filter((market) => market?.symbol)
               .map(transformPerpsResult);

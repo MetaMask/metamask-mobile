@@ -99,6 +99,41 @@ jest.mock('../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
   }),
 }));
 
+/** Avoid circular load: sections.config → sections/index → section RowItems → sections.config */
+jest.mock(
+  '../components/Sections/SectionTypes/SectionPills/SectionPills',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+jest.mock(
+  '../components/Sections/SectionTypes/SectionPills/SectionPillsSkeleton',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+jest.mock(
+  '../components/Sections/SectionTypes/TilesSection/TileSection',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+jest.mock('../components/Sections/SectionTypes/SectionCard', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('../components/Sections/SectionTypes/SectionCarrousel', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('../components/Sections/SectionTypes/PillToggledCardSection', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockSectionsArray: { id: SectionId }[] = [
   { id: 'tokens' },
   { id: 'stocks' },

@@ -18,22 +18,28 @@ const createStyles = (theme: Theme) =>
       borderWidth: 0,
     },
   });
-interface SectionCardProps {
+export interface SectionCardProps {
   sectionId: SectionId;
   data: unknown[];
   isLoading: boolean;
+  /** @default perps-tokens-list */
+  listTestId?: string;
 }
+
+const DEFAULT_LIST_TEST_ID = 'perps-tokens-list';
 
 const SectionCard: React.FC<SectionCardProps> = ({
   sectionId,
   data,
   isLoading,
+  listTestId = DEFAULT_LIST_TEST_ID,
 }) => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const section = SECTIONS_CONFIG[sectionId];
+  const displayData = useMemo(() => data.slice(0, 3), [data]);
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
@@ -53,11 +59,11 @@ const SectionCard: React.FC<SectionCardProps> = ({
       )}
       {!isLoading && (
         <FlashList
-          data={data.slice(0, 3)}
+          data={displayData}
           renderItem={renderFlatItem}
           keyExtractor={(_, index) => `${section.id}-${index}`}
           keyboardShouldPersistTaps="handled"
-          testID="perps-tokens-list"
+          testID={listTestId}
         />
       )}
     </Card>

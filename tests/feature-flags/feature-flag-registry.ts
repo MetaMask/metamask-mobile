@@ -2981,14 +2981,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  exploreSectionsOrder: {
-    name: 'exploreSectionsOrder',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {},
-    status: FeatureFlagStatus.Active,
-  },
-
   forceRampsStagingEnvironment: {
     name: 'forceRampsStagingEnvironment',
     type: FeatureFlagType.Remote,

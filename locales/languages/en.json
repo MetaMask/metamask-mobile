@@ -8614,6 +8614,7 @@
   "trending": {
     "title": "Explore",
     "trending_tokens": "Trending tokens",
+    "crypto_movers": "Crypto movers",
     "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",
@@ -8633,6 +8634,14 @@
     "search_placeholder": "Search tokens, sites, URLs",
     "cancel": "Cancel",
     "perps": "Perps",
+    "rwa_perps_section": "Stocks, commodities & forex",
+    "macro_stocks_commodity_perps": "Stocks & commodities",
+    "macro_pill_stocks": "Stocks",
+    "macro_pill_commodities": "Commodities",
+    "rwa_pill_commodities": "Commodities",
+    "rwa_pill_stocks": "Stocks",
+    "rwa_pill_forex": "Forex",
+    "crypto_perps_section": "Crypto perps",
     "predictions": "Predictions",
     "no_results": "No results found",
     "sites": "Sites",
@@ -8650,6 +8659,14 @@
     "empty_search_result_state": {
       "title": "No tokens found",
       "description": "We were not able to find this token"
+    },
+    "tabs": {
+      "now": "Now",
+      "macro": "Macro",
+      "rwas": "RWAs",
+      "crypto": "Crypto",
+      "sports": "Sports",
+      "dapps": "Dapps"
     }
   },
   "ota_update_modal": {

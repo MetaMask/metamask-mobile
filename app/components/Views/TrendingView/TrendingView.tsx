@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -13,62 +13,20 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
+import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
+import { TabViewProps } from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
-import QuickActions from './components/QuickActions/QuickActions';
-import SectionHeader from './components/SectionHeader/SectionHeader';
-import { useHomeSections, SectionId } from './sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import Section, { RefreshConfig } from './components/Sections/Section';
+import { RefreshConfig } from './components/Sections/Section';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
-
-const curriedSetSectionState =
-  (setState: (updater: (prev: Set<SectionId>) => Set<SectionId>) => void) =>
-  (sectionId: SectionId) =>
-  (isActive: boolean): void => {
-    setState((prev) => {
-      const newSet = new Set(prev);
-
-      if (isActive) {
-        newSet.add(sectionId);
-      } else {
-        newSet.delete(sectionId);
-      }
-
-      return newSet;
-    });
-  };
-
-/**
- * Custom hook to track boolean state for each section
- * Returns the Set of sections with that state and callbacks to update them
- */
-const useSectionStateTracker = (
-  sections: { id: SectionId }[],
-): {
-  sectionsWithState: Set<SectionId>;
-  callbacks: Record<SectionId, (isActive: boolean) => void>;
-} => {
-  const [activeSections, setActiveSections] = useState<Set<SectionId>>(
-    new Set(),
-  );
-
-  const callbacks = useMemo(() => {
-    const result = {} as Record<SectionId, (isActive: boolean) => void>;
-    sections.forEach((s) => {
-      result[s.id] = curriedSetSectionState(setActiveSections)(s.id);
-    });
-    return result;
-  }, [sections]);
-
-  return { sectionsWithState: activeSections, callbacks };
-};
+import { ExploreTabPanel } from './tabs/ExploreTabPanels';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -80,14 +38,6 @@ export const ExploreFeed: React.FC = () => {
     trigger: 0,
     silentRefresh: true,
   });
-
-  const homeSections = useHomeSections();
-
-  // Track which sections have empty data (for QuickActions empty state)
-  const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
-    useSectionStateTracker(homeSections);
-
-  const noopLoadingState = useCallback((_isLoading: boolean) => undefined, []);
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
@@ -183,6 +133,14 @@ export const ExploreFeed: React.FC = () => {
     }));
   }, []);
 
+  const exploreTabPanelProps = {
+    refreshConfig,
+    refreshing,
+    onRefresh: handleRefresh,
+    colors,
+    tw,
+  };
+
   return (
     <SafeAreaView
       edges={{ top: 'additive' }}
@@ -215,51 +173,58 @@ export const ExploreFeed: React.FC = () => {
         </Box>
 
         {isBasicFunctionalityEnabled ? (
-          <ScrollView
-            testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
-            style={tw.style('flex-1 px-4')}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                tintColor={colors.icon.default}
-                colors={[colors.primary.default]}
-              />
-            }
-          >
-            <QuickActions emptySections={emptySections} />
-
-            {homeSections.map((section) => {
-              // Hide section visually but keep mounted so it can report when data arrives
-              const isHidden = emptySections.has(section.id);
-
-              const sectionComponent = (
-                <Section
-                  sectionId={section.id}
-                  refreshConfig={refreshConfig}
-                  toggleSectionEmptyState={emptyStateCallbacks[section.id]}
-                  toggleSectionLoadingState={noopLoadingState}
-                />
-              );
-
-              return (
-                <Box
-                  key={section.id}
-                  twClassName={isHidden ? 'hidden' : undefined}
-                >
-                  <SectionHeader sectionId={section.id} />
-                  {section.SectionWrapper ? (
-                    <section.SectionWrapper>
-                      {sectionComponent}
-                    </section.SectionWrapper>
-                  ) : (
-                    sectionComponent
-                  )}
-                </Box>
-              );
-            })}
-          </ScrollView>
+          <TabsList tabsListContentTwClassName="px-0 pb-3">
+            <Box
+              key="now"
+              twClassName="flex-1"
+              {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="now" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="macro"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.macro'),
+              } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="macro" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="rwas"
+              twClassName="flex-1"
+              {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="rwas" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="crypto"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.crypto'),
+              } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="crypto" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="sports"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.sports'),
+              } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="sports" {...exploreTabPanelProps} />
+            </Box>
+            <Box
+              key="dapps"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.dapps'),
+              } as TabViewProps)}
+            >
+              <ExploreTabPanel tab="dapps" {...exploreTabPanelProps} />
+            </Box>
+          </TabsList>
         ) : (
           <BasicFunctionalityEmptyState />
         )}

@@ -85,9 +85,70 @@ jest.mock(
   () => () => null,
 );
 jest.mock(
-  './components/Sections/SectionTypes/PerpsExploreSection',
+  './components/Sections/SectionTypes/TilesSection/TileSection',
   () => () => null,
 );
+jest.mock(
+  './components/Sections/SectionTypes/TilesSection/TileTypes/SiteRecentsTileRowItem',
+  () => () => null,
+);
+jest.mock(
+  './components/Sections/SectionTypes/TilesSection/TileTypes/SiteRecentsTileSkeleton',
+  () => () => null,
+);
+jest.mock(
+  '../../UI/Sites/hooks/useBrowserRecentsSites/useBrowserRecentsSites',
+  () => ({
+    useBrowserRecentsSites: jest.fn(() => ({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    })),
+  }),
+);
+jest.mock(
+  './components/Sections/SectionTypes/SectionPills/SectionPills',
+  () => () => null,
+);
+jest.mock(
+  './components/Sections/SectionTypes/SectionPills/SectionPillsSkeleton',
+  () => () => null,
+);
+jest.mock(
+  './components/Sections/SectionTypes/SectionPills/SectionPill',
+  () => () => null,
+);
+jest.mock(
+  '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
+  () => ({
+    useHomepageSparklines: jest.fn(() => ({ sparklines: {} })),
+  }),
+);
+jest.mock('../../UI/Perps/selectors/perpsController', () => ({
+  selectPerpsWatchlistMarkets: jest.fn(),
+}));
+jest.mock('@metamask/utils', () => ({
+  isCaipChainId: jest.fn(() => false),
+}));
+jest.mock('../../../selectors/networkController', () => ({
+  selectNetworkConfigurationsByCaipChainId: jest.fn(),
+}));
+jest.mock('../../UI/Trending/components/TrendingTokenRowItem/utils', () => ({
+  getPriceChangeFieldKey: jest.fn(() => 'priceChange24h'),
+}));
+jest.mock('../../UI/Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: { getInstance: jest.fn(() => ({ trackTokenClick: jest.fn() })) },
+}));
+jest.mock('../../hooks/useAddPopularNetwork', () => ({
+  useAddPopularNetwork: jest.fn(() => ({ addPopularNetwork: jest.fn() })),
+}));
+jest.mock('../../../util/networks/customNetworks', () => ({
+  PopularList: [],
+}));
+jest.mock('../../UI/TokenDetails/constants/constants', () => ({
+  TokenDetailsSource: { Trending: 'trending' },
+}));
 jest.mock('../../UI/Predict/components/PredictMarket', () => () => null);
 jest.mock(
   '../../UI/Predict/components/PredictMarketSkeleton',
@@ -178,6 +239,20 @@ describe('SECTIONS_CONFIG getItemIdentifier', () => {
       const result = SECTIONS_CONFIG.predictions.getItemIdentifier(item);
 
       expect(result).toBe('market-42');
+    });
+  });
+
+  describe('dapps_recents section', () => {
+    it('extracts url from a site item', () => {
+      const item = {
+        url: 'https://portfolio.metamask.io',
+        name: 'MetaMask Portfolio',
+        displayUrl: 'portfolio.metamask.io',
+      };
+
+      const result = SECTIONS_CONFIG.dapps_recents.getItemIdentifier(item);
+
+      expect(result).toBe('https://portfolio.metamask.io');
     });
   });
 

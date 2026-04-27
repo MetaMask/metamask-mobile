@@ -62,7 +62,7 @@ const PORTFOLIO_SITE: SiteData = {
 /**
  * Helper function to extract display URL from full URL
  */
-const extractDisplayUrl = (url: string): string => {
+export const extractDisplayUrl = (url: string): string => {
   try {
     const urlObj = new URL(url);
     return urlObj.hostname.replace('www.', '');
