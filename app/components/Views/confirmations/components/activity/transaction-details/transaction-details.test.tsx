@@ -149,6 +149,20 @@ describe('TransactionDetails', () => {
       expect(mockTransactionDetailsSummary).toHaveBeenCalledTimes(1);
       expect(mockTransactionDetailsRetry).toHaveBeenCalledTimes(1);
     });
+
+    it('renders summary section exactly once for moneyAccountDeposit transactions', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockTransactionDetailsSummary).toHaveBeenCalledTimes(1);
+      expect(mockTransactionDetailsRetry).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getTitle', () => {
@@ -271,6 +285,42 @@ describe('TransactionDetails', () => {
       );
     });
 
+    it('returns money_account_deposit title for nested moneyAccountDeposit', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.contractInteraction,
+          nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.money_account_deposit'),
+        }),
+      );
+    });
+
+    it('returns money_account_withdraw title for nested moneyAccountWithdraw', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.contractInteraction,
+          nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.money_account_withdraw'),
+        }),
+      );
+    });
+
     it('returns default title for other transaction types', () => {
       render();
 
@@ -306,14 +356,16 @@ describe('TransactionDetails', () => {
     it.each([
       TransactionType.musdConversion,
       TransactionType.musdClaim,
+      TransactionType.moneyAccountDeposit,
+      TransactionType.moneyAccountWithdraw,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
     ])('includes %s', (type) => {
       expect(SUMMARY_SECTION_TYPES).toContain(type);
     });
 
-    it('contains exactly 4 transaction types', () => {
-      expect(SUMMARY_SECTION_TYPES).toHaveLength(4);
+    it('contains exactly 6 transaction types', () => {
+      expect(SUMMARY_SECTION_TYPES).toHaveLength(6);
     });
   });
 });
