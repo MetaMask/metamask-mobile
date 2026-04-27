@@ -4,21 +4,16 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
 import type { Position } from '@metamask/social-controllers';
 
-jest.mock('../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
-  getAssetImageUrl: jest.fn().mockReturnValue('https://example.com/token.png'),
+jest.mock('../../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
-jest.mock('../../utils/chainMapping', () => ({
-  chainNameToId: jest.fn((chain: string) =>
-    chain === 'unknown' ? undefined : 'eip155:1',
-  ),
-}));
-
-jest.mock('../../../../UI/Perps/utils/formatUtils', () => {
-  const actual = jest.requireActual('../../../../UI/Perps/utils/formatUtils');
+jest.mock('../../utils/formatters', () => {
+  const actual = jest.requireActual('../../utils/formatters');
   return {
     ...actual,
-    formatOrderCardDate: jest.fn().mockReturnValue('Apr 15 at 2:00 PM'),
+    formatTradeDate: jest.fn().mockReturnValue('Apr 15, 2026 at 2:00 PM'),
   };
 });
 
@@ -62,10 +57,10 @@ describe('PositionRow', () => {
     expect(screen.getAllByText('STARKBOT')[0]).toBeOnTheScreen();
   });
 
-  it('renders formatted token amount', () => {
+  it('renders formatted token amount abbreviated for large values', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
 
-    expect(screen.getByText('1,500,000,000 STARKBOT')).toBeOnTheScreen();
+    expect(screen.getByText('1.50B STARKBOT')).toBeOnTheScreen();
   });
 
   it('renders current value formatted as USD', () => {
@@ -191,7 +186,7 @@ describe('PositionRow', () => {
     it('renders formatted closed date as subtitle instead of token amount', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
-      expect(screen.getByText('Apr 15 at 2:00 PM')).toBeOnTheScreen();
+      expect(screen.getByText('Apr 15, 2026 at 2:00 PM')).toBeOnTheScreen();
     });
 
     it('renders realized PnL percent', () => {

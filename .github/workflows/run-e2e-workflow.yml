@@ -102,6 +102,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Restore .metamask folder
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
       - name: Set up E2E environment
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env

@@ -1,6 +1,6 @@
 # MetaMask Connect E2E Tests
 
-This directory contains Appwright-based E2E tests for MetaMask Connect flows.
+This directory contains playwright-based E2E tests for MetaMask Connect flows.
 
 ## Test Files
 
@@ -16,17 +16,17 @@ This directory contains Appwright-based E2E tests for MetaMask Connect flows.
 
 The `multichain-rn-connect` test interacts with **two native Android apps** at the
 same time — the MetaMask wallet and the React Native Playground
-(`@metamask/react-native-playground`). The wallet APK is installed by Appwright;
+(`@metamask/react-native-playground`). The wallet APK is installed by playwright;
 the playground APK must be **built beforehand**. The test's `beforeAll` hook
 automatically **uninstalls and reinstalls** it on the emulator every run.
 
 ### Prerequisites
 
-| Requirement                 | Details                                                      |
-| --------------------------- | ------------------------------------------------------------ |
-| Android emulator            | Running and reachable via `adb`                              |
-| MetaMask wallet APK         | Built or pointed to via `buildPath` in `appwright.config.ts` |
-| `connect-monorepo` checkout | Cloned **next to** `metamask-mobile` (same parent directory) |
+| Requirement                 | Details                                                       |
+| --------------------------- | ------------------------------------------------------------- |
+| Android emulator            | Running and reachable via `adb`                               |
+| MetaMask wallet APK         | Built or pointed to via `buildPath` in `playwright.config.ts` |
+| `connect-monorepo` checkout | Cloned **next to** `metamask-mobile` (same parent directory)  |
 
 Expected directory layout:
 
@@ -164,7 +164,7 @@ BrowserStack before test execution. The relevant environment variables are:
 | `RN_PLAYGROUND_APK_PATH`         | Override APK path (skips download)              |
 | `BROWSERSTACK_RN_PLAYGROUND_URL` | BrowserStack `bs://` URL for the playground APK |
 
-The Appwright BrowserStack provider (via the patched `appwright` package) reads
+The Playwright BrowserStack provider (via the patched `playwright` package) reads
 `BROWSERSTACK_RN_PLAYGROUND_URL` from the environment and passes it as
 `otherApps` in `bstack:options`, telling BrowserStack to pre-install the
 playground APK alongside the MetaMask wallet on the test device.
@@ -179,10 +179,10 @@ stale debug-vs-release mismatches.
 ### Running the Test
 
 Before running, make sure the `mm-connect-android-local` project in
-`tests/appwright.config.ts` matches your local emulator:
+`tests/playwright.config.ts` matches your local emulator:
 
 ```ts
-// tests/appwright.config.ts — adjust to your emulator
+// tests/playwright.config.ts — adjust to your emulator
 {
   name: 'mm-connect-android-local',
   use: {
@@ -199,21 +199,21 @@ Then run:
 
 ```bash
 # From the metamask-mobile root
-yarn run-appwright:mm-connect-android-local
+yarn run-playwright:mm-connect-android-local
 ```
 
 Or run individual RN playground specs:
 
 ```bash
 # Multichain + Solana test
-npx appwright test tests/performance/mm-connect/multichain-rn-connect.spec.js \
+npx playwright test tests/performance/mm-connect/multichain-rn-connect.spec.js \
   --project mm-connect-android-local \
-  --config tests/appwright.config.ts
+  --config tests/playwright.config.ts
 
 # Legacy EVM test
-npx appwright test tests/performance/mm-connect/legacy-evm-rn-connect.spec.js \
+npx playwright test tests/performance/mm-connect/legacy-evm-rn-connect.spec.js \
   --project mm-connect-android-local \
-  --config tests/appwright.config.ts
+  --config tests/playwright.config.ts
 ```
 
 ### What the Test Covers

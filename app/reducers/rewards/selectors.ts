@@ -178,7 +178,10 @@ export const selectCampaignParticipantStatuses = (state: RootState) =>
   state.rewards.campaignParticipantStatuses;
 
 export const selectCampaignParticipantStatus =
-  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (
+    subscriptionId: string | undefined | null,
+    campaignId: string | undefined | null,
+  ) =>
   (state: RootState) => {
     if (!subscriptionId || !campaignId) return null;
     const key = `${subscriptionId}:${campaignId}`;
@@ -304,3 +307,6 @@ export const selectOndoCampaignDepositsError = (state: RootState) =>
 
 export const selectPendingDeeplink = (state: RootState) =>
   state.rewards.pendingDeeplink;
+
+export const selectDismissedCampaignOutcomeToasts = (state: RootState) =>
+  state.rewards.dismissedCampaignOutcomeToasts;
