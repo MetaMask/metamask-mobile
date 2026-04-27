@@ -348,6 +348,30 @@ describe('HeadlessHost', () => {
       expect(screen.getByText('quote expired')).toBeOnTheScreen();
     });
 
+    it('does not run the continueWithQuote rejection path after unmount', async () => {
+      let rejectDeferred: ((error: Error) => void) | undefined;
+      mockContinueWithQuote.mockImplementation(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectDeferred = reject;
+          }),
+      );
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      const { unmount } = renderHost({ headlessSessionId: session.id });
+      await waitFor(() =>
+        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
+      );
+      unmount();
+      await act(async () => {
+        rejectDeferred?.(new Error('late failure'));
+      });
+      expect(callbacks.onError).not.toHaveBeenCalled();
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(getSession(session.id)?.status).toBe('continued');
+    });
+
     it('forwards a nativeFlowError param as onError(AUTH_FAILED, ...), renders it, and closes the session', () => {
       const quote = buildNativeQuote();
       const session = seedSession(quote);
