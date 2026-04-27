@@ -298,7 +298,7 @@ describe('TransactionDetails', () => {
 
       expect(mockSetOptions).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: strings('transactions.money_account_deposit'),
+          title: strings('transaction_details.title.money_account_deposit'),
         }),
       );
     });
@@ -316,7 +316,7 @@ describe('TransactionDetails', () => {
 
       expect(mockSetOptions).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: strings('transactions.money_account_withdraw'),
+          title: strings('transaction_details.title.money_account_withdraw'),
         }),
       );
     });
