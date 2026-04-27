@@ -149,21 +149,25 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                 {statusLabel}
               </Text>
             )}
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.OverlayInverse}
-              fontWeight={FontWeight.Medium}
-            >
-              •
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.OverlayInverse}
-              fontWeight={FontWeight.Medium}
-              testID="campaign-tile-date-info"
-            >
-              {dateLabel}
-            </Text>
+            {campaignStatus !== 'upcoming' && (
+              <>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.OverlayInverse}
+                  fontWeight={FontWeight.Medium}
+                >
+                  •
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.OverlayInverse}
+                  fontWeight={FontWeight.Medium}
+                  testID="campaign-tile-date-info"
+                >
+                  {dateLabel}
+                </Text>
+              </>
+            )}
           </Box>
 
           <Text

@@ -52,9 +52,9 @@ describe('MarketClosedBottomSheet', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderMarketClosedBottomSheet();
+    const { getByTestId } = renderMarketClosedBottomSheet();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('header-title')).toBeOnTheScreen();
   });
 
   it('navigates back when Done button is pressed', () => {

@@ -56,6 +56,20 @@ jest.mock('../../../../util/theme', () => {
   return { useTheme: jest.fn(() => mockTheme) };
 });
 
+const mockOnBuy = jest.fn();
+const mockOnSwap = jest.fn();
+let mockHasEligibleSwapTokens = true;
+jest.mock('../hooks/useTokenActions', () => ({
+  useTokenActions: () => ({
+    onBuy: mockOnBuy,
+    onSend: jest.fn(),
+    onReceive: jest.fn(),
+    handleStickySwapPress: mockOnSwap,
+    hasEligibleSwapTokens: mockHasEligibleSwapTokens,
+    networkModal: null,
+  }),
+}));
+
 const mockUseABTest = jest.fn();
 jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => mockUseABTest(...args),
@@ -81,9 +95,6 @@ const defaultProps = {
   token: mockToken,
   securityData: mockSecurityData,
   balanceFiatUsd: 50,
-  onBuy: jest.fn(),
-  onSwap: jest.fn(),
-  hasEligibleSwapTokens: true,
 };
 
 describe('TokenDetailsStickyFooter', () => {
@@ -91,6 +102,7 @@ describe('TokenDetailsStickyFooter', () => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
+    mockHasEligibleSwapTokens = true;
     mockUseABTest.mockReturnValue({
       variant:
         STICKY_FOOTER_SWAP_LABEL_VARIANTS[StickyFooterSwapLabelVariant.Control],
@@ -118,11 +130,9 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it('shows only buy button when isBuyable and no eligible swap tokens', () => {
+      mockHasEligibleSwapTokens = false;
       const { getByText, queryByText } = render(
-        <TokenDetailsStickyFooter
-          {...defaultProps}
-          hasEligibleSwapTokens={false}
-        />,
+        <TokenDetailsStickyFooter {...defaultProps} />,
       );
       expect(getByText('Buy')).toBeTruthy();
       expect(queryByText('Swap')).toBeNull();
@@ -130,11 +140,9 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('shows buy button as fallback when not buyable and no eligible swap tokens', () => {
       mockIsBuyable.mockReturnValue(false);
+      mockHasEligibleSwapTokens = false;
       const { getByText, queryByText } = render(
-        <TokenDetailsStickyFooter
-          {...defaultProps}
-          hasEligibleSwapTokens={false}
-        />,
+        <TokenDetailsStickyFooter {...defaultProps} />,
       );
       expect(getByText('Buy')).toBeTruthy();
       expect(queryByText('Swap')).toBeNull();
@@ -175,11 +183,11 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it('reports "buy" when only buy is shown', () => {
+      mockHasEligibleSwapTokens = false;
       const onStickyButtonsResolved = jest.fn();
       render(
         <TokenDetailsStickyFooter
           {...defaultProps}
-          hasEligibleSwapTokens={false}
           onStickyButtonsResolved={onStickyButtonsResolved}
         />,
       );
@@ -209,11 +217,9 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it('applies success style to the buy button when it is the only button', () => {
+      mockHasEligibleSwapTokens = false;
       const { getByText } = render(
-        <TokenDetailsStickyFooter
-          {...defaultProps}
-          hasEligibleSwapTokens={false}
-        />,
+        <TokenDetailsStickyFooter {...defaultProps} />,
       );
       expect(getByText('Buy')).toBeTruthy();
     });
@@ -413,7 +419,7 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Buy'));
 
-      expect(defaultProps.onBuy).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
     });
 
     it('blocks the swap action when token is a geo-restricted stock', () => {
@@ -426,7 +432,7 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Swap'));
 
-      expect(defaultProps.onSwap).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
     });
 
     it('proceeds normally for a stock token in a non-restricted country', () => {
@@ -439,7 +445,7 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Buy'));
 
-      expect(defaultProps.onBuy).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
     });
 
     it('proceeds normally for a non-stock token even if in a restricted country', () => {
@@ -452,7 +458,7 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Buy'));
 
-      expect(defaultProps.onBuy).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
     });
   });
 });
