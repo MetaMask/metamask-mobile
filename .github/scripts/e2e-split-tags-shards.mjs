@@ -328,14 +328,23 @@ function computeMedian(values, fallback = 60) {
 function binPackShards(files, timings, platform, splitNumber, totalSplits) {
   const platformKey = platform.toLowerCase() === 'ios' ? 'ios' : 'android';
 
+  // Treat only finite, strictly positive numbers as valid durations.
+  // This rejects undefined/null, non-numbers, NaN, Infinity, 0, and negatives,
+  // all of which would otherwise corrupt bin-packing (NaN poisons totalDuration
+  // and the reduce comparison; 0 silently skews the load distribution).
+  const getValidDuration = (file) => {
+    const value = timings[timingLookupKey(file)]?.[platformKey];
+    return typeof value === 'number' && Number.isFinite(value) && value > 0
+      ? value
+      : undefined;
+  };
+
   const knownDurations = files
-    .map((f) => timings[timingLookupKey(f)]?.[platformKey])
-    .filter((t) => typeof t === 'number' && t > 0);
+    .map(getValidDuration)
+    .filter((t) => t !== undefined);
 
   const medianDuration = computeMedian(knownDurations, 60);
-  const unknownFiles = files.filter(
-    (f) => typeof timings[timingLookupKey(f)]?.[platformKey] !== 'number',
-  );
+  const unknownFiles = files.filter((f) => getValidDuration(f) === undefined);
 
   if (unknownFiles.length > 0) {
     console.log(`ℹ️  ${unknownFiles.length} file(s) without recorded timing — median fallback ${medianDuration.toFixed(1)}s:`);
@@ -344,7 +353,7 @@ function binPackShards(files, timings, platform, splitNumber, totalSplits) {
 
   const filesWithDuration = files.map((f) => ({
     file: f,
-    duration: timings[timingLookupKey(f)]?.[platformKey] ?? medianDuration,
+    duration: getValidDuration(f) ?? medianDuration,
   }));
 
   filesWithDuration.sort((a, b) => b.duration - a.duration);
