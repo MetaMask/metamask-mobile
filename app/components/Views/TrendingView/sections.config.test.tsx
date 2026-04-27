@@ -84,13 +84,16 @@ jest.mock(
   './components/Sections/SectionTypes/SectionCarrousel',
   () => () => null,
 );
-jest.mock('./components/Sections/SectionTypes/TileSection', () => () => null);
 jest.mock(
-  './components/Sections/SectionTypes/SiteRecentsTileRowItem/SiteRecentsTileRowItem',
+  './components/Sections/SectionTypes/TilesSection/TileSection',
   () => () => null,
 );
 jest.mock(
-  './components/Sections/SectionTypes/SiteRecentsTileRowItem/SiteRecentsTileSkeleton',
+  './components/Sections/SectionTypes/TilesSection/TileTypes/SiteRecentsTileRowItem',
+  () => () => null,
+);
+jest.mock(
+  './components/Sections/SectionTypes/TilesSection/TileTypes/SiteRecentsTileSkeleton',
   () => () => null,
 );
 jest.mock(
@@ -112,7 +115,7 @@ jest.mock(
   () => () => null,
 );
 jest.mock(
-  './components/Sections/SectionTypes/CryptoMoversPillItem/CryptoMoversPillItem',
+  './components/Sections/SectionTypes/SectionPills/SectionPill',
   () => () => null,
 );
 jest.mock(

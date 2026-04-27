@@ -13,7 +13,8 @@ import { useRwaTokens } from '../../../UI/Trending/hooks/useRwaTokens/useRwaToke
 import SectionCard from '../components/Sections/SectionTypes/SectionCard';
 import SectionPills from '../components/Sections/SectionTypes/SectionPills/SectionPills';
 import SectionPillsSkeleton from '../components/Sections/SectionTypes/SectionPills/SectionPillsSkeleton';
-import CryptoMoversPillItem from '../components/Sections/SectionTypes/CryptoMoversPillItem/CryptoMoversPillItem';
+import { useTrendingTokenPress } from '../hooks/useTrendingTokenPress';
+import SectionPill from '../components/Sections/SectionTypes/SectionPills/SectionPill';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -21,9 +22,26 @@ import {
   TOKEN_FUSE_OPTIONS,
   SEARCH_TOKENS_FILTER_CONTEXT,
   CRYPTO_MOVERS_SEARCH_FILTER_CONTEXT,
+  CRYPTO_MOVERS_HOME_FILTER_CONTEXT,
   DEFAULT_TOKENS_FILTER_CONTEXT,
 } from './search-utils';
 import type { SectionConfig } from './types';
+
+const CryptoMoversPillItem: SectionConfig['RowItem'] = ({ item, index }) => {
+  const token = item as TrendingAsset;
+  const { onPress } = useTrendingTokenPress({
+    token,
+    index,
+    filterContext: CRYPTO_MOVERS_HOME_FILTER_CONTEXT,
+  });
+  return (
+    <SectionPill
+      token={token}
+      onPress={onPress}
+      testID={`section-pill-${token.assetId}`}
+    />
+  );
+};
 
 /** Explore home list row for trending tokens and RWAs; `DEFAULT_TOKENS_FILTER_CONTEXT` for analytics. */
 const TrendingTokenHomeRowItem: SectionConfig['RowItem'] = ({

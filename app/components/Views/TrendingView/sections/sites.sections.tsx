@@ -6,9 +6,9 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useBrowserRecentsSites } from '../../../UI/Sites/hooks/useBrowserRecentsSites/useBrowserRecentsSites';
 import SectionCard from '../components/Sections/SectionTypes/SectionCard';
-import SiteRecentsTileRowItem from '../components/Sections/SectionTypes/SiteRecentsTileRowItem/SiteRecentsTileRowItem';
-import SiteRecentsTileSkeleton from '../components/Sections/SectionTypes/SiteRecentsTileRowItem/SiteRecentsTileSkeleton';
-import TileSection from '../components/Sections/SectionTypes/TileSection';
+import SiteRecentsTileRowItem from '../components/Sections/SectionTypes/TilesSection/TileTypes/SiteRecentsTileRowItem';
+import SiteRecentsTileSkeleton from '../components/Sections/SectionTypes/TilesSection/TileTypes/SiteRecentsTileSkeleton';
+import TileSection from '../components/Sections/SectionTypes/TilesSection/TileSection';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import type { SectionConfig } from './types';

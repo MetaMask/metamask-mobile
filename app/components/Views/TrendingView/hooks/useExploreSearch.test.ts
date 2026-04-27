@@ -115,16 +115,12 @@ jest.mock(
   }),
 );
 jest.mock(
-  '../components/Sections/SectionTypes/CryptoMoversPillItem/CryptoMoversPillItem',
+  '../components/Sections/SectionTypes/TilesSection/TileSection',
   () => ({
     __esModule: true,
     default: () => null,
   }),
 );
-jest.mock('../components/Sections/SectionTypes/TileSection', () => ({
-  __esModule: true,
-  default: () => null,
-}));
 jest.mock('../components/Sections/SectionTypes/SectionCard', () => ({
   __esModule: true,
   default: () => null,

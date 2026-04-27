@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import TileSection from './TileSection';
-import { SECTIONS_CONFIG } from '../../../sections.config';
+import { SECTIONS_CONFIG } from '../../../../sections.config';
 
 const mockUseTileExtra = jest.fn((_items: unknown[]) => ({}));
 
@@ -9,7 +9,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn(), dispatch: jest.fn() }),
 }));
 
-jest.mock('../../../sections.config', () => {
+jest.mock('../../../../sections.config', () => {
   const { View, Text } =
     jest.requireActual<typeof import('react-native')>('react-native');
   const viewAllAction = jest.fn();
@@ -40,7 +40,7 @@ jest.mock('../../../sections.config', () => {
 
 const mockViewAllAction = SECTIONS_CONFIG.perps.viewAllAction as jest.Mock;
 
-jest.mock('../../../../Homepage/components/ViewMoreCard', () => {
+jest.mock('../../../../../Homepage/components/ViewMoreCard', () => {
   const ReactNative = jest.requireActual('react-native');
   return ({ onPress, testID }: { onPress: () => void; testID?: string }) => (
     <ReactNative.TouchableOpacity onPress={onPress} testID={testID}>

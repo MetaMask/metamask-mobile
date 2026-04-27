@@ -21,7 +21,7 @@ import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/comp
 import { useHomepageSparklines } from '../../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
 import { selectPerpsWatchlistMarkets } from '../../../UI/Perps/selectors/perpsController';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import TileSection from '../components/Sections/SectionTypes/TileSection';
+import TileSection from '../components/Sections/SectionTypes/TilesSection/TileSection';
 import PillToggledCardSection, {
   type PillToggledTab,
 } from '../components/Sections/SectionTypes/PillToggledCardSection';

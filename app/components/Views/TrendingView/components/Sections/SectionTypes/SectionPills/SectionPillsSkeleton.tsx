@@ -18,6 +18,28 @@ const styles = StyleSheet.create({
   },
 });
 
+const SkeletonRow = ({ prefix }: { prefix: string }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="flex-nowrap gap-2"
+  >
+    {Array.from({ length: SKELETON_PILLS_PER_ROW }).map((_, i) => (
+      <View
+        key={`${prefix}-${i}`}
+        style={styles.pill}
+        testID="section-pills-skeleton-pill"
+      >
+        <Skeleton
+          width={SKELETON_PILL_WIDTH}
+          height={SKELETON_PILL_HEIGHT}
+          testID="section-pills-skeleton"
+        />
+      </View>
+    ))}
+  </Box>
+);
+
 const SectionPillsSkeleton: React.FC = () => {
   const tw = useTailwind();
 
@@ -30,44 +52,8 @@ const SectionPillsSkeleton: React.FC = () => {
         contentContainerStyle={tw.style('flex-col gap-2 pr-0')}
       >
         <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="flex-nowrap gap-2"
-          >
-            {Array.from({ length: SKELETON_PILLS_PER_ROW }).map((_, i) => (
-              <View
-                key={`r1-${i}`}
-                style={styles.pill}
-                testID="section-pills-skeleton-pill"
-              >
-                <Skeleton
-                  width={SKELETON_PILL_WIDTH}
-                  height={SKELETON_PILL_HEIGHT}
-                  testID="section-pills-skeleton"
-                />
-              </View>
-            ))}
-          </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="flex-nowrap gap-2"
-          >
-            {Array.from({ length: SKELETON_PILLS_PER_ROW }).map((_, i) => (
-              <View
-                key={`r2-${i}`}
-                style={styles.pill}
-                testID="section-pills-skeleton-pill"
-              >
-                <Skeleton
-                  width={SKELETON_PILL_WIDTH}
-                  height={SKELETON_PILL_HEIGHT}
-                  testID="section-pills-skeleton"
-                />
-              </View>
-            ))}
-          </Box>
+          <SkeletonRow prefix="r1" />
+          <SkeletonRow prefix="r2" />
         </Box>
       </ScrollView>
     </Box>

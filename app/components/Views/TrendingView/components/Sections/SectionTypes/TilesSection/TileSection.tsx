@@ -3,9 +3,9 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SECTIONS_CONFIG, type SectionId } from '../../../sections.config';
-import ViewMoreCard from '../../../../Homepage/components/ViewMoreCard';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { SECTIONS_CONFIG, type SectionId } from '../../../../sections.config';
+import ViewMoreCard from '../../../../../Homepage/components/ViewMoreCard';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 
 const MAX_ITEMS = 5;
 

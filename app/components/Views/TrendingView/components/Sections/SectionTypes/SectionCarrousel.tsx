@@ -11,6 +11,8 @@ const CONTENT_WIDTH = SCREEN_WIDTH;
 const CARD_WIDTH = CONTENT_WIDTH * 0.8;
 const CARD_HEIGHT = 220;
 
+const SKELETON_PLACEHOLDER_COUNT = 3;
+
 export interface SectionCarrouselProps {
   sectionId: SectionId;
   data: unknown[];
@@ -27,10 +29,11 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   const flashListRef = useRef<FlashListRef<unknown>>(null);
 
   const section = SECTIONS_CONFIG[sectionId];
+  const extra = section.useTileExtra?.(data) ?? {};
 
-  const skeletonCount = 3;
-  const skeletonData = Array.from({ length: skeletonCount });
-
+  const skeletonData = Array.from<unknown>({
+    length: SKELETON_PLACEHOLDER_COUNT,
+  });
   const displayData = isLoading ? skeletonData : data;
 
   return (
@@ -55,6 +58,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
                     item={item}
                     index={index}
                     navigation={navigation}
+                    extra={extra}
                   />
                 )}
               </Box>
@@ -64,7 +68,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
         contentContainerStyle={tw.style('px-4')}
         keyExtractor={
           isLoading
-            ? (_, index) => `skeleton-${index}`
+            ? (_, index) => `skeleton-${sectionId}-${index}`
             : (_, index) => `${section.id}-${index}`
         }
         horizontal

@@ -2,12 +2,12 @@ import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../../util/theme';
+import { useTheme } from '../../../../../../../../util/theme';
 import {
   SITE_RECENTS_TILE_BORDER_RADIUS,
   SITE_RECENTS_TILE_HEIGHT,
   SITE_RECENTS_TILE_WIDTH,
-} from './siteRecentsTileDimensions';
+} from './SiteRecentsTileRowItem';
 
 const SKELETON_CARD_COUNT = 3;
 

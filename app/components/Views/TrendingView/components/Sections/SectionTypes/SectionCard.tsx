@@ -39,12 +39,22 @@ const SectionCard: React.FC<SectionCardProps> = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const section = SECTIONS_CONFIG[sectionId];
+  const displayData = useMemo(() => data.slice(0, 3), [data]);
+  const extra = useMemo(
+    () => section.useTileExtra?.(displayData) ?? {},
+    [section, displayData],
+  );
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
-      <section.RowItem item={item} index={index} navigation={navigation} />
+      <section.RowItem
+        item={item}
+        index={index}
+        navigation={navigation}
+        extra={extra}
+      />
     ),
-    [navigation, section],
+    [navigation, section, extra],
   );
 
   return (
@@ -58,7 +68,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
       )}
       {!isLoading && (
         <FlashList
-          data={data.slice(0, 3)}
+          data={displayData}
           renderItem={renderFlatItem}
           keyExtractor={(_, index) => `${section.id}-${index}`}
           keyboardShouldPersistTaps="handled"

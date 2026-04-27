@@ -15,17 +15,16 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useStyles } from '../../../../../../../component-library/hooks';
-import WebsiteIcon from '../../../../../../UI/WebsiteIcon';
-import type { SiteData } from '../../../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
-import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
-import Routes from '../../../../../../../constants/navigation/Routes';
-import type { Theme } from '../../../../../../../util/theme/models';
-import {
-  SITE_RECENTS_TILE_BORDER_RADIUS,
-  SITE_RECENTS_TILE_HEIGHT,
-  SITE_RECENTS_TILE_WIDTH,
-} from './siteRecentsTileDimensions';
+import { useStyles } from '../../../../../../../../component-library/hooks';
+import WebsiteIcon from '../../../../../../../UI/WebsiteIcon';
+import type { SiteData } from '../../../../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import type { AppNavigationProp } from '../../../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../../../constants/navigation/Routes';
+import type { Theme } from '../../../../../../../../util/theme/models';
+
+export const SITE_RECENTS_TILE_WIDTH = 180;
+export const SITE_RECENTS_TILE_HEIGHT = 104;
+export const SITE_RECENTS_TILE_BORDER_RADIUS = 12;
 
 const LOGO_SIZE = 28;
 
