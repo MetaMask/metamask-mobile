@@ -307,7 +307,7 @@ describe('Browser - Component Rendering', () => {
       );
     });
 
-    it('passes fromBenefit param to BrowserTab', () => {
+    it('passes fromCard param to BrowserTab', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
@@ -320,7 +320,7 @@ describe('Browser - Component Rendering', () => {
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
                   <Browser
-                    route={{ params: { fromBenefit: true } }}
+                    route={{ params: { fromCard: true } }}
                     tabs={tabs}
                     activeTab={1}
                     navigation={mockNavigation}
@@ -347,7 +347,7 @@ describe('Browser - Component Rendering', () => {
 
       expect(BrowserTabMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          fromBenefit: true,
+          fromCard: true,
         }),
         {},
       );
