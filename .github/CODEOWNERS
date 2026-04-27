@@ -42,7 +42,6 @@ app/core/Engine/index.ts                                    @MetaMask/mobile-pla
 app/core/Engine/README.md                                   @MetaMask/mobile-platform
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
-app/core/DeeplinkManager                                    @MetaMask/mobile-platform
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
@@ -137,6 +136,7 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 **/Notification/** @MetaMask/notifications
 **/notifications/** @MetaMask/notifications
 **/notification/** @MetaMask/notifications
+app/core/DeeplinkManager @MetaMask/notifications
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain

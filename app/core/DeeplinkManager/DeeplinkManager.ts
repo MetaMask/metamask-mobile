@@ -2,7 +2,7 @@
 
 import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
@@ -12,6 +12,39 @@ import {
   getBrazeInitialDeeplink,
   subscribeToBrazePushDeeplinks,
 } from '../Braze/BrazeDeeplinks';
+
+/**
+ * Time to wait for `branch.subscribe` to fire with the resolved Branch
+ * params after Android delivered a Branch stub URL via Linking.
+ * If Branch hasn't fired by then we fall back to the stub so that the
+ * deeplink is never lost — at the cost of attribution for that click.
+ */
+const ANDROID_BRANCH_STUB_FALLBACK_MS = 3000;
+
+/**
+ * Detects the Branch stub URL Android delivers to Linking.addEventListener
+ * (and Linking.getInitialURL) when the user clicks a Branch deeplink while
+ * the app is already open.
+ *
+ * The stub looks like `metamask://<path>?_branch_referrer=<encrypted>&link_click_id=<id>`.
+ *
+ * The `_branch_referrer` query parameter is an opaque token; the actual
+ * UTM parameters are only available later, when the Branch RN SDK fires
+ * `branch.subscribe` with the decoded params (~500 ms later in measurement).
+ *
+ * Processing the stub URL would:
+ * 1. Fire `DEEP_LINK_USED` analytics with no UTM data (attribution lost).
+ * 2. Cause the deeplink handler to run twice (stub then resolved URL).
+ *
+ * We therefore defer the stub URL on Android and let `branch.subscribe`
+ * deliver the resolved URL with UTMs intact. iOS Universal Links already
+ * deliver the resolved URL inline, so this only applies to Android.
+ *
+ * @internal exported for tests
+ */
+export function isAndroidBranchStubUrl(url: string): boolean {
+  return Platform.OS === 'android' && url.includes('_branch_referrer=');
+}
 
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
@@ -89,6 +122,21 @@ export class DeeplinkManager {
   static start() {
     DeeplinkManager.getInstance();
 
+    // [Android warm start] State for deferring Branch stub URLs until
+    // `branch.subscribe` resolves with the decoded UTM params. See
+    // `isAndroidBranchStubUrl` for context.
+    let pendingAndroidBranchStub: {
+      url: string;
+      timer: ReturnType<typeof setTimeout>;
+    } | null = null;
+
+    const clearAndroidBranchStub = () => {
+      if (pendingAndroidBranchStub) {
+        clearTimeout(pendingAndroidBranchStub.timer);
+        pendingAndroidBranchStub = null;
+      }
+    };
+
     const getBranchDeeplink = async (uri?: string) => {
       if (uri) {
         handleDeeplink({ uri });
@@ -161,6 +209,18 @@ export class DeeplinkManager {
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
+      if (isAndroidBranchStubUrl(url)) {
+        // Defer the stub: branch.subscribe will fire shortly with the resolved URL (and UTMs) and trigger handleDeeplink itself.
+        clearAndroidBranchStub();
+        const timer = setTimeout(() => {
+          // Safety net: process the stub anyway so the deeplink isn't lost if Branch never resolves (network failure, SDK error, ...).
+          pendingAndroidBranchStub = null;
+          handleDeeplink({ uri: url });
+        }, ANDROID_BRANCH_STUB_FALLBACK_MS);
+        pendingAndroidBranchStub = { url, timer };
+        return;
+      }
+
       handleDeeplink({ uri: url });
     });
 
@@ -175,6 +235,19 @@ export class DeeplinkManager {
         const branchError = new Error(error);
         Logger.error(branchError, 'Error subscribing to branch.');
       }
+      // Branch resolved — cancel any deferred Android stub fallback so we don't double-process the deeplink.
+      clearAndroidBranchStub();
+
+      // Branch.subscribe fires for every onNewIntent on Android, including
+      // intents that carry a non-Branch URI (e.g. `metamask://buy`). For those
+      // we have no uri and `+clicked_branch_link` is false; the URI has
+      // already been delivered to handleDeeplink via Linking.addEventListener
+      // (warm start) or Linking.getInitialURL (cold start). Falling through
+      // to getBranchDeeplink would re-fetch the same URI from
+      // `+non_branch_link` and dispatch it a second time.
+      const isBranchClick = opts.params?.['+clicked_branch_link'] === true;
+      if (!opts.uri && !isBranchClick) return;
+
       const rewritten = rewriteBranchUri(
         opts.uri,
         opts.params as Record<string, unknown> | undefined,
