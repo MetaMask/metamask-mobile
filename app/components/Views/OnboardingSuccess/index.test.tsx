@@ -38,9 +38,6 @@ jest.mock('../../../core/Engine/Engine', () => ({
     TokenBalancesController: {
       updateBalances: jest.fn().mockResolvedValue(undefined),
     },
-    TokenListController: {
-      fetchTokenList: jest.fn().mockResolvedValue(undefined),
-    },
     AccountTrackerController: {
       refresh: jest.fn().mockResolvedValue(undefined),
     },

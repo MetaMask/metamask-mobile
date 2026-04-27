@@ -17,9 +17,6 @@ jest.mock('../../../../../core/Engine', () => ({
       NetworkController: {
         findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
       },
-      TokenListController: {
-        fetchTokenList: jest.fn(),
-      },
       TransactionController: {
         updateAtomicBatchData: jest.fn(),
       },

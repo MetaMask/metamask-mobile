@@ -298,7 +298,6 @@ export default {
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   NETWORK_DID_CHANGE_EVENT: 'NetworkController:networkDidChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
-  TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
     TERMS_ACCEPTED: 'ToU Accepted',

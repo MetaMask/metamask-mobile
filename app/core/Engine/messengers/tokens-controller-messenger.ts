@@ -38,7 +38,6 @@ export function getTokensControllerMessenger(
     events: [
       'NetworkController:networkDidChange',
       'NetworkController:stateChange',
-      'TokenListController:stateChange',
       'AccountsController:selectedEvmAccountChange',
       'KeyringController:accountRemoved',
     ],
