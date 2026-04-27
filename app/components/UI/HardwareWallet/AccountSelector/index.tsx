@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useMemo } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import CheckBox from '@react-native-community/checkbox';
+import { Checkbox } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
@@ -94,19 +94,10 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         keyExtractor={(item) => `address-${item.index}`}
         renderItem={({ item }) => (
           <View style={[styles.account]}>
-            <CheckBox
-              style={[styles.checkBox]}
-              disabled={item.exist}
-              value={item.checked}
-              onValueChange={() => onCheckBoxClick(item.index)}
-              boxType={'square'}
-              tintColors={{
-                true: colors.primary.default,
-                false: colors.border.default,
-              }}
-              onCheckColor={colors.background.default}
-              onFillColor={colors.primary.default}
-              onTintColor={colors.primary.default}
+            <Checkbox
+              isSelected={item.checked}
+              isDisabled={item.exist}
+              onChange={() => onCheckBoxClick(item.index)}
             />
             <AccountDetails
               index={item.index}
