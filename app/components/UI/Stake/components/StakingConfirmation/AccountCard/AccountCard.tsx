@@ -1,13 +1,12 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { KeyValueRow, Text } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import KeyValueRow from '../../../../../../component-library/components-temp/KeyValueRow';
 import Avatar, {
   AvatarVariant,
   AvatarSize,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
@@ -44,48 +43,40 @@ const AccountCard = ({
       <Card testID="account-card" style={styles.cardGroupTop} disabled>
         {selectedAccount && (
           <KeyValueRow
-            field={{ label: { text: primaryLabel } }}
-            value={{
-              label: (
-                <AccountTag
-                  accountAddress={selectedAccount?.address}
-                  accountName={selectedAccount.metadata.name}
-                  avatarAccountType={avatarAccountType}
-                />
-              ),
-            }}
+            keyLabel={primaryLabel}
+            value={
+              <AccountTag
+                accountAddress={selectedAccount?.address}
+                accountName={selectedAccount.metadata.name}
+                avatarAccountType={avatarAccountType}
+              />
+            }
           />
         )}
         <KeyValueRow
-          field={{
-            label: { text: secondaryLabel },
-          }}
-          value={{
-            label: (
-              <ContractTag
-                contractAddress={vaultMetadata?.vaultAddress ?? contractName}
-                contractName={contractName}
-                avatarAccountType={avatarAccountType}
-              />
-            ),
-          }}
+          keyLabel={secondaryLabel}
+          value={
+            <ContractTag
+              contractAddress={vaultMetadata?.vaultAddress ?? contractName}
+              contractName={contractName}
+              avatarAccountType={avatarAccountType}
+            />
+          }
         />
       </Card>
       <Card style={styles.cardGroupBottom} disabled>
         <KeyValueRow
-          field={{ label: { text: strings('asset_details.network') } }}
-          value={{
-            label: (
-              <View style={styles.networkKeyValueRow}>
-                <Avatar
-                  variant={AvatarVariant.Network}
-                  imageSource={images.ETHEREUM}
-                  size={AvatarSize.Xs}
-                />
-                <Text>{networkName}</Text>
-              </View>
-            ),
-          }}
+          keyLabel={strings('asset_details.network')}
+          value={
+            <View style={styles.networkKeyValueRow}>
+              <Avatar
+                variant={AvatarVariant.Network}
+                imageSource={images.ETHEREUM}
+                size={AvatarSize.Xs}
+              />
+              <Text>{networkName}</Text>
+            </View>
+          }
         />
       </Card>
     </View>

@@ -7,8 +7,9 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
-import ButtonIcon from '../../../../../../../component-library/components/Buttons/ButtonIcon';
-import { TooltipSizes } from '../../../../../../../component-library/components-temp/KeyValueRow';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
@@ -46,7 +47,7 @@ const DepositReceiveSection = ({
             {strings('earn.receive')}
           </Text>
           <ButtonIcon
-            size={TooltipSizes.Sm}
+            size={ButtonIconSizes.Sm}
             iconColor={IconColor.Alternative}
             iconName={IconName.Info}
             accessibilityRole={strings('earn.button')}

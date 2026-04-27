@@ -3,8 +3,9 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
@@ -210,7 +211,7 @@ const InputDisplay = ({
               )}`}
             </Text>
             <ButtonIcon
-              size={TooltipSizes.Md}
+              size={ButtonIconSizes.Md}
               iconColor={IconColor.Alternative}
               iconName={IconName.Question}
               onPress={onNavigateToLendingMaxWithdrawModal}
