@@ -4,6 +4,7 @@ import BuildQuote, {
   createBuildQuoteNavDetails,
   isBailedOrderStatus,
 } from './BuildQuote';
+import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -1738,11 +1739,14 @@ describe('BuildQuote', () => {
         // selectedToken. tokenStateIsSettled is false during this render.
         mockUseParams.mockReturnValue({ assetId: 'eip155:1/slip44:999' });
 
-        const { queryByText } = renderWithProvider(<BuildQuote />, {
+        const { queryByText, getByTestId } = renderWithProvider(<BuildQuote />, {
           state: initialRootState,
         });
 
         expect(queryByText('Powered by MoonPay')).not.toBeOnTheScreen();
+        expect(
+          getByTestId(BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER),
+        ).toBeOnTheScreen();
       });
 
       it('shows Continue button as loading while nav params have not caught up to controller-selected token', () => {

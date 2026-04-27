@@ -718,7 +718,13 @@ function BuildQuote() {
         </Text>
       );
     }
-    return null;
+    return (
+      <Text
+        testID={BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER}
+        variant={TextVariant.BodySm}
+        style={styles.poweredByText}
+      />
+    );
   })();
 
   return (
