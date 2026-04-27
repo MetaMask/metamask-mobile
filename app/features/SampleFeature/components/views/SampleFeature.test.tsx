@@ -228,40 +228,12 @@ describe('SampleFeature', () => {
       });
 
       // Assert
-      expect(getByTestId('mocked-sample-counter-pane')).toBeDefined();
-    });
-
-    it('does not render SampleCounterPane when feature flag is disabled', () => {
-      // Arrange
-      mockSelectSampleFeatureCounterEnabled.mockReturnValue(false);
-
-      // Act
-      const { queryByTestId } = renderWithProvider(<SampleFeature />, {
-        state: initialRootState,
-      });
-
-      // Assert
-      expect(queryByTestId('mocked-sample-counter-pane')).toBeNull();
-    });
-  });
-
-  describe('Feature Flag Rendering Verification', () => {
-    it('renders SampleCounterPane and SamplePetNames when feature flag is enabled', () => {
-      // Arrange
-      mockSelectSampleFeatureCounterEnabled.mockReturnValue(true);
-
-      // Act
-      const { getByTestId } = renderWithProvider(<SampleFeature />, {
-        state: initialRootState,
-      });
-
-      // Assert
       expect(getByTestId('sample-feature-container')).toBeOnTheScreen();
       expect(getByTestId('mocked-sample-counter-pane')).toBeOnTheScreen();
       expect(getByTestId('mocked-sample-pet-names')).toBeOnTheScreen();
     });
 
-    it('renders SamplePetNames but not SampleCounterPane when feature flag is disabled', () => {
+    it('does not render SampleCounterPane when feature flag is disabled', () => {
       // Arrange
       mockSelectSampleFeatureCounterEnabled.mockReturnValue(false);
 

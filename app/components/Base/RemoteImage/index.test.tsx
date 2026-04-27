@@ -65,7 +65,9 @@ describe('RemoteImage', () => {
       />,
     );
 
-    expect(UNSAFE_getByType(Image)).toBeDefined();
+    expect(UNSAFE_getByType(Image).props.source.uri).toBe(
+      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
+    );
   });
 
   it('renders static sources', () => {
@@ -329,7 +331,7 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         expect(queryByTestId('identicon')).not.toBeOnTheScreen();
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
+        expect(image).not.toBeNull();
       });
     });
   });
@@ -567,7 +569,7 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
+        expect(image).not.toBeNull();
       });
     });
   });
@@ -583,7 +585,6 @@ describe('RemoteImage', () => {
       );
 
       const image = UNSAFE_getByType(Image);
-      expect(image).toBeDefined();
       expect(image.props.source.uri).toBe('https://example.com/image.png');
     });
 
@@ -605,7 +606,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/image.png');
       });
     });
@@ -627,7 +627,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/token.png');
       });
     });
@@ -679,7 +678,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/token.png');
       });
     });
