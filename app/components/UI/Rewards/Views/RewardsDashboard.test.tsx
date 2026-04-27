@@ -186,6 +186,10 @@ jest.mock('../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
 }));
 
+jest.mock('../hooks/useOndoOutcomeToast', () => ({
+  useOndoOutcomeToast: jest.fn(),
+}));
+
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';

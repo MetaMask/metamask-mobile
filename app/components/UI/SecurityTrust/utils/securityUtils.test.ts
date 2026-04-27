@@ -9,7 +9,6 @@ import {
   getTop10HoldingPct,
   formatCompactSupply,
   getResultTypeConfig,
-  getSecurityBadgeConfig,
 } from './securityUtils';
 import {
   TextColor,
@@ -74,7 +73,7 @@ describe('securityUtils', () => {
       expect(config.subtitle).toBe(
         strings('security_trust.subtitle_malicious'),
       );
-      expect(config.icon).toBe(IconName.Danger);
+      expect(config.icon).toBe(IconName.Error);
       expect(config.iconColor).toBe(IconColor.ErrorDefault);
     });
 
@@ -116,8 +115,16 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Verified');
 
         expect(tags).toEqual([
-          { label: 'Published contract' },
-          { label: 'Established reputation' },
+          {
+            label: strings(
+              'security_trust.features.positive.verified_contract',
+            ),
+          },
+          {
+            label: strings(
+              'security_trust.features.positive.high_reputation_token',
+            ),
+          },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -130,7 +137,13 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Verified');
 
-        expect(tags).toEqual([{ label: 'Published contract' }]);
+        expect(tags).toEqual([
+          {
+            label: strings(
+              'security_trust.features.positive.verified_contract',
+            ),
+          },
+        ]);
       });
 
       it('caps display at 4 positive tags with no remainingCount', () => {
@@ -153,7 +166,13 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, undefined);
 
-        expect(tags).toEqual([{ label: 'Established reputation' }]);
+        expect(tags).toEqual([
+          {
+            label: strings(
+              'security_trust.features.positive.high_reputation_token',
+            ),
+          },
+        ]);
       });
     });
 
@@ -167,8 +186,10 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Warning');
 
         expect(tags).toEqual([
-          { label: 'Honeypot risk' },
-          { label: 'Suspicious airdrop' },
+          { label: strings('security_trust.features.negative.honeypot') },
+          {
+            label: strings('security_trust.features.negative.airdrop_pattern'),
+          },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -178,7 +199,13 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Spam');
 
-        expect(tags).toEqual([{ label: 'Likely impersonator' }]);
+        expect(tags).toEqual([
+          {
+            label: strings(
+              'security_trust.features.negative.impersonator_high_confidence',
+            ),
+          },
+        ]);
       });
 
       it('ignores Malicious features when resultType is Warning', () => {
@@ -186,7 +213,9 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Warning');
 
-        expect(tags).toEqual([{ label: 'Honeypot risk' }]);
+        expect(tags).toEqual([
+          { label: strings('security_trust.features.negative.honeypot') },
+        ]);
       });
 
       it('caps display at 3 and returns correct remainingCount', () => {
@@ -215,8 +244,10 @@ describe('securityUtils', () => {
         const { tags, remainingCount } = getFeatureTags(features, 'Malicious');
 
         expect(tags).toEqual([
-          { label: 'Rugpull risk' },
-          { label: 'Known malicious' },
+          { label: strings('security_trust.features.negative.rugpull') },
+          {
+            label: strings('security_trust.features.negative.known_malicious'),
+          },
         ]);
         expect(remainingCount).toBe(0);
       });
@@ -226,7 +257,9 @@ describe('securityUtils', () => {
 
         const { tags } = getFeatureTags(features, 'Malicious');
 
-        expect(tags).toEqual([{ label: 'Rugpull risk' }]);
+        expect(tags).toEqual([
+          { label: strings('security_trust.features.negative.rugpull') },
+        ]);
       });
 
       it('caps display at 3 and returns correct remainingCount', () => {
@@ -366,38 +399,30 @@ describe('securityUtils', () => {
     });
   });
 
-  describe('getSecurityBadgeConfig', () => {
-    it('returns verified badge config for Verified result type', () => {
-      const config = getSecurityBadgeConfig({
-        resultType: 'Verified',
-        features: [],
-      } as unknown as TokenSecurityData);
+  describe('badge property in getResultTypeConfig', () => {
+    it('returns badge config for Verified result type', () => {
+      const config = getResultTypeConfig('Verified');
 
-      expect(config).toEqual({
+      expect(config.badge).toEqual({
         icon: IconName.VerifiedFilled,
         iconColor: IconColor.PrimaryDefault,
+        iconAlertSeverity: undefined,
         label: null,
         bg: null,
         textColor: undefined,
       });
     });
 
-    it('returns null for Benign result type', () => {
-      const config = getSecurityBadgeConfig({
-        resultType: 'Benign',
-        features: [],
-      } as unknown as TokenSecurityData);
+    it('returns null badge for Benign result type', () => {
+      const config = getResultTypeConfig('Benign');
 
-      expect(config).toBeNull();
+      expect(config.badge).toBeNull();
     });
 
-    it('returns warning badge config for Warning result type', () => {
-      const config = getSecurityBadgeConfig({
-        resultType: 'Warning',
-        features: [],
-      } as unknown as TokenSecurityData);
+    it('returns badge config for Warning result type', () => {
+      const config = getResultTypeConfig('Warning');
 
-      expect(config).toEqual({
+      expect(config.badge).toMatchObject({
         icon: IconName.Warning,
         iconColor: IconColor.WarningDefault,
         label: strings('security_trust.risky'),
@@ -406,13 +431,10 @@ describe('securityUtils', () => {
       });
     });
 
-    it('returns warning badge config for Spam result type', () => {
-      const config = getSecurityBadgeConfig({
-        resultType: 'Spam',
-        features: [],
-      } as unknown as TokenSecurityData);
+    it('returns badge config for Spam result type', () => {
+      const config = getResultTypeConfig('Spam');
 
-      expect(config).toEqual({
+      expect(config.badge).toMatchObject({
         icon: IconName.Warning,
         iconColor: IconColor.WarningDefault,
         label: strings('security_trust.risky'),
@@ -421,40 +443,16 @@ describe('securityUtils', () => {
       });
     });
 
-    it('returns danger badge config for Malicious result type', () => {
-      const config = getSecurityBadgeConfig({
-        resultType: 'Malicious',
-        features: [],
-      } as unknown as TokenSecurityData);
+    it('returns badge config for Malicious result type', () => {
+      const config = getResultTypeConfig('Malicious');
 
-      expect(config).toEqual({
+      expect(config.badge).toMatchObject({
         icon: IconName.Danger,
         iconColor: IconColor.ErrorDefault,
         label: strings('security_trust.malicious'),
         bg: 'bg-error-muted',
         textColor: TextColor.ErrorDefault,
       });
-    });
-
-    it('returns null for undefined securityData', () => {
-      const config = getSecurityBadgeConfig(undefined);
-
-      expect(config).toBeNull();
-    });
-
-    it('returns null for null securityData', () => {
-      const config = getSecurityBadgeConfig(null);
-
-      expect(config).toBeNull();
-    });
-
-    it('returns null for unknown result type', () => {
-      const config = getSecurityBadgeConfig({
-        resultType: 'Unknown' as TokenSecurityData['resultType'],
-        features: [],
-      } as unknown as TokenSecurityData);
-
-      expect(config).toBeNull();
     });
   });
 });

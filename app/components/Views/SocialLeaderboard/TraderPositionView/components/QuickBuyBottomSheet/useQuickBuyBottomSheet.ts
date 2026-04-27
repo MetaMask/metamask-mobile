@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -72,7 +73,7 @@ export interface UseQuickBuyBottomSheetResult {
   hasError: boolean;
   hasValidAmount: boolean;
   isConfirmDisabled: boolean;
-  isConfirmLoading: boolean;
+  confirmButtonState: 'idle' | 'loading' | 'success';
   getButtonLabel: () => string;
   // handlers
   handleClose: () => void;
@@ -91,6 +92,7 @@ export function useQuickBuyBottomSheet(
   const navigation = useNavigation();
 
   const [usdAmount, setUsdAmount] = useState('');
+  const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
@@ -250,11 +252,14 @@ export function useQuickBuyBottomSheet(
     try {
       dispatch(setIsSubmittingTx(true));
       await submitBridgeTx({ quoteResponse: activeQuote });
+      setTxPhase('success');
+      notificationAsync(NotificationFeedbackType.Success);
+      await new Promise((resolve) => setTimeout(resolve, 800));
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
-      // Keep sheet open on error
+      notificationAsync(NotificationFeedbackType.Error);
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
@@ -345,6 +350,9 @@ export function useQuickBuyBottomSheet(
     isPendingQuoteRefresh ||
     (isQuoteLoading && !activeQuote && hasCompleteQuoteInputs);
 
+  const confirmButtonState: 'idle' | 'loading' | 'success' =
+    txPhase === 'success' ? 'success' : isConfirmLoading ? 'loading' : 'idle';
+
   const getButtonLabel = useCallback(() => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (hasSufficientGas === false) return strings('bridge.insufficient_gas');
@@ -381,7 +389,7 @@ export function useQuickBuyBottomSheet(
     hasError,
     hasValidAmount,
     isConfirmDisabled,
-    isConfirmLoading,
+    confirmButtonState,
     getButtonLabel,
     handleClose,
     handlePresetPress,

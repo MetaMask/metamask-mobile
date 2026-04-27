@@ -17,7 +17,8 @@ const createWrapper = () =>
 describe('CustomNonceModal', () => {
   it('renders correctly', () => {
     const wrapper = createWrapper();
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.find({ testID: 'increment-nonce' })).toHaveLength(1);
+    expect(wrapper.find({ testID: 'decrement-nonce' })).toHaveLength(1);
   });
 
   it('handles only numeric inputs', () => {

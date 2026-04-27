@@ -239,8 +239,15 @@ describe('useTrendingRequest', () => {
           chainIds: ['eip155:1', 'eip155:137'],
         }),
       );
-      expect(result.current.results).toEqual(mockResults);
-      expect(result.current.isLoading).toBe(false);
+
+      // The `waitFor` above only confirms the mock was invoked. Under load
+      // (full suite run) the resolved-promise setState has not yet committed
+      // by the time we check `result.current.results` synchronously — flaky.
+      // Wait on the actual state transition instead.
+      await waitFor(() => {
+        expect(result.current.results).toEqual(mockResults);
+        expect(result.current.isLoading).toBe(false);
+      });
 
       spyGetTrendingTokens.mockRestore();
     },
