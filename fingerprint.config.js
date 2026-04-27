@@ -6,9 +6,6 @@
  * Docs - https://docs.expo.dev/versions/latest/sdk/fingerprint/#fingerprintconfigjs
  */
 const config = {
-  /**
-   * Track files and directories under `extraSources` if they affect native code changes.
-   */
   extraSources: [
     {
       type: 'dir',

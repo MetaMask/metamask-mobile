@@ -218,8 +218,9 @@ async function repackIos() {
       throw new Error(
         `Repacked app is missing its bundle executable at "${executablePath}". ` +
         `@expo/repack-app may have dropped the binary (possible symlink handling issue). ` +
-        `Aborting to prevent uploading a broken artifact — bust IOS_APP_CACHE_VERSION ` +
-        `in build-ios-e2e.yml to force a full rebuild.`
+        `Aborting to prevent uploading a broken artifact — add the \`force-builds\` ` +
+        `label (or a \`[force-builds]\` token in the commit message) to the PR to ` +
+        `bypass cross-run artifact reuse and force a full native rebuild.`
       );
     }
     logger.success(`Bundle executable verified: ${sourceAppName}`);
