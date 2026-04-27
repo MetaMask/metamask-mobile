@@ -3,13 +3,17 @@ import { useNavigation } from '@react-navigation/native';
 import { CaipChainId } from '@metamask/utils';
 
 import ReduxService from '../../../../core/redux';
+import Routes from '../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
 import useRampsController from '../hooks/useRampsController';
-import { createBuildQuoteNavDetails } from '../Views/BuildQuote/BuildQuote';
 
-import { createSession, endSession, setStatus } from './sessionRegistry';
+import {
+  closeSession,
+  createSession,
+  getActiveSessionId,
+} from './sessionRegistry';
 import type {
   HeadlessBuyCallbacks,
   HeadlessBuyParams,
@@ -82,6 +86,9 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     orders,
     getOrderById,
     getQuotes: getQuotesRaw,
+    setSelectedToken,
+    setSelectedProvider,
+    setSelectedPaymentMethod,
   } = useRampsController();
 
   const getQuotes = useCallback(
@@ -113,34 +120,85 @@ export function useHeadlessBuy(): HeadlessBuyResult {
       params: HeadlessBuyParams,
       callbacks: HeadlessBuyCallbacks,
     ): StartHeadlessBuyResult => {
-      // Inputs live on the session only — no controller writes from here.
-      // `paymentMethodId` and `providerId` are ids, but the controller setters
-      // (`setSelectedPaymentMethod`, `setSelectedProvider`) take full objects
-      // from a catalog that may still be loading at this point. Resolving and
-      // applying those selections is the destination screen's job (BuildQuote
-      // today, Headless Host in Phase 4b), where the catalog is guaranteed
-      // hydrated. Keeps this hook free of controller side-effects and avoids
-      // the catalog-hydration race.
+      // Seed the controller — mirrors what BuildQuote does before calling
+      // continueWithQuote. Screens in the native auth loop (OtpCode,
+      // useTransakRouting) read selectedToken.chainId, selectedPaymentMethod
+      // and walletAddress from the controller rather than from navigation
+      // params. Without seeding, all three are null in headless mode
+      // (controller was never set), causing the post-OTP quote fetch and
+      // wallet-address resolution to fail with empty strings.
+      //
+      // setSelectedToken takes the assetId string directly. For provider and
+      // payment method we look up the full objects from the currently loaded
+      // catalogs — almost always populated since the caller just ran
+      // getQuotes(). If a lookup misses (cross-provider edge case), passing
+      // null is safe: the auto-select useEffect in useRampsPaymentMethods will
+      // correct the payment method once the query refetches for the new
+      // provider.
+      //
+      // Revised from Phase 3.1 (which removed all seeding to fix a type/race
+      // bug with id-only params). Phase 5's quote-first API gives us complete
+      // objects with the right ids, so the lookup is reliable and the
+      // Phase 3.1 race no longer applies.
+      setSelectedToken(params.assetId);
+      const matchedProvider =
+        providers.find((p) => p.id === params.quote.providerInfo?.id) ?? null;
+      setSelectedProvider(matchedProvider);
+      const targetPaymentMethodId =
+        params.paymentMethodId ?? params.quote.quote.paymentMethod;
+      const matchedPaymentMethod =
+        (paymentMethods ?? []).find((pm) => pm.id === targetPaymentMethodId) ??
+        null;
+      setSelectedPaymentMethod(matchedPaymentMethod);
+
+      // Single-live-session policy: only one headless session may be
+      // active at a time. Starting a new one auto-cancels the previous,
+      // matching the playground UX where tapping "Start" on a different
+      // quote should swap the active flow.
+      const previousId = getActiveSessionId();
+      if (previousId) {
+        closeSession(previousId, { reason: 'consumer_cancelled' });
+      }
+
       const session = createSession(params, callbacks);
 
-      navigation.navigate(
-        ...createBuildQuoteNavDetails({
-          assetId: params.assetId,
-          amount: params.amount,
-          headlessSessionId: session.id,
-        }),
-      );
+      // The Headless Host is registered inside the Unified Buy v2 stack
+      // (`app/components/UI/Ramp/routes.tsx` → `MainRoutes`) so it lives
+      // next to every post-auth reset target (`Checkout`, `BasicInfo`,
+      // `KycWebview`, …). From outside that stack we have to enter the
+      // V2 stack via its outer mount point (`RAMP.TOKEN_SELECTION` in
+      // `MainNavigator.js`, which renders `TokenListRoutes`) and hand
+      // React Navigation a nested-screen descriptor:
+      //   RAMP.TOKEN_SELECTION (outer)
+      //     → RAMP.TOKEN_SELECTION (RootStack slot wrapping `MainRoutes`)
+      //       → RAMP.HEADLESS_HOST (target screen on the inner stack)
+      // Resetting the Host's nearest navigator (the `MainRoutes` inner
+      // stack) then resolves all the `useTransakRouting` targets.
+      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+        params: {
+          screen: Routes.RAMP.HEADLESS_HOST,
+          params: {
+            headlessSessionId: session.id,
+          },
+        },
+      });
 
       return {
         sessionId: session.id,
         cancel: () => {
-          setStatus(session.id, 'cancelled');
-          endSession(session.id);
-          callbacks.onClose({ reason: 'consumer_cancelled' });
+          closeSession(session.id, { reason: 'consumer_cancelled' });
         },
       };
     },
-    [navigation],
+    [
+      navigation,
+      providers,
+      paymentMethods,
+      setSelectedToken,
+      setSelectedProvider,
+      setSelectedPaymentMethod,
+    ],
   );
 
   const errors = useMemo(

@@ -506,6 +506,139 @@ describe('useContinueWithQuote', () => {
     });
   });
 
+  describe('context overrides (headless-ready)', () => {
+    // These tests prove that callers without controller-seeded state (the
+    // headless flow's Host) can drive `continueWithQuote` end-to-end by
+    // passing every controller-coupled value through `ctx`. BuildQuote
+    // continues to omit overrides and falls back to controller selections —
+    // see the suites above.
+    const HEADLESS_CTX = {
+      amount: 250,
+      assetId: 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      chainId: 'eip155:59144' as const,
+      walletAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      currency: 'EUR',
+      cryptoSymbol: 'mUSD',
+      paymentMethodId: '/payments/sepa-bank-transfer',
+      providerName: 'Headless Provider',
+    };
+
+    it('routes native quote using only ctx overrides when controller has no selections', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedToken: null,
+          selectedProvider: null,
+          selectedPaymentMethod: null,
+          userRegion: null,
+        }),
+      );
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
+      mockRouteAfterAuth.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE, HEADLESS_CTX);
+
+      expect(caught).toBeUndefined();
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'EUR',
+        HEADLESS_CTX.assetId,
+        'eip155:59144',
+        '/payments/sepa-bank-transfer',
+        '250',
+      );
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 250);
+    });
+
+    it('navigates EnterEmail with override currency when controller userRegion is missing', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedToken: null,
+          selectedProvider: null,
+          selectedPaymentMethod: null,
+          userRegion: null,
+        }),
+      );
+      mockCheckExistingToken.mockResolvedValue(false);
+      mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
+        true,
+      );
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE, HEADLESS_CTX);
+
+      expect(caught).toBeUndefined();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.ENTER_EMAIL,
+        expect.objectContaining({
+          amount: '250',
+          currency: 'EUR',
+          assetId: HEADLESS_CTX.assetId,
+        }),
+      );
+    });
+
+    it('routes widget quote using ctx overrides for currency, walletAddress, providerName and chainId', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedToken: null,
+          selectedProvider: null,
+          selectedPaymentMethod: null,
+          userRegion: null,
+        }),
+      );
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://checkout.example.com/headless',
+        orderId: 'ord-headless-1',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, IN_APP_CHECKOUT_QUOTE, HEADLESS_CTX);
+
+      expect(caught).toBeUndefined();
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      const [, navigateParams] = mockNavigate.mock.calls[0];
+      expect(navigateParams).toEqual(
+        expect.objectContaining({
+          url: 'https://checkout.example.com/headless',
+          providerName: 'Headless Provider',
+          currency: 'EUR',
+          cryptocurrency: 'mUSD',
+          walletAddress: HEADLESS_CTX.walletAddress,
+          // network is the part after the colon in chainId.
+          network: '59144',
+        }),
+      );
+    });
+
+    it('preserves controller fallback when overrides are omitted', async () => {
+      // Sanity check: a BuildQuote-style call (no ctx overrides) keeps using
+      // controller selections — proves Phase 4c is purely additive.
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://checkout.example.com/embed',
+        orderId: 'ord-789',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      await invoke(result, IN_APP_CHECKOUT_QUOTE);
+
+      const [, navigateParams] = mockNavigate.mock.calls[0];
+      expect(navigateParams).toEqual(
+        expect.objectContaining({
+          providerName: 'MoonPay',
+          currency: 'USD',
+          cryptocurrency: 'ETH',
+          // chainId from controller selectedToken is `eip155:1`, so network is `1`.
+          network: '1',
+        }),
+      );
+    });
+  });
+
   describe('error contract', () => {
     it('thrown Error message matches the user-facing string returned by reportRampsError', async () => {
       mockReportRampsError.mockReturnValue('Friendly user message');

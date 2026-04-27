@@ -153,6 +153,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flexShrink: 1,
       textAlign: 'right',
     },
+    quoteRowAction: {
+      marginTop: 8,
+    },
     quoteErrors: {
       paddingTop: 8,
       marginTop: 8,
