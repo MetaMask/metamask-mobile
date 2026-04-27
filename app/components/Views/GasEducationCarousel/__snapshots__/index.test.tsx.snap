@@ -288,17 +288,10 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           <Text
                             style={
                               [
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Regular",
-                                  "fontSize": 30,
-                                  "marginVertical": 2,
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
-                                {
-                                  "fontFamily": "Geist-SemiBold",
-                                },
+                                [Object],
                                 undefined,
                                 undefined,
                                 undefined,

@@ -1,5 +1,10 @@
 import React from 'react';
-import { render, userEvent, fireEvent } from '@testing-library/react-native';
+import {
+  render,
+  userEvent,
+  fireEvent,
+  act,
+} from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
@@ -235,8 +240,8 @@ describe('TrendingTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     const mocks = arrangeMocks();
-    mocks.setTrendingRequestMock({ results: [] });
-    mocks.setTrendingSearchMock({ data: [] });
+    mocks.setTrendingRequestMock({ results: [createMockToken()] });
+    mocks.setTrendingSearchMock({ data: [createMockToken()] });
   });
 
   it('renders header with title and buttons', () => {

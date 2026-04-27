@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PermissionsSummary should render correctly 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -77,8 +85,39 @@ exports[`PermissionsSummary should render correctly 1`] = `
               ]
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                }
+              }
               testID="accounts-connected-network-picker"
             >
               <View
@@ -202,7 +241,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   </View>
                 </View>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View
@@ -318,16 +357,34 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   onLayout={[Function]}
                   style={null}
                 >
-                  <TouchableOpacity
-                    avatarProps={
+                  <View
+                    accessibilityState={
                       {
-                        "accountAddress": "0xS0M3FAk3ADDr355Dc8Ebf7A2152cdfB9D43FAk3",
-                        "type": "Maskicon",
-                        "variant": "Account",
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    secondaryText="0xS0M3F...3FAk3"
-                    showSecondaryTextIcon={false}
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "backgroundColor": "#ffffff",
@@ -336,6 +393,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         "borderWidth": 0,
                         "height": 75,
                         "justifyContent": "center",
+                        "opacity": 1,
                         "padding": 16,
                       }
                     }
@@ -449,63 +507,53 @@ exports[`PermissionsSummary should render correctly 1`] = `
                             testID="avatar-group-container"
                           >
                             <View
-                              style={
-                                {
-                                  "marginLeft": 0,
-                                }
-                              }
+                              style={[Object]}
                               testID="avatargroup-avatar-container-0"
                             >
-                              <View
-                                caipChainId="eip155:1"
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "borderWidth": 1.5,
-                                    "height": 16,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "width": 16,
-                                  }
-                                }
-                                testID="avatargroup-avatar"
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    {
-                                      "uri": "test-network-avatar.png",
-                                    }
-                                  }
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
                       </View>
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </RCTScrollView>
           </View>
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
                 "marginTop": 8,
+                "opacity": 1,
               }
             }
             testID="account-list-bottom-sheet"
@@ -525,7 +573,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             >
               Edit accounts
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
         <View
           navigation={
@@ -543,8 +591,39 @@ exports[`PermissionsSummary should render correctly 1`] = `
           }
           tabLabel="Permissions"
         >
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
             testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
@@ -728,9 +807,40 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 />
               </View>
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={[Function]}
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
             testID="navigate_to_edit_networks_permissions_button"
           >
             <View
@@ -923,7 +1033,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 />
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -943,13 +1053,35 @@ exports[`PermissionsSummary should render correctly 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -962,6 +1094,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
             }
@@ -996,7 +1129,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           >
             Disconnect all
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
       <View
         style={
@@ -1009,13 +1142,44 @@ exports[`PermissionsSummary should render correctly 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="cancel-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -1035,22 +1199,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     "marginRight": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="cancel-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -1061,22 +1214,51 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     "color": "#66676a",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="connect-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -1095,22 +1277,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     "marginLeft": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="connect-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -1121,22 +1292,29 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     "color": "#ffffff",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Connect
-          </Text>
-        </TouchableOpacity>
+                ]
+              }
+            >
+              Connect
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`PermissionsSummary should render correctly for network switch 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -1212,8 +1390,39 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               ]
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                }
+              }
               testID="accounts-connected-network-picker"
             >
               <View
@@ -1337,7 +1546,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   </View>
                 </View>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View
@@ -1446,12 +1655,39 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               <View />
             </RCTScrollView>
           </View>
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
                 "marginTop": 8,
+                "opacity": 1,
               }
             }
             testID="account-list-bottom-sheet"
@@ -1471,7 +1707,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             >
               Edit accounts
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
         <View
           navigation={
@@ -1489,8 +1725,39 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           }
           tabLabel="Permissions"
         >
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
             testID="navigate_to_edit_networks_permissions_button"
           >
             <View
@@ -1643,7 +1910,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 </View>
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -1663,13 +1930,35 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -1682,6 +1971,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
             }
@@ -1716,7 +2006,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           >
             Disconnect all
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
       <View
         style={
@@ -1729,13 +2019,44 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="cancel-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -1755,22 +2076,11 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     "marginRight": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="cancel-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -1781,22 +2091,51 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     "color": "#66676a",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="connect-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -1815,22 +2154,11 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     "marginLeft": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="connect-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -1841,22 +2169,29 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     "color": "#ffffff",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Confirm
-          </Text>
-        </TouchableOpacity>
+                ]
+              }
+            >
+              Confirm
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`PermissionsSummary should render only the account permissions card when showAccountsOnly is true 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -1932,8 +2267,39 @@ exports[`PermissionsSummary should render only the account permissions card when
               ]
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                }
+              }
               testID="accounts-connected-network-picker"
             >
               <View
@@ -2057,7 +2423,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                   </View>
                 </View>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View
@@ -2123,8 +2489,39 @@ exports[`PermissionsSummary should render only the account permissions card when
           }
         }
       >
-        <TouchableOpacity
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
           testID="navigate_to_edit_accounts_permissions_button"
         >
           <View
@@ -2308,7 +2705,7 @@ exports[`PermissionsSummary should render only the account permissions card when
               />
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
     <View
@@ -2327,13 +2724,35 @@ exports[`PermissionsSummary should render only the account permissions card when
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -2346,6 +2765,7 @@ exports[`PermissionsSummary should render only the account permissions card when
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
             }
@@ -2380,7 +2800,7 @@ exports[`PermissionsSummary should render only the account permissions card when
           >
             Disconnect all
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
       <View
         style={
@@ -2393,13 +2813,44 @@ exports[`PermissionsSummary should render only the account permissions card when
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="cancel-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -2419,22 +2870,11 @@ exports[`PermissionsSummary should render only the account permissions card when
                     "marginRight": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="cancel-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -2445,22 +2885,51 @@ exports[`PermissionsSummary should render only the account permissions card when
                     "color": "#66676a",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="connect-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -2479,22 +2948,11 @@ exports[`PermissionsSummary should render only the account permissions card when
                     "marginLeft": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="connect-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -2505,22 +2963,29 @@ exports[`PermissionsSummary should render only the account permissions card when
                     "color": "#ffffff",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Connect
-          </Text>
-        </TouchableOpacity>
+                ]
+              }
+            >
+              Connect
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`PermissionsSummary should render only the network permissions card when showPermissionsOnly is true 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -2690,8 +3155,39 @@ exports[`PermissionsSummary should render only the network permissions card when
           }
         }
       >
-        <TouchableOpacity
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
           testID="navigate_to_edit_networks_permissions_button"
         >
           <View
@@ -2884,7 +3380,7 @@ exports[`PermissionsSummary should render only the network permissions card when
               />
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
     <View
@@ -2903,13 +3399,35 @@ exports[`PermissionsSummary should render only the network permissions card when
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -2922,6 +3440,7 @@ exports[`PermissionsSummary should render only the network permissions card when
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
             }
@@ -2956,7 +3475,7 @@ exports[`PermissionsSummary should render only the network permissions card when
           >
             Disconnect all
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
       <View
         style={
@@ -2969,13 +3488,44 @@ exports[`PermissionsSummary should render only the network permissions card when
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="cancel-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -2995,22 +3545,11 @@ exports[`PermissionsSummary should render only the network permissions card when
                     "marginRight": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="cancel-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -3021,22 +3560,51 @@ exports[`PermissionsSummary should render only the network permissions card when
                     "color": "#66676a",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="connect-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -3055,22 +3623,11 @@ exports[`PermissionsSummary should render only the network permissions card when
                     "marginLeft": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="connect-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -3081,22 +3638,29 @@ exports[`PermissionsSummary should render only the network permissions card when
                     "color": "#ffffff",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Connect
-          </Text>
-        </TouchableOpacity>
+                ]
+              }
+            >
+              Connect
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`PermissionsSummary should render the tab view when both showAccountsOnly and showPermissionsOnly are false 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -3172,8 +3736,39 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
               ]
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                }
+              }
               testID="accounts-connected-network-picker"
             >
               <View
@@ -3297,7 +3892,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                   </View>
                 </View>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View
@@ -3413,16 +4008,34 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                   onLayout={[Function]}
                   style={null}
                 >
-                  <TouchableOpacity
-                    avatarProps={
+                  <View
+                    accessibilityState={
                       {
-                        "accountAddress": "0xS0M3FAk3ADDr355Dc8Ebf7A2152cdfB9D43FAk3",
-                        "type": "Maskicon",
-                        "variant": "Account",
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    secondaryText="0xS0M3F...3FAk3"
-                    showSecondaryTextIcon={false}
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "backgroundColor": "#ffffff",
@@ -3431,6 +4044,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         "borderWidth": 0,
                         "height": 75,
                         "justifyContent": "center",
+                        "opacity": 1,
                         "padding": 16,
                       }
                     }
@@ -3544,63 +4158,53 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                             testID="avatar-group-container"
                           >
                             <View
-                              style={
-                                {
-                                  "marginLeft": 0,
-                                }
-                              }
+                              style={[Object]}
                               testID="avatargroup-avatar-container-0"
                             >
-                              <View
-                                caipChainId="eip155:1"
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "borderWidth": 1.5,
-                                    "height": 16,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "width": 16,
-                                  }
-                                }
-                                testID="avatargroup-avatar"
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    {
-                                      "uri": "test-network-avatar.png",
-                                    }
-                                  }
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
                       </View>
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </RCTScrollView>
           </View>
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
                 "marginTop": 8,
+                "opacity": 1,
               }
             }
             testID="account-list-bottom-sheet"
@@ -3620,7 +4224,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             >
               Edit accounts
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
         <View
           navigation={
@@ -3638,8 +4242,39 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           }
           tabLabel="Permissions"
         >
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
             testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
@@ -3823,9 +4458,40 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 />
               </View>
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={[Function]}
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
             testID="navigate_to_edit_networks_permissions_button"
           >
             <View
@@ -4018,7 +4684,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 />
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -4038,13 +4704,35 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -4057,6 +4745,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
             }
@@ -4091,7 +4780,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           >
             Disconnect all
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
       <View
         style={
@@ -4104,13 +4793,44 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="cancel-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -4130,22 +4850,11 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                     "marginRight": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="cancel-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -4156,22 +4865,51 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                     "color": "#66676a",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="connect-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -4190,22 +4928,11 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                     "marginLeft": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="connect-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -4216,22 +4943,29 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                     "color": "#ffffff",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Connect
-          </Text>
-        </TouchableOpacity>
+                ]
+              }
+            >
+              Connect
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`PermissionsSummary should render with the correct initial tab based on tabIndex prop 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -4307,8 +5041,39 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
               ]
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                }
+              }
               testID="accounts-connected-network-picker"
             >
               <View
@@ -4432,7 +5197,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                   </View>
                 </View>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View
@@ -4548,16 +5313,34 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                   onLayout={[Function]}
                   style={null}
                 >
-                  <TouchableOpacity
-                    avatarProps={
+                  <View
+                    accessibilityState={
                       {
-                        "accountAddress": "0xS0M3FAk3ADDr355Dc8Ebf7A2152cdfB9D43FAk3",
-                        "type": "Maskicon",
-                        "variant": "Account",
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    secondaryText="0xS0M3F...3FAk3"
-                    showSecondaryTextIcon={false}
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "backgroundColor": "#ffffff",
@@ -4566,6 +5349,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         "borderWidth": 0,
                         "height": 75,
                         "justifyContent": "center",
+                        "opacity": 1,
                         "padding": 16,
                       }
                     }
@@ -4679,63 +5463,53 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                             testID="avatar-group-container"
                           >
                             <View
-                              style={
-                                {
-                                  "marginLeft": 0,
-                                }
-                              }
+                              style={[Object]}
                               testID="avatargroup-avatar-container-0"
                             >
-                              <View
-                                caipChainId="eip155:1"
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "borderWidth": 1.5,
-                                    "height": 16,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "width": 16,
-                                  }
-                                }
-                                testID="avatargroup-avatar"
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    {
-                                      "uri": "test-network-avatar.png",
-                                    }
-                                  }
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
+                              <View … />
                             </View>
                           </View>
                         </View>
                       </View>
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </RCTScrollView>
           </View>
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
                 "marginTop": 8,
+                "opacity": 1,
               }
             }
             testID="account-list-bottom-sheet"
@@ -4755,7 +5529,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
             >
               Edit accounts
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
         <View
           navigation={
@@ -4773,8 +5547,39 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           }
           tabLabel="Permissions"
         >
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
             testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
@@ -4958,9 +5763,40 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 />
               </View>
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={[Function]}
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+              }
+            }
             testID="navigate_to_edit_networks_permissions_button"
           >
             <View
@@ -5153,7 +5989,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 />
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -5173,13 +6009,35 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -5192,6 +6050,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
             }
@@ -5226,7 +6085,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           >
             Disconnect all
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
       <View
         style={
@@ -5239,13 +6098,44 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="cancel-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -5265,22 +6155,11 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                     "marginRight": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="cancel-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -5291,22 +6170,51 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                     "color": "#66676a",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="connect-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -5325,22 +6233,11 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                     "marginLeft": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="connect-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -5351,16 +6248,15 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                     "color": "#ffffff",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Connect
-          </Text>
-        </TouchableOpacity>
+                ]
+              }
+            >
+              Connect
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;

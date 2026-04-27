@@ -10,6 +10,15 @@ import {
   getPredictFeedSelector,
   getPredictFeedMockSelector,
 } from '../../Predict.testIds';
+
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  Reanimated.default.createAnimatedComponent = (
+    Component: React.ComponentType,
+  ) => Component;
+  return Reanimated;
+});
+
 import PredictFeed from './PredictFeed';
 
 jest.mock('../../hooks/useFeaturedCarouselData', () => ({

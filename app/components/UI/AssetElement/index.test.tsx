@@ -1,5 +1,4 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -36,8 +35,8 @@ describe('AssetElement', () => {
   });
 
   it('renders correctly', () => {
-    const wrapper = shallow(<AssetElement asset={erc20Token} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AssetElement asset={erc20Token} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders the main balance if provided', () => {

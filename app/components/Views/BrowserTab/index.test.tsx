@@ -35,7 +35,7 @@ const mockNavigation = {
   goForward: jest.fn(),
   canGoBack: true,
   canGoForward: true,
-  addListener: jest.fn(),
+  addListener: jest.fn(() => jest.fn()),
   navigate: jest.fn(),
 };
 

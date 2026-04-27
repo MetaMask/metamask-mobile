@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SwitchCustomNetwork should render correctly 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#f3f3f4",
@@ -171,8 +179,39 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
           }
         }
       >
-        <TouchableOpacity
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
           testID="navigate_to_edit_networks_permissions_button"
         >
           <View
@@ -326,7 +365,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
               </View>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
     <View
@@ -347,13 +386,44 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="cancel-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -373,22 +443,11 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
                     "marginRight": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="cancel-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -399,22 +458,51 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
                     "color": "#66676a",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
-            [
+            {
+              "opacity": 1,
+            }
+          }
+          testID="connect-button"
+        >
+          <View
+            style={
               [
                 {
                   "borderRadius": 12,
@@ -433,22 +521,11 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
                     "marginLeft": 8,
                   },
                 ],
-              ],
-              null,
-            ]
-          }
-          testID="connect-button"
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
+              ]
+            }
+          >
+            <Text
+              style={
                 [
                   {
                     "fontFamily": "Geist-SemiBold",
@@ -459,16 +536,15 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
                     "color": "#ffffff",
                   },
                   undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Confirm
-          </Text>
-        </TouchableOpacity>
+                ]
+              }
+            >
+              Confirm
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;

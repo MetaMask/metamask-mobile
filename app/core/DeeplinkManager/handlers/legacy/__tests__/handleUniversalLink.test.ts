@@ -659,7 +659,7 @@ describe('handleUniversalLink', () => {
 
   describe('ACTIONS.SHIELD', () => {
     it('calls _handleBrowserUrl when action is SHIELD', async () => {
-      const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
+      const shieldHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
         typeof handleBrowserUrl
       >;
       const shieldUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SHIELD}`;
@@ -680,7 +680,7 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+      expect(shieldHandleBrowserUrl).toHaveBeenCalledWith({
         url: SHIELD_WEBSITE_URL,
         callback: mockBrowserCallBack,
       });

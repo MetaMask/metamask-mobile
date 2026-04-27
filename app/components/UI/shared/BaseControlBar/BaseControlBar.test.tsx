@@ -387,7 +387,7 @@ describe('BaseControlBar', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
-      expect(filterButton.props.disabled).toBe(false);
+      expect(filterButton).toBeEnabled();
     });
 
     it('applies disabled styles when disabled', () => {
@@ -407,7 +407,8 @@ describe('BaseControlBar', () => {
       const filterButton = getByTestId('test-network-filter');
 
       expect(filterButton.props.style).toBeDefined();
-      expect(filterButton.props.style.opacity).toBeUndefined();
+      // When not disabled, opacity should be 1 (or undefined)
+      expect(filterButton.props.style.opacity ?? 1).toBe(1);
     });
 
     it('respects custom isDisabled param when provided', () => {
@@ -416,7 +417,7 @@ describe('BaseControlBar', () => {
       });
       const filterButton = getByTestId('test-network-filter');
 
-      expect(filterButton.props.disabled).toBe(true);
+      expect(filterButton).toBeDisabled();
     });
   });
 

@@ -31,13 +31,40 @@ exports[`AccountOverview matches snapshot when given account with address and la
           }
         }
       >
-        <TouchableOpacity
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "borderColor": "#4459ff",
               "borderRadius": 80,
               "borderWidth": 2,
+              "opacity": 1,
               "padding": 2,
             }
           }
@@ -100,7 +127,7 @@ exports[`AccountOverview matches snapshot when given account with address and la
               />
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
         <View
           collapsable={false}
           style={
@@ -117,8 +144,39 @@ exports[`AccountOverview matches snapshot when given account with address and la
               }
             }
           >
-            <TouchableOpacity
-              onLongPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={false}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "opacity": 1,
+                }
+              }
             >
               <Text
                 accessibilityRole="text"
@@ -150,17 +208,44 @@ exports[`AccountOverview matches snapshot when given account with address and la
                 }
                 testID="account-label"
               />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
-        <TouchableOpacity
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "backgroundColor": "#4459ff1a",
               "borderRadius": 40,
               "marginBottom": 20,
               "marginTop": 20,
+              "opacity": 1,
               "paddingHorizontal": 15,
               "paddingVertical": 7,
             }
@@ -180,7 +265,7 @@ exports[`AccountOverview matches snapshot when given account with address and la
           >
             0xe7E12...6B0a1
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   </RCTScrollView>

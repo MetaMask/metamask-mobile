@@ -95,13 +95,35 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
     }
     testID="buttons-container"
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -112,6 +134,7 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -132,7 +155,7 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
       >
         Got it
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

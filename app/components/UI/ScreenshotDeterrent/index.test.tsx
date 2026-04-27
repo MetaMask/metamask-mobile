@@ -16,13 +16,16 @@ jest.mock('../../../core/PreventScreenshot', () => ({
   allow: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
-  runAfterInteractions: (callback: () => void) => callback(),
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
+  const interactionManager = {
+    runAfterInteractions: (callback: () => void) => callback(),
+  };
+  return {
+    __esModule: true,
+    default: interactionManager,
+    ...interactionManager,
+  };
+});
 
 let mockCalled = false;
 jest.mock('../../hooks/useScreenshotDeterrent', () => {

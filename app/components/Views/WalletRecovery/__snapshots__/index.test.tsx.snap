@@ -1,10 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`WalletRecovery render matches snapshot 1`] = `
-<View
+<RNCSafeAreaView
   edges={
     {
       "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
     }
   }
   style={
@@ -191,5 +194,5 @@ exports[`WalletRecovery render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;

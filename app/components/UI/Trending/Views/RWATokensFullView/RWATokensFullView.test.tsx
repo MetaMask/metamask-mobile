@@ -202,6 +202,8 @@ describe('RWATokensFullView', () => {
   });
 
   it('opens price change bottom sheet when button is pressed', async () => {
+    const mocks = arrangeMocks();
+    mocks.setRwaTokensMock({ data: [createMockToken()] });
     const { getByTestId } = renderRWAFullView();
 
     const priceChangeButton = getByTestId('price-change-button');

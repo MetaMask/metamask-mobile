@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import BasicFunctionalityModal from './BasicFunctionalityModal';
@@ -71,17 +71,19 @@ describe('BasicFunctionalityModal', () => {
   });
 
   // Test coverage for the new thunk action integration
-  it('should call toggleBasicFunctionality thunk action when toggling', async () => {
+  it('should call toggleBasicFunctionality thunk action when toggling', () => {
     const { getByText } = renderWithProvider(<BasicFunctionalityModal />, {
       state: mockInitialState,
     });
 
-    // Find and press the turn off button (when basicFunctionality is enabled)
+    // Must check the checkbox first to enable the "Turn off" button
+    const checkbox = getByText('I understand and want to continue');
+    fireEvent.press(checkbox);
+
+    // Now press the turn off button (when basicFunctionality is enabled)
     const turnOffButton = getByText('Turn off');
     fireEvent.press(turnOffButton);
 
-    await waitFor(() => {
-      expect(toggleBasicFunctionality).toHaveBeenCalledWith(false);
-    });
+    expect(toggleBasicFunctionality).toHaveBeenCalledWith(false);
   });
 });

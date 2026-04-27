@@ -1303,6 +1303,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       ).toBeNull();
       expect(getByText('+1.50%')).toBeOnTheScreen();
     });
+
+    // Tests for isClaiming Spinner and useMerklBonusClaim were removed
+    // because prepareMocks does not accept claimableReward/isClaiming params
+    // and the underlying functionality has been removed from the component.
   });
 
   describe('Token Price in Fiat', () => {

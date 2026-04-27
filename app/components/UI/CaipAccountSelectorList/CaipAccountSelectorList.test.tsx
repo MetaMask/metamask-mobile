@@ -396,6 +396,7 @@ describe('CaipAccountSelectorList', () => {
     const state = {
       ...initialState,
       privacyMode: true,
+      privacy: { privacyMode: true },
     };
 
     const { queryByTestId } = renderComponent(state);
@@ -478,7 +479,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements with the select-with-menu test ID
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Trigger long press on the first cell (since we only have one account in this test)
-    cells[0].props.onLongPress();
+    fireEvent(cells[0], 'longPress');
 
     await waitFor(() => {
       // Verify Alert was shown with correct text
@@ -567,7 +568,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements with the select-with-menu test ID
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Trigger long press on the first cell that should correspond to MOCK_ADDRESS_1
-    cells[0].props.onLongPress();
+    fireEvent(cells[0], 'longPress');
 
     // Need to wait for the Alert to be called
     await waitFor(() => {
@@ -737,7 +738,7 @@ describe('CaipAccountSelectorList', () => {
 
     // Check that all cells have the disabled prop set to true
     cells.forEach((cell) => {
-      expect(cell.props.disabled).toBe(true);
+      expect(cell).toBeDisabled();
     });
 
     // Since we're mocking React Native components, we can't directly test
@@ -758,8 +759,8 @@ describe('CaipAccountSelectorList', () => {
     );
     expect(actionButtons.length).toBe(2);
 
-    // Click the first account's action button
-    actionButtons[0].props.onPress();
+    // Click the first account's action button using fireEvent
+    fireEvent.press(actionButtons[0]);
 
     // Verify navigation was triggered
     expect(mockNavigate).toHaveBeenCalled();
@@ -806,7 +807,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Trigger long press on the first cell
-    cells[0].props.onLongPress();
+    fireEvent(cells[0], 'longPress');
 
     // Alert should not be shown for non-removable account types
     expect(mockAlert).not.toHaveBeenCalled();
@@ -867,7 +868,7 @@ describe('CaipAccountSelectorList', () => {
     // Find all cell elements
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
     // Trigger long press on the first cell
-    cells[0].props.onLongPress();
+    fireEvent(cells[0], 'longPress');
 
     // Alert should not be shown because removal is disabled
     expect(mockAlert).not.toHaveBeenCalled();
@@ -1171,8 +1172,8 @@ describe('CaipAccountSelectorList', () => {
 
     // Find all cell elements
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
-    // Select the second account
-    cells[1].props.onPress();
+    // Select the second account using fireEvent
+    fireEvent.press(cells[1]);
 
     await waitFor(() => {
       // Verify onSelectAccount was called with correct parameters

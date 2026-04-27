@@ -322,8 +322,8 @@ describe('PerpsClosePositionView', () => {
 
       // Assert
       expect(
-        confirmButton.props.disabled ||
-          confirmButton.props.accessibilityState?.disabled,
+        confirmButton.props.accessibilityState?.disabled ??
+          confirmButton.props.disabled,
       ).toBe(true);
     });
 
@@ -342,7 +342,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Button should have loading prop set
+      // Assert - Button should be disabled and show closing text when loading
       const confirmButton = getByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
       );
@@ -407,8 +407,8 @@ describe('PerpsClosePositionView', () => {
 
       // Assert
       expect(
-        confirmButton.props.disabled ||
-          confirmButton.props.accessibilityState?.disabled,
+        confirmButton.props.accessibilityState?.disabled ??
+          confirmButton.props.disabled,
       ).toBe(true);
     });
   });
@@ -1058,8 +1058,8 @@ describe('PerpsClosePositionView', () => {
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
       );
       expect(
-        confirmButton.props.disabled ||
-          confirmButton.props.accessibilityState?.disabled,
+        confirmButton.props.accessibilityState?.disabled ??
+          confirmButton.props.disabled,
       ).toBe(true);
     });
 

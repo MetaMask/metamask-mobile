@@ -139,12 +139,39 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       >
         Token address: 
       </Text>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "opacity": 1,
           }
         }
       >
@@ -184,7 +211,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
         >
           
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
     <View
       style={
@@ -206,8 +233,39 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       >
         Token lists: Aggregator1, Aggregator2
       </Text>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
       >
         <Text
           style={
@@ -220,7 +278,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
         >
            + 1 more
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -406,12 +464,39 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       >
         Token address: 
       </Text>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "opacity": 1,
           }
         }
       >
@@ -451,7 +536,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
         >
           
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
     <View
       style={
@@ -473,8 +558,39 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       >
         Token lists: Aggregator1, Aggregator2
       </Text>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
       >
         <Text
           style={
@@ -487,7 +603,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
         >
            + 1 more
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -673,12 +789,39 @@ exports[`Token Component renders correctly 1`] = `
       >
         Token address: 
       </Text>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "opacity": 1,
           }
         }
       >
@@ -718,7 +861,7 @@ exports[`Token Component renders correctly 1`] = `
         >
           
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
     <View
       style={
@@ -740,8 +883,39 @@ exports[`Token Component renders correctly 1`] = `
       >
         Token lists: Aggregator1, Aggregator2
       </Text>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
       >
         <Text
           style={
@@ -754,7 +928,7 @@ exports[`Token Component renders correctly 1`] = `
         >
            + 1 more
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -940,12 +1114,39 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       >
         Token address: 
       </Text>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "opacity": 1,
           }
         }
       >
@@ -985,7 +1186,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
         >
           
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
     <View
       style={
@@ -1007,8 +1208,39 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       >
         Token lists: Aggregator1, Aggregator2
       </Text>
-      <TouchableOpacity
-        onPress={[Function]}
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
       >
         <Text
           style={
@@ -1021,7 +1253,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
         >
            + 1 more
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View

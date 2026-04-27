@@ -231,13 +231,44 @@ exports[`AccountApproval renders correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+      testID="cancel-button"
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -257,22 +288,11 @@ exports[`AccountApproval renders correctly 1`] = `
                 "marginRight": 8,
               },
             ],
-          ],
-          null,
-        ]
-      }
-      testID="cancel-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -283,22 +303,51 @@ exports[`AccountApproval renders correctly 1`] = `
                 "color": "#66676a",
               },
               undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Cancel
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+            ]
+          }
+        >
+          Cancel
+        </Text>
+      </View>
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      disabled={false}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+      testID="connect-button"
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -318,22 +367,11 @@ exports[`AccountApproval renders correctly 1`] = `
               },
               false,
             ],
-          ],
-          null,
-        ]
-      }
-      testID="connect-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -344,14 +382,13 @@ exports[`AccountApproval renders correctly 1`] = `
                 "color": "#ffffff",
               },
               undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Connect
-      </Text>
-    </TouchableOpacity>
+            ]
+          }
+        >
+          Connect
+        </Text>
+      </View>
+    </View>
   </View>
 </View>
 `;

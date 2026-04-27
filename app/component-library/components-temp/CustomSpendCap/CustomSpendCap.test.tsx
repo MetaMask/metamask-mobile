@@ -1,4 +1,4 @@
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CustomSpendCap from './CustomSpendCap';
@@ -37,10 +37,9 @@ function RenderCustomSpendCap(
 const isInputValid = jest.fn();
 
 describe('CustomSpendCap', () => {
-  it('renders the spend cap container', () => {
-    const { getByTestId } = renderWithProvider(RenderCustomSpendCap(''));
-
-    expect(getByTestId(CUSTOM_SPEND_CAP_TEST_ID)).toBeOnTheScreen();
+  it('should render CustomSpendCap', () => {
+    renderWithProvider(RenderCustomSpendCap(''));
+    expect(screen.getByTestId(CUSTOM_SPEND_CAP_TEST_ID)).toBeTruthy();
   });
 
   it('displays error message when value is not a number', async () => {

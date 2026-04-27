@@ -132,7 +132,7 @@ const FoxLoader = ({
           );
         }
         // Ensure the native splash is hidden even if onLoad never fired on the static fox image.
-        hideAsync().catch((error) =>
+        hideAsync().catch((error: unknown) =>
           Logger.error(
             error as Error,
             'Failed to hide splash screen in timeout fallback',
@@ -174,7 +174,7 @@ const FoxLoader = ({
             // Hide native splash once static fox is rendered — the static fox
             // (opacity 1) bridges the gap until Rive begins playing, so there
             // is no visible white flash between the two.
-            hideAsync().catch((error) =>
+            hideAsync().catch((error: unknown) =>
               Logger.error(error as Error, 'Failed to hide splash screen'),
             );
           }}
@@ -203,7 +203,7 @@ const FoxLoader = ({
                   `FoxLoader: Rive failed before playback (${riveError.type})`,
                 );
                 // onLoad may not have fired if Rive errored before the image rendered
-                hideAsync().catch((error) =>
+                hideAsync().catch((error: unknown) =>
                   Logger.error(
                     error as Error,
                     'Failed to hide splash screen on Rive error',

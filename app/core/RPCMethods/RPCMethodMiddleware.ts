@@ -357,15 +357,15 @@ export const getRpcMethodMiddlewareHooks = ({
         requestPermissionsIncremental: (
           subject,
           requestedPermissions,
-          options,
+          incrementalOptions,
         ) =>
           Engine.context.PermissionController.requestPermissionsIncremental(
             subject,
             requestedPermissions,
             {
-              ...options,
+              ...incrementalOptions,
               metadata: {
-                ...options?.metadata,
+                ...incrementalOptions?.metadata,
                 pageMeta: {
                   url: url.current,
                   title: title.current,

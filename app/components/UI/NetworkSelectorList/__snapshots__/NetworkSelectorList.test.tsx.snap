@@ -63,8 +63,34 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
       <View
         testID="Ethereum Mainnet-not-selected"
       >
-        <TouchableOpacity
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -95,8 +121,34 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
               <View
                 pointerEvents="none"
               >
-                <TouchableOpacity
-                  disabled={false}
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={false}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -122,7 +174,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                       }
                     }
                   />
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 accessible={false}
@@ -201,7 +253,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
               </View>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
     <View
@@ -212,8 +264,34 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
       <View
         testID="Polygon-selected"
       >
-        <TouchableOpacity
-          onPress={[Function]}
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -244,8 +322,34 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
               <View
                 pointerEvents="none"
               >
-                <TouchableOpacity
-                  disabled={false}
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={false}
+                  onClick={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -286,7 +390,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                       width={20}
                     />
                   </View>
-                </TouchableOpacity>
+                </View>
               </View>
               <View
                 accessible={false}
@@ -380,7 +484,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
               }
             }
           />
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   </View>

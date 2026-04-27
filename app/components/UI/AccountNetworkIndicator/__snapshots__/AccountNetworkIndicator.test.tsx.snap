@@ -8,7 +8,8 @@ exports[`AccountNetworkIndicator should render correctly 1`] = `
     }
   }
 >
-  <View
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
     style={
       [
         {
@@ -360,33 +361,10 @@ exports[`AccountNetworkIndicator should render correctly 1`] = `
                           >
                             <View
                               caipChainId="0x1"
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "borderWidth": 1.5,
-                                  "height": 16,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "width": 16,
-                                }
-                              }
+                              style={[Object]}
                               testID="avatargroup-avatar"
                             >
-                              <Image
-                                onError={[Function]}
-                                resizeMode="contain"
-                                source={1}
-                                style={
-                                  {
-                                    "height": 16,
-                                    "width": 16,
-                                  }
-                                }
-                                testID="network-avatar-image"
-                              />
+                              <Image … />
                             </View>
                           </View>
                           <View
@@ -399,33 +377,10 @@ exports[`AccountNetworkIndicator should render correctly 1`] = `
                           >
                             <View
                               caipChainId="0x38"
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "borderWidth": 1.5,
-                                  "height": 16,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "width": 16,
-                                }
-                              }
+                              style={[Object]}
                               testID="avatargroup-avatar"
                             >
-                              <Image
-                                onError={[Function]}
-                                resizeMode="contain"
-                                source={1}
-                                style={
-                                  {
-                                    "height": 16,
-                                    "width": 16,
-                                  }
-                                }
-                                testID="network-avatar-image"
-                              />
+                              <Image … />
                             </View>
                           </View>
                         </View>
@@ -439,6 +394,6 @@ exports[`AccountNetworkIndicator should render correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </View>
+  </RNCSafeAreaProvider>
 </View>
 `;

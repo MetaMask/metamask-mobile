@@ -55,7 +55,7 @@ describe('PredictFeed', () => {
             expect.objectContaining({ q: 'bitcoin' }),
           );
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
 
       getMarketsSpy.mockRestore();

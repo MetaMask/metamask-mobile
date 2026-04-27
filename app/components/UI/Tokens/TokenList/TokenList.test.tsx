@@ -282,6 +282,7 @@ describe('TokenList', () => {
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const refreshControl = flashList.props.refreshControl;
 
+    // In React 19, fireEvent on React elements doesn't work — call onRefresh directly
     refreshControl.props.onRefresh();
 
     expect(onRefresh).toHaveBeenCalledTimes(1);

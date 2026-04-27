@@ -227,7 +227,7 @@ describe('LearnMoreBottomSheet', () => {
     fireEvent.press(checkbox);
 
     // Confirm button should now be enabled
-    expect(confirmButton).toBeEnabled();
+    expect(confirmButton).not.toBeDisabled();
   });
 
   it('handles confirm button press when checkbox is checked', () => {

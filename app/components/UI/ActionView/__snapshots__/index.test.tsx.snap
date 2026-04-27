@@ -94,13 +94,35 @@ exports[`ActionView should render correctly 1`] = `
       ]
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -113,6 +135,7 @@ exports[`ActionView should render correctly 1`] = `
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -133,15 +156,36 @@ exports[`ActionView should render correctly 1`] = `
       >
         Cancel
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </View>
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      loading={false}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={false}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -152,6 +196,7 @@ exports[`ActionView should render correctly 1`] = `
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -172,7 +217,7 @@ exports[`ActionView should render correctly 1`] = `
       >
         Confirm
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

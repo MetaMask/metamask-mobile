@@ -257,13 +257,44 @@ exports[`NetworkInfo render correctly 1`] = `
         </View>
       </View>
     </View>
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+      testID="network-education-modal-close-button"
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -278,22 +309,11 @@ exports[`NetworkInfo render correctly 1`] = `
               "borderColor": "#b4b4b566",
               "marginVertical": 20,
             },
-          ],
-          null,
-        ]
-      }
-      testID="network-education-modal-close-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -304,14 +324,13 @@ exports[`NetworkInfo render correctly 1`] = `
                 "color": "#ffffff",
               },
               undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Got it
-      </Text>
-    </TouchableOpacity>
+            ]
+          }
+        >
+          Got it
+        </Text>
+      </View>
+    </View>
   </View>
 </View>
 `;
@@ -589,13 +608,44 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
         </View>
       </View>
     </View>
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+      testID="network-education-modal-close-button"
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -610,22 +660,11 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
               "borderColor": "#b4b4b566",
               "marginVertical": 20,
             },
-          ],
-          null,
-        ]
-      }
-      testID="network-education-modal-close-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -636,14 +675,13 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
                 "color": "#ffffff",
               },
               undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Got it
-      </Text>
-    </TouchableOpacity>
+            ]
+          }
+        >
+          Got it
+        </Text>
+      </View>
+    </View>
   </View>
 </View>
 `;
@@ -844,13 +882,44 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
         </View>
       </View>
     </View>
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={0.2}
-      onPress={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
-        [
+        {
+          "opacity": 1,
+        }
+      }
+      testID="network-education-modal-close-button"
+    >
+      <View
+        style={
           [
             {
               "borderRadius": 12,
@@ -865,22 +934,11 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
               "borderColor": "#b4b4b566",
               "marginVertical": 20,
             },
-          ],
-          null,
-        ]
-      }
-      testID="network-education-modal-close-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
+          ]
+        }
+      >
+        <Text
+          style={
             [
               {
                 "fontFamily": "Geist-SemiBold",
@@ -891,14 +949,13 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
                 "color": "#ffffff",
               },
               undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Got it
-      </Text>
-    </TouchableOpacity>
+            ]
+          }
+        >
+          Got it
+        </Text>
+      </View>
+    </View>
   </View>
 </View>
 `;

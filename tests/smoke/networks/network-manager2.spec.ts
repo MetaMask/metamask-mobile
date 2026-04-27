@@ -38,6 +38,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   // when Solana tokens are in the fixture — AccountGroupBalance renders on the
   // wallet homepage and calls the EVM-only balance calculation with a Solana chain
   // ID before login even completes. This is a production bug unrelated to the test.
+  // eslint-disable-next-line jest/no-disabled-tests -- blocked by production bug above; tracked for re-enable
   it.skip('should filter by Solana', async () => {
     const solanaTestMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(mockServer, {

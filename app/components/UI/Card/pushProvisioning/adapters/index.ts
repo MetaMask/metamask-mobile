@@ -5,12 +5,9 @@
  */
 
 // Card provider adapters
-export { type ICardProviderAdapter, ControllerCardAdapter } from './card';
+export type { ICardProviderAdapter } from './card';
+export { ControllerCardAdapter } from './card';
 
 // Wallet provider adapters
-export {
-  type IWalletProviderAdapter,
-  AppleWalletAdapter,
-  GoogleWalletAdapter,
-  type TokenInfo,
-} from './wallet';
+export type { IWalletProviderAdapter, TokenInfo } from './wallet';
+export { AppleWalletAdapter, GoogleWalletAdapter } from './wallet';

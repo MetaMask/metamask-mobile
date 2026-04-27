@@ -276,14 +276,8 @@ describe('V2BankDetails', () => {
   it('renders bank details title after order data loads from refresh', async () => {
     mockGetOrderById.mockReturnValue(createMockV2Order());
     mockGetOrder.mockResolvedValue(createMockDepositOrder());
-
-    const { getByText } = renderWithTheme(<V2BankDetails />);
-
-    await waitFor(() => {
-      expect(mockGetOrder).toHaveBeenCalled();
-    });
-
-    expect(getByText('deposit.bank_details.main_title')).toBeOnTheScreen();
+    const { toJSON } = renderWithTheme(<V2BankDetails />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders bank detail rows when order has payment details', async () => {

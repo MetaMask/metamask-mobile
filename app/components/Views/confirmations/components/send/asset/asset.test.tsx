@@ -281,7 +281,7 @@ describe('Asset', () => {
     render(<Asset />);
 
     const searchInput = screen.getByTestId('search-input');
-    expect(searchInput.props.placeholder).toBe('Search tokens and NFTs');
+    expect(searchInput).toHaveProp('placeholder', 'Search tokens and NFTs');
   });
 
   it('renders TokenList with filtered tokens', () => {

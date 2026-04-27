@@ -175,7 +175,27 @@ exports[`WarningAlert should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
         hitSlop={
           {
             "bottom": 20,
@@ -184,7 +204,18 @@ exports[`WarningAlert should render correctly 1`] = `
             "top": 20,
           }
         }
-        onPress={[MockFunction]}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "opacity": 1,
+          }
+        }
       >
         <Text
           allowFontScaling={false}
@@ -209,7 +240,7 @@ exports[`WarningAlert should render correctly 1`] = `
         >
           
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </View>
