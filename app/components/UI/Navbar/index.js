@@ -1375,6 +1375,7 @@ export function getStakingNavbar(
   ///: END:ONLY_INCLUDE_IF
 
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
         <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
