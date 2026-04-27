@@ -5,18 +5,16 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
-import {
-  EventPayload,
-  getEventsPayloads,
-} from '../../helpers/analytics/helpers';
 import CardHomeView from '../../page-objects/Card/CardHomeView';
-import SoftAssert from '../../framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import { cardButtonExpectations } from '../../helpers/analytics/expectations/card-button.analytics';
 
 describe(SmokeCard('Card NavBar Button'), () => {
-  const eventsToCheck: EventPayload[] = [];
+  beforeEach(async () => {
+    jest.setTimeout(150000);
+  });
 
-  const setupCardTest = async (testFunction: () => Promise<void>) => {
+  it('opens Card Home when pressing card navbar button', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -39,62 +37,14 @@ describe(SmokeCard('Card NavBar Button'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock,
-        endTestfn: async ({ mockServer }) => {
-          const events = await getEventsPayloads(mockServer);
-          eventsToCheck.push(...events);
-        },
+        analyticsExpectations: cardButtonExpectations,
       },
       async () => {
         await loginToApp();
-        await testFunction();
+        await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
+        await WalletView.tapNavbarCardButton();
+        await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
       },
     );
-  };
-
-  beforeEach(async () => {
-    jest.setTimeout(150000);
-    eventsToCheck.length = 0;
-  });
-
-  it('opens Card Home when pressing card navbar button', async () => {
-    await setupCardTest(async () => {
-      await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
-      await WalletView.tapNavbarCardButton();
-      await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
-    });
-  });
-
-  it('should validate segment/metametric event when opening Card Home', async () => {
-    await setupCardTest(async () => {
-      await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
-      await WalletView.tapNavbarCardButton();
-      await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
-    });
-
-    const expectedEvents = {
-      CARD_BUTTON_VIEWED: 'Card Button Viewed',
-      CARD_HOME_CLICKED: 'Card Home Clicked',
-    };
-
-    const softAssert = new SoftAssert();
-
-    // Find all events
-    const cardButtonViewed = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.CARD_BUTTON_VIEWED,
-    );
-    const cardHomeClicked = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.CARD_HOME_CLICKED,
-    );
-
-    const checkCardViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardButtonViewed);
-    }, 'Check Card Viewed event');
-
-    const checkCardHomeClicked = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardHomeClicked);
-    }, 'Check Card Home Clicked event');
-
-    await Promise.all([checkCardViewed, checkCardHomeClicked]);
-    softAssert.throwIfErrors();
   });
 });

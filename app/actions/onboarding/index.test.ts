@@ -1,11 +1,13 @@
 import {
   saveOnboardingEvent,
   clearOnboardingEvents,
+  clearOnboarding,
   setCompletedOnboarding,
   setAccountType,
   clearAccountType,
   SAVE_EVENT,
   CLEAR_EVENTS,
+  CLEAR_ONBOARDING,
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
@@ -80,6 +82,14 @@ describe('Onboarding actions', () => {
     it('creates an action to clear accountType', () => {
       expect(clearAccountType()).toEqual({
         type: CLEAR_ACCOUNT_TYPE,
+      });
+    });
+  });
+
+  describe('clearOnboarding', () => {
+    it('creates an action to reset onboarding state', () => {
+      expect(clearOnboarding()).toEqual({
+        type: CLEAR_ONBOARDING,
       });
     });
   });

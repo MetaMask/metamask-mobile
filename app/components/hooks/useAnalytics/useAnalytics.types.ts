@@ -18,7 +18,7 @@ type AnalyticsEventBuilderType = ReturnType<
 >;
 
 /**
- * Source type constants for analytics tracking
+ * Source type constants for analytics tracking (used on Connect Request events).
  */
 export const SourceType = {
   SDK: 'sdk',
@@ -27,6 +27,16 @@ export const SourceType = {
   IN_APP_BROWSER: 'in-app browser',
   PERMISSION_SYSTEM: 'permission system',
   DAPP_DEEPLINK_URL: 'dapp-deeplink-url',
+} as const;
+
+/**
+ * Transport type constants — identifies the underlying connection transport.
+ * Values align with the segment-schema transport_type enum.
+ */
+export const TransportType = {
+  SOCKET_RELAY: 'socket_relay',
+  MWP: 'mwp',
+  WALLETCONNECT: 'walletconnect',
 } as const;
 
 export interface UseAnalyticsHook {

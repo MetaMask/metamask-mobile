@@ -190,6 +190,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   resetFlowState(): void {
     DevLogger.log('[LedgerBluetoothAdapter] Resetting flow state');
     this.#flowComplete = false;
+    void this.#closeTransport();
   }
 
   getConnectedDeviceId(): string | null {

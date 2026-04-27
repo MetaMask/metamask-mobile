@@ -110,6 +110,7 @@ export type PredictMarket = {
   category: PredictCategory;
   tags: string[];
   outcomes: PredictOutcome[];
+  outcomeGroups?: PredictOutcomeGroup[];
   liquidity: number;
   volume: number;
   game?: PredictMarketGame;
@@ -192,7 +193,7 @@ export type PredictSportTeam = {
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
-  alias: string; // Team alias (e.g., "Seahawks")
+  alias?: string; // Team alias (e.g., "Seahawks")
 };
 
 // Parsed score data
@@ -259,6 +260,12 @@ export interface CryptoPriceUpdate {
   timestamp: number;
 }
 
+export type PredictOutcomeGroup = {
+  key: string;
+  outcomes: PredictOutcome[];
+  subgroups?: PredictOutcomeGroup[];
+};
+
 export type PredictOutcome = {
   id: string;
   providerId: string;
@@ -269,10 +276,13 @@ export type PredictOutcome = {
   status: 'open' | 'closed' | 'resolved';
   tokens: PredictOutcomeToken[];
   volume: number;
+  liquidity?: number;
   groupItemTitle: string;
   groupItemThreshold?: number;
   negRisk?: boolean;
   tickSize?: string;
+  sportsMarketType?: string;
+  line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
 };
@@ -280,6 +290,7 @@ export type PredictOutcome = {
 export type PredictOutcomeToken = {
   id: string;
   title: string;
+  shortTitle?: string;
   price: number;
 };
 
@@ -359,6 +370,13 @@ export interface GetPriceHistoryParams {
   interval?: PredictPriceHistoryInterval;
   startTs?: number;
   endTs?: number;
+}
+
+export interface GetCryptoTargetPriceParams {
+  symbol: string;
+  eventStartTime: string;
+  variant: string;
+  endDate: string;
 }
 
 /**

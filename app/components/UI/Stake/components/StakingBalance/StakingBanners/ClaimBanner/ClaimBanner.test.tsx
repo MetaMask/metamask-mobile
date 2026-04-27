@@ -114,8 +114,8 @@ describe('ClaimBanner', () => {
     (useFocusEffect as jest.Mock).mockImplementation(jest.fn());
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders claim button', () => {
+    const { getByTestId } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
         asset={MOCK_ETH_MAINNET_ASSET}
@@ -123,7 +123,7 @@ describe('ClaimBanner', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('claim-banner-claim-eth-button')).toBeOnTheScreen();
   });
 
   it('claim button switches to mainnet on press if on unsupported chain', async () => {

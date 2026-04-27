@@ -204,6 +204,12 @@ export interface SetOHLCVDataPayload {
    * the user can still scroll left to reveal older data fetched via pagination.
    */
   visibleFromMs?: number;
+  /**
+   * Expected visible-range end as a Unix timestamp in **milliseconds** (typically `lastBar.time`).
+   * Used with `visibleFromMs` so the TradingView `timeframe` constructor option spans exactly
+   * the intended window instead of defaulting to `Date.now()`.
+   */
+  visibleToMs?: number;
 }
 
 export interface AddIndicatorPayload {
@@ -471,6 +477,14 @@ export interface AdvancedChartProps {
    * The user can still scroll left to reveal older/paginated data.
    */
   visibleFromMs?: number;
+
+  /**
+   * Expected visible-range end (Unix ms), typically `lastBar.time`.
+   * Used with `visibleFromMs` so the TradingView `timeframe` constructor option
+   * spans exactly the intended window (e.g. 24 h) rather than `Date.now()`,
+   * which can be ahead of the last candle and push the left edge off-screen.
+   */
+  visibleToMs?: number;
 }
 
 /**

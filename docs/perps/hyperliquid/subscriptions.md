@@ -27,13 +27,13 @@ The subscription object contains the details of the specific feed you want to su
    - Subscription message: `{ "type": "webData3", "user": "<address>" }`
    - Data format: `WebData3`&#x20;
 4. `twapStates` :
-   - Subscription message: `{ "type": "twapStates", "user": "<address>" }`
+   - Subscription message: `{ "type": "twapStates", "user": "<address>", "dex": "<dex>" }`
    - Data format: `TwapStates`&#x20;
 5. `clearinghouseState:`
-   - Subscription message: `{ "type": "clearinghouseState", "user": "<address>" }`
+   - Subscription message: `{ "type": "clearinghouseState", "user": "<address>", "dex": "<dex>" }`
    - Data format: `ClearinghouseState`&#x20;
 6. `openOrders`:
-   - Subscription message: `{ "type": "openOrders", "user": "<address>" }`
+   - Subscription message: `{ "type": "openOrders", "user": "<address>", "dex": "<dex>" }`
    - Data format: `OpenOrders`&#x20;
 7. `candle`:
    - Subscription message: `{ "type": "candle", "coin": "<coin_symbol>", "interval": "<candle_interval>" }`
@@ -77,6 +77,16 @@ The subscription object contains the details of the specific feed you want to su
 19. `bbo` :
     - Subscription message: `{ "type": "bbo", "coin": "<coin>" }`
     - Data format: `WsBbo`
+20. `spotState`
+    - Subscription message: `{ "type": "spotState", "user": "<address>", "isPortfolioMargin": bool }`
+    - Data format: `WsSpotState`&#x20;
+    - `isPortfolioMargin` is an optional argument
+21. `allDexsClearinghouseState`
+    1. Subscription message: `{ "type": "allDexsClearinghouseState", "user": "<address>" }`
+    2. Data format: `WsAllDexsClearinghouseState`
+22. `allDexsAssetCtxs`&#x20;
+    1. Subscription message: `{ "type": "allDexsAssetCtxs" }`
+    2. Data format: `WsAllDexsAssetCtxs`
 
 ### Data formats
 
@@ -102,6 +112,9 @@ The `data` field format depends on the subscription type:
 - `WsUserFundings` : Funding payments snapshot followed by funding payments on the hour
 - `WsUserNonFundingLedgerUpdates`: Ledger updates not including funding payments: withdrawals, deposits, transfers, and liquidations
 - `WsBbo` : Bbo updates that are sent only if the bbo changes on a block
+- `WsSpotState` : Spot state update.
+- `WsAllDexsClearinghouseState` : Clearinghouse states across all dexs for specific user
+- `WsAllDexsAssetCtxs` : Asset contexts across all dexs
 
 For the streaming user endpoints such as `WsUserFills`,`WsUserFundings` the first message has `isSnapshot: true` and the following streaming updates have `isSnapshot: false`.&#x20;
 
@@ -369,6 +382,32 @@ interface TwapStates {
   dex: string;
   user: string;
   states: Array<[number, TwapState]>;
+}
+
+interface WsSpotState {
+  user: string;
+  spotState: SpotState;
+}
+
+interface SpotState {
+  balances: Array<UserBalance>;
+}
+
+interface UserBalance {
+  coin: string;
+  token: number;
+  hold: string;
+  total: string;
+  entryNtl: string;
+}
+
+interface WsAllDexsClearinghouseState {
+  user: string;
+  clearinghouseStates: Record<string, ClearinghouseState>;
+}
+
+interface WsAllDexsAssetCtxs {
+  ctxs: Record<string, Array<PerpsAssetCtx>>;
 }
 ```
 

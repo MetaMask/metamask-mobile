@@ -24,6 +24,9 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -49,6 +52,7 @@ import rewardsReducer, {
   setVersionGuardMinimumMobileVersion,
   setVersionGuardLoading,
   setVersionGuardError,
+  dismissCampaignOutcomeToast,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -187,7 +191,6 @@ describe('rewardsReducer', () => {
       expect(state.currentTier?.id).toBe('tier-bronze');
       expect(state.nextTier?.id).toBe('tier-silver');
       expect(state.nextTierPointsNeeded).toBe(1000);
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should set fields to null when season status is null', () => {
@@ -212,7 +215,6 @@ describe('rewardsReducer', () => {
         ],
         balanceTotal: 1000,
         balanceRefereePortion: 200,
-        seasonShouldInstallNewVersion: '1.0.0',
         currentTier: {
           id: 'tier-gold',
           name: 'Gold',
@@ -242,7 +244,6 @@ describe('rewardsReducer', () => {
       expect(state.currentTier).toBe(null);
       expect(state.nextTier).toBe(null);
       expect(state.nextTierPointsNeeded).toBe(null);
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should handle season status with invalid balance types', () => {
@@ -478,96 +479,6 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithWaysToEarn, action);
 
       expect(state.seasonWaysToEarn).toEqual([]);
-    });
-
-    it('should set seasonShouldInstallNewVersion when provided', () => {
-      // Arrange
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-with-version',
-          name: 'Season With Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
-          tiers: [],
-          shouldInstallNewVersion: '2.0.0',
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe('2.0.0');
-    });
-
-    it('should set seasonShouldInstallNewVersion to null when not provided', () => {
-      // Arrange
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-without-version',
-          name: 'Season Without Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
-          tiers: [],
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
-    });
-
-    it('should set seasonShouldInstallNewVersion to null when undefined', () => {
-      // Arrange
-      const stateWithVersion = {
-        ...initialState,
-        seasonShouldInstallNewVersion: '1.0.0',
-      };
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-undefined-version',
-          name: 'Season Undefined Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
-          tiers: [],
-          shouldInstallNewVersion: undefined,
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
-
-      // Act
-      const state = rewardsReducer(stateWithVersion, action);
-
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
   });
 
@@ -1507,7 +1418,6 @@ describe('rewardsReducer', () => {
               icon: 'Speedometer',
             },
           ],
-          seasonShouldInstallNewVersion: null,
         };
         const action = setCandidateSubscriptionId('new-subscription-id');
 
@@ -2105,7 +2015,6 @@ describe('rewardsReducer', () => {
         ],
         seasonActivityTypes: [],
         seasonWaysToEarn: [],
-        seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_1,
         onboardingReferralCode: 'REF123',
         candidateSubscriptionId: 'some-id',
@@ -2148,6 +2057,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        benefits: [],
+        benefitsLoading: false,
+        benefitsError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2166,6 +2078,8 @@ describe('rewardsReducer', () => {
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
+        pendingDeeplink: null,
+        dismissedCampaignOutcomeToasts: {},
       };
       const action = resetRewardsState();
 
@@ -2222,7 +2136,6 @@ describe('rewardsReducer', () => {
         ],
         seasonActivityTypes: [],
         seasonWaysToEarn: [],
-        seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_2,
         onboardingReferralCode: 'PERSISTED_REF',
         candidateSubscriptionId: 'some-id',
@@ -2266,6 +2179,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        benefits: [],
+        benefitsLoading: false,
+        benefitsError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2284,6 +2200,8 @@ describe('rewardsReducer', () => {
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
+        pendingDeeplink: null,
+        dismissedCampaignOutcomeToasts: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2337,6 +2255,7 @@ describe('rewardsReducer', () => {
             icon: 'Coin',
           },
         ],
+        dismissedCampaignOutcomeToasts: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2370,6 +2289,7 @@ describe('rewardsReducer', () => {
             buttonAction: { route: { root: 'PerpsRoot', screen: 'PerpsHome' } },
           },
         ],
+        dismissedCampaignOutcomeToasts: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2460,6 +2380,7 @@ describe('rewardsReducer', () => {
             hide: true,
           },
         ],
+        dismissedCampaignOutcomeToasts: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2528,6 +2449,7 @@ describe('rewardsReducer', () => {
         hideUnlinkedAccountsBanner: true,
         onboardingActiveStep: OnboardingStep.STEP_4, // This should NOT be persisted
         onboardingReferralCode: 'PERSISTED_REF', // This should NOT be persisted
+        dismissedCampaignOutcomeToasts: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2612,6 +2534,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardPositions: {
           'sub-1:campaign-1': mockPosition,
         },
+        dismissedCampaignOutcomeToasts: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2659,6 +2582,7 @@ describe('rewardsReducer', () => {
         ondoCampaignPortfolio: {
           'sub-1:campaign-1': persisted,
         },
+        dismissedCampaignOutcomeToasts: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -4483,6 +4407,7 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'running-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4514,6 +4439,7 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'progress-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4543,6 +4469,7 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'validate-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4570,6 +4497,7 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'completed-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4598,6 +4526,7 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'old-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4639,6 +4568,129 @@ describe('persist/REHYDRATE with bulk link state', () => {
   });
 });
 
+describe('setBenefits', () => {
+  const mockBenefitsPayload = {
+    limit: 10,
+    lastFetched: 1767225600000,
+    benefits: [
+      {
+        id: 101,
+        longTitle: 'Premium Access',
+        shortDescription: 'Get premium perks',
+        longDescription: 'Unlock premium partner benefits.',
+        thumbnail: 'https://example.com/benefits/premium.png',
+        validFrom: '2026-01-01T00:00:00.000Z',
+        validTo: '2026-12-31T00:00:00.000Z',
+        actionDate: '2026-06-01T00:00:00.000Z',
+        url: 'https://example.com/claim',
+        chain: 'ethereum',
+        type: {
+          id: 1,
+          name: 'Partner',
+        },
+      },
+    ],
+  };
+
+  it('sets benefits from payload', () => {
+    const action = setBenefits(mockBenefitsPayload);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
+  });
+
+  it('replaces existing benefits with new payload benefits', () => {
+    const stateWithBenefits: RewardsState = {
+      ...initialState,
+      benefits: mockBenefitsPayload.benefits,
+      dismissedCampaignOutcomeToasts: {},
+    };
+    const nextBenefitsPayload = {
+      limit: 20,
+      lastFetched: 1769904000000,
+      benefits: [
+        {
+          ...mockBenefitsPayload.benefits[0],
+          id: 202,
+          longTitle: 'Travel Perk',
+        },
+      ],
+    };
+    const action = setBenefits(nextBenefitsPayload);
+
+    const state = rewardsReducer(stateWithBenefits, action);
+
+    expect(state.benefits).toEqual(nextBenefitsPayload.benefits);
+  });
+
+  it('updates benefits and preserves unrelated fields', () => {
+    const stateWithOtherFlags: RewardsState = {
+      ...initialState,
+      benefitsLoading: true,
+      benefitsError: true,
+      campaignsLoading: true,
+      activeTab: 'campaigns',
+      dismissedCampaignOutcomeToasts: {},
+    };
+    const action = setBenefits(mockBenefitsPayload);
+
+    const state = rewardsReducer(stateWithOtherFlags, action);
+
+    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
+    expect(state.benefitsLoading).toBe(true);
+    expect(state.benefitsError).toBe(true);
+    expect(state.campaignsLoading).toBe(true);
+    expect(state.activeTab).toBe('campaigns');
+  });
+});
+
+describe('setBenefitsLoading', () => {
+  it('sets benefitsLoading to true', () => {
+    const action = setBenefitsLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefitsLoading).toBe(true);
+  });
+
+  it('sets benefitsLoading to false', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      benefitsLoading: true,
+      dismissedCampaignOutcomeToasts: {},
+    };
+    const action = setBenefitsLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.benefitsLoading).toBe(false);
+  });
+});
+
+describe('setBenefitsError', () => {
+  it('sets benefitsError to true', () => {
+    const action = setBenefitsError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefitsError).toBe(true);
+  });
+
+  it('sets benefitsError to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      benefitsError: true,
+      dismissedCampaignOutcomeToasts: {},
+    };
+    const action = setBenefitsError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.benefitsError).toBe(false);
+  });
+});
+
 const mockCampaign: CampaignDto = {
   id: 'campaign-1',
   type: 'ONDO_HOLDING' as CampaignType,
@@ -4665,6 +4717,7 @@ describe('setCampaigns', () => {
     const stateWithCampaigns: RewardsState = {
       ...initialState,
       campaigns: [mockCampaign],
+      dismissedCampaignOutcomeToasts: {},
     };
     const newCampaign: CampaignDto = {
       ...mockCampaign,
@@ -4683,6 +4736,7 @@ describe('setCampaigns', () => {
     const stateWithCampaigns: RewardsState = {
       ...initialState,
       campaigns: [mockCampaign],
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setCampaigns([]);
 
@@ -4696,6 +4750,7 @@ describe('setCampaigns', () => {
     const stateWithError: RewardsState = {
       ...initialState,
       campaignsError: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setCampaigns([mockCampaign]);
 
@@ -4720,6 +4775,7 @@ describe('setCampaignsLoading', () => {
       ...initialState,
       campaigns: [mockCampaign],
       campaignsLoading: false,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setCampaignsLoading(true);
 
@@ -4732,6 +4788,7 @@ describe('setCampaignsLoading', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
       campaignsLoading: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setCampaignsLoading(false);
 
@@ -4745,6 +4802,7 @@ describe('setCampaignsLoading', () => {
       ...initialState,
       campaigns: [mockCampaign],
       campaignsLoading: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setCampaignsLoading(false);
 
@@ -4769,6 +4827,7 @@ describe('setCampaignsError', () => {
       ...initialState,
       campaignsError: true,
       campaignsHasLoaded: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setCampaignsError(false);
 
@@ -4783,6 +4842,7 @@ describe('setCampaignsError', () => {
       ...initialState,
       campaignsError: true,
       campaignsHasLoaded: false,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setCampaignsError(false);
 
@@ -4813,47 +4873,51 @@ describe('setCampaignsError', () => {
 });
 
 describe('setCampaignParticipantStatus', () => {
-  it('should set participant status for a campaign', () => {
+  it('should set participant status keyed by subscriptionId:campaignId', () => {
     const action = setCampaignParticipantStatus({
+      subscriptionId: 'sub-1',
       campaignId: 'campaign-1',
       status: { optedIn: true, participantCount: 42 },
     });
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignParticipantStatuses['campaign-1']).toEqual({
+    expect(state.campaignParticipantStatuses['sub-1:campaign-1']).toEqual({
       optedIn: true,
       participantCount: 42,
     });
   });
 
-  it('should update existing participant status for a campaign', () => {
+  it('should update existing participant status for the same subscriptionId:campaignId', () => {
     const stateWithStatus: RewardsState = {
       ...initialState,
       campaignParticipantStatuses: {
-        'campaign-1': { optedIn: false, participantCount: 10 },
+        'sub-1:campaign-1': { optedIn: false, participantCount: 10 },
       },
+      dismissedCampaignOutcomeToasts: {},
     };
 
     const action = setCampaignParticipantStatus({
+      subscriptionId: 'sub-1',
       campaignId: 'campaign-1',
       status: { optedIn: true, participantCount: 50 },
     });
 
     const state = rewardsReducer(stateWithStatus, action);
 
-    expect(state.campaignParticipantStatuses['campaign-1']).toEqual({
+    expect(state.campaignParticipantStatuses['sub-1:campaign-1']).toEqual({
       optedIn: true,
       participantCount: 50,
     });
   });
 
-  it('should store statuses for multiple campaigns independently', () => {
+  it('should store statuses independently per subscriptionId:campaignId', () => {
     let currentState = initialState;
 
     currentState = rewardsReducer(
       currentState,
       setCampaignParticipantStatus({
+        subscriptionId: 'sub-1',
         campaignId: 'campaign-1',
         status: { optedIn: true, participantCount: 42 },
       }),
@@ -4862,16 +4926,21 @@ describe('setCampaignParticipantStatus', () => {
     currentState = rewardsReducer(
       currentState,
       setCampaignParticipantStatus({
-        campaignId: 'campaign-2',
+        subscriptionId: 'sub-2',
+        campaignId: 'campaign-1',
         status: { optedIn: false, participantCount: 0 },
       }),
     );
 
-    expect(currentState.campaignParticipantStatuses['campaign-1']).toEqual({
+    expect(
+      currentState.campaignParticipantStatuses['sub-1:campaign-1'],
+    ).toEqual({
       optedIn: true,
       participantCount: 42,
     });
-    expect(currentState.campaignParticipantStatuses['campaign-2']).toEqual({
+    expect(
+      currentState.campaignParticipantStatuses['sub-2:campaign-1'],
+    ).toEqual({
       optedIn: false,
       participantCount: 0,
     });
@@ -4891,6 +4960,7 @@ describe('setVersionGuardMinimumMobileVersion', () => {
     const stateWithVersion: RewardsState = {
       ...initialState,
       versionGuardMinimumMobileVersion: '7.29.0',
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setVersionGuardMinimumMobileVersion('7.30.0');
 
@@ -4903,6 +4973,7 @@ describe('setVersionGuardMinimumMobileVersion', () => {
     const stateWithVersion: RewardsState = {
       ...initialState,
       versionGuardMinimumMobileVersion: '7.30.0',
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setVersionGuardMinimumMobileVersion(null);
 
@@ -4935,6 +5006,7 @@ describe('setVersionGuardLoading', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
       versionGuardLoading: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setVersionGuardLoading(false);
 
@@ -4968,6 +5040,7 @@ describe('setVersionGuardError', () => {
     const stateWithError: RewardsState = {
       ...initialState,
       versionGuardError: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setVersionGuardError(false);
 
@@ -5152,7 +5225,6 @@ const mockLeaderboard: CampaignLeaderboardDto = {
         },
       ],
       totalParticipants: 150,
-      minDeposit: 500,
     },
     MID: {
       entries: [
@@ -5179,7 +5251,6 @@ const mockLeaderboard: CampaignLeaderboardDto = {
         },
       ],
       totalParticipants: 75,
-      minDeposit: 1000,
     },
   },
 };
@@ -5234,6 +5305,7 @@ describe('setOndoCampaignLeaderboard', () => {
     const stateWithSelectedTier: RewardsState = {
       ...initialState,
       ondoCampaignLeaderboardSelectedTier: 'MID',
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
@@ -5246,6 +5318,7 @@ describe('setOndoCampaignLeaderboard', () => {
     const stateWithStaleSelection: RewardsState = {
       ...initialState,
       ondoCampaignLeaderboardSelectedTier: 'UPPER',
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
@@ -5258,6 +5331,7 @@ describe('setOndoCampaignLeaderboard', () => {
     const stateWithLeaderboard: RewardsState = {
       ...initialState,
       ondoCampaignLeaderboard: mockLeaderboard,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboard(null);
 
@@ -5270,6 +5344,7 @@ describe('setOndoCampaignLeaderboard', () => {
     const stateWithError: RewardsState = {
       ...initialState,
       ondoCampaignLeaderboardError: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
@@ -5293,6 +5368,7 @@ describe('setOndoCampaignLeaderboardLoading', () => {
       ...initialState,
       ondoCampaignLeaderboard: mockLeaderboard,
       ondoCampaignLeaderboardLoading: false,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboardLoading(true);
 
@@ -5305,6 +5381,7 @@ describe('setOndoCampaignLeaderboardLoading', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
       ondoCampaignLeaderboardLoading: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboardLoading(false);
 
@@ -5327,6 +5404,7 @@ describe('setOndoCampaignLeaderboardError', () => {
     const stateWithError: RewardsState = {
       ...initialState,
       ondoCampaignLeaderboardError: true,
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboardError(false);
 
@@ -5349,6 +5427,7 @@ describe('setOndoCampaignLeaderboardSelectedTier', () => {
     const stateWithSelectedTier: RewardsState = {
       ...initialState,
       ondoCampaignLeaderboardSelectedTier: 'STARTER',
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboardSelectedTier('UPPER');
 
@@ -5377,6 +5456,7 @@ describe('setOndoCampaignLeaderboardPosition', () => {
     const stateWithPosition: RewardsState = {
       ...initialState,
       ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignLeaderboardPosition({
       subscriptionId: 'sub-1',
@@ -5441,6 +5521,7 @@ describe('setOndoCampaignPortfolioPosition', () => {
     const stateWithPortfolio: RewardsState = {
       ...initialState,
       ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      dismissedCampaignOutcomeToasts: {},
     };
     const action = setOndoCampaignPortfolioPosition({
       subscriptionId: 'sub-1',
@@ -5568,5 +5649,122 @@ describe('ondoCampaignDeposits', () => {
     expect(state.ondoCampaignDeposits).toBeNull();
     expect(state.ondoCampaignDepositsLoading).toBe(false);
     expect(state.ondoCampaignDepositsError).toBe(false);
+  });
+
+  describe('dismissCampaignOutcomeToast', () => {
+    it('records winner_verify variant as dismissed', () => {
+      const state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'campaign-1',
+          subscriptionId: 'sub-1',
+          variant: 'winner_verify',
+        }),
+      );
+
+      expect(
+        state.dismissedCampaignOutcomeToasts['campaign-1:sub-1:winner_verify'],
+      ).toBe(true);
+    });
+
+    it('records participant_no_winner variant as dismissed', () => {
+      const state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'campaign-2',
+          subscriptionId: 'sub-2',
+          variant: 'participant_no_winner',
+        }),
+      );
+
+      expect(
+        state.dismissedCampaignOutcomeToasts[
+          'campaign-2:sub-2:participant_no_winner'
+        ],
+      ).toBe(true);
+    });
+
+    it('accumulates multiple dismissed toasts without overwriting existing ones', () => {
+      let state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'c1',
+          subscriptionId: 's1',
+          variant: 'winner_verify',
+        }),
+      );
+      state = rewardsReducer(
+        state,
+        dismissCampaignOutcomeToast({
+          campaignId: 'c2',
+          subscriptionId: 's2',
+          variant: 'participant_no_winner',
+        }),
+      );
+
+      expect(state.dismissedCampaignOutcomeToasts['c1:s1:winner_verify']).toBe(
+        true,
+      );
+      expect(
+        state.dismissedCampaignOutcomeToasts['c2:s2:participant_no_winner'],
+      ).toBe(true);
+    });
+
+    it('starts with empty dismissedCampaignOutcomeToasts in initial state', () => {
+      expect(initialState.dismissedCampaignOutcomeToasts).toEqual({});
+    });
+  });
+
+  describe('persist/REHYDRATE — dismissedCampaignOutcomeToasts', () => {
+    it('restores dismissedCampaignOutcomeToasts from persisted state', () => {
+      const persisted: RewardsState = {
+        ...initialState,
+        dismissedCampaignOutcomeToasts: {
+          'campaign-1:sub-1:winner_verify': true,
+        },
+      };
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({
+        'campaign-1:sub-1:winner_verify': true,
+      });
+    });
+
+    it('defaults to empty object when dismissedCampaignOutcomeToasts is absent from persisted state', () => {
+      const persisted = { ...initialState } as Partial<RewardsState>;
+      delete persisted.dismissedCampaignOutcomeToasts;
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({});
+    });
+  });
+
+  describe('setCandidateSubscriptionId — preserves dismissedCampaignOutcomeToasts', () => {
+    it('preserves dismissedCampaignOutcomeToasts when subscription ID changes', () => {
+      const stateWithDismissals: RewardsState = {
+        ...initialState,
+        candidateSubscriptionId: 'old-sub',
+        dismissedCampaignOutcomeToasts: {
+          'campaign-1:old-sub:winner_verify': true,
+        },
+      };
+
+      const state = rewardsReducer(
+        stateWithDismissals,
+        setCandidateSubscriptionId('new-sub'),
+      );
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({
+        'campaign-1:old-sub:winner_verify': true,
+      });
+    });
   });
 });

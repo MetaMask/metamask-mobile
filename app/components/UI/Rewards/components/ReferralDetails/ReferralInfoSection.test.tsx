@@ -6,9 +6,9 @@ import ReferralInfoSection from './ReferralInfoSection';
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.referral.info.title': 'Invite Friends & Earn',
+      'rewards.referral.info.title': 'Share your code with friends',
       'rewards.referral.info.description':
-        'Share your referral code with friends and earn rewards when they join MetaMask.',
+        'Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm.',
     };
     return translations[key] || key;
   }),
@@ -19,10 +19,10 @@ describe('ReferralInfoSection', () => {
     it('should render correctly', () => {
       const { getByText } = render(<ReferralInfoSection />);
 
-      expect(getByText('Invite Friends & Earn')).toBeTruthy();
+      expect(getByText('Share your code with friends')).toBeTruthy();
       expect(
         getByText(
-          'Share your referral code with friends and earn rewards when they join MetaMask.',
+          'Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm.',
         ),
       ).toBeTruthy();
     });
@@ -30,7 +30,7 @@ describe('ReferralInfoSection', () => {
     it('should display the correct title', () => {
       const { getByText } = render(<ReferralInfoSection />);
 
-      const titleElement = getByText('Invite Friends & Earn');
+      const titleElement = getByText('Share your code with friends');
       expect(titleElement).toBeTruthy();
     });
 
@@ -38,7 +38,7 @@ describe('ReferralInfoSection', () => {
       const { getByText } = render(<ReferralInfoSection />);
 
       const descriptionElement = getByText(
-        'Share your referral code with friends and earn rewards when they join MetaMask.',
+        'Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm.',
       );
       expect(descriptionElement).toBeTruthy();
     });
@@ -48,9 +48,9 @@ describe('ReferralInfoSection', () => {
     it('should render text elements that are accessible', () => {
       const { getByText } = render(<ReferralInfoSection />);
 
-      const titleElement = getByText('Invite Friends & Earn');
+      const titleElement = getByText('Share your code with friends');
       const descriptionElement = getByText(
-        'Share your referral code with friends and earn rewards when they join MetaMask.',
+        'Some campaigns may have extra benefits for referrals. Check the description for each campaign to confirm.',
       );
 
       expect(titleElement).toBeTruthy();

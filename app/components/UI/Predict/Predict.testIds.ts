@@ -126,6 +126,10 @@ export const PredictMarketDetailsSelectorsIDs = {
   DETAILS_CONTENT_SKELETON_LINE_1: 'predict-details-content-skeleton-line-1',
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
+
+  // BottomSheet wrappers
+  BUY_PREVIEW_SHEET: 'predict-buy-preview-sheet',
+  SELL_PREVIEW_SHEET: 'predict-sell-preview-sheet',
 } as const;
 
 // ========================================
@@ -183,6 +187,10 @@ export const PredictPositionSelectorsIDs = {
 export const PredictBuyPreviewSelectorsIDs = {
   // Buy/Place bet button
   PLACE_BET_BUTTON: 'predict-buy-preview-place-bet-button',
+
+  // Inline error banners (sheet mode)
+  PRICE_CHANGED_BANNER: 'predict-buy-preview-price-changed-banner',
+  ORDER_FAILED_BANNER: 'predict-buy-preview-order-failed-banner',
 } as const;
 
 // ========================================

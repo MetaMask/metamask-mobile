@@ -106,6 +106,7 @@ import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/g
 import { isSnapId } from '@metamask/snaps-utils';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import { useSDKV2Connection } from '../../hooks/useSDKV2Connection';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -160,6 +161,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
+
+  const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
+  const anonId = sdkV2Connection?.originatorInfo?.anonId;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -363,7 +367,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
   );
 
-  const eventSource = useOriginSource({ origin: channelIdOrHostname });
+  const originSource = useOriginSource({ origin: channelIdOrHostname });
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -409,10 +413,12 @@ const AccountConnect = (props: AccountConnectProps) => {
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
           .addProperties({
             number_of_accounts: accountsLength,
-            source: eventSource,
+            source: originSource?.source,
+            request_source: originSource?.requestSource,
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -420,9 +426,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     [
       accountsLength,
       channelIdOrHostname,
+      anonId,
       trackEvent,
       createEventBuilder,
-      eventSource,
+      originSource,
       hostInfo.metadata.isEip1193Request,
       hostInfo.permissions,
     ],
@@ -516,12 +523,13 @@ const AccountConnect = (props: AccountConnectProps) => {
           .addProperties({
             number_of_accounts: accountsLength,
             number_of_accounts_connected: connectedAccountLength,
-            // TODO: Fix this. Not accurate
             account_type: getAddressAccountType(activeAddress),
-            source: eventSource,
+            source: originSource?.source,
+            request_source: originSource?.requestSource,
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { remote_session_id: anonId } : {}),
           })
           .build(),
       );
@@ -545,7 +553,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
-    eventSource,
+    anonId,
+    originSource,
     selectedAddresses,
     hostInfo,
     toastRef,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import {
   Box,
   Text,
@@ -25,6 +26,7 @@ const AVATAR_SIZE = 40;
 export interface TraderRowProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
+  onTraderPress?: (traderId: string, traderName: string) => void;
   testID?: string;
 }
 
@@ -37,6 +39,7 @@ export interface TraderRowProps {
 const TraderRow: React.FC<TraderRowProps> = ({
   trader,
   onFollowPress,
+  onTraderPress,
   testID,
 }) => {
   const tw = useTailwind();
@@ -55,93 +58,115 @@ const TraderRow: React.FC<TraderRowProps> = ({
       twClassName="px-4 py-3"
       testID={testID ?? `trader-row-${trader.id}`}
     >
-      {/* Left slot: rank + avatar + text info */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={3}
-        twClassName="flex-1 min-w-0 mr-3"
+      <TouchableOpacity
+        activeOpacity={onTraderPress ? 0.7 : 1}
+        onPress={
+          onTraderPress
+            ? () => onTraderPress(trader.id, trader.username)
+            : undefined
+        }
+        style={tw.style('flex-1 min-w-0 mr-3')}
+        disabled={!onTraderPress}
       >
-        {/* Rank number */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          twClassName="w-6 text-right"
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={3}
         >
-          {`${trader.rank}.`}
-        </Text>
-
-        {/* Avatar */}
-        {trader.avatarUri ? (
-          <Image
-            source={{ uri: trader.avatarUri }}
-            style={tw.style(
-              `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
-            )}
-            resizeMode="cover"
-          />
-        ) : (
-          <AvatarBase
-            size={AvatarBaseSize.Lg}
-            fallbackText={trader.username.charAt(0).toUpperCase()}
-          />
-        )}
-
-        {/* Username + stats */}
-        <Box twClassName="flex-1 min-w-0">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
+            twClassName="w-8 text-right"
           >
-            {trader.username}
+            {`${trader.rank}.`}
           </Text>
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+
+          {trader.avatarUri ? (
+            <Image
+              source={{ uri: trader.avatarUri }}
+              style={tw.style(
+                `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
+              )}
+              resizeMode="cover"
+            />
+          ) : (
+            <AvatarBase
+              size={AvatarBaseSize.Lg}
+              fallbackText={trader.username.charAt(0).toUpperCase()}
+            />
+          )}
+
+          <Box twClassName="flex-1 min-w-0">
             <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              twClassName={
-                isRoiPositive ? 'text-success-default' : 'text-error-default'
-              }
-            >
-              {roiText}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
+              numberOfLines={1}
             >
-              {' \u00B7 '}
+              {trader.username}
             </Text>
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              twClassName={
-                isPnlPositive ? 'text-success-default' : 'text-error-default'
-              }
+              numberOfLines={1}
             >
-              {pnlText}
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                twClassName={
+                  isRoiPositive ? 'text-success-default' : 'text-error-default'
+                }
+              >
+                {roiText}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {' \u00B7 '}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                twClassName={
+                  isPnlPositive ? 'text-success-default' : 'text-error-default'
+                }
+              >
+                {pnlText}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                {' 30D'}
+              </Text>
             </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextMuted}
-            >
-              {' 30D'}
-            </Text>
-          </Text>
+          </Box>
         </Box>
-      </Box>
+      </TouchableOpacity>
 
       {/* Follow / Following button */}
       <Button
         variant={
-          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
         size={ButtonSize.Sm}
         onPress={() => onFollowPress(trader.id)}
+        twClassName="min-w-[96px]"
+        style={
+          trader.isFollowing
+            ? undefined
+            : { backgroundColor: lightTheme.colors.primary.default }
+        }
+        textProps={
+          trader.isFollowing
+            ? undefined
+            : { style: { color: lightTheme.colors.overlay.inverse } }
+        }
       >
         {trader.isFollowing
           ? strings('social_leaderboard.following')
@@ -151,4 +176,4 @@ const TraderRow: React.FC<TraderRowProps> = ({
   );
 };
 
-export default TraderRow;
+export default React.memo(TraderRow);

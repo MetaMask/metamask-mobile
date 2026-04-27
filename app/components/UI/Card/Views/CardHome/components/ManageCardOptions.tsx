@@ -35,7 +35,8 @@ interface ManageCardOptionsProps {
   onManageSpendingLimit: () => void;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
-  onNavigateToCardPage: () => void;
+  onChangeAsset: () => void;
+  hasPriorityTokenBalance: boolean;
   onCashback: () => void;
   onTravel: () => void;
 }
@@ -61,7 +62,8 @@ const ManageCardOptions = ({
   onManageSpendingLimit,
   onOrderMetalCard,
   isSpendingLimitActive,
-  onNavigateToCardPage,
+  onChangeAsset,
+  hasPriorityTokenBalance,
   onCashback,
   onTravel,
 }: ManageCardOptionsProps) => {
@@ -85,6 +87,8 @@ const ManageCardOptions = ({
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
 
+  const hideManageOptions = isAuthenticated && !hasPriorityTokenBalance;
+
   const showSpendingLimitDescription = isSpendingLimitActive
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
     : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
@@ -92,7 +96,7 @@ const ManageCardOptions = ({
   return (
     <>
       <Box style={tw.style((hasSetupActions || hasAlertOnlyState) && 'hidden')}>
-        {isEligibleForMetalCard && (
+        {isEligibleForMetalCard && !hideManageOptions && (
           <ManageCardListItem
             title={strings(
               'card.card_home.manage_card_options.order_metal_card',
@@ -106,6 +110,34 @@ const ManageCardOptions = ({
           />
         )}
         {((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.change_asset')}
+            description={strings(
+              'card.card_home.manage_card_options.change_asset_description',
+            )}
+            onPress={onChangeAsset}
+            testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
+          />
+        )}
+        {((isFullySetUp && !hideManageOptions) || showTeaserOptions) &&
+          ((isAuthenticated &&
+            capabilities?.supportsCashback &&
+            account?.verificationStatus === 'VERIFIED') ||
+            (showTeaserOptions && capabilities?.supportsCashback)) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.cashback')}
+              description={strings(
+                card?.type === CardType.METAL
+                  ? 'card.card_home.manage_card_options.cashback_description_metal'
+                  : 'card.card_home.manage_card_options.cashback_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onCashback}
+              testID={CardHomeSelectors.CASHBACK_ITEM}
+            />
+          )}
+        {((isAuthenticated && !isLoading && card && !hideManageOptions) ||
+          showTeaserOptions) && (
           <ManageCardListItem
             title={strings(
               cardDetailsImageUrl && isAuthenticated
@@ -122,7 +154,8 @@ const ManageCardOptions = ({
         {((isAuthenticated &&
           !isLoading &&
           card &&
-          capabilities?.supportsPinView) ||
+          capabilities?.supportsPinView &&
+          !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinView)) && (
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.view_pin')}
@@ -137,7 +170,8 @@ const ManageCardOptions = ({
         {((isAuthenticated &&
           !isLoading &&
           card?.isFreezable &&
-          card?.status !== CardStatus.BLOCKED) ||
+          card?.status !== CardStatus.BLOCKED &&
+          !hideManageOptions) ||
           showTeaserOptions) && (
           <ManageCardListItem
             title={
@@ -162,7 +196,7 @@ const ManageCardOptions = ({
             testID="freeze-card-list-item"
           />
         )}
-        {!isLoading && (
+        {!isLoading && !hideManageOptions && (
           <ManageCardListItem
             title={strings(
               'card.card_home.manage_card_options.manage_spending_limit',
@@ -174,33 +208,8 @@ const ManageCardOptions = ({
           />
         )}
       </Box>
-      {(isFullySetUp || showTeaserOptions) && (
+      {((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
         <>
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.manage_card')}
-            description={strings(
-              'card.card_home.manage_card_options.advanced_card_management_description',
-            )}
-            rightIcon={IconName.Export}
-            onPress={onNavigateToCardPage}
-            testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
-          />
-          {((isAuthenticated &&
-            capabilities?.supportsCashback &&
-            account?.verificationStatus === 'VERIFIED') ||
-            (showTeaserOptions && capabilities?.supportsCashback)) && (
-            <ManageCardListItem
-              title={strings('card.card_home.manage_card_options.cashback')}
-              description={strings(
-                card?.type === CardType.METAL
-                  ? 'card.card_home.manage_card_options.cashback_description_metal'
-                  : 'card.card_home.manage_card_options.cashback_description',
-              )}
-              rightIcon={IconName.ArrowRight}
-              onPress={onCashback}
-              testID={CardHomeSelectors.CASHBACK_ITEM}
-            />
-          )}
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.travel_title')}
             description={strings(

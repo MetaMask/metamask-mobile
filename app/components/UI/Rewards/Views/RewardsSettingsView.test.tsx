@@ -278,9 +278,12 @@ describe('RewardsSettingsView', () => {
     it('tracks settings viewed event on mount', () => {
       renderWithNavigation(<RewardsSettingsView />);
 
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.REWARDS_SETTINGS_VIEWED,
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_VIEWED,
       );
     });
   });

@@ -1,23 +1,27 @@
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { Dimensions, View } from 'react-native';
 import { LineGraph, GraphPoint } from 'react-native-graph';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { strings } from '../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Title from '../../../Base/Title';
-import { TOKEN_OVERVIEW_CHART_HEIGHT } from '../Price/tokenOverviewChart.constants';
+import { useTheme } from '../../../../util/theme';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  CHART_DATA_THRESHOLD,
+  TOKEN_OVERVIEW_CHART_HEIGHT,
+} from '../Price/tokenOverviewChart.constants';
 import styleSheet from './PriceChart.styles';
 import PriceChartContext from './PriceChart.context';
+import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
+import { Box } from '@metamask/design-system-react-native';
 
 interface PriceChartProps {
   prices: TokenPrice[];
@@ -35,8 +39,11 @@ const PriceChart = ({
   onChartIndexChange,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
 }: PriceChartProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const emptyDisplayTrackedRef = useRef(false);
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
+  useTheme();
 
   const chartColor =
     priceDiff > 0
@@ -45,7 +52,6 @@ const PriceChart = ({
         ? theme.colors.error.default
         : theme.colors.text.alternative;
 
-  // Convert TokenPrice[] to GraphPoint[] for react-native-graph
   const graphPoints: GraphPoint[] = useMemo(
     () =>
       prices.map(([timestamp, value]) => ({
@@ -55,7 +61,23 @@ const PriceChart = ({
     [prices],
   );
 
-  const chartHasData = graphPoints.length > 1;
+  const chartHasData = graphPoints.length >= CHART_DATA_THRESHOLD;
+  const hasInsufficientData =
+    graphPoints.length > 0 && graphPoints.length < CHART_DATA_THRESHOLD;
+
+  useEffect(() => {
+    if (chartHasData || isLoading) {
+      emptyDisplayTrackedRef.current = false;
+      return;
+    }
+    if (emptyDisplayTrackedRef.current) {
+      return;
+    }
+    emptyDisplayTrackedRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_EMPTY_DISPLAYED).build(),
+    );
+  }, [chartHasData, isLoading, trackEvent, createEventBuilder]);
 
   const onPointSelected = useCallback(
     (point: GraphPoint) => {
@@ -76,51 +98,14 @@ const PriceChart = ({
     onChartIndexChange(-1);
   }, [setIsChartBeingTouched, onChartIndexChange]);
 
-  const NoDataOverlay = () => {
-    const hasInsufficientData =
-      prices.length > 0 && prices.length <= 1;
-
-    if (hasInsufficientData) {
-      return (
-        <View
-          style={styles.noDataOverlay}
-          testID="price-chart-insufficient-data"
-        >
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            style={styles.noDataOverlayText}
-          >
-            {strings('asset_overview.no_chart_data.insufficient_data')}
-          </Text>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.noDataOverlay} testID="price-chart-no-data">
-        <Text>
-          <Icon
-            name={IconName.Warning}
-            color={IconColor.Muted}
-            size={IconSize.Xl}
-            testID="price-chart-no-data-icon"
-          />
-        </Text>
-        <Title style={styles.noDataOverlayTitle}>
-          {strings('asset_overview.no_chart_data.title')}
-        </Title>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          style={styles.noDataOverlayText}
-        >
-          {strings('asset_overview.no_chart_data.description')}
-        </Text>
-      </View>
-    );
-  };
-
+  /**
+   * Loading overlay component.
+   * Note: We render this conditionally in the return statement rather than early-returning
+   * to work around an Android bug where charts wouldn't render until screen interaction.
+   * @see https://github.com/MetaMask/metamask-mobile/issues/20854
+   */
   const LoadingOverlay = () => (
-    <View style={styles.noDataOverlay} testID="price-chart-loading">
+    <Box twClassName="justify-center items-center" testID="price-chart-loading">
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}
@@ -131,20 +116,16 @@ const PriceChart = ({
           borderRadius={6}
         />
       </SkeletonPlaceholder>
-    </View>
+    </Box>
   );
 
   return (
     <View style={styles.chart}>
       <View
-        style={styles.chartArea}
+        style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
       >
-        {isLoading ? (
-          <LoadingOverlay />
-        ) : !chartHasData ? (
-          <NoDataOverlay />
-        ) : (
+        {chartHasData && !isLoading ? (
           <LineGraph
             animated
             points={graphPoints}
@@ -154,7 +135,7 @@ const PriceChart = ({
               chartColor + '20',
               chartColor + '00',
             ]}
-            style={{ width: '100%', height: chartHeight }}
+            style={styles.chartArea}
             enablePanGesture
             enableIndicator
             indicatorPulsating
@@ -163,6 +144,20 @@ const PriceChart = ({
             onGestureStart={onGestureStart}
             onGestureEnd={onGestureEnd}
           />
+        ) : null}
+        {isLoading && (
+          <View style={styles.loadingOverlayContainer}>
+            <LoadingOverlay />
+          </View>
+        )}
+        {!isLoading && !chartHasData && (
+          <View style={styles.noDataOverlayContainer} pointerEvents="box-none">
+            <NoDataOverlay
+              chartHeight={chartHeight}
+              chartPlaceholderFill={theme.colors.border.muted}
+              hasInsufficientData={hasInsufficientData}
+            />
+          </View>
         )}
       </View>
     </View>

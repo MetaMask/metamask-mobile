@@ -4,8 +4,11 @@ const http = require('node:http');
 const { loadSimulatorName, loadAndroidDevice } = require('./config');
 const { createWSClient } = require('./ws-client');
 
+const FETCH_TIMEOUT_MS = Number.parseInt(process.env.CDP_TIMEOUT || '30000', 10);
+const FETCH_RETRIES = Number.parseInt(process.env.CDP_DISCOVERY_RETRIES || '3', 10);
+
 /** Fetch JSON from a URL (http only, no external deps) */
-function fetchJSON(url) {
+function fetchJSONOnce(url) {
   return new Promise((resolve, reject) => {
     const req = http.get(url, (res) => {
       let data = '';
@@ -19,11 +22,25 @@ function fetchJSON(url) {
       });
     });
     req.on('error', reject);
-    req.setTimeout(5000, () => {
+    req.setTimeout(FETCH_TIMEOUT_MS, () => {
       req.destroy();
-      reject(new Error(`Timeout fetching ${url}`));
+      reject(new Error(`Timeout fetching ${url} after ${FETCH_TIMEOUT_MS}ms`));
     });
   });
+}
+
+async function fetchJSON(url) {
+  let lastError;
+  for (let attempt = 1; attempt <= FETCH_RETRIES; attempt++) {
+    try {
+      return await fetchJSONOnce(url);
+    } catch (error) {
+      lastError = error;
+      if (attempt === FETCH_RETRIES) break;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+    }
+  }
+  throw lastError;
 }
 
 /**

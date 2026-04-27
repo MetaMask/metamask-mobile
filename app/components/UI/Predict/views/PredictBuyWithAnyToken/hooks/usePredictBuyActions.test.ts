@@ -101,6 +101,13 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
+const mockResetSelectedPaymentToken = jest.fn();
+jest.mock('../../../hooks/usePredictPaymentToken', () => ({
+  usePredictPaymentToken: () => ({
+    resetSelectedPaymentToken: mockResetSelectedPaymentToken,
+  }),
+}));
+
 jest.mock('../../../hooks/usePredictTrading', () => ({
   usePredictTrading: () => ({
     placeOrder: mockPlaceOrder,
@@ -300,6 +307,7 @@ describe('usePredictBuyActions', () => {
 
     it('calls approval confirm when the order is paying with any token', async () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+      mockApprovalRequest = { id: 'approval-tx-123' };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -375,20 +383,22 @@ describe('usePredictBuyActions', () => {
       );
     });
 
-    it('passes undefined transactionId when approvalRequest is undefined', async () => {
+    it('attempts re-init and does not call placeOrder when approvalRequest is missing', async () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
       mockApprovalRequest = undefined;
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
 
+      mockInitPayWithAnyToken.mockClear();
+
       await act(async () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockPlaceOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ transactionId: undefined }),
-      );
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
   });
 
@@ -607,6 +617,135 @@ describe('usePredictBuyActions', () => {
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
       expect(mockRejectRequest).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isSheetMode', () => {
+    it('calls initPayWithAnyToken on mount without transitionEnd when isSheetMode is true', () => {
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: jest.fn(),
+      };
+      renderHook(() => usePredictBuyActions(params));
+
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'transitionEnd',
+        expect.any(Function),
+      );
+    });
+
+    it('calls onClose instead of StackActions.pop on SUCCESS when isSheetMode is true', async () => {
+      const mockOnClose = jest.fn();
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('runs cleanup on unmount instead of beforeRemove when isSheetMode is true', () => {
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: jest.fn(),
+      };
+      const { unmount } = renderHook(() => usePredictBuyActions(params));
+
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+
+      unmount();
+
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
+    });
+
+    it('runs cleanup on unmount even when order is in flight (DEPOSITING)', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const mockOnClose = jest.fn();
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender, unmount } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+
+      mockOnConfirmActionsReject.mockClear();
+      mockClearActiveOrderTransactionId.mockClear();
+
+      unmount();
+
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
+    });
+
+    it('falls back to StackActions.pop when isSheetMode is false (default)', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(params);
+
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('calls onClose instead of StackActions.pop on DEPOSITING when isSheetMode is true', async () => {
+      const mockOnClose = jest.fn();
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
     });
   });
 });

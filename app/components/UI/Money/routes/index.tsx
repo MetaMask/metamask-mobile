@@ -4,11 +4,15 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../util/theme';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
+import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
+import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
 const Stack = createStackNavigator();
 
 const MoneyScreenStack = () => {
   const { colors } = useTheme();
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
     <Stack.Navigator
@@ -21,6 +25,15 @@ const MoneyScreenStack = () => {
       <Stack.Screen
         name={Routes.MONEY.ACTIVITY}
         component={MoneyActivityView}
+      />
+      <Stack.Screen
+        name={Routes.MONEY.HOW_IT_WORKS}
+        component={MoneyHowItWorksView}
+      />
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        options={emptyNavHeaderOptions}
+        component={Confirm}
       />
     </Stack.Navigator>
   );

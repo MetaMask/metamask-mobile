@@ -28,6 +28,7 @@ import {
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const styles = StyleSheet.create({
   list: {
@@ -65,11 +66,13 @@ const LinkedOffDeviceAccountsSheet: React.FC<
   const navigation = useNavigation();
 
   const handleContactSupport = useCallback(() => {
-    let supportUrl = 'https://support.metamask.io';
+    let supportUrl;
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     supportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
+
+    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',

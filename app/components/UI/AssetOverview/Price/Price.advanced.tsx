@@ -11,9 +11,13 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { addCurrencySymbol } from '../../../../util/number';
+import { toDateFormat } from '../../../../util/date';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
-import { TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT } from './tokenOverviewChart.constants';
+import {
+  CHART_DATA_THRESHOLD,
+  TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT,
+} from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
@@ -41,11 +45,18 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
 import { setTokenOverviewChartType } from '../../../../actions/user';
 import { usePriceChart } from '../PriceChart/PriceChart.context';
+import type {
+  TimePeriod,
+  TokenPrice,
+} from '../../../../components/hooks/useTokenHistoricalPrices';
+import PriceLegacy from './Price.legacy';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
 
@@ -59,20 +70,30 @@ const TIME_RANGE_LABELS: Record<TimeRange, string> = {
 
 export interface PriceAdvancedProps {
   asset: TokenI;
-  priceDiff: number;
   currentPrice: number;
   currentCurrency: string;
+  /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
+  priceDiff: number;
+  /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
   comparePrice: number;
   isLoading: boolean;
+  prices?: TokenPrice[];
+  timePeriod?: TimePeriod;
+  chartNavigationButtons?: TimePeriod[];
+  setTimePeriod?: (period: TimePeriod) => void;
 }
 
 const PriceAdvanced = ({
   asset,
-  priceDiff,
   currentPrice,
   currentCurrency,
+  priceDiff,
   comparePrice,
   isLoading,
+  prices = [],
+  timePeriod = '1d',
+  chartNavigationButtons = [],
+  setTimePeriod,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -83,12 +104,17 @@ const PriceAdvanced = ({
   );
   const { setIsChartBeingTouched } = usePriceChart();
 
-  // Scrub state: when the user pans the line chart, show the scrubbed price
-  const [scrubPrice, setScrubPrice] = useState<number | null>(null);
-  const isScrubbing = scrubPrice !== null;
-
   const handlePointSelected = useCallback((point: GraphPoint) => {
-    setScrubPrice(point.value);
+    // Bridge LineGraph scrub into the existing crosshair-driven header so
+    // displayPrice / displayDiff / displayDate update the same way as candles.
+    setCrosshairData({
+      time: point.date.getTime(),
+      open: point.value,
+      high: point.value,
+      low: point.value,
+      close: point.value,
+      volume: 0,
+    } as CrosshairData);
   }, []);
 
   const handleCrosshairMove = useCallback(
@@ -111,7 +137,11 @@ const PriceAdvanced = ({
 
   const handleChartTradingViewClicked = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_TRADINGVIEW_CLICKED).build(),
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+        .addProperties({
+          interaction_type: 'tradingview_clicked',
+        })
+        .build(),
     );
   }, [createEventBuilder, trackEvent]);
 
@@ -122,8 +152,9 @@ const PriceAdvanced = ({
       setCrosshairData(null);
     }
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_TYPE_CHANGED)
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
         .addProperties({
+          interaction_type: 'chart_type_changed',
           chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
         })
         .build(),
@@ -137,7 +168,6 @@ const PriceAdvanced = ({
 
   const handleTouchEnd = useCallback(() => {
     setIsChartBeingTouched(false);
-    setScrubPrice(null);
   }, [setIsChartBeingTouched]);
 
   const handleTimeRangeSelect = useCallback(
@@ -145,9 +175,12 @@ const PriceAdvanced = ({
       if (range === timeRange) {
         return;
       }
+      // Clear crosshair data when changing timeframes to reset price/percentage display
+      setCrosshairData(null);
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CHART_TIMEFRAME_CHANGED)
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
+            interaction_type: 'timeframe_changed',
             chart_timeframe: range,
           })
           .build(),
@@ -162,9 +195,16 @@ const PriceAdvanced = ({
       asset.address,
       asset.chainId as Hex,
     );
-    return (
-      formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
-    );
+
+    try {
+      return (
+        formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
+      );
+    } catch {
+      // formatAddressToAssetId can throw for chains not supported by XChain Swaps/Bridge
+      // (e.g., Linea Sepolia, custom networks). Fall back to empty string
+      return '';
+    }
   }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
 
@@ -180,6 +220,7 @@ const PriceAdvanced = ({
     error: chartError,
     hasMore,
     nextCursor,
+    hasEmptyData,
   } = useOHLCVChart({
     assetId,
     timePeriod: config.timePeriod,
@@ -196,123 +237,107 @@ const PriceAdvanced = ({
     }),
     [nextCursor, hasMore, assetId, currentCurrency],
   );
+  // Anchor the visible window to the last candle so the timeframe constructor
+  // spans exactly durationMs (e.g. 24 h) and the leftmost rendered bar matches
+  // the reference price used for the header percentage.
+  const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
 
   const visibleFromMs = useMemo(() => {
-    const lastBar = ohlcvData[ohlcvData.length - 1];
-    if (!lastBar) return undefined;
-    return lastBar.time - config.durationMs;
-  }, [ohlcvData, config.durationMs]);
+    if (lastBarTime == null) return undefined;
+    return lastBarTime - config.durationMs;
+  }, [lastBarTime, config.durationMs]);
 
-  // Normalize + trim helper (pure function, no hooks).
-  const NORMALIZED_POINT_COUNT = 100;
+  const visibleToMs = lastBarTime;
 
-  const buildGraphPoints = useCallback(
-    (data: typeof ohlcvData, durationMs: number): GraphPoint[] => {
-      if (data.length === 0) return [];
-
-      // Trim: the API may return more data than the requested range.
-      const lastTs = data[data.length - 1].time;
-      const cutoff = lastTs - durationMs;
-      const trimmed = data.filter((bar) => bar.time >= cutoff);
-      if (trimmed.length === 0) return [];
-
-      // Normalize to a fixed point count for smooth path-morph animations.
-      if (trimmed.length <= NORMALIZED_POINT_COUNT) {
-        const points = trimmed.map((bar) => ({
-          value: bar.close,
-          date: new Date(bar.time),
-        }));
-        if (points.length >= 2 && points.length < NORMALIZED_POINT_COUNT) {
-          const result: GraphPoint[] = [];
-          const step = (points.length - 1) / (NORMALIZED_POINT_COUNT - 1);
-          for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
-            const rawIdx = i * step;
-            const lo = Math.floor(rawIdx);
-            const hi = Math.min(lo + 1, points.length - 1);
-            const t = rawIdx - lo;
-            result.push({
-              value: points[lo].value * (1 - t) + points[hi].value * t,
-              date: new Date(
-                points[lo].date.getTime() * (1 - t) +
-                  points[hi].date.getTime() * t,
-              ),
-            });
-          }
-          return result;
-        }
-        return points;
-      }
-      const result: GraphPoint[] = [];
-      const step = (trimmed.length - 1) / (NORMALIZED_POINT_COUNT - 1);
-      for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
-        const idx = Math.round(i * step);
-        const bar = trimmed[idx];
-        result.push({ value: bar.close, date: new Date(bar.time) });
-      }
-      return result;
-    },
-    [],
-  );
-
-  // Only recompute when ohlcvData is a new array reference, meaning a
-  // fresh fetch completed. This prevents any intermediate re-renders
-  // (stale data + new timeRange) from updating the displayed graph.
-  const [graphPoints, setGraphPoints] = useState<GraphPoint[]>([]);
-  const lastDataRef = useRef<typeof ohlcvData | null>(null);
-
-  if (ohlcvData !== lastDataRef.current && ohlcvData.length > 0) {
-    lastDataRef.current = ohlcvData;
-    const next = buildGraphPoints(ohlcvData, config.durationMs);
-    setGraphPoints(next);
-  }
+  // Map the visible OHLCV window into the LineGraph point format.
+  const graphPoints = useMemo<GraphPoint[]>(() => {
+    if (ohlcvData.length === 0 || visibleFromMs == null) return [];
+    return ohlcvData
+      .filter((bar) => bar.time >= visibleFromMs)
+      .map((bar) => ({ value: bar.close, date: new Date(bar.time) }));
+  }, [ohlcvData, visibleFromMs]);
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
+  // Calculate the current compare price from OHLCV data
+  const currentComparePrice = useMemo(() => {
+    if (ohlcvData.length === 0 || visibleFromMs == null) return null;
+    const firstVisible =
+      ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
+    return firstVisible.close;
+  }, [ohlcvData, visibleFromMs]);
+
+  // Store last good compare price to show during loading
+  const stableComparePriceRef = useRef<number | null>(null);
+  const stableSeriesKeyRef = useRef<string>(ohlcvSeriesKey);
+
+  // Update stable compare price when chart finishes loading AND series matches
+  useEffect(() => {
+    if (stableSeriesKeyRef.current !== ohlcvSeriesKey) {
+      stableSeriesKeyRef.current = ohlcvSeriesKey;
+    } else if (!chartLoading && currentComparePrice !== null) {
+      stableComparePriceRef.current = currentComparePrice;
+    }
+  }, [chartLoading, currentComparePrice, ohlcvSeriesKey]);
+
+  // Use stable while (loading OR series mismatch), otherwise use current
+  const dynamicComparePrice =
+    (chartLoading || stableSeriesKeyRef.current !== ohlcvSeriesKey) &&
+    stableComparePriceRef.current !== null
+      ? stableComparePriceRef.current
+      : currentComparePrice;
+
+  // Use last bar's close price for consistent percentage calculation with chart data
+  const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
+  const displayPrice = crosshairData?.close ?? lastBarClose ?? currentPrice;
+  const displayDiff = useMemo(() => {
+    if (dynamicComparePrice === null) return null;
+    return (
+      (crosshairData?.close ?? lastBarClose ?? currentPrice) -
+      dynamicComparePrice
+    );
+  }, [crosshairData, lastBarClose, currentPrice, dynamicComparePrice]);
+
+  const displayDate = crosshairData
+    ? toDateFormat(crosshairData.time)
+    : dateLabel;
+
   const { styles, theme } = useStyles(styleSheet);
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
 
-  const hasChartData = graphPoints.length > 1;
-  const showEmptyState = !chartLoading && (!hasChartData || !!chartError);
-
-  // When scrubbing, compute price/diff from the scrubbed point vs first point in range
-  const firstPointPrice = graphPoints.length > 0 ? graphPoints[0].value : 0;
-  const displayPrice = isScrubbing ? scrubPrice : currentPrice;
-  const displayDiff = isScrubbing ? scrubPrice - firstPointPrice : priceDiff;
-  const displayCompare = isScrubbing ? firstPointPrice : comparePrice;
-
+  // LineGraph stroke + gradient colors derive from displayDiff so the line
+  // matches the price-up / price-down state of the header.
   const chartColor =
-    displayDiff > 0
+    displayDiff != null && displayDiff > 0
       ? theme.colors.success.default
-      : displayDiff < 0
+      : displayDiff != null && displayDiff < 0
         ? theme.colors.error.default
         : theme.colors.text.alternative;
-
   const gradientColors = useMemo(
     () => [chartColor + '40', chartColor + '20', chartColor + '00'],
     [chartColor],
   );
 
-  // Only show skeleton loaders on the very first load, not on time range switches
-  const hasLoadedOnce = useRef(false);
-  if (!isLoading && currentPrice > 0) {
-    hasLoadedOnce.current = true;
-  }
-  const showPriceSkeleton = isLoading && !hasLoadedOnce.current;
+  const shouldFallbackToLegacy =
+    !chartLoading &&
+    (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
 
-  const hasTrackedEmptyRef = useRef(false);
-
-  useEffect(() => {
-    if (!showEmptyState) {
-      hasTrackedEmptyRef.current = false;
-      return;
-    }
-    if (hasTrackedEmptyRef.current) {
-      return;
-    }
-    hasTrackedEmptyRef.current = true;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_EMPTY_DISPLAYED).build(),
+  if (shouldFallbackToLegacy) {
+    return (
+      <PriceLegacy
+        prices={prices}
+        timePeriod={timePeriod}
+        chartNavigationButtons={chartNavigationButtons}
+        onTimePeriodChange={setTimePeriod}
+        priceDiff={priceDiff}
+        currentPrice={currentPrice}
+        currentCurrency={currentCurrency}
+        comparePrice={comparePrice}
+        isLoading={isLoading}
+      />
     );
-  }, [showEmptyState, createEventBuilder, trackEvent]);
+  }
 
   return (
     <>
@@ -330,7 +355,7 @@ const PriceAdvanced = ({
                 >
                   <SkeletonPlaceholder.Item
                     width={100}
-                    height={32}
+                    height={40}
                     borderRadius={6}
                   />
                 </SkeletonPlaceholder>
@@ -349,12 +374,12 @@ const PriceAdvanced = ({
               >
                 <SkeletonPlaceholder.Item
                   width={150}
-                  height={18}
+                  height={24}
                   borderRadius={6}
                 />
               </SkeletonPlaceholder>
             </View>
-          ) : (
+          ) : displayDiff !== null && dynamicComparePrice !== null ? (
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
@@ -365,14 +390,19 @@ const PriceAdvanced = ({
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
+              style={
+                isLightMode && displayDiff > 0
+                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                  : undefined
+              }
               allowFontScaling={false}
             >
               {displayDiff > 0 ? '+' : ''}
               {addCurrencySymbol(displayDiff, currentCurrency, true)} (
               {displayDiff > 0 ? '+' : ''}
-              {displayDiff === 0 || displayCompare === 0
+              {displayDiff === 0 || dynamicComparePrice === 0
                 ? '0'
-                : ((displayDiff / displayCompare) * 100).toFixed(2)}
+                : ((displayDiff / dynamicComparePrice) * 100).toFixed(2)}
               %){' '}
               <Text
                 testID="price-label"
@@ -381,13 +411,13 @@ const PriceAdvanced = ({
                 fontWeight={FontWeight.Medium}
                 allowFontScaling={false}
               >
-                {dateLabel}
+                {displayDate}
               </Text>
             </Text>
-          )}
+          ) : null}
         </Text>
       </View>
-      <Box twClassName={showEmptyState ? 'mt-3 mb-6' : 'mt-3'}>
+      <Box twClassName="mt-3 w-full">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
@@ -398,37 +428,7 @@ const PriceAdvanced = ({
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
-          {showEmptyState ? (
-            <View style={styles.noDataOverlay}>
-              <Text variant={TextVariant.HeadingSm} twClassName="text-center">
-                {strings('asset_overview.no_chart_data.title')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="text-center"
-              >
-                {strings('asset_overview.no_chart_data.description')}
-              </Text>
-            </View>
-          ) : chartType === ChartType.Candles ? (
-            <AdvancedChart
-              ohlcvData={ohlcvData}
-              ohlcvSeriesKey={ohlcvSeriesKey}
-              height={CHART_HEIGHT}
-              showVolume
-              volumeOverlay
-              chartType={chartType}
-              indicators={EMPTY_INDICATORS}
-              lineChrome={advancedChartLineChromePresets.tokenOverview}
-              isLoading={chartLoading}
-              ohlcvPagination={ohlcvPagination}
-              visibleFromMs={visibleFromMs}
-              onCrosshairMove={handleCrosshairMove}
-              onChartInteracted={handleChartInteracted}
-              onChartTradingViewClicked={handleChartTradingViewClicked}
-            />
-          ) : (
+          {chartType === ChartType.Line ? (
             <LineGraph
               animated
               points={graphPoints}
@@ -441,24 +441,44 @@ const PriceAdvanced = ({
               enableFadeInMask
               onPointSelected={handlePointSelected}
               onGestureStart={handleTouchStart}
-              onGestureEnd={handleTouchEnd}
+              onGestureEnd={() => {
+                handleTouchEnd();
+                setCrosshairData(null);
+              }}
+            />
+          ) : (
+            <AdvancedChart
+              ohlcvData={ohlcvData}
+              ohlcvSeriesKey={ohlcvSeriesKey}
+              height={CHART_HEIGHT}
+              showVolume={chartType === ChartType.Candles}
+              volumeOverlay
+              chartType={chartType}
+              indicators={EMPTY_INDICATORS}
+              lineChrome={advancedChartLineChromePresets.tokenOverview}
+              isLoading={chartLoading}
+              ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
+              visibleToMs={visibleToMs}
+              onCrosshairMove={handleCrosshairMove}
+              onChartInteracted={handleChartInteracted}
+              onChartTradingViewClicked={handleChartTradingViewClicked}
             />
           )}
         </View>
       </Box>
 
-      {!showEmptyState && (
-        <View style={styles.timeRangeContainer}>
-          <View style={styles.timeRangeSelectorWrap}>
-            <TimeRangeSelector
-              selected={timeRange}
-              onSelect={handleTimeRangeSelect}
-              chartType={chartType}
-              onChartTypeToggle={toggleChartType}
-            />
-          </View>
+      <View style={styles.timeRangeContainer}>
+        <View style={styles.timeRangeSelectorWrap}>
+          <TimeRangeSelector
+            isChartLoading={chartLoading}
+            selected={timeRange}
+            onSelect={handleTimeRangeSelect}
+            chartType={chartType}
+            onChartTypeToggle={toggleChartType}
+          />
         </View>
-      )}
+      </View>
     </>
   );
 };

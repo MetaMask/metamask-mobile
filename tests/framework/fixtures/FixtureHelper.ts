@@ -680,14 +680,17 @@ export async function withFixtures(
       mockServerInstance &&
       shouldRunAnalyticsExpectations(analyticsExpectations)
     ) {
+      logger.debug('Running analytics expectations');
       try {
         await runAnalyticsExpectations(
           mockServerInstance.server,
           analyticsExpectations,
         );
+        logger.debug('Analytics expectations completed');
       } catch (analyticsError) {
         logger.error('Error in analyticsExpectations:', analyticsError);
         cleanupErrors.push(analyticsError as Error);
+        logger.error('Analytics expectations failed');
       }
     }
 
