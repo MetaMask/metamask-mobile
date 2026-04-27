@@ -2,6 +2,9 @@ import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
   FontWeight,
   Icon,
   IconName,
@@ -11,12 +14,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Tag from '../../../../../component-library/components/Tags/Tag';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
@@ -26,6 +24,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -44,18 +43,24 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { fiatBalanceAggregatedFormatted } = useMusdBalance();
   const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
+  const { initiateDeposit } = useMoneyAccountDeposit();
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
   }, []);
 
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   // TODO(MUSD-478/MUSD-516): point to the MM Pay "Add money" amount-entry
-  // screen (Figma 2547:8887). Interim: existing mUSD quick-convert token list.
+  // screen (Figma 2547:8887). Amount is collected by the MM Pay UI; the
+  // placeholder 0n keeps the deposit pipeline wired until that lands.
   const handleConvertCrypto = useCallback(() => {
     closeAndNavigate(() => {
-      navigation.navigate(Routes.EARN.MUSD.QUICK_CONVERT as never);
+      initiateDeposit(BigInt(0)).catch(() => undefined);
     });
-  }, [closeAndNavigate, navigation]);
+  }, [closeAndNavigate, initiateDeposit]);
 
   // TODO(MUSD-479): point to the Ramps "Add funds" amount-entry screen
   // (Figma 2547:8780). Interim: unified smart-routed Buy flow with mUSD
@@ -103,7 +108,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={handleGoBack}
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >

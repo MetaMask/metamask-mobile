@@ -3,10 +3,10 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -14,8 +14,10 @@ import {
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockGetChainIdForBuyFlow = jest.fn();
 const mockGoToBuy = jest.fn();
+const mockInitiateDeposit = jest.fn(() => Promise.resolve());
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -23,7 +25,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     }),
   };
 });
@@ -40,25 +42,37 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    const MockBottomSheet = forwardRef(
-      (
-        { children, testID }: { children: React.ReactNode; testID?: string },
-        ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
-      ) => {
-        useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
-        }));
-        return <View testID={testID}>{children}</View>;
-      },
-    );
-    return { __esModule: true, default: MockBottomSheet };
-  },
-);
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: jest.fn(),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = forwardRef(
+    (
+      { children, testID }: { children: React.ReactNode; testID?: string },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: mockOnCloseBottomSheet,
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return <View testID={testID}>{children}</View>;
+    },
+  );
+  const MockBottomSheetHeader = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => <View>{children}</View>;
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+    BottomSheetHeader: MockBottomSheetHeader,
+  };
+});
 
 describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
@@ -74,6 +88,9 @@ describe('MoneyAddMoneySheet', () => {
     });
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregatedFormatted: '$1,203.89',
+    });
+    (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
+      initiateDeposit: mockInitiateDeposit,
     });
   });
 
@@ -123,7 +140,7 @@ describe('MoneyAddMoneySheet', () => {
     });
   });
 
-  it('navigates to the Quick Convert screen when Convert crypto is pressed', () => {
+  it('initiates a deposit when Convert crypto is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(
@@ -131,7 +148,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.MUSD.QUICK_CONVERT);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(BigInt(0));
   });
 
   it('closes the sheet when Move mUSD is pressed (interim, no flow wired yet)', () => {
@@ -142,5 +159,6 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoToBuy).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 });
