@@ -27,7 +27,8 @@ import { PREDICT_SPORT_LINE_SELECTOR_TEST_IDS } from './PredictSportLineSelector
 interface PredictSportLineSelectorProps {
   lines: number[];
   selectedLine: number;
-  onSelectLine: (line: number) => void;
+  selectedIndex?: number;
+  onSelectLine: (line: number, index: number) => void;
   testID?: string;
 }
 
@@ -38,6 +39,7 @@ const ANIMATION_DURATION = 250;
 const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   lines,
   selectedLine,
+  selectedIndex: selectedIndexProp,
   onSelectLine,
   testID,
 }) => {
@@ -45,7 +47,8 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   const translateX = useSharedValue(0);
   const containerWidth = useSharedValue(0);
 
-  const selectedIndex = Math.max(0, lines.indexOf(selectedLine));
+  const selectedIndex =
+    selectedIndexProp ?? Math.max(0, lines.indexOf(selectedLine));
   const isFirstSelected = selectedIndex <= 0;
   const isLastSelected = selectedIndex >= lines.length - 1;
 
@@ -82,22 +85,24 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   }));
 
   const selectWithHaptics = useCallback(
-    (line: number) => {
+    (line: number, index: number) => {
       impactAsync(ImpactFeedbackStyle.Light);
-      onSelectLine(line);
+      onSelectLine(line, index);
     },
     [onSelectLine],
   );
 
   const handlePrevious = () => {
     if (!isFirstSelected) {
-      selectWithHaptics(lines[selectedIndex - 1]);
+      const prevIdx = selectedIndex - 1;
+      selectWithHaptics(lines[prevIdx], prevIdx);
     }
   };
 
   const handleNext = () => {
     if (!isLastSelected) {
-      selectWithHaptics(lines[selectedIndex + 1]);
+      const nextIdx = selectedIndex + 1;
+      selectWithHaptics(lines[nextIdx], nextIdx);
     }
   };
 
@@ -150,13 +155,13 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
       >
         <Box onLayout={handleLayout}>
           <Animated.View style={animatedStyle}>
-            {lines.map((line) => {
-              const isSelected = line === selectedLine;
+            {lines.map((line, index) => {
+              const isSelected = index === selectedIndex;
               return (
                 <Pressable
-                  key={line}
-                  onPress={() => selectWithHaptics(line)}
-                  testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.LINE_PREFIX}${line}`}
+                  key={`${index}-${line}`}
+                  onPress={() => selectWithHaptics(line, index)}
+                  testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.LINE_PREFIX}${index}-${line}`}
                   style={({ pressed }) =>
                     tw.style(
                       'items-center justify-center py-2',

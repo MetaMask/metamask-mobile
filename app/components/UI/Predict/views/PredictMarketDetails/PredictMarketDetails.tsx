@@ -126,6 +126,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refetch: refetchActivePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
+    childMarketIds: market?.childMarketIds,
     claimable: false,
     enabled: !isMarketLoading && Boolean(resolvedMarketId),
   });
@@ -137,6 +138,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refetch: refetchClaimablePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
+    childMarketIds: market?.childMarketIds,
     claimable: true,
     enabled: !isMarketLoading && Boolean(resolvedMarketId),
   });

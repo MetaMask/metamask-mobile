@@ -44,7 +44,8 @@ const IDS = PREDICT_SPORT_LINE_SELECTOR_TEST_IDS;
 
 const arrowLeftId = `${TEST_ID}-${IDS.ARROW_LEFT}`;
 const arrowRightId = `${TEST_ID}-${IDS.ARROW_RIGHT}`;
-const lineId = (value: number) => `${TEST_ID}-${IDS.LINE_PREFIX}${value}`;
+const lineId = (index: number, value: number) =>
+  `${TEST_ID}-${IDS.LINE_PREFIX}${index}-${value}`;
 
 describe('PredictSportLineSelector', () => {
   const defaultProps = {
@@ -86,7 +87,7 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByText('4.5'));
 
-    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(4.5);
+    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(4.5, 1);
   });
 
   it('calls onSelectLine with previous line when left arrow is tapped', () => {
@@ -96,7 +97,7 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByTestId(arrowLeftId));
 
-    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(4.5);
+    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(4.5, 1);
   });
 
   it('calls onSelectLine with next line when right arrow is tapped', () => {
@@ -106,7 +107,7 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByTestId(arrowRightId));
 
-    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(5.5);
+    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(5.5, 3);
   });
 
   it('disables left arrow when first line is selected', () => {
@@ -142,8 +143,8 @@ describe('PredictSportLineSelector', () => {
     expect(getByTestId(arrowLeftId)).toBeOnTheScreen();
     expect(getByTestId(arrowRightId)).toBeOnTheScreen();
 
-    defaultProps.lines.forEach((line) => {
-      expect(getByTestId(lineId(line))).toBeOnTheScreen();
+    defaultProps.lines.forEach((line, index) => {
+      expect(getByTestId(lineId(index, line))).toBeOnTheScreen();
     });
   });
 

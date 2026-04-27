@@ -82,6 +82,8 @@ import {
   sortMarketsByField,
   sortMarkets,
   parsePolymarketMarket,
+  fetchChildEventsFromGammaApi,
+  mergeChildEventsIntoParent,
 } from './utils';
 
 // Mock external dependencies
@@ -2593,6 +2595,25 @@ describe('polymarket utils', () => {
 
         const result = parsePolymarketMarket(market, event, game);
 
+        expect(result.tokens[0].shortTitle).toBe('DEN');
+        expect(result.tokens[1].shortTitle).toBe('SEA');
+      });
+
+      it('resolves negRisk moneyline shortTitles with mixed-case market type', () => {
+        const game = createGameData();
+        const market = createMarket({
+          negRisk: true,
+          sportsMarketType: 'Moneyline',
+          groupItemTitle: 'Denver Broncos',
+          outcomes: '["Yes", "No"]',
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomePrices: '["0.6", "0.4"]',
+        });
+        const event = createTestEvent();
+
+        const result = parsePolymarketMarket(market, event, game);
+
+        expect(result.tokens[0].title).toBe('Denver Broncos');
         expect(result.tokens[0].shortTitle).toBe('DEN');
         expect(result.tokens[1].shortTitle).toBe('SEA');
       });
@@ -5285,6 +5306,215 @@ describe('polymarket utils', () => {
       const result = parsePolymarketEvents([event], mockCategory);
 
       expect(result[0].series).toEqual(firstSeries);
+    });
+  });
+
+  describe('fetchChildEventsFromGammaApi', () => {
+    const buildMockApiEvent = (
+      overrides: Partial<PolymarketApiEvent> = {},
+    ): PolymarketApiEvent => ({
+      id: 'event-1',
+      slug: 'test-event',
+      title: 'Test Event',
+      description: 'A test event',
+      icon: 'https://example.com/icon.png',
+      closed: false,
+      series: [],
+      markets: [],
+      tags: [],
+      liquidity: 500000,
+      volume: 1000000,
+      ...overrides,
+    });
+
+    it('returns array of events on success', async () => {
+      const events = [
+        buildMockApiEvent({ id: 'parent-1', title: 'Parent' }),
+        buildMockApiEvent({ id: 'child-1', title: 'Child' }),
+      ];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(events),
+      });
+
+      const result = await fetchChildEventsFromGammaApi({
+        parentEventId: 'parent-1',
+      });
+
+      expect(result).toEqual(events);
+      expect(result).toHaveLength(2);
+    });
+
+    it('throws on non-ok response', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        json: jest.fn(),
+      });
+
+      await expect(
+        fetchChildEventsFromGammaApi({ parentEventId: 'parent-1' }),
+      ).rejects.toThrow('Failed to fetch child events');
+    });
+
+    it('calls correct URL with parent_event_id and include_children params', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+      await fetchChildEventsFromGammaApi({ parentEventId: 'abc-123' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events?parent_event_id=abc-123&include_children=true',
+      );
+    });
+  });
+
+  describe('mergeChildEventsIntoParent', () => {
+    const buildMarket = (
+      overrides: Partial<PolymarketApiMarket> = {},
+    ): PolymarketApiMarket => ({
+      conditionId: 'cond-default',
+      question: 'Default question?',
+      description: 'Default description',
+      icon: 'https://example.com/icon.png',
+      image: 'https://example.com/image.png',
+      groupItemTitle: 'Default',
+      status: 'open',
+      volumeNum: 100,
+      liquidity: 50,
+      negRisk: false,
+      clobTokenIds: '["tok-a","tok-b"]',
+      outcomes: '["Yes","No"]',
+      outcomePrices: '["0.5","0.5"]',
+      closed: false,
+      active: true,
+      resolvedBy: '0x0000000000000000000000000000000000000000',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: 'unresolved',
+      ...overrides,
+    });
+
+    const buildEvent = (
+      overrides: Partial<PolymarketApiEvent> = {},
+    ): PolymarketApiEvent => ({
+      id: 'evt-default',
+      slug: 'default-event',
+      title: 'Default Event',
+      description: 'Default description',
+      icon: 'https://example.com/icon.png',
+      closed: false,
+      series: [],
+      markets: [],
+      tags: [],
+      liquidity: 500000,
+      volume: 1000000,
+      ...overrides,
+    });
+
+    it('merges parent and children markets into single event', () => {
+      const parentMarket = buildMarket({ conditionId: 'parent-mkt' });
+      const childMarket1 = buildMarket({ conditionId: 'child-mkt-1' });
+      const childMarket2 = buildMarket({ conditionId: 'child-mkt-2' });
+      const parent = buildEvent({
+        id: 'parent-1',
+        markets: [parentMarket],
+      });
+      const child1 = buildEvent({
+        id: 'child-1',
+        markets: [childMarket1],
+      });
+      const child2 = buildEvent({
+        id: 'child-2',
+        markets: [childMarket2],
+      });
+
+      const result = mergeChildEventsIntoParent([parent, child1, child2]);
+
+      expect(result.markets).toHaveLength(3);
+      expect(result.markets[0].conditionId).toBe('parent-mkt');
+      expect(result.markets[1].conditionId).toBe('child-mkt-1');
+      expect(result.markets[2].conditionId).toBe('child-mkt-2');
+    });
+
+    it('returns parent as-is when no children', () => {
+      const parentMarket = buildMarket({ conditionId: 'solo-mkt' });
+      const parent = buildEvent({
+        id: 'solo-parent',
+        title: 'Solo Parent',
+        markets: [parentMarket],
+      });
+
+      const result = mergeChildEventsIntoParent([parent]);
+
+      expect(result).toBe(parent);
+      expect(result.markets).toHaveLength(1);
+      expect(result.markets[0].conditionId).toBe('solo-mkt');
+    });
+
+    it('throws on empty array', () => {
+      expect(() => mergeChildEventsIntoParent([])).toThrow(
+        'No events to merge',
+      );
+    });
+
+    it('preserves parent metadata (id, slug, title)', () => {
+      const parent = buildEvent({
+        id: 'parent-id',
+        slug: 'parent-slug',
+        title: 'Parent Title',
+        markets: [buildMarket()],
+      });
+      const child = buildEvent({
+        id: 'child-id',
+        slug: 'child-slug',
+        title: 'Child Title',
+        markets: [buildMarket({ conditionId: 'child-cond' })],
+      });
+
+      const result = mergeChildEventsIntoParent([parent, child]);
+
+      expect(result.id).toBe('parent-id');
+      expect(result.slug).toBe('parent-slug');
+      expect(result.title).toBe('Parent Title');
+    });
+
+    it('handles children with empty markets arrays', () => {
+      const parentMarket = buildMarket({ conditionId: 'parent-mkt' });
+      const parent = buildEvent({
+        id: 'parent-1',
+        markets: [parentMarket],
+      });
+      const childNoMarkets = buildEvent({
+        id: 'child-empty',
+        markets: [],
+      });
+
+      const result = mergeChildEventsIntoParent([parent, childNoMarkets]);
+
+      expect(result.markets).toHaveLength(1);
+      expect(result.markets[0].conditionId).toBe('parent-mkt');
+    });
+
+    it('does not duplicate parent markets', () => {
+      const parentMarket = buildMarket({ conditionId: 'parent-mkt' });
+      const childMarket = buildMarket({ conditionId: 'child-mkt' });
+      const parent = buildEvent({
+        id: 'parent-1',
+        markets: [parentMarket],
+      });
+      const child = buildEvent({
+        id: 'child-1',
+        markets: [childMarket],
+      });
+
+      const result = mergeChildEventsIntoParent([parent, child]);
+
+      const parentMarketCount = result.markets.filter(
+        (m) => m.conditionId === 'parent-mkt',
+      ).length;
+      expect(parentMarketCount).toBe(1);
+      expect(result.markets).toHaveLength(2);
     });
   });
 });
