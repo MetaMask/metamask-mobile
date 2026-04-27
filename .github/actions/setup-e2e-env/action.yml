@@ -315,19 +315,19 @@ runs:
           ${{ runner.os }}-cocoapods-specs-
       continue-on-error: true
 
-    - name: Clear CocoaPods trunk to prevent stale specs
-      if: ${{ inputs.platform == 'ios' }}
-      run: pod repo remove trunk || true
-      shell: bash
-
     - name: Install CocoaPods via bundler
       if: ${{ inputs.platform == 'ios'}}
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
         timeout_minutes: 15
-        max_attempts: 2
-        retry_wait_seconds: 30
+        max_attempts: 3
+        retry_wait_seconds: 60
+        on_retry_command: |
+          echo "::warning::CocoaPods install failed, retrying after trunk cleanup..."
+          pod repo remove trunk || true
         command: cd ios && bundle exec pod install --repo-update
+      env:
+        COCOAPODS_DISABLE_STATS: 'true'
 
     - name: Install applesimutils
       if: ${{ inputs.platform == 'ios' }}
