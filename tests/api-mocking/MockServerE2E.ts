@@ -186,6 +186,17 @@ const isUrlAllowed = (url: string): boolean => {
 const isUrlSuppressedFromLogs = (url: string): boolean =>
   SUPPRESSED_LOGS_URLS.some((pattern: RegExp) => pattern.test(url));
 
+const HOP_BY_HOP_HEADERS = new Set([
+  'host',
+  'connection',
+  'keep-alive',
+  'proxy-connection',
+  'transfer-encoding',
+  'te',
+  'trailer',
+  'upgrade',
+]);
+
 const handleDirectFetch = async (
   url: string,
   method: string,
@@ -195,7 +206,7 @@ const handleDirectFetch = async (
   try {
     const fetchHeaders: HeadersInit = {};
     for (const [key, value] of Object.entries(headers)) {
-      if (value) {
+      if (value && !HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
         fetchHeaders[key] = Array.isArray(value) ? value[0] : value;
       }
     }
