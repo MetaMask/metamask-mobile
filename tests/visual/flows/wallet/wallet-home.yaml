@@ -1,0 +1,23 @@
+# Visual regression test for the wallet home screen in its default state.
+# Fixture provides a pre-configured wallet with default account and networks.
+appId: io.metamask.MetaMask
+tags:
+  - visual
+  - fixture:default
+  - mock:default
+---
+
+# Clear app state and relaunch so ReadOnlyNetworkStore refetches from fixture server.
+- clearState
+- launchApp
+
+# Dismiss developer screens (debug builds only)
+- runFlow: ../shared/dismiss-dev-screens.yaml
+
+# Unlock the app with fixture default password
+- runFlow: ../shared/unlock-app.yaml
+
+# Capture wallet home — tokens tab (default view)
+- assertScreenshot:
+    path: tests/visual/baselines/ios/wallet/home-default.png
+    thresholdPercentage: 95

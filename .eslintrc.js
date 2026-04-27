@@ -153,6 +153,8 @@ module.exports = {
       files: [
         'scripts/**/*.{js,ts}',
         'tests/tools/**/*.{js,ts}',
+        'tests/maestro/**/*.{js,ts}',
+        'tests/visual/{cli,rewrite-flow}.ts',
         'app.config.js',
       ],
       rules: {
