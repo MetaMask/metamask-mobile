@@ -77,7 +77,7 @@ function makeRawProperties(props: {
 }): Record<string, { type: string; value: unknown }> {
   const result: Record<string, { type: string; value: unknown }> = {};
   if (props.bannerName !== undefined)
-    result.banner_name = { type: 'string', value: props.bannerName };
+    result.campaign_name = { type: 'string', value: props.bannerName };
   if (props.dismissable !== undefined)
     result.dismissable = { type: 'boolean', value: props.dismissable };
   if (props.deeplink !== undefined)
@@ -330,7 +330,7 @@ describe('useBrazeBanner', () => {
       });
 
       expect(mockDismissBrazeBanner).toHaveBeenCalledWith({
-        banner_name: 'campaign-xyz',
+        campaign_name: 'campaign-xyz',
       });
     });
 

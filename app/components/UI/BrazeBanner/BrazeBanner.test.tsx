@@ -51,15 +51,15 @@ jest.mock('../../../core/Braze', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock: deeplink handler
+// Mock: SharedDeeplinkManager
 // ---------------------------------------------------------------------------
-const mockHandleDeeplink = jest.fn();
-jest.mock(
-  '../../../core/DeeplinkManager/handlers/legacy/handleDeeplink',
-  () => ({
-    handleDeeplink: (...args: unknown[]) => mockHandleDeeplink(...args),
-  }),
-);
+const mockParse = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({ parse: mockParse }),
+  },
+}));
 
 // ---------------------------------------------------------------------------
 // Mock: isAllowedBrazeDeeplink — default to true; individual tests can override
@@ -149,7 +149,7 @@ function makeRawProperties(props: {
     body: { type: 'string', value: props.body ?? 'Default body text' },
   };
   if (props.bannerName !== undefined)
-    result.banner_name = { type: 'string', value: props.bannerName };
+    result.campaign_name = { type: 'string', value: props.bannerName };
   if (props.dismissable !== undefined)
     result.dismissable = { type: 'boolean', value: props.dismissable };
   if (props.deeplink !== undefined)
@@ -192,9 +192,9 @@ type BannerState = 'loading' | 'visible' | 'empty';
 
 /**
  * Asserts the complete set of structural test IDs for a given banner state:
- * - `loading`  → CONTAINER + SKELETON present; PRESSABLE + DISMISS_BUTTON absent
- * - `visible`  → CONTAINER + PRESSABLE + DISMISS_BUTTON present; SKELETON absent
- * - `empty`    → all four absent (component returns null)
+ * - `loading`  → CONTAINER present; PRESSABLE + DISMISS_BUTTON absent
+ * - `visible`  → CONTAINER + PRESSABLE + DISMISS_BUTTON present
+ * - `empty`    → all absent (component returns null)
  */
 function assertBannerState(
   queryByTestId: (id: string) => unknown,
@@ -205,17 +205,14 @@ function assertBannerState(
 
   if (state === 'loading') {
     present(BRAZE_BANNER_TEST_IDS.CONTAINER);
-    present(BRAZE_BANNER_TEST_IDS.SKELETON);
     absent(BRAZE_BANNER_TEST_IDS.PRESSABLE);
     absent(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON);
   } else if (state === 'visible') {
     present(BRAZE_BANNER_TEST_IDS.CONTAINER);
-    absent(BRAZE_BANNER_TEST_IDS.SKELETON);
     present(BRAZE_BANNER_TEST_IDS.PRESSABLE);
     present(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON);
   } else {
     absent(BRAZE_BANNER_TEST_IDS.CONTAINER);
-    absent(BRAZE_BANNER_TEST_IDS.SKELETON);
     absent(BRAZE_BANNER_TEST_IDS.PRESSABLE);
     absent(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON);
   }
@@ -380,7 +377,7 @@ describe('BrazeBanner', () => {
 
     expect(mockLogBrazeBannerImpression).toHaveBeenCalledWith(
       TEST_PLACEMENT_ID,
-      { banner_name: 'campaign-abc' },
+      { campaign_name: 'campaign-abc' },
     );
     expect(mockLogBrazeBannerImpression).toHaveBeenCalledTimes(1);
   });
@@ -403,7 +400,7 @@ describe('BrazeBanner', () => {
   });
 
   describe('banner tap', () => {
-    it('calls logBrazeBannerClick and handleDeeplink when banner has a deeplink', () => {
+    it('calls logBrazeBannerClick and SharedDeeplinkManager.parse when banner has a deeplink', () => {
       const { getByTestId } = render(
         <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
       );
@@ -412,9 +409,8 @@ describe('BrazeBanner', () => {
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
       expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
-      expect(mockHandleDeeplink).toHaveBeenCalledWith({
-        uri: 'metamask://portfolio',
-        source: 'braze',
+      expect(mockParse).toHaveBeenCalledWith('metamask://portfolio', {
+        origin: 'braze',
       });
     });
 
@@ -426,11 +422,11 @@ describe('BrazeBanner', () => {
       fireBannerEvent([makeBanner()]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(mockHandleDeeplink).not.toHaveBeenCalled();
+      expect(mockParse).not.toHaveBeenCalled();
       expect(mockLogBrazeBannerClick).not.toHaveBeenCalled();
     });
 
-    it('does not call handleDeeplink or logBrazeBannerClick when deeplink is rejected by the allowlist', () => {
+    it('does not call SharedDeeplinkManager.parse or logBrazeBannerClick when deeplink is rejected by the allowlist', () => {
       mockIsAllowedBrazeDeeplink.mockReturnValueOnce(false);
 
       const { getByTestId } = render(
@@ -442,7 +438,7 @@ describe('BrazeBanner', () => {
       ]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(mockHandleDeeplink).not.toHaveBeenCalled();
+      expect(mockParse).not.toHaveBeenCalled();
       expect(mockLogBrazeBannerClick).not.toHaveBeenCalled();
     });
 

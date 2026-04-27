@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect } from 'react';
 import { Pressable } from 'react-native';
-import { Box, Skeleton } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { handleDeeplink } from '../../../core/DeeplinkManager/handlers/legacy/handleDeeplink';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import {
@@ -61,10 +61,13 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
       return;
     }
     logBrazeBannerClick(placementId);
-    handleDeeplink({
-      uri: deeplink,
-      source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
-    });
+    SharedDeeplinkManager.getInstance()
+      .parse(deeplink, {
+        origin: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+      })
+      .catch((error) => {
+        Logger.error(error, 'BrazeBanner: failed to handle deeplink');
+      });
   }, [deeplink, placementId]);
 
   if (status === 'empty' || status === 'dismissed') return null;
