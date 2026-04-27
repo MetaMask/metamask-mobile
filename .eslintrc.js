@@ -248,6 +248,21 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ['**/*.test.{js,ts,tsx,jsx}', '**/*.spec.{js,ts,tsx,jsx}'],
+      plugins: ['jest'],
+      rules: {
+        // Prevent new file-based snapshots. Inline snapshots (toMatchInlineSnapshot)
+        // are still allowed as they keep assertions co-located with the test.
+        'jest/no-restricted-matchers': [
+          'error',
+          {
+            toMatchSnapshot:
+              'Use toMatchInlineSnapshot() or an explicit assertion instead. File-based snapshots are being phased out.',
+          },
+        ],
+      },
+    },
     // ── Perps controller Core-alignment override ──
     // Enforces the same ESLint rules that Core's @metamask/eslint-config
     // applies to packages/perps-controller so that code written in mobile
