@@ -29,6 +29,7 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
       name={asset.symbol}
       src={{ uri: asset.image }}
       size={AvatarTokenSize.Lg}
+      testID="token-avatar-image"
     />
   );
 };
