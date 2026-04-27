@@ -43,12 +43,6 @@ import generateDeviceAnalyticsMetaData, {
 } from '../../../util/metrics';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import {
-  updateCachedConsent,
-  flushBufferedTraces,
-  discardBufferedTraces,
-} from '../../../util/trace';
-import { setupSentry } from '../../../util/sentry/utils';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
 import Device from '../../../util/device';
 import { HOWTO_MANAGE_METAMETRICS } from '../../../constants/urls';
@@ -157,15 +151,11 @@ const OptinMetrics = () => {
    * Callback on press confirm
    */
   const onConfirm = useCallback(async () => {
+    // `metrics.enable()` updates AnalyticsController state, which is mirrored
+    // to Sentry config, the SENTRY_CONSENT storage key, and the trace buffer
+    // by the subscription registered in EngineService (`consentSync`). No
+    // per-call-site wiring needed here.
     await metrics.enable(isBasicUsageChecked);
-    await setupSentry(); // enabled/disabled depend on the isBasicUsageChecked
-
-    if (isBasicUsageChecked) {
-      await flushBufferedTraces();
-    } else {
-      discardBufferedTraces();
-    }
-    updateCachedConsent(isBasicUsageChecked);
 
     dispatch(setDataCollectionForMarketing(isMarketingChecked));
 

@@ -14,8 +14,8 @@ import {
   bufferTraceEndCallLocal,
   discardBufferedTraces,
   updateCachedConsent,
+  hasMetricsConsent,
 } from './trace';
-import { AGREED, DENIED } from '../constants/storage';
 
 jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
@@ -28,13 +28,10 @@ jest.mock('@sentry/core', () => ({
 }));
 
 jest.mock('../store/storage-wrapper', () => ({
-  getItem: jest.fn(),
-}));
-
-jest.mock('../store', () => ({
-  store: {
-    dispatch: jest.fn(),
-    getState: jest.fn(),
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
   },
 }));
 
@@ -402,9 +399,6 @@ describe('Trace', () => {
   });
 
   describe('flushBufferedTraces', () => {
-    const StorageWrapper = jest.requireMock('../store/storage-wrapper');
-    const storageGetItemMock = jest.mocked(StorageWrapper.getItem);
-
     beforeEach(() => {
       jest.clearAllMocks();
       discardBufferedTraces();
@@ -424,14 +418,11 @@ describe('Trace', () => {
     });
 
     it('should clear buffer and not process traces when consent is not given', async () => {
-      storageGetItemMock.mockResolvedValue(DENIED);
-
       bufferTraceStartCallLocal({ name: TraceName.Middleware });
       bufferTraceEndCallLocal({ name: TraceName.Middleware });
 
       await flushBufferedTraces();
 
-      storageGetItemMock.mockResolvedValue(AGREED);
       jest.clearAllMocks();
 
       await flushBufferedTraces();
@@ -442,9 +433,6 @@ describe('Trace', () => {
     });
 
     it('should flush buffered traces when consent is given', async () => {
-      storageGetItemMock.mockResolvedValue(DENIED);
-
-      // Mock selectBufferedTraces to return the buffered traces we expect
       const mockBufferedTraces = [
         {
           type: 'start',
@@ -470,7 +458,6 @@ describe('Trace', () => {
           : bufferTraceEndCallLocal(t.request);
       });
 
-      storageGetItemMock.mockResolvedValue(AGREED);
       updateCachedConsent(true);
 
       await flushBufferedTraces();
@@ -512,6 +499,53 @@ describe('Trace', () => {
       // Both traces should be processed (2 start calls)
       expect(startSpanManualMock).toHaveBeenCalledTimes(2);
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('hasMetricsConsent', () => {
+    const storageMock = jest.requireMock('../store/storage-wrapper')
+      .default as { getItem: jest.Mock; setItem: jest.Mock };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns true when the SENTRY_CONSENT storage key equals AGREED', async () => {
+      storageMock.getItem.mockResolvedValue('agreed');
+
+      await expect(hasMetricsConsent()).resolves.toBe(true);
+    });
+
+    it('returns false when the SENTRY_CONSENT storage key equals DENIED', async () => {
+      storageMock.getItem.mockResolvedValue('denied');
+
+      await expect(hasMetricsConsent()).resolves.toBe(false);
+    });
+
+    it('returns false when the SENTRY_CONSENT storage key is missing', async () => {
+      storageMock.getItem.mockResolvedValue(null);
+
+      await expect(hasMetricsConsent()).resolves.toBe(false);
+    });
+
+    it('returns false and does not throw when storage access rejects', async () => {
+      storageMock.getItem.mockRejectedValue(new Error('storage unavailable'));
+
+      await expect(hasMetricsConsent()).resolves.toBe(false);
+    });
+
+    it('updates the cached consent state used by trace buffering', async () => {
+      storageMock.getItem.mockResolvedValue('agreed');
+
+      updateCachedConsent(false);
+      await hasMetricsConsent();
+
+      // After consent is granted, a traced callback should execute without
+      // being buffered (verified indirectly by Sentry being invoked).
+      trace({ name: NAME_MOCK }, () => true);
+      endTrace({ name: NAME_MOCK });
+
+      expect(withIsolationScopeMock).toHaveBeenCalled();
     });
   });
 });

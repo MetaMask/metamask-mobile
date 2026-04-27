@@ -70,8 +70,6 @@ import {
   TraceContext,
   endTrace,
   trace,
-  hasMetricsConsent,
-  discardBufferedTraces,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -88,7 +86,6 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
 import {
@@ -352,9 +349,9 @@ const Onboarding = () => {
     // This ensures users starting a new wallet flow are prompted to make a fresh choice.
     await resetMetricsOptInUISeen();
 
+    // Reset opt-in for the new flow. The EngineService consent subscription
+    // mirrors this to Sentry + SENTRY_CONSENT + the trace cache.
     await metrics.enable(false);
-    // need to call hasMetricConset to update the cached consent state
-    await hasMetricsConsent();
 
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
@@ -398,8 +395,9 @@ const Onboarding = () => {
     // This ensures users starting a new wallet flow are prompted to make a fresh choice.
     await resetMetricsOptInUISeen();
 
+    // Reset opt-in for the new flow. The EngineService consent subscription
+    // mirrors this to Sentry + SENTRY_CONSENT + the trace cache.
     await metrics.enable(false);
-    await hasMetricsConsent();
 
     const action = async () => {
       trace({
@@ -747,10 +745,9 @@ const Onboarding = () => {
       // Continue with the social login flow
       navigation.navigate('Onboarding');
 
-      // Enable metrics for OAuth users
+      // Enable metrics for OAuth users. The EngineService consent subscription
+      // flushes buffered traces, re-inits Sentry, and persists SENTRY_CONSENT.
       await metrics.enable(true);
-      discardBufferedTraces();
-      await setupSentry();
 
       const accountType = getSocialAccountType(provider, !createWallet);
       metrics.trackEvent(

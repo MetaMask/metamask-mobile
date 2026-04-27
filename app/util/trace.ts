@@ -11,7 +11,7 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
-import { AGREED, METRICS_OPT_IN } from '../constants/storage';
+import { AGREED, SENTRY_CONSENT } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
@@ -543,11 +543,26 @@ export async function flushBufferedTraces() {
 let cachedConsent: boolean | null = null;
 
 /**
- * Check if user has given consent for metrics
+ * Check if user has given consent for metrics.
+ *
+ * Reads from the dedicated {@link SENTRY_CONSENT} AsyncStorage key, which is
+ * kept in sync with `AnalyticsController.state.optedIn` (the SSOT after
+ * migration 110) by the subscription registered in `EngineService`.
+ *
+ * This is deliberately a storage read rather than a Redux read: `setupSentry`
+ * runs at `index.js` load time, long before the Redux store is rehydrated, so
+ * an in-memory controller lookup would return `undefined` and Sentry would
+ * start disabled for returning opted-in users — losing any early-boot crash
+ * reports for the rest of the session.
  */
 export async function hasMetricsConsent(): Promise<boolean> {
-  const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
-  const hasConsent = metricsOptIn === AGREED;
+  let hasConsent = false;
+  try {
+    const value = await StorageWrapper.getItem(SENTRY_CONSENT);
+    hasConsent = value === AGREED;
+  } catch {
+    hasConsent = false;
+  }
   cachedConsent = hasConsent;
   return hasConsent;
 }

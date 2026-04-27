@@ -44,6 +44,18 @@ export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 export const ANALYTICS_ID = `${prefix}AnalyticsId`;
 
+/**
+ * Mirrors `AnalyticsController.state.optedIn` to AsyncStorage so that
+ * {@link setupSentry} in `index.js` can decide whether to enable Sentry
+ * during the very early boot window — before the Redux store has been
+ * rehydrated and controller state is available.
+ *
+ * Kept in sync with the controller via the subscription registered in
+ * {@link EngineService} on every `AnalyticsController:stateChange`.
+ * This key is the sole source of truth for Sentry's early-boot `enabled` flag.
+ */
+export const SENTRY_CONSENT = `${prefix}sentryConsent`;
+
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 
 export const PUSH_NOTIFICATIONS_PROMPT_COUNT = `${prefix}pushNotificationsPromptCount`;
