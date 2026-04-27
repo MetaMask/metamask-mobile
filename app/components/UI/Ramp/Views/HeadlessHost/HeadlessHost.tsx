@@ -198,6 +198,10 @@ function HeadlessHost() {
       } catch (e) {
         Logger.error(e as Error, 'HeadlessHost: onError callback threw');
       }
+      // closeSession alone does not trigger a re-render; without setState the
+      // render-time `session` ref stays truthy and the loader would spin
+      // forever. Surface the same message in UI as other error paths.
+      setErrorMessage(message);
       closeSession(headlessSessionId, { reason: 'unknown' });
       return;
     }

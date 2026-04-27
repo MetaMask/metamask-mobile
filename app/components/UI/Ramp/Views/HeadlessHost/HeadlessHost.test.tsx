@@ -310,7 +310,7 @@ describe('HeadlessHost', () => {
   });
 
   describe('Error handling', () => {
-    it('forwards a malformed assetId as onError(UNKNOWN, ...) and closes the session', () => {
+    it('forwards a malformed assetId as onError(UNKNOWN, ...) and closes the session', async () => {
       // Real hook: falsy chain id → null wallet. The invalid-assetId branch
       // must run before the wallet deferral or the effect would return early
       // forever (regression guard for guard ordering).
@@ -326,6 +326,9 @@ describe('HeadlessHost', () => {
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(screen.getByText(/not-a-caip-19/)).toBeOnTheScreen();
+      });
     });
 
     it('surfaces a continueWithQuote rejection as onError(UNKNOWN, ...) and renders the message', async () => {

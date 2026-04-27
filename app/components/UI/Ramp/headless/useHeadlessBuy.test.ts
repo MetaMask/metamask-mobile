@@ -500,5 +500,46 @@ describe('useHeadlessBuy', () => {
       });
       expect(secondCallbacks.onClose).not.toHaveBeenCalled();
     });
+
+    it('fires the previous session onClose before seeding the controller for the new session', () => {
+      const order: string[] = [];
+      const firstCallbacks = {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(() => {
+          order.push('first-onClose');
+        }),
+      };
+      const setSelectedToken = jest.fn(() => {
+        order.push('setSelectedToken');
+      });
+      const setSelectedProvider = jest.fn(() => {
+        order.push('setSelectedProvider');
+      });
+      const setSelectedPaymentMethod = jest.fn(() => {
+        order.push('setSelectedPaymentMethod');
+      });
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        setSelectedToken,
+        setSelectedProvider,
+        setSelectedPaymentMethod,
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+      act(() => {
+        result.current.startHeadlessBuy(baseStartParams, firstCallbacks);
+      });
+      act(() => {
+        result.current.startHeadlessBuy(baseStartParams, buildCallbacks());
+      });
+      const closeIdx = order.indexOf('first-onClose');
+      expect(closeIdx).toBeGreaterThan(-1);
+      // Second start: closeSession (onClose) then the three controller seeds.
+      expect(order.slice(closeIdx + 1, closeIdx + 4)).toEqual([
+        'setSelectedToken',
+        'setSelectedProvider',
+        'setSelectedPaymentMethod',
+      ]);
+    });
   });
 });

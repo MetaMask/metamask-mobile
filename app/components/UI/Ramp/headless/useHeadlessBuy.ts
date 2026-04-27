@@ -140,6 +140,21 @@ export function useHeadlessBuy(): HeadlessBuyResult {
       // bug with id-only params). Phase 5's quote-first API gives us complete
       // objects with the right ids, so the lookup is reliable and the
       // Phase 3.1 race no longer applies.
+      //
+      // Single-live-session policy: only one headless session may be
+      // active at a time. Starting a new one auto-cancels the previous,
+      // matching the playground UX where tapping "Start" on a different
+      // quote should swap the active flow.
+      //
+      // Close the previous session *before* seeding the controller: the
+      // prior session's `onClose` may read controller state for logging, and
+      // must still see the selections that applied to that session — not the
+      // new quote's token/provider/payment method.
+      const previousId = getActiveSessionId();
+      if (previousId) {
+        closeSession(previousId, { reason: 'consumer_cancelled' });
+      }
+
       setSelectedToken(params.assetId);
       const matchedProvider =
         providers.find((p) => p.id === params.quote.providerInfo?.id) ?? null;
@@ -150,15 +165,6 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         (paymentMethods ?? []).find((pm) => pm.id === targetPaymentMethodId) ??
         null;
       setSelectedPaymentMethod(matchedPaymentMethod);
-
-      // Single-live-session policy: only one headless session may be
-      // active at a time. Starting a new one auto-cancels the previous,
-      // matching the playground UX where tapping "Start" on a different
-      // quote should swap the active flow.
-      const previousId = getActiveSessionId();
-      if (previousId) {
-        closeSession(previousId, { reason: 'consumer_cancelled' });
-      }
 
       const session = createSession(params, callbacks);
 
