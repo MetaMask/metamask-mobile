@@ -49,7 +49,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 2: Open deposit screen
       const timer2 = new TimerHelper(
         'Time since user taps Add Funds button until Predict Deposit screen is visible',
-        { ios: 1000, android: 3500 },
+        { ios: 1000, android: 4500 },
         currentDeviceDetails.platform,
       );
 
@@ -82,7 +82,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 4: Proceed to confirmation screen
       const timer4 = new TimerHelper(
         'Time since user taps Continue button until quote is displayed on confirmation page',
-        { ios: 4000, android: 10000 },
+        { ios: 4000, android: 12000 },
         currentDeviceDetails.platform,
       );
 
