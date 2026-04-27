@@ -71,21 +71,20 @@ export const usePerpsDepositProgress = () => {
 
   // Watch for spendable-balance increases when expecting a deposit. A live
   // totalBalance move can be pure unrealized PnL and must not clear progress.
+  const liveSpendable = liveAccount?.spendableBalance;
   useEffect(() => {
-    if (!isDepositInProgress || !liveAccount) {
+    if (!isDepositInProgress || liveSpendable == null) {
       return;
     }
 
-    const currentBalance = Number.parseFloat(
-      liveAccount.spendableBalance || '0',
-    );
+    const currentBalance = Number.parseFloat(liveSpendable || '0');
     const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
 
     if (currentBalance > previousBalance) {
       setIsDepositInProgress(false);
-      prevSpendableBalanceRef.current = liveAccount.spendableBalance;
+      prevSpendableBalanceRef.current = liveSpendable;
     }
-  }, [isDepositInProgress, liveAccount]);
+  }, [isDepositInProgress, liveSpendable]);
 
   return { isDepositInProgress };
 };

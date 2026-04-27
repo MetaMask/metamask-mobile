@@ -117,27 +117,24 @@ export const usePerpsDepositStatus = () => {
   // Watch for spendable-balance increases when expecting a deposit. Using
   // totalBalance here is incorrect because unrealized PnL can move it without
   // any deposit settling.
+  const liveSpendable = liveAccount?.spendableBalance;
   useEffect(() => {
-    if (!expectingDepositRef.current || !liveAccount) {
+    if (!expectingDepositRef.current || liveSpendable == null) {
       return;
     }
 
-    const currentBalance = Number.parseFloat(
-      liveAccount.spendableBalance || '0',
-    );
+    const currentBalance = Number.parseFloat(liveSpendable || '0');
     const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
 
     if (currentBalance > previousBalance) {
       showToast(
-        PerpsToastOptions.accountManagement.deposit.success(
-          liveAccount.spendableBalance,
-        ),
+        PerpsToastOptions.accountManagement.deposit.success(liveSpendable),
       );
 
       expectingDepositRef.current = false;
-      prevSpendableBalanceRef.current = liveAccount.spendableBalance;
+      prevSpendableBalanceRef.current = liveSpendable;
     }
-  }, [liveAccount, showToast, PerpsToastOptions.accountManagement.deposit]);
+  }, [liveSpendable, showToast, PerpsToastOptions.accountManagement.deposit]);
 
   // Handle deposit errors from controller state
   useEffect(() => {
