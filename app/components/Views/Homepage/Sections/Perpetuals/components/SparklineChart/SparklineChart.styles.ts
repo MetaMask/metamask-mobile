@@ -5,6 +5,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+  graph: {
+    flex: 1,
+  },
   cover: {
     position: 'absolute',
     top: 0,

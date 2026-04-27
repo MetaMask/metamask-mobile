@@ -4,105 +4,33 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import SparklineChart from './SparklineChart';
 import { mockTheme } from '../../../../../../../util/theme';
 
-jest.mock('react-native-svg', () => {
+jest.mock('react-native-graph', () => {
+  const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
+
   return {
     __esModule: true,
-    default: ({
+    LineGraph: ({
       testID,
-      children,
-      ...props
+      points,
+      color,
+      lineThickness,
+      gradientFillColors,
     }: {
       testID?: string;
-      children?: React.ReactNode;
-      width?: number;
-      height?: number;
-      viewBox?: string;
-    }) => (
-      <View testID={testID} {...props}>
-        {children}
-      </View>
-    ),
-    Path: ({
-      d,
-      stroke,
-      fill,
-    }: {
-      d?: string;
-      stroke?: string;
-      fill?: string;
+      points?: Array<{ value: number; date: Date }>;
+      color?: string;
+      lineThickness?: number;
+      gradientFillColors?: string[];
     }) => (
       <View
-        testID="svg-path"
-        data-d={d}
-        data-stroke={stroke}
-        data-fill={fill}
+        testID={testID ?? 'line-graph'}
+        data-points={points?.length}
+        data-color={color}
+        data-line-thickness={lineThickness}
+        data-gradient={Boolean(gradientFillColors)}
       />
     ),
-    Defs: ({ children }: { children?: React.ReactNode }) => (
-      <View testID="svg-defs">{children}</View>
-    ),
-    LinearGradient: ({
-      children,
-      id,
-    }: {
-      children?: React.ReactNode;
-      id?: string;
-    }) => <View testID={`svg-gradient-${id}`}>{children}</View>,
-    Stop: () => <View testID="svg-stop" />,
-  };
-});
-
-jest.mock('d3-shape', () => {
-  const makeLineGenerator = () => {
-    let xFn: (d: number, i: number) => number = () => 0;
-    let yFn: (d: number) => number = () => 0;
-
-    const generator = (data: number[]): string => {
-      if (!data || data.length < 2) return '';
-      return data.map((d, i) => `${xFn(d, i)},${yFn(d)}`).join(' ');
-    };
-    generator.x = (fn: (d: number, i: number) => number) => {
-      xFn = fn;
-      return generator;
-    };
-    generator.y = (fn: (d: number) => number) => {
-      yFn = fn;
-      return generator;
-    };
-    generator.curve = () => generator;
-    return generator;
-  };
-
-  const makeAreaGenerator = () => {
-    let xFn: (d: number, i: number) => number = () => 0;
-    let y0Fn: () => number = () => 0;
-    let y1Fn: (d: number) => number = () => 0;
-
-    const generator = (data: number[]): string => {
-      if (!data || data.length < 2) return '';
-      return data.map((d, i) => `${xFn(d, i)},${y0Fn()},${y1Fn(d)}`).join(' ');
-    };
-    generator.x = (fn: (d: number, i: number) => number) => {
-      xFn = fn;
-      return generator;
-    };
-    generator.y0 = (fn: () => number) => {
-      y0Fn = fn;
-      return generator;
-    };
-    generator.y1 = (fn: (d: number) => number) => {
-      y1Fn = fn;
-      return generator;
-    };
-    generator.curve = () => generator;
-    return generator;
-  };
-
-  return {
-    line: () => makeLineGenerator(),
-    area: () => makeAreaGenerator(),
-    curveCatmullRom: { alpha: () => 'catmullRomCurve' },
   };
 });
 
@@ -135,8 +63,7 @@ describe('SparklineChart', () => {
     );
 
     expect(screen.getByTestId('test-sparkline')).toBeOnTheScreen();
-    const paths = screen.getAllByTestId('svg-path');
-    expect(paths.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByTestId('test-sparkline-line-graph')).toBeOnTheScreen();
   });
 
   it('renders gradient fill by default', () => {
@@ -150,8 +77,8 @@ describe('SparklineChart', () => {
       />,
     );
 
-    expect(screen.getByTestId('svg-defs')).toBeOnTheScreen();
-    expect(screen.getByTestId('svg-gradient-test-grad')).toBeOnTheScreen();
+    const graph = screen.getByTestId('sparkline-chart-line-graph');
+    expect(graph.props['data-gradient']).toBe(true);
   });
 
   it('does not render gradient when showGradient is false', () => {
@@ -167,7 +94,8 @@ describe('SparklineChart', () => {
       />,
     );
 
-    expect(screen.queryByTestId('svg-defs')).toBeNull();
+    const graph = screen.getByTestId('sparkline-chart-line-graph');
+    expect(graph.props['data-gradient']).toBe(false);
   });
 
   it('renders without animation wrapper when animated is false', () => {

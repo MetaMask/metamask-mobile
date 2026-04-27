@@ -11,7 +11,10 @@ export interface SparklineChartProps {
   strokeWidth?: number;
   /** Whether to show a gradient fill under the line (default: true) */
   showGradient?: boolean;
-  /** Unique ID for SVG gradient (needed when rendering multiple charts) */
+  /**
+   * Kept for backward compatibility with existing callsites.
+   * `react-native-graph` does not require a gradient ID.
+   */
   gradientId?: string;
   /** Whether to animate the chart reveal from left to right (default: true) */
   animated?: boolean;
