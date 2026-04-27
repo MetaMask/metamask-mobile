@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import CampaignsGroup from '../components/Campaigns/CampaignsGroup';
@@ -30,6 +31,7 @@ import { strings } from '../../../../../locales/i18n';
 const CampaignsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  useOndoOutcomeToast();
   const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
     useRewardCampaigns();
 

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 
 export const PerpsHIP3DebugButton = () => {
@@ -23,11 +23,12 @@ export const PerpsHIP3DebugButton = () => {
 
   return (
     <Button
-      variant={ButtonVariants.Secondary}
+      variant={ButtonVariant.Secondary}
       size={ButtonSize.Md}
-      width={ButtonWidthTypes.Full}
-      label="HIP-3 Debug"
+      isFullWidth
       onPress={handleDebugPress}
-    />
+    >
+      HIP-3 Debug
+    </Button>
   );
 };

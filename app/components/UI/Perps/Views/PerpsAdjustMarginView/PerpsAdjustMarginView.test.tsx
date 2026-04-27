@@ -113,6 +113,10 @@ jest.mock('../../components/PerpsOrderHeader', () => {
   };
 });
 jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
+jest.mock(
+  '../../components/PerpsBottomSheetTooltip',
+  () => 'PerpsBottomSheetTooltip',
+);
 jest.mock('../../components/PerpsSlider', () => {
   const ReactModule = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -125,6 +129,40 @@ jest.mock('../../components/PerpsSlider', () => {
       testID: 'mock-perps-slider',
       onValueChange,
     });
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        {!isLoading && <Text>{label ?? children}</Text>}
+      </TouchableOpacity>
+    ),
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
+      Sm: 'Sm',
+    },
   };
 });
 
