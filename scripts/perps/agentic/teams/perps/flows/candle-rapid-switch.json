@@ -1,5 +1,6 @@
 {
   "title": "Rapid market switching — validates candles load and no rate-limit/abort errors across BTC→ETH→SOL→HYPE→BTC→ETH",
+  "schema_version": 1,
   "inputs": {
     "screenshot_filename": {
       "type": "string",
@@ -160,6 +161,7 @@
         "screenshot-chart": {
           "action": "screenshot",
           "filename": "{{screenshot_filename}}",
+          "note": "Final ETH market detail after rapid BTC→ETH→SOL→HYPE→BTC→ETH switch — proves chart loads on the last symbol without rate-limit/abort errors",
           "next": "back-6"
         },
         "back-6": {
