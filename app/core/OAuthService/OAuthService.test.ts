@@ -6,7 +6,7 @@ import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { TraceName, TraceOperation } from '../../util/trace';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
-import { SET_SEEDLESS_ONBOARDING } from '../../actions/onboarding';
+const MOCK_GOOGLE_OAUTH_CLIENT_ID = 'abc.apps.googleusercontent.com';
 
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
@@ -123,7 +123,7 @@ const mockGetAuthTokens = jest.fn().mockImplementation(() => ({
 const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
   authConnection: AuthConnection.Google,
   options: {
-    clientId: 'e2e-mock-google-client-id',
+    clientId: MOCK_GOOGLE_OAUTH_CLIENT_ID,
     authServerUrl: 'https://auth.example.com',
     web3AuthNetwork: 'sapphire_mainnet',
   },
@@ -221,7 +221,7 @@ describe('OAuth login service', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith({
-      type: SET_SEEDLESS_ONBOARDING,
+      type: 'SET_SEEDLESS_ONBOARDING',
       clientId: 'clientId',
       authConnection: AuthConnection.Google,
     });
@@ -675,7 +675,7 @@ describe('OAuth login service', () => {
       delete process.env.E2E_MOCK_OAUTH_EMAIL;
     });
 
-    it('exchanges QA mock tokens and returns mock success without seedless authenticate', async () => {
+    it('exchanges QA mock tokens, calls seedless authenticate, and dispatches seedless onboarding', async () => {
       const loginHandler = mockCreateLoginHandler();
 
       const result = await OAuthLoginService.handleOAuthLogin(
@@ -700,15 +700,18 @@ describe('OAuth login service', () => {
       const body = JSON.parse(
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
-      expect(body).toMatchObject({
-        email_id: 'newuser+e2e@web3auth.io',
-        client_id: 'e2e-mock-google-client-id',
-        login_provider: AuthConnection.Google,
-        access_type: 'offline',
-      });
-      expect(mockAuthenticate).not.toHaveBeenCalled();
+      expect(body.client_id).toBe(MOCK_GOOGLE_OAUTH_CLIENT_ID);
+      expect(body.login_provider).toBe(AuthConnection.Google);
+      expect(body.access_type).toBe('offline');
+      expect(body.email_id).toMatch(/^[a-f0-9]+\d+\+e2e@web3auth\.io$/);
+      expect(mockAuthenticate).toHaveBeenCalledTimes(1);
       expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
       expect(mockGetAuthTokens).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_SEEDLESS_ONBOARDING',
+        clientId: MOCK_GOOGLE_OAUTH_CLIENT_ID,
+        authConnection: AuthConnection.Google,
+      });
     });
 
     it('uses E2E_MOCK_OAUTH_EMAIL for email_id when set', async () => {
@@ -739,7 +742,7 @@ describe('OAuth login service', () => {
       expect(mockAuthenticate).not.toHaveBeenCalled();
     });
 
-    it('succeeds when QA mock response omits refresh_token', async () => {
+    it('rejects when QA mock response omits refresh_token (seedless authenticate requires it)', async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -757,23 +760,27 @@ describe('OAuth login service', () => {
       } as Response);
       const loginHandler = mockCreateLoginHandler();
 
-      const result = await OAuthLoginService.handleOAuthLogin(
-        loginHandler,
-        false,
+      await expectOAuthError(
+        OAuthLoginService.handleOAuthLogin(loginHandler, false),
+        OAuthErrorType.LoginError,
       );
 
-      expect(result.type).toBe('success');
       expect(mockAuthenticate).not.toHaveBeenCalled();
     });
 
-    it('does not call provider login, getAuthTokens, or seedless authenticate', async () => {
+    it('does not call provider login or getAuthTokens but does call seedless authenticate', async () => {
       const loginHandler = mockCreateLoginHandler();
 
       await OAuthLoginService.handleOAuthLogin(loginHandler, false);
 
       expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
       expect(mockGetAuthTokens).not.toHaveBeenCalled();
-      expect(mockAuthenticate).not.toHaveBeenCalled();
+      expect(mockAuthenticate).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_SEEDLESS_ONBOARDING',
+        clientId: MOCK_GOOGLE_OAUTH_CLIENT_ID,
+        authConnection: AuthConnection.Google,
+      });
     });
   });
 });

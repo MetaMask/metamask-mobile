@@ -18,6 +18,25 @@ import {
 
 import { OAuthMockttpServiceOptions, SecretType } from './types';
 
+const DEFAULT_MOCK_APPLE_OAUTH_CLIENT_ID = 'io.metamask.appleloginclient.dev';
+const DEFAULT_MOCK_GOOGLE_OAUTH_CLIENT_ID =
+  '615965109465-i8oeh9kuvl1n6lk1ffkobpvth27bmi41.apps.googleusercontent.com';
+
+function defaultMockOAuthClientIdForTokenRequest(
+  loginProvider: E2ELoginProvider,
+): string {
+  if (loginProvider === E2ELoginProvider.APPLE) {
+    return (
+      process.env.ANDROID_APPLE_CLIENT_ID || DEFAULT_MOCK_APPLE_OAUTH_CLIENT_ID
+    );
+  }
+  return (
+    process.env.IOS_GOOGLE_CLIENT_ID ||
+    process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID ||
+    DEFAULT_MOCK_GOOGLE_OAUTH_CLIENT_ID
+  );
+}
+
 /**
  * Configuration for E2E OAuth mock
  */
@@ -265,7 +284,11 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              defaultMockOAuthClientIdForTokenRequest(
+                this.config.loginProvider,
+              ),
             login_provider: this.config.loginProvider,
             access_type: 'offline',
           };
@@ -289,12 +312,17 @@ export class OAuthMockttpService {
 
           let tokens;
           if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
             console.warn(
-              `[E2E] Backend QA mock returned ${response.status}, using fallback mock tokens`,
+              `[E2E] Backend QA mock returned ${response.status}: ${errorText}, using fallback mock tokens`,
             );
             tokens = this.generateMockAuthResponse();
           } else {
             const rawResponse = await response.json();
+            console.log(
+              '[E2E] QA mock raw response:',
+              JSON.stringify(rawResponse, null, 2),
+            );
             const fallbackTokens = this.generateMockAuthResponse();
             if (rawResponse.data?.tokens) {
               const qaMockTokens = rawResponse.data.tokens;
@@ -361,7 +389,11 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              defaultMockOAuthClientIdForTokenRequest(
+                this.config.loginProvider,
+              ),
             login_provider: this.config.loginProvider,
           };
 
@@ -433,7 +465,11 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              defaultMockOAuthClientIdForTokenRequest(
+                this.config.loginProvider,
+              ),
             login_provider: this.config.loginProvider,
             refresh_token: body.refresh_token,
           };
@@ -624,7 +660,15 @@ export class OAuthMockttpService {
           console.log(
             `[E2E MockServer] SSS Node ${nodeIndex} request: ${body.method}`,
           );
+          console.log(
+            `[E2E MockServer] SSS Node ${nodeIndex} request body:`,
+            JSON.stringify(body, null, 2),
+          );
           const response = this.handleToprfRequest(body, nodeIndex);
+          console.log(
+            `[E2E MockServer] SSS Node ${nodeIndex} response:`,
+            JSON.stringify(response, null, 2),
+          );
 
           return {
             statusCode: 200,
@@ -850,7 +894,7 @@ export class OAuthMockttpService {
     const now = Math.floor(Date.now() / 1000);
     const exp = now + 3600; // 1 hour expiry
 
-    // Mock ID token payload
+    // Mock ID token payload (client_id prefers env OAuth client ids, same as QA proxy body)
     const idTokenPayload = {
       iss: 'https://auth-service.uat-api.cx.metamask.io',
       sub: `e2e-user-${this.config.email}`,
@@ -859,6 +903,10 @@ export class OAuthMockttpService {
       email_verified: true,
       iat: now,
       exp,
+      client_id: defaultMockOAuthClientIdForTokenRequest(
+        this.config.loginProvider,
+      ),
+      env: 'uat',
       verifier: this.config.loginProvider,
       verifier_id: this.config.email,
       // Include aggregateVerifier for TOPRF

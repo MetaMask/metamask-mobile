@@ -171,7 +171,10 @@ module.exports = function (baseConfig) {
               };
             }
           }
-          if (e2eAllowsSeedlessOAuthMetroMocks) {
+          // Mock the seedless-onboarding-controller only for E2E smoke tests.
+          // Performance tests (E2E_MOCK_OAUTH only) use the real controller
+          // so TOPRF authentication runs against live nodes.
+          if (isE2E) {
             if (
               moduleName.endsWith(
                 'controllers/seedless-onboarding-controller',
@@ -190,6 +193,8 @@ module.exports = function (baseConfig) {
                 ),
               };
             }
+          }
+          if (e2eAllowsSeedlessOAuthMetroMocks) {
             // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
             if (
               moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||

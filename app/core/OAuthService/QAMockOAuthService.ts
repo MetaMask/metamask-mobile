@@ -1,16 +1,12 @@
+import { E2E_QA_MOCK_OAUTH_TOKEN_URL } from './OAuthLoginHandlers/constants';
+import { OAuthError, OAuthErrorType } from './error';
+import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
+import { type AuthResponse, type OAuthUserInfo } from './OAuthInterface';
 import {
   getE2EByoaAuthSecret,
   getE2EMockOAuthEmailForQaMock,
 } from '../../util/environment';
-import { E2E_QA_MOCK_OAUTH_TOKEN_URL } from './OAuthLoginHandlers/constants';
-import { OAuthError, OAuthErrorType } from './error';
-import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
-import {
-  OAuthLoginResultType,
-  type AuthResponse,
-  type HandleOAuthLoginResult,
-  type OAuthUserInfo,
-} from './OAuthInterface';
+import QuickCrypto from 'react-native-quick-crypto';
 
 export interface QAMockTokenExchangeResult {
   data: AuthResponse;
@@ -20,6 +16,11 @@ export interface QAMockTokenExchangeResult {
 
 const DEFAULT_E2E_BYOA_AUTH_SECRET = '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
 
+const generateUniqueE2EEmail = (): string => {
+  const rand = QuickCrypto.randomBytes(4).toString('hex').slice(0, 8);
+  return `${rand}${Date.now()}+e2e@web3auth.io`;
+};
+
 export class QAMockOAuthService {
   static async exchangeTokens(
     loginHandler: BaseLoginHandler,
@@ -27,9 +28,8 @@ export class QAMockOAuthService {
   ): Promise<QAMockTokenExchangeResult> {
     const byoaSecret = getE2EByoaAuthSecret() ?? DEFAULT_E2E_BYOA_AUTH_SECRET;
 
-    const e2eEmail = `${loginHandler.authConnection}.newuser+e2e@web3auth.io`;
     const emailForMock =
-      getE2EMockOAuthEmailForQaMock() ?? 'newuser+e2e@web3auth.io';
+      getE2EMockOAuthEmailForQaMock() ?? generateUniqueE2EEmail();
 
     const response = await fetchImpl(E2E_QA_MOCK_OAUTH_TOKEN_URL, {
       method: 'POST',
@@ -58,20 +58,10 @@ export class QAMockOAuthService {
     const jwtPayload = JSON.parse(
       loginHandler.decodeIdToken(data.id_token),
     ) as Partial<OAuthUserInfo>;
-    const userId = jwtPayload.sub ?? `e2e-user-${e2eEmail}`;
-    const accountName = jwtPayload.email ?? e2eEmail;
+    const userId = jwtPayload.sub ?? `e2e-user-${emailForMock}`;
+    const accountName = jwtPayload.email ?? emailForMock;
 
     return { data, userId, accountName };
-  }
-
-  static mockSeedlessHandleResult(
-    accountName?: string,
-  ): HandleOAuthLoginResult {
-    return {
-      type: OAuthLoginResultType.SUCCESS,
-      existingUser: false,
-      accountName,
-    };
   }
 
   static parseAuthServiceResponse(raw: unknown): AuthResponse {
