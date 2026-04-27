@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Box } from '../../../../../UI/Box/Box';
+import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details.styles';
 import { TransactionDetailDivider } from '../transaction-detail-divider/transaction-detail-divider';
