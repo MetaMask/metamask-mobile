@@ -21,10 +21,11 @@ import type {
 // ---------------------------------------------------------------------------
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -481,6 +482,21 @@ describe('NotificationPreferencesView', () => {
       );
 
       expect(toggleTraderNotification).toHaveBeenCalledWith('trader-1');
+    });
+
+    it('navigates to the trader profile when a trader username is pressed', () => {
+      renderScreen();
+
+      fireEvent.press(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADER_PRESS('trader-1'),
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('TraderProfileView', {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+      });
     });
 
     it('calls setEnabled when the global toggle is pressed', () => {
