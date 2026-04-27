@@ -2655,7 +2655,8 @@
       "notifications_subtitle": "Your balance is what powers every trade. Add some funds to get started.",
       "notifications_primary": "Enable",
       "skip": "Skip",
-      "progress_a11y": "Step {{current}} of {{total}}"
+      "progress_a11y": "Step {{current}} of {{total}}",
+      "balance_loading_a11y": "Loading wallet balance"
     },
     "add_funds": "Add funds",
     "next": "Next",

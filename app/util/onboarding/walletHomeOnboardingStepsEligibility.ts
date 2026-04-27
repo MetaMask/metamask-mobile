@@ -9,14 +9,15 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
  * completion (e.g. avoids showing the steps when an existing user finishes a
  * settings backup on an empty account).
  *
- * `successFlow === undefined` is treated as eligible for legacy call sites that use
- * {@link OnboardingSuccessComponent} without a flow (onboarding manual backup step 3).
+ * `undefined` is treated as ineligible so new call sites cannot accidentally opt in
+ * by omitting `successFlow`. Pass an explicit {@link ONBOARDING_SUCCESS_FLOW} from
+ * the screen (see {@link OnboardingSuccess} route defaults and ManualBackupStep3).
  */
 export function shouldMarkWalletHomeOnboardingStepsEligible(
   successFlow: ONBOARDING_SUCCESS_FLOW | undefined,
 ): boolean {
   if (successFlow === undefined) {
-    return true;
+    return false;
   }
 
   return (

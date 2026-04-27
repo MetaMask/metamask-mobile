@@ -47,16 +47,28 @@ import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
  */
 const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 3000;
 
+export type PostOnboardingStepsSurfaceChangeSource = 'state' | 'unmount';
+
 export interface AccountGroupBalanceProps {
   /**
    * Fires when the wallet home post-onboarding steps tile is the active empty-balance surface
    * (same moment `WalletHomeOnboardingSteps` is mounted). Parent may hide redundant CTAs (e.g. buy/swap/send/receive).
    */
-  onPostOnboardingStepsSurfaceActiveChange?: (active: boolean) => void;
+  onPostOnboardingStepsSurfaceActiveChange?: (
+    active: boolean,
+    source?: PostOnboardingStepsSurfaceChangeSource,
+  ) => void;
+  /**
+   * When set, the last post-onboarding step completes by awaiting this handler.
+   * The parent (Wallet) drives a curtain animation over the cluster — this component just waits
+   * for the swap to finish before resolving the primary press.
+   */
+  onCoordinatedFlowExit?: () => Promise<void>;
 }
 
 const AccountGroupBalance = ({
   onPostOnboardingStepsSurfaceActiveChange,
+  onCoordinatedFlowExit,
 }: AccountGroupBalanceProps) => {
   const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
@@ -65,17 +77,19 @@ const AccountGroupBalance = ({
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
-  const isWalletHomeOnboardingStepsEnabled = useSelector(
+  const remoteWalletHomeOnboardingStepsEnabled = useSelector(
     selectWalletHomeOnboardingStepsEnabled,
   );
+  const isWalletHomeOnboardingStepsEnabled =
+    remoteWalletHomeOnboardingStepsEnabled;
   const walletHomeOnboardingStepsEligible = useSelector(
     selectWalletHomeOnboardingStepsEligible,
   );
-  const shouldShowWalletHomeOnboardingSteps = useSelector(
-    selectShouldShowWalletHomeOnboardingSteps,
-  );
   const walletHomeOnboardingSteps = useSelector(
     selectWalletHomeOnboardingSteps,
+  );
+  const shouldShowWalletHomeOnboardingSteps = useSelector(
+    selectShouldShowWalletHomeOnboardingSteps,
   );
   const { popularNetworks } = useNetworkEnablement();
 
@@ -213,6 +227,8 @@ const AccountGroupBalance = ({
   const userCurrency = groupBalance?.userCurrency || 'USD';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
+  const isLoading = !groupBalance || !hasBalanceFetched;
+
   // Check if account group balance (across all mainnet networks) is zero for empty state
   const hasZeroAccountGroupBalance =
     accountGroupBalance != null &&
@@ -227,18 +243,14 @@ const AccountGroupBalance = ({
     isHomepageSectionsV1Enabled &&
     !isCurrentNetworkTestnet;
 
-  const showWalletHomeOnboardingSteps =
-    shouldShowEmptyState &&
-    isWalletHomeOnboardingStepsEnabled &&
-    shouldShowWalletHomeOnboardingSteps;
+  const inWalletHomePostOnboardingFlow =
+    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
 
-  // Show skeleton while loading: either no groupBalance OR balance not fetched yet
-  // We rely on balance change tracking + timeout instead of isBalanceDataReady
-  // because controllers have persisted state that makes them appear "ready" even with stale data
-  const isLoading = !groupBalance || !hasBalanceFetched;
+  /** In-flow users: show checklist (awaiting-balance shell or real steps) instead of balance skeleton. */
+  const showWalletHomeOnboardingStepsTile =
+    inWalletHomePostOnboardingFlow && (isLoading || shouldShowEmptyState);
 
-  const postOnboardingStepsSurfaceActive =
-    !isLoading && shouldShowEmptyState && showWalletHomeOnboardingSteps;
+  const postOnboardingStepsSurfaceActive = showWalletHomeOnboardingStepsTile;
 
   const onPostOnboardingStepsSurfaceActiveChangeRef = useRef(
     onPostOnboardingStepsSurfaceActiveChange,
@@ -249,57 +261,63 @@ const AccountGroupBalance = ({
   useLayoutEffect(() => {
     onPostOnboardingStepsSurfaceActiveChangeRef.current?.(
       postOnboardingStepsSurfaceActive,
+      'state',
     );
   }, [postOnboardingStepsSurfaceActive]);
 
   useLayoutEffect(
     () => () => {
-      onPostOnboardingStepsSurfaceActiveChangeRef.current?.(false);
+      onPostOnboardingStepsSurfaceActiveChangeRef.current?.(false, 'unmount');
     },
     [],
   );
 
+  const renderBalanceOrEmpty = () =>
+    !isLoading && shouldShowEmptyState ? (
+      <BalanceEmptyState
+        testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
+      />
+    ) : (
+      <TouchableOpacity
+        onPress={() => togglePrivacy(!privacyMode)}
+        testID="balance-container"
+        style={styles.balanceContainer}
+      >
+        <Skeleton hideChildren={isLoading}>
+          <SensitiveText
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Long}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            variant={TextVariant.DisplayLG}
+          >
+            {displayBalance}
+          </SensitiveText>
+        </Skeleton>
+
+        {balanceChange1d && (
+          <Skeleton hideChildren={isLoading}>
+            <AccountGroupBalanceChange
+              amountChangeInUserCurrency={
+                balanceChange1d.amountChangeInUserCurrency
+              }
+              percentChange={balanceChange1d.percentChange}
+              userCurrency={balanceChange1d.userCurrency}
+            />
+          </Skeleton>
+        )}
+      </TouchableOpacity>
+    );
+
   return (
     <View style={styles.accountGroupBalance}>
-      {!isLoading && shouldShowEmptyState ? (
-        showWalletHomeOnboardingSteps ? (
-          <WalletHomeOnboardingSteps
-            testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
-          />
-        ) : (
-          <BalanceEmptyState
-            testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
-          />
-        )
+      {showWalletHomeOnboardingStepsTile ? (
+        <WalletHomeOnboardingSteps
+          isAwaitingBalance={isLoading}
+          onCoordinatedFlowExit={onCoordinatedFlowExit}
+          testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
+        />
       ) : (
-        <TouchableOpacity
-          onPress={() => togglePrivacy(!privacyMode)}
-          testID="balance-container"
-          style={styles.balanceContainer}
-        >
-          <Skeleton hideChildren={isLoading}>
-            <SensitiveText
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Long}
-              testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-              variant={TextVariant.DisplayLG}
-            >
-              {displayBalance}
-            </SensitiveText>
-          </Skeleton>
-
-          {balanceChange1d && (
-            <Skeleton hideChildren={isLoading}>
-              <AccountGroupBalanceChange
-                amountChangeInUserCurrency={
-                  balanceChange1d.amountChangeInUserCurrency
-                }
-                percentChange={balanceChange1d.percentChange}
-                userCurrency={balanceChange1d.userCurrency}
-              />
-            </Skeleton>
-          )}
-        </TouchableOpacity>
+        renderBalanceOrEmpty()
       )}
     </View>
   );

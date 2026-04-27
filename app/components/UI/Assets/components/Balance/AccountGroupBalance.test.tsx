@@ -1,5 +1,6 @@
 import React from 'react';
 import { act } from '@testing-library/react-native';
+
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
