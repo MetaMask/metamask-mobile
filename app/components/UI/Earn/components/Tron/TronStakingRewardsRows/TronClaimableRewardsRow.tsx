@@ -14,6 +14,7 @@ import {
 
 export const TronClaimableRewardsRowTestIds = {
   ROW: 'tron-staking-rewards-total-row',
+  TITLE: 'tron-staking-rewards-total-title',
   SUBTITLE: 'tron-staking-rewards-total-subtitle',
 } as const;
 
@@ -45,6 +46,7 @@ const TronClaimableRewardsRow = ({
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
+        testID={TronClaimableRewardsRowTestIds.TITLE}
       >
         {title}
       </Text>
