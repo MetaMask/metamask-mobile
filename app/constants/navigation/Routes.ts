@@ -184,6 +184,7 @@ const Routes = {
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
+    ADD_DEVICE_TO_WALLET: 'AddDeviceToWallet',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -242,6 +243,7 @@ const Routes = {
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
+    ADD_DEVICE_VERIFICATION_CODE: 'AddDeviceVerificationCode',
     ONBOARDING_SHEET: 'OnboardingSheet',
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
