@@ -57,6 +57,7 @@ const fixtureProfile: TraderProfileResponse = {
 
 const fixtureOpenPositions: Position[] = [
   {
+    positionId: 'starkbot-base',
     tokenSymbol: 'STARKBOT',
     tokenName: 'Starkbot',
     tokenAddress: '0x123',

@@ -5,7 +5,6 @@ import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
-import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
@@ -13,6 +12,7 @@ import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBrid
 import {
   selectIsSubmittingTx,
   selectDestAddress,
+  selectSlippage,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
   selectIsSolanaSourced,
@@ -43,10 +43,6 @@ jest.mock('./useSourceTokenOptions', () => ({
 
 jest.mock('./useQuickBuyQuotes', () => ({
   useQuickBuyQuotes: jest.fn(),
-}));
-
-jest.mock('../../../../../UI/Bridge/hooks/useRewards', () => ({
-  useRewards: jest.fn(),
 }));
 
 jest.mock('../../../../../UI/Bridge/hooks/useLatestBalance', () => ({
@@ -119,6 +115,7 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   })),
   selectIsSubmittingTx: jest.fn(),
   selectDestAddress: jest.fn(),
+  selectSlippage: jest.fn(),
   selectIsEvmNonEvmBridge: jest.fn(),
   selectIsNonEvmNonEvmBridge: jest.fn(),
   selectIsSolanaSourced: jest.fn(),
@@ -200,6 +197,7 @@ const setupDefaultMocks = () => {
     '0xWALLET',
   );
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
+  (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
   (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(false);
@@ -241,15 +239,6 @@ const setupDefaultMocks = () => {
     isNoQuotesAvailable: false,
     quoteFetchError: null,
     isActiveQuoteForCurrentTokenPair: true,
-  });
-
-  (useRewards as jest.Mock).mockReturnValue({
-    estimatedPoints: undefined,
-    isLoading: false,
-    shouldShowRewardsRow: false,
-    hasError: false,
-    accountOptedIn: false,
-    rewardsAccountScope: null,
   });
 
   (useLatestBalance as jest.Mock).mockReturnValue({
@@ -558,7 +547,7 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.confirmButtonState).toBe('loading');
+      expect(result.current.confirmButtonState).toBe('idle');
     });
 
     const settleQuote = () => {

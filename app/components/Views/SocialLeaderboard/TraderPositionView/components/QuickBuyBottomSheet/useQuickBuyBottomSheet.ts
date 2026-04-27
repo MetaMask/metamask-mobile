@@ -23,6 +23,7 @@ import {
   resetBridgeState,
   selectIsSubmittingTx,
   selectDestAddress,
+  selectSlippage,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
   selectIsSolanaSourced,
@@ -123,6 +124,7 @@ export function useQuickBuyBottomSheet(
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
+  const slippage = useSelector(selectSlippage);
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -245,10 +247,9 @@ export function useQuickBuyBottomSheet(
   }, [networkFeeRawUsd]);
 
   const formattedSlippage = useMemo(() => {
-    const quoteSlippage = activeQuote?.quote?.slippage;
-    if (quoteSlippage == null) return '-';
-    return `${quoteSlippage}%`;
-  }, [activeQuote]);
+    if (slippage == null) return '-';
+    return `${slippage}%`;
+  }, [slippage]);
 
   const formattedMinimumReceived = useMemo(() => {
     const amount = activeQuote?.minToTokenAmount?.amount;
