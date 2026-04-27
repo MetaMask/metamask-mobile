@@ -98,6 +98,7 @@ describe('logs :: generateStateLogs', () => {
     Engine.context.SeedlessOnboardingController.state = {
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
+      migrationVersion: 0,
     } as typeof Engine.context.SeedlessOnboardingController.state;
   });
 
@@ -397,6 +398,7 @@ describe('logs :: generateStateLogs', () => {
       Engine.context.SeedlessOnboardingController.state = {
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
     });
 
@@ -531,6 +533,7 @@ describe('logs :: generateStateLogs', () => {
         userId: 'user-123',
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {
@@ -682,6 +685,7 @@ describe('logs :: generateStateLogs', () => {
         ],
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {
@@ -712,6 +716,7 @@ describe('logs :: generateStateLogs', () => {
         socialBackupsMetadata: [],
         nodeAuthTokens: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {

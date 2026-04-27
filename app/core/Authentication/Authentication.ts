@@ -50,8 +50,11 @@ import {
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
+  EncAccountDataType,
+  SeedlessOnboardingMigrationVersion,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -87,6 +90,7 @@ import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1010,6 +1014,12 @@ class AuthenticationService {
 
       await this.syncKeyringEncryptionKey();
 
+      // New users already have dataType set on their secrets during creation,
+      // so we mark the migration as complete to prevent it from running
+      SeedlessOnboardingController.setMigrationVersion(
+        SeedlessOnboardingMigrationVersion.V1,
+      );
+
       this.dispatchOauthReset();
     } catch (error) {
       // Clear vault backups BEFORE creating temporary wallet
@@ -1154,9 +1164,12 @@ class AuthenticationService {
     const bufferedPrivateKey = hexToBytes(add0x(privateKey));
 
     if (syncWithSocial) {
+      // Run data type migration before adding new private key to ensure data consistency.
+      await this.runSeedlessOnboardingMigrations();
+
       await SeedlessOnboardingController.addNewSecretData(
         bufferedPrivateKey,
-        SecretType.PrivateKey,
+        EncAccountDataType.ImportedPrivateKey,
         {
           keyringId,
         },
@@ -1528,6 +1541,58 @@ class AuthenticationService {
     await SeedlessOnboardingController.storeKeyringEncryptionKey(
       keyringEncryptionKey,
     );
+  };
+
+  /**
+   * Runs seedless onboarding migrations if needed.
+   *
+   * Delegates to SeedlessOnboardingController.runMigrations() which handles
+   * version tracking and migration logic. Called before adding new secret data
+   * to ensure data type consistency and correct ordering.
+   */
+  runSeedlessOnboardingMigrations = async (): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    const state = ReduxService.store.getState();
+    const completedOnboarding = selectCompletedOnboarding(state);
+
+    if (!completedOnboarding) {
+      return;
+    }
+
+    try {
+      const migrationPerformed =
+        await SeedlessOnboardingController.runMigrations();
+
+      if (migrationPerformed) {
+        analytics.trackEvent(
+          AnalyticsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+          )
+            .addProperties({
+              migration_version:
+                SeedlessOnboardingController.state?.migrationVersion,
+            })
+            .build(),
+        );
+      }
+    } catch (error) {
+      const isError = error instanceof Error;
+      const errorMessage = isError ? error.message : 'Unknown error';
+
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
+        )
+          .addProperties({
+            migration_version:
+              SeedlessOnboardingController.state?.migrationVersion,
+            error: errorMessage,
+          })
+          .build(),
+      );
+      captureException(isError ? error : new Error(errorMessage));
+      throw error;
+    }
   };
 
   /**
