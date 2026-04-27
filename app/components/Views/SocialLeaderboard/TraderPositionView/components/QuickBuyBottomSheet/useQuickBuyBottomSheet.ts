@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -98,7 +99,7 @@ export interface UseQuickBuyBottomSheetResult {
   buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
   isConfirmDisabled: boolean;
-  isConfirmLoading: boolean;
+  confirmButtonState: 'idle' | 'loading' | 'success';
   getButtonLabel: () => string;
   // handlers
   handleClose: () => void;
@@ -117,6 +118,7 @@ export function useQuickBuyBottomSheet(
   const navigation = useNavigation();
 
   const [usdAmount, setUsdAmount] = useState('');
+  const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
@@ -338,11 +340,14 @@ export function useQuickBuyBottomSheet(
     try {
       dispatch(setIsSubmittingTx(true));
       await submitBridgeTx({ quoteResponse: activeQuote });
+      setTxPhase('success');
+      notificationAsync(NotificationFeedbackType.Success);
+      await new Promise((resolve) => setTimeout(resolve, 800));
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
-      // Keep sheet open on error
+      notificationAsync(NotificationFeedbackType.Error);
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
@@ -446,6 +451,9 @@ export function useQuickBuyBottomSheet(
         ? 'no_quotes'
         : null;
 
+  const confirmButtonState: 'idle' | 'loading' | 'success' =
+    txPhase === 'success' ? 'success' : isConfirmLoading ? 'loading' : 'idle';
+
   const getButtonLabel = useCallback(() => {
     if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
@@ -481,7 +489,7 @@ export function useQuickBuyBottomSheet(
     buttonError,
     hasValidAmount,
     isConfirmDisabled,
-    isConfirmLoading,
+    confirmButtonState,
     getButtonLabel,
     handleClose,
     handlePresetPress,

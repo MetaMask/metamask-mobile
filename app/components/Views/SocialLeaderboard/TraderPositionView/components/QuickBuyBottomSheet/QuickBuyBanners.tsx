@@ -38,7 +38,9 @@ const QuickBuyBanners: React.FC<QuickBuyBannersProps> = ({
         <BannerAlert
           severity={BannerAlertSeverity.Error}
           title={strings('bridge.price_impact_error_title')}
-          description={`${strings('bridge.price_impact_error_description')} (${formattedPriceImpact})`}
+          description={strings('bridge.price_impact_error_description', {
+            priceImpact: formattedPriceImpact,
+          })}
         />
       )}
 
@@ -46,7 +48,9 @@ const QuickBuyBanners: React.FC<QuickBuyBannersProps> = ({
         <BannerAlert
           severity={BannerAlertSeverity.Warning}
           title={strings('bridge.price_impact_warning_title')}
-          description={`${strings('bridge.price_impact_warning_description')} (${formattedPriceImpact})`}
+          description={strings('bridge.price_impact_warning_description', {
+            priceImpact: formattedPriceImpact,
+          })}
         />
       )}
     </Box>

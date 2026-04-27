@@ -440,7 +440,7 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.isConfirmLoading).toBe(false);
+      expect(result.current.confirmButtonState).toBe('idle');
     });
 
     it('is disabled when a destination address is required but missing', () => {
@@ -463,7 +463,7 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.isConfirmLoading).toBe(false);
+      expect(result.current.confirmButtonState).toBe('idle');
     });
 
     it('is enabled after quote loading settles for the entered amount', () => {
@@ -558,7 +558,7 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.isConfirmLoading).toBe(true);
+      expect(result.current.confirmButtonState).toBe('loading');
     });
 
     const settleQuote = () => {

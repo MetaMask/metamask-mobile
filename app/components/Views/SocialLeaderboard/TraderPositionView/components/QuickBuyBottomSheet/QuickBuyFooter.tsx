@@ -18,6 +18,9 @@ import {
   Icon as IconDS,
   IconSize as IconSizeDS,
 } from '@metamask/design-system-react-native';
+import QuickBuyConfirmButton, {
+  type ConfirmButtonState,
+} from './QuickBuyConfirmButton';
 import Icon, {
   IconName,
   IconSize,
@@ -55,7 +58,7 @@ interface QuickBuyFooterProps {
   sourceBalanceFiat: string | undefined;
   isTotalLoading: boolean;
   isConfirmDisabled: boolean;
-  isConfirmLoading: boolean;
+  confirmButtonState: ConfirmButtonState;
   getButtonLabel: () => string;
   onPresetPress: (preset: string) => void;
   onConfirm: () => Promise<void>;
@@ -80,7 +83,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   sourceBalanceFiat,
   isTotalLoading,
   isConfirmDisabled,
-  isConfirmLoading,
+  confirmButtonState,
   getButtonLabel,
   onPresetPress,
   onConfirm,
@@ -231,6 +234,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
                   width={56}
                   height={20}
                   style={tw.style('rounded-md')}
+                  testID="skeleton-view"
                 />
               ) : (
                 <Text
@@ -341,17 +345,13 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
         </Box>
 
         {/* Buy button */}
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonBaseSize.Lg}
-          isFullWidth
+        <QuickBuyConfirmButton
+          state={confirmButtonState}
+          label={getButtonLabel()}
           isDisabled={isConfirmDisabled}
-          isLoading={isConfirmLoading}
           onPress={onConfirm}
           testID="quick-buy-confirm-button"
-        >
-          {getButtonLabel()}
-        </Button>
+        />
       </Box>
     </Box>
   );

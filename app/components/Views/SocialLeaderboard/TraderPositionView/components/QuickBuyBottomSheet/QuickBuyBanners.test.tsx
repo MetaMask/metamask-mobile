@@ -4,7 +4,13 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import QuickBuyBanners from './QuickBuyBanners';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: Record<string, string>) => {
+    if (!params) return key;
+    return Object.entries(params).reduce(
+      (acc, [k, v]) => acc.replace(`{{${k}}}`, String(v)),
+      `${key}:{{${Object.keys(params).join(',')}}}`,
+    );
+  },
 }));
 
 const renderBanners = (

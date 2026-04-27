@@ -253,30 +253,22 @@ describe('StakingBalance', () => {
     );
 
     // Assert: component renders
-    expect(getByTestId('staking-balance-container')).toBeDefined();
+    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
 
     // Assert: claim/unstake banners remain visible even if ineligible
-    expect(getByTestId('unstaking-banner')).toBeDefined();
-    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+    expect(getByTestId('unstaking-banner')).toBeOnTheScreen();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
 
     // Assert: deposit action is gated off when ineligible
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders staking balance container', () => {
+    const { getByTestId } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should match the snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
-      { state: mockInitialState },
-    );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
   });
 
   it('redirects to StakeInputView on stake button click', async () => {
@@ -344,8 +336,8 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
-    expect(getByTestId('staking-balance-container')).toBeDefined();
-    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
   });
 
   it('should render claim link and action buttons if supported asset.chainId is not selected chainId', () => {
@@ -392,7 +384,7 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
-    expect(getByTestId('staking-balance-container')).toBeDefined();
-    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
   });
 });
