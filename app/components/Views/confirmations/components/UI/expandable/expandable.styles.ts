@@ -22,12 +22,17 @@ const styleSheet = (params: {
     },
     modalContent: {
       backgroundColor: theme.colors.background.section,
-      paddingBottom: 34,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
+    scrollableArea: {
+      flexShrink: 1,
+    },
     modalExpandedContent: {
       paddingHorizontal: 16,
+    },
+    modalExpandedContentContainer: {
+      paddingBottom: 34,
     },
     copyButtonContainer: {
       position: 'absolute',
