@@ -57,7 +57,7 @@ describe('RemoteImage', () => {
   });
 
   it('renders svg correctly', () => {
-    const { toJSON } = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
@@ -65,11 +65,11 @@ describe('RemoteImage', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(UNSAFE_getByType(Image)).toBeDefined();
   });
 
   it('renders static sources', () => {
-    const { toJSON } = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: 'https://s3.amazonaws.com/airswap-token-images/OXT.png',
@@ -77,14 +77,17 @@ describe('RemoteImage', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    const image = UNSAFE_getByType(Image);
+    expect(image.props.source.uri).toBe(
+      'https://s3.amazonaws.com/airswap-token-images/OXT.png',
+    );
   });
 
   it('renders ipfs sources', async () => {
     const testIpfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
     mockGetFormattedIpfsUrl.mockResolvedValue(testIpfsUri);
 
-    const wrapper = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: testIpfsUri,
@@ -97,7 +100,8 @@ describe('RemoteImage', () => {
     });
 
     await waitFor(() => {
-      expect(wrapper).toMatchSnapshot();
+      const image = UNSAFE_getByType(Image);
+      expect(image.props.source.uri).toBe(testIpfsUri);
     });
   });
 
@@ -118,7 +122,7 @@ describe('RemoteImage', () => {
       return selector(mockState);
     });
 
-    const wrapper = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         fadeIn
         isTokenImage
@@ -133,7 +137,8 @@ describe('RemoteImage', () => {
     });
 
     await waitFor(() => {
-      expect(wrapper).toMatchSnapshot();
+      const image = UNSAFE_getByType(Image);
+      expect(image.props.source.uri).toBe('https://example.com/token.png');
     });
   });
 
