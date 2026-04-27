@@ -37,7 +37,6 @@ export function getCardControllerMessenger(
     ],
     events: [
       'AccountTreeController:stateChange',
-      'KeyringController:unlock',
       'TransactionController:transactionConfirmed',
       'RemoteFeatureFlagController:stateChange',
       'KeyringController:unlock',
