@@ -142,20 +142,18 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 
         {/* Expand/Collapse Button */}
         {seasonRewards.length > 0 && (
-          <TouchableOpacity onPress={onToggle}>
-            <Box twClassName="ml-4 p-2">
-              <Animated.View
-                style={{
-                  transform: [{ rotate: rotateInterpolate }],
-                }}
-              >
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Md}
-                  twClassName="text-icon-default"
-                />
-              </Animated.View>
-            </Box>
+          <TouchableOpacity onPress={onToggle} style={tw.style('ml-4 p-2')}>
+            <Animated.View
+              style={{
+                transform: [{ rotate: rotateInterpolate }],
+              }}
+            >
+              <Icon
+                name={IconName.ArrowDown}
+                size={IconSize.Md}
+                twClassName="text-icon-default"
+              />
+            </Animated.View>
           </TouchableOpacity>
         )}
       </Box>
