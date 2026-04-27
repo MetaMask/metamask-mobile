@@ -753,7 +753,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         return;
       }
 
-      Promise.resolve(onTimeout()).catch(() => undefined);
+      return Promise.resolve(onTimeout()).catch(() => undefined);
     });
   }
 
