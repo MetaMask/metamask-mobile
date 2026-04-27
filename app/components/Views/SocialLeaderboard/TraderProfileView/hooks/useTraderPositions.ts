@@ -18,8 +18,18 @@ export interface UseTraderPositionsResult {
   closedPositions: Position[];
   isLoadingOpen: boolean;
   isLoadingClosed: boolean;
+  /** Combined error (first non-null wins). Kept for backward-compat with TraderProfileView. */
   error: string | null;
+  /** Raw error from the open-positions query, or null. */
+  openError: string | null;
+  /** Raw error from the closed-positions query, or null. */
+  closedError: string | null;
 }
+
+const toErrorString = (err: unknown): string | null => {
+  if (!err) return null;
+  return err instanceof Error ? err.message : String(err);
+};
 
 export const useTraderPositions = (
   addressOrId: string,
@@ -30,7 +40,7 @@ export const useTraderPositions = (
   const {
     data: openData,
     isLoading: isLoadingOpen,
-    error: openError,
+    error: rawOpenError,
   } = useQuery<PositionsResponse>({
     queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
     enabled: Boolean(addressOrId),
@@ -40,16 +50,17 @@ export const useTraderPositions = (
   const {
     data: closedData,
     isLoading: isLoadingClosed,
-    error: closedError,
+    error: rawClosedError,
   } = useQuery<PositionsResponse>({
     queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
     enabled: Boolean(addressOrId),
+    refetchInterval: options?.refetchInterval,
   });
 
   const openPositions = openData?.positions ?? EMPTY_POSITIONS;
   const closedPositions = closedData?.positions ?? EMPTY_POSITIONS;
 
-  const combinedError = openError ?? closedError;
+  const combinedError = rawOpenError ?? rawClosedError;
 
   useEffect(() => {
     if (combinedError) {
@@ -65,12 +76,9 @@ export const useTraderPositions = (
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
-    error:
-      combinedError instanceof Error
-        ? combinedError.message
-        : combinedError
-          ? String(combinedError)
-          : null,
+    error: toErrorString(combinedError),
+    openError: toErrorString(rawOpenError),
+    closedError: toErrorString(rawClosedError),
   };
 };
 

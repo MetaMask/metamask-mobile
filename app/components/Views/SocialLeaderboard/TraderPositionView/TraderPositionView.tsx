@@ -23,7 +23,9 @@ import TraderPositionChartSection from './components/TraderPositionChartSection'
 import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
 import TraderPositionPnLCard from './components/TraderPositionPnLCard';
 import TraderTradesSection from './components/TraderTradesSection';
-import { useTraderPositionData } from './useTraderPositionData';
+import TraderPositionSkeleton from './components/TraderPositionSkeleton';
+import TraderPositionFallback from './components/TraderPositionFallback';
+import { useTraderPositionScreenData } from './hooks/useTraderPositionScreenData';
 
 const TraderPositionView = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -31,15 +33,30 @@ const TraderPositionView = () => {
   const tw = useTailwind();
 
   const {
-    traderName,
-    traderImageUrl,
+    traderId,
+    tokenAddress,
+    chain,
     tokenSymbol,
-    position: positionParam,
+    positionContext,
+    traderName = '',
+    traderImageUrl,
+    position: initialPosition,
   } = route.params;
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
 
+  const screenData = useTraderPositionScreenData({
+    traderId,
+    tokenAddress,
+    chain,
+    tokenSymbol,
+    positionContext,
+    initialPosition,
+  });
+
   const {
+    position,
+    isInitialLoading,
     symbol,
     marketCap,
     historicalPrices,
@@ -55,15 +72,17 @@ const TraderPositionView = () => {
     activeTimePeriod,
     setActiveTimePeriod,
     timePeriods,
-  } = useTraderPositionData(positionParam, tokenSymbol);
+  } = screenData;
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleBuyPress = useCallback(() => {
-    setIsQuickBuyVisible(true);
-  }, []);
+    if (position) {
+      setIsQuickBuyVisible(true);
+    }
+  }, [position]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -84,62 +103,70 @@ const TraderPositionView = () => {
         closeButtonTestID={TraderPositionViewSelectorsIDs.CLOSE_BUTTON}
       />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-6')}
-      >
-        <TraderTokenInfoRow
-          symbol={symbol}
-          position={positionParam}
-          marketCap={marketCap}
-          pricePercentChange={pricePercentChange}
-          activeTimePeriodLabel={activeTimePeriod}
-        />
+      {isInitialLoading ? (
+        <TraderPositionSkeleton />
+      ) : !position ? (
+        <TraderPositionFallback traderId={traderId} traderName={traderName} />
+      ) : (
+        <>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('pb-6')}
+          >
+            <TraderTokenInfoRow
+              symbol={symbol}
+              position={position}
+              marketCap={marketCap}
+              pricePercentChange={pricePercentChange}
+              activeTimePeriodLabel={activeTimePeriod}
+            />
 
-        <TraderPositionChartSection
-          historicalPrices={historicalPrices}
-          priceDiff={priceDiff}
-          isPricesLoading={isPricesLoading}
-          onChartIndexChange={handleChartIndexChange}
-        />
+            <TraderPositionChartSection
+              historicalPrices={historicalPrices}
+              priceDiff={priceDiff}
+              isPricesLoading={isPricesLoading}
+              onChartIndexChange={handleChartIndexChange}
+            />
 
-        <TraderTimePeriodSelector
-          timePeriods={timePeriods}
-          activeTimePeriod={activeTimePeriod}
-          onSelectPeriod={setActiveTimePeriod}
-        />
+            <TraderTimePeriodSelector
+              timePeriods={timePeriods}
+              activeTimePeriod={activeTimePeriod}
+              onSelectPeriod={setActiveTimePeriod}
+            />
 
-        <TraderPositionPnLCard
-          isClosed={isClosed}
-          positionValue={positionValue}
-          pnlValue={pnlValue}
-          pnlPercent={pnlPercent}
-          isPnlPositive={isPnlPositive}
-        />
+            <TraderPositionPnLCard
+              isClosed={isClosed}
+              positionValue={positionValue}
+              pnlValue={pnlValue}
+              pnlPercent={pnlPercent}
+              isPnlPositive={isPnlPositive}
+            />
 
-        <TraderTradesSection
-          trades={trades}
-          traderName={traderName}
-          traderImageUrl={traderImageUrl}
-        />
-      </ScrollView>
+            <TraderTradesSection
+              trades={trades}
+              traderName={traderName}
+              traderImageUrl={traderImageUrl}
+            />
+          </ScrollView>
 
-      <Box twClassName="px-4 py-3">
-        <Button
-          variant={ButtonVariant.Secondary}
-          isFullWidth
-          onPress={handleBuyPress}
-          testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-        >
-          {strings('social_leaderboard.trader_position.buy')}
-        </Button>
-      </Box>
+          <Box twClassName="px-4 py-3">
+            <Button
+              variant={ButtonVariant.Secondary}
+              isFullWidth
+              onPress={handleBuyPress}
+              testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+            >
+              {strings('social_leaderboard.trader_position.buy')}
+            </Button>
+          </Box>
 
-      <QuickBuyBottomSheet
-        isVisible={isQuickBuyVisible}
-        position={positionParam ?? null}
-        onClose={handleQuickBuyClose}
-      />
+          <QuickBuyBottomSheet
+            isVisible={isQuickBuyVisible}
+            position={position}
+            onClose={handleQuickBuyClose}
+          />
+        </>
+      )}
     </SafeAreaView>
   );
 };

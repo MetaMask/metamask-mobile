@@ -112,7 +112,7 @@ describe('useTraderPositions', () => {
       );
     });
 
-    it('forwards refetchInterval only to the open positions query', () => {
+    it('forwards refetchInterval to both queries', () => {
       renderHook(() =>
         useTraderPositions('trader-1', { refetchInterval: 30_000 }),
       );
@@ -121,20 +121,20 @@ describe('useTraderPositions', () => {
       expect(calls[0][0]).toEqual(
         expect.objectContaining({ refetchInterval: 30_000 }),
       );
-      expect(calls[1][0]).not.toEqual(
-        expect.objectContaining({ refetchInterval: expect.anything() }),
+      expect(calls[1][0]).toEqual(
+        expect.objectContaining({ refetchInterval: 30_000 }),
       );
     });
 
-    it('does not set refetchInterval on either query when option is omitted', () => {
+    it('sets refetchInterval to undefined on both queries when option is omitted', () => {
       renderHook(() => useTraderPositions('trader-1'));
 
       const calls = mockUseQuery.mock.calls;
       expect(calls[0][0]).toEqual(
         expect.objectContaining({ refetchInterval: undefined }),
       );
-      expect(calls[1][0]).not.toEqual(
-        expect.objectContaining({ refetchInterval: expect.anything() }),
+      expect(calls[1][0]).toEqual(
+        expect.objectContaining({ refetchInterval: undefined }),
       );
     });
   });
@@ -206,66 +206,142 @@ describe('useTraderPositions', () => {
   });
 
   describe('error handling', () => {
-    it('returns null when there are no errors', () => {
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
+    describe('combined error field', () => {
+      it('returns null when there are no errors', () => {
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
 
-      expect(result.current.error).toBeNull();
-    });
+        expect(result.current.error).toBeNull();
+      });
 
-    it('returns the open query error before the closed query error', () => {
-      mockUseQuery
-        .mockReturnValueOnce(
-          makeQueryResult({ error: new Error('open error') }),
-        )
-        .mockReturnValueOnce(
-          makeQueryResult({ error: new Error('closed error') }),
+      it('returns the open query error before the closed query error', () => {
+        mockUseQuery
+          .mockReturnValueOnce(
+            makeQueryResult({ error: new Error('open error') }),
+          )
+          .mockReturnValueOnce(
+            makeQueryResult({ error: new Error('closed error') }),
+          );
+
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+        expect(result.current.error).toBe('open error');
+      });
+
+      it('returns the closed query error when the open query succeeds', () => {
+        mockUseQuery
+          .mockReturnValueOnce(makeQueryResult())
+          .mockReturnValueOnce(
+            makeQueryResult({ error: new Error('closed error') }),
+          );
+
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+        expect(result.current.error).toBe('closed error');
+      });
+
+      it('converts non-Error values to strings', () => {
+        mockUseQuery
+          .mockReturnValueOnce(makeQueryResult({ error: 'raw error' as never }))
+          .mockReturnValueOnce(makeQueryResult());
+
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+        expect(result.current.error).toBe('raw error');
+      });
+
+      it('logs the combined error', () => {
+        const error = new Error('fetch failed');
+
+        mockUseQuery
+          .mockReturnValueOnce(makeQueryResult({ error }))
+          .mockReturnValueOnce(makeQueryResult());
+
+        renderHook(() => useTraderPositions('trader-1'));
+
+        expect(Logger.error).toHaveBeenCalledWith(
+          error,
+          'useTraderPositions: positions fetch failed',
         );
+      });
 
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
-
-      expect(result.current.error).toBe('open error');
+      it('does not log when there is no error', () => {
+        renderHook(() => useTraderPositions('trader-1'));
+        expect(Logger.error).not.toHaveBeenCalled();
+      });
     });
 
-    it('returns the closed query error when the open query succeeds', () => {
-      mockUseQuery
-        .mockReturnValueOnce(makeQueryResult())
-        .mockReturnValueOnce(
-          makeQueryResult({ error: new Error('closed error') }),
-        );
+    describe('per-side error fields', () => {
+      it('returns null for both openError and closedError when no errors occur', () => {
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
 
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
+        expect(result.current.openError).toBeNull();
+        expect(result.current.closedError).toBeNull();
+      });
 
-      expect(result.current.error).toBe('closed error');
-    });
+      it('exposes openError from the open query only', () => {
+        mockUseQuery
+          .mockReturnValueOnce(
+            makeQueryResult({ error: new Error('open failed') }),
+          )
+          .mockReturnValueOnce(makeQueryResult());
 
-    it('converts non-Error values to strings', () => {
-      mockUseQuery
-        .mockReturnValueOnce(makeQueryResult({ error: 'raw error' as never }))
-        .mockReturnValueOnce(makeQueryResult());
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
 
-      const { result } = renderHook(() => useTraderPositions('trader-1'));
+        expect(result.current.openError).toBe('open failed');
+        expect(result.current.closedError).toBeNull();
+      });
 
-      expect(result.current.error).toBe('raw error');
-    });
+      it('exposes closedError from the closed query only', () => {
+        mockUseQuery
+          .mockReturnValueOnce(makeQueryResult())
+          .mockReturnValueOnce(
+            makeQueryResult({ error: new Error('closed failed') }),
+          );
 
-    it('logs the combined error', () => {
-      const error = new Error('fetch failed');
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
 
-      mockUseQuery
-        .mockReturnValueOnce(makeQueryResult({ error }))
-        .mockReturnValueOnce(makeQueryResult());
+        expect(result.current.openError).toBeNull();
+        expect(result.current.closedError).toBe('closed failed');
+      });
 
-      renderHook(() => useTraderPositions('trader-1'));
+      it('exposes both openError and closedError independently when both queries fail', () => {
+        mockUseQuery
+          .mockReturnValueOnce(
+            makeQueryResult({ error: new Error('open failed') }),
+          )
+          .mockReturnValueOnce(
+            makeQueryResult({ error: new Error('closed failed') }),
+          );
 
-      expect(Logger.error).toHaveBeenCalledWith(
-        error,
-        'useTraderPositions: positions fetch failed',
-      );
-    });
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
 
-    it('does not log when there is no error', () => {
-      renderHook(() => useTraderPositions('trader-1'));
-      expect(Logger.error).not.toHaveBeenCalled();
+        expect(result.current.openError).toBe('open failed');
+        expect(result.current.closedError).toBe('closed failed');
+      });
+
+      it('converts non-Error openError values to strings', () => {
+        mockUseQuery
+          .mockReturnValueOnce(
+            makeQueryResult({ error: 'raw open error' as never }),
+          )
+          .mockReturnValueOnce(makeQueryResult());
+
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+        expect(result.current.openError).toBe('raw open error');
+      });
+
+      it('converts non-Error closedError values to strings', () => {
+        mockUseQuery
+          .mockReturnValueOnce(makeQueryResult())
+          .mockReturnValueOnce(
+            makeQueryResult({ error: 'raw closed error' as never }),
+          );
+
+        const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+        expect(result.current.closedError).toBe('raw closed error');
+      });
     });
   });
 });

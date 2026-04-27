@@ -17,17 +17,30 @@ import errorStateLight from '../../../../../images/error-state-no-connection-lig
 import errorStateDark from '../../../../../images/error-state-no-connection-dark.png';
 
 interface ErrorStateProps {
-  /** Text describing what failed to load (e.g., "Unable to load predictions") */
+  /** Primary heading text (e.g. "Unable to load predictions") */
   title: string;
-  /** Callback for the retry button (may be async) */
+  /** Optional secondary description shown below the title. */
+  subtitle?: string;
+  /** Callback for the action button (may be async) */
   onRetry: () => void | Promise<void>;
+  /** Label for the action button. Defaults to the localised "Retry" string. */
+  actionLabel?: string;
+  /** Optional testID forwarded to the action button. */
+  actionButtonTestID?: string;
 }
 
 /**
- * Generic error state for homepage sections.
- * Shows a no-connection illustration, error message, and a retry button.
+ * Generic error / empty state.
+ * Shows a no-connection illustration, a title, an optional subtitle, and an
+ * action button whose label defaults to "Retry".
  */
-const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
+const ErrorState: React.FC<ErrorStateProps> = ({
+  title,
+  subtitle,
+  onRetry,
+  actionLabel,
+  actionButtonTestID,
+}) => {
   const tw = useTailwind();
   const noConnectionImage = useAssetFromTheme(errorStateLight, errorStateDark);
 
@@ -52,19 +65,29 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
         style={tw.style('w-[72px] h-[72px]')}
       />
       <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
+        variant={TextVariant.HeadingSm}
+        color={TextColor.TextDefault}
         twClassName="text-center"
       >
         {title}
       </Text>
+      {subtitle ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
+          {subtitle}
+        </Text>
+      ) : null}
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         onPress={handleRetry}
         twClassName={'self-center'}
+        testID={actionButtonTestID}
       >
-        {strings('homepage.error.retry')}
+        {actionLabel ?? strings('homepage.error.retry')}
       </Button>
     </Box>
   );

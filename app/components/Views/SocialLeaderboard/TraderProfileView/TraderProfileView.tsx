@@ -108,13 +108,16 @@ const TraderProfileView = () => {
     (position: Position) => {
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
         traderId,
+        tokenAddress: position.tokenAddress,
+        chain: position.chain,
+        tokenSymbol: position.tokenSymbol,
+        positionContext: activeTab,
         traderName,
         traderImageUrl: profile?.profile.imageUrl ?? undefined,
-        tokenSymbol: position.tokenSymbol,
         position,
       });
     },
-    [navigation, traderId, traderName, profile?.profile.imageUrl],
+    [navigation, traderId, traderName, profile?.profile.imageUrl, activeTab],
   );
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =

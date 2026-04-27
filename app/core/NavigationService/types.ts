@@ -560,9 +560,12 @@ export interface RootStackParamList extends ParamListBase {
   TraderProfileView: { traderId: string; traderName: string };
   TraderPositionView: {
     traderId: string;
-    traderName: string;
-    traderImageUrl?: string;
+    tokenAddress: string;
+    chain: string;
     tokenSymbol: string;
+    positionContext: 'open' | 'closed';
+    traderName?: string;
+    traderImageUrl?: string;
     position?: Position;
   };
 

@@ -89,6 +89,8 @@ let mockPositionsResult: UseTraderPositionsResult = {
   isLoadingOpen: false,
   isLoadingClosed: false,
   error: null,
+  openError: null,
+  closedError: null,
 };
 
 jest.mock('./hooks', () => ({
@@ -113,6 +115,8 @@ describe('TraderProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
     };
   });
 
@@ -178,11 +182,41 @@ describe('TraderProfileView', () => {
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         traderId: 'trader-1',
+        tokenAddress: fixtureOpenPositions[0].tokenAddress,
+        chain: fixtureOpenPositions[0].chain,
+        tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
+        positionContext: 'open',
         traderName: 'dutchiono',
         traderImageUrl: 'https://example.com/avatar.png',
-        tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
       },
+    );
+  });
+
+  it('passes positionContext as closed when tapping a position on the closed tab', () => {
+    mockPositionsResult = {
+      ...mockPositionsResult,
+      closedPositions: [
+        {
+          ...fixtureOpenPositions[0],
+          tokenSymbol: 'STARKBOT',
+          positionAmount: 0,
+          soldUsd: 1500,
+          realizedPnl: 300,
+        },
+      ],
+    };
+
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
+    );
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      expect.objectContaining({ positionContext: 'closed' }),
     );
   });
 
