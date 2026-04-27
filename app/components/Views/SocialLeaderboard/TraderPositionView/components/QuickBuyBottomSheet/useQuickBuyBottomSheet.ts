@@ -409,8 +409,6 @@ export function useQuickBuyBottomSheet(
       hasQuoteRequestableAmount &&
       !isDestinationAddressMissing,
   );
-  const isAwaitingQuote =
-    hasCompleteQuoteInputs && !activeQuote && !isQuoteLoading && !hasError;
   const isPendingQuoteRefresh =
     settledSourceTokenAmountRef.current !== sourceTokenAmount &&
     hasCompleteQuoteInputs;
@@ -426,6 +424,7 @@ export function useQuickBuyBottomSheet(
     !activeQuote ||
     hasQuoteMismatch ||
     isPendingQuoteRefresh ||
+    isQuoteLoading ||
     hasInsufficientBalance ||
     hasSufficientGas === false ||
     isSubmittingTx ||
@@ -437,11 +436,7 @@ export function useQuickBuyBottomSheet(
   const isTotalLoading =
     hasValidAmount && (isQuoteLoading || isPendingQuoteRefresh);
 
-  const isConfirmLoading =
-    isSubmittingTx ||
-    isAwaitingQuote ||
-    isPendingQuoteRefresh ||
-    (isQuoteLoading && !activeQuote && hasCompleteQuoteInputs);
+  const isConfirmLoading = isSubmittingTx;
 
   const buttonError: QuickBuyButtonError | null = hasInsufficientBalance
     ? 'insufficient_balance'
