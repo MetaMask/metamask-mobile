@@ -58,7 +58,6 @@ import {
   CashbackWithdrawRequest,
   CashbackWithdrawResponse,
   CashbackWithdrawEstimationResponse,
-  DelegationPostApprovalParams,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
