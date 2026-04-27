@@ -181,3 +181,17 @@ export const selectPredictBottomSheetEnabledFlag = createSelector(
       ),
     ) ?? false,
 );
+
+/**
+ * Selector for Predict CLOB v2 legacy host override.
+ *
+ * When `predictClobV2` is enabled and `predictClobV2UseLegacyClobHost` is also enabled,
+ * returns the legacy v2 CLOB host URL for internal RC testing during the migration window.
+ * Otherwise returns `undefined` so the protocol uses the canonical host.
+ *
+ * @returns {string | undefined} The legacy v2 CLOB host URL, or undefined.
+ */
+export const selectPredictClobV2ClobBaseUrlFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictClobV2ClobBaseUrl,
+);

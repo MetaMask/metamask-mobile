@@ -213,6 +213,20 @@ describe('usePredictBuyError', () => {
       );
     });
 
+    it('suppresses pay token balance alert while input is focused', () => {
+      mockIsPredictBalanceSelected = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+          isInputFocused: true,
+        }),
+      );
+
+      expect(result.current.errorMessage).toBeUndefined();
+    });
+
     it('returns undefined when activeOrder has no error', () => {
       mockActiveOrder = {};
 

@@ -13,6 +13,7 @@ import {
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
 } from '.';
+import { LEGACY_V2_CLOB_BASE_URL } from '../../providers/polymarket/constants';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,

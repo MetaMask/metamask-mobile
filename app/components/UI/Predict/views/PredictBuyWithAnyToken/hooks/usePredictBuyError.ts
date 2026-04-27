@@ -17,6 +17,7 @@ interface UsePredictBuyInfoParams {
   isInsufficientBalance: boolean;
   maxBetAmount: number;
   isPayFeesLoading: boolean;
+  isInputFocused?: boolean;
   blockingPayAlertMessage: string | null;
 }
 
@@ -29,6 +30,7 @@ export const usePredictBuyError = ({
   isInsufficientBalance,
   maxBetAmount,
   isPayFeesLoading,
+  isInputFocused,
   blockingPayAlertMessage,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
@@ -41,7 +43,11 @@ export const usePredictBuyError = ({
       return undefined;
     }
 
-    const ready = !isPayFeesLoading && !isPredictBalanceSelected;
+    // Suppress the pay-token alert while the user is actively editing the
+    // amount. The deposit amount only syncs to TransactionPayController when
+    // the input loses focus, so the alert may reflect an outdated amount.
+    const ready =
+      !isPayFeesLoading && !isPredictBalanceSelected && !isInputFocused;
 
     if (ready && !!blockingPayAlertMessage) {
       return {
@@ -63,6 +69,7 @@ export const usePredictBuyError = ({
     preview,
     isPayFeesLoading,
     isPredictBalanceSelected,
+    isInputFocused,
     blockingPayAlertMessage,
     activeOrder?.error,
   ]);
