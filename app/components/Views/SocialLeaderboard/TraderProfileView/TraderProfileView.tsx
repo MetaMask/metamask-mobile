@@ -25,6 +25,7 @@ import {
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
@@ -109,11 +110,12 @@ const TraderProfileView = () => {
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
         traderId,
         traderName,
+        traderImageUrl: profile?.profile.imageUrl ?? undefined,
         tokenSymbol: position.tokenSymbol,
         position,
       });
     },
-    [navigation, traderId, traderName],
+    [navigation, traderId, traderName, profile?.profile.imageUrl],
   );
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =
@@ -177,6 +179,7 @@ const TraderProfileView = () => {
               <ProfileHeader
                 profile={profile.profile}
                 followerCount={profile.followerCount}
+                twitterHandle={profile.socialHandles?.twitter}
               />
             )}
 
@@ -195,8 +198,24 @@ const TraderProfileView = () => {
                   <Button
                     variant={
                       isFollowing
-                        ? ButtonVariant.Primary
-                        : ButtonVariant.Secondary
+                        ? ButtonVariant.Secondary
+                        : ButtonVariant.Primary
+                    }
+                    style={
+                      isFollowing
+                        ? undefined
+                        : {
+                            backgroundColor: lightTheme.colors.primary.default,
+                          }
+                    }
+                    textProps={
+                      isFollowing
+                        ? undefined
+                        : {
+                            style: {
+                              color: lightTheme.colors.overlay.inverse,
+                            },
+                          }
                     }
                     isFullWidth
                     onPress={toggleFollow}

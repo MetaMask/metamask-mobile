@@ -5,11 +5,6 @@ import type {
   TrackEventType,
 } from '@segment/analytics-react-native';
 
-const defaultAllowedEvents = {
-  allowedEvents: ['Allowed event 1', 'Allowed event 2'],
-  allowedTraits: ['allowed_trait_1', 'allowed_trait_2'],
-};
-
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
@@ -65,29 +60,23 @@ describe('BrazePlugin', () => {
     });
 
     it('flushes pending traits when profileId is set', () => {
-      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
-      const [trait1, trait2] = defaultAllowedEvents.allowedTraits;
-
-      plugin.identify(makeIdentifyEvent({ [trait1]: 'a', [trait2]: 'b' }));
+      plugin.identify(makeIdentifyEvent({ trait1: 'a', trait2: 'b' }));
       expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
 
       plugin.setBrazeProfileId('profile-123');
 
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        trait1,
+        'trait1',
         'a',
       );
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        trait2,
+        'trait2',
         'b',
       );
     });
 
     it('clears pending traits after flushing so they are not sent again', () => {
-      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
-      const trait = defaultAllowedEvents.allowedTraits[0];
-
-      plugin.identify(makeIdentifyEvent({ [trait]: 'buffered' }));
+      plugin.identify(makeIdentifyEvent({ trait1: 'buffered' }));
       plugin.setBrazeProfileId('profile-123');
 
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledTimes(1);
@@ -99,10 +88,7 @@ describe('BrazePlugin', () => {
     });
 
     it('discards pending traits when profileId is cleared', () => {
-      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
-      const trait = defaultAllowedEvents.allowedTraits[0];
-
-      plugin.identify(makeIdentifyEvent({ [trait]: 'buffered' }));
+      plugin.identify(makeIdentifyEvent({ trait1: 'buffered' }));
       plugin.setBrazeProfileId(undefined);
 
       expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
@@ -114,28 +100,16 @@ describe('BrazePlugin', () => {
   });
 
   describe('track', () => {
-    it('forwards allowed events to Braze when profileId is set', () => {
+    it('forwards events to Braze when profileId is set', () => {
       plugin.setBrazeProfileId('profile-123');
-      plugin.setAllowedEvents(defaultAllowedEvents.allowedEvents);
-      const allowedName = defaultAllowedEvents.allowedEvents[0];
-      const event = makeTrackEvent(allowedName, { screen: 'home' });
+      const event = makeTrackEvent('Some Event', { screen: 'home' });
 
       const result = plugin.track(event);
 
-      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith(allowedName, {
+      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith('Some Event', {
         screen: 'home',
       });
       expect(result).toBe(event);
-    });
-
-    it('blocks events not in the allowlist', () => {
-      plugin.setBrazeProfileId('profile-123');
-      const event = makeTrackEvent('Some Random Event');
-
-      const result = plugin.track(event);
-
-      expect(mockBraze.logCustomEvent).not.toHaveBeenCalled();
-      expect(result).toBeUndefined();
     });
 
     it('passes events through when profileId is not set', () => {
@@ -148,11 +122,9 @@ describe('BrazePlugin', () => {
     });
 
     it('stops forwarding after profileId is cleared', () => {
-      plugin.setAllowedEvents(defaultAllowedEvents.allowedEvents);
       plugin.setBrazeProfileId('profile-123');
       plugin.setBrazeProfileId(undefined);
-      const allowedName = defaultAllowedEvents.allowedEvents[0];
-      const event = makeTrackEvent(allowedName);
+      const event = makeTrackEvent('Some Event');
 
       const result = plugin.track(event);
 
@@ -161,68 +133,29 @@ describe('BrazePlugin', () => {
     });
   });
 
-  describe('setAllowedEvents', () => {
-    it('replaces the allowlist at runtime', () => {
-      plugin.setBrazeProfileId('profile-123');
-      plugin.setAllowedEvents(['Custom Event A', 'Custom Event B']);
-
-      const allowed = makeTrackEvent('Custom Event A');
-      const blocked = makeTrackEvent(defaultAllowedEvents.allowedEvents[0]);
-
-      expect(plugin.track(allowed)).toBe(allowed);
-      expect(plugin.track(blocked)).toBeUndefined();
-
-      expect(mockBraze.logCustomEvent).toHaveBeenCalledTimes(1);
-      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith(
-        'Custom Event A',
-        undefined,
-      );
-    });
-
-    it('can set an empty allowlist to block everything', () => {
-      plugin.setBrazeProfileId('profile-123');
-      plugin.setAllowedEvents([]);
-
-      const event = makeTrackEvent(defaultAllowedEvents.allowedEvents[0]);
-
-      expect(plugin.track(event)).toBeUndefined();
-      expect(mockBraze.logCustomEvent).not.toHaveBeenCalled();
-    });
-  });
-
   describe('identify', () => {
-    it('forwards allowed custom attributes to Braze when profileId is set', () => {
+    it('forwards all custom attributes to Braze when profileId is set', () => {
       plugin.setBrazeProfileId('profile-123');
-      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
-      const allowedTrait1 = defaultAllowedEvents.allowedTraits[0];
-      const allowedTrait2 = defaultAllowedEvents.allowedTraits[1];
       const event = makeIdentifyEvent({
-        [allowedTrait1]: true,
-        [allowedTrait2]: 'dark',
-        blocked_trait: 'should_not_be_sent',
+        trait1: true,
+        trait2: 'dark',
       });
 
       const result = plugin.identify(event);
 
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        allowedTrait1,
+        'trait1',
         true,
       );
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        allowedTrait2,
+        'trait2',
         'dark',
-      );
-      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalledWith(
-        'blocked_trait',
-        expect.anything(),
       );
       expect(result).toBe(event);
     });
 
     it('buffers traits when profileId is not set', () => {
-      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
-      const allowedTrait = defaultAllowedEvents.allowedTraits[0];
-      const event = makeIdentifyEvent({ [allowedTrait]: true });
+      const event = makeIdentifyEvent({ trait1: true });
 
       const result = plugin.identify(event);
 
@@ -231,38 +164,32 @@ describe('BrazePlugin', () => {
     });
 
     it('merges traits from multiple identify calls before profileId is set', () => {
-      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
-      const [trait1, trait2] = defaultAllowedEvents.allowedTraits;
-
-      plugin.identify(makeIdentifyEvent({ [trait1]: 'value1' }));
-      plugin.identify(makeIdentifyEvent({ [trait2]: 'value2' }));
+      plugin.identify(makeIdentifyEvent({ trait1: 'value1' }));
+      plugin.identify(makeIdentifyEvent({ trait2: 'value2' }));
 
       expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
 
       plugin.setBrazeProfileId('profile-123');
 
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        trait1,
+        'trait1',
         'value1',
       );
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        trait2,
+        'trait2',
         'value2',
       );
     });
 
     it('uses last value when the same trait is identified multiple times before profileId', () => {
-      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
-      const trait = defaultAllowedEvents.allowedTraits[0];
-
-      plugin.identify(makeIdentifyEvent({ [trait]: 'first' }));
-      plugin.identify(makeIdentifyEvent({ [trait]: 'second' }));
+      plugin.identify(makeIdentifyEvent({ trait1: 'first' }));
+      plugin.identify(makeIdentifyEvent({ trait1: 'second' }));
 
       plugin.setBrazeProfileId('profile-123');
 
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledTimes(1);
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        trait,
+        'trait1',
         'second',
       );
     });
@@ -279,79 +206,26 @@ describe('BrazePlugin', () => {
 
     it('skips undefined trait values', () => {
       plugin.setBrazeProfileId('profile-123');
-      plugin.setAllowedTraits(defaultAllowedEvents.allowedTraits);
-      const allowedTrait1 = defaultAllowedEvents.allowedTraits[0];
-      const allowedTrait2 = defaultAllowedEvents.allowedTraits[1];
       const event = makeIdentifyEvent({
-        [allowedTrait1]: 'dark',
+        trait1: 'dark',
         undefinedField: undefined,
-        [allowedTrait2]: 42,
+        trait2: 42,
       });
 
       plugin.identify(event);
 
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        allowedTrait1,
+        'trait1',
         'dark',
       );
       expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        allowedTrait2,
+        'trait2',
         42,
       );
       expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalledWith(
         'undefinedField',
         expect.anything(),
       );
-    });
-
-    it('blocks traits not in the allowlist', () => {
-      plugin.setBrazeProfileId('profile-123');
-      const event = makeIdentifyEvent({
-        random_trait: 'value',
-        another_blocked: 123,
-      });
-
-      const result = plugin.identify(event);
-
-      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
-      expect(result).toBe(event);
-    });
-  });
-
-  describe('setAllowedTraits', () => {
-    it('replaces the trait allowlist at runtime', () => {
-      plugin.setBrazeProfileId('profile-123');
-      plugin.setAllowedTraits(['custom_trait_a', 'custom_trait_b']);
-
-      const event = makeIdentifyEvent({
-        custom_trait_a: 'allowed',
-        [defaultAllowedEvents.allowedTraits[0]]: 'blocked',
-      });
-
-      plugin.identify(event);
-
-      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledTimes(1);
-      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'custom_trait_a',
-        'allowed',
-      );
-      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalledWith(
-        defaultAllowedEvents.allowedTraits[0],
-        expect.anything(),
-      );
-    });
-
-    it('can set an empty trait allowlist to block everything', () => {
-      plugin.setBrazeProfileId('profile-123');
-      plugin.setAllowedTraits([]);
-
-      const event = makeIdentifyEvent({
-        [defaultAllowedEvents.allowedTraits[0]]: 'value',
-      });
-
-      plugin.identify(event);
-
-      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
     });
   });
 

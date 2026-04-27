@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -21,8 +21,16 @@ import {
   IconName,
   IconSize,
   IconColor,
+  IconAlert,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import {
+  getFeatureTags,
+  getResultTypeConfig,
+} from '../../SecurityTrust/utils/securityUtils';
+import type { TokenSecurityFeature } from '../../SecurityTrust/types';
+import { SecurityBanner } from './SecurityBanner';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 
 export interface SecurityBadgeBottomSheetParams {
   icon: IconName;
@@ -35,6 +43,7 @@ export interface SecurityBadgeBottomSheetParams {
   tokenAddress?: string;
   tokenSymbol?: string;
   chainId?: string;
+  features?: TokenSecurityFeature[];
 }
 
 type SecurityBadgeBottomSheetRouteProp = RouteProp<
@@ -58,7 +67,32 @@ const SecurityBadgeBottomSheet = () => {
     tokenAddress,
     tokenSymbol,
     chainId,
+    features,
   } = route.params;
+
+  // Get feature tags for Malicious, Warning, and Spam types only (max 5)
+  const featureTags = useMemo(() => {
+    if (
+      features &&
+      features.length > 0 &&
+      (severity === 'Malicious' ||
+        severity === 'Warning' ||
+        severity === 'Spam')
+    ) {
+      // Use showAll=true to get all tags, then manually slice to 5
+      const result = getFeatureTags(features, severity, true);
+      const maxTags = 5;
+      return result.tags.slice(0, maxTags);
+    }
+    return [];
+  }, [features, severity]);
+
+  // Get security configuration
+  const securityConfig = useMemo(
+    () => getResultTypeConfig(severity),
+    [severity],
+  );
+  const { iconAlertSeverity } = securityConfig;
 
   useEffect(() => {
     trackEvent(
@@ -127,7 +161,7 @@ const SecurityBadgeBottomSheet = () => {
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ size: ButtonIconSize.Lg }}
+        closeButtonProps={{ size: ButtonIconSize.Sm }}
       />
       <Box
         flexDirection={BoxFlexDirection.Column}
@@ -137,10 +171,14 @@ const SecurityBadgeBottomSheet = () => {
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
-          gap={2}
+          gap={4}
           twClassName="self-stretch"
         >
-          <Icon name={icon} size={IconSize.Xl} color={iconColor} />
+          {iconAlertSeverity && severity !== 'Verified' ? (
+            <IconAlert severity={iconAlertSeverity} size={IconSize.Xl} />
+          ) : (
+            <Icon name={icon} size={IconSize.Xl} color={iconColor} />
+          )}
           <Box
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Center}
@@ -148,38 +186,93 @@ const SecurityBadgeBottomSheet = () => {
             twClassName="self-stretch"
           >
             <DSText
-              variant={DSTextVariant.HeadingLg}
+              variant={DSTextVariant.HeadingMd}
               color={DSTextColor.TextDefault}
               fontWeight={FontWeight.Medium}
               twClassName="text-center"
             >
               {title}
             </DSText>
-            <DSText
-              variant={DSTextVariant.BodyMd}
-              color={DSTextColor.TextAlternative}
-              twClassName="text-center mb-2"
-            >
-              {description}
-            </DSText>
+            {severity !== 'Malicious' ? (
+              <DSText
+                variant={DSTextVariant.BodyMd}
+                color={DSTextColor.TextAlternative}
+                twClassName="text-center mb-1"
+              >
+                {description}
+              </DSText>
+            ) : (
+              <SecurityBanner
+                securityConfig={securityConfig}
+                backgroundClass="bg-error-muted"
+                titleFontWeight={FontWeight.Bold}
+                testID="security-banner-malicious"
+                className="mb-1 mt-3 gap-4"
+                description={strings(
+                  'security_trust.malicious_token_banner_description',
+                  {
+                    symbol: tokenSymbol,
+                  },
+                )}
+              />
+            )}
           </Box>
         </Box>
+        {featureTags.length > 0 && (
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Start}
+            twClassName="self-stretch mb-4"
+            gap={4}
+          >
+            {featureTags.map((tag) => (
+              <Box
+                key={tag.label}
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="w-full"
+                gap={3}
+              >
+                {iconAlertSeverity && (
+                  <IconAlert severity={iconAlertSeverity} size={IconSize.Md} />
+                )}
+                <DSText
+                  variant={DSTextVariant.BodyMd}
+                  color={DSTextColor.TextDefault}
+                >
+                  {tag.label}
+                </DSText>
+              </Box>
+            ))}
+          </Box>
+        )}
         {onProceed ? (
           <Box
-            flexDirection={BoxFlexDirection.Row}
+            flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Start}
-            twClassName="self-stretch flex-wrap gap-4"
+            twClassName="self-stretch gap-4"
           >
             <Button
               variant={ButtonVariant.Secondary}
-              twClassName="flex-1"
+              isFullWidth
               onPress={handleProceed}
+              twClassName={severity === 'Malicious' ? 'bg-error-default' : ''}
             >
-              {strings('security_trust.proceed')}
+              <DSText
+                variant={DSTextVariant.BodyMd}
+                color={
+                  severity === 'Malicious'
+                    ? DSTextColor.PrimaryInverse
+                    : DSTextColor.TextDefault
+                }
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('security_trust.continue_anyway')}
+              </DSText>
             </Button>
             <Button
               variant={ButtonVariant.Primary}
-              twClassName="flex-1"
+              isFullWidth
               onPress={handleClose}
             >
               {strings('security_trust.cancel')}

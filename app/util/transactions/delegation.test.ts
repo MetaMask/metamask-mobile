@@ -91,7 +91,14 @@ describe('Transaction Delegation Utils', () => {
         TRANSACTION_META_MOCK,
       );
 
-      expect(result).toMatchSnapshot();
+      expect(result).toBeDefined();
+      expect(result.to).toBeDefined();
+      expect(result.data).toBeDefined();
+      expect(result.value).toBe('0x0');
+      expect(result.authorizationList).toHaveLength(1);
+      expect(result.authorizationList?.[0].address).toBe(
+        UPGRADE_CONTRACT_ADDRESS_MOCK,
+      );
     });
 
     it('does not include authorization if already upgraded', async () => {

@@ -13,18 +13,12 @@ import { captureException } from '@sentry/react-native';
  * Segment destination plugin that forwards events to the native Braze SDK
  * using a MetaMask profile ID rather than Segment's default userId.
  *
- * Only track events whose name appears in the allowlist are forwarded.
- * The allowlist is loaded from a local JSON file by default and can be
- * replaced at runtime (e.g. from a CDN) via {@link setAllowedEvents}.
- *
  * When no profileId is set the plugin is a no-op — nothing is sent to Braze.
  */
 export class BrazePlugin extends EventPlugin {
   type = PluginType.destination;
 
   private brazeProfileId: string | undefined;
-  private allowedEvents: Set<string> = new Set();
-  private allowedTraits: Set<string> = new Set();
   private pendingIdentifyTraits: Record<string, unknown> | undefined;
   private currentLanguage: string | undefined;
 
@@ -74,28 +68,6 @@ export class BrazePlugin extends EventPlugin {
   }
 
   /**
-   * Replace the event-name allowlist at runtime.
-   * Pass the full list of event names that should be forwarded to Braze.
-   */
-  setAllowedEvents(eventNames: string[]): void {
-    this.allowedEvents = new Set(eventNames);
-    Logger.log(
-      `[BrazePlugin] Updated allowed events (${eventNames.length} events)`,
-    );
-  }
-
-  /**
-   * Replace the trait-name allowlist at runtime.
-   * Pass the full list of trait keys that should be forwarded to Braze.
-   */
-  setAllowedTraits(traitNames: string[]): void {
-    this.allowedTraits = new Set(traitNames);
-    Logger.log(
-      `[BrazePlugin] Updated allowed traits (${traitNames.length} traits)`,
-    );
-  }
-
-  /**
    * Set the app language on Braze using the native setLanguage API.
    *
    * Always stores the value so it can be sent when a profileId becomes
@@ -138,10 +110,6 @@ export class BrazePlugin extends EventPlugin {
   track(event: TrackEventType): TrackEventType | undefined {
     if (this.brazeProfileId === undefined) {
       return event;
-    }
-
-    if (!this.allowedEvents.has(event.event)) {
-      return undefined;
     }
 
     try {
@@ -196,7 +164,6 @@ export class BrazePlugin extends EventPlugin {
     // and never uses standard Braze profile fields like email/firstName/etc
     for (const [key, value] of Object.entries(traits)) {
       if (value === undefined) continue;
-      if (!this.allowedTraits.has(key)) continue;
 
       const sanitized = this.sanitizeAttribute(value);
       if (sanitized !== undefined) {
