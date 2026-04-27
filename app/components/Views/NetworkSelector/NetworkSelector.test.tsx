@@ -72,6 +72,7 @@ jest.mock('../../../selectors/featureFlagController/gasFeesSponsored', () => ({
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
+let mockRouteParams: Record<string, unknown> = {};
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -80,6 +81,9 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockedNavigate,
       goBack: mockedGoBack,
+    }),
+    useRoute: () => ({
+      params: mockRouteParams,
     }),
   };
 });
@@ -310,25 +314,23 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
-const createMockRoute = () => ({
-  params: {},
-  key: 'NetworkSelector',
-  name: 'NetworkSelector' as const,
-});
-
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="NETWORK_SELECTOR">
-        {() => <NetworkSelector route={createMockRoute()} />}
+        {() => <NetworkSelector />}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
   );
 
 describe('Network Selector', () => {
+  beforeEach(() => {
+    mockRouteParams = {};
+  });
+
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     renderComponent(initialState);
@@ -680,10 +682,7 @@ describe('Network Selector', () => {
 
     it('renders "No network fee" as tertiary text in send flow', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-      const navModule = jest.requireMock('@react-navigation/native');
-      jest
-        .spyOn(navModule, 'useRoute')
-        .mockReturnValue({ params: { source: 'SEND_FLOW' } });
+      mockRouteParams = { source: 'SEND_FLOW' };
 
       const { getAllByText, getByText } = renderComponent(initialState);
 

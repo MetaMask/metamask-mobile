@@ -172,6 +172,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+let mockRouteParams: Record<string, unknown> = {};
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -179,6 +180,9 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockedNavigate,
       goBack: mockedGoBack,
+    }),
+    useRoute: () => ({
+      params: mockRouteParams,
     }),
   };
 });
@@ -273,18 +277,16 @@ describe('MultichainAccountPermissions', () => {
     jest.clearAllMocks();
     mockedNavigate.mockReset();
     mockedGoBack.mockReset();
+    mockRouteParams = {};
   });
 
   describe('handleOnCancel', () => {
     it('should call navigation goBack when cancel is pressed', () => {
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -297,14 +299,11 @@ describe('MultichainAccountPermissions', () => {
 
   describe('handleOnEdit', () => {
     it('should switch to EditAccountsPermissions screen when edit is pressed', () => {
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -321,14 +320,11 @@ describe('MultichainAccountPermissions', () => {
 
   describe('handleOnEditNetworks', () => {
     it('should switch to ConnectMoreNetworks screen when edit networks is pressed', () => {
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -347,14 +343,11 @@ describe('MultichainAccountPermissions', () => {
       const mockUpdateCaveat = Engine.context.PermissionController
         .updateCaveat as jest.Mock;
 
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -375,14 +368,11 @@ describe('MultichainAccountPermissions', () => {
 
   describe('handleAccountGroupsSelected', () => {
     it('should verify account groups can be selected', () => {
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -396,14 +386,11 @@ describe('MultichainAccountPermissions', () => {
 
   describe('handleNetworksSelected', () => {
     it('should handle network selection flow', () => {
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -421,14 +408,11 @@ describe('MultichainAccountPermissions', () => {
 
     it('handles network selection and calls onSubmit with correct chain IDs', async () => {
       // Arrange
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByText, getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -463,14 +447,11 @@ describe('MultichainAccountPermissions', () => {
       mockGetNetworkImageSource.mockClear();
 
       // Act - Render the component
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -496,14 +477,11 @@ describe('MultichainAccountPermissions', () => {
 
   describe('screen navigation', () => {
     it('should render correct screen based on current state', () => {
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
@@ -511,14 +489,11 @@ describe('MultichainAccountPermissions', () => {
     });
 
     it('should handle navigation between screens', () => {
+      mockRouteParams = {
+        hostInfo: { metadata: { origin: 'test.com' } },
+      };
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountPermissions
-          route={{
-            params: {
-              hostInfo: { metadata: { origin: 'test.com' } },
-            },
-          }}
-        />,
+        <MultichainAccountPermissions />,
         { state: mockInitialState() },
       );
 
