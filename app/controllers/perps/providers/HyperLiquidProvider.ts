@@ -2541,7 +2541,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     const accountState = await infoClient.clearinghouseState(queryParams);
     const adapted = adaptAccountStateFromSDK(accountState);
-    return parseFloat(adapted.spendableBalance);
+    return parseFloat(adapted.withdrawableBalance);
   }
 
   /**
