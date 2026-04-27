@@ -134,11 +134,13 @@ All three agent harnesses (Yarn, Claude Code, Cursor) automatically record tool/
 
 To opt out, set `TOOL_USAGE_COLLECTION_OPT_IN=false` in your shell profile. Collection is also automatically disabled in CI (`CI` env var set).
 
-| Path              | Mechanism                                                                                       | Tokens |
-| ----------------- | ----------------------------------------------------------------------------------------------- | ------ |
-| `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`)                                                       | 0      |
-| Claude Code skill | `PreToolUse` hook in `.claude/skills/<skill>/SKILL.md` frontmatter                              | 0      |
-| Cursor skill      | `beforeReadFile` hook in `.cursor/hooks.json` → `scripts/tooling/cursor-hook-skill-tracking.ts` | 0      |
+| Path              | Mechanism                                                                                                             | Tokens |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- | ------ |
+| `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`)                                                                             | 0      |
+| Claude Code skill | `PreToolUse(Read)` hook in `.claude/settings.json`, filtered to `.claude/skills/*/SKILL.md` → `hook-skill-tracking.ts` | 0      |
+| Cursor skill      | `beforeReadFile` hook in `.cursor/hooks.json` → `hook-skill-tracking.ts` (filters `.agents/skills/` + `.cursor/skills/`) | 0      |
+
+> Skill tracking granularity is **one event per session per skill** (not per invocation), because both harnesses cache skill content after first read. See [`scripts/tooling/README.md`](./scripts/tooling/README.md#caveats) for the full tracking model.
 
 Inspect your local activity:
 
