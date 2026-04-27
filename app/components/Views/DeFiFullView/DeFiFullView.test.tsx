@@ -15,6 +15,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('../TokensFullView/useFullViewSortResetEffect', () => ({
+  useFullViewSortResetEffect: jest.fn(),
+}));
+
 jest.mock('../../UI/DeFiPositions/DeFiPositionsList', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');

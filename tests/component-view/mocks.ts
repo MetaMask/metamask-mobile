@@ -32,6 +32,7 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           securityAlertsEnabled: true,
         },
+        setTokenSortConfig: jest.fn(),
         setTokenNetworkFilter() {
           return undefined;
         },

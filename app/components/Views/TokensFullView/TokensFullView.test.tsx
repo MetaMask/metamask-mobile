@@ -16,6 +16,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('./useFullViewSortResetEffect', () => ({
+  useFullViewSortResetEffect: jest.fn(),
+}));
+
 // Mock AssetPollingProvider to avoid Engine/controller polling setup
 jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
