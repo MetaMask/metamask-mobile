@@ -3200,6 +3200,8 @@
     "network_delete": "이 네트워크를 삭제하시면, 이 네트워크에 있는 자산을 볼 때 네트워크를 다시 추가해야 합니다",
     "networks_default_cta": "이 네트워크 사용",
     "add_rpc_url": "RPC URL 추가",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "블록 탐색기 URL 추가",
     "networks_desc": "맞춤 RPC 네트워크 추가 및 수정",
     "networks_enabled": "활성화된 네트워크",
@@ -3517,6 +3519,7 @@
     "security_alerts": "보안 경고",
     "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동 탐지를 보장하지는 않습니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
     "smart_account_dapp_requests_heading": "디앱의 스마트 계정 요청",
+    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "스마트 트랜잭션",
     "smart_transactions_opt_in_desc_supported_networks": "지원되는 네트워크에서 더 안정적이고 안전하게 트랜잭션을 진행하려면 스마트 트랜잭션을 활성화하세요.",
     "smart_transactions_learn_more": "더 보기",
@@ -3793,13 +3796,16 @@
     "risky": "위험",
     "malicious_token_title": "악성 토큰",
     "malicious_token_description": "{{symbol}}은(는) 악성 토큰입니다. 이 토큰과 상호작용하거나 거래하지 마세요.",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "검증된 토큰",
     "verified_token_description": "{{symbol}}은(는) 활발하게 거래되고 있으며 널리 알려져 있습니다. 검증은 MetaMask의 보증을 의미하지 않습니다.",
-    "risky_token_title": "위험한 토큰",
-    "risky_token_description": "{{symbol}}에 대해 주의가 필요한 신호가 감지되었습니다. 이 토큰을 거래하기 전에 충분히 조사하세요.",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "{{symbol}}에 대해 심각한 위험 신호가 감지되었습니다. 이 토큰은 거래하지 않는 것이 좋습니다.",
     "got_it": "컨펌",
     "proceed": "진행",
+    "continue_anyway": "Continue anyway",
     "cancel": "취소",
     "data_unavailable": "보안 데이터 없음",
     "subtitle_known": "위험 신호가 감지되지 않았습니다. 거래하기 전에 항상 자산을 조사하세요.",
@@ -3832,7 +3838,64 @@
     "suspicious": "의심됨",
     "malicious_label": "악성",
     "more": "더 보기",
-    "evaluation_disclaimer": "이 보안 검토는 평가용일 뿐이므로 거래에 대한 보증이나 권유로 받아들여서는 안 됩니다."
+    "evaluation_disclaimer": "이 보안 검토는 평가용일 뿐이므로 거래에 대한 보증이나 권유로 받아들여서는 안 됩니다.",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "계정 세부 정보",
@@ -5572,8 +5635,8 @@
     "more_to_complete": "스와프를 완료하기 위해 더 많은 양이 필요합니다.",
     "more_gas_to_complete": "스와프를 완료하기 위해 가스가 더 필요합니다.",
     "token_marketplace": "토큰 마켓플레이스",
-    "market_price_unavailable_title": "계속 진행하기 전에 환율을 확인하세요",
-    "market_price_unavailable": "시장 가격은 확인이 불가하며 때문에 가격 영향은 파악할 수 없습니다. 스와프 전에 받게 될 토큰 수량에 문제가 없는지 확인하세요.",
+    "market_price_unavailable_title": "No price information",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "{{amount}}의 가격 차이",
     "price_difference_title": "가격 차이",
     "price_difference_body": "시장 가격의 차이는 중개자, 시장 규모, 거래 규모 또는 시장의 비효율성이 반영된 수수료에 영향을 받을 수 있습니다.",
@@ -6387,7 +6450,10 @@
       "add": "추가",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "추가",
@@ -6421,7 +6487,12 @@
       "virtual_card": "가상 카드",
       "metal_card": "메탈 카드",
       "cashback": "{{percentage}}% 캐시백",
-      "get_now": "지금 받기"
+      "get_now": "지금 받기",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "혜택",
@@ -6465,8 +6536,8 @@
     "convert_stablecoins": {
       "title": "스테이블코인 전환하기",
       "description_prefix": "USDC, ",
-      "description_bonus": "USDT, DAI를 mUSD로 전환하고",
-      "description_suffix": " 연 3% 보너스를 받으세요.",
+      "description_bonus": "3% annualized bonus",
+      "description_suffix": " by converting USDC, USDT, and DAI to mUSD.",
       "tag_dollar_backed": "달러 연동",
       "tag_no_lockups": "예치 기간 없음",
       "tag_no_fee": "MetaMask 수수료 없음",
@@ -7073,6 +7144,11 @@
     "token_warning_malicious_banner": "{{token}}은(는) 악성 토큰입니다. 이 토큰과 상호작용할 때 주의하세요.",
     "token_warning_modal_suspicious_title": "의심스러운 토큰",
     "token_warning_modal_malicious_title": "악성 토큰",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "이 거래로 {{priceImpactFiat}}의 손실이 발생합니다"
   },
   "quote_expired_modal": {
@@ -8076,12 +8152,12 @@
       "step4_title_referral_validating": "추천 코드 확인 중...",
       "step4_referral_input_error": "잘못된 추천 코드",
       "title": "보상 적립 시작하기",
-      "description": "캠페인에 참여하여 수령할 수 있는 혜택을 찾아보세요",
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "보상 프로그램 가입",
       "sign_up_loading": "가입 중...",
       "legal_disclaimer_1": "가입하면 약관에 동의하는 것으로",
-      "legal_disclaimer_2": "간주됩니다",
-      "legal_disclaimer_3": ". 이 기기의 모든 계정이 참여 상태로 설정됩니다.",
+      "legal_disclaimer_2": "Terms of Use",
+      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "더 보기",
       "referral_prompt": "추천 코드가 있으세요?",
       "referral_hide": "코드 숨기기",
@@ -8405,13 +8481,9 @@
       "previous_title": "이전",
       "empty_state": "참여 가능한 캠페인이 없습니다",
       "error_title": "캠페인을 불러올 수 없습니다",
-      "error_description": "캠페인을 불러오지 못했습니다. 다시 시도하세요.",
+      "error_description": "We couldn't load any campaigns. Please try again.",
       "retry_button": "다시 시도",
       "refreshing": "새로 고침 중..."
-    },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8422,10 +8494,38 @@
       "mail_subject": "Ondo campaign prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
-      "close_a11y": "Close",
-      "error_title": "Could not load your winning code",
-      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
-      "error_retry": "Try again"
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Campaign has ended.",
+        "description": "We're determining the results. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Campaign results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
+      }
     }
   },
   "time": {

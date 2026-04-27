@@ -3200,6 +3200,8 @@
     "network_delete": "Si elimina esta red, deberá volver a agregarla para ver sus activos en esta red",
     "networks_default_cta": "Usar esta red",
     "add_rpc_url": "Agregar URL de RPC",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "Añadir URL del explorador de bloques",
     "networks_desc": "Agregar y editar redes RPC personalizadas",
     "networks_enabled": "Redes habilitadas",
@@ -3517,6 +3519,7 @@
     "security_alerts": "Alertas de seguridad",
     "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al activar esta función, acepta los términos de uso del proveedor.",
     "smart_account_dapp_requests_heading": "Solicitudes de cuentas inteligentes desde dapps",
+    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "Transacciones inteligentes",
     "smart_transactions_opt_in_desc_supported_networks": "Active las transacciones inteligentes para realizar transacciones más confiables y seguras en las redes compatibles.",
     "smart_transactions_learn_more": "Conozca más",
@@ -3793,13 +3796,16 @@
     "risky": "Riesgoso",
     "malicious_token_title": "Token malicioso",
     "malicious_token_description": "{{symbol}} es un token malicioso. Evita interactuar o realizar operaciones con él.",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "Token verificado",
     "verified_token_description": "{{symbol}} opera activamente y goza de amplio reconocimiento. La verificación no implica el respaldo de MetaMask.",
-    "risky_token_title": "Token riesgoso",
-    "risky_token_description": "Se detectaron señales de precaución para {{symbol}}. Investiga bien antes de operar con este token.",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "Se detectaron señales de riesgo grave para {{symbol}}. Te recomendamos no operar con este token.",
     "got_it": "Entendido",
     "proceed": "Continuar",
+    "continue_anyway": "Continue anyway",
     "cancel": "Cancelar",
     "data_unavailable": "Datos de seguridad no disponibles",
     "subtitle_known": "No se detectaron señales de riesgo. Siempre investiga cualquier activo antes de operar.",
@@ -3832,7 +3838,64 @@
     "suspicious": "Sospechoso",
     "malicious_label": "Malicioso",
     "more": "más",
-    "evaluation_disclaimer": "Esta revisión de seguridad es solo para fines de evaluación y no constituye un respaldo ni una recomendación para operar."
+    "evaluation_disclaimer": "Esta revisión de seguridad es solo para fines de evaluación y no constituye un respaldo ni una recomendación para operar.",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "Detalles de la cuenta",
@@ -5572,8 +5635,8 @@
     "more_to_complete": "más para completar este swap.",
     "more_gas_to_complete": "más en Gas para completar este swap.",
     "token_marketplace": "Mercado de tókenes",
-    "market_price_unavailable_title": "Antes de continuar, verifique su tasa",
-    "market_price_unavailable": "El precio del mercado no está disponible y, por lo tanto, se desconoce el impacto sobre el precio. Antes de intercambiar, verifique que esté de acuerdo con la cantidad de tokens que está a punto de recibir.",
+    "market_price_unavailable_title": "No price information",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "Diferencia de precio de {{amount}}",
     "price_difference_title": "Diferencia de precio",
     "price_difference_body": "La diferencia en los precios del mercado puede estar afectada por tarifas de intermediarios, el volumen del mercado, el volumen de la transacción o ineficacias del mercado.",
@@ -6387,7 +6450,10 @@
       "add": "Agregar",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "Agregar",
@@ -6421,7 +6487,12 @@
       "virtual_card": "Tarjeta Virtual",
       "metal_card": "Tarjeta Metal",
       "cashback": "{{percentage}} % de cashback",
-      "get_now": "Obtener ahora"
+      "get_now": "Obtener ahora",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "Lo que obtienes",
@@ -7073,6 +7144,11 @@
     "token_warning_malicious_banner": "{{token}} es un token malicioso. Ten cuidado al interactuar con este token.",
     "token_warning_modal_suspicious_title": "Token sospechoso",
     "token_warning_modal_malicious_title": "Token malicioso",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "Perderás {{priceImpactFiat}} en esta operación"
   },
   "quote_expired_modal": {
@@ -8076,12 +8152,12 @@
       "step4_title_referral_validating": "Validando código de recomendación...",
       "step4_referral_input_error": "Código de recomendación no válido",
       "title": "Empieza a ganar recompensas",
-      "description": "Únete a campañas y encuentra beneficios reclamables",
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "Unirse a Recompensas",
       "sign_up_loading": "Uniéndose...",
       "legal_disclaimer_1": "Al unirte, aceptas los",
-      "legal_disclaimer_2": "Términos",
-      "legal_disclaimer_3": ". Se inscribirán todas las cuentas de este dispositivo.",
+      "legal_disclaimer_2": "Terms of Use",
+      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "Conozca más",
       "referral_prompt": "¿Tienes un código de recomendación?",
       "referral_hide": "Ocultar código",
@@ -8405,13 +8481,9 @@
       "previous_title": "Previa",
       "empty_state": "No hay campañas disponibles",
       "error_title": "No se pueden cargar las campañas",
-      "error_description": "No pudimos cargar las campañas. Inténtalo de nuevo.",
+      "error_description": "We couldn't load any campaigns. Please try again.",
       "retry_button": "Reintentar",
       "refreshing": "Actualizando..."
-    },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8422,10 +8494,38 @@
       "mail_subject": "Ondo campaign prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
-      "close_a11y": "Close",
-      "error_title": "Could not load your winning code",
-      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
-      "error_retry": "Try again"
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Campaign has ended.",
+        "description": "We're determining the results. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Campaign results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
+      }
     }
   },
   "time": {

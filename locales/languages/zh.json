@@ -3200,6 +3200,8 @@
     "network_delete": "如果您删除此网络，则需要再次添加此网络才能查看您在其中的资产",
     "networks_default_cta": "使用此网络",
     "add_rpc_url": "添加 RPC（远程过程调用）URL",
+    "rpc_sheet_network_update_failed": "Couldn't save this RPC URL. Check your connection and try again.",
+    "url_sheet_network_update_failed": "Couldn't save changes. Check your connection and try again.",
     "add_block_explorer_url": "添加区块浏览器 URL",
     "networks_desc": "添加并编辑自定义 RPC 网络",
     "networks_enabled": "启用的网络",
@@ -3517,6 +3519,7 @@
     "security_alerts": "安全警报",
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
     "smart_account_dapp_requests_heading": "来自 dapp 的智能账户请求",
+    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "智能交易",
     "smart_transactions_opt_in_desc_supported_networks": "开启智能交易，以便在支持网络上实现更加安全可靠的交易。",
     "smart_transactions_learn_more": "了解详情",
@@ -3793,13 +3796,16 @@
     "risky": "高风险",
     "malicious_token_title": "恶意代币",
     "malicious_token_description": "{{symbol}} 是恶意代币。请避免与之交互或进行交易。",
+    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "suspicious_token_description": "{{symbol}} is a suspicious token.",
     "verified_token_title": "已验证代币",
     "verified_token_description": "{{symbol}} 交易活跃且被广泛认可。验证并不代表 MetaMask 的背书。",
-    "risky_token_title": "高风险代币",
-    "risky_token_description": "检测到关于 {{symbol}} 的警示信号。交易此代币前，请仔细研究。",
+    "risky_token_title": "Suspicious token",
+    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "检测到关于 {{symbol}} 的严重风险信号。建议不要交易此代币。",
     "got_it": "知道了",
     "proceed": "继续",
+    "continue_anyway": "Continue anyway",
     "cancel": "取消",
     "data_unavailable": "无法获取安全数据",
     "subtitle_known": "未检测到风险信号。交易任何资产前请务必自行研究。",
@@ -3832,7 +3838,64 @@
     "suspicious": "可疑",
     "malicious_label": "恶意",
     "more": "展开",
-    "evaluation_disclaimer": "本安全审查仅供评估之用，不构成对交易的背书或推荐。"
+    "evaluation_disclaimer": "本安全审查仅供评估之用，不构成对交易的背书或推荐。",
+    "features": {
+      "positive": {
+        "high_reputation_token": "Established reputation",
+        "listed_on_centralized_exchange": "Listed on exchange",
+        "verified_contract": "Published contract",
+        "high_trade_volume": "High trading volume"
+      },
+      "negative": {
+        "known_malicious": "Known malicious",
+        "metadata": "Suspicious metadata",
+        "impersonator_sensitive_asset": "Impersonates a sensitive asset",
+        "static_code_signature": "Suspicious code",
+        "rugpull": "Rugpull risk",
+        "high_transfer_fee": "High transfer fee",
+        "high_buy_fee": "High buy fee",
+        "high_sell_fee": "High sell fee",
+        "unsellable_token": "Unsellable token",
+        "sanctioned_creator": "Sanctioned creator",
+        "similar_malicious_contract": "Resembles malicious contract",
+        "token_backdoor": "Token backdoor",
+        "post_dump": "Possible price manipulation",
+        "impersonator_high_confidence": "Likely impersonator",
+        "impersonator_medium_confidence": "Possible impersonator",
+        "airdrop_pattern": "Suspicious airdrop",
+        "impersonator": "Impersonator",
+        "inorganic_volume": "Artificial volume",
+        "dynamic_analysis": "Suspicious behavior",
+        "unstable_token_price": "Unstable price",
+        "inappropriate_content": "Inappropriate content",
+        "honeypot": "Honeypot risk",
+        "spam_text": "Spam text",
+        "insufficient_locked_liquidity": "Low locked liquidity",
+        "concentrated_supply_distribution": "Concentrated supply",
+        "wash_trading": "Wash trading",
+        "fake_volume": "Fake volume",
+        "hidden_supply_by_key_holder": "Undisclosed supply",
+        "heavily_sniped": "Heavy bot activity",
+        "fake_trade_maker_count": "Inflated trader count",
+        "low_reputation_creator": "Creator has low reputation",
+        "snipe_at_mint": "Bot activity at launch",
+        "impersonator_low_confidence": "Unconfirmed impersonator",
+        "is_mintable": "Mintable",
+        "can_blacklist": "Can blacklist",
+        "can_whitelist": "Can whitelist",
+        "has_trading_cooldown": "Trading cooldown",
+        "external_functions": "External calls",
+        "hidden_owner": "Hidden owner",
+        "transfer_pauseable": "Transfers pauseable",
+        "proxy_contract": "Proxy contract",
+        "modifiable_taxes": "Modifiable taxes",
+        "owner_can_change_balance": "Owner can change balance",
+        "transfer_from_reverts": "Transfer reversals enabled",
+        "transfer_hook_enabled": "Transfer hook enabled",
+        "confidential_transfers_enabled": "Confidential transfers",
+        "non_transerable": "Non-transferable"
+      }
+    }
   },
   "account_details": {
     "title": "账户详情",
@@ -5572,8 +5635,8 @@
     "more_to_complete": "更多才能完成这次兑换。",
     "more_gas_to_complete": "更多燃料，以完成这次兑换。",
     "token_marketplace": "代币市场",
-    "market_price_unavailable_title": "在继续之前，请检查您的费率",
-    "market_price_unavailable": "市场价格不可用，因此价格影响未知。在兑换之前，请确认您对您将收到的代币数量感到满意。",
+    "market_price_unavailable_title": "No price information",
+    "market_price_unavailable": "We couldn’t get price information for this token. Make sure the amount received is what you expect before continuing.",
     "price_difference": "价格差异为 {{amount}}",
     "price_difference_title": "价格差异",
     "price_difference_body": "市场价格的差异可能受到中介机构收取的费用、市场规模、交易规模或市场低效率的影响。",
@@ -6387,7 +6450,10 @@
       "add": "添加",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card"
+      "step2_cta": "Get card",
+      "link_card_title": "Link your MetaMask Card",
+      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_card_cta": "Link card"
     },
     "action": {
       "add": "添加",
@@ -6421,7 +6487,12 @@
       "virtual_card": "虚拟卡",
       "metal_card": "金属卡",
       "cashback": "{{percentage}}% 返现",
-      "get_now": "立即获取"
+      "get_now": "立即获取",
+      "link_title": "Link MetaMask Card",
+      "link_subtitle": "Spend your Money balance and earn.",
+      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_card": "Link card"
     },
     "what_you_get": {
       "title": "您将获得",
@@ -7073,6 +7144,11 @@
     "token_warning_malicious_banner": "{{token}} 为恶意代币。请谨慎与之交互。",
     "token_warning_modal_suspicious_title": "可疑代币",
     "token_warning_modal_malicious_title": "恶意代币",
+    "token_warning_modal_suspicious_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "token_warning_modal_malicious_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "token_warning_modal_suspicious_feature_title": "Suspicious activity",
+    "token_warning_modal_malicious_feature_title": "Malicious activity",
+    "token_warning_modal_continue_anyway": "Continue anyway",
     "price_impact_fiat_alert": "此笔交易您将损失 {{priceImpactFiat}}"
   },
   "quote_expired_modal": {
@@ -8076,12 +8152,12 @@
       "step4_title_referral_validating": "正在验证推荐码……",
       "step4_referral_input_error": "推荐码无效",
       "title": "开始赚取奖励",
-      "description": "参与活动，发现可领取福利",
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "加入奖励计划",
       "sign_up_loading": "正在加入……",
       "legal_disclaimer_1": "加入即表示您同意",
-      "legal_disclaimer_2": "条款",
-      "legal_disclaimer_3": "。本设备上的全部账户都将参与。",
+      "legal_disclaimer_2": "Terms of Use",
+      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "了解详情",
       "referral_prompt": "有推荐码吗？",
       "referral_hide": "隐藏代码",
@@ -8405,13 +8481,9 @@
       "previous_title": "先前",
       "empty_state": "暂无活动",
       "error_title": "无法加载活动",
-      "error_description": "我们无法加载活动。请重试。",
+      "error_description": "We couldn't load any campaigns. Please try again.",
       "retry_button": "重试",
       "refreshing": "正在刷新……"
-    },
-    "ondo_winning_banner": {
-      "title": "You won the {{campaignName}}",
-      "description": "Claim your prize now!"
     },
     "ondo_campaign_winning": {
       "you_won": "You won",
@@ -8422,10 +8494,38 @@
       "mail_subject": "Ondo campaign prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
-      "close_a11y": "Close",
-      "error_title": "Could not load your winning code",
-      "error_description": "Something went wrong while fetching your code. Please try again later or contact support.",
-      "error_retry": "Try again"
+      "close_a11y": "Close"
+    },
+    "ondo_outcome_banner": {
+      "winner_pending": {
+        "title": "You won",
+        "description": "Claim your prize today.",
+        "a11y": "Open winner details"
+      },
+      "participant_pending": {
+        "title": "Campaign has ended.",
+        "description": "We're determining the results. Check back soon."
+      },
+      "participant_finalized": {
+        "title": "Campaign results are in",
+        "description": "You didn't win this time. Check the leaderboard to see where you finished."
+      },
+      "winner_finalized": {
+        "title": "You're a confirmed winner!",
+        "description": "Your reward is on its way — we'll be in touch shortly."
+      }
+    },
+    "ondo_outcome_toast": {
+      "winner_verify": {
+        "title": "You won 💰",
+        "description": "Claim your prize from the {{campaignName}}",
+        "cta": "View details"
+      },
+      "participant_no_winner": {
+        "title": "The results are in. 🏅",
+        "description": "See your ranking in the {{campaignName}}",
+        "cta": "View"
+      }
     }
   },
   "time": {
