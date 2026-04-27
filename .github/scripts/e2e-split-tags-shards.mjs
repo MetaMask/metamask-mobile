@@ -32,11 +32,6 @@ const env = {
 const QA_STATS_WORKFLOW_FILE = 'qa-stats.yml';
 const QA_STATS_ARTIFACT_NAME = 'qa-stats';
 const QA_STATS_JSON_FILENAME = 'qa-stats.json';
-// Optional local override: when this file exists in the working tree, the
-// script uses it instead of fetching the qa-stats artifact. Useful for
-// branch-level testing of time-based sharding before the upstream
-// `e2e_test_times` collector lands in QA Stats.
-const LOCAL_E2E_TEST_TIMES_FILE = path.resolve('tests/e2e-test-times.json');
 
 /**
  * Match timing keys (always POSIX-style in JSON) to spec paths from any OS.
@@ -239,20 +234,6 @@ async function githubRest(url) {
  * @returns {Promise<{ [filePath: string]: { ios?: number, android?: number } } | null>}
  */
 async function fetchE2ETestTimes() {
-  if (fs.existsSync(LOCAL_E2E_TEST_TIMES_FILE)) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(LOCAL_E2E_TEST_TIMES_FILE, 'utf8'));
-      const times = parsed?.e2e_test_times;
-      if (times && typeof times === 'object' && Object.keys(times).length > 0) {
-        console.log(`📂 Using local e2e_test_times override from ${LOCAL_E2E_TEST_TIMES_FILE}`);
-        return times;
-      }
-      console.log(`ℹ️  Local ${LOCAL_E2E_TEST_TIMES_FILE} has no e2e_test_times entry — falling through to qa-stats artifact`);
-    } catch (e) {
-      console.log(`ℹ️  Could not parse local ${LOCAL_E2E_TEST_TIMES_FILE} (${e?.message || e}) — falling through to qa-stats artifact`);
-    }
-  }
-
   if (!env.GITHUB_TOKEN) {
     console.log('ℹ️  qa-stats artifact unavailable (no GITHUB_TOKEN) — falling back to alphabetical split');
     return null;
