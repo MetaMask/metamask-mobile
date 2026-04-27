@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playSuccessNotification,
+  playErrorNotification,
+} from '../../../../../../util/haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -253,13 +256,13 @@ export function useQuickBuyBottomSheet(
       dispatch(setIsSubmittingTx(true));
       await submitBridgeTx({ quoteResponse: activeQuote });
       setTxPhase('success');
-      notificationAsync(NotificationFeedbackType.Success);
+      await playSuccessNotification();
       await new Promise((resolve) => setTimeout(resolve, 800));
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
-      notificationAsync(NotificationFeedbackType.Error);
+      await playErrorNotification();
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
