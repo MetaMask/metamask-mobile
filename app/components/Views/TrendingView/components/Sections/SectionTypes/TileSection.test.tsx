@@ -1,38 +1,46 @@
 import React from 'react';
-import { View, Text } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import TileSection from './TileSection';
+import { SECTIONS_CONFIG } from '../../../sections.config';
 
-const mockViewAllAction = jest.fn();
-const mockUseTileExtra = jest.fn(() => ({ sparklines: {} }));
+const mockUseTileExtra = jest.fn((_items: unknown[]) => ({
+  sparklines: {},
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn(), dispatch: jest.fn() }),
 }));
 
-jest.mock('../../../sections.config', () => ({
-  SECTIONS_CONFIG: {
-    perps: {
-      id: 'perps',
-      getItemIdentifier: (item: { symbol: string }) => item.symbol,
-      useTileExtra: (...args: unknown[]) => mockUseTileExtra(...args),
-      RowItem: ({
-        item,
-      }: {
-        item: unknown;
-        index: number;
-        navigation: unknown;
-        extra: unknown;
-      }) => (
-        <View testID={`tile-${(item as { symbol: string }).symbol}`}>
-          <Text>{(item as { symbol: string }).symbol}</Text>
-        </View>
-      ),
-      Skeleton: () => <View testID="mock-skeleton" />,
-      viewAllAction: mockViewAllAction,
+jest.mock('../../../sections.config', () => {
+  const { View, Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  const viewAllAction = jest.fn();
+  return {
+    SECTIONS_CONFIG: {
+      perps: {
+        id: 'perps',
+        getItemIdentifier: (item: { symbol: string }) => item.symbol,
+        useTileExtra: (items: unknown[]) => mockUseTileExtra(items),
+        RowItem: ({
+          item,
+        }: {
+          item: unknown;
+          index: number;
+          navigation: unknown;
+          extra: unknown;
+        }) => (
+          <View testID={`tile-${(item as { symbol: string }).symbol}`}>
+            <Text>{(item as { symbol: string }).symbol}</Text>
+          </View>
+        ),
+        Skeleton: () => <View testID="mock-skeleton" />,
+        viewAllAction,
+      },
     },
-  },
-}));
+  };
+});
+
+const mockViewAllAction = SECTIONS_CONFIG.perps.viewAllAction as jest.Mock;
 
 jest.mock('../../../../Homepage/components/ViewMoreCard', () => {
   const ReactNative = jest.requireActual('react-native');

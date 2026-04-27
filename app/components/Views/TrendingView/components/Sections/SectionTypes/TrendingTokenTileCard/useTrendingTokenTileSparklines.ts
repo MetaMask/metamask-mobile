@@ -114,11 +114,11 @@ export function useTrendingTokenTileSparklines(tokens: TrendingAsset[]): {
       }
     };
 
-    void Promise.all(
+    Promise.all(
       currentTokens
         .filter((t) => t.assetId.startsWith('eip155:'))
         .map(fetchOneEvm),
-    );
+    ).catch(() => undefined);
 
     // Non-EVM: delegate to MultichainAssetsRatesController → results land in Redux
     for (const token of currentTokens.filter(
@@ -149,13 +149,15 @@ export function useTrendingTokenTileSparklines(tokens: TrendingAsset[]): {
     const result: Record<string, number[]> = {};
     for (const token of tokens) {
       if (token.assetId.startsWith('eip155:')) continue;
-      const prices =
-        multichainHistoricalPrices?.[token.assetId]?.[vsCurrency]?.intervals?.[
-          SPARKLINE_INTERVAL
+      const historicalForAsset =
+        multichainHistoricalPrices?.[
+          token.assetId as keyof typeof multichainHistoricalPrices
         ];
+      const prices =
+        historicalForAsset?.[vsCurrency]?.intervals?.[SPARKLINE_INTERVAL];
       if (prices && prices.length >= 2) {
         result[token.assetId] = downsample(
-          prices.map(([, p]: [string, number]) => Number(p)),
+          prices.map((point) => Number(point[1])),
           SPARKLINE_TARGET_POINTS,
         );
       }

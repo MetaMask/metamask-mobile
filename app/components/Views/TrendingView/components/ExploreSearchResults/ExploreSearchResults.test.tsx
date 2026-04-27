@@ -1,10 +1,48 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
-import { useExploreSearch } from '../../hooks/useExploreSearch';
+import {
+  useExploreSearch,
+  type ExploreSearchResult,
+} from '../../hooks/useExploreSearch';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { SectionId } from '../../sections.config';
+
+const SECTION_IDS_ALL: SectionId[] = [
+  'predictions',
+  'sports_predictions',
+  'crypto_predictions',
+  'politics_predictions',
+  'tokens',
+  'crypto_movers',
+  'perps',
+  'rwa_perps',
+  'macro_stocks_commodity_perps',
+  'crypto_perps',
+  'stocks',
+  'sites',
+  'dapps_recents',
+];
+
+function createExploreSearchMock(args: {
+  sectionsOrder: SectionId[];
+  data?: Partial<Record<SectionId, unknown[]>>;
+  isLoading?: Partial<Record<SectionId, boolean>>;
+}): ExploreSearchResult {
+  const data = {} as Record<SectionId, unknown[]>;
+  const isLoading = {} as Record<SectionId, boolean>;
+  SECTION_IDS_ALL.forEach((id) => {
+    data[id] = [];
+    isLoading[id] = false;
+  });
+  return {
+    data: args.data ? { ...data, ...args.data } : data,
+    isLoading: args.isLoading ? { ...isLoading, ...args.isLoading } : isLoading,
+    sectionsOrder: args.sectionsOrder,
+  };
+}
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -75,38 +113,40 @@ describe('ExploreSearchResults', () => {
   });
 
   it('renders section headers for sections with data or loading', () => {
-    mockUseExploreSearch.mockReturnValue({
-      data: {
-        tokens: [
-          { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
-          { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
-        ],
-        perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
-        predictions: [
-          {
-            id: '1',
-            title: 'Will Bitcoin reach 100k?',
-            outcomes: [
-              {
-                id: 'outcome-1',
-                status: 'open',
-                tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],
-              },
-            ],
-          },
-        ],
-        stocks: [],
-        sites: [],
-      },
-      isLoading: {
-        tokens: false,
-        perps: false,
-        predictions: false,
-        stocks: false,
-        sites: false,
-      },
-      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-    });
+    mockUseExploreSearch.mockReturnValue(
+      createExploreSearchMock({
+        data: {
+          tokens: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+          ],
+          perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
+          predictions: [
+            {
+              id: '1',
+              title: 'Will Bitcoin reach 100k?',
+              outcomes: [
+                {
+                  id: 'outcome-1',
+                  status: 'open',
+                  tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],
+                },
+              ],
+            },
+          ],
+          stocks: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          stocks: false,
+          sites: false,
+        },
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+      }),
+    );
 
     const { getByText, getByTestId } = render(
       <ExploreSearchResults searchQuery="btc" />,
@@ -119,65 +159,8 @@ describe('ExploreSearchResults', () => {
   });
 
   it('only shows sections with data or loading state', () => {
-    mockUseExploreSearch.mockReturnValue({
-      data: {
-        tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-        perps: [],
-        predictions: [],
-        stocks: [],
-        sites: [],
-      },
-      isLoading: {
-        tokens: false,
-        perps: false,
-        predictions: false,
-        stocks: false,
-        sites: false,
-      },
-      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-    });
-
-    const { getByText, queryByText } = render(
-      <ExploreSearchResults searchQuery="btc" />,
-    );
-
-    expect(getByText('Trending tokens')).toBeOnTheScreen();
-    expect(queryByText('Perps')).toBeNull();
-    expect(queryByText('Predictions')).toBeNull();
-  });
-
-  it('passes search query to useExploreSearch hook', () => {
-    mockUseExploreSearch.mockReturnValue({
-      data: {
-        tokens: [],
-        perps: [],
-        predictions: [],
-        stocks: [],
-        sites: [],
-      },
-      isLoading: {
-        tokens: false,
-        perps: false,
-        predictions: false,
-        stocks: false,
-        sites: false,
-      },
-      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-    });
-
-    render(<ExploreSearchResults searchQuery="ethereum" />);
-
-    expect(mockUseExploreSearch).toHaveBeenCalledWith('ethereum');
-  });
-
-  describe('Footer', () => {
-    // Note: FlashList's ListFooterComponent doesn't render in test environment,
-    // so we verify the list renders correctly with the search query prop.
-    // The actual footer rendering is tested via the SitesSearchFooter unit tests.
-
-    it('renders list with search query that would trigger footer', () => {
-      // Arrange
-      mockUseExploreSearch.mockReturnValue({
+    mockUseExploreSearch.mockReturnValue(
+      createExploreSearchMock({
         data: {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
@@ -193,7 +176,70 @@ describe('ExploreSearchResults', () => {
           sites: false,
         },
         sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-      });
+      }),
+    );
+
+    const { getByText, queryByText } = render(
+      <ExploreSearchResults searchQuery="btc" />,
+    );
+
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(queryByText('Perps')).toBeNull();
+    expect(queryByText('Predictions')).toBeNull();
+  });
+
+  it('passes search query to useExploreSearch hook', () => {
+    mockUseExploreSearch.mockReturnValue(
+      createExploreSearchMock({
+        data: {
+          tokens: [],
+          perps: [],
+          predictions: [],
+          stocks: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          stocks: false,
+          sites: false,
+        },
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+      }),
+    );
+
+    render(<ExploreSearchResults searchQuery="ethereum" />);
+
+    expect(mockUseExploreSearch).toHaveBeenCalledWith('ethereum');
+  });
+
+  describe('Footer', () => {
+    // Note: FlashList's ListFooterComponent doesn't render in test environment,
+    // so we verify the list renders correctly with the search query prop.
+    // The actual footer rendering is tested via the SitesSearchFooter unit tests.
+
+    it('renders list with search query that would trigger footer', () => {
+      // Arrange
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
+            perps: [],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: false,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        }),
+      );
 
       // Act
       const { getByTestId, getByText } = render(
@@ -208,23 +254,25 @@ describe('ExploreSearchResults', () => {
 
     it('renders list with empty search query (no footer expected)', () => {
       // Arrange
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-          perps: [],
-          predictions: [],
-          stocks: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          stocks: false,
-          sites: false,
-        },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-      });
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
+            perps: [],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: false,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        }),
+      );
 
       // Act
       const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
@@ -238,23 +286,25 @@ describe('ExploreSearchResults', () => {
   describe('loading state', () => {
     it('renders skeleton items when section is loading', () => {
       // Arrange
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [],
-          perps: [],
-          predictions: [],
-          stocks: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: true,
-          perps: false,
-          predictions: false,
-          stocks: false,
-          sites: false,
-        },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-      });
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [],
+            perps: [],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: true,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        }),
+      );
 
       // Act
       const { getByText } = render(
@@ -267,23 +317,25 @@ describe('ExploreSearchResults', () => {
 
     it('hides section when not loading and has no data', () => {
       // Arrange
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [],
-          perps: [],
-          predictions: [],
-          stocks: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          stocks: false,
-          sites: false,
-        },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-      });
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [],
+            perps: [],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: false,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        }),
+      );
 
       // Act
       const { queryByText } = render(
@@ -306,23 +358,25 @@ describe('ExploreSearchResults', () => {
         }
         return undefined;
       });
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-          perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
-          predictions: [],
-          stocks: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          stocks: false,
-          sites: false,
-        },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-      });
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
+            perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: false,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        }),
+      );
 
       // Act
       const { queryByText } = render(
@@ -338,30 +392,32 @@ describe('ExploreSearchResults', () => {
   describe('section config handling', () => {
     it('handles undefined section config gracefully', () => {
       // Arrange
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-          perps: [],
-          predictions: [],
-          stocks: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          stocks: false,
-          sites: false,
-        },
-        sectionsOrder: [
-          'tokens',
-          'unknown' as 'tokens', // Intentionally invalid ID to test graceful handling
-          'stocks',
-          'perps',
-          'predictions',
-          'sites',
-        ],
-      });
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
+            perps: [],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: false,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: [
+            'tokens',
+            'unknown' as 'tokens', // Intentionally invalid ID to test graceful handling
+            'stocks',
+            'perps',
+            'predictions',
+            'sites',
+          ],
+        }),
+      );
 
       // Act & Assert - should not throw
       const { getByText } = render(<ExploreSearchResults searchQuery="btc" />);
@@ -371,28 +427,30 @@ describe('ExploreSearchResults', () => {
 
   describe('view all and item limit', () => {
     it('shows "View all" when a section has more than 3 items', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [
-            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
-            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
-            { assetId: '3', symbol: 'SOL', name: 'Solana' },
-            { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
-          ],
-          perps: [],
-          predictions: [],
-          stocks: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          stocks: false,
-          sites: false,
-        },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-      });
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [
+              { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+              { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+              { assetId: '3', symbol: 'SOL', name: 'Solana' },
+              { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+            ],
+            perps: [],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: false,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        }),
+      );
 
       const { getByText } = render(<ExploreSearchResults searchQuery="test" />);
 
@@ -400,26 +458,28 @@ describe('ExploreSearchResults', () => {
     });
 
     it('does not show "View all" when a section has 3 or fewer items', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [
-            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
-            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
-          ],
-          perps: [],
-          predictions: [],
-          stocks: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          stocks: false,
-          sites: false,
-        },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-      });
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [
+              { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+              { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+            ],
+            perps: [],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: false,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        }),
+      );
 
       const { queryByText } = render(
         <ExploreSearchResults searchQuery="test" />,
@@ -429,28 +489,30 @@ describe('ExploreSearchResults', () => {
     });
 
     it('navigates to full view with section params when "View all" is pressed', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [
-            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
-            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
-            { assetId: '3', symbol: 'SOL', name: 'Solana' },
-            { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
-          ],
-          perps: [],
-          predictions: [],
-          stocks: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          stocks: false,
-          sites: false,
-        },
-        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-      });
+      mockUseExploreSearch.mockReturnValue(
+        createExploreSearchMock({
+          data: {
+            tokens: [
+              { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+              { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+              { assetId: '3', symbol: 'SOL', name: 'Solana' },
+              { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+            ],
+            perps: [],
+            predictions: [],
+            stocks: [],
+            sites: [],
+          },
+          isLoading: {
+            tokens: false,
+            perps: false,
+            predictions: false,
+            stocks: false,
+            sites: false,
+          },
+          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+        }),
+      );
 
       const { getByText } = render(
         <ExploreSearchResults searchQuery="bitcoin" />,
