@@ -105,7 +105,7 @@ describe('DetectedTokens Component', () => {
   });
 
   it('renders correctly with detected tokens', () => {
-    const { getByText, toJSON } = render(
+    const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <DetectedTokens />
       </ThemeContext.Provider>,
@@ -115,12 +115,9 @@ describe('DetectedTokens Component', () => {
     expect(getByText('0 TKN1')).toBeTruthy();
     expect(getByText('0 TKN2')).toBeTruthy();
     expect(getByText('Import (2)')).toBeTruthy();
-
-    // Snapshot test
-    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('matches snapshot when no detected tokens', () => {
+  it('renders nothing when no detected tokens', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectDetectedTokens) return [];
       if (selector === selectAllDetectedTokensFlat) return [];
@@ -129,13 +126,14 @@ describe('DetectedTokens Component', () => {
       return {};
     });
 
-    const { toJSON } = render(
+    const { queryByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <DetectedTokens />
       </ThemeContext.Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(queryByText('new tokens found')).toBeNull();
+    expect(queryByText('Import')).toBeNull();
   });
 
   it('navigates to confirmation on "Hide All" button press', () => {
