@@ -4,10 +4,6 @@ import { IconName as LocalIconName } from '../../../../component-library/compone
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import {
-  PriceChangeOption,
-  SortDirection,
-} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { useRwaTokens } from '../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 import SectionCard from '../components/Sections/SectionTypes/SectionCard';
@@ -117,10 +113,6 @@ export const tokensSections = {
       const { data, isLoading, refetch } = useTrendingSearch({
         searchQuery,
         enableDebounce: false,
-        sortTrendingTokensOptions: {
-          option: PriceChangeOption.Volume,
-          direction: SortDirection.Descending,
-        },
       });
       const filteredData = useMemo(
         () =>
@@ -128,8 +120,7 @@ export const tokensSections = {
             data,
             searchQuery,
             TOKEN_FUSE_OPTIONS,
-            (a, b) =>
-              (b.aggregatedUsdVolume ?? 0) - (a.aggregatedUsdVolume ?? 0),
+            (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
           ),
         [data, searchQuery],
       );

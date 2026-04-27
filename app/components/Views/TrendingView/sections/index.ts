@@ -14,39 +14,24 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   ...sitesSections,
 };
 
-export const DEFAULT_HOME_ORDER: SectionId[] = [
-  'predictions',
-  'tokens',
-  'crypto_movers',
-  'perps',
-  'stocks',
-];
-
-/** Section order for Explore omni-search (see `useExploreSearchSectionsData` in useExploreSearch.ts). */
-export const DEFAULT_SEARCH_ORDER: SectionId[] = [
-  'tokens',
-  'perps',
-  'stocks',
-  'predictions',
-  'sites',
-];
-
-export const buildSections = (
-  order: SectionId[],
-  isPerpsEnabled: boolean,
-): (SectionConfig & { id: SectionId })[] =>
-  order
-    .filter((id) => isPerpsEnabled || id !== 'perps')
-    .map((id) => SECTIONS_CONFIG[id]);
-
 export const useSearchSectionsArray = (): (SectionConfig & {
   id: SectionId;
 })[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  return useMemo(
-    () => buildSections(DEFAULT_SEARCH_ORDER, isPerpsEnabled),
-    [isPerpsEnabled],
-  );
+  return useMemo(() => {
+    const next: (SectionConfig & { id: SectionId })[] = [
+      SECTIONS_CONFIG.tokens,
+    ];
+    if (isPerpsEnabled) {
+      next.push(SECTIONS_CONFIG.perps);
+    }
+    next.push(
+      SECTIONS_CONFIG.stocks,
+      SECTIONS_CONFIG.predictions,
+      SECTIONS_CONFIG.sites,
+    );
+    return next;
+  }, [isPerpsEnabled]);
 };
 
 // Re-export types for consumers that import from sections.config

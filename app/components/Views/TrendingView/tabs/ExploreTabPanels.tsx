@@ -10,8 +10,6 @@ import SectionHeader from '../components/SectionHeader/SectionHeader';
 import {
   type SectionConfig,
   type SectionId,
-  buildSections,
-  DEFAULT_HOME_ORDER,
   SECTIONS_CONFIG,
 } from '../sections.config';
 import type { ExploreTabId } from '../sections/types';
@@ -142,11 +140,24 @@ const useExploreTabPanelSections = (
 
   return useMemo(() => {
     switch (tab) {
-      case 'now':
+      case 'now': {
+        const next: (SectionConfig & { id: SectionId })[] = [];
+
+        if (isPredictEnabled) {
+          next.push(SECTIONS_CONFIG.predictions);
+        }
+
+        next.push(SECTIONS_CONFIG.crypto_movers);
+
+        if (isPerpsEnabled) {
+          next.push(SECTIONS_CONFIG.perps);
+        }
+        next.push(SECTIONS_CONFIG.stocks);
         return {
-          sections: buildSections(DEFAULT_HOME_ORDER, isPerpsEnabled),
+          sections: next,
           scrollViewTestId: TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW,
         };
+      }
       case 'macro': {
         const next: (SectionConfig & { id: SectionId })[] = [];
         if (isPredictEnabled) {
@@ -172,7 +183,6 @@ const useExploreTabPanelSections = (
       case 'crypto': {
         const next: (SectionConfig & { id: SectionId })[] = [
           SECTIONS_CONFIG.tokens,
-          SECTIONS_CONFIG.crypto_movers,
         ];
         if (isPerpsEnabled) {
           next.push(SECTIONS_CONFIG.crypto_perps);

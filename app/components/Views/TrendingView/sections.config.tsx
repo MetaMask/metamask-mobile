@@ -2,13 +2,7 @@
  * Re-export barrel — all section logic has been split into focused files under sections/.
  * This file exists only to preserve existing import paths across the codebase.
  */
-export {
-  SECTIONS_CONFIG,
-  DEFAULT_HOME_ORDER,
-  DEFAULT_SEARCH_ORDER,
-  buildSections,
-  useSearchSectionsArray,
-} from './sections/index';
+export { SECTIONS_CONFIG, useSearchSectionsArray } from './sections/index';
 
 export type {
   SectionId,

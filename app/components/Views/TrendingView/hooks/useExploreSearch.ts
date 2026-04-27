@@ -15,7 +15,7 @@ export interface ExploreSearchResult {
 export interface ExploreSearchOptions {
   /**
    * Custom order of sections for display.
-   * Defaults to `useSearchSectionsArray` (same as `DEFAULT_SEARCH_ORDER` in sections.config, with perps removed when perps is off).
+   * Defaults to `useSearchSectionsArray` (tokens, perps, stocks, predictions, sites; perps omitted when disabled).
    * The browser uses `['sites', 'tokens', 'perps', 'predictions']` to show Sites first.
    */
   sectionsOrder?: SectionId[];
@@ -29,7 +29,7 @@ type ExploreSearchSectionId =
   | 'sites';
 
 /**
- * Fetches data **only** for the Explore page omni-search. Matches `DEFAULT_SEARCH_ORDER` in sections.config
+ * Fetches data **only** for the Explore page omni-search. Section set matches `useSearchSectionsArray`
  * (tokens, perps, stocks, predictions, sites) and is not extended when new Explore tabs/sections are added.
  */
 const useExploreSearchSectionsData = (
