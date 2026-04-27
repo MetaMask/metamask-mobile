@@ -22,6 +22,7 @@ import {
   DEFAULT_TOKENS_FILTER_CONTEXT,
 } from './search-utils';
 import type { SectionConfig } from './types';
+import { ChainId } from '@metamask/controller-utils';
 
 const CryptoMoversPillItem: SectionConfig['RowItem'] = ({ item, index }) => {
   const token = item as TrendingAsset;
@@ -148,7 +149,10 @@ export const tokensSections = {
     OverrideSkeletonSearch: TrendingTokensSkeleton,
     Section: SectionCard,
     useSectionData: (searchQuery) => {
-      const { data, isLoading, refetch } = useRwaTokens({ searchQuery });
+      const { data, isLoading, refetch } = useRwaTokens({
+        searchQuery,
+        ...(searchQuery ? {} : { chainIds: ['eip155:1'] }),
+      });
       return { data, isLoading, refetch };
     },
   } satisfies SectionConfig,
