@@ -224,6 +224,8 @@ export interface NestedNavigationParams {
 
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
+import type { OnboardingSuccessRouteParams } from '../../components/Views/OnboardingSuccess';
+
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
@@ -376,7 +378,7 @@ export interface RootStackParamList extends ParamListBase {
   // Onboarding routes
   OnboardingRootNav: undefined;
   OnboardingSuccessFlow: undefined;
-  OnboardingSuccess: undefined;
+  OnboardingSuccess: OnboardingSuccessRouteParams | undefined;
   DefaultSettings: undefined;
   GeneralSettings: undefined;
   AssetsSettings: undefined;
