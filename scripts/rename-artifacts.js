@@ -216,7 +216,7 @@ function setGithubOutput(key, value) {
 
 /**
  * Path relative to GITHUB_WORKSPACE (or cwd) for upload-artifact.
- * upload-artifact treats `.app` bundles as directories; staging the ditto zip
+ * upload-artifact treats `.app` bundles as directories; staging the outer zip
  * under ios-simulator-upload/ and emitting this path ensures the artifact is a file.
  */
 function toRepoRelative(absFilePath) {
@@ -232,8 +232,9 @@ function toRepoRelative(absFilePath) {
 /**
  * Rename iOS artifacts
  *
- * Simulator-only: ios_simulator_path (zipped .app; under CI, copied to
- * ios-simulator-upload/ so upload-artifact uploads a .zip file, not a .app directory).
+ * Simulator-only: ios_simulator_path — inner zip is ditto of .app; outer zip is
+ * ditto of that inner zip (double-zip). Under CI, the outer zip is copied to
+ * ios-simulator-upload/ for upload-artifact.
  * Device-only: ios_ipa_path, ios_archive_path, ios_sourcemap_path.
  * Dual (IS_SIM_BUILD + IS_DEVICE_BUILD, e.g. main-dev): all of the above.
  */
@@ -285,15 +286,21 @@ function renameIos() {
       );
       console.log(`✅ Zipped: ${zipPath}`);
 
-      let simulatorUploadPath = zipPath;
+      const doubleZipPath = path.join(simProductsDir, `${newSimBaseName}.double.zip`);
+      execSync(
+        `ditto -c -k --sequesterRsrc "${zipPath}" "${doubleZipPath}"`,
+      );
+      console.log(`✅ Double-zipped (outer contains inner .zip): ${doubleZipPath}`);
+
+      let simulatorUploadPath = doubleZipPath;
       if (process.env.GITHUB_OUTPUT) {
         const stagingDir = path.join(__dirname, '../ios-simulator-upload');
         fs.rmSync(stagingDir, { recursive: true, force: true });
         fs.mkdirSync(stagingDir, { recursive: true });
-        const stagedZip = path.join(stagingDir, path.basename(zipPath));
-        fs.copyFileSync(zipPath, stagedZip);
+        const stagedZip = path.join(stagingDir, path.basename(doubleZipPath));
+        fs.copyFileSync(doubleZipPath, stagedZip);
         simulatorUploadPath = stagedZip;
-        console.log(`✅ Staged simulator zip for CI upload: ${stagedZip}`);
+        console.log(`✅ Staged simulator double-zip for CI upload: ${stagedZip}`);
       }
       setGithubOutput('ios_simulator_path', toRepoRelative(simulatorUploadPath));
     } else {
