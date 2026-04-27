@@ -31,6 +31,7 @@ import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
 import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
+import { registerMoneyAccountOverrideListener } from '../Engine/moneyAccountOverrideListener';
 
 export class EngineService {
   private engineInitialized = false;
@@ -179,6 +180,8 @@ export class EngineService {
       // Fire-and-forget: refresh social following state from the server.
       // Non-blocking — persisted state covers the UI until this resolves.
       hydrateSocialFollowing();
+
+      registerMoneyAccountOverrideListener();
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
