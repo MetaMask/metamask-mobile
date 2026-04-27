@@ -1,5 +1,8 @@
 import React from 'react';
-import { AvatarToken, AvatarTokenSize } from '@metamask/design-system-react-native';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import AssetLogo from './AssetLogo';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
