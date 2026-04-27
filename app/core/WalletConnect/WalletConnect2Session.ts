@@ -13,6 +13,7 @@ import {
   Hex,
   KnownCaipNamespace,
 } from '@metamask/utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import {
@@ -76,6 +77,7 @@ class WalletConnect2Session {
   private timeoutRef: NodeJS.Timeout | null = null;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
+  private accountChangeUnsubscribe: (() => void) | null = null;
 
   private _isHandlingRequest = false;
 
@@ -168,6 +170,7 @@ class WalletConnect2Session {
     });
 
     this.checkPendingRequests();
+    this.accountChangeUnsubscribe = this.subscribeToNonEvmAccountChanges();
   }
 
   /**
@@ -198,6 +201,137 @@ class WalletConnect2Session {
       this.channelId,
     );
     return perOriginChainId;
+  }
+
+  /**
+   * Subscribe to non-EVM account changes via the AccountsController.
+   * EVM account changes are handled separately through BackgroundBridge → WalletConnectPort.
+   *
+   * When the selected account switches to a non-EVM type that the active
+   * session already authorises, we reorder the namespace's account list so
+   * the dapp sees the new address as the active one — mirroring the EVM
+   * "first account is active" convention.
+   *
+   * @returns An unsubscribe callback.
+   */
+  private subscribeToNonEvmAccountChanges(): () => void {
+    const handler = (account: InternalAccount) => {
+      this.onNonEvmAccountChange(account);
+    };
+
+    const eventName = 'AccountsController:selectedAccountChange';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const messenger = (Engine as any).controllerMessenger;
+    messenger?.subscribe?.(eventName, handler);
+
+    return () => {
+      messenger?.unsubscribe?.(eventName, handler);
+    };
+  }
+
+  /**
+   * Callback for `AccountsController:selectedAccountChange`. Triggers a
+   * namespace reorder when the newly selected account belongs to a non-EVM
+   * namespace already authorised by the WC session.
+   */
+  private onNonEvmAccountChange(account: InternalAccount) {
+    // Account type format is `namespace:subtype` (e.g. `tron:eoa`,
+    // `solana:data-account`). Extract the CAIP-2 namespace prefix.
+    const namespace = account.type.split(':')[0];
+
+    // EVM accounts propagate via BackgroundBridge → WalletConnectPort.
+    if (namespace === KnownCaipNamespace.Eip155) return;
+
+    const nsConfig = this.session.namespaces?.[namespace];
+    if (!nsConfig) return;
+
+    // Only act when the selected address is part of the session's permitted
+    // accounts (CAIP-10 format: `namespace:chainRef:address`).
+    const isPermitted = nsConfig.accounts?.some(
+      (caip10: string) =>
+        caip10.split(':').slice(2).join(':') === account.address,
+    );
+    if (!isPermitted) return;
+
+    this.reorderNonEvmAccounts(namespace, account.address).catch((err) => {
+      DevLogger.log('[wc][WC2Session] non-EVM account reorder failed', err);
+    });
+  }
+
+  /**
+   * Move every CAIP-10 entry whose address matches `selectedAddress` to the
+   * front of the namespace's account list, then push the updated session to
+   * the dapp. WalletConnect dapps treat the first account in a namespace as
+   * the active one, so reordering triggers a visible account switch.
+   *
+   * Skips the `updateSession` call when the order is already correct.
+   */
+  private async reorderNonEvmAccounts(
+    namespace: string,
+    selectedAddress: string,
+  ) {
+    const nsConfig = this.session.namespaces?.[namespace];
+    if (!nsConfig?.accounts) return;
+
+    const accounts = [...nsConfig.accounts];
+    const selected: string[] = [];
+    const rest: string[] = [];
+    for (const caip10 of accounts) {
+      if (caip10.split(':').slice(2).join(':') === selectedAddress) {
+        selected.push(caip10);
+      } else {
+        rest.push(caip10);
+      }
+    }
+    const reordered = [...selected, ...rest];
+
+    if (
+      reordered.length === accounts.length &&
+      reordered.every((v, i) => v === accounts[i])
+    ) {
+      return;
+    }
+
+    const updatedNamespaces = {
+      ...this.session.namespaces,
+      [namespace]: { ...nsConfig, accounts: reordered },
+    };
+
+    await this.web3Wallet.updateSession({
+      topic: this.session.topic,
+      namespaces: updatedNamespaces,
+    });
+
+    // Sync local session state from WalletConnect's canonical copy.
+    const activeSession =
+      this.web3Wallet.getActiveSessions?.()?.[this.session.topic];
+    if (activeSession) {
+      this.session = activeSession;
+    } else {
+      this.session = {
+        ...this.session,
+        namespaces: updatedNamespaces,
+      };
+    }
+
+    // Notify the dapp via the namespace's first declared chain. Dapps
+    // typically listen for `accountsChanged` on a CAIP-2 scope to detect
+    // a wallet-side account switch.
+    const scope = nsConfig.chains?.[0];
+    if (scope) {
+      try {
+        await this.web3Wallet.emitSessionEvent({
+          topic: this.session.topic,
+          event: { name: 'accountsChanged', data: reordered },
+          chainId: scope as CaipChainId,
+        });
+      } catch (err) {
+        DevLogger.log(
+          '[wc][WC2Session] emit non-EVM accountsChanged failed',
+          err,
+        );
+      }
+    }
   }
 
   /** Check for pending unresolved requests */
@@ -775,6 +909,8 @@ class WalletConnect2Session {
   };
 
   removeListeners = async () => {
+    this.accountChangeUnsubscribe?.();
+    this.accountChangeUnsubscribe = null;
     this.backgroundBridge.onDisconnect();
   };
 

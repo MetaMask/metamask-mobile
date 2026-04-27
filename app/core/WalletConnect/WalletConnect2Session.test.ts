@@ -100,6 +100,13 @@ jest.mock('../Engine/Engine', () => {
           .mockReturnValue(() => ({ result: true })),
       },
     },
+    // Added for the non-EVM `AccountsController:selectedAccountChange`
+    // subscription in WalletConnect2Session. Existing EVM tests don't
+    // interact with these handlers, so behavior is unchanged.
+    controllerMessenger: {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+    },
   };
   return {
     __esModule: true,
@@ -1420,6 +1427,171 @@ describe('WalletConnect2Session', () => {
       });
       // EVM slice still produced from getScopedPermissions mock.
       expect(call?.namespaces?.eip155).toBeDefined();
+    });
+
+    describe('non-EVM account change', () => {
+      // The source imports `Engine` from `'../Engine'` (the index re-export),
+      // and `app/util/test/testSetup.js` globally mocks that path to
+      // `MockedEngine`. The local `jest.mock('../Engine/Engine', ...)` above
+      // sets up a different module instance that the source never sees, so
+      // assertions about subscribe/unsubscribe must read from the global mock.
+      const getMessengerMock = (): {
+        subscribe: jest.Mock;
+        unsubscribe: jest.Mock;
+      } =>
+        jest.requireMock<typeof import('../Engine')>('../Engine').default
+          .controllerMessenger as unknown as {
+          subscribe: jest.Mock;
+          unsubscribe: jest.Mock;
+        };
+
+      // Re-instantiate the session AFTER the outer `clearAllMocks` so the
+      // subscribe / unsubscribe mock histories reflect this session only.
+      beforeEach(() => {
+        const messenger = getMessengerMock();
+        messenger.subscribe.mockClear();
+        messenger.unsubscribe.mockClear();
+        session = new WalletConnect2Session({
+          web3Wallet: mockClient,
+          session: mockSession,
+          channelId: 'test-channel',
+          deeplink: true,
+          navigation: mockNavigation,
+        });
+      });
+
+      // Trigger the same code path the AccountsController callback runs
+      // without depending on capturing the handler off the mock.
+      const triggerAccountChange = (account: {
+        type: string;
+        address: string;
+      }) =>
+        (
+          session as unknown as {
+            onNonEvmAccountChange: (a: unknown) => void;
+          }
+        ).onNonEvmAccountChange(account);
+
+      it('subscribes to AccountsController:selectedAccountChange on construction', () => {
+        expect(getMessengerMock().subscribe).toHaveBeenCalledWith(
+          'AccountsController:selectedAccountChange',
+          expect.any(Function),
+        );
+      });
+
+      it('unsubscribes the same handler on removeListeners', async () => {
+        const messenger = getMessengerMock();
+        const handler = messenger.subscribe.mock.calls.at(-1)?.[1];
+        await session.removeListeners();
+        expect(messenger.unsubscribe).toHaveBeenCalledWith(
+          'AccountsController:selectedAccountChange',
+          handler,
+        );
+      });
+
+      it('reorders Tron accounts when the selected account becomes non-EVM', async () => {
+        session.session = {
+          ...mockSession,
+          namespaces: {
+            tron: {
+              chains: ['tron:728126428'],
+              methods: ['tron_signTransaction'],
+              events: [],
+              accounts: ['tron:728126428:TFIRST', 'tron:728126428:TSELECTED'],
+            },
+          },
+        } as unknown as SessionTypes.Struct;
+
+        const updateSpy = jest
+          .spyOn(mockClient, 'updateSession')
+          .mockResolvedValue({ acknowledged: () => Promise.resolve() } as any);
+        (
+          mockClient as unknown as { getActiveSessions?: jest.Mock }
+        ).getActiveSessions = jest.fn().mockReturnValue(undefined);
+
+        triggerAccountChange({ type: 'tron:eoa', address: 'TSELECTED' });
+        await new Promise(process.nextTick);
+
+        expect(updateSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            topic: mockSession.topic,
+            namespaces: expect.objectContaining({
+              tron: expect.objectContaining({
+                accounts: ['tron:728126428:TSELECTED', 'tron:728126428:TFIRST'],
+              }),
+            }),
+          }),
+        );
+      });
+
+      it('skips updateSession when the order is already correct', async () => {
+        session.session = {
+          ...mockSession,
+          namespaces: {
+            tron: {
+              chains: ['tron:728126428'],
+              methods: [],
+              events: [],
+              accounts: ['tron:728126428:TSELECTED', 'tron:728126428:TX'],
+            },
+          },
+        } as unknown as SessionTypes.Struct;
+
+        const updateSpy = jest
+          .spyOn(mockClient, 'updateSession')
+          .mockResolvedValue({ acknowledged: () => Promise.resolve() } as any);
+
+        triggerAccountChange({ type: 'tron:eoa', address: 'TSELECTED' });
+        await new Promise(process.nextTick);
+
+        expect(updateSpy).not.toHaveBeenCalled();
+      });
+
+      it('ignores account change when the address is not in the session', async () => {
+        session.session = {
+          ...mockSession,
+          namespaces: {
+            tron: {
+              chains: ['tron:728126428'],
+              methods: [],
+              events: [],
+              accounts: ['tron:728126428:TFIRST'],
+            },
+          },
+        } as unknown as SessionTypes.Struct;
+
+        const updateSpy = jest
+          .spyOn(mockClient, 'updateSession')
+          .mockResolvedValue({ acknowledged: () => Promise.resolve() } as any);
+
+        triggerAccountChange({ type: 'tron:eoa', address: 'TUNKNOWN' });
+        await new Promise(process.nextTick);
+
+        expect(updateSpy).not.toHaveBeenCalled();
+      });
+
+      it('ignores EVM account changes (those flow through WalletConnectPort)', async () => {
+        session.session = {
+          ...mockSession,
+          namespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: [],
+              events: [],
+              accounts: ['eip155:1:0xabc'],
+            },
+          },
+        } as unknown as SessionTypes.Struct;
+
+        const updateSpy = jest
+          .spyOn(mockClient, 'updateSession')
+          .mockResolvedValue({ acknowledged: () => Promise.resolve() } as any);
+
+        triggerAccountChange({ type: 'eip155:eoa', address: '0xabc' });
+        await new Promise(process.nextTick);
+
+        expect(updateSpy).not.toHaveBeenCalled();
+      });
     });
   });
 });

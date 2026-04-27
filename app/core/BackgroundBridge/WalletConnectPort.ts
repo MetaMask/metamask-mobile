@@ -8,6 +8,19 @@ const EventEmitter = require('events').EventEmitter;
 
 const { NOTIFICATION_NAMES } = AppConstants;
 
+/**
+ * Port adapter used **only for EVM (EIP-155)** WalletConnect sessions.
+ *
+ * Bridges EIP-1193 notifications (`chainChanged`, `accountsChanged`) from
+ * BackgroundBridge's engine stream to {@link WalletConnect2Session.updateSession},
+ * and routes JSON-RPC results/errors back to the dapp.
+ *
+ * Non-EVM chains (Tron, Solana, …) do not flow through this port. Their
+ * account-change propagation is handled directly by
+ * `WalletConnect2Session`, which subscribes to
+ * `AccountsController:selectedAccountChange` and reorders the namespace's
+ * permitted accounts when a non-EVM account is selected.
+ */
 class WalletConnectPort extends EventEmitter {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
