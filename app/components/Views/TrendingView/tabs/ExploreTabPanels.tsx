@@ -14,23 +14,9 @@ import {
   DEFAULT_HOME_ORDER,
   SECTIONS_CONFIG,
 } from '../sections.config';
+import type { ExploreTabId } from '../sections/types';
 import Section, { RefreshConfig } from '../components/Sections/Section';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
-
-const curriedSetSectionState =
-  (setState: (updater: (prev: Set<SectionId>) => Set<SectionId>) => void) =>
-  (sectionId: SectionId) =>
-  (isActive: boolean): void => {
-    setState((prev) => {
-      const newSet = new Set(prev);
-      if (isActive) {
-        newSet.add(sectionId);
-      } else {
-        newSet.delete(sectionId);
-      }
-      return newSet;
-    });
-  };
 
 const useSectionStateTracker = (
   sections: { id: SectionId }[],
@@ -45,7 +31,17 @@ const useSectionStateTracker = (
   const callbacks = useMemo(() => {
     const result = {} as Record<SectionId, (isActive: boolean) => void>;
     sections.forEach((s) => {
-      result[s.id] = curriedSetSectionState(setActiveSections)(s.id);
+      result[s.id] = (isActive: boolean) => {
+        setActiveSections((prev) => {
+          const next = new Set(prev);
+          if (isActive) {
+            next.add(s.id);
+          } else {
+            next.delete(s.id);
+          }
+          return next;
+        });
+      };
     });
     return result;
   }, [sections]);
@@ -134,18 +130,6 @@ export const ExploreTabSectionedScroll: React.FC<
     </ScrollView>
   );
 };
-
-/**
- * Discriminates which section list the Explore feed uses under the tab bar.
- * Keep in sync with `TabsList` children in `TrendingView`.
- */
-export type ExploreTabId =
-  | 'now'
-  | 'macro'
-  | 'rwas'
-  | 'crypto'
-  | 'sports'
-  | 'dapps';
 
 const useExploreTabPanelSections = (
   tab: ExploreTabId,

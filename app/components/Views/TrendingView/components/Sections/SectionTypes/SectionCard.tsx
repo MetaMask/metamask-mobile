@@ -40,21 +40,12 @@ const SectionCard: React.FC<SectionCardProps> = ({
 
   const section = SECTIONS_CONFIG[sectionId];
   const displayData = useMemo(() => data.slice(0, 3), [data]);
-  const extra = useMemo(
-    () => section.useTileExtra?.(displayData) ?? {},
-    [section, displayData],
-  );
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
-      <section.RowItem
-        item={item}
-        index={index}
-        navigation={navigation}
-        extra={extra}
-      />
+      <section.RowItem item={item} index={index} navigation={navigation} />
     ),
-    [navigation, section, extra],
+    [navigation, section],
   );
 
   return (

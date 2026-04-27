@@ -29,7 +29,6 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   const flashListRef = useRef<FlashListRef<unknown>>(null);
 
   const section = SECTIONS_CONFIG[sectionId];
-  const extra = section.useTileExtra?.(data) ?? {};
 
   const skeletonData = Array.from<unknown>({
     length: SKELETON_PLACEHOLDER_COUNT,
@@ -58,7 +57,6 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
                     item={item}
                     index={index}
                     navigation={navigation}
-                    extra={extra}
                   />
                 )}
               </Box>

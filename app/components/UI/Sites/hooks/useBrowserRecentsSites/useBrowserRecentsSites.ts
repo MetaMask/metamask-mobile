@@ -11,13 +11,16 @@ interface HistoryEntry {
   name: string;
 }
 
+const addProtocolIfMissing = (raw: string): string => {
+  const trimmed = raw.trim();
+  return trimmed.startsWith('http://') || trimmed.startsWith('https://')
+    ? trimmed
+    : `https://${trimmed}`;
+};
+
 const normalizeUrlKey = (raw: string): string => {
   try {
-    const trimmed = raw.trim();
-    const withProtocol =
-      trimmed.startsWith('http://') || trimmed.startsWith('https://')
-        ? trimmed
-        : `https://${trimmed}`;
+    const withProtocol = addProtocolIfMissing(raw);
     const u = new URL(withProtocol);
     u.hash = '';
     const path = u.pathname.replace(/\/$/, '') || '/';
@@ -28,11 +31,7 @@ const normalizeUrlKey = (raw: string): string => {
 };
 
 const toSiteData = (entry: HistoryEntry, index: number): SiteData => {
-  const trimmed = entry.url.trim();
-  const url =
-    trimmed.startsWith('http://') || trimmed.startsWith('https://')
-      ? trimmed
-      : `https://${trimmed}`;
+  const url = addProtocolIfMissing(entry.url);
 
   return {
     id: `browser-recent-${normalizeUrlKey(url)}-${index}`,

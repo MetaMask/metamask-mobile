@@ -47,10 +47,7 @@ const PillToggledCardSection: React.FC<PillToggledCardSectionProps> = ({
   const firstKey = pills[0]?.key ?? '';
   const [activeKey, setActiveKey] = useState(defaultPillKey ?? firstKey);
 
-  const active = pills.find((p) => p.key === activeKey) ??
-    pills[0] ?? {
-      items: [] as unknown[],
-    };
+  const active = pills.find((p) => p.key === activeKey) ?? pills[0];
 
   return (
     <Box testID={testIdPrefix} twClassName="mb-6">
@@ -90,7 +87,7 @@ const PillToggledCardSection: React.FC<PillToggledCardSectionProps> = ({
       </Box>
       <SectionCard
         sectionId={sectionId}
-        data={active.items}
+        data={active?.items ?? []}
         isLoading={isLoading}
         listTestId={listTestId}
       />

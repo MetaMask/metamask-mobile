@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -47,18 +47,19 @@ const SectionPills: React.FC<SectionPillsProps> = ({
     () => splitIntoTwoRows(displayData),
     [displayData],
   );
-  const extra = section.useTileExtra?.(displayData) ?? {};
 
-  const rowRenderer = (items: unknown[], startIndex: number) =>
-    items.map((item, i) => (
-      <section.RowItem
-        key={section.getItemIdentifier(item)}
-        item={item}
-        index={startIndex + i}
-        navigation={navigation}
-        extra={extra}
-      />
-    ));
+  const rowRenderer = useCallback(
+    (items: unknown[], startIndex: number) =>
+      items.map((item, i) => (
+        <section.RowItem
+          key={section.getItemIdentifier(item)}
+          item={item}
+          index={startIndex + i}
+          navigation={navigation}
+        />
+      )),
+    [section, navigation],
+  );
 
   return (
     <Box marginBottom={5} twClassName="bg-transparent">
@@ -70,7 +71,7 @@ const SectionPills: React.FC<SectionPillsProps> = ({
           keyboardShouldPersistTaps="handled"
           testID={listTestID}
           style={tw.style('bg-transparent')}
-          contentContainerStyle={tw.style('flex-col gap-2 pr-0')}
+          contentContainerStyle={tw.style('flex-col pr-0')}
         >
           <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
             {row1.length > 0 ? (

@@ -349,18 +349,11 @@ export const perpsSections = {
     id: 'crypto_perps',
     title: strings('trending.crypto_perps_section'),
     icon: { source: 'design-system', name: DSIconName.Candlestick },
-    viewAllAction: (navigation) => {
-      (navigation as NavigationProp<PerpsNavigationParamList>).navigate(
-        Routes.PERPS.ROOT,
-        {
-          screen: Routes.PERPS.MARKET_LIST,
-          params: {
-            defaultMarketTypeFilter: 'crypto',
-            source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
-          },
-        },
-      );
-    },
+    viewAllAction: (navigation) =>
+      perpsNavigationTo(
+        navigation as NavigationProp<PerpsNavigationParamList>,
+        'crypto',
+      ),
     getItemIdentifier: (item) =>
       (item as Partial<PerpsMarketData>).symbol ?? '',
     RowItem: PerpsMarketTileRowItem('crypto-tab-perps-market-tile-card'),
