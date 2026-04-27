@@ -145,7 +145,13 @@ function HeadlessHost() {
     } catch (e) {
       Logger.error(e as Error, 'HeadlessHost: onError callback threw');
     }
-    closeSession(headlessSessionId, { reason: 'unknown' });
+    closeSession(
+      headlessSessionId,
+      { reason: 'unknown' },
+      {
+        terminalStatus: 'failed',
+      },
+    );
   }, [nativeFlowError, headlessSessionId]);
 
   // Process the session. Uses `useEffect` (not `useFocusEffect`) so that
@@ -202,7 +208,13 @@ function HeadlessHost() {
       // render-time `session` ref stays truthy and the loader would spin
       // forever. Surface the same message in UI as other error paths.
       setErrorMessage(message);
-      closeSession(headlessSessionId, { reason: 'unknown' });
+      closeSession(
+        headlessSessionId,
+        { reason: 'unknown' },
+        {
+          terminalStatus: 'failed',
+        },
+      );
       return;
     }
     // Defer until walletAddress resolves — avoids calling continueWithQuote
@@ -255,7 +267,13 @@ function HeadlessHost() {
       } catch (e) {
         Logger.error(e as Error, 'HeadlessHost: onError callback threw');
       }
-      closeSession(headlessSessionId, { reason: 'unknown' });
+      closeSession(
+        headlessSessionId,
+        { reason: 'unknown' },
+        {
+          terminalStatus: 'failed',
+        },
+      );
     });
   }, [
     nativeFlowError,

@@ -167,13 +167,24 @@ export interface HeadlessBuyCloseInfo {
   reason: 'user_dismissed' | 'consumer_cancelled' | 'completed' | 'unknown';
 }
 
+/** Optional flags for `closeSession` in `sessionRegistry`. */
+export interface CloseSessionOptions {
+  /**
+   * Registry status written before removal when the session was not already
+   * terminal. Defaults to `'cancelled'`. Use `'failed'` after `onError` or
+   * other unrecoverable errors so `continued` is not mislabeled as cancelled.
+   */
+  terminalStatus?: 'cancelled' | 'failed';
+}
+
 /** Lifecycle status tracked inside the session registry. */
 export type HeadlessSessionStatus =
   | 'pending'
   | 'quoting'
   | 'continued'
   | 'completed'
-  | 'cancelled';
+  | 'cancelled'
+  | 'failed';
 
 /**
  * Per-attempt session record kept in the module-level registry. Callbacks are
