@@ -620,16 +620,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 variant={TextVariant.BodySm}
                 twClassName="text-alternative text-center"
               >
-                {(order.status === RampsOrderStatus.Pending ||
-                  order.status === RampsOrderStatus.Created ||
-                  order.status === RampsOrderStatus.Precreated ||
-                  order.status === RampsOrderStatus.Unknown) &&
-                order.statusDescription.startsWith('Your order')
-                  ? order.statusDescription.replace(
-                      /^Your order.*?is processing\.\s*/,
-                      '',
-                    ) || order.statusDescription
-                  : order.statusDescription}{' '}
+                {order.statusDescription}{' '}
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
