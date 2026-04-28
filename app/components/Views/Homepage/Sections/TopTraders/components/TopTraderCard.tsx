@@ -21,7 +21,7 @@ import { formatPnl } from '../utils/formatPnl';
 export interface TopTraderCardProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
-  onTraderPress?: (traderId: string, traderName: string) => void;
+  onTraderPress?: (traderId: string, traderName: string, rank: number) => void;
   testID?: string;
 }
 
@@ -57,7 +57,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         activeOpacity={onTraderPress ? 0.7 : 1}
         onPress={
           onTraderPress
-            ? () => onTraderPress(trader.id, trader.username)
+            ? () => onTraderPress(trader.id, trader.username, trader.rank)
             : undefined
         }
         disabled={!onTraderPress}

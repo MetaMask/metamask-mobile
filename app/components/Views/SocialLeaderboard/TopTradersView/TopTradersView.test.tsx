@@ -28,6 +28,7 @@ const fixtureTraders: TopTrader[] = [
   {
     id: 'trader-1',
     rank: 1,
+    overallRank: 1,
     username: 'sniperliquid.hl',
     avatarUri: 'https://example.com/avatar1.png',
     percentageChange: 43,
@@ -38,6 +39,7 @@ const fixtureTraders: TopTrader[] = [
   {
     id: 'trader-2',
     rank: 2,
+    overallRank: 2,
     username: 'nervousdegen',
     avatarUri: 'https://example.com/avatar2.png',
     percentageChange: 359,
@@ -48,6 +50,7 @@ const fixtureTraders: TopTrader[] = [
   {
     id: 'trader-3',
     rank: 3,
+    overallRank: 3,
     username: 'baznocap',
     avatarUri: 'https://example.com/avatar3.png',
     percentageChange: 617,
@@ -128,7 +131,7 @@ describe('TopTradersView', () => {
 
   it('renders the rank for the top trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('1.')).toBeOnTheScreen();
+    expect(screen.getByText('1')).toBeOnTheScreen();
   });
 
   it('renders the ROI for the first trader', () => {
@@ -231,7 +234,7 @@ describe('TopTradersView', () => {
     fireEvent.press(
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_SOLANA),
     );
-    expect(screen.getByText('1.')).toBeOnTheScreen();
+    expect(screen.getByText('1')).toBeOnTheScreen();
     expect(screen.queryByText('3.')).not.toBeOnTheScreen();
   });
 

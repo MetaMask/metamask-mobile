@@ -7,6 +7,7 @@ import type { TopTrader } from '../types';
 const baseTrader: TopTrader = {
   id: 'trader-1',
   rank: 1,
+  overallRank: 1,
   username: 'sniperliquid',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
@@ -96,7 +97,7 @@ describe('TopTraderCard', () => {
     expect(mockOnFollowPress).toHaveBeenCalledWith('trader-1');
   });
 
-  it('calls onTraderPress with trader.id and username when card content is tapped', () => {
+  it('calls onTraderPress with trader id, username, and rank when card content is tapped', () => {
     renderWithProvider(
       <TopTraderCard
         trader={baseTrader}
@@ -107,7 +108,11 @@ describe('TopTraderCard', () => {
 
     fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'sniperliquid');
+    expect(mockOnTraderPress).toHaveBeenCalledWith(
+      'trader-1',
+      'sniperliquid',
+      1,
+    );
   });
 
   it('does not call onTraderPress when the prop is not provided', () => {
