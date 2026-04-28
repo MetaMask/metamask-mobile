@@ -239,9 +239,27 @@ export function useQuickBuyQuotes({
   const metadataDeps = useSelector(selectQuoteMetadataDeps, shallowEqual);
 
   const enrichedResult = useMemo(() => {
+    // BridgeController.fetchQuotes called directly (not via internal polling)
+    // does not update state.quoteRequest. The selector uses quoteRequest to look
+    // up exchange rates for fee valueInCurrency computation, so we inject it
+    // from the current source/dest tokens.
+    const quoteRequestPatch =
+      sourceToken && destToken
+        ? {
+            srcChainId: getDecimalChainId(sourceToken.chainId),
+            srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
+            destChainId: getDecimalChainId(destToken.chainId),
+            destTokenAddress: formatAddressToCaipReference(destToken.address),
+          }
+        : {};
+
     const controllerFields = {
       ...metadataDeps.bridgeController,
       quotes: rawQuotes,
+      quoteRequest: {
+        ...metadataDeps.bridgeController.quoteRequest,
+        ...quoteRequestPatch,
+      },
       gasFeeEstimatesByChainId: metadataDeps.gasFeeEstimatesByChainId,
       ...metadataDeps.multichainAssetsRates,
       ...metadataDeps.tokenRates,
@@ -256,7 +274,7 @@ export function useQuickBuyQuotes({
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
     });
-  }, [rawQuotes, metadataDeps]);
+  }, [rawQuotes, metadataDeps, sourceToken, destToken]);
 
   const activeQuote = enrichedResult.recommendedQuote ?? undefined;
 
