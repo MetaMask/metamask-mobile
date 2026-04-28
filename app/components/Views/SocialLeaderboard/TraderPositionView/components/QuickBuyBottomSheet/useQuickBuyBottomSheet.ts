@@ -1,8 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
-import { TextInput } from 'react-native';
+import { ActivityIndicator, TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
@@ -47,9 +52,46 @@ import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../../util/address';
 import Engine from '../../../../../../core/Engine';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+import ToastService from '../../../../../../core/ToastService/ToastService';
+import {
+  ToastVariants,
+  ButtonIconVariant,
+} from '../../../../../../component-library/components/Toast/Toast.types';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../../util/theme';
 import { calcTokenValue } from '../../../../../../util/transactions';
+
+const closeToast = () => ToastService.closeToast();
+const closeButtonOptions = {
+  variant: ButtonIconVariant.Icon,
+  iconName: IconName.Close,
+  onPress: closeToast,
+} as const;
+
+const QuickBuyToast = {
+  showLoading: (label: string, color: string) =>
+    ToastService.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label }],
+      hasNoTimeout: true,
+      startAccessory: React.createElement(ActivityIndicator, {
+        size: 'small',
+        color,
+      }),
+      closeButtonOptions,
+    }),
+  showSuccess: (label: string, color: string) =>
+    ToastService.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Confirmation,
+      iconColor: color,
+      labelOptions: [{ label }],
+      hasNoTimeout: false,
+      closeButtonOptions,
+    }),
+  close: closeToast,
+};
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -100,7 +142,7 @@ export interface UseQuickBuyBottomSheetResult {
   buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
   isConfirmDisabled: boolean;
-  confirmButtonState: 'idle' | 'loading' | 'success';
+  confirmButtonState: 'idle' | 'loading';
   getButtonLabel: () => string;
   // handlers
   handleClose: () => void;
@@ -116,10 +158,9 @@ export function useQuickBuyBottomSheet(
 ): UseQuickBuyBottomSheetResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const { colors } = useTheme();
 
   const [usdAmount, setUsdAmount] = useState('');
-  const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
@@ -338,25 +379,43 @@ export function useQuickBuyBottomSheet(
   const handleConfirm = useCallback(async () => {
     if (!activeQuote || !walletAddress) return;
 
+    const label = `Swapping ${sourceToken?.symbol ?? ''} → ${destToken?.symbol ?? ''}`;
+    const color = colors.success.default;
+
+    dispatch(setIsSubmittingTx(true));
+
+    // Fire submitTx without awaiting so the sheet can close immediately
+    const submitPromise = Engine.context.BridgeStatusController.submitTx(
+      walletAddress,
+      { ...activeQuote, approval: activeQuote.approval ?? undefined },
+      stxEnabled,
+    );
+
+    // Close sheet immediately; toast tracks tx progress from here
+    onClose();
+    notificationAsync(NotificationFeedbackType.Success);
+    QuickBuyToast.showLoading(label, color);
+
     try {
-      dispatch(setIsSubmittingTx(true));
-      await Engine.context.BridgeStatusController.submitTx(
-        walletAddress,
-        { ...activeQuote, approval: activeQuote.approval ?? undefined },
-        stxEnabled,
-      );
-      setTxPhase('success');
-      notificationAsync(NotificationFeedbackType.Success);
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      onClose();
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      await submitPromise;
+      QuickBuyToast.showSuccess(label, color);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
       notificationAsync(NotificationFeedbackType.Error);
+      QuickBuyToast.close();
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
-  }, [activeQuote, walletAddress, stxEnabled, dispatch, onClose, navigation]);
+  }, [
+    activeQuote,
+    walletAddress,
+    stxEnabled,
+    dispatch,
+    onClose,
+    sourceToken,
+    destToken,
+    colors,
+  ]);
 
   const sourceBalanceFiat = useMemo(() => {
     if (
@@ -444,8 +503,9 @@ export function useQuickBuyBottomSheet(
         ? 'no_quotes'
         : null;
 
-  const confirmButtonState: 'idle' | 'loading' | 'success' =
-    txPhase === 'success' ? 'success' : isConfirmLoading ? 'loading' : 'idle';
+  const confirmButtonState: 'idle' | 'loading' = isConfirmLoading
+    ? 'loading'
+    : 'idle';
 
   const getButtonLabel = useCallback(() => {
     if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
