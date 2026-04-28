@@ -24,37 +24,25 @@ type PredictCategory = 'trending' | 'sports' | 'crypto' | 'politics';
 
 const ALL_SPORTS_PAGE_SIZE = 20;
 
-/** Override default 10k volume/liquidity mins from Polymarket events query (fetchEventsFromPolymarketApi). */
-const ALL_SPORTS_MIN_OVERRIDE = '&volume_min=0&liquidity_min=0';
-
 // To add a sport: add a row here AND a usePredictMarketData call in the hook below (Rules of Hooks).
 // Tag IDs: https://gamma-api.polymarket.com/tags
 const SOCCER = {
   key: 'soccer',
   labelKey: 'trending.soccer',
-  customQueryParams: `tag_id=100350${ALL_SPORTS_MIN_OVERRIDE}`,
+  customQueryParams: `tag_id=100350`,
 } as const;
 const BASKETBALL = {
   key: 'basketball',
   labelKey: 'trending.basketball',
-  customQueryParams: `tag_id=28${ALL_SPORTS_MIN_OVERRIDE}`,
+  customQueryParams: `tag_id=28`,
 } as const;
 const TENNIS = {
   key: 'tennis',
   labelKey: 'trending.tennis',
-  customQueryParams: `tag_id=864${ALL_SPORTS_MIN_OVERRIDE}`,
+  customQueryParams: `tag_id=864`,
 } as const;
-const F1 = {
-  key: 'f1',
-  labelKey: 'trending.f1',
-  customQueryParams: `tag_id=435${ALL_SPORTS_MIN_OVERRIDE}`,
-} as const;
-const GOLF = {
-  key: 'golf',
-  labelKey: 'trending.golf',
-  customQueryParams: `tag_id=100219${ALL_SPORTS_MIN_OVERRIDE}`,
-} as const;
-const ALL_SPORTS_TABS = [SOCCER, BASKETBALL, TENNIS, F1, GOLF] as const;
+
+const ALL_SPORTS_TABS = [SOCCER, BASKETBALL, TENNIS] as const;
 
 /** Passed via `data[0]` from `useAllSportsExploreSectionData` to `AllSportsPillSection`. */
 export interface ExploreKeyedMarketsSectionPayload {
@@ -92,18 +80,6 @@ export const useAllSportsExploreSectionData = (): {
     pageSize: ALL_SPORTS_PAGE_SIZE,
     enabled: loadedKeys.has(TENNIS.key),
   });
-  const f1 = usePredictMarketData({
-    category: 'sports',
-    customQueryParams: F1.customQueryParams,
-    pageSize: ALL_SPORTS_PAGE_SIZE,
-    enabled: loadedKeys.has(F1.key),
-  });
-  const golf = usePredictMarketData({
-    category: 'sports',
-    customQueryParams: GOLF.customQueryParams,
-    pageSize: ALL_SPORTS_PAGE_SIZE,
-    enabled: loadedKeys.has(GOLF.key),
-  });
 
   const pills = useMemo<PillOption[]>(
     () =>
@@ -122,31 +98,20 @@ export const useAllSportsExploreSectionData = (): {
   const { refetch: refetchSoccer } = soccer;
   const { refetch: refetchBasketball } = basketball;
   const { refetch: refetchTennis } = tennis;
-  const { refetch: refetchF1 } = f1;
-  const { refetch: refetchGolf } = golf;
 
   const refetch = useCallback(async () => {
     const tasks: Promise<void>[] = [];
     if (loadedKeys.has(SOCCER.key)) tasks.push(refetchSoccer());
     if (loadedKeys.has(BASKETBALL.key)) tasks.push(refetchBasketball());
     if (loadedKeys.has(TENNIS.key)) tasks.push(refetchTennis());
-    if (loadedKeys.has(F1.key)) tasks.push(refetchF1());
-    if (loadedKeys.has(GOLF.key)) tasks.push(refetchGolf());
     await Promise.all(tasks);
-  }, [
-    loadedKeys,
-    refetchSoccer,
-    refetchBasketball,
-    refetchTennis,
-    refetchF1,
-    refetchGolf,
-  ]);
+  }, [loadedKeys, refetchSoccer, refetchBasketball, refetchTennis]);
 
   return {
     data: [
       {
         pills,
-        marketsByKey: { soccer, basketball, tennis, f1, golf },
+        marketsByKey: { soccer, basketball, tennis },
         activeKey,
         selectSport,
       } satisfies ExploreKeyedMarketsSectionPayload,
