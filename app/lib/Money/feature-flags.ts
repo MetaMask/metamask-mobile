@@ -14,8 +14,13 @@ export function isMoneyAccountEnabled(
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): boolean {
   const localFlag = process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT === 'true';
+  // TODO: I don't know why this wasn't here before.
+  if (localFlag) {
+    return true;
+  }
+
   const remoteFlag =
     remoteFeatureFlags?.moneyEnableMoneyAccount as VersionGatedFeatureFlag;
 
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
 }
