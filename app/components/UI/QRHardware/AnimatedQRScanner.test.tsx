@@ -464,7 +464,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
     });
 
-    it('tracks metrics for scan exceptions using the default exception message', async () => {
+    it('tracks metrics for scan exceptions using the thrown exception message', async () => {
       const mockDecoderInstance = {
         receivePart: jest.fn(() => {
           throw new Error('Unexpected decoding error');
@@ -506,7 +506,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
           MetaMetricsEvents.HARDWARE_WALLET_ERROR,
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
-          error: 'Unexpected QR scanning exception',
+          error: 'Unexpected decoding error',
           error_category: 'scan_exception',
           is_ur_format: true,
           device_model: 'MockDevice',

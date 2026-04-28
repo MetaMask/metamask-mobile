@@ -43,13 +43,16 @@ function isQRHardwareScanErrorMetadata(
     data.receivedUrType === undefined ||
     typeof data.receivedUrType === 'string';
 
+  const qrScanErrorTypes = Object.values(QRHardwareScanErrorType) as string[];
+  const qrScanRequestTypes = Object.values(QrScanRequestType) as string[];
+
   return (
     data.walletType === HardwareWalletType.Qr &&
     data.recoveryAction === RecoveryAction.RETRY &&
-    Object.values(QRHardwareScanErrorType).includes(
-      data.qrHardwareScanErrorType,
-    ) &&
-    Object.values(QrScanRequestType).includes(data.qrScanPurpose) &&
+    typeof data.qrHardwareScanErrorType === 'string' &&
+    qrScanErrorTypes.includes(data.qrHardwareScanErrorType) &&
+    typeof data.qrScanPurpose === 'string' &&
+    qrScanRequestTypes.includes(data.qrScanPurpose) &&
     typeof data.isUrFormat === 'boolean' &&
     hasValidReceivedUrType
   );
