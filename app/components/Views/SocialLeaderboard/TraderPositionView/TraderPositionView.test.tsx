@@ -38,6 +38,7 @@ const makeMockTrades = (): Trade[] => [
 ];
 
 const makeDefaultPosition = (): Position => ({
+  positionId: 'pepe-base',
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
   tokenAddress: '0x1234567890123456789012345678901234567890',
