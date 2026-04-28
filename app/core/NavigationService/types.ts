@@ -557,7 +557,7 @@ export interface RootStackParamList extends ParamListBase {
 
   // Social Leaderboard routes
   TopTradersView: undefined;
-  TraderProfileView: { traderId: string; traderName: string };
+  TraderProfileView: { traderId: string; traderName: string; rank?: number };
   TraderPositionView: {
     traderId: string;
     tokenSymbol: string;
