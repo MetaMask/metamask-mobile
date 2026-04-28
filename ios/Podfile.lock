@@ -624,7 +624,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NitroModules (0.33.9):
+  - NitroModules (0.35.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -4772,7 +4772,7 @@ SPEC CHECKSUMS:
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
   NitroMmkv: c68bb2c29c154913707bc6e66791b2b30dd723c1
-  NitroModules: 1ef0796714251dbdaea49af187e291d8b6a7c5ea
+  NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
   OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47

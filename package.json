@@ -481,7 +481,7 @@
     "react-native-material-textfield": "0.16.1",
     "react-native-mmkv": "^4.1.2",
     "react-native-modal": "^14.0.0-rc.1",
-    "react-native-nitro-modules": "0.33.9",
+    "react-native-nitro-modules": "0.35.5",
     "react-native-os": "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch",
     "react-native-pager-view": "6.9.1",
     "react-native-permissions": "^3.7.2",
