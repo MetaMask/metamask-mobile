@@ -60,8 +60,6 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
-  const { moneyAccountDisplayToken, isAwaitingAccountSelection } =
-    useMoneyAccountPayToken();
 
   const {
     txParams: { from },
