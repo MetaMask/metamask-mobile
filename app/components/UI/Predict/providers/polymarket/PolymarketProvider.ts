@@ -236,11 +236,9 @@ export class PolymarketProvider implements PredictProvider {
    */
   async #resolveSportMarketFromPolymarket({
     event,
-    marketId,
     extendedSportsMarketsLeagues,
   }: {
     event: PolymarketApiEvent;
-    marketId: string;
     extendedSportsMarketsLeagues: string[];
   }): Promise<{
     resolvedEvent: PolymarketApiEvent;
@@ -251,26 +249,11 @@ export class PolymarketProvider implements PredictProvider {
       return { resolvedEvent: event };
     }
 
-    let resolvedEvent = event;
-    let resolvedMarketId = marketId;
-
-    if (event.parentEventId) {
-      resolvedMarketId = String(event.parentEventId);
-      try {
-        resolvedEvent = await getMarketDetailsFromGammaApi({
-          marketId: resolvedMarketId,
-        });
-      } catch (parentFetchError) {
-        DevLogger.log(
-          'Failed to fetch parent event, using requested event only:',
-          parentFetchError,
-        );
-      }
-    }
+    const resolvedEventId = event.parentEventId ?? event.id;
 
     try {
       const allEvents = await fetchChildEventsFromGammaApi({
-        parentEventId: resolvedMarketId,
+        parentEventId: resolvedEventId,
       });
       return {
         resolvedEvent: mergeChildEventsIntoParent(allEvents),
@@ -283,7 +266,7 @@ export class PolymarketProvider implements PredictProvider {
         'Failed to fetch child events, using resolved event only:',
         childFetchError,
       );
-      return { resolvedEvent };
+      return { resolvedEvent: event };
     }
   }
 
@@ -761,7 +744,6 @@ export class PolymarketProvider implements PredictProvider {
         const resolvedSportMarket =
           await this.#resolveSportMarketFromPolymarket({
             event,
-            marketId,
             extendedSportsMarketsLeagues,
           });
         mergedEvent = resolvedSportMarket.resolvedEvent;

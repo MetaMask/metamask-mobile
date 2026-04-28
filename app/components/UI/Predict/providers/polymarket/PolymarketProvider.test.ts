@@ -3513,13 +3513,7 @@ describe('PolymarketProvider', () => {
           extendedSportsMarketsLeagues: ['nfl'],
         });
         mockGetEventLeague.mockImplementation(actualGetEventLeague);
-        mockGetMarketDetailsFromGammaApi.mockImplementation(({ marketId }) =>
-          Promise.resolve(
-            marketId === requestedChildEvent.id
-              ? requestedChildEvent
-              : parentEvent,
-          ),
-        );
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(requestedChildEvent);
         mockFetchChildEventsFromGammaApi.mockResolvedValue([
           parentEvent,
           childEvent1,
@@ -3530,11 +3524,9 @@ describe('PolymarketProvider', () => {
 
         await provider.getMarketDetails({ marketId: requestedChildEvent.id });
 
-        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenNthCalledWith(1, {
+        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(1);
+        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
           marketId: requestedChildEvent.id,
-        });
-        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenNthCalledWith(2, {
-          marketId: 'game-1',
         });
 
         expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
@@ -3588,19 +3580,13 @@ describe('PolymarketProvider', () => {
         );
       });
 
-      it('falls back to parent event when child fetch fails', async () => {
+      it('falls back to the requested event when child fetch fails', async () => {
         const provider = createProvider({
           liveSportsLeagues: ['nfl'],
           extendedSportsMarketsLeagues: ['nfl'],
         });
         mockGetEventLeague.mockImplementation(actualGetEventLeague);
-        mockGetMarketDetailsFromGammaApi.mockImplementation(({ marketId }) =>
-          Promise.resolve(
-            marketId === requestedChildEvent.id
-              ? requestedChildEvent
-              : parentEvent,
-          ),
-        );
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(requestedChildEvent);
         mockFetchChildEventsFromGammaApi.mockRejectedValue(
           new Error('Network error'),
         );
@@ -3612,23 +3598,18 @@ describe('PolymarketProvider', () => {
 
         expect(result).toEqual(mockParsedMarket);
         expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-          [parentEvent],
+          [requestedChildEvent],
           expect.objectContaining({ category: 'trending' }),
         );
       });
 
-      it('falls back to the requested event when parent fetch fails and still resolves child markets', async () => {
+      it('uses event.id to fetch children when the event has no parentEventId', async () => {
         const provider = createProvider({
           liveSportsLeagues: ['nfl'],
           extendedSportsMarketsLeagues: ['nfl'],
         });
-        const parentFetchError = new Error('Parent fetch failed');
         mockGetEventLeague.mockImplementation(actualGetEventLeague);
-        mockGetMarketDetailsFromGammaApi.mockImplementation(({ marketId }) =>
-          marketId === requestedChildEvent.id
-            ? Promise.resolve(requestedChildEvent)
-            : Promise.reject(parentFetchError),
-        );
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(parentEvent);
         mockFetchChildEventsFromGammaApi.mockResolvedValue([
           parentEvent,
           childEvent1,
@@ -3637,14 +3618,9 @@ describe('PolymarketProvider', () => {
         mockMergeChildEventsIntoParent.mockReturnValue(mergedEvent);
         mockParsePolymarketEvents.mockReturnValue([mockParsedMarket]);
 
-        await provider.getMarketDetails({ marketId: requestedChildEvent.id });
+        await provider.getMarketDetails({ marketId: parentEvent.id });
 
-        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenNthCalledWith(1, {
-          marketId: requestedChildEvent.id,
-        });
-        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenNthCalledWith(2, {
-          marketId: 'game-1',
-        });
+        expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(1);
         expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
           parentEventId: 'game-1',
         });
@@ -3653,10 +3629,6 @@ describe('PolymarketProvider', () => {
           childEvent1,
           childEvent2,
         ]);
-        expect(DevLogger.log).toHaveBeenCalledWith(
-          'Failed to fetch parent event, using requested event only:',
-          parentFetchError,
-        );
         expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
           [mergedEvent],
           expect.objectContaining({ category: 'trending' }),
