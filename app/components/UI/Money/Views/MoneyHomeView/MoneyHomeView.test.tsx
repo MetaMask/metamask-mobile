@@ -125,7 +125,6 @@ describe('MoneyHomeView', () => {
       musdFiatFormatted: '$1.00',
       musdSHFvdFiatFormatted: '$2.00',
       totalFiatRaw: '3',
-      totalFiatUsdRaw: '3',
       tokenTotal: undefined,
       isAggregatedBalanceLoading: false,
       vaultApyQuery: {
