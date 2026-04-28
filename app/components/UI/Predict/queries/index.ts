@@ -14,6 +14,7 @@ import {
   predictOrderPreviewOptions,
 } from './orderPreview';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
+import { predictPricesKeys, predictPricesOptions } from './prices';
 import {
   predictPriceHistoryKeys,
   predictPriceHistoryOptions,
@@ -60,6 +61,10 @@ export const predictQueries = {
   positions: {
     keys: predictPositionsKeys,
     options: predictPositionsOptions,
+  },
+  prices: {
+    keys: predictPricesKeys,
+    options: predictPricesOptions,
   },
   priceHistory: {
     keys: predictPriceHistoryKeys,

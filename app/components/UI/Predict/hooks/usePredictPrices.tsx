@@ -1,161 +1,59 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import Engine from '../../../../core/Engine';
+import { useEffect } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
-import { PriceQuery, GetPriceResponse, Side } from '../types';
+import { predictQueries } from '../queries';
+import { PriceQuery, Side } from '../types';
 
 export interface UsePredictPricesOptions {
   queries: PriceQuery[];
   enabled?: boolean;
   /**
-   * optional polling interval in milliseconds.
-   * if provided, prices will be refetched at this interval.
+   * Optional polling interval in milliseconds.
+   * If provided, prices will be refetched at this interval.
+   * Uses React Query's `refetchInterval` which continues polling
+   * even after transient errors.
    */
   pollingInterval?: number;
 }
 
-export interface UsePredictPricesResult {
-  prices: GetPriceResponse;
-  isFetching: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-}
-
 /**
- * Hook to fetch and manage current prices for multiple tokens
+ * Hook to fetch current prices for multiple tokens.
+ *
+ * Returns the raw React Query result -- consumers are responsible for
+ * handling `undefined` data, formatting errors, etc. This matches the
+ * pattern used by sibling hooks (usePredictBalance, usePredictPositions).
  */
-export const usePredictPrices = (
-  options: UsePredictPricesOptions,
-): UsePredictPricesResult => {
+export function usePredictPrices(options: UsePredictPricesOptions) {
   const { queries = [], enabled = true, pollingInterval } = options;
 
-  const [prices, setPrices] = useState<GetPriceResponse>({
-    providerId: '',
-    results: [],
+  const query = useQuery({
+    ...predictQueries.prices.options({ queries }),
+    enabled: enabled && queries.length > 0,
+    placeholderData: keepPreviousData,
+    refetchInterval: pollingInterval ?? false,
   });
-  const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const isMountedRef = useRef(true);
-  const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
-      if (pollingTimeoutRef.current) {
-        clearTimeout(pollingTimeoutRef.current);
-      }
-    },
-    [],
-  );
 
   useEffect(() => {
-    if (!enabled && isMountedRef.current) {
-      setPrices({ providerId: '', results: [] });
-      setError(null);
-      setIsFetching(false);
-      if (pollingTimeoutRef.current) {
-        clearTimeout(pollingTimeoutRef.current);
-      }
-    }
-  }, [enabled]);
-
-  const queriesKey = JSON.stringify(queries);
-
-  const fetchPrices = useCallback(async () => {
-    if (!enabled) {
-      return;
-    }
-
-    if (!queries?.length) {
-      if (isMountedRef.current) {
-        setPrices({ providerId: '', results: [] });
-        setError(null);
-        setIsFetching(false);
-      }
-      return;
-    }
-
-    if (isMountedRef.current) {
-      setIsFetching(true);
-      setError(null);
-    }
-
-    try {
-      if (!Engine || !Engine.context) {
-        throw new Error('Engine not initialized');
-      }
-
-      const controller = Engine.context.PredictController;
-      if (!controller) {
-        throw new Error('Predict controller not available');
-      }
-
-      const fetchedPrices = await controller.getPrices({
-        queries,
-      });
-
-      if (isMountedRef.current) {
-        setPrices(fetchedPrices);
-        setError(null);
-      }
-
-      // set up next poll if polling is enabled
-      if (pollingInterval && isMountedRef.current) {
-        pollingTimeoutRef.current = setTimeout(() => {
-          fetchPrices();
-        }, pollingInterval);
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to fetch prices';
-
-      DevLogger.log('usePredictPrices: Error fetching prices', err);
-
-      Logger.error(ensureError(err), {
-        tags: {
-          feature: PREDICT_CONSTANTS.FEATURE_NAME,
-          component: 'usePredictPrices',
+    if (!query.error) return;
+    Logger.error(ensureError(query.error), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'usePredictPrices',
+      },
+      context: {
+        name: 'usePredictPrices',
+        data: {
+          method: 'loadPrices',
+          action: 'prices_load',
+          operation: 'data_fetching',
         },
-        context: {
-          name: 'usePredictPrices',
-          data: {
-            method: 'loadPrices',
-            action: 'prices_load',
-            operation: 'data_fetching',
-            queriesCount: queries.length,
-          },
-        },
-      });
+      },
+    });
+  }, [query.error]);
 
-      if (isMountedRef.current) {
-        setError(errorMessage);
-        setPrices({ providerId: '', results: [] });
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setIsFetching(false);
-      }
-    }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, queriesKey, pollingInterval]);
-
-  useEffect(() => {
-    if (pollingTimeoutRef.current) {
-      clearTimeout(pollingTimeoutRef.current);
-    }
-    fetchPrices();
-  }, [fetchPrices]);
-
-  return {
-    prices,
-    isFetching,
-    error,
-    refetch: fetchPrices,
-  };
-};
+  return query;
+}
 
 export { Side };
