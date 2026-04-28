@@ -16,10 +16,11 @@ export {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
   isQRHardwareScanError,
+  QRHardwareScanError,
   QRHardwareScanErrorType,
 } from './qrScan';
 
 export type {
-  QRHardwareScanError,
   QRHardwareScanErrorMetadata,
+  QRHardwareScanErrorOptions,
 } from './qrScan';

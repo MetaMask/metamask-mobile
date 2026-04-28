@@ -12,6 +12,7 @@ import {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
   isQRHardwareScanError,
+  QRHardwareScanError,
   QRHardwareScanErrorType,
 } from './qrScan';
 
@@ -35,6 +36,7 @@ describe('createQRHardwareScanError', () => {
       receivedUrType: 'crypto-psbt',
     });
 
+    expect(error).toBeInstanceOf(QRHardwareScanError);
     expect(error).toBeInstanceOf(HardwareWalletError);
     expect(error.code).toBe(ErrorCode.Unknown);
     expect(error.severity).toBe(Severity.Warning);
@@ -124,6 +126,26 @@ describe('createQRHardwareScanError', () => {
 describe('isQRHardwareScanError', () => {
   it('returns true for hardware wallet errors with QR scan metadata', () => {
     const error = createScanError();
+
+    const result = isQRHardwareScanError(error);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for a directly constructed QRHardwareScanError', () => {
+    const error = new QRHardwareScanError('Scan issue', {
+      code: ErrorCode.Unknown,
+      severity: Severity.Warning,
+      category: Category.Unknown,
+      userMessage: 'User message',
+      metadata: {
+        walletType: HardwareWalletType.Qr,
+        recoveryAction: RecoveryAction.RETRY,
+        qrHardwareScanErrorType: QRHardwareScanErrorType.NonURQrScanned,
+        qrScanPurpose: QrScanRequestType.PAIR,
+        isUrFormat: false,
+      },
+    });
 
     const result = isQRHardwareScanError(error);
 

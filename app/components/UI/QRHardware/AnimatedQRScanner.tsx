@@ -46,8 +46,8 @@ import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
-  QRHardwareScanErrorType,
   type QRHardwareScanError,
+  QRHardwareScanErrorType,
 } from '../../../core/HardwareWallet/errors';
 
 /**
@@ -418,7 +418,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             createQRHardwareScanError({
               errorType: QRHardwareScanErrorType.NonURQrScanned,
               purpose,
-              technicalMessage: 'Scanned QR code is not in UR format',
               isUrFormat: false,
             }),
           );
@@ -448,10 +447,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               createQRHardwareScanError({
                 errorType: QRHardwareScanErrorType.WrongURType,
                 purpose,
-                technicalMessage:
-                  purpose === QrScanRequestType.PAIR
-                    ? 'Received UR type is not valid for pairing flow'
-                    : 'Received UR type is not valid for signing flow',
                 receivedUrType: ur.type,
                 isUrFormat: true,
               }),
