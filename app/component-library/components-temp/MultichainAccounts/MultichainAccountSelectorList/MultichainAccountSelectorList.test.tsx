@@ -1240,8 +1240,8 @@ describe('MultichainAccountSelectorList', () => {
       const account2Checkboxes = getAllByTestId(
         `account-list-cell-checkbox-${account2.id}`,
       );
-      expect(account1Checkboxes.length).toBeGreaterThanOrEqual(1);
-      expect(account2Checkboxes.length).toBeGreaterThanOrEqual(1);
+      expect(account1Checkboxes.length).toBeGreaterThanOrEqual(1); // Container should have the testID (selected account)
+      expect(account2Checkboxes.length).toBeGreaterThanOrEqual(1); // Container (unselected account, no icon rendered)
 
       // Check that there is at least 1 checked checkbox icon (for the selected account)
       const selectedAccount = account1;
@@ -1288,8 +1288,8 @@ describe('MultichainAccountSelectorList', () => {
       const account2Checkboxes = getAllByTestId(
         `account-list-cell-checkbox-${account2.id}`,
       );
-      expect(account1Checkboxes.length).toBeGreaterThanOrEqual(1);
-      expect(account2Checkboxes.length).toBeGreaterThanOrEqual(1);
+      expect(account1Checkboxes.length).toBeGreaterThanOrEqual(1); // Container (unselected account, no icon rendered)
+      expect(account2Checkboxes.length).toBeGreaterThanOrEqual(1); // Container (unselected account, no icon rendered)
 
       // Check that there are no checked checkbox icons (since none are selected)
       expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
