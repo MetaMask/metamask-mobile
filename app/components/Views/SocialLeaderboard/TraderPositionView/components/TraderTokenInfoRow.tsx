@@ -42,7 +42,7 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
       twClassName="flex-1 min-w-0 mr-3"
     >
       {position ? (
-        <PositionTokenAvatar position={position} />
+        <PositionTokenAvatar position={position} showChainBadge />
       ) : (
         <AvatarToken name={symbol} size={AvatarTokenSize.Lg} />
       )}
