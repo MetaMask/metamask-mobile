@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
@@ -120,6 +121,42 @@ describe('useFollowToggle', () => {
         expect.any(Error),
         'useFollowToggle: toggleFollow failed',
       );
+    });
+
+    it('fires light haptic feedback on every toggle press', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+    });
+
+    it('still fires haptic feedback when a toggle is debounced as in-flight', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+      expect(impactAsync).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
     });
 
     it('ignores concurrent toggle calls while one is in flight', async () => {

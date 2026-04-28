@@ -10,7 +10,6 @@ import {
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import {
   Box,
   Text,
@@ -119,11 +118,6 @@ const TraderProfileView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
-
-  const handleFollowPress = useCallback(() => {
-    impactAsync(ImpactFeedbackStyle.Light);
-    toggleFollow();
-  }, [toggleFollow]);
 
   const handleNotificationPress = useCallback(() => {
     // Don't open any sheet while preferences are still loading — the enabled
@@ -235,7 +229,7 @@ const TraderProfileView = () => {
                         : ButtonVariant.Primary
                     }
                     isFullWidth
-                    onPress={handleFollowPress}
+                    onPress={toggleFollow}
                     testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
                   >
                     {isFollowing

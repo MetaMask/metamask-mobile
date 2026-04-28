@@ -14,8 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { TopRankAvatar, TopRankIndicator } from '../topRank';
@@ -58,11 +57,6 @@ const TraderRow: React.FC<TraderRowProps> = ({
   const pnlText = formatPnl(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
   const isRoiPositive = trader.percentageChange >= 0;
-
-  const handleFollowPress = useCallback(() => {
-    impactAsync(ImpactFeedbackStyle.Light);
-    onFollowPress(trader.id);
-  }, [onFollowPress, trader.id]);
 
   return (
     <Box
@@ -168,7 +162,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
         size={ButtonSize.Md}
-        onPress={handleFollowPress}
+        onPress={() => onFollowPress(trader.id)}
         twClassName="min-w-[96px] self-center"
       >
         {trader.isFollowing
