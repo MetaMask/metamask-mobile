@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { Position } from '@metamask/social-controllers';
 import QuickBuyBottomSheet from './QuickBuyBottomSheet';
@@ -96,6 +97,16 @@ jest.mock('./QuickBuyFooter', () => {
   };
 });
 
+jest.mock('./QuickBuyBanners', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactMock.createElement(Text, { testID: 'mock-banners' }, 'banners'),
+  };
+});
+
 jest.mock('./QuickBuyBottomSheetSkeleton', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -140,20 +151,26 @@ const buildHookResult = (
   usdAmount: '',
   estimatedReceiveAmount: undefined,
   sourceBalanceFiat: undefined,
+  formattedNetworkFee: '-',
+  formattedSlippage: '-',
+  formattedMinimumReceived: '-',
+  formattedPriceImpact: '-',
+  totalAmountUsd: '$0',
   isQuoteLoading: false,
   isSubmittingTx: false,
-  estimatedPoints: null,
-  isRewardsLoading: false,
-  shouldShowLiveRewardsEstimate: false,
-  shouldShowRewardsOptInCta: false,
-  shouldShowRewardsFallbackZero: false,
-  hasRewardsError: false,
-  accountOptedIn: false,
-  rewardsAccountScope: null,
-  hasError: false,
+  isTotalLoading: false,
+  isHardwareSolanaBlocked: false,
+  priceImpactViewData: {
+    textColor: TextColor.TextAlternative,
+    icon: undefined,
+    title: 'bridge.price_impact_info_title',
+    description: 'bridge.price_impact_info_description',
+  },
+  isPriceImpactError: false,
+  buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: true,
-  isConfirmLoading: false,
+  confirmButtonState: 'idle',
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
   handleClose: jest.fn(),
   handlePresetPress: jest.fn(),

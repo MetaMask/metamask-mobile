@@ -1,0 +1,198 @@
+import React, { forwardRef, useCallback, useEffect, useState } from 'react';
+import { TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+} from '@metamask/design-system-react-native';
+import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
+import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button/Button.types';
+import { strings } from '../../../../../../../locales/i18n';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { SocialAIPreference } from '../../../NotificationPreferencesView/hooks';
+import AllowPushNotificationsRow from '../../../NotificationPreferencesView/components/AllowPushNotificationsRow';
+import { TraderNotificationsBottomSheetSelectorsIDs } from './TraderNotificationsBottomSheet.testIds';
+import {
+  useControllableBottomSheet,
+  type ControllableBottomSheetRef,
+} from '../hooks/useControllableBottomSheet';
+
+export type TraderNotificationsBottomSheetRef = ControllableBottomSheetRef;
+
+interface TraderNotificationsBottomSheetProps {
+  traderId: string;
+  traderName: string;
+  preferences: SocialAIPreference;
+  isTraderNotificationEnabled: (traderId: string) => boolean;
+  toggleTraderNotification: (traderId: string) => void | Promise<void>;
+  onDismiss?: () => void;
+}
+
+const TraderNotificationsBottomSheet = forwardRef<
+  TraderNotificationsBottomSheetRef,
+  TraderNotificationsBottomSheetProps
+>(
+  (
+    {
+      traderId,
+      traderName,
+      preferences,
+      isTraderNotificationEnabled,
+      toggleTraderNotification,
+      onDismiss,
+    },
+    ref,
+  ) => {
+    const [localEnabled, setLocalEnabled] = useState(() =>
+      isTraderNotificationEnabled(traderId),
+    );
+    const tw = useTailwind();
+    const navigation = useNavigation();
+
+    const { sheetRef, isVisible, closeSheet, handleSheetClosed } =
+      useControllableBottomSheet({ ref, onDismiss });
+
+    const globalOff = !preferences.enabled;
+
+    // Snapshot the remote value each time the sheet opens so the toggle
+    // always starts from the authoritative server state.
+    useEffect(() => {
+      if (isVisible) {
+        setLocalEnabled(isTraderNotificationEnabled(traderId));
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
+
+    const handleManageTradersPress = useCallback(() => {
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES);
+      });
+    }, [navigation, sheetRef]);
+
+    // Only persist when the user explicitly confirms with Save.
+    // If the local draft differs from the remote value, issue one toggle call.
+    const handleSave = useCallback(() => {
+      if (localEnabled !== isTraderNotificationEnabled(traderId)) {
+        toggleTraderNotification(traderId);
+      }
+      closeSheet();
+    }, [
+      closeSheet,
+      isTraderNotificationEnabled,
+      localEnabled,
+      toggleTraderNotification,
+      traderId,
+    ]);
+
+    if (!isVisible) {
+      return null;
+    }
+
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack={false}
+        isInteractable
+        onClose={handleSheetClosed}
+        testID={TraderNotificationsBottomSheetSelectorsIDs.CONTAINER}
+      >
+        <HeaderCompactStandard
+          title={strings('social_leaderboard.trader_notifications.title', {
+            traderName,
+          })}
+          titleProps={{
+            variant: TextVariant.HeadingSm,
+            fontWeight: FontWeight.Bold,
+          }}
+          onClose={closeSheet}
+          closeButtonProps={{
+            testID: TraderNotificationsBottomSheetSelectorsIDs.CLOSE_BUTTON,
+          }}
+        />
+
+        <AllowPushNotificationsRow
+          title={strings(
+            'social_leaderboard.trader_notifications.allow_push_notifications',
+          )}
+          description={strings(
+            'social_leaderboard.trader_notifications.allow_push_notifications_desc',
+            { traderName },
+          )}
+          value={localEnabled}
+          onValueChange={(next: boolean) => {
+            if (!globalOff) {
+              setLocalEnabled(next);
+            }
+          }}
+          disabled={globalOff}
+          toggleTestID={TraderNotificationsBottomSheetSelectorsIDs.TOGGLE}
+        />
+
+        <View style={tw.style('h-px bg-muted mx-4')} />
+
+        {/* Manage traders row */}
+        <TouchableOpacity
+          onPress={handleManageTradersPress}
+          testID={TraderNotificationsBottomSheetSelectorsIDs.MANAGE_TRADERS_ROW}
+          accessibilityRole="button"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="px-4 py-4"
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={3}
+            >
+              <Icon
+                name={IconName.PageInfo}
+                size={IconSize.Md}
+                color={IconColor.IconDefault}
+              />
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+                {strings(
+                  'social_leaderboard.trader_notifications.manage_traders',
+                )}
+              </Text>
+            </Box>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          </Box>
+        </TouchableOpacity>
+
+        <BottomSheetFooter
+          buttonPropsArray={[
+            {
+              variant: ButtonVariants.Primary,
+              label: strings('social_leaderboard.trader_notifications.save'),
+              onPress: handleSave,
+              testID: TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
+            },
+          ]}
+          style={tw.style('px-4 mb-4')}
+        />
+      </BottomSheet>
+    );
+  },
+);
+
+export default TraderNotificationsBottomSheet;

@@ -4,14 +4,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
 import type { Position } from '@metamask/social-controllers';
 
-jest.mock('../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
-  getAssetImageUrl: jest.fn().mockReturnValue('https://example.com/token.png'),
-}));
-
-jest.mock('../../utils/chainMapping', () => ({
-  chainNameToId: jest.fn((chain: string) =>
-    chain === 'unknown' ? undefined : 'eip155:1',
-  ),
+jest.mock('../../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 jest.mock('../../utils/formatters', () => {
@@ -23,6 +18,7 @@ jest.mock('../../utils/formatters', () => {
 });
 
 const basePosition: Position = {
+  positionId: 'starkbot-base',
   tokenSymbol: 'STARKBOT',
   tokenName: 'Starkbot',
   tokenAddress: '0x123',
@@ -62,10 +58,10 @@ describe('PositionRow', () => {
     expect(screen.getAllByText('STARKBOT')[0]).toBeOnTheScreen();
   });
 
-  it('renders formatted token amount', () => {
+  it('renders formatted token amount abbreviated for large values', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
 
-    expect(screen.getByText('1,500,000,000 STARKBOT')).toBeOnTheScreen();
+    expect(screen.getByText('1.50B STARKBOT')).toBeOnTheScreen();
   });
 
   it('renders current value formatted as USD', () => {

@@ -10,12 +10,14 @@ import {
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
+import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 
 export interface TraderTokenInfoRowProps {
   symbol: string;
-  tokenImageUrl: string | undefined;
+  position?: Position;
   marketCap: number | undefined;
   pricePercentChange: number | undefined;
   activeTimePeriodLabel: string;
@@ -23,7 +25,7 @@ export interface TraderTokenInfoRowProps {
 
 const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
   symbol,
-  tokenImageUrl,
+  position,
   marketCap,
   pricePercentChange,
   activeTimePeriodLabel,
@@ -39,11 +41,11 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
       gap={4}
       twClassName="flex-1 min-w-0 mr-3"
     >
-      <AvatarToken
-        name={symbol}
-        src={tokenImageUrl ? { uri: tokenImageUrl } : undefined}
-        size={AvatarTokenSize.Lg}
-      />
+      {position ? (
+        <PositionTokenAvatar position={position} />
+      ) : (
+        <AvatarToken name={symbol} size={AvatarTokenSize.Lg} />
+      )}
       <Box twClassName="flex-1 min-w-0">
         <Text
           variant={TextVariant.BodyMd}
