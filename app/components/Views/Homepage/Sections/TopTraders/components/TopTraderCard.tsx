@@ -1,19 +1,19 @@
-import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
 import {
-  Box,
-  Text,
-  TextVariant,
-  FontWeight,
-  TextColor,
-  BoxAlignItems,
   AvatarBase,
   AvatarBaseSize,
+  Box,
+  BoxAlignItems,
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React from 'react';
+import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 import { formatPnl } from '../utils/formatPnl';
@@ -35,20 +35,9 @@ export interface TopTraderCardProps {
   testID?: string;
 }
 
+// Fixed dimensions for every tile in the homepage Top Traders carousel
 const AVATAR_SIZE = 60;
-/**
- * Fixed dimensions for every tile in the homepage Top Traders carousel
- * (`TopTraderCard`, `TopTraderCardSkeleton`, `ViewMoreCard`). The carousel
- * deliberately does NOT grow with content — long usernames ellipsize via
- * `numberOfLines={1}` so all tiles stay visually identical regardless of
- * trader name length.
- */
 export const TOP_TRADER_CARD_WIDTH = 200;
-// Per Figma (node 1797:15424): 16 (top padding) + 60 (avatar) + 4 (gap) +
-// 48 (HeadingSm 24 line-height + 2 inner gap + BodySm 22 line-height) + 4
-// (gap) + 40 (ButtonSize.Md) + 16 (bottom padding) = 188. Setting it to
-// any larger value leaks visible empty space below the button because
-// children stack from the top of the column.
 export const TOP_TRADER_CARD_HEIGHT = 188;
 
 /**

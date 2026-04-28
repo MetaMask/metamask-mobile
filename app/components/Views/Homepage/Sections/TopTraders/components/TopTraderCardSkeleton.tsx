@@ -25,9 +25,6 @@ const TopTraderCardSkeleton: React.FC = () => {
         backgroundColor={colors.background.section}
         highlightColor={colors.background.subsection}
       >
-        {/* Mirrors the loaded TopTraderCard's structure AND its exact
-            vertical metrics so every shimmer shape lands on the same pixel
-            as its loaded counterpart */}
         <View style={tw.style('gap-1')}>
           <View style={tw.style('items-center gap-1')}>
             <View style={tw.style('w-[60px] h-[60px] rounded-full')} />
