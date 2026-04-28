@@ -161,7 +161,9 @@ export const useSourceTokenOptions = (
         const balanceNum = parseFloat(amountStr);
         if (isNaN(balanceNum) || balanceNum <= 0) continue;
 
-        const rateStr = multichainRates?.[candidate.address]?.rate;
+        const rateStr = (
+          multichainRates as Record<string, { rate?: string } | undefined>
+        )?.[candidate.address]?.rate;
         const rateNum = rateStr ? parseFloat(rateStr) : NaN;
         if (isNaN(rateNum) || rateNum <= 0) continue;
 

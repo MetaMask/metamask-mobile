@@ -67,7 +67,8 @@ export const useQuickBuySetup = (
     if (assetMetadata) {
       return {
         address: isNonEvmChainId(destChainId)
-          ? formatAddressToAssetId(assetMetadata.address, destChainId)
+          ? (formatAddressToAssetId(assetMetadata.address, destChainId) ??
+            assetMetadata.address)
           : position.tokenAddress,
         symbol: position.tokenSymbol,
         name: position.tokenName,
