@@ -651,6 +651,23 @@ describe('LedgerBluetoothAdapter', () => {
 
       expect(adapter.isFlowComplete()).toBe(false);
     });
+
+    it('closes stale transport to force fresh BLE connection on retry', async () => {
+      await adapter.connect('device-123');
+      expect(adapter.isConnected()).toBe(true);
+
+      adapter.resetFlowState();
+
+      expect(adapter.isConnected()).toBe(false);
+      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
+        'device-123',
+      );
+    });
+
+    it('is safe to call when no transport exists', () => {
+      expect(adapter.isConnected()).toBe(false);
+      expect(() => adapter.resetFlowState()).not.toThrow();
+    });
   });
 
   describe('startDeviceDiscovery', () => {

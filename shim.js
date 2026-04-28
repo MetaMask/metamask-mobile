@@ -130,10 +130,71 @@ if (typeof global.CustomEvent === 'undefined') {
   };
 }
 
+// CloseEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
+// React Native/Hermes does not provide CloseEvent as a global constructor
+if (typeof global.CloseEvent === 'undefined') {
+  global.CloseEvent = function (type, params) {
+    params = params || {};
+    const event = new global.Event(type, params);
+    event.code = params.code ?? 0;
+    event.reason = params.reason ?? '';
+    event.wasClean = params.wasClean ?? false;
+    return event;
+  };
+}
+
+// MessageEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
+// React Native/Hermes does not provide MessageEvent as a global constructor
+if (typeof global.MessageEvent === 'undefined') {
+  global.MessageEvent = function (type, params) {
+    params = params || {};
+    const event = new global.Event(type, params);
+    event.data = params.data ?? null;
+    event.origin = params.origin ?? '';
+    event.lastEventId = params.lastEventId ?? '';
+    return event;
+  };
+}
+
+class AbortError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'AbortError';
+  }
+}
+
+// The ReactNative polyfill for AbortController does not populate `signal.reason`.
+class AbortControllerWithReason extends AbortController {
+  abort(reason) {
+    if (this.signal.aborted) {
+      return;
+    }
+
+    this.signal.reason =
+      reason === undefined
+        ? new AbortError('Signal is aborted without reason')
+        : reason;
+    super.abort();
+  }
+}
+
+global.AbortController = AbortControllerWithReason;
+
 if (typeof global.AbortSignal.timeout === 'undefined') {
+  // In the browser this is a DOMException.
+  class TimeoutError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = 'TimeoutError';
+    }
+  }
+
   global.AbortSignal.timeout = function (delay) {
     const controller = new AbortController();
-    setTimeout(() => controller.abort(), delay);
+    setTimeout(
+      () => controller.abort(new TimeoutError('Signal timed out')),
+      delay,
+    );
     return controller.signal;
   };
 }

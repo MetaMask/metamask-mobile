@@ -75,6 +75,7 @@ const mockStreamManagerInstance = {
   fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  resetDiskCacheThrottles: jest.fn(),
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -94,6 +95,12 @@ jest.mock('react-native-background-timer', () => ({
   stop: jest.fn(),
 }));
 
+jest.mock('../../../../store/storage-wrapper', () => ({
+  getItem: jest.fn().mockResolvedValue(null),
+  setItem: jest.fn().mockResolvedValue(undefined),
+  removeItem: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Import non-singleton modules first
 import { addEventListener as mockNetInfoAddEventListener } from '@react-native-community/netinfo';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -106,6 +113,7 @@ import { TradingReadinessCache } from '@metamask/perps-controller';
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
 import { PerpsConnectionManager } from './PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 // Get reference to the mocked TradingReadinessCache
 const mockTradingReadinessCache = TradingReadinessCache as jest.Mocked<
@@ -1128,9 +1136,11 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.disconnect.mockResolvedValue();
       await PerpsConnectionManager.connect();
       // Clear cache mock calls from connect/prewarm so we can assert specifically
-      Object.values(mockStreamManagerInstance).forEach(({ clearCache }) =>
-        clearCache.mockClear(),
-      );
+      Object.values(mockStreamManagerInstance).forEach((channel) => {
+        if (typeof channel === 'object' && channel?.clearCache) {
+          channel.clearCache.mockClear();
+        }
+      });
     });
 
     it('clears all stream channel caches when grace period fires', async () => {
@@ -1194,6 +1204,38 @@ describe('PerpsConnectionManager', () => {
       expect(state.isConnected).toBe(false);
       expect(state.isInitialized).toBe(false);
       expect(state.isConnecting).toBe(false);
+    });
+
+    it('skips cache clearing when preserveCaches is true', async () => {
+      // Arrange
+      const m = PerpsConnectionManager as unknown as {
+        connectionRefCount: number;
+        performActualDisconnection: (opts: {
+          force?: boolean;
+          preserveCaches?: boolean;
+        }) => Promise<void>;
+      };
+      m.connectionRefCount = 0;
+
+      // Act
+      await m.performActualDisconnection({ preserveCaches: true });
+
+      // Assert — caches must NOT be cleared when preserveCaches=true
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.orders.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.account.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.prices.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).not.toHaveBeenCalled();
     });
 
     it('skips disconnection when reference count is still positive', async () => {
@@ -1425,6 +1467,185 @@ describe('PerpsConnectionManager', () => {
         configurable: true,
         writable: true,
       });
+    });
+  });
+
+  describe('resumeFromForeground', () => {
+    it('skips reconnect when existing connection is healthy (ping succeeds)', async () => {
+      // Establish an initial connection
+      await PerpsConnectionManager.connect();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+
+      // Clear mocks to track resumeFromForeground calls
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      // resumeFromForeground should skip reconnect — ping succeeds
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+        suppressError: true,
+      });
+
+      // init should NOT be called again — healthy connection kept
+      expect(Engine.context.PerpsController.init).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('retries ping after delay and skips reconnect when retry succeeds', async () => {
+      // Establish an initial connection
+      await PerpsConnectionManager.connect();
+
+      // First ping fails, retry succeeds — simulates JS thread sluggishness on foreground
+      const failPing = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('ping timeout'));
+      const succeedPing = jest.fn().mockResolvedValue(undefined);
+      (Engine.context.PerpsController.getActiveProvider as jest.Mock)
+        .mockReturnValueOnce({ ping: failPing })
+        .mockReturnValueOnce({ ping: succeedPing });
+
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+      });
+
+      // Retry ping succeeded — no full reconnect needed
+      expect(Engine.context.PerpsController.init).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('soft-reconnects with preserveCaches when both pings fail', async () => {
+      // Establish an initial connection
+      await PerpsConnectionManager.connect();
+
+      // Both pings fail — truly unhealthy connection
+      (Engine.context.PerpsController.getActiveProvider as jest.Mock)
+        .mockReturnValueOnce({
+          ping: jest.fn().mockRejectedValueOnce(new Error('ping timeout')),
+        })
+        .mockReturnValueOnce({
+          ping: jest.fn().mockRejectedValueOnce(new Error('ping timeout')),
+        });
+
+      // Clear cache mocks to track preserveCaches behavior
+      Object.values(mockStreamManagerInstance).forEach((manager) => {
+        if ('clearCache' in manager) {
+          (manager.clearCache as jest.Mock).mockClear();
+        }
+      });
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+      (Engine.context.PerpsController.disconnect as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+      });
+
+      // Should have reconnected
+      expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+      // Caches must NOT be cleared — preserveCaches=true prevents skeleton flash
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.orders.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.account.clearCache,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('cancels grace period before resuming', async () => {
+      // Establish connection then simulate grace period
+      await PerpsConnectionManager.connect();
+      const m = PerpsConnectionManager as unknown as {
+        isInGracePeriod: boolean;
+        gracePeriodTimer: number | null;
+      };
+      m.isInGracePeriod = true;
+      m.gracePeriodTimer = 999;
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+      });
+
+      expect(m.isInGracePeriod).toBe(false);
+    });
+
+    it('calls ensureConnected when not currently connected', async () => {
+      // Manager starts disconnected (from resetManager in beforeEach)
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+      });
+
+      expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('sets connectionRefCount to at least 1', async () => {
+      const m = PerpsConnectionManager as unknown as {
+        connectionRefCount: number;
+      };
+      expect(m.connectionRefCount).toBe(0);
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+      });
+
+      expect(m.connectionRefCount).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('startConnectionTimeout with suppressError', () => {
+    it('does not set error when suppressError is true and timeout fires', async () => {
+      jest.useFakeTimers();
+
+      // Access private method via casting
+      const m = PerpsConnectionManager as unknown as {
+        startConnectionTimeout: (suppressError?: boolean) => void;
+        error: string | null;
+        isConnecting: boolean;
+      };
+      m.isConnecting = true;
+
+      m.startConnectionTimeout(true);
+
+      // Fire the timeout
+      jest.runAllTimers();
+
+      // Error should NOT be set because suppressError=true
+      expect(m.error).toBeNull();
+
+      jest.useRealTimers();
+    });
+
+    it('sets error when suppressError is false and timeout fires', async () => {
+      jest.useFakeTimers();
+
+      const m = PerpsConnectionManager as unknown as {
+        startConnectionTimeout: (suppressError?: boolean) => void;
+        error: string | null;
+        isConnecting: boolean;
+      };
+      m.isConnecting = true;
+
+      m.startConnectionTimeout(false);
+
+      jest.runAllTimers();
+
+      // Error should be set
+      expect(m.error).not.toBeNull();
+
+      jest.useRealTimers();
     });
   });
 });

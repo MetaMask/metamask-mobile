@@ -11,20 +11,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-    SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
-  };
-});
-
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
@@ -83,7 +69,7 @@ describe('RevealSRP', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to SRP reveal quiz when get started button is pressed', () => {
+  it('navigates to full-screen reveal SRP when get started button is pressed', () => {
     const { getByText } = render();
 
     const getStartedButton = getByText(
@@ -91,8 +77,9 @@ describe('RevealSRP', () => {
     );
     fireEvent.press(getStartedButton);
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ,
+      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
       {
+        shouldUpdateNav: true,
         keyringId: 'test-keyring-id',
       },
     );

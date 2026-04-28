@@ -33,7 +33,7 @@ export function usePredictPaymentToken(): UsePredictPaymentTokenResult {
   );
 
   const resetSelectedPaymentToken = useCallback(() => {
-    PredictController.setSelectedPaymentToken(null);
+    PredictController.selectPaymentToken(null);
   }, [PredictController]);
 
   return {

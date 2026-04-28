@@ -7,6 +7,8 @@ import {
   OrderPreview,
   PlaceOrderParams,
 } from '../../../types';
+import { TransactionStatus } from '@metamask/transaction-controller';
+import { providerErrors } from '@metamask/rpc-errors';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import Engine from '../../../../../../core/Engine';
@@ -18,17 +20,43 @@ import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import Logger from '../../../../../../util/Logger';
 
+/**
+ * Rejects all unapproved transactions to prevent stale approvals from
+ * interfering with the new deposit-and-order transaction batch.
+ * Mirrors the cleanup logic in useConfirmNavigation.
+ */
+function rejectPendingTransactions() {
+  const { ApprovalController, TransactionController } = Engine.context;
+  const unapprovedTxs = TransactionController.state.transactions.filter(
+    (tx) => tx.status === TransactionStatus.unapproved,
+  );
+  for (const tx of unapprovedTxs) {
+    try {
+      ApprovalController.rejectRequest(
+        tx.id,
+        providerErrors.userRejectedRequest(),
+      );
+    } catch {
+      // Approval may already be resolved
+    }
+  }
+}
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   setIsConfirming: (value: boolean) => void;
+  isSheetMode?: boolean;
+  onClose?: () => void;
 }
 
 export const usePredictBuyActions = ({
   preview,
   analyticsProperties,
   setIsConfirming,
+  isSheetMode = false,
+  onClose,
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
@@ -47,6 +75,13 @@ export const usePredictBuyActions = ({
 
   const hasInitializedPayWithAnyTokenRef = useRef(false);
   const didInitiateOrderRef = useRef(false);
+  const batchIdRef = useRef<string | undefined>(undefined);
+  const onRejectRef = useRef(onReject);
+  const clearActiveOrderTransactionIdRef = useRef(
+    clearActiveOrderTransactionId,
+  );
+  onRejectRef.current = onReject;
+  clearActiveOrderTransactionIdRef.current = clearActiveOrderTransactionId;
 
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -65,11 +100,28 @@ export const usePredictBuyActions = ({
       return;
     }
 
+    const doInit = async () => {
+      batchIdRef.current = undefined;
+      rejectPendingTransactions();
+      resetSelectedPaymentToken();
+      const result = await initPayWithAnyToken();
+      if (result?.success && result.response?.batchId) {
+        batchIdRef.current = result.response.batchId;
+      }
+    };
+
+    if (isSheetMode) {
+      if (!hasInitializedPayWithAnyTokenRef.current) {
+        hasInitializedPayWithAnyTokenRef.current = true;
+        doInit();
+      }
+      return;
+    }
+
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
-        resetSelectedPaymentToken();
-        initPayWithAnyToken();
+        doInit();
       }
     });
 
@@ -80,6 +132,7 @@ export const usePredictBuyActions = ({
     payWithAnyTokenEnabled,
     PredictController,
     resetSelectedPaymentToken,
+    isSheetMode,
   ]);
 
   useEffect(() => {
@@ -87,16 +140,18 @@ export const usePredictBuyActions = ({
       return;
     }
 
+    if (isSheetMode) {
+      return () => {
+        onRejectRef.current(undefined, true);
+        clearActiveOrderTransactionIdRef.current();
+      };
+    }
+
     return navigation.addListener('beforeRemove', () => {
-      onReject(undefined, true);
-      clearActiveOrderTransactionId();
+      onRejectRef.current(undefined, true);
+      clearActiveOrderTransactionIdRef.current();
     });
-  }, [
-    navigation,
-    payWithAnyTokenEnabled,
-    onReject,
-    clearActiveOrderTransactionId,
-  ]);
+  }, [navigation, payWithAnyTokenEnabled, isSheetMode]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
@@ -120,17 +175,34 @@ export const usePredictBuyActions = ({
     didInitiateOrderRef.current = true;
     setIsConfirming(true);
 
-    const transactionId =
-      currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
-        ? approvalRequest?.id
-        : undefined;
-
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
-      onApprovalConfirm({
-        deleteAfterResult: true,
-        waitForResult: true,
-        handleErrors: false,
-      });
+      if (approvalRequest?.id) {
+        onApprovalConfirm({
+          deleteAfterResult: true,
+          waitForResult: true,
+          handleErrors: false,
+        })?.catch((err: unknown) => {
+          Logger.log(
+            'usePredictBuyActions: onApprovalConfirm rejected',
+            err instanceof Error ? err.message : String(err),
+          );
+        });
+      } else {
+        Logger.log(
+          'usePredictBuyActions: PAY_WITH_ANY_TOKEN approval missing — attempting re-init',
+        );
+        batchIdRef.current = undefined;
+        rejectPendingTransactions();
+        const result = await initPayWithAnyToken();
+        if (result?.success && result.response?.batchId) {
+          batchIdRef.current = result.response.batchId;
+        }
+        setIsConfirming(false);
+        return {
+          status: 'error',
+          error: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        };
+      }
     }
     if (!preview) {
       return {
@@ -142,7 +214,10 @@ export const usePredictBuyActions = ({
     return handlePlaceOrder({
       analyticsProperties,
       preview,
-      transactionId,
+      transactionId:
+        currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
+          ? approvalRequest?.id
+          : undefined,
     });
   }, [
     setIsConfirming,
@@ -152,6 +227,7 @@ export const usePredictBuyActions = ({
     analyticsProperties,
     preview,
     onApprovalConfirm,
+    initPayWithAnyToken,
   ]);
 
   useEffect(() => {
@@ -174,10 +250,27 @@ export const usePredictBuyActions = ({
     if (currentState === ActiveOrderState.SUCCESS) {
       PredictController.onPlaceOrderSuccess();
       if (didInitiateOrderRef.current) {
-        navigation.dispatch(StackActions.pop());
+        if (isSheetMode && onClose) {
+          onClose();
+        } else {
+          navigation.dispatch(StackActions.pop());
+        }
       }
     }
-  }, [PredictController, currentState, navigation]);
+  }, [PredictController, currentState, navigation, isSheetMode, onClose]);
+
+  useEffect(() => {
+    if (currentState === ActiveOrderState.DEPOSITING) {
+      if (didInitiateOrderRef.current) {
+        didInitiateOrderRef.current = false;
+        if (isSheetMode && onClose) {
+          onClose();
+        } else {
+          navigation.dispatch(StackActions.pop());
+        }
+      }
+    }
+  }, [currentState, navigation, isSheetMode, onClose]);
 
   return {
     handleConfirm,

@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import {
-  getTransactionsNavbarOptions,
   getNavigationOptionsTitle,
   getEditableOptions,
   getTransactionOptionsTitle,
@@ -76,50 +75,6 @@ const mockRoute = {
 describe('Navbar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('getTransactionsNavbarOptions', () => {
-    it('returns correct navbar options with title', () => {
-      const options = getTransactionsNavbarOptions(
-        'Transactions',
-        mockThemeColors,
-        jest.fn(),
-        '0x1234567890abcdef',
-        jest.fn(),
-      );
-
-      expect(options).toHaveProperty('headerTitle');
-      expect(options).toHaveProperty('headerLeft');
-      expect(options).toHaveProperty('headerRight');
-      expect(options).toHaveProperty('headerStyle');
-      expect(options.headerTintColor).toBe(mockThemeColors.primary.default);
-    });
-
-    it('returns headerTitle function', () => {
-      const options = getTransactionsNavbarOptions(
-        'Transactions',
-        mockThemeColors,
-        jest.fn(),
-        '0x1234567890abcdef',
-        jest.fn(),
-      );
-
-      expect(typeof options.headerTitle).toBe('function');
-    });
-
-    it('renders headerRight component', () => {
-      const handleRightPress = jest.fn();
-      const options = getTransactionsNavbarOptions(
-        'Transactions',
-        mockThemeColors,
-        jest.fn(),
-        '0x1234567890abcdef',
-        handleRightPress,
-      );
-
-      const HeaderRight = options.headerRight;
-      expect(HeaderRight).toBeDefined();
-    });
   });
 
   describe('getNavigationOptionsTitle', () => {
@@ -741,14 +696,11 @@ describe('Navbar', () => {
     });
   });
 
-  describe('getBridgeNavbar with getParent', () => {
-    it('calls navigation.getParent().pop() when close button is pressed', () => {
-      const mockParentPop = jest.fn();
+  describe('getBridgeNavbar back button behavior', () => {
+    it('calls navigation.goBack() when back button is pressed', () => {
       const navigationWithParent = {
         ...mockNavigation,
-        getParent: jest.fn(() => ({
-          pop: mockParentPop,
-        })),
+        getParent: jest.fn(),
       };
       const options = getBridgeNavbar(
         navigationWithParent,
@@ -760,8 +712,8 @@ describe('Navbar', () => {
       const Header = options.header;
       const { getByTestId } = render(<Header />);
       fireEvent.press(getByTestId('button-icon'));
-      expect(navigationWithParent.getParent).toHaveBeenCalled();
-      expect(mockParentPop).toHaveBeenCalled();
+      expect(navigationWithParent.goBack).toHaveBeenCalled();
+      expect(navigationWithParent.getParent).not.toHaveBeenCalled();
     });
   });
 

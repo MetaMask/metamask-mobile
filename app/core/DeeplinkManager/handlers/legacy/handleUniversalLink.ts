@@ -26,11 +26,11 @@ import { handlePerpsUrl } from './handlePerpsUrl';
 import { handleRewardsUrl } from './handleRewardsUrl';
 import { handlePredictUrl } from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
-import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
+import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
@@ -81,11 +81,11 @@ const SUPPORTED_ACTIONS = {
   PREDICT: ACTIONS.PREDICT,
   WC: ACTIONS.WC,
   ONBOARDING: ACTIONS.ONBOARDING,
-  ENABLE_CARD_BUTTON: ACTIONS.ENABLE_CARD_BUTTON,
   CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
   TRENDING: ACTIONS.TRENDING,
+  SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
@@ -103,18 +103,24 @@ type SUPPORTED_ACTIONS =
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.DAPP,
+  SUPPORTED_ACTIONS.SWAP,
   SUPPORTED_ACTIONS.WC,
-  SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
   SUPPORTED_ACTIONS.CARD_KYC_NOTIFICATION,
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.REWARDS,
+  SUPPORTED_ACTIONS.PREDICT,
   SUPPORTED_ACTIONS.BUY,
   SUPPORTED_ACTIONS.BUY_CRYPTO,
   SUPPORTED_ACTIONS.SELL,
   SUPPORTED_ACTIONS.SELL_CRYPTO,
+  SUPPORTED_ACTIONS.TRENDING,
+  SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
+  SUPPORTED_ACTIONS.SHIELD,
+  SUPPORTED_ACTIONS.EARN_MUSD,
 ];
 
 /**
@@ -128,13 +134,12 @@ const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
 
 const interstitialWhitelistUrls = [] as const;
 
-// This is used when links originate from within the app itself
-const inAppLinkSources = [
+// Deeplinks from these sources are sent by MetaMask and won't show the interstitial modal
+const trustedInAppSources = [
   AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
-  AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-  AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+  AppConstants.DEEPLINKS.ORIGIN_BRAZE,
 ] as string[];
 
 /**
@@ -386,9 +391,10 @@ async function handleUniversalLink({
         validatedUrlString.startsWith(u),
       );
       const linkInstanceType = linkType();
-      const isInAppSourceWithPrivateLink =
-        inAppLinkSources.includes(source) &&
-        linkInstanceType === DeepLinkModalLinkType.PRIVATE;
+      const isTrustedInAppSource =
+        trustedInAppSources.includes(source) &&
+        (linkInstanceType === DeepLinkModalLinkType.PRIVATE ||
+          linkInstanceType === DeepLinkModalLinkType.PUBLIC);
 
       // Build analytics context - interstitialShown starts as false, set to true when modal is actually shown
       // interstitialAction will be set when user takes action
@@ -403,8 +409,8 @@ async function handleUniversalLink({
         // interstitialAction is undefined initially, set when user takes action
       };
 
-      // Track analytics for skipped cases (whitelisted URLs or in-app sources with private links)
-      if (isWhitelistedUrl || isInAppSourceWithPrivateLink) {
+      // Track analytics for skipped cases (whitelisted URLs or trusted in-app sources)
+      if (isWhitelistedUrl || isTrustedInAppSource) {
         analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
         // Track analytics asynchronously without blocking
         trackDeepLinkAnalytics(analyticsContext);
@@ -612,10 +618,6 @@ async function handleUniversalLink({
       handleFastOnboarding({ onboardingPath: actionBasedRampPath });
       break;
     }
-    case SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON: {
-      handleEnableCardButton();
-      break;
-    }
     case SUPPORTED_ACTIONS.CARD_ONBOARDING: {
       handleCardOnboarding();
       break;
@@ -630,6 +632,12 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.TRENDING: {
       handleTrendingUrl({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {
+      handleSocialTraderPositionUrl({
         actionPath: actionBasedRampPath,
       });
       break;

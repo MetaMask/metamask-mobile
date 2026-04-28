@@ -18,10 +18,10 @@ import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
-import { getDeviceId } from '../../../core/Ledger/Ledger';
+import ToastService from '../../../core/ToastService/ToastService';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
-import { TransactionError } from '../../../core/Transaction/TransactionError';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -43,8 +43,10 @@ import Logger from '../../../util/Logger';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
+  findBlockExplorerUrlForChain,
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
+  getHexEvmChainId,
 } from '../../../util/networks';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import {
@@ -55,9 +57,9 @@ import {
 import {
   getGasValuesForReplacement,
   getMediumGasPriceHex,
+  normalizeReplacementGasFeeParams,
 } from '../../../util/confirmation/gas';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import { CancelSpeedupModal } from '../../Views/confirmations/components/modals/cancel-speedup-modal';
 import PriceChartContext, {
@@ -65,10 +67,15 @@ import PriceChartContext, {
 } from '../AssetOverview/PriceChart/PriceChart.context';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import TransactionElement from '../TransactionElement';
-import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import {
+  useHardwareWallet,
+  executeHardwareWalletOperation,
+} from '../../../core/HardwareWallet';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
+import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -200,10 +207,24 @@ class Transactions extends PureComponent {
      * Location context for analytics tracking (home or asset_details)
      */
     location: PropTypes.string,
+    hardwareWallet: PropTypes.shape({
+      ensureDeviceReady: PropTypes.func,
+      setPendingOperationAddress: PropTypes.func,
+      showAwaitingConfirmation: PropTypes.func,
+      hideAwaitingConfirmation: PropTypes.func,
+      showHardwareWalletError: PropTypes.func,
+    }),
   };
 
   static defaultProps = {
     headerHeight: 0,
+    hardwareWallet: {
+      ensureDeviceReady: async () => false,
+      setPendingOperationAddress: () => undefined,
+      showAwaitingConfirmation: () => undefined,
+      hideAwaitingConfirmation: () => undefined,
+      showHardwareWalletError: () => undefined,
+    },
   };
 
   state = {
@@ -212,10 +233,8 @@ class Transactions extends PureComponent {
     refreshing: false,
     cancelIsOpen: false,
     speedUpIsOpen: false,
-    retryIsOpen: false,
     confirmDisabled: false,
     rpcBlockExplorer: undefined,
-    errorMsg: undefined,
     isQRHardwareAccount: false,
     isLedgerAccount: false,
   };
@@ -229,6 +248,27 @@ class Transactions extends PureComponent {
 
   get isNonEvmChain() {
     return isNonEvmChainId(this.props.chainId);
+  }
+
+  /**
+   * Chain used for the "View full history" footer and explorer link.
+   * On token / asset details, only the asset chain is used — never the globally
+   * selected network from Redux.
+   */
+  get explorerContextChainId() {
+    const { tokenChainId, chainId, location } = this.props;
+    if (location === TransactionDetailLocation.AssetDetails) {
+      return tokenChainId;
+    }
+    return tokenChainId ?? chainId;
+  }
+
+  get isAssetDetailsExplorer() {
+    return this.props.location === TransactionDetailLocation.AssetDetails;
+  }
+
+  get isExplorerContextNonEvm() {
+    return isNonEvmChainId(this.explorerContextChainId);
   }
 
   get isTokenNonEvmChain() {
@@ -255,16 +295,27 @@ class Transactions extends PureComponent {
     const {
       providerConfig: { type, rpcUrl },
       networkConfigurations,
-      chainId,
+      tokenChainId,
     } = this.props;
+    const explorerChainId = this.explorerContextChainId;
     let blockExplorer;
-    if (type === RPC) {
+
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(tokenChainId);
+
+    if (!explorerChainId && useAssetOnlyExplorer) {
+      blockExplorer = undefined;
+    } else if (this.isExplorerContextNonEvm) {
+      blockExplorer = findBlockExplorerForNonEvmChainId(explorerChainId);
+    } else if (useAssetOnlyExplorer) {
+      blockExplorer = findBlockExplorerUrlForChain(
+        explorerChainId,
+        networkConfigurations,
+      );
+    } else if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
-    } else if (this.isNonEvmChain) {
-      // TODO: [SOLANA] - block explorer needs to be implemented
-      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
@@ -386,13 +437,29 @@ class Transactions extends PureComponent {
       providerConfig: { type },
       selectedAddress,
       close,
-      chainId,
+      networkConfigurations,
     } = this.props;
     const { rpcBlockExplorer } = this.state;
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(this.props.tokenChainId);
+
     try {
       let url, title;
 
-      if (this.isNonEvmChain && rpcBlockExplorer) {
+      if (useAssetOnlyExplorer) {
+        const base =
+          rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
+            ? rpcBlockExplorer
+            : findBlockExplorerUrlForChain(
+                this.explorerContextChainId,
+                networkConfigurations,
+              );
+        if (!base) {
+          throw new Error('Missing block explorer for asset chain');
+        }
+        url = `${base}/address/${selectedAddress}`;
+        title = getBlockExplorerName(base);
+      } else if (this.isExplorerContextNonEvm && rpcBlockExplorer) {
         url = `${rpcBlockExplorer}/address/${selectedAddress}`;
         title = getBlockExplorerName(rpcBlockExplorer);
       } else {
@@ -509,18 +576,24 @@ class Transactions extends PureComponent {
 
   handleSpeedUpTransactionFailure = (e) => {
     const speedUpTxId = this.speedUpTxId;
-    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(message));
+    InteractionManager.runAfterInteractions(() => {
+      this.showTransactionUpdateErrorToast(e);
+    });
     this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
   };
 
   handleCancelTransactionFailure = (e) => {
     const cancelTxId = this.cancelTxId;
-    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(message));
+    InteractionManager.runAfterInteractions(() => {
+      this.showTransactionUpdateErrorToast(e);
+    });
     this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
+  };
+
+  showTransactionUpdateErrorToast = (error) => {
+    ToastService.showToast(getTransactionUpdateErrorToastOptions(error));
   };
 
   speedUpTransaction = async (transactionObject) => {
@@ -551,9 +624,12 @@ class Transactions extends PureComponent {
               : { legacyGasFee: params }),
           },
         });
-      } else {
-        await speedUpTransaction(this.speedUpTxId, params);
+        // The shared hardware-wallet flow closes the modal itself on success
+        // or rejection.
+        return;
       }
+
+      await speedUpTransaction(this.speedUpTxId, params);
       this.closeSpeedUpCancelModal();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -575,23 +651,58 @@ class Transactions extends PureComponent {
   };
 
   signLedgerTransaction = async (transaction) => {
-    const deviceId = await getDeviceId();
+    const { hardwareWallet, selectedAddress } = this.props;
 
-    const onConfirmation = (isComplete) => {
-      if (isComplete) {
-        this.closeSpeedUpCancelModal();
-      }
-    };
+    if (!selectedAddress) {
+      throw new Error('Missing selected address for hardware wallet operation');
+    }
 
-    this.props.navigation.navigate(
-      ...createLedgerTransactionModalNavDetails({
-        transactionId: transaction.id,
-        deviceId,
-        onConfirmationComplete: onConfirmation,
-        type: 'signTransaction',
-        replacementParams: transaction?.replacementParams,
-      }),
+    const gasFeeParams = normalizeReplacementGasFeeParams(
+      transaction?.replacementParams,
     );
+
+    const didComplete = await executeHardwareWalletOperation({
+      address: selectedAddress,
+      operationType: 'transaction',
+      ensureDeviceReady: hardwareWallet.ensureDeviceReady,
+      setPendingOperationAddress: hardwareWallet.setPendingOperationAddress,
+      showAwaitingConfirmation: hardwareWallet.showAwaitingConfirmation,
+      hideAwaitingConfirmation: hardwareWallet.hideAwaitingConfirmation,
+      showHardwareWalletError: hardwareWallet.showHardwareWalletError,
+      execute: async () => {
+        if (
+          transaction?.replacementParams?.type ===
+          LedgerReplacementTxTypes.SPEED_UP
+        ) {
+          await speedUpTransaction(transaction.id, gasFeeParams);
+          return;
+        }
+
+        if (
+          transaction?.replacementParams?.type ===
+          LedgerReplacementTxTypes.CANCEL
+        ) {
+          await Engine.context.TransactionController.stopTransaction(
+            transaction.id,
+            gasFeeParams,
+          );
+          return;
+        }
+
+        await Engine.context.ApprovalController.acceptRequest(
+          transaction.id,
+          undefined,
+          {
+            waitForResult: true,
+          },
+        );
+      },
+      onRejected: this.closeSpeedUpCancelModal,
+    });
+
+    if (didComplete) {
+      this.closeSpeedUpCancelModal();
+    }
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
@@ -629,12 +740,15 @@ class Transactions extends PureComponent {
               : { legacyGasFee: params }),
           },
         });
-      } else {
-        await Engine.context.TransactionController.stopTransaction(
-          this.cancelTxId,
-          params,
-        );
+        // The shared hardware-wallet flow closes the modal itself on success
+        // or rejection.
+        return;
       }
+
+      await Engine.context.TransactionController.stopTransaction(
+        this.cancelTxId,
+        params,
+      );
       this.closeSpeedUpCancelModal();
     } catch (e) {
       this.handleCancelTransactionFailure(e);
@@ -664,40 +778,28 @@ class Transactions extends PureComponent {
     />
   );
 
-  toggleRetry = (errorMsg) =>
-    this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg }));
-
-  retry = () => {
-    this.setState((state) => ({
-      retryIsOpen: !state.retryIsOpen,
-      errorMsg: undefined,
-    }));
-
-    //If the exitsing TX id true then it is a speed up retry
-    if (this.speedUpTxId) {
-      InteractionManager.runAfterInteractions(() => {
-        this.onSpeedUpAction(true, this.existingTx);
-      });
-    }
-    if (this.cancelTxId) {
-      InteractionManager.runAfterInteractions(() => {
-        this.onCancelAction(true, this.existingTx);
-      });
-    }
-  };
-
   get footer() {
     const {
       chainId,
       providerConfig: { type },
+      tokenChainId,
     } = this.props;
+
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(tokenChainId);
+
+    const footerChainId = useAssetOnlyExplorer
+      ? (getHexEvmChainId(this.explorerContextChainId) ??
+        this.explorerContextChainId)
+      : chainId;
 
     return (
       <TransactionsFooter
-        chainId={chainId}
+        chainId={footerChainId}
         providerType={type}
         rpcBlockExplorer={this.state.rpcBlockExplorer}
-        isNonEvmChain={this.isNonEvmChain}
+        isNonEvmChain={this.isExplorerContextNonEvm}
+        omitGlobalProviderExplorerFallback={this.isAssetDetailsExplorer}
         onViewBlockExplorer={this.viewOnBlockExplore}
         showDisclaimer
       />
@@ -792,12 +894,6 @@ class Transactions extends PureComponent {
             ? this.renderLoader()
             : this.renderList()}
         </View>
-        <RetryModal
-          onCancelPress={() => this.toggleRetry(undefined)}
-          onConfirmPress={this.retry}
-          retryIsOpen={this.state.retryIsOpen}
-          errorMsg={this.state.errorMsg}
-        />
       </PriceChartProvider>
     );
   };
@@ -839,7 +935,13 @@ const mapDispatchToProps = (dispatch) => ({
 
 export { Transactions as UnconnectedTransactions };
 
+const TransactionsWithHardwareWallet = (props) => {
+  const hardwareWallet = useHardwareWallet();
+
+  return <Transactions {...props} hardwareWallet={hardwareWallet} />;
+};
+
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withQRHardwareAwareness(Transactions));
+)(withQRHardwareAwareness(TransactionsWithHardwareWallet));

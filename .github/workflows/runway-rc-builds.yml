@@ -1,0 +1,80 @@
+##############################################################################################
+#
+# Runway RC Builds
+#
+# Triggered from Runway to build the release-candidate iOS + Android binaries in one run.
+# Bumps the build version once, then dispatches build.yml with platform: both so iOS and Android
+# build in parallel against the same bumped commit. Uploads the iOS IPA to TestFlight and posts
+# a Slack notification with the resulting build numbers.
+#
+# This workflow only produces fresh native binaries — OTA updates are handled by the separate
+# runway-ota-rc.yml workflow.
+#
+##############################################################################################
+name: Runway RC Builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: >-
+          Optional branch, tag, or SHA (Build workflow source_branch).
+          Empty uses the branch selected in the "Use workflow from" UI.
+        required: false
+        type: string
+
+permissions:
+  contents: write # required by build.yml (update-build-version job)
+  pull-requests: read
+  actions: write
+  id-token: write # required by build.yml
+
+jobs:
+  update-build-version:
+    name: Bump build version
+    uses: ./.github/workflows/update-latest-build-version.yml
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      base-branch: ${{ inputs.source_branch || github.ref_name }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
+
+  build:
+    name: Build iOS + Android (main-rc)
+    needs: update-build-version
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-rc
+      platform: both
+      skip_version_bump: true
+      source_branch: ${{ needs.update-build-version.outputs.commit-hash }}
+      upload_to_sentry: true
+    secrets: inherit
+
+  upload-ios-testflight:
+    name: Upload iOS to TestFlight
+    needs: build
+    uses: ./.github/workflows/upload-to-testflight.yml
+    with:
+      environment: rc
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_name: main-rc
+      build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
+      build_version: ${{ needs.build.outputs.semantic_version }}
+      build_number: ${{ needs.build.outputs.ios_version_code }}
+    secrets: inherit
+
+  slack-notification:
+    name: Slack RC Notification
+    needs: build
+    if: success()
+    uses: ./.github/workflows/slack-rc-notification.yml
+    with:
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      semver: ${{ needs.build.outputs.semantic_version }}
+      ios_build_number: ${{ needs.build.outputs.ios_version_code }}
+      android_build_number: ${{ needs.build.outputs.android_version_code }}
+    secrets: inherit

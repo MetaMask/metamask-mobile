@@ -40,6 +40,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
+      },
+    },
+  },
+}));
+
 // Mock utility functions
 jest.mock('../../util/cardTokenVault', () => ({
   storeCardBaanxToken: jest.fn().mockResolvedValue({ success: true }),
@@ -382,7 +393,6 @@ const createTestStore = (initialState = {}) =>
             onboardingId: 'test-id',
             contactVerificationId: 'contact-id',
           },
-          userCardLocation: 'us',
           ...initialState,
         },
         action = { type: '', payload: null },
@@ -698,7 +708,7 @@ describe('PhysicalAddress Component', () => {
       );
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('enables continue button when all required fields are filled', async () => {
@@ -738,7 +748,7 @@ describe('PhysicalAddress Component', () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('requires state for US users', () => {
@@ -768,7 +778,7 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
@@ -849,7 +859,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -973,7 +983,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -1082,7 +1092,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -1173,7 +1183,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -1276,7 +1286,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -1386,7 +1396,7 @@ describe('PhysicalAddress Component', () => {
       );
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables button during consent loading', () => {
@@ -1412,7 +1422,7 @@ describe('PhysicalAddress Component', () => {
       );
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
@@ -1593,7 +1603,7 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('enables continue button when checkbox is checked and all fields filled', async () => {
@@ -1625,7 +1635,7 @@ describe('PhysicalAddress Component', () => {
 
       // Button should be disabled without checkboxes
       const buttonBefore = getByTestId('physical-address-continue-button');
-      expect(buttonBefore.props.disabled).toBe(true);
+      expect(buttonBefore).toBeDisabled();
 
       // Check all consent checkboxes (required for US users)
       fireEvent.press(
@@ -1636,7 +1646,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const buttonAfter = getByTestId('physical-address-continue-button');
-        expect(buttonAfter.props.disabled).toBe(false);
+        expect(buttonAfter).not.toBeDisabled();
       });
     });
 

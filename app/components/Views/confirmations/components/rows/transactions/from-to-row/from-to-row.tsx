@@ -13,7 +13,7 @@ import { useTransferRecipient } from '../../../../hooks/transactions/useTransfer
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 import Identicon from '../../../../../../UI/Identicon';

@@ -26,10 +26,13 @@ import { BridgeToken } from '../../../../Bridge/types';
 import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../../Earn/constants/musd';
+import { getTokenIconUrl } from '../../../../Bridge/utils';
+import { CaipAssetType } from '@metamask/utils';
 import { getNativeSourceToken } from '../../../../Bridge/utils/tokenUtils';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { RewardsMetricsButtons } from '../../../utils';
 
 const ANNUAL_BONUS_RATE = 0.03;
@@ -38,10 +41,14 @@ const BUY_MUSD_URL =
 
 const MUSD_DEST_TOKEN: BridgeToken = {
   address: MUSD_TOKEN_ADDRESS,
-  symbol: MUSD_TOKEN.symbol,
+  symbol: MUSD_TOKEN.symbol.toUpperCase(),
   name: MUSD_TOKEN.name,
   decimals: MUSD_TOKEN.decimals,
   chainId: '0x1',
+  image: getTokenIconUrl(
+    MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x1'] as CaipAssetType,
+    false,
+  ),
 };
 
 const MusdCalculatorTab: React.FC = () => {

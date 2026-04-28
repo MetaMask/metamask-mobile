@@ -6,7 +6,7 @@ const initialState = {
   primaryCurrency: 'ETH',
   lockTime: -1, // Disabled by default,
   avatarAccountType: AvatarAccountType.Maskicon,
-  hideZeroBalanceTokens: false,
+  hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
   deepLinkModalDisabled: false,
   // Perps chart preferences

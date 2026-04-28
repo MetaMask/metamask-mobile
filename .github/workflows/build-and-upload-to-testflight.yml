@@ -4,6 +4,21 @@ name: Build and upload to TestFlight
 # Summary metadata is passed from build.yml outputs (no second checkout for version parsing).
 #
 on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+      environment:
+        description: 'Build environment / track (exp, beta, rc)'
+        required: true
+        type: string
+      testflight_group:
+        description: 'TestFlight external testing group'
+        required: false
+        type: string
+        default: 'MetaMask BETA & Release Candidates'
   workflow_dispatch:
     inputs:
       source_branch:
@@ -56,15 +71,14 @@ jobs:
     needs: [prepare-build-branch, build]
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
-      source_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
       environment: ${{ inputs.environment }}
       testflight_group: ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}
+      source_branch: ${{ inputs.source_branch }}
+      build_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
       build_name: main-${{ inputs.environment }}
-      summary_logical_source_branch: ${{ inputs.source_branch }}
-      summary_build_ref: ${{ needs.prepare-build-branch.outputs.build_branch }}
-      summary_build_version: ${{ needs.build.outputs.semantic_version }}
-      summary_android_version_code: ${{ needs.build.outputs.android_version_code }}
-      summary_built_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
+      build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
+      build_version: ${{ needs.build.outputs.semantic_version }}
+      build_number: ${{ needs.build.outputs.ios_version_code }}
     secrets: inherit
 
   cleanup-build-branch:

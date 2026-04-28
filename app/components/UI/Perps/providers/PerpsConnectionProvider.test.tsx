@@ -1,9 +1,10 @@
 import React from 'react';
-import { render, waitFor, act } from '@testing-library/react-native';
+import { render, waitFor, act, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { PerpsConnectionProvider } from './PerpsConnectionProvider';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 jest.mock('../services/PerpsConnectionManager');
 
@@ -123,6 +124,10 @@ describe('PerpsConnectionProvider', () => {
     (PerpsConnectionManager.getActiveProviderName as jest.Mock) = jest
       .fn()
       .mockReturnValue('hyperliquid');
+    (PerpsConnectionManager.ensureConnected as jest.Mock) = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    (PerpsConnectionManager.resetError as jest.Mock) = jest.fn();
   });
 
   afterEach(() => {
@@ -453,7 +458,7 @@ describe('PerpsConnectionProvider', () => {
       // Click retry button
       const retryButton = getByTestId('retry-button');
       act(() => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       // After retry attempt, back button should be shown
@@ -486,7 +491,7 @@ describe('PerpsConnectionProvider', () => {
       // Click retry button
       const retryButton = getByTestId('retry-button');
       act(() => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       await waitFor(() => {
@@ -527,7 +532,7 @@ describe('PerpsConnectionProvider', () => {
       // Click retry button
       const retryButton = getByTestId('retry-button');
       await act(async () => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       // Should now show children instead of error view
@@ -560,7 +565,7 @@ describe('PerpsConnectionProvider', () => {
       // First retry
       const retryButton = getByTestId('retry-button');
       await act(async () => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       await waitFor(() => {
@@ -569,7 +574,7 @@ describe('PerpsConnectionProvider', () => {
 
       // Second retry
       await act(async () => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       await waitFor(() => {
@@ -578,7 +583,7 @@ describe('PerpsConnectionProvider', () => {
 
       // Third retry
       await act(async () => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       await waitFor(() => {
@@ -609,7 +614,7 @@ describe('PerpsConnectionProvider', () => {
       // First retry (fails)
       const retryButton = getByTestId('retry-button');
       await act(async () => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       await waitFor(() => {
@@ -626,7 +631,7 @@ describe('PerpsConnectionProvider', () => {
 
       // Second retry (succeeds)
       await act(async () => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       // Should clear retry attempts and show children
@@ -661,7 +666,7 @@ describe('PerpsConnectionProvider', () => {
       // Click retry button
       const retryButton = getByTestId('retry-button');
       act(() => {
-        retryButton.props.onPress();
+        fireEvent.press(retryButton);
       });
 
       await waitFor(() => {
@@ -671,6 +676,83 @@ describe('PerpsConnectionProvider', () => {
         expect(mockReconnectWithNewContext).toHaveBeenCalled();
       });
     });
+  });
+
+  it('skips ensureConnected when suppressErrorView is true', async () => {
+    // Arrange: disconnected, not connecting, no error — would normally trigger ensureConnected
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: null,
+    });
+    const mockEnsureConnected =
+      PerpsConnectionManager.ensureConnected as jest.Mock;
+    mockEnsureConnected.mockClear();
+
+    render(
+      <PerpsConnectionProvider suppressErrorView>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    // Advance timers to ensure effect has run
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    expect(mockEnsureConnected).not.toHaveBeenCalled();
+  });
+
+  it('handles ensureConnected error on entry gracefully', async () => {
+    // Arrange: disconnected, not connecting, no error — triggers ensureConnected
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: null,
+    });
+    const mockEnsureConnected =
+      PerpsConnectionManager.ensureConnected as jest.Mock;
+    mockEnsureConnected.mockRejectedValueOnce(new Error('connection failed'));
+
+    const { getByText } = render(
+      <PerpsConnectionProvider>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    // The error is caught — children still render
+    await waitFor(() => {
+      expect(getByText('Child Component')).toBeOnTheScreen();
+    });
+    expect(mockEnsureConnected).toHaveBeenCalledWith({
+      source: PERPS_CONNECTION_SOURCE.PERPS_FULLSCREEN_ENTRY,
+    });
+  });
+
+  it('renders children when suppressErrorView is true even with error state', async () => {
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: 'Connection failed',
+    });
+
+    const { getByText, queryByTestId } = render(
+      <PerpsConnectionProvider suppressErrorView>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    expect(getByText('Child Component')).toBeOnTheScreen();
+    expect(queryByTestId('perps-connection-error')).toBeNull();
   });
 
   it('cleans up polling interval on unmount', () => {

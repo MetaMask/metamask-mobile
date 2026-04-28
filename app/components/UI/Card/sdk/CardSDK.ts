@@ -58,7 +58,6 @@ import {
   CashbackWithdrawRequest,
   CashbackWithdrawResponse,
   CashbackWithdrawEstimationResponse,
-  DelegationPostApprovalParams,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
@@ -89,7 +88,7 @@ export class CardSDK {
     enableLogs = false,
   }: {
     cardFeatureFlag: CardFeatureFlag;
-    userCardLocation?: CardLocation;
+    userCardLocation?: CardLocation | null;
     enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
@@ -99,20 +98,9 @@ export class CardSDK {
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
-  get isCardEnabled(): boolean {
-    return (
-      this.cardFeatureFlag.chains?.[cardNetworkInfos.linea.caipChainId]
-        ?.enabled || false
-    );
-  }
-
   getSupportedTokensByChainId(
     caipChainId: CaipChainId = 'eip155:59144',
   ): SupportedToken[] {
-    if (!this.isCardEnabled) {
-      return [];
-    }
-
     const tokens = this.cardFeatureFlag.chains?.[caipChainId]?.tokens;
 
     if (!tokens) {
@@ -361,8 +349,8 @@ export class CardSDK {
   isCardHolder = async (
     accounts: `${string}:${string}:${string}`[],
   ): Promise<`${string}:${string}:${string}`[]> => {
-    // Early return for invalid input or disabled feature
-    if (!this.isCardEnabled || !accounts?.length) {
+    // Early return for invalid input
+    if (!accounts?.length) {
       return [];
     }
 
@@ -476,10 +464,6 @@ export class CardSDK {
       globalAllowance: ethers.BigNumber;
     }[]
   > => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     const supportedTokensAddresses = this.getSupportedTokensByChainId()
       .map((token) => token.address)
       // Ensure all addresses are valid Ethereum addresses
@@ -537,10 +521,6 @@ export class CardSDK {
     address: string,
     nonZeroBalanceTokens: string[],
   ): Promise<CardToken | null> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
       this.logDebugInfo('getPriorityToken (Simple Case 1)', {
@@ -1466,10 +1446,6 @@ export class CardSDK {
   updateWalletPriority = async (
     wallets: { id: number; priority: number }[],
   ): Promise<void> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     this.logDebugInfo('updateWalletPriority', { wallets });
 
     const requestBody = { wallets };
@@ -1497,129 +1473,6 @@ export class CardSDK {
       'updateWalletPriority',
       'Successfully updated wallet priority',
     );
-  };
-
-  /**
-   * Generate a delegation token for spending limit increase
-   * This is Step 1 of the delegation process
-   */
-  generateDelegationToken = async (
-    network: CardNetwork,
-    address: string,
-    faucet?: boolean,
-  ): Promise<{
-    token: string;
-    expiresAt: string;
-    nonce: string;
-  }> => {
-    const response = await this.makeRequest(
-      `/v1/delegation/token?network=${network}&address=${address}${faucet ? '&faucet=true' : ''}`,
-      {
-        fetchOptions: { method: 'GET' },
-        authenticated: true,
-        timeoutMs: 30000,
-      },
-    );
-
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to generate delegation token. Please try again.',
-        'generateDelegationToken',
-        'delegation/token',
-        response.status,
-        { network },
-      );
-    }
-
-    const tokenData = await response.json();
-    this.logDebugInfo('generateDelegationToken', tokenData);
-
-    return {
-      token: tokenData.token,
-      expiresAt: tokenData.expiresAt,
-      nonce: tokenData.nonce,
-    };
-  };
-
-  /**
-   * Complete wallet delegation for spending limit increase.
-   * This is Step 3 of the delegation process (after user completes the blockchain transaction).
-   * Routes to the EVM or Solana endpoint based on params.network.
-   */
-  completeDelegation = async (
-    params: DelegationPostApprovalParams,
-  ): Promise<{ success: boolean }> => {
-    const isSolana = params.network === 'solana';
-
-    if (isSolana) {
-      // Validate Solana address format (Base58, 32-44 characters)
-      const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-      if (!solanaAddressRegex.test(params.address)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid Solana address format',
-        );
-      }
-
-      // Validate Solana transaction signature format (Base58, 87-88 characters)
-      const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
-      if (!solanaTxHashRegex.test(params.txHash)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid Solana transaction signature format',
-        );
-      }
-    } else {
-      // Validate EVM address format
-      const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-      if (!addressRegex.test(params.address)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid Ethereum address format',
-        );
-      }
-
-      // Validate EVM signature format
-      const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
-      if (!sigHashRegex.test(params.sigHash)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid signature format',
-        );
-      }
-
-      if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
-        throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
-      }
-    }
-
-    const endpointSuffix = isSolana ? 'solana' : 'evm';
-    const endpoint = `delegation/${endpointSuffix}/post-approval`;
-
-    const response = await this.makeRequest(`/v1/${endpoint}`, {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify(params),
-      },
-      authenticated: true,
-    });
-
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to complete delegation. Please try again.',
-        'completeDelegation',
-        endpoint,
-        response.status,
-        { network: params.network, currency: params.currency },
-      );
-    }
-
-    const result = await response.json();
-    this.logDebugInfo('completeDelegation', result);
-
-    return result;
   };
 
   /**
@@ -1668,13 +1521,6 @@ export class CardSDK {
         return responseData;
       },
     );
-
-  encodeApproveTransaction = (spender: string, value: string): string => {
-    const approvalInterface = new ethers.utils.Interface([
-      'function approve(address spender, uint256 value)',
-    ]);
-    return approvalInterface.encodeFunctionData('approve', [spender, value]);
-  };
 
   /**
    * Validate delegation settings response

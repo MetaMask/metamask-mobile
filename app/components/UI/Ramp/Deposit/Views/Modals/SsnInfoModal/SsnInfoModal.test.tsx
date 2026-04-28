@@ -1,7 +1,9 @@
 import React from 'react';
+import { screen } from '@testing-library/react-native';
 import SsnInfoModal from './SsnInfoModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { strings } from '../../../../../../../../locales/i18n';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -24,8 +26,13 @@ describe('SsnInfoModal Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(SsnInfoModal);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders the title and description', () => {
+    renderWithProvider(SsnInfoModal);
+    expect(
+      screen.getByText(strings('deposit.ssn_info_modal.title')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('deposit.ssn_info_modal.description')),
+    ).toBeOnTheScreen();
   });
 });

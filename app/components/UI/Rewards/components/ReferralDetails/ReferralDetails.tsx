@@ -2,15 +2,11 @@ import React from 'react';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import ReferralInfoSection from './ReferralInfoSection';
-import ReferralStatsSection from './ReferralStatsSection';
 import ReferralActionsSection from './ReferralActionsSection';
-import Share from 'react-native-share';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import {
-  selectBalanceRefereePortion,
   selectReferralCode,
-  selectReferralCount,
   selectReferralDetailsError,
   selectReferralDetailsLoading,
   selectSeasonStatusError,
@@ -18,7 +14,8 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { RewardsMetricsButtons } from '../../utils';
 
 interface ReferralDetailsProps {
@@ -29,16 +26,14 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
   showInfoSection = true,
 }) => {
   const referralCode = useSelector(selectReferralCode);
-  const refereeCount = useSelector(selectReferralCount);
-  const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
   const seasonStatusError = useSelector(selectSeasonStatusError);
   const seasonStartDate = useSelector(selectSeasonStartDate);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
   const referralDetailsError = useSelector(selectReferralDetailsError);
 
-  const { fetchReferralDetails } = useReferralDetails();
+  const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleCopyCode = async () => {
     if (referralCode) {
@@ -66,20 +61,6 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
     }
   };
 
-  const handleShareLink = async (link: string) => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
-        .addProperties({
-          button_type: RewardsMetricsButtons.SHARE_REFERRAL_LINK,
-        })
-        .build(),
-    );
-    await Share.open({
-      message: `${strings('rewards.referral.actions.share_referral_subject')}`,
-      url: link,
-    });
-  };
-
   if (seasonStatusError && !seasonStartDate) {
     return (
       <RewardsErrorBanner
@@ -92,7 +73,7 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
   }
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
+    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-6">
       {showInfoSection && <ReferralInfoSection />}
 
       {!referralDetailsLoading && referralDetailsError && !referralCode ? (
@@ -107,24 +88,13 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
           )}
         />
       ) : (
-        <>
-          <ReferralStatsSection
-            earnedPointsFromReferees={balanceRefereePortion}
-            refereeCount={refereeCount}
-            earnedPointsFromRefereesLoading={referralDetailsLoading}
-            refereeCountLoading={referralDetailsLoading}
-            refereeCountError={referralDetailsError}
-          />
-
-          <ReferralActionsSection
-            referralCode={referralCode}
-            referralCodeLoading={referralDetailsLoading}
-            referralCodeError={referralDetailsError}
-            onCopyCode={handleCopyCode}
-            onCopyLink={handleCopyLink}
-            onShareLink={handleShareLink}
-          />
-        </>
+        <ReferralActionsSection
+          referralCode={referralCode}
+          referralCodeLoading={referralDetailsLoading}
+          referralCodeError={referralDetailsError}
+          onCopyCode={handleCopyCode}
+          onCopyLink={handleCopyLink}
+        />
       )}
     </Box>
   );

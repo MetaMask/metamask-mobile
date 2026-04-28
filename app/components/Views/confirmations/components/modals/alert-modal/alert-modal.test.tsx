@@ -74,7 +74,7 @@ describe('AlertModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the AlertModal correctly', async () => {
+  it('renders the AlertModal correctly', () => {
     const { getByText } = render(<AlertModal />);
     expect(getByText('Test Alert')).toBeDefined();
     expect(getByText(ALERT_MESSAGE_MOCK)).toBeDefined();
@@ -83,7 +83,7 @@ describe('AlertModal', () => {
     expect(getByText('• Detail 2')).toBeDefined();
   });
 
-  it('renders the correct icon based on severity', async () => {
+  it('renders the correct icon based on severity', () => {
     const { getByTestId } = render(<AlertModal />);
     const icon = getByTestId('alert-modal-icon');
     expect(icon).toBeDefined();
@@ -188,7 +188,7 @@ describe('AlertModal', () => {
     const { getByTestId } = render(<AlertModal />);
 
     const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
-    expect(acknowledgeButton).toHaveProp('disabled', true);
+    expect(acknowledgeButton).toBeDisabled();
   });
 
   it('enables Acknowledge button when checkbox is checked for Danger alerts', () => {
@@ -200,7 +200,7 @@ describe('AlertModal', () => {
     const { getByTestId } = render(<AlertModal />);
 
     const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
-    expect(acknowledgeButton).toHaveProp('disabled', false);
+    expect(acknowledgeButton).not.toBeDisabled();
   });
 
   it('closes modal when Close button pressed for Danger alerts', async () => {
@@ -232,7 +232,7 @@ describe('AlertModal', () => {
     const { getByTestId } = render(<AlertModal />);
 
     const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
-    expect(acknowledgeButton).toHaveProp('disabled', true);
+    expect(acknowledgeButton).toBeDisabled();
   });
 
   it('calls onAcknowledgeClick only for Acknowledge button, not Close button', async () => {
@@ -256,7 +256,7 @@ describe('AlertModal', () => {
     expect(hideAlertModal).toHaveBeenCalledTimes(1);
   });
 
-  it('returns null if the alert modal is not visible', async () => {
+  it('returns null if the alert modal is not visible', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
       alertModalVisible: false,
@@ -275,7 +275,7 @@ describe('AlertModal', () => {
     expect(queryByText(CHECKBOX_LABEL)).toBeNull();
   });
 
-  it('renders checkbox if the severity is Danger', async () => {
+  it('renders checkbox if the severity is Danger', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
       alertKey: 'alert2',
@@ -284,7 +284,7 @@ describe('AlertModal', () => {
     expect(queryByText(CHECKBOX_LABEL)).toBeDefined();
   });
 
-  it('renders content component correctly', async () => {
+  it('renders content component correctly', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
       fieldAlerts: [
@@ -298,7 +298,7 @@ describe('AlertModal', () => {
     expect(getByText('Mock content')).toBeDefined();
   });
 
-  it('renders message component correctly', async () => {
+  it('renders message component correctly', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
       fieldAlerts: [
@@ -312,7 +312,7 @@ describe('AlertModal', () => {
     expect(getByText('Mock message')).toBeDefined();
   });
 
-  it('does not render checkbox if is a blocking alert', async () => {
+  it('does not render checkbox if is a blocking alert', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
       fieldAlerts: [

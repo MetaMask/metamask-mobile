@@ -268,6 +268,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
+                twClassName="shrink"
               >
                 {strings('market_insights.card_footer_disclaimer')}
                 {' • '}

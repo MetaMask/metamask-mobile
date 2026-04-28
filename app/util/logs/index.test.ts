@@ -117,7 +117,14 @@ describe('logs :: generateStateLogs', () => {
     };
     const logs = generateStateLogs(mockStateInput);
 
-    expect(JSON.parse(logs)).toMatchSnapshot();
+    const parsedLogs = JSON.parse(logs);
+    expect(parsedLogs.appVersion).toBe('1');
+    expect(parsedLogs.buildNumber).toBe('123');
+    expect(parsedLogs.metaMetricsId).toBe(
+      '6D796265-7374-4953-6D65-74616D61736B',
+    );
+    expect(parsedLogs.engine).toBeDefined();
+    expect(parsedLogs.loggedIn).toBe(true);
   });
 
   it('excludes deleted controller states from logs', () => {
@@ -513,7 +520,14 @@ describe('logs :: generateStateLogs', () => {
       expect(refreshToken).toBe(true);
       expect(revokeToken).toBe(true);
 
-      expect(JSON.parse(logs)).toMatchSnapshot();
+      const parsedLogs = JSON.parse(logs);
+      expect(parsedLogs.appVersion).toBe('1');
+      expect(parsedLogs.buildNumber).toBe('123');
+      expect(parsedLogs.engine).toBeDefined();
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController.vault,
+      ).toBe(true);
+      expect(parsedLogs.loggedIn).toBe(true);
     });
 
     it('includes authConnection fields in sanitized state', () => {

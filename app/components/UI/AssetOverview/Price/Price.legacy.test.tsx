@@ -1,0 +1,149 @@
+import React from 'react';
+import { render, userEvent } from '@testing-library/react-native';
+import PriceLegacy, { type PriceLegacyProps } from './Price.legacy';
+import PriceChart from '../PriceChart/PriceChart';
+import { distributeDataPoints } from '../PriceChart/utils';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
+import type { TokenPrice } from '../../../../components/hooks/useTokenHistoricalPrices';
+
+/** Matches CHART_DATA_THRESHOLD (tokenOverviewChart.constants) — enough points for a non-empty line chart. */
+const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
+  String(1736761237983 + i),
+  100 + i,
+]);
+
+jest.mock('../PriceChart/PriceChart', () => ({
+  ...jest.requireActual('../PriceChart/PriceChart'),
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => null),
+}));
+
+const baseProps: PriceLegacyProps = {
+  prices: mockPricesAtLeast5,
+  priceDiff: 5,
+  currentPrice: 105,
+  currentCurrency: 'USD',
+  comparePrice: 100,
+  isLoading: false,
+  timePeriod: '1d',
+};
+
+describe('PriceLegacy', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(PriceChart).mockImplementation(() => <></>);
+  });
+
+  it('renders the token price when not loading', () => {
+    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
+    expect(
+      getByTestId(TokenOverviewSelectorsIDs.TOKEN_PRICE),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows loading skeletons when isLoading is true', () => {
+    const { getByTestId, queryByTestId } = render(
+      <PriceLegacy {...baseProps} isLoading />,
+    );
+
+    expect(getByTestId('loading-price-diff')).toBeOnTheScreen();
+    expect(queryByTestId('price-label')).not.toBeOnTheScreen();
+  });
+
+  it('renders price diff with positive color and sign', () => {
+    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
+    const label = getByTestId('price-label');
+    expect(label).toBeOnTheScreen();
+  });
+
+  it('shows price diff text even when prices array is empty', () => {
+    const { getByTestId } = render(<PriceLegacy {...baseProps} prices={[]} />);
+    expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  it('does not render token price when currentPrice is NaN', () => {
+    const { queryByTestId } = render(
+      <PriceLegacy {...baseProps} currentPrice={NaN} />,
+    );
+    expect(
+      queryByTestId(TokenOverviewSelectorsIDs.TOKEN_PRICE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders price at selected chart index via onChartIndexChange', async () => {
+    jest.mocked(PriceChart).mockImplementation(({ onChartIndexChange }) => (
+      <Button
+        testID="mock-price-chart"
+        variant={ButtonVariant.Primary}
+        onPress={() => onChartIndexChange(1)}
+      >
+        Select Point
+      </Button>
+    ));
+
+    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
+
+    expect(getByTestId('price-label')).toHaveTextContent('Today');
+
+    await userEvent.press(getByTestId('mock-price-chart'));
+
+    expect(getByTestId('price-label')).toHaveTextContent('Jan 13 at 4:40 am');
+  });
+
+  it('passes PriceChart the correct props', () => {
+    render(<PriceLegacy {...baseProps} />);
+
+    expect(PriceChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        priceDiff: 5,
+        isLoading: false,
+      }),
+      expect.anything(),
+    );
+  });
+
+  it('handles zero priceDiff without sign prefix', () => {
+    const { getByTestId } = render(
+      <PriceLegacy {...baseProps} priceDiff={0} comparePrice={100} />,
+    );
+    expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  it('handles negative priceDiff', () => {
+    const { getByTestId } = render(
+      <PriceLegacy
+        {...baseProps}
+        priceDiff={-10}
+        currentPrice={90}
+        comparePrice={100}
+      />,
+    );
+    expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  it('passes sparse prices to PriceChart so empty state uses the same threshold', () => {
+    const ActualPriceChart = jest.requireActual<
+      typeof import('../PriceChart/PriceChart')
+    >('../PriceChart/PriceChart').default;
+    jest
+      .mocked(PriceChart)
+      .mockImplementationOnce((props) => <ActualPriceChart {...props} />);
+
+    const fourPrices: TokenPrice[] = Array.from({ length: 4 }, (_, i) => [
+      String(1736761237983 + i),
+      100 + i,
+    ]);
+    const { getByTestId } = render(
+      <PriceLegacy {...baseProps} prices={fourPrices} />,
+    );
+
+    expect(PriceChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prices: distributeDataPoints(fourPrices),
+      }),
+      expect.anything(),
+    );
+    expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
+  });
+});

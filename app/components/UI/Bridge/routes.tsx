@@ -12,15 +12,9 @@ import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageMo
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
+import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
+import { MissingPriceModal } from './components/MissingPriceModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -53,7 +47,10 @@ export const BridgeScreenStack = () => (
 const ModalStack = createStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}
@@ -86,6 +83,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL}
       component={PriceImpactModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL}
+      component={MissingPriceModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}

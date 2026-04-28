@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface OnboardingStepProps {
   title: string;
-  description: string;
+  description?: string;
   formFields: React.ReactNode;
   actions: React.ReactNode;
   /**
@@ -40,14 +40,15 @@ const OnboardingStep = ({
           {title}
         </Text>
 
-        {/* Description */}
-        <Text
-          variant={TextVariant.BodyMd}
-          testID="onboarding-step-description"
-          twClassName="text-text-alternative"
-        >
-          {description}
-        </Text>
+        {description ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            testID="onboarding-step-description"
+            twClassName="text-text-alternative"
+          >
+            {description}
+          </Text>
+        ) : null}
       </Box>
       {/* Form */}
       <Box testID="onboarding-step-form" twClassName="gap-4 flex-1">

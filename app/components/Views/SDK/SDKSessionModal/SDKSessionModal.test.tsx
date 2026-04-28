@@ -5,13 +5,15 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+let mockRouteParams: Record<string, unknown> = {};
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
-  useSafeAreaFrame: jest.fn(() => ({ x: 0, y: 0, width: 375, height: 812 })),
+  useRoute: jest.fn(() => ({
+    key: '1',
+    name: 'params',
+    params: mockRouteParams,
+  })),
 }));
 
 jest.mock('../../../../util/theme', () => {
@@ -74,6 +76,7 @@ describe('SDKSessionModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = { channelId: 'channel1', urlOrTitle: 'Test DApp' };
 
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
@@ -90,16 +93,7 @@ describe('SDKSessionModal', () => {
     it('renders with basic params', () => {
       (getPermittedAccounts as jest.Mock).mockReturnValue([]);
 
-      const { getByText } = render(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              urlOrTitle: 'Test DApp',
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<SDKSessionModal />);
 
       expect(getByText('sdk.manage_connections')).toBeTruthy();
       expect(getByText('Test DApp')).toBeTruthy();
@@ -108,19 +102,14 @@ describe('SDKSessionModal', () => {
 
     it('renders SDK version info when provided', () => {
       (getPermittedAccounts as jest.Mock).mockReturnValue([]);
+      mockRouteParams = {
+        channelId: 'channel1',
+        urlOrTitle: 'Test DApp',
+        version: '1.0.0',
+        platform: 'iOS',
+      };
 
-      const { getByText } = render(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              urlOrTitle: 'Test DApp',
-              version: '1.0.0',
-              platform: 'iOS',
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<SDKSessionModal />);
 
       expect(getByText('SDK iOS v1.0.0')).toBeTruthy();
     });
@@ -128,16 +117,7 @@ describe('SDKSessionModal', () => {
     it('renders permitted accounts', () => {
       (getPermittedAccounts as jest.Mock).mockReturnValue(['0x1234', '0x5678']);
 
-      const { getByText } = render(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              urlOrTitle: 'Test DApp',
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<SDKSessionModal />);
 
       expect(getByText('Account 1')).toBeTruthy();
       expect(getByText('0x1234')).toBeTruthy();
@@ -149,18 +129,13 @@ describe('SDKSessionModal', () => {
   describe('User Actions', () => {
     it('handles disconnect all accounts', () => {
       (getPermittedAccounts as jest.Mock).mockReturnValue(['0x1234']);
+      mockRouteParams = {
+        channelId: 'channel1',
+        urlOrTitle: 'Test DApp',
+        isV2: true,
+      };
 
-      const { getByText } = render(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              urlOrTitle: 'Test DApp',
-              isV2: true,
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<SDKSessionModal />);
 
       fireEvent.press(getByText('sdk.disconnect_all_accounts'));
 
@@ -179,16 +154,7 @@ describe('SDKSessionModal', () => {
     it('handles disconnect individual account', () => {
       (getPermittedAccounts as jest.Mock).mockReturnValue(['0x1234', '0x5678']);
 
-      const { getAllByText } = render(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              urlOrTitle: 'Test DApp',
-            },
-          }}
-        />,
-      );
+      const { getAllByText } = render(<SDKSessionModal />);
 
       const disconnectButtons = getAllByText('sdk.disconnect');
       fireEvent.press(disconnectButtons[0]);
@@ -211,16 +177,7 @@ describe('SDKSessionModal', () => {
     it('handles no permitted accounts', () => {
       (getPermittedAccounts as jest.Mock).mockReturnValue([]);
 
-      const { queryByText } = render(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              urlOrTitle: 'Test DApp',
-            },
-          }}
-        />,
-      );
+      const { queryByText } = render(<SDKSessionModal />);
 
       expect(queryByText('Account 1')).toBeNull();
       expect(queryByText('sdk.disconnect_all_accounts')).toBeTruthy();
@@ -229,45 +186,29 @@ describe('SDKSessionModal', () => {
     it('handles accounts with uppercase addresses', () => {
       (getPermittedAccounts as jest.Mock).mockReturnValue(['0xABCD']);
 
-      const { getByText } = render(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              urlOrTitle: 'Test DApp',
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<SDKSessionModal />);
 
       expect(getByText('Account 3')).toBeTruthy();
       expect(getByText('0xabcd')).toBeTruthy();
     });
 
     it('updates permitted accounts when channelId changes', () => {
-      const { rerender } = render(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              urlOrTitle: 'Test DApp',
-            },
-          }}
-        />,
+      const { useRoute: mockUseRoute } = jest.requireMock(
+        '@react-navigation/native',
       );
+
+      const { rerender } = render(<SDKSessionModal />);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith('channel1');
 
-      rerender(
-        <SDKSessionModal
-          route={{
-            params: {
-              channelId: 'channel2',
-              urlOrTitle: 'Test DApp',
-            },
-          }}
-        />,
-      );
+      mockRouteParams = { channelId: 'channel2', urlOrTitle: 'Test DApp' };
+      (mockUseRoute as jest.Mock).mockReturnValue({
+        key: '1',
+        name: 'params',
+        params: mockRouteParams,
+      });
+
+      rerender(<SDKSessionModal />);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith('channel2');
     });

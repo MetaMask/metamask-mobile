@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from './useTransakRouting';
 
 const mockNavigate = jest.fn();
@@ -16,7 +17,10 @@ const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({
-    selected: { chainId: 'eip155:1' },
+    selected: {
+      chainId: 'eip155:1',
+      assetId: 'eip155:1/erc20:0xasset',
+    },
   })),
 }));
 
@@ -135,29 +139,50 @@ jest.mock('../Deposit/utils', () => ({
   generateThemeParameters: jest.fn(() => ({ theme: 'light' })),
 }));
 
+let capturedHandleNavigationStateChange:
+  | ((nav: { url: string }) => void)
+  | null = null;
+
 jest.mock('../Views/Checkout', () => ({
   createCheckoutNavDetails: jest.fn(
     ({
       url,
       providerName,
-      callbackKey,
+      onNavigationStateChange,
+      workFlowRunId,
     }: {
       url: string;
       providerName: string;
-      callbackKey?: string;
-    }) => ['Checkout', { url, providerName, callbackKey }],
+      onNavigationStateChange?: (nav: { url: string }) => void;
+      workFlowRunId?: string;
+    }) => {
+      capturedHandleNavigationStateChange = onNavigationStateChange ?? null;
+      return [
+        'Checkout',
+        { url, providerName, onNavigationStateChange, workFlowRunId },
+      ];
+    },
   ),
 }));
 
-let capturedHandleNavigationStateChange:
-  | ((nav: { url: string }) => void)
-  | null = null;
-jest.mock('../utils/checkoutCallbackRegistry', () => ({
-  registerCheckoutCallback: jest.fn(
-    (callback: (nav: { url: string }) => void) => {
-      capturedHandleNavigationStateChange = callback;
-      return 'mock-callback-key';
-    },
+jest.mock('../Views/NativeFlow/KycWebview', () => ({
+  createKycWebviewNavDetails: jest.fn(
+    ({
+      url,
+      providerName,
+      workFlowRunId,
+      quote,
+      amount,
+    }: {
+      url: string;
+      providerName: string;
+      workFlowRunId: string;
+      quote: unknown;
+      amount?: number;
+    }) => [
+      'RampKycWebview',
+      { url, providerName, workFlowRunId, quote, amount },
+    ],
   ),
 }));
 
@@ -188,6 +213,7 @@ const mockQuote = {
 describe('useTransakRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedHandleNavigationStateChange = null;
     mockUserRegion = {
       country: { currency: 'USD', isoCode: 'US' },
       regionCode: 'us-ca',
@@ -250,6 +276,53 @@ describe('useTransakRouting', () => {
       );
     });
 
+    it('merges baseRouteParams onto BasicInfo when KYC is NOT_SUBMITTED (headless)', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1234567890',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-abc' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-abc' },
+            }),
+            expect.objectContaining({
+              name: 'RampBasicInfo',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                headlessSessionId: 'headless-buy-abc',
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
     it('navigates to webview for non-manual bank transfer when KYC is APPROVED', async () => {
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',
@@ -299,6 +372,7 @@ describe('useTransakRouting', () => {
               params: expect.objectContaining({
                 url: 'https://payment.example.com',
                 providerName: 'Transak',
+                onNavigationStateChange: expect.any(Function),
               }),
             }),
           ],
@@ -392,7 +466,6 @@ describe('useTransakRouting', () => {
             }),
             expect.objectContaining({
               name: 'RampKycProcessing',
-              params: expect.objectContaining({ quote: mockQuote }),
             }),
           ],
         }),
@@ -418,6 +491,40 @@ describe('useTransakRouting', () => {
 
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
       expect(mockNavigate).toHaveBeenCalledWith('RampEnterEmail');
+    });
+
+    it('handles 401 in headless mode by passing amount, currency, and assetId to EnterEmail', async () => {
+      const error = new Error('Unauthorized') as Error & {
+        httpStatus: number;
+      };
+      error.httpStatus = 401;
+      mockGetUserDetails.mockRejectedValue(error);
+      mockLogoutFromProvider.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-reauth' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampEnterEmail',
+        expect.objectContaining({
+          headlessSessionId: 'headless-buy-reauth',
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/erc20:0xasset',
+        }),
+      );
     });
 
     it('handles ADDITIONAL_FORMS_REQUIRED with PURPOSE_OF_USAGE', async () => {
@@ -893,32 +1000,75 @@ describe('useTransakRouting', () => {
         }),
       );
     });
-  });
 
-  describe('navigateToKycWebview', () => {
-    it('resets navigation stack to the KYC webview with amount preserved', () => {
-      const { result } = renderHook(() => useTransakRouting());
+    it('merges baseRouteParams onto VerifyIdentity so headlessSessionId survives the reset', () => {
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-xyz' },
+        }),
+      );
 
       act(() => {
-        result.current.navigateToKycWebview({
-          kycUrl: 'https://kyc.example.com',
+        result.current.navigateToVerifyIdentity({
+          quote: mockQuote as never,
           amount: 30,
         });
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-xyz' },
+            }),
+            expect.objectContaining({
+              name: 'RampVerifyIdentity',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                headlessSessionId: 'headless-buy-xyz',
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+  });
+
+  describe('navigateToKycWebview', () => {
+    it('resets navigation stack with KycProcessing behind the webview', () => {
+      const { result } = renderHook(() => useTransakRouting());
+      const mockQuote = { id: 'quote-789' } as unknown as TransakBuyQuote;
+
+      act(() => {
+        result.current.navigateToKycWebview({
+          quote: mockQuote,
+          kycUrl: 'https://kyc.example.com',
+          workFlowRunId: 'wf-456',
+          amount: 30,
+        });
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 2,
           routes: [
             expect.objectContaining({
               name: 'RampAmountInput',
               params: { amount: 30 },
             }),
             expect.objectContaining({
-              name: 'Checkout',
+              name: 'RampKycProcessing',
+            }),
+            expect.objectContaining({
+              name: 'RampKycWebview',
               params: expect.objectContaining({
                 url: 'https://kyc.example.com',
                 providerName: 'Transak',
+                workFlowRunId: 'wf-456',
+                quote: mockQuote,
+                amount: 30,
               }),
             }),
           ],

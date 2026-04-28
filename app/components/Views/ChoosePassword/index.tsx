@@ -24,7 +24,6 @@ import {
   ButtonSize,
   Label,
   TextField,
-  TextFieldSize,
   Icon,
   IconName,
   IconSize,
@@ -58,6 +57,10 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  AccountType,
+  getSocialAccountType,
+} from '../../../constants/onboarding';
 import type {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -71,6 +74,7 @@ import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import {
@@ -91,7 +95,6 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-import { getSocialAccountType } from '../../../constants/onboarding';
 
 interface KeyringState {
   type: string;
@@ -439,7 +442,9 @@ const ChoosePassword = () => {
     if (!validation.valid) return;
 
     const provider = route.params?.provider;
-    const accountType = provider ? `metamask_${provider}` : 'metamask';
+    const accountType = provider
+      ? getSocialAccountType(provider, false)
+      : AccountType.Metamask;
     const isSocialLogin = getOauth2LoginSuccess();
 
     track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
@@ -511,19 +516,16 @@ const ChoosePassword = () => {
   );
 
   const learnMore = useCallback(() => {
-    const learnMoreUrl =
-      'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
-
     track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
-      url: learnMoreUrl,
+      url: RESET_PASSWORD_GUIDE_URL,
     });
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: learnMoreUrl,
+        url: RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });
@@ -730,7 +732,6 @@ const ChoosePassword = () => {
                     autoFocus
                     secureTextEntry={showPasswordIndex.includes(0)}
                     value={password}
-                    size={TextFieldSize.Lg}
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}
@@ -787,7 +788,6 @@ const ChoosePassword = () => {
                   <TextField
                     ref={confirmPasswordInputRef}
                     value={confirmPassword}
-                    size={TextFieldSize.Lg}
                     onChangeText={setConfirmPasswordValue}
                     secureTextEntry={showPasswordIndex.includes(1)}
                     testID={

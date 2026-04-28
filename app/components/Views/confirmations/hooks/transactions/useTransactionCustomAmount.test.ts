@@ -18,6 +18,7 @@ import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalanc
 import {
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
 } from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import {
@@ -100,6 +101,9 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
   );
+  const useTransactionPayIsPostQuoteMock = jest.mocked(
+    useTransactionPayIsPostQuote,
+  );
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
   );
@@ -140,6 +144,7 @@ describe('useTransactionCustomAmount', () => {
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
     useTransactionPayTotalsMock.mockReturnValue(undefined);
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
+    useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
   });
 
@@ -280,6 +285,29 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
+  it('sets mm_pay_quote_requested metric when isPostQuote is true even if hasSourceAmount is false', async () => {
+    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+    useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    setConfirmationMetricMock.mockClear();
+
+    await act(async () => {
+      result.current.updateTokenAmount();
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_quote_requested: true,
+      },
+    });
+  });
+
   it('returns default amount from params if available', async () => {
     useParamsMock.mockReturnValue({ amount: '43.21' });
 
@@ -298,6 +326,28 @@ describe('useTransactionCustomAmount', () => {
 
     expect(result.current.amountFiat).toBe('567.89');
   });
+
+  it.each([
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+    TransactionType.moneyAccountWithdraw,
+  ])(
+    'skips the targetAmount.usd override for %s because it represents the destination-received value, not the withdraw amount',
+    async (transactionType) => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+      useTransactionPayTotalsMock.mockReturnValue({
+        targetAmount: { usd: '567.891' },
+      } as TransactionPayTotals);
+
+      useParamsMock.mockReturnValue({ amount: '100' });
+
+      const { result } = runHook({
+        transactionMeta: { type: transactionType },
+      });
+
+      expect(result.current.amountFiat).toBe('100');
+    },
+  );
 
   it('returns isInputChanged as true after amount changed and debounce', async () => {
     const { result } = runHook();
@@ -465,6 +515,86 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('250');
+    });
+
+    it('truncates the Max amount for perps withdraw down to 2 decimals so the input field matches the displayed balance', async () => {
+      // Real HL balances often have 3+ decimals (e.g. 50.389).
+      // Max must truncate — not halfExpand — otherwise the typed value could
+      // exceed the balance and trip the insufficient-balance alert.
+      (Engine.context as Record<string, unknown>).PerpsController = {
+        state: {
+          accountState: {
+            availableBalance: '50.389',
+          },
+        },
+      };
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('50.38');
+    });
+
+    it('does NOT set isMaxAmount=true for perps withdraw when Max is pressed', async () => {
+      // TPC's calculatePostQuoteSourceAmounts substitutes token.balanceRaw
+      // (the Arbitrum USDC wallet balance, not the HL balance) when
+      // isMaxAmount=true, which would strand most of the HyperLiquid balance.
+      // Letting isMaxAmount stay false routes the typed balance through as
+      // token.amountRaw instead.
+      (Engine.context as Record<string, unknown>).PerpsController = {
+        state: {
+          accountState: {
+            availableBalance: '500.00',
+          },
+        },
+      };
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+    });
+
+    it('clears isMaxAmount for perps withdraw when Max was previously set and user re-selects 100%', async () => {
+      // Defensive: if isMaxAmount is somehow already true, the perps-withdraw
+      // Max path should still flip it back to false on re-selection.
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      (Engine.context as Record<string, unknown>).PerpsController = {
+        state: {
+          accountState: {
+            availableBalance: '500.00',
+          },
+        },
+      };
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      const config = { isMaxAmount: true };
+      setTransactionConfigMock.mock.calls[0][1](config);
+      expect(config.isMaxAmount).toBe(false);
     });
 
     it('returns 0 for perps withdraw when no available balance', async () => {

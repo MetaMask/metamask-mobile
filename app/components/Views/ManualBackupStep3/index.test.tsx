@@ -1,16 +1,31 @@
 import React from 'react';
+import ManualBackupStep3 from './';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Alert, BackHandler } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import StorageWrapper from '../../../store/storage-wrapper';
 import Device from '../../../util/device';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+
+jest.mock('react-native-confetti-cannon', () => {
+  const { View } = jest.requireActual('react-native');
+  return View;
+});
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+    navigate: jest.fn(),
+    setOptions: jest.fn(),
+  }),
+}));
 
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
@@ -48,15 +63,6 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-jest.mock('../../UI/OnboardingProgress', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return ({ currentStep, steps }: { currentStep: number; steps: string[] }) => (
-    <View testID="onboarding-progress">
-      <Text>{`Step ${currentStep} of ${steps.length}`}</Text>
-    </View>
-  );
-});
-
 jest.mock('../OnboardingSuccess', () => ({
   OnboardingSuccessComponent: ({
     onDone,
@@ -73,11 +79,6 @@ jest.mock('../OnboardingSuccess', () => ({
     );
   },
 }));
-
-jest.mock('../../UI/Confetti', () => {
-  const { View } = jest.requireActual('react-native');
-  return () => <View testID="confetti" />;
-});
 
 jest.mock('../../UI/HintModal', () => {
   const { View, TextInput, TouchableOpacity, Text } =
@@ -133,45 +134,58 @@ jest.mock('../../UI/Navbar', () => ({
     mockGetTransparentOnboardingNavbarOptions(...args),
 }));
 
-const mockStore = configureMockStore();
-const store = mockStore({});
-
-const themeValue = {
-  colors: mockTheme.colors,
-  themeAppearance: 'light',
-};
-
-const createProps = (overrides = {}) => ({
-  navigation: {
-    setOptions: mockSetOptions,
-    navigate: jest.fn(),
-    reset: jest.fn(),
-    pop: jest.fn(),
-  },
-  route: {
-    params: {
-      steps: ['step1', 'step2', 'step3'],
-      words: ['apple', 'banana', 'cherry'],
-    },
-  },
-  ...overrides,
-});
-
-const renderComponent = (
-  props = createProps(),
-  contextValue: Record<string, unknown> = themeValue,
-) => {
-  const ManualBackupStep3 = jest.requireActual('./index').default;
-  return render(
-    <Provider store={store}>
-      <ThemeContext.Provider value={contextValue}>
-        <ManualBackupStep3 {...props} />
-      </ThemeContext.Provider>
-    </Provider>,
-  );
-};
-
 describe('ManualBackupStep3', () => {
+  it('should render correctly', () => {
+    const mockRoute = { params: { steps: [] } };
+    const mockNavigation = {
+      goBack: jest.fn(),
+      navigate: jest.fn(),
+      setOptions: jest.fn(),
+    };
+    const { toJSON } = renderWithProvider(
+      <ManualBackupStep3 route={mockRoute} navigation={mockNavigation} />,
+    );
+    expect(toJSON()).toBeDefined();
+  });
+
+  const mockStore = configureMockStore();
+  const store = mockStore({});
+
+  const themeValue = {
+    colors: mockTheme.colors,
+    themeAppearance: 'light',
+  };
+
+  const createProps = (overrides = {}) => ({
+    navigation: {
+      setOptions: mockSetOptions,
+      navigate: jest.fn(),
+      reset: jest.fn(),
+      pop: jest.fn(),
+    },
+    route: {
+      params: {
+        steps: ['step1', 'step2', 'step3'],
+        words: ['apple', 'banana', 'cherry'],
+      },
+    },
+    ...overrides,
+  });
+
+  const renderComponent = (
+    props = createProps(),
+    contextValue: Record<string, unknown> = themeValue,
+  ) => {
+    const ActualManualBackupStep3 = jest.requireActual('./index').default;
+    return render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={contextValue}>
+          <ActualManualBackupStep3 {...props} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     store.clearActions();
@@ -185,39 +199,11 @@ describe('ManualBackupStep3', () => {
   });
 
   describe('rendering', () => {
-    it('renders Confetti animation', async () => {
-      const { getByTestId } = renderComponent();
-
-      await waitFor(() => {
-        expect(getByTestId('confetti')).toBeOnTheScreen();
-      });
-    });
-
     it('renders OnboardingSuccessComponent', async () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
         expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders OnboardingProgress when steps are provided', async () => {
-      const { getByTestId, getByText } = renderComponent();
-
-      await waitFor(() => {
-        expect(getByTestId('onboarding-progress')).toBeOnTheScreen();
-        expect(getByText('Step 4 of 3')).toBeOnTheScreen();
-      });
-    });
-
-    it('does not render OnboardingProgress when steps are not provided', async () => {
-      const props = createProps({
-        route: { params: {} },
-      });
-      const { queryByTestId } = renderComponent(props);
-
-      await waitFor(() => {
-        expect(queryByTestId('onboarding-progress')).toBeNull();
       });
     });
 

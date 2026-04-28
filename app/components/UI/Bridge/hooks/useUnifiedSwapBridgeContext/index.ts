@@ -4,7 +4,6 @@ import {
   selectDestToken,
   selectSourceToken,
   selectSourceAmount,
-  selectDestTokenWarning,
 } from '../../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
@@ -15,13 +14,13 @@ import {
   calcTokenFiatValue,
   calcUsdAmountFromFiat,
 } from '../../utils/exchange-rates';
+import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
 
 export const useUnifiedSwapBridgeContext = () => {
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
   const fromToken = useSelector(selectSourceToken);
   const toToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const tokenWarning = useSelector(selectDestTokenWarning);
 
   const evmMultiChainMarketData = useSelector(selectTokenMarketData);
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
@@ -63,16 +62,10 @@ export const useUnifiedSwapBridgeContext = () => {
       stx_enabled: smartTransactionsEnabled,
       token_symbol_source: fromToken?.symbol ?? '',
       token_symbol_destination: toToken?.symbol ?? '',
-      security_warnings: tokenWarning ? [tokenWarning.description] : [],
+      security_warnings: getSecurityWarnings(toToken),
       warnings: [], // TODO
       usd_amount_source: usdAmountSource,
     }),
-    [
-      smartTransactionsEnabled,
-      fromToken,
-      toToken,
-      usdAmountSource,
-      tokenWarning,
-    ],
+    [smartTransactionsEnabled, fromToken, toToken, usdAmountSource],
   );
 };

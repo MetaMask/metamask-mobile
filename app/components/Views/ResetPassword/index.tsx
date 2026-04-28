@@ -29,7 +29,6 @@ import {
   BoxBackgroundColor,
   IconColor,
   Checkbox,
-  TextFieldSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -76,6 +75,11 @@ import {
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import Device from '../../../util/device';
 import SearchingFox from '../../../animations/Searching_Fox.json';
+import {
+  PASSWORD_GUIDE_URL,
+  RESET_PASSWORD_GUIDE_URL,
+  RESET_PASSWORD_SOCIAL_LOGIN_URL,
+} from '../../../constants/urls';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -387,8 +391,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       screen: 'SimpleWebview',
       params: {
         url: isSeedlessOnboardingLoginFlow
-          ? 'https://support.metamask.io/configure/wallet/passwords-and-metamask/'
-          : 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+          ? PASSWORD_GUIDE_URL
+          : RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });
@@ -398,7 +402,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/configure/wallet/how-can-i-reset-my-password/',
+        url: RESET_PASSWORD_SOCIAL_LOGIN_URL,
         title: 'support.metamask.io',
       },
     });
@@ -575,7 +579,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
               testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               keyboardAppearance={themeAppearance}
               autoComplete="password"
-              size={TextFieldSize.Lg}
             />
             {renderWarningText(warningIncorrectPassword)}
           </Box>
@@ -656,7 +659,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort()}
-                    size={TextFieldSize.Lg}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
                         <Icon
@@ -701,7 +703,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     autoComplete="password-new"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
-                    size={TextFieldSize.Lg}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(1)}>
                         <Icon

@@ -96,8 +96,26 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsWithdrawConfirmation', () => ({
+  usePerpsWithdrawConfirmation: jest.fn(() => ({
+    withdrawWithConfirmation: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
+}));
+
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
 }));
 
 jest.mock('../../hooks/usePerpsDepositProgress', () => ({
@@ -182,6 +200,7 @@ jest.mock('../../../../../images/image-icons', () => ({
 // Mock format utils
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((amount) => `$${amount}`),
+  formatPerpsBalance: jest.fn((amount) => `$${amount}`),
 }));
 
 // Mock PerpsBottomSheetTooltip to avoid SafeArea issues
@@ -327,6 +346,9 @@ describe('PerpsMarketBalanceActions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
 
     mockUsePerpsLiveAccount.mockReturnValue({
       account: defaultPerpsAccount,

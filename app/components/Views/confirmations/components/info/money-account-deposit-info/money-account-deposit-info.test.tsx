@@ -10,10 +10,17 @@ jest.mock('../../../hooks/ui/useNavbar', () => ({
   default: jest.fn(),
 }));
 
+const mockCustomAmountInfo = jest.fn();
 jest.mock('../custom-amount-info', () => ({
-  CustomAmountInfo: ({ currency }: { currency: string }) => {
-    const { Text } = jest.requireActual('react-native');
-    return <Text testID="custom-amount-info">{currency}</Text>;
+  CustomAmountInfo: (props: Record<string, unknown>) => {
+    mockCustomAmountInfo(props);
+    const { View, Text } = jest.requireActual('react-native');
+    return (
+      <View>
+        <Text testID="custom-amount-info">{props.currency as string}</Text>
+        {props.children as React.ReactNode}
+      </View>
+    );
   },
 }));
 
@@ -22,6 +29,11 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 describe('MoneyAccountDepositInfo', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCustomAmountInfo.mockClear();
+  });
+
   it('renders CustomAmountInfo with usd currency', () => {
     const { getByTestId } = render(<MoneyAccountDepositInfo />);
 
@@ -43,5 +55,15 @@ describe('MoneyAccountDepositInfo', () => {
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
     expect(MONEY_ACCOUNT_CURRENCY).toBe('usd');
+  });
+
+  it('passes supportAccountSelection=true to CustomAmountInfo', () => {
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.supportAccountSelection).toBe(true);
   });
 });

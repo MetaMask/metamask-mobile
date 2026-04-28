@@ -1,11 +1,11 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getTokenListControllerMessenger,
   getTokenListControllerInitMessenger,
   TokenListControllerInitMessenger,
 } from '../messengers/token-list-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { tokenListControllerInit } from './token-list-controller-init';
 import {
   TokenListController,
@@ -27,7 +27,7 @@ jest.mock('@metamask/assets-controllers', () => {
 });
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     TokenListControllerMessenger,
     TokenListControllerInitMessenger
   >
@@ -37,13 +37,13 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getTokenListControllerMessenger(baseMessenger),
     initMessenger: getTokenListControllerInitMessenger(baseMessenger),
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name) => {
+  requestMock.getMessengerClient.mockImplementation((name) => {
     if (name === 'NetworkController') {
       return {
         state: {

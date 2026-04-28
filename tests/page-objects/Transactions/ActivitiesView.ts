@@ -62,6 +62,18 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
+  get lendingDepositActivity(): DetoxElement {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.LENDING_DEPOSIT,
+    );
+  }
+
+  get lendingWithdrawalActivity(): DetoxElement {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
+    );
+  }
+
   get predictDeposit(): DetoxElement {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
@@ -149,6 +161,7 @@ class ActivitiesView {
     });
     await Gestures.waitAndTap(this.predictionsTab, {
       elemDescription: 'Predictions Tab in Activity View',
+      timeout: 3500,
     });
   }
 

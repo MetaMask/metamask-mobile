@@ -15,6 +15,8 @@ import V2BankDetails from './Views/NativeFlow/BankDetails';
 import V2OrderProcessing from './Views/NativeFlow/OrderProcessing';
 import V2KycProcessing from './Views/NativeFlow/KycProcessing';
 import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification';
+import V2KycWebview from './Views/NativeFlow/KycWebview';
+import HeadlessHost from './Views/HeadlessHost';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
@@ -23,23 +25,21 @@ import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
+import StateSelectorModal from './Views/Modals/StateSelectorModal';
+import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import LockManagerService from '../../../core/LockManagerService';
+import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
-
 const MainRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.RAMP.TOKEN_SELECTION}>
+  <Stack.Navigator
+    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+    screenOptions={{ headerShown: false }}
+  >
     <Stack.Screen
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
@@ -82,8 +82,24 @@ const MainRoutes = () => (
       }}
     />
     <Stack.Screen
+      name={Routes.RAMP.KYC_WEBVIEW}
+      component={V2KycWebview}
+      options={{
+        headerShown: false,
+        cardStyle: { backgroundColor: 'transparent' },
+        animationEnabled: false,
+        gestureEnabled: false,
+        detachPreviousScreen: false,
+      }}
+    />
+    <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.HEADLESS_HOST}
+      component={HeadlessHost}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -119,10 +135,22 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
       component={ProcessingInfoModal}
+      options={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.SSN_INFO}
       component={SsnInfoModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.STATE_SELECTOR}
+      component={StateSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.UNSUPPORTED_STATE}
+      component={UnsupportedStateModal}
     />
   </ModalsStack.Navigator>
 );

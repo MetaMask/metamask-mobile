@@ -2,6 +2,7 @@ import { useCallback, useContext, useMemo } from 'react';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
+  ToastDescriptionOptions,
   ToastLabelOptions,
   ToastOptions,
   ToastVariants,
@@ -17,33 +18,27 @@ export type RewardsToastOptions = ToastOptions & {
 export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
   error: (title: string, subtitle?: string) => RewardsToastOptions;
+  entriesClosed: (title: string, subtitle?: string) => RewardsToastOptions;
 }
 
-const getRewardsToastLabels = (
-  title: string,
-  subtitle?: string,
-): ToastLabelOptions => {
+const getRewardsToastLabels = (title: string): ToastLabelOptions => {
   const labels: ToastLabelOptions = [
     {
       label: title,
-      isBold: false,
+      isBold: true,
     },
   ];
 
-  if (subtitle) {
-    labels.push(
-      {
-        label: '\n',
-        isBold: false,
-      },
-      {
-        label: subtitle,
-        isBold: false,
-      },
-    );
-  }
-
   return labels;
+};
+
+const getRewardsToastDescriptionLabels = (
+  description?: string,
+): ToastDescriptionOptions | undefined => {
+  if (!description) {
+    return undefined;
+  }
+  return { description };
 };
 
 const REWARDS_TOASTS_DEFAULT_OPTIONS: Partial<RewardsToastOptions> = {
@@ -74,7 +69,8 @@ const useRewardsToast = (): {
         iconColor: theme.colors.success.default,
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
-        labelOptions: getRewardsToastLabels(title, subtitle),
+        labelOptions: getRewardsToastLabels(title),
+        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,
         closeButtonOptions: {
           variant: ButtonIconVariant.Icon,
@@ -91,7 +87,8 @@ const useRewardsToast = (): {
         iconColor: theme.colors.error.default,
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Error,
-        labelOptions: getRewardsToastLabels(title, subtitle),
+        labelOptions: getRewardsToastLabels(title),
+        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,
         closeButtonOptions: {
           variant: ButtonIconVariant.Icon,
@@ -102,8 +99,31 @@ const useRewardsToast = (): {
           },
         },
       }),
+      entriesClosed: (title: string, subtitle?: string) => ({
+        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Lock,
+        iconColor: theme.colors.icon.default,
+        backgroundColor: 'transparent',
+        hapticsType: NotificationFeedbackType.Warning,
+        labelOptions: getRewardsToastLabels(title),
+        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        hasNoTimeout: false,
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: () => {
+            toastRef?.current?.closeToast();
+          },
+        },
+      }),
     }),
-    [theme.colors.success.default, theme.colors.error.default, toastRef],
+    [
+      theme.colors.success.default,
+      theme.colors.error.default,
+      theme.colors.icon.default,
+      toastRef,
+    ],
   );
 
   return {

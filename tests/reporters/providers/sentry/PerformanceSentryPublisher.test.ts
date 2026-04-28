@@ -170,7 +170,7 @@ describe('PerformanceSentryPublisher', () => {
       testTitle: 'Import wallet flow',
       projectName: 'browserstack-android',
       testFilePath: 'tests/performance/onboarding/import-wallet.spec.js',
-      browserstackRecordingUrl:
+      videoRecordingUrl:
         'https://app-automate.browserstack.com/builds/build-123/sessions/sess-123',
       tags: ['@PerformanceOnboarding', '@PerformanceLaunch'],
       status: 'passed',

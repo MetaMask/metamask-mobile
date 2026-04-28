@@ -10,7 +10,8 @@ import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useRewardDashboardModals } from './useRewardDashboardModals';
 import { RewardsMetricsButtons } from '../utils';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -32,7 +33,7 @@ export const useOptout = (): UseOptoutResult => {
   } = useRewardDashboardModals();
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const { cancelBulkLink } = useBulkLinkState();
 
   const optout = useCallback(async (): Promise<boolean> => {
@@ -64,7 +65,7 @@ export const useOptout = (): UseOptoutResult => {
         const traits = {
           [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
         };
-        addTraitsToUser(traits);
+        identify(traits);
         Logger.log('useOptout: Opt-out successful, resetting state');
 
         // Clear rewards Redux state back to initial state
@@ -106,7 +107,7 @@ export const useOptout = (): UseOptoutResult => {
     subscriptionId,
     trackEvent,
     createEventBuilder,
-    addTraitsToUser,
+    identify,
     showToast,
     RewardsToastOptions,
     dispatch,

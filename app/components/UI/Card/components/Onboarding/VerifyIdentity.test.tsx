@@ -269,7 +269,6 @@ const createTestStore = (initialState = {}) =>
             user: null,
             ...initialState,
           },
-          userCardLocation: 'international',
         },
         action = { type: '', payload: null },
       ) => {
@@ -338,7 +337,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(false);
+      expect(continueButton).not.toBeDisabled();
     });
 
     it('does not show error messages initially when verification is successful', () => {
@@ -426,7 +425,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
   });
 
@@ -465,7 +464,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
   });
 
