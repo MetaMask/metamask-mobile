@@ -50,6 +50,18 @@ export enum DeviceOrientation {
   LANDSCAPE = 'landscape',
 }
 
+/**
+ * Local emulator / simulator profile for WebDriver.
+ *
+ * **Android:** `name` is usually the AVD name (as returned by
+ * `adb -s <serial> emu avd name`, e.g. `Pixel_5_Pro_API_34`). Omitted
+ * `udid` is resolved to an adb serial such as `emulator-5554` at setup time.
+ * You may set `udid` directly to that serial; if both are set, a mismatch
+ * with the AVD name is warned.
+ *
+ * **iOS:** `name` is the simulator name/identifier used with `xcrun simctl`
+ * (e.g. booted device name or UDID, depending on your environment).
+ */
 export interface EmulatorConfig {
   provider: ProviderName;
   name?: string;

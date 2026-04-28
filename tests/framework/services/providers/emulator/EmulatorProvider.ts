@@ -5,7 +5,12 @@ import { BaseServiceProvider } from '../../common/base/BaseServiceProvider';
 import type { ProjectConfig } from '../../common/types';
 import { startAppiumServer, stopAppiumServer } from '../../appium';
 import { EmulatorConfigBuilder } from './EmulatorConfigBuilder';
-import { Platform } from '../../../types';
+import { Platform, type EmulatorConfig } from '../../../types';
+import {
+  applyResolvedAndroidAdbToDevice,
+  resolveAndroidAdbUdidForDevice,
+} from './android/resolveAndroidAdbUdid';
+import { reinstallFromBuildPathForProject } from './reinstallLocalBuildFromPath';
 
 /**
  * Service provider for local emulator/simulator testing
@@ -16,30 +21,26 @@ export class EmulatorProvider extends BaseServiceProvider {
   }
 
   /**
-   * Check if the Android app is installed on the device
-   * @returns True if the app is installed, false otherwise
+   * @param adbSerial ADB serial, e.g. `emulator-5554` (not the AVD display name).
    */
-  private async isAndroidAppInstalled(): Promise<boolean> {
-    const packageName = this.project.use.app?.packageName;
-    const deviceName = this.project.use.device?.name;
-    if (!deviceName || !packageName) {
-      this.logger.error(
-        'No device name or package name specified in project config',
-      );
-      return false;
-    }
+  private async isAndroidAppInstalled(
+    packageName: string,
+    adbSerial: string,
+  ): Promise<boolean> {
+    this.logger.debug(
+      `Checking if Android app ${packageName} is installed on device ${adbSerial}`,
+    );
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { exec } = require('child_process');
     return new Promise<boolean>((resolve) => {
       exec(
-        `adb -s ${deviceName} shell pm list packages ${packageName}`,
+        `adb -s ${adbSerial} shell pm list packages ${packageName}`,
         (error: Error | null, stdout: string) => {
           if (error) {
             this.logger.error(`Error executing adb: ${error.message}`);
             resolve(false);
             return;
           }
-          // If the package appears in the list, it is installed
           resolve(stdout.includes(`package:${packageName}`));
         },
       );
@@ -90,7 +91,20 @@ export class EmulatorProvider extends BaseServiceProvider {
    */
   private async isAppInstalled(): Promise<boolean> {
     if (this.project.use.platform === Platform.ANDROID) {
-      return this.isAndroidAppInstalled();
+      const emulatorDevice = this.project.use.device as EmulatorConfig;
+      const packageName = this.project.use.app?.packageName;
+      if (!packageName) {
+        this.logger.error('No package name specified in project config');
+        return false;
+      }
+      if (!emulatorDevice.name && !emulatorDevice.udid) {
+        this.logger.error(
+          'No `use.device.name` (AVD) or `use.device.udid` (adb serial) specified in project config',
+        );
+        return false;
+      }
+      const adbSerial = await resolveAndroidAdbUdidForDevice(emulatorDevice);
+      return this.isAndroidAppInstalled(packageName, adbSerial);
     } else if (this.project.use.platform === Platform.IOS) {
       return this.isIOSAppInstalled();
     }
@@ -98,7 +112,10 @@ export class EmulatorProvider extends BaseServiceProvider {
   }
 
   /**
-   * Global setup - validate emulator configuration
+   * Global setup: validates local build artifact path, or that the app is
+   * already installed when `buildPath` is unset. `SKIP_APP_REINSTALL` can skip
+   * adb/simctl uninstall+install when `buildPath` is set. See
+   * [PLAYWRIGHT_LOCAL_EMULATOR.md](../../../../docs/PLAYWRIGHT_LOCAL_EMULATOR.md).
    */
   async globalSetup(): Promise<void> {
     await super.globalSetup?.();
@@ -108,11 +125,15 @@ export class EmulatorProvider extends BaseServiceProvider {
         `Validating build path: ${this.project.use.app?.buildPath}`,
       );
       const buildPath = this.project.use.app?.buildPath;
-      const isFile = fs.existsSync(buildPath);
-      if (!isFile) {
+      if (!fs.existsSync(buildPath)) {
         throw new Error(`Build path ${buildPath} does not exist`);
       }
-      this.logger.debug(`Build path ${buildPath} exists and is a file`);
+      this.logger.debug(`Build path ${buildPath} is present on disk`);
+      await reinstallFromBuildPathForProject(
+        this.project,
+        buildPath,
+        this.logger,
+      );
     } else {
       const isInstalled = await this.isAppInstalled();
       if (!isInstalled) {
@@ -131,6 +152,18 @@ export class EmulatorProvider extends BaseServiceProvider {
    */
   async getDriver(): Promise<Browser> {
     this.logger.debug('Creating driver for local emulator');
+
+    if (this.project.use.platform === Platform.ANDROID) {
+      const emulatorDevice = this.project.use.device as EmulatorConfig;
+      if (!emulatorDevice.name && !emulatorDevice.udid) {
+        throw new Error(
+          'Android local emulator: set `use.device.name` (AVD name) or `use.device.udid` (e.g. emulator-5554).',
+        );
+      }
+      await applyResolvedAndroidAdbToDevice(emulatorDevice, {
+        setAndroidSerialEnv: true,
+      });
+    }
 
     // Start Appium server
     await startAppiumServer();
