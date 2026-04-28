@@ -5,7 +5,6 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
-  FontWeight,
   IconName,
   Text,
   TextColor,
