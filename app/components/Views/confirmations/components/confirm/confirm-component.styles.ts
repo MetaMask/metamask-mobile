@@ -25,6 +25,7 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
     },
     scrollView: {
+      flex: vars.isFullScreenConfirmation ? 1 : undefined,
       paddingHorizontal: vars.disableSafeArea === true ? 0 : 16,
     },
     scrollViewContent: {

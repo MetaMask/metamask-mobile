@@ -90,6 +90,12 @@ export interface CustomAmountInfoProps {
    * When true, the account selector is shown.
    */
   supportAccountSelection?: boolean;
+  /**
+   * Adds bottom space to the bottom block (rows + keyboard/confirm button).
+   * Used by Perps Withdraw on Android, where this screen has one extra
+   * balance line and otherwise clips behind the system gesture bar.
+   */
+  hasExtraBottomPadding?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -99,6 +105,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disableConfirm,
     disablePay,
     hasMax,
+    hasExtraBottomPadding,
     onAmountSubmit,
     hidePayTokenAmount,
     preferredToken,
@@ -208,7 +215,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {!hidePayTokenAmount && children}
         </Box>
-        <Box gap={16}>
+        <Box
+          gap={16}
+          style={hasExtraBottomPadding && styles.extraBottomPadding}
+        >
           <AlertMessage alertMessage={alertMessage} />
           {supportAccountSelection && <PayAccountSelector />}
           {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
