@@ -21,6 +21,8 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 48, bottom: 34, left: 0, right: 0 }),
 }));
 
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
 jest.mock('../../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
@@ -57,6 +59,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('MoneyHowItWorksView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('renders the header image', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+
+    expect(
+      getByTestId(MoneyHowItWorksViewTestIds.HEADER_IMAGE),
+    ).toBeOnTheScreen();
   });
 
   it('renders the section title', () => {

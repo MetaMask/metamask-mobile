@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -30,11 +31,32 @@ import Animated, {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
+import { Image } from 'expo-image';
+import moneyHowItWorksHeaderImage from '../../../../../images/money-how-it-works-header.png';
+
+/**
+ * Header graphic height. Overlay gradient fades top/bottom into `background.default`
+ * so the asset blends with the nav bar and body (avoids a hard seam under the title row).
+ */
+const HEADER_IMAGE_HEIGHT = 140;
+
+/** Transparent overlay stop — same RGB as background.default (#131416) at 0 alpha. */
+const HEADER_GRADIENT_TRANSPARENT = 'rgba(19,20,22,0)';
 
 const localStyles = StyleSheet.create({
   safeArea: { flex: 1 },
-  graphicPlaceholder: { height: 140 },
   headerSpacer: { width: 40 },
+  headerImageContainer: {
+    width: '100%',
+    height: HEADER_IMAGE_HEIGHT,
+    position: 'relative',
+  },
+  headerImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  headerGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
 });
 
 const SectionDivider = () => <Box twClassName="h-px bg-border-muted my-5" />;
@@ -121,7 +143,7 @@ const FaqItem = ({
 const MoneyHowItWorksView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors: themeColors } = useTheme();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -131,7 +153,10 @@ const MoneyHowItWorksView = () => {
     <Box
       style={[
         localStyles.safeArea,
-        { paddingTop: insets.top, backgroundColor: colors.background.default },
+        {
+          paddingTop: insets.top,
+          backgroundColor: themeColors.background.default,
+        },
       ]}
       twClassName="flex-1"
       testID={MoneyHowItWorksViewTestIds.CONTAINER}
@@ -159,14 +184,25 @@ const MoneyHowItWorksView = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       >
-        <View
-          style={[
-            localStyles.graphicPlaceholder,
-            { backgroundColor: colors.background.alternative },
-          ]}
-          accessibilityRole="image"
-          accessibilityLabel="How it works graphic"
-        />
+        <Box style={localStyles.headerImageContainer}>
+          <Image
+            source={moneyHowItWorksHeaderImage}
+            style={localStyles.headerImage}
+            contentFit="cover"
+            testID={MoneyHowItWorksViewTestIds.HEADER_IMAGE}
+          />
+          <LinearGradient
+            pointerEvents="none"
+            colors={[
+              themeColors.background.default,
+              HEADER_GRADIENT_TRANSPARENT,
+              HEADER_GRADIENT_TRANSPARENT,
+              themeColors.background.default,
+            ]}
+            locations={[0, 0.2, 0.82, 1]}
+            style={localStyles.headerGradient}
+          />
+        </Box>
 
         <Box twClassName="px-4 pt-6 pb-3 gap-3">
           <Text
