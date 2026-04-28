@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -32,39 +32,50 @@ const PillRow: React.FC<PillRowProps> = ({
   const tw = useTailwind();
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="mb-3 flex-wrap gap-2"
-      testID={`${testIdPrefix}-pills`}
-    >
-      {pills.map((pill) => {
-        const isSelected = activeKey === pill.key;
-        return (
-          <Pressable
-            key={pill.key}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isSelected }}
-            onPress={() => onSelect(pill.key)}
-            testID={`${testIdPrefix}-pill-${pill.key}`}
-            style={tw.style(
-              'rounded-xl px-4 py-2',
-              isSelected ? 'bg-icon-default' : 'bg-muted',
-            )}
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={
-                isSelected ? TextColor.InfoInverse : TextColor.TextAlternative
-              }
-              testID={`${testIdPrefix}-pill-label-${pill.key}`}
-            >
-              {pill.name}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <Box twClassName="-mx-4 mb-3">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        testID={`${testIdPrefix}-pills`}
+        contentContainerStyle={tw.style('px-4')}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
+          {pills.map((pill) => {
+            const isSelected = activeKey === pill.key;
+            return (
+              <Pressable
+                key={pill.key}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                onPress={() => onSelect(pill.key)}
+                testID={`${testIdPrefix}-pill-${pill.key}`}
+                style={tw.style(
+                  'rounded-xl px-4 py-2',
+                  isSelected ? 'bg-icon-default' : 'bg-muted',
+                )}
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={
+                    isSelected
+                      ? TextColor.InfoInverse
+                      : TextColor.TextAlternative
+                  }
+                  testID={`${testIdPrefix}-pill-label-${pill.key}`}
+                >
+                  {pill.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </Box>
+      </ScrollView>
     </Box>
   );
 };
