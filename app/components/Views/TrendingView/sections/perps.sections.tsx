@@ -29,7 +29,7 @@ import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigatio
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { fuseSearch, PERPS_FUSE_OPTIONS } from './search-utils';
-import type { RowItemSearchProps, SectionConfig, SectionId } from './types';
+import type { RowItemSearchProps, SectionConfig } from './types';
 
 // ─── Shared provider wrapper ──────────────────────────────────────────────────
 
@@ -167,66 +167,28 @@ const getRwaPillToggledTabs = (
   },
 ];
 
-// ─── Pill-toggle Section renderers ───────────────────────────────────────────
+// ─── Pill-toggle Section renderer factory ────────────────────────────────────
 
-const PerpsPillToggles: React.FC<{
-  sectionId: SectionId;
-  data: unknown[];
-  isLoading: boolean;
-  buildPills: (markets: PerpsMarketData[]) => PillToggledTab[];
-  testIdPrefix: string;
-  listTestId: string;
-  defaultPillKey?: string;
-}> = ({
-  sectionId,
-  data,
-  isLoading,
-  buildPills,
-  testIdPrefix,
-  listTestId,
-  defaultPillKey,
-}) => {
-  const pills = useMemo(
-    () => buildPills((data as PerpsMarketData[]) ?? []),
-    [data, buildPills],
-  );
-  return (
-    <PillToggledCardSection
-      sectionId={sectionId}
-      isLoading={isLoading}
-      pills={pills}
-      defaultPillKey={defaultPillKey}
-      testIdPrefix={testIdPrefix}
-      listTestId={listTestId}
-    />
-  );
-};
-
-const PillToggledStocksCommodityPerps: React.FC<{
-  sectionId: SectionId;
-  data: unknown[];
-  isLoading: boolean;
-}> = (props) => (
-  <PerpsPillToggles
-    {...props}
-    buildPills={getMacroPillToggledTabs}
-    testIdPrefix="macro-stocks-commodity-pills"
-    listTestId="macro-stocks-commodity-perps-list"
-  />
-);
-
-const PillToggledRwaPerps: React.FC<{
-  sectionId: SectionId;
-  data: unknown[];
-  isLoading: boolean;
-}> = (props) => (
-  <PerpsPillToggles
-    {...props}
-    buildPills={getRwaPillToggledTabs}
-    testIdPrefix="rwa-perps-pills"
-    listTestId="rwa-perps-pill-toggled-list"
-  />
-);
+const makePerpsPillToggledSection = (
+  buildPills: (markets: PerpsMarketData[]) => PillToggledTab[],
+  testIdPrefix: string,
+  listTestId: string,
+): SectionConfig['Section'] =>
+  function PerpsPillToggledSection({ sectionId, data, isLoading }) {
+    const pills = useMemo(
+      () => buildPills((data as PerpsMarketData[]) ?? []),
+      [data],
+    );
+    return (
+      <PillToggledCardSection
+        sectionId={sectionId}
+        isLoading={isLoading}
+        pills={pills}
+        testIdPrefix={testIdPrefix}
+        listTestId={listTestId}
+      />
+    );
+  };
 
 // ─── Shared perps useSectionData factory ─────────────────────────────────────
 
@@ -304,7 +266,11 @@ export const perpsSections = {
     Skeleton: () => <PerpsRowSkeleton count={1} />,
     OverrideSkeletonSearch: TrendingTokensSkeleton,
     SectionWrapper: PerpsSectionWrapper,
-    Section: PillToggledRwaPerps,
+    Section: makePerpsPillToggledSection(
+      getRwaPillToggledTabs,
+      'rwa-perps-pills',
+      'rwa-perps-pill-toggled-list',
+    ),
     useSectionData: makePerpsUseSectionData((markets, searchQuery) => {
       const rwas = markets.filter(
         (m) =>
@@ -331,7 +297,11 @@ export const perpsSections = {
     Skeleton: () => <PerpsRowSkeleton count={1} />,
     OverrideSkeletonSearch: TrendingTokensSkeleton,
     SectionWrapper: PerpsSectionWrapper,
-    Section: PillToggledStocksCommodityPerps,
+    Section: makePerpsPillToggledSection(
+      getMacroPillToggledTabs,
+      'macro-stocks-commodity-pills',
+      'macro-stocks-commodity-perps-list',
+    ),
     useSectionData: makePerpsUseSectionData((markets, searchQuery) => {
       const stocksAndCommodities = markets.filter(
         (m) => m.marketType === 'equity' || m.marketType === 'commodity',

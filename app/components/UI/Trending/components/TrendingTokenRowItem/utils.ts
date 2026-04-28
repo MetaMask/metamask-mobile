@@ -1,10 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import {
-  CaipChainId,
-  Hex,
-  isCaipChainId,
-  parseCaipChainId,
-} from '@metamask/utils';
+import { CaipChainId, isCaipChainId } from '@metamask/utils';
 import {
   getDefaultNetworkByChainId,
   getTestNetImageByChainId,
@@ -16,17 +11,13 @@ import {
   UnpopularNetworkList,
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../../util/networks/customNetworks';
+import { caipChainIdToHex } from '../../../Rewards/utils/formatUtils';
 import { TimeOption } from '../TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 
 export const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
   assetId.split('/')[0] as CaipChainId;
 
-export const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
-  const { namespace, reference } = parseCaipChainId(caipChainId);
-  return namespace === 'eip155'
-    ? (`0x${Number(reference).toString(16)}` as Hex)
-    : (caipChainId as Hex);
-};
+export { caipChainIdToHex };
 
 export const getNetworkBadgeSource = (
   caipChainId: CaipChainId,

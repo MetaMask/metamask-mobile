@@ -18,29 +18,6 @@ import type { ExploreKeyedMarketsSectionPayload } from '../../../sections/predic
 import { strings } from '../../../../../../../locales/i18n';
 import PillRow from './PillRow';
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-const readKeyedMarketsPayload = (
-  data: unknown[],
-): ExploreKeyedMarketsSectionPayload | undefined => {
-  const first = data[0];
-  if (!isRecord(first)) {
-    return undefined;
-  }
-  if (!Array.isArray(first.pills) || !isRecord(first.marketsByKey)) {
-    return undefined;
-  }
-  if (typeof first.activeKey !== 'string') {
-    return undefined;
-  }
-  if (typeof first.selectSport !== 'function') {
-    return undefined;
-  }
-  return first as unknown as ExploreKeyedMarketsSectionPayload;
-};
-
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     loadMore: { color: theme.colors.primary.default },
@@ -56,7 +33,7 @@ const AllSportsPillSection: React.FC<AllSportsPillSectionProps> = ({
   sectionId,
   data,
 }) => {
-  const payload = readKeyedMarketsPayload(data);
+  const payload = data[0] as ExploreKeyedMarketsSectionPayload | undefined;
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
