@@ -323,30 +323,32 @@ describe('PredictFeed', () => {
     });
 
     it('hides search overlay on initial render', () => {
-      const { queryByTestId } = render(<PredictFeed />);
+      const { queryByPlaceholderText } = render(<PredictFeed />);
 
-      expect(queryByTestId(PredictFeedSelectorsIDs.SEARCH_ICON)).toBeNull();
+      expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
     });
   });
 
   describe('search functionality', () => {
     it('opens search overlay when search button pressed', () => {
-      const { getByTestId } = render(<PredictFeed />);
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
 
       expect(
-        getByTestId(PredictFeedSelectorsIDs.SEARCH_ICON),
+        getByPlaceholderText('Search prediction markets'),
       ).toBeOnTheScreen();
     });
 
     it('closes search overlay when cancel button pressed', () => {
-      const { getByTestId, getByText, queryByTestId } = render(<PredictFeed />);
+      const { getByTestId, getByText, queryByPlaceholderText } = render(
+        <PredictFeed />,
+      );
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
       fireEvent.press(getByText('Cancel'));
 
-      expect(queryByTestId(PredictFeedSelectorsIDs.SEARCH_ICON)).toBeNull();
+      expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
     });
   });
 
@@ -957,10 +959,10 @@ describe('PredictFeed', () => {
           },
         });
 
-        const { getByTestId } = render(<PredictFeed />);
+        const { getByPlaceholderText } = render(<PredictFeed />);
 
         expect(
-          getByTestId(PredictFeedSelectorsIDs.SEARCH_ICON),
+          getByPlaceholderText('Search prediction markets'),
         ).toBeOnTheScreen();
       },
     );
@@ -990,14 +992,15 @@ describe('PredictFeed', () => {
         },
       });
 
-      const { getByText, getByTestId, queryByTestId } = render(<PredictFeed />);
+      const { getByText, queryByPlaceholderText, getByPlaceholderText } =
+        render(<PredictFeed />);
 
       expect(
-        getByTestId(PredictFeedSelectorsIDs.SEARCH_ICON),
+        getByPlaceholderText('Search prediction markets'),
       ).toBeOnTheScreen();
 
       fireEvent.press(getByText('Cancel'));
-      expect(queryByTestId(PredictFeedSelectorsIDs.SEARCH_ICON)).toBeNull();
+      expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
     });
   });
 });

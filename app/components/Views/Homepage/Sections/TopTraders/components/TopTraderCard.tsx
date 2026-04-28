@@ -1,6 +1,5 @@
 import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
-import { lightTheme } from '@metamask/design-tokens';
 import {
   Box,
   Text,
@@ -22,7 +21,17 @@ import { formatPnl } from '../utils/formatPnl';
 export interface TopTraderCardProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
-  onTraderPress?: (traderId: string, traderName: string) => void;
+  /**
+   * Invoked when the card is tapped. The third argument is the trader's
+   * **overall** (unfiltered) rank — used downstream to gate the profile's
+   * podium decoration on true top-3 traders, never the filtered display
+   * rank.
+   */
+  onTraderPress?: (
+    traderId: string,
+    traderName: string,
+    overallRank: number,
+  ) => void;
   testID?: string;
 }
 
@@ -58,7 +67,8 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         activeOpacity={onTraderPress ? 0.7 : 1}
         onPress={
           onTraderPress
-            ? () => onTraderPress(trader.id, trader.username)
+            ? () =>
+                onTraderPress(trader.id, trader.username, trader.overallRank)
             : undefined
         }
         disabled={!onTraderPress}
@@ -135,18 +145,8 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         variant={
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
-        size={ButtonSize.Sm}
+        size={ButtonSize.Md}
         isFullWidth
-        style={
-          trader.isFollowing
-            ? undefined
-            : { backgroundColor: lightTheme.colors.primary.default }
-        }
-        textProps={
-          trader.isFollowing
-            ? undefined
-            : { style: { color: lightTheme.colors.overlay.inverse } }
-        }
         onPress={() => onFollowPress(trader.id)}
       >
         {trader.isFollowing

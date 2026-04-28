@@ -1021,13 +1021,27 @@
       }
     },
     "notification_preferences": {
-      "title": "Top Traders",
+      "title": "Top traders",
       "allow_push_notifications": "Allow push notifications",
       "trades_over_label": "Get notified of trades over:",
       "traders_you_follow": "Traders you follow",
       "traders_you_follow_desc": "Choose who you get notifications about",
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
+    },
+    "trader_notifications": {
+      "title": "Notifications from {{traderName}}",
+      "allow_push_notifications": "Allow push notifications",
+      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
+      "manage_traders": "Manage traders you follow",
+      "save": "Save"
+    },
+    "trader_notifications_setup": {
+      "description": "Get real-time alerts on trades from the traders you follow",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "save": "Save",
+      "title": "Top Traders"
     },
     "follow": "Follow",
     "following": "Following",
@@ -1055,13 +1069,21 @@
       "bought": "{{name}} bought",
       "sold": "{{name}} sold",
       "no_trades": "No trades for this interval",
-      "closed_position": "Closed position"
+      "closed_position": "Closed position",
+      "fallback_title": "Position not available",
+      "fallback_subtitle": "We couldn't load this position right now.",
+      "fallback_back_to_profile": "Back to profile",
+      "fallback_back_to_leaderboard": "Back to leaderboard"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
       "total": "Total",
+      "network_fee": "Network fee",
+      "slippage": "Slippage",
+      "minimum_received": "Minimum received",
+      "price_impact": "Price impact",
       "est_points": "Est. points",
       "no_quotes": "No quotes available for this token",
       "loading": "Loading...",
@@ -6859,6 +6881,7 @@
       "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
+      "payment_method": "Payment method",
       "receive_as": "Receive",
       "from": "From",
       "to": "To",
