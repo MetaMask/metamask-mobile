@@ -1,6 +1,5 @@
 import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
-import { lightTheme } from '@metamask/design-tokens';
 import {
   Box,
   Text,
@@ -152,21 +151,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
       {/* Follow / Following button */}
       <Button
         variant={
-          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
         }
         size={ButtonSize.Sm}
         onPress={() => onFollowPress(trader.id)}
         twClassName="min-w-[96px]"
-        style={
-          trader.isFollowing
-            ? undefined
-            : { backgroundColor: lightTheme.colors.primary.default }
-        }
-        textProps={
-          trader.isFollowing
-            ? undefined
-            : { style: { color: lightTheme.colors.overlay.inverse } }
-        }
       >
         {trader.isFollowing
           ? strings('social_leaderboard.following')
