@@ -111,6 +111,7 @@ describe('useTopTraders', () => {
       expect(result.current.traders[0]).toEqual({
         id: first.profileId,
         rank: first.rank,
+        overallRank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent30d * 100,
