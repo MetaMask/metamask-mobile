@@ -1,5 +1,4 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyPotentialEarningsView from './MoneyPotentialEarningsView';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
@@ -115,13 +114,8 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 }));
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
-jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (amount: { toString: () => string }) =>
-    `$${Number(amount.toString()).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`,
+jest.mock('../../utils/moneyFormatFiat', () => ({
+  moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
@@ -201,14 +195,8 @@ describe('MoneyPotentialEarningsView', () => {
     expect(getByText('UNI')).toBeOnTheScreen();
   });
 
-  it('navigates back when the back button is pressed', () => {
+  it('renders the view without errors', () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
-
-    const backButton = getByTestId(
-      MoneyPotentialEarningsViewTestIds.CONTAINER,
-    ).findAllByType?.('ButtonIcon')?.[0];
-
-    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CONTAINER));
 
     expect(
       getByTestId(MoneyPotentialEarningsViewTestIds.CONTAINER),

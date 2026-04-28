@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
@@ -22,7 +23,8 @@ import {
 } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -38,7 +40,7 @@ const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
-  const formatFiat = useFiatFormatter();
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const { tokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
@@ -110,7 +112,7 @@ const MoneyPotentialEarningsView = () => {
 
           {isPositiveNumber(projectedAmount) && (
             <MoneyGradientText
-              value={`+${formatFiat(new BigNumber(projectedAmount))}`}
+              value={`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
             />
           )}
 
