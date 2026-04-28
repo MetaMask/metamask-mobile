@@ -39,7 +39,12 @@ export const hexToBigInt = (inputHex: string | number | bigint): bigint => {
   }
   // not an empty string
   if (inputHex) {
-    return BigInt(addHexPrefix(inputHex));
+    const signedHex: string = addHexPrefix(inputHex);
+    if (signedHex.startsWith('-0x')) {
+      // BigInt cannot handle -0x prefix directly; negate the positive conversion to preserve full precision
+      return -BigInt(signedHex.slice(1));
+    }
+    return BigInt(signedHex);
   }
   return BigInt(0);
 };

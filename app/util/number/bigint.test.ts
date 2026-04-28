@@ -519,6 +519,16 @@ describe('Number utils :: hexToBigInt', () => {
   it('returns BigInt(0) for an empty string', () => {
     expect(hexToBigInt('')).toBe(BigInt(0));
   });
+  it('parses negative hex strings produced by bigIntToHex', () => {
+    expect(hexToBigInt('-0x1')).toBe(-1n);
+    expect(hexToBigInt('-0xff')).toBe(-255n);
+  });
+  it('round-trips negative values through bigIntToHex → hexToBigInt', () => {
+    const values = [-1n, -255n, -1337n, -1000000000000000000n];
+    for (const value of values) {
+      expect(hexToBigInt(bigIntToHex(value))).toBe(value);
+    }
+  });
 });
 
 describe('Number utils :: toBigInt', () => {
