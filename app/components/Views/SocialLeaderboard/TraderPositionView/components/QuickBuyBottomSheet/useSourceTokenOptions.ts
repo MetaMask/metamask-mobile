@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { formatUnits } from 'ethers/lib/utils';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { SolScope } from '@metamask/keyring-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../reducers';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
@@ -9,6 +11,10 @@ import { selectSelectedInternalAccountByScope } from '../../../../../../selector
 import { selectTokensBalances } from '../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
 import { selectCurrencyRates } from '../../../../../../selectors/currencyRateController';
+import {
+  selectMultichainBalances,
+  selectMultichainAssetsRates,
+} from '../../../../../../selectors/multichain/multichain';
 import { getSourceTokenCandidates } from './sourceTokenCandidates';
 import { toChecksumAddress } from '../../../../../../util/address';
 import { EVM_SCOPE } from '../../../../../UI/Earn/constants/networks';
@@ -119,6 +125,14 @@ export const useSourceTokenOptions = (
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
 
+  // Solana support — keep the whole InternalAccount; multichain balances are
+  // keyed by account.id, not address.
+  const solanaAccount = useSelector((state: RootState) =>
+    selectSelectedInternalAccountByScope(state)(SolScope.Mainnet),
+  );
+  const multichainBalances = useSelector(selectMultichainBalances);
+  const multichainRates = useSelector(selectMultichainAssetsRates);
+
   const allNetworkConfigs = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.NetworkController
@@ -127,11 +141,44 @@ export const useSourceTokenOptions = (
 
   // Build the final options list from Redux balances
   const options = useMemo(() => {
-    if (!accountAddress) return [];
+    if (!accountAddress && !solanaAccount) return [];
 
     const result: BridgeToken[] = [];
 
     for (const candidate of candidates) {
+      // ─── Solana branch ─────────────────────────────────────────────
+      // Multichain balances are keyed by InternalAccount.id and assetId
+      // (CAIP, e.g. `solana:5eykt.../slip44:501`). The rate is already in
+      // USD, no native-currency conversion step.
+      if (isSolanaChainId(candidate.chainId)) {
+        if (!solanaAccount) continue;
+
+        const balanceEntry =
+          multichainBalances?.[solanaAccount.id]?.[candidate.address];
+        const amountStr = balanceEntry?.amount;
+        if (!amountStr) continue;
+
+        const balanceNum = parseFloat(amountStr);
+        if (isNaN(balanceNum) || balanceNum <= 0) continue;
+
+        const rateStr = multichainRates?.[candidate.address]?.rate;
+        const rateNum = rateStr ? parseFloat(rateStr) : NaN;
+        if (isNaN(rateNum) || rateNum <= 0) continue;
+
+        const fiatValue = balanceNum * rateNum;
+        result.push({
+          ...candidate,
+          balance: amountStr,
+          balanceFiat: `$${fiatValue.toFixed(2)}`,
+          tokenFiatAmount: fiatValue,
+          currencyExchangeRate: rateNum,
+        });
+        continue;
+      }
+
+      // ─── EVM branch ────────────────────────────────────────────────
+      if (!accountAddress) continue;
+
       const chainId = candidate.chainId as Hex;
       let rawBalance: string | undefined;
       let displayBalance: string | undefined;
@@ -220,6 +267,9 @@ export const useSourceTokenOptions = (
   }, [
     candidates,
     accountAddress,
+    solanaAccount,
+    multichainBalances,
+    multichainRates,
     accountsByChainId,
     tokenBalances,
     tokenMarketData,
