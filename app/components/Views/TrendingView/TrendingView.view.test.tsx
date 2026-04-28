@@ -1,6 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
+import { strings } from '../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   setupTrendingApiFetchMock,
@@ -107,7 +108,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       const header = getByTestId(
         TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
       );
-      expect(header).toHaveTextContent('Trending tokens');
+      expect(header).toHaveTextContent(strings('trending.trending_tokens'));
     });
   });
 
@@ -158,7 +159,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       const header = getByTestId(
         TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
       );
-      expect(header).toHaveTextContent('Trending tokens');
+      expect(header).toHaveTextContent(strings('trending.trending_tokens'));
     });
 
     await assertTrendingTokenRowsVisibility({
