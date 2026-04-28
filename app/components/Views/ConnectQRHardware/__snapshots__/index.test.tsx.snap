@@ -365,6 +365,5 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
     </View>
   </View>,
   <View />,
-  <View />,
 ]
 `;
