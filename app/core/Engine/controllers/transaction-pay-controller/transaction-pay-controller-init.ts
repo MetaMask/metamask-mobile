@@ -1,5 +1,4 @@
 import type { MessengerClientInitFunction } from '../../types';
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
@@ -18,10 +17,7 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
   try {
     const transactionPayController = new TransactionPayController({
       getDelegationTransaction: ({ transaction }) =>
-        getDelegationTransaction(
-          initMessenger,
-          transaction as unknown as TransactionMeta,
-        ),
+        getDelegationTransaction(initMessenger, transaction),
       messenger: controllerMessenger,
       state: persistedState.TransactionPayController,
     });

@@ -205,6 +205,7 @@
     "@metamask/accounts-controller": "^37.2.0",
     "@metamask/profile-sync-controller": "^28.0.2",
     "@metamask/transaction-controller@^63.0.0": "^64.2.0",
+    "@metamask/transaction-controller@^65.0.0": "^64.2.0",
     "@metamask/keyring-api@npm:^21.3.0": "21.6.0",
     "@metamask/keyring-api@npm:^21.4.0": "21.6.0",
     "@metamask/keyring-api@npm:^21.5.0": "21.6.0",
