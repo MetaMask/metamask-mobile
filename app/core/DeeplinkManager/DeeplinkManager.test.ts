@@ -757,7 +757,10 @@ describe('DeeplinkManager.start Android Branch stub deferral', () => {
 
     linkingListener?.({ url: stubUrl });
 
-    branchCallback({ uri: undefined, params: { '+clicked_branch_link': false } });
+    branchCallback({
+      uri: undefined,
+      params: { '+clicked_branch_link': false },
+    });
 
     expect(handleDeeplink).not.toHaveBeenCalledWith({ uri: stubUrl });
 
