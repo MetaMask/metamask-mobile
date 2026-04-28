@@ -59,13 +59,17 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = () => ({});
-    tw.style = (..._args: unknown[]) => ({});
-    return tw;
-  },
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const { Theme } = jest.requireActual('@metamask/design-system-twrnc-preset');
+  const tw = Object.assign(() => ({}), {
+    style: (..._args: unknown[]) => ({}),
+  });
+  return {
+    Theme,
+    useTailwind: () => tw,
+    useTheme: () => Theme.Light,
+  };
+});
 
 jest.mock(
   '../../../../component-library/components-temp/HeaderCompactStandard',
