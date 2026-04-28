@@ -32,7 +32,7 @@ export interface TPSLLines {
   currentPrice?: string;
 }
 
-export { type TimeDuration } from '@metamask/perps-controller';
+export type { TimeDuration } from '@metamask/perps-controller';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 
 export interface OhlcData {

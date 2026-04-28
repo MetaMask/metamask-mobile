@@ -197,8 +197,8 @@ jest.mock('@metamask/design-system-react-native', () => {
           testID,
           onPress,
           disabled,
-          'data-loading': isLoading,
           accessibilityState: disabled ? { disabled: true } : undefined,
+          accessibilityValue: isLoading ? { text: 'loading' } : undefined,
         },
         ReactActual.createElement(RNText, {}, children),
       ),
@@ -473,7 +473,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton.props['data-loading']).toBe(true);
+      expect(claimButton.props.accessibilityValue).toEqual({ text: 'loading' });
 
       mockUseClaimRewardState.isClaimingReward = false;
     });
@@ -503,7 +503,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton.props['data-loading']).toBe(true);
+      expect(claimButton.props.accessibilityValue).toEqual({ text: 'loading' });
 
       mockUseClaimRewardState.isClaimingReward = false;
     });
@@ -518,7 +518,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton.props['data-loading']).toBeFalsy();
+      expect(claimButton.props.accessibilityValue?.text).toBeUndefined();
     });
 
     it('should disable button when input is required but empty', () => {

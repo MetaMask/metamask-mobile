@@ -77,13 +77,34 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          disabled={false}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -108,7 +129,7 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
             }
             width={20}
           />
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   </View>,
@@ -169,8 +190,34 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
           <View
             testID="Ethereum-not-selected"
           >
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "backgroundColor": "#ffffff",
@@ -261,19 +308,41 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
                   </View>
                 </View>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
     </RCTScrollView>
   </View>,
-  <TouchableOpacity
+  <View
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={1}
-    onPress={[Function]}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -287,6 +356,7 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
         "justifyContent": "center",
         "marginHorizontal": 16,
         "marginTop": 16,
+        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -307,6 +377,6 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
     >
       Edit permissions
     </Text>
-  </TouchableOpacity>,
+  </View>,
 ]
 `;

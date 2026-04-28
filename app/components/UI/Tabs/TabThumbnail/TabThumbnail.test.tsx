@@ -5,6 +5,7 @@ import renderWithProvider, {
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import TabThumbnail from './TabThumbnail';
 import { fireEvent } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { RootState } from '../../../../reducers';
 import {
@@ -109,7 +110,9 @@ describe('TabThumbnail', () => {
     );
 
     const switchButton = getByLabelText(strings('browser.switch_tab'));
-    expect(switchButton.props.style[1]).toBeTruthy(); // Check if activeTab style is applied
+    // Verify active tab styling is applied (borderWidth: 3 from activeTab style)
+    const flatStyle = StyleSheet.flatten(switchButton.props.style);
+    expect(flatStyle.borderWidth).toBe(3);
   });
 
   it('should not render footer when no selectedAccount', () => {
