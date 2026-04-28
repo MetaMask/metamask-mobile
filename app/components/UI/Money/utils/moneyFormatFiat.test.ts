@@ -1,86 +1,64 @@
 import { BigNumber } from 'bignumber.js';
-// eslint-disable-next-line import-x/no-namespace
-import * as NumberUtils from '../../../../util/number';
+import { formatWithThreshold } from '../../../../util/assets';
+import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
 import { moneyFormatFiat } from './moneyFormatFiat';
 
+jest.mock('../../../../util/assets', () => ({
+  formatWithThreshold: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useFormatters', () => ({
+  getLocaleLanguageCode: jest.fn(),
+}));
+
 describe('moneyFormatFiat', () => {
-  let addCurrencySymbolSpy: jest.SpyInstance;
+  const mockFormatWithThreshold = jest.mocked(formatWithThreshold);
+  const mockGetLocaleLanguageCode = jest.mocked(getLocaleLanguageCode);
 
   beforeEach(() => {
-    addCurrencySymbolSpy = jest.spyOn(NumberUtils, 'addCurrencySymbol');
+    jest.clearAllMocks();
+    mockGetLocaleLanguageCode.mockReturnValue('en');
+    mockFormatWithThreshold.mockReturnValue('formatted');
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  describe('zero value', () => {
-    it('passes 0.00 and the currency code to addCurrencySymbol', () => {
-      moneyFormatFiat(new BigNumber(0), 'usd');
+  it('delegates to formatWithThreshold with locale from getLocaleLanguageCode', () => {
+    mockGetLocaleLanguageCode.mockReturnValue('fr');
 
-      expect(addCurrencySymbolSpy).toHaveBeenCalledWith('0.00', 'usd');
-    });
+    moneyFormatFiat(new BigNumber(42), 'usd');
 
-    it('returns the formatted zero amount', () => {
-      const result = moneyFormatFiat(new BigNumber(0), 'usd');
-
-      expect(result).toBe('$0.00');
+    expect(mockFormatWithThreshold).toHaveBeenCalledWith(42, 0.01, 'fr', {
+      style: 'currency',
+      currency: 'usd',
     });
   });
 
-  describe('normal amounts (>= 0.01)', () => {
-    it.each([
-      ['exactly 0.01 (lower boundary)', new BigNumber(0.01), '0.01', '$0.01'],
-      ['a whole number', new BigNumber(10), '10.00', '$10.00'],
-      ['a decimal value', new BigNumber(10.5), '10.50', '$10.50'],
-      ['a large value', new BigNumber(1000), '1000.00', '$1000.00'],
-      [
-        'a value truncated to 2 decimal places',
-        new BigNumber(1.234),
-        '1.23',
-        '$1.23',
-      ],
-    ])(
-      'formats %s with two decimal places and a currency symbol',
-      (_label, value, expectedAmount, expectedResult) => {
-        const result = moneyFormatFiat(value, 'usd');
+  it('passes the numeric value from BigNumber.toNumber()', () => {
+    moneyFormatFiat(new BigNumber('99.99'), 'eur');
 
-        expect(addCurrencySymbolSpy).toHaveBeenCalledWith(
-          expectedAmount,
-          'usd',
-        );
-        expect(result).toBe(expectedResult);
-      },
-    );
-
-    it('uses the provided currency code', () => {
-      const result = moneyFormatFiat(new BigNumber(5), 'eur');
-
-      expect(addCurrencySymbolSpy).toHaveBeenCalledWith('5.00', 'eur');
-      expect(result).toBe('€5.00');
+    expect(mockFormatWithThreshold).toHaveBeenCalledWith(99.99, 0.01, 'en', {
+      style: 'currency',
+      currency: 'eur',
     });
   });
 
-  describe('sub-cent amounts (> 0 and < 0.01)', () => {
-    it.each([
-      ['0.005', new BigNumber(0.005)],
-      ['0.001', new BigNumber(0.001)],
-      ['0.009', new BigNumber(0.009)],
-    ])(
-      'passes 0.01 to addCurrencySymbol and prepends < for %s',
-      (_label, value) => {
-        const result = moneyFormatFiat(value, 'usd');
+  it('uses the provided ISO currency code in format options', () => {
+    moneyFormatFiat(new BigNumber(5), 'gbp');
 
-        expect(addCurrencySymbolSpy).toHaveBeenCalledWith('0.01', 'usd');
-        expect(result).toBe('<$0.01');
-      },
-    );
-
-    it('uses the provided currency code for sub-cent amounts', () => {
-      const result = moneyFormatFiat(new BigNumber(0.001), 'eur');
-
-      expect(addCurrencySymbolSpy).toHaveBeenCalledWith('0.01', 'eur');
-      expect(result).toBe('<€0.01');
+    expect(mockFormatWithThreshold).toHaveBeenCalledWith(5, 0.01, 'en', {
+      style: 'currency',
+      currency: 'gbp',
     });
+  });
+
+  it('returns the string produced by formatWithThreshold', () => {
+    mockFormatWithThreshold.mockReturnValue('£10.00');
+
+    const result = moneyFormatFiat(new BigNumber(10), 'gbp');
+
+    expect(result).toBe('£10.00');
   });
 });
