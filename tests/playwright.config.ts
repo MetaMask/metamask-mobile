@@ -154,6 +154,7 @@ export default defineConfig({
         device: {
           provider: ProviderName.EMULATOR,
           osVersion: '16.0', // this can be changed to your simulator version
+          name: 'iPhone 16 Pro',
         },
         app: {
           appId: 'io.metamask.MetaMask',

@@ -14,8 +14,9 @@ import {
   parseAvdNameFromEmuOutput,
   resolveAndroidAdbUdidForDevice,
 } from './resolveAndroidAdbUdid';
+import { ProviderName } from '../../../../types';
 
-const execFileMock = execFile as jest.Mock;
+const execFileMock = execFile as unknown as jest.Mock;
 
 describe('parseAvdNameFromEmuOutput', () => {
   it('returns the first line when output is a single AVD name', () => {
@@ -115,9 +116,7 @@ describe('resolveAndroidAdbUdidForDevice rejection cache eviction', () => {
           }
           cb(
             null,
-            Buffer.from(
-              'List of devices attached\nemulator-5554\tdevice\n',
-            ),
+            Buffer.from('List of devices attached\nemulator-5554\tdevice\n'),
           );
           return;
         }
@@ -129,7 +128,7 @@ describe('resolveAndroidAdbUdidForDevice rejection cache eviction', () => {
       },
     );
 
-    const device = { name: 'RetryAvd' };
+    const device = { name: 'RetryAvd', provider: ProviderName.EMULATOR };
 
     await expect(resolveAndroidAdbUdidForDevice(device)).rejects.toThrow(
       'adb unreachable',
