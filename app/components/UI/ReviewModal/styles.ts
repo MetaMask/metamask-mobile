@@ -29,7 +29,7 @@ export const createStyles = (colors: any) =>
     questionLabel: {
       fontSize: 18,
       paddingHorizontal: 30,
-      fontFamily: 'Geist-Bold',
+      fontFamily: 'Geist-SemiBold',
       textAlign: 'center',
       color: colors.text.default,
       lineHeight: 26,

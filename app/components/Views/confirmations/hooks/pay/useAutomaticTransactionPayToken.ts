@@ -1,5 +1,5 @@
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
@@ -91,6 +91,30 @@ export function useAutomaticTransactionPayToken({
     [availableTokens, isWithdraw, withdrawTokenFilter],
   );
 
+  const selectBestToken = useCallback(
+    () =>
+      getBestToken({
+        isHardwareWallet,
+        isWithdraw,
+        lastWithdrawToken,
+        targetToken,
+        tokens,
+        preferredToken,
+        preferredTokensFromFlags,
+        minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
+      }),
+    [
+      isHardwareWallet,
+      isWithdraw,
+      lastWithdrawToken,
+      payTokensFlags.minimumRequiredTokenBalance,
+      preferredToken,
+      preferredTokensFromFlags,
+      targetToken,
+      tokens,
+    ],
+  );
+
   useEffect(() => {
     if (
       disable ||
@@ -101,16 +125,7 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
-    const automaticToken = getBestToken({
-      isHardwareWallet,
-      isWithdraw,
-      lastWithdrawToken,
-      targetToken,
-      tokens,
-      preferredToken,
-      preferredTokensFromFlags,
-      minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
-    });
+    const automaticToken = selectBestToken();
 
     if (!automaticToken) {
       log('No automatic pay token found');
@@ -127,19 +142,30 @@ export function useAutomaticTransactionPayToken({
     log('Automatically selected pay token', automaticToken);
   }, [
     disable,
-    isHardwareWallet,
-    isWithdraw,
-    lastWithdrawToken,
-    payTokensFlags.minimumRequiredTokenBalance,
     payToken,
-    preferredToken,
-    preferredTokensFromFlags,
     requiredTokens,
+    selectBestToken,
     setPayToken,
-    targetToken,
     tokens,
     transactionId,
   ]);
+
+  const prevFromRef = useRef(from);
+  useEffect(() => {
+    if (disable || !from || from === prevFromRef.current) {
+      return;
+    }
+    prevFromRef.current = from;
+
+    const automaticToken = selectBestToken();
+    if (automaticToken) {
+      setPayToken({
+        address: automaticToken.address,
+        chainId: automaticToken.chainId,
+      });
+      log('Re-selected pay token after account change', automaticToken);
+    }
+  }, [disable, from, selectBestToken, setPayToken]);
 }
 
 function getBestToken({

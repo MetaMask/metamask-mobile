@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getEarnControllerMessenger } from '../messengers/earn-controller-messenger';
 import { earnControllerInit } from './earn-controller-init';
@@ -13,12 +13,12 @@ function getInitRequestMock() {
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getEarnControllerMessenger(baseMessenger),
   };
 
   // @ts-expect-error: Partial mock.
-  requestMock.getController.mockImplementation((name) => {
+  requestMock.getMessengerClient.mockImplementation((name) => {
     if (name === 'TransactionController') {
       return {
         addTransaction: jest.fn(),

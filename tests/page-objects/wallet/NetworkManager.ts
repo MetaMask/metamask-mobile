@@ -145,45 +145,6 @@ class NetworkManager {
     });
   }
 
-  /**
-   * Asserts that at least `minVisible` tokens in `symbols` are visible.
-   * Use when the UI may show a variable subset (e.g. async token list loading).
-   */
-  async expectAtLeastTokenSymbolsVisible(
-    symbols: string[],
-    minVisible: number,
-    options?: {
-      visibilityTimeoutMs?: number;
-      description?: string;
-    },
-  ): Promise<void> {
-    const visibilityTimeoutMs = options?.visibilityTimeoutMs ?? 2000;
-    const description =
-      options?.description ??
-      `at least ${minVisible} of [${symbols.join(', ')}] should be visible`;
-
-    const visibleSymbols: string[] = [];
-    const notVisibleSymbols: string[] = [];
-
-    for (const symbol of symbols) {
-      const visible = await Utilities.isElementVisible(
-        this.getTokenBySymbol(symbol),
-        visibilityTimeoutMs,
-      );
-      if (visible) {
-        visibleSymbols.push(symbol);
-      } else {
-        notVisibleSymbols.push(symbol);
-      }
-    }
-
-    if (visibleSymbols.length < minVisible) {
-      throw new Error(
-        `${description}: got ${visibleSymbols.length} visible (${visibleSymbols.join(', ') || 'none'}); not visible: ${notVisibleSymbols.join(', ') || 'none'}`,
-      );
-    }
-  }
-
   async checkBaseControlBarText(caipChainId: CaipChainId) {
     const elem = this.getBaseControlBarText(caipChainId);
     await Assertions.expectElementToBeVisible(elem, {

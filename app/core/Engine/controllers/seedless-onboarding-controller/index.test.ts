@@ -1,7 +1,7 @@
 import { seedlessOnboardingControllerInit } from '.';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { MessengerClientInitRequest } from '../../types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerMessenger,
@@ -118,7 +118,7 @@ describe('seedless onboarding controller init', () => {
     SeedlessOnboardingController,
   );
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<SeedlessOnboardingControllerMessenger>
+    MessengerClientInitRequest<SeedlessOnboardingControllerMessenger>
   >;
 
   beforeEach(() => {
@@ -144,8 +144,10 @@ describe('seedless onboarding controller init', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    // Create messenger client init request mock
+    initRequestMock = buildMessengerClientInitRequestMock(
+      baseControllerMessenger,
+    );
   });
 
   it('returns controller instance', () => {

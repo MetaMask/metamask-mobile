@@ -1,9 +1,11 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
+import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { PopularToken, IncludeAsset } from './usePopularTokens';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
+import { getBaseSemVerVersion } from '../../../../util/version';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -130,7 +132,11 @@ export const useSearchTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${bearerToken ?? ''}`,
+              ...getClientHeaders({
+                clientId: BridgeClientId.MOBILE,
+                clientVersion: getBaseSemVerVersion(),
+                jwt: bearerToken ?? '',
+              }),
             },
             body: JSON.stringify(requestBody),
           },

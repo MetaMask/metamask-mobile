@@ -12,6 +12,15 @@ import {
 } from '../../Predict.testIds';
 import PredictFeed from './PredictFeed';
 
+jest.mock('../../hooks/useFeaturedCarouselData', () => ({
+  useFeaturedCarouselData: () => ({
+    markets: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
+}));
+
 jest.mock('react-native-pager-view', () => {
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

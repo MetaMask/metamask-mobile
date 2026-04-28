@@ -705,6 +705,28 @@ Environment:
   const port = loadPort();
   const timeout = Number.parseInt(process.env.CDP_TIMEOUT || '5000', 10);
 
+  // `status` probes ALL connected targets so both platforms are visible.
+  if (command === 'status') {
+    const { discoverAllTargets } = require('./lib/target-discovery');
+    const allTargets = await discoverAllTargets(port);
+    const results = [];
+    for (const target of allTargets) {
+      let client;
+      try {
+        client = await createWSClient(target.wsUrl, timeout);
+        const platform = await cdpEval(client, 'globalThis.__AGENTIC__?.platform') || '';
+        const result = await handler(client, args.slice(1), { deviceName: target.deviceName, platform });
+        results.push(result);
+      } catch {
+        // Target not responsive — skip
+      } finally {
+        if (client) client.close();
+      }
+    }
+    console.log(JSON.stringify(results.length === 1 ? results[0] : results, null, 2));
+    return;
+  }
+
   const { wsUrl, deviceName } = await discoverTarget(port);
   const client = await createWSClient(wsUrl, timeout);
 

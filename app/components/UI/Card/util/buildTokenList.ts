@@ -1,8 +1,8 @@
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import {
-  AllowanceState,
-  CardTokenAllowance,
+  FundingStatus,
+  CardFundingToken,
   DelegationSettingsResponse,
   CardNetwork,
 } from '../types';
@@ -78,15 +78,15 @@ export function shouldProcessNetwork(
  * Single source of truth for building token lists from delegation settings.
  * Single source of truth for building token lists, used by AssetSelectionBottomSheet and useSpendingLimitData.
  */
-export function buildTokenListFromSettings({
+export function buildDelegationTokenList({
   delegationSettings,
   getSupportedTokensByChainId,
-}: BuildTokenListParams): CardTokenAllowance[] {
+}: BuildTokenListParams): CardFundingToken[] {
   if (!delegationSettings?.networks) {
     return [];
   }
 
-  const tokens: CardTokenAllowance[] = [];
+  const tokens: CardFundingToken[] = [];
 
   for (const network of delegationSettings.networks) {
     if (!shouldProcessNetwork(network)) {
@@ -129,8 +129,8 @@ export function buildTokenListFromSettings({
         decimals: tokenConfig.decimals,
         caipChainId,
         walletAddress: undefined,
-        allowanceState: AllowanceState.NotEnabled,
-        allowance: '0',
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
         delegationContract: network.delegationContract,
         priority: undefined,
         stagingTokenAddress: isNonProduction ? tokenConfig.address : undefined,
@@ -148,12 +148,12 @@ export function buildTokenListFromSettings({
  * @param getSupportedTokensByChainId - Optional SDK function to resolve production addresses for icons
  */
 export function buildQuickSelectTokens(
-  allTokens: CardTokenAllowance[],
+  allTokens: CardFundingToken[],
   delegationSettings: DelegationSettingsResponse | null,
   getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[],
-): { symbol: string; token: CardTokenAllowance | null }[] {
+): { symbol: string; token: CardFundingToken | null }[] {
   // Get tokens from delegation settings for Linea as fallback
-  const lineaTokensFromSettings: CardTokenAllowance[] = [];
+  const lineaTokensFromSettings: CardFundingToken[] = [];
 
   if (delegationSettings?.networks) {
     for (const network of delegationSettings.networks) {
@@ -188,13 +188,13 @@ export function buildQuickSelectTokens(
           decimals: tokenConfig.decimals,
           caipChainId: LINEA_CAIP_CHAIN_ID,
           walletAddress: undefined,
-          allowanceState: AllowanceState.NotEnabled,
-          allowance: '0',
+          fundingStatus: FundingStatus.NotEnabled,
+          spendableBalance: '0',
           delegationContract: network.delegationContract,
           stagingTokenAddress: isNonProduction
             ? tokenConfig.address
             : undefined,
-        } as CardTokenAllowance);
+        } as CardFundingToken);
       }
     }
   }

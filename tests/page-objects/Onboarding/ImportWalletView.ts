@@ -9,6 +9,7 @@ import {
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
@@ -155,16 +156,27 @@ class ImportWalletView {
         );
       },
       appium: async () => {
-        for (const [i, word] of srpArray.entries()) {
-          const suffix = i === srpArray.length - 1 ? '' : ' ';
-          await UnifiedGestures.typeText(
-            // once merged, remove me and create a typeText in Playwright Gestures
-            this.seedPhraseInput(i, onboarding),
-            `${word}${suffix}`,
+        const isAndroid = await PlatformDetector.isAndroid();
+        if (isAndroid) {
+          await UnifiedGestures.replaceText(
+            this.seedPhraseInput(0, onboarding),
+            secretRecoveryPhrase,
             {
               description: 'Import Wallet Secret Recovery Phrase Input Box',
             },
           );
+        } else {
+          for (const [i, word] of srpArray.entries()) {
+            const suffix = i === srpArray.length - 1 ? '' : ' ';
+            await UnifiedGestures.typeText(
+              // once merged, remove me and create a typeText in Playwright Gestures
+              this.seedPhraseInput(i, onboarding),
+              `${word}${suffix}`,
+              {
+                description: 'Import Wallet Secret Recovery Phrase Input Box',
+              },
+            );
+          }
         }
         await PlaywrightGestures.hideKeyboard();
       },

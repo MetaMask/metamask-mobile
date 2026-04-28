@@ -77,6 +77,32 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   ),
 }));
 
+// Control homepage feature flags per test (default false so existing tests are unaffected)
+let mockHomepageSectionsEnabled = false;
+jest.mock('../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(() => false),
+  selectHomepageSectionsV1Enabled: jest.fn(() => mockHomepageSectionsEnabled),
+}));
+
+// Capture the HomepageScrollContext value by rendering a context-aware mock Homepage.
+// The mock is only invoked when mockHomepageSectionsEnabled=true (sections flag on),
+// so existing tests that leave the flag false are completely unaffected.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let capturedContext: any = null;
+jest.mock('../Homepage', () => {
+  const React = jest.requireActual('react');
+  const { HomepageScrollContext: HomepageCtx } = jest.requireActual(
+    '../Homepage/context/HomepageScrollContext',
+  );
+  return {
+    __esModule: true,
+    default: React.forwardRef((_props: unknown, _ref: unknown) => {
+      capturedContext = React.useContext(HomepageCtx);
+      return null;
+    }),
+  };
+});
+
 // Create shared mock reference for TabsList
 let mockTabsListComponent: jest.Mock;
 
@@ -1655,6 +1681,79 @@ describe('Wallet', () => {
         screen: 'PerpsGTMModal',
       });
     });
+  });
+});
+
+describe('HomepageScrollContext callbacks', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHomepageSectionsEnabled = true;
+    capturedContext = null;
+  });
+
+  afterEach(() => {
+    mockHomepageSectionsEnabled = false;
+  });
+
+  const renderWalletWithSections = () =>
+    //@ts-expect-error we are ignoring navigation params on purpose
+    render(Wallet);
+
+  it('getVisitMaxDepth returns -1 before any section is viewed', () => {
+    renderWalletWithSections();
+    expect(capturedContext.getVisitMaxDepth()).toBe(-1);
+  });
+
+  it('notifySectionViewed with recordDepth=true updates max depth', () => {
+    renderWalletWithSections();
+    capturedContext.notifySectionViewed('tokens', 2, true);
+    expect(capturedContext.getVisitMaxDepth()).toBe(2);
+  });
+
+  it('notifySectionViewed with recordDepth=false does not update max depth', () => {
+    renderWalletWithSections();
+    capturedContext.notifySectionViewed('defi', 3, false);
+    expect(capturedContext.getVisitMaxDepth()).toBe(-1);
+  });
+
+  it('does not decrease depth when a lower index is viewed after a higher one', () => {
+    renderWalletWithSections();
+    capturedContext.notifySectionViewed('tokens', 5, true);
+    capturedContext.notifySectionViewed('defi', 2, true);
+    expect(capturedContext.getVisitMaxDepth()).toBe(5);
+  });
+
+  it('appSessionId is a non-empty string', () => {
+    renderWalletWithSections();
+    expect(typeof capturedContext.appSessionId).toBe('string');
+    expect(capturedContext.appSessionId.length).toBeGreaterThan(0);
+  });
+
+  it('useFocusEffect reset callback clears maxDepth back to -1', () => {
+    renderWalletWithSections();
+    capturedContext.notifySectionViewed('tokens', 5, true);
+    expect(capturedContext.getVisitMaxDepth()).toBe(5);
+
+    // Search through all registered useFocusEffect callbacks to find the one
+    // that resets depth. We do this instead of assuming a fixed index because
+    // the count of calls can vary depending on which other hooks inside Wallet
+    // also use useFocusEffect (e.g. useHomepageEntryPoint, modal hooks, etc.).
+    const mockUseFocusEffectFn = jest.mocked(useFocusEffect);
+    let resetFound = false;
+    for (const call of mockUseFocusEffectFn.mock.calls) {
+      const callback = call[0] as (() => void) | undefined;
+      if (!callback) continue;
+      callback();
+      if (capturedContext.getVisitMaxDepth() === -1) {
+        resetFound = true;
+        break;
+      }
+      // Restore depth so we can keep searching
+      capturedContext.notifySectionViewed('tokens', 5, true);
+    }
+
+    expect(resetFound).toBe(true);
+    expect(capturedContext.getVisitMaxDepth()).toBe(-1);
   });
 });
 

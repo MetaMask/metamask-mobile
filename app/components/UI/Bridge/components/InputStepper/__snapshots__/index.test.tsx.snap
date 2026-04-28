@@ -136,7 +136,6 @@ exports[`InputStepper complete component snapshot renders complete component cor
                 "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },

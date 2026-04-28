@@ -63,21 +63,14 @@ const SCAN_ANALYTICS_EXPECTATIONS_DIR = 'tests/helpers/analytics/expectations';
  * Remove paths here when migrated to the expectations folder so the slim parser is enough.
  */
 const LEGACY_INLINE_METAMETRICS_PATHS = [
-  'tests/smoke/card/card-button.spec.ts',
-  'tests/smoke/card/card-home-add-funds.spec.ts',
-  'tests/smoke/card/card-home-manage-card.spec.ts',
   'tests/smoke/confirmations/send/metricsValidationHelper.ts',
   'tests/smoke/confirmations/transactions/dapp-initiated-transfer.spec.ts',
   'tests/smoke/predict/predict-cash-out.spec.ts',
   'tests/smoke/predict/predict-claim-positions.spec.ts',
   'tests/smoke/predict/predict-geo-restriction.spec.ts',
   'tests/smoke/predict/predict-open-position.spec.ts',
-  'tests/smoke/ramps/onramp-unified-buy.spec.ts',
   'tests/smoke/snaps/test-snap-preinstalled.spec.ts',
   'tests/smoke/swap/bridge-action-smoke.spec.ts',
-  'tests/smoke/swap/swap-action-smoke.spec.ts',
-  'tests/smoke/wallet/analytics/import-wallet.spec.ts',
-  'tests/smoke/wallet/analytics/new-wallet.spec.ts',
   'tests/regression/ramps/onramp-parameters.spec.ts',
   'tests/regression/wallet/analytics/opt-out.ts',
 ];

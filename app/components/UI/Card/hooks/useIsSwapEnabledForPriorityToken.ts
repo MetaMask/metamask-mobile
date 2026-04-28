@@ -1,14 +1,22 @@
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
+import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { cardNetworkInfos } from '../constants';
+import type { RootState } from '../../../../reducers';
 
 /**
- * Checks if the priority token address is the same as the selected internal account address.
- * This is a solution for the edge case where the user it's on a different account than the priority token address.
- * Swap currently doesn't support swapping between different accounts.
- * @param priorityTokenAddress - The priority token address to check.
- * @returns True if the priority token address is the same as the selected internal account address, false otherwise.
+ * Checks whether the "Add funds" swap flow should be enabled for the
+ * card's priority token address.
+ *
+ * Enabled when:
+ * - The user is not card-authenticated (on-chain flow), OR
+ * - The priority token address matches the currently selected account, OR
+ * - The priority token address belongs to another account owned by the user
+ * (the caller is responsible for switching before navigating).
+ *
+ * @param priorityTokenAddress - The wallet address linked to the card's priority funding asset.
+ * @returns True if swaps should be enabled, false otherwise.
  */
 export const useIsSwapEnabledForPriorityToken = (
   priorityTokenAddress: string | undefined,
@@ -20,10 +28,14 @@ export const useIsSwapEnabledForPriorityToken = (
   const solanaAccount = selectSelectedInternalAccount(
     cardNetworkInfos.solana.caipChainId,
   );
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const ownedAccount = useSelector((state: RootState) =>
+    priorityTokenAddress
+      ? getMemoizedInternalAccountByAddress(state, priorityTokenAddress)
+      : undefined,
+  );
 
   if (!isAuthenticated) {
-    // If the user is not authenticated reflects on-chain fetch logic, so we return true to allow swaps
     return true;
   }
 
@@ -31,8 +43,9 @@ export const useIsSwapEnabledForPriorityToken = (
     return false;
   }
 
-  return (
+  const isSelectedAccount =
     priorityTokenAddress.toLowerCase() === evmAccount?.address?.toLowerCase() ||
-    priorityTokenAddress === solanaAccount?.address
-  );
+    priorityTokenAddress === solanaAccount?.address;
+
+  return isSelectedAccount || !!ownedAccount;
 };

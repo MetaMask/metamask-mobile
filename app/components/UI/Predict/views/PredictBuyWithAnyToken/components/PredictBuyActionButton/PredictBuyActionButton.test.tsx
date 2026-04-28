@@ -8,6 +8,9 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
     if (key === 'predict.order.placing_prediction') {
       return 'Placing prediction';
     }
+    if (key === 'predict.order.confirm') {
+      return 'Confirm';
+    }
     return key;
   }),
 }));
@@ -221,6 +224,42 @@ describe('PredictBuyActionButton', () => {
       fireEvent.press(button);
 
       expect(mockOnPress).toHaveBeenCalled();
+    });
+  });
+
+  describe('when isSheetMode is true', () => {
+    it('displays "Confirm" label instead of outcome and price', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isSheetMode
+        />,
+      );
+
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
+      expect(screen.queryByText(/0\.65¢/)).toBeNull();
+    });
+
+    it('displays "Confirm" regardless of outcome', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="No"
+          sharePrice={0.35}
+          isSheetMode
+        />,
+      );
+
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
+      expect(screen.queryByText(/· /)).toBeNull();
     });
   });
 

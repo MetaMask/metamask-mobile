@@ -22,7 +22,7 @@ describe('ButtonSemantic', () => {
       const testText = 'Success Button';
 
       // Act
-      const { getByText, toJSON } = render(
+      const { getByText } = render(
         <ButtonSemantic
           severity={ButtonSemanticSeverity.Success}
           onPress={mockOnPress}
@@ -33,7 +33,6 @@ describe('ButtonSemantic', () => {
 
       // Assert
       expect(getByText(testText)).toBeOnTheScreen();
-      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders with Danger severity', () => {
@@ -41,7 +40,7 @@ describe('ButtonSemantic', () => {
       const testText = 'Danger Button';
 
       // Act
-      const { getByText, toJSON } = render(
+      const { getByText } = render(
         <ButtonSemantic
           severity={ButtonSemanticSeverity.Danger}
           onPress={mockOnPress}
@@ -52,7 +51,6 @@ describe('ButtonSemantic', () => {
 
       // Assert
       expect(getByText(testText)).toBeOnTheScreen();
-      expect(toJSON()).toMatchSnapshot();
     });
 
     it.each([ButtonSize.Sm, ButtonSize.Md, ButtonSize.Lg] as const)(

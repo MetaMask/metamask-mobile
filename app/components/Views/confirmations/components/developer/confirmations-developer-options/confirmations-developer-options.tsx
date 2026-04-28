@@ -164,6 +164,7 @@ function MoneyAccountWithdraw() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountWithdraw,
+      recipient: PROXY_ADDRESS,
     });
   }, [addTransactionBatchAndNavigate]);
 

@@ -109,7 +109,6 @@ const defaultParams = {
   isInsufficientBalance: false,
   maxBetAmount: 100,
   isPayFeesLoading: false,
-  isInputFocused: false,
   blockingPayAlertMessage: null as string | null,
 };
 

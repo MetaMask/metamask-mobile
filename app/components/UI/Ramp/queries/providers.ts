@@ -18,11 +18,9 @@ export const rampsProvidersOptions = (params: ProvidersQueryParams) =>
     queryFn: async (): Promise<Provider[]> => {
       const response = await Engine.context.RampsController.getProviders(
         params.regionCode,
-        { forceRefresh: true },
       );
 
       return response.providers;
     },
-    staleTime: 1000 * 60 * 15, // 15 minutes
-    refetchOnMount: true,
+    staleTime: 15 * 60 * 1000, // 15 minutes
   });

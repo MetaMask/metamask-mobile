@@ -462,7 +462,7 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
-          account_type: 'imported',
+          account_type: AccountType.Imported,
         });
 
         fetchAccountsWithActivity();

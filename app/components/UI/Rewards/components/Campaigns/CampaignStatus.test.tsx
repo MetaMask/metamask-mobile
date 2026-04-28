@@ -118,42 +118,6 @@ describe('CampaignStatus', () => {
     ).toBeNull();
   });
 
-  it('renders howItWorks description when available', () => {
-    const campaign = createTestCampaign({
-      details: {
-        howItWorks: {
-          title: 'How it works',
-          description: 'Hold ONDO tokens to earn rewards',
-          phases: [],
-        },
-      },
-    });
-    const { getByTestId } = render(<CampaignStatus campaign={campaign} />);
-    expect(
-      getByTestId(CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_DESCRIPTION),
-    ).toHaveTextContent('Hold ONDO tokens to earn rewards');
-  });
-
-  it('does not render howItWorks description when details is null', () => {
-    const campaign = createTestCampaign({ details: null });
-    const { queryByTestId } = render(<CampaignStatus campaign={campaign} />);
-    expect(
-      queryByTestId(CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_DESCRIPTION),
-    ).toBeNull();
-  });
-
-  it('does not render howItWorks description when description is empty', () => {
-    const campaign = createTestCampaign({
-      details: {
-        howItWorks: { title: 'Title', description: '', phases: [] },
-      },
-    });
-    const { queryByTestId } = render(<CampaignStatus campaign={campaign} />);
-    expect(
-      queryByTestId(CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_DESCRIPTION),
-    ).toBeNull();
-  });
-
   it('calls getCampaignStatusInfo with campaign', () => {
     const campaign = createTestCampaign();
     render(<CampaignStatus campaign={campaign} />);

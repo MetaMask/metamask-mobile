@@ -5,10 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 
 import { useStyles } from '../../../../component-library/hooks';
@@ -140,19 +141,17 @@ const NetworkConnectMultiSelector = ({
         <View style={styles.updateButtonContainer}>
           {areAnyNetworksSelected && (
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('networks.update')}
+              variant={ButtonVariant.Primary}
               onPress={handleUpdateNetworkPermissions}
               testID={
                 NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS
               }
               size={ButtonSize.Lg}
-              style={{
-                ...styles.buttonPositioning,
-                ...(isLoading && styles.disabledOpacity),
-              }}
-              disabled={isLoading}
-            />
+              style={styles.buttonPositioning}
+              isDisabled={isLoading}
+            >
+              {strings('networks.update')}
+            </Button>
           )}
         </View>
         {areNoNetworksSelected && (
@@ -166,8 +165,7 @@ const NetworkConnectMultiSelector = ({
             </View>
             <View style={styles.disconnectAllButton}>
               <Button
-                variant={ButtonVariants.Primary}
-                label={strings('common.disconnect')}
+                variant={ButtonVariant.Primary}
                 testID={
                   ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON
                 }
@@ -177,7 +175,9 @@ const NetworkConnectMultiSelector = ({
                 style={{
                   ...styles.buttonPositioning,
                 }}
-              />
+              >
+                {strings('common.disconnect')}
+              </Button>
             </View>
           </View>
         )}

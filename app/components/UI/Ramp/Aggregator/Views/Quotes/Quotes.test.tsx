@@ -276,7 +276,6 @@ describe('Quotes', () => {
     render(Quotes);
     const fetchingQuotesText = screen.getByText('Fetching quotes');
     expect(fetchingQuotesText).toBeTruthy();
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly after animation without quotes', async () => {
@@ -293,7 +292,6 @@ describe('Quotes', () => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
     });
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('No providers available')).toBeTruthy();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
@@ -306,7 +304,9 @@ describe('Quotes', () => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    ).toBeOnTheScreen();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
@@ -344,7 +344,6 @@ describe('Quotes', () => {
         },
       ]
     `);
-    expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
@@ -535,7 +534,7 @@ describe('Quotes', () => {
         jest.advanceTimersByTime(3000);
         jest.clearAllTimers();
       });
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByLabelText('Paypal (Staging)')).toBeOnTheScreen();
       act(() => {
         jest.useFakeTimers({ legacyFakeTimers: true });
       });
@@ -901,7 +900,6 @@ describe('Quotes', () => {
       },
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('Quotes timeout', { exact: false })).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Get new quotes' }));
     expect(mockQueryGetQuotes).toHaveBeenCalledTimes(1);
@@ -1063,7 +1061,6 @@ describe('Quotes', () => {
       sdkError: new Error('Example SDK Error'),
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('Example SDK Error')).toBeTruthy();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
@@ -1091,7 +1088,7 @@ describe('Quotes', () => {
       error: 'Test Error',
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeOnTheScreen();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
@@ -1113,8 +1110,7 @@ describe('Quotes', () => {
 
 describe('LoadingQuotes component', () => {
   it('renders correctly', () => {
-    renderComponent(<LoadingQuotes />);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(() => renderComponent(<LoadingQuotes />)).not.toThrow();
   });
 });
 
@@ -1148,7 +1144,17 @@ describe('Timer component', () => {
           remainingTime={remainingTime}
         />,
       );
-      expect(screen.toJSON()).toMatchSnapshot();
+      if (isFetchingQuotes) {
+        expect(screen.getByText(/Fetching new quotes/)).toBeOnTheScreen();
+      } else if (pollingCyclesLeft > 0) {
+        expect(
+          screen.getByText(/New quotes in/, { exact: false }),
+        ).toBeOnTheScreen();
+      } else {
+        expect(
+          screen.getByText(/Quotes expire in/, { exact: false }),
+        ).toBeOnTheScreen();
+      }
     },
   );
 });

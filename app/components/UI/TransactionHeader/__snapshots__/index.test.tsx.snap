@@ -114,7 +114,7 @@ exports[`TransactionHeader render correctly 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 14,
           "textAlign": "center",
         }

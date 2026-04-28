@@ -22,6 +22,10 @@ const EXECUTABLE_ACTIONS = new Set([
   'select_account',
   'toggle_testnet',
   'switch_provider',
+  // App lifecycle actions
+  'app_background',
+  'app_foreground',
+  'app_restart',
 ]);
 
 const CONTROL_ACTIONS = new Set(['switch', 'end']);

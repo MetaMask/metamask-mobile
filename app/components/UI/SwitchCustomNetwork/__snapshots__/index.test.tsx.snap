@@ -135,7 +135,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -391,7 +391,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -451,7 +451,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist-SemiBold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },

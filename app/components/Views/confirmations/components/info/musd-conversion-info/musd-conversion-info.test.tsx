@@ -4,14 +4,10 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MusdConversionInfo } from './musd-conversion-info';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CustomAmountInfo } from '../custom-amount-info';
-import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 
 jest.mock('../../../hooks/tokens/useAddToken');
-jest.mock('../../../hooks/earn/useCustomAmount');
-jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
@@ -31,10 +27,6 @@ jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
 }));
 
-jest.mock('../../rows/pay-with-row', () => ({
-  PayWithRow: jest.fn(() => null),
-}));
-
 interface MockParams {
   preferredPaymentToken?: {
     address: Hex;
@@ -52,10 +44,6 @@ const mockParams: MockParams = {
 describe('MusdConversionInfo', () => {
   const mockUseAddToken = jest.mocked(useAddToken);
   const mockUseParams = jest.mocked(useParams);
-  const mockUseCustomAmount = jest.mocked(useCustomAmount);
-  const mockUseTransactionPayAvailableTokens = jest.mocked(
-    useTransactionPayAvailableTokens,
-  );
   const mockUseMusdConversionNavbar = jest.mocked(useMusdConversionNavbar);
 
   beforeEach(() => {
@@ -66,15 +54,6 @@ describe('MusdConversionInfo', () => {
     };
     mockUseParams.mockReturnValue(mockParams);
     mockUseMusdConversionNavbar.mockReturnValue(undefined);
-    mockUseCustomAmount.mockReturnValue({
-      shouldShowOutputAmountTag: false,
-      outputAmount: null,
-      outputSymbol: null,
-    });
-    mockUseTransactionPayAvailableTokens.mockReturnValue({
-      availableTokens: [],
-      hasTokens: false,
-    });
   });
 
   afterEach(() => {
@@ -179,41 +158,18 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe('overrideContent', () => {
-    it('passes overrideContent function to CustomAmountInfo', () => {
+  describe('hidePayTokenAmount', () => {
+    it('passes hidePayTokenAmount to CustomAmountInfo', () => {
       renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
       expect(CustomAmountInfo).toHaveBeenCalledWith(
         expect.objectContaining({
-          overrideContent: expect.any(Function),
+          hidePayTokenAmount: true,
         }),
         expect.anything(),
       );
-    });
-  });
-
-  describe('MusdOverrideContent', () => {
-    it('calls useTransactionPayAvailableTokens when rendered', () => {
-      mockUseTransactionPayAvailableTokens.mockReturnValue({
-        availableTokens: [{ address: '0x123' }],
-        hasTokens: true,
-      } as never);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      const mockCustomAmountInfo = jest.mocked(CustomAmountInfo);
-      const overrideContent = mockCustomAmountInfo.mock.calls[0][0]
-        .overrideContent as (amountHuman: string) => React.ReactNode;
-
-      renderWithProvider(<>{overrideContent('100')}</>, {
-        state: {},
-      });
-
-      expect(mockUseTransactionPayAvailableTokens).toHaveBeenCalled();
     });
   });
 

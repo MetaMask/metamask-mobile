@@ -150,7 +150,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 24,
               "marginBottom": 16,
               "textAlign": "left",

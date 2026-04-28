@@ -30,7 +30,7 @@ inputs:
     required: false
     default: 'false'
   base-ref:
-    description: 'Base branch ref (must be main or release/* for analysis to run)'
+    description: 'PR base branch ref (main → AI selection; release/* → skip AI, full E2E; other → skip AI, no force_run)'
     required: false
     default: ''
   is-draft:
@@ -52,7 +52,7 @@ outputs:
     description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
   force_run:
-    description: 'Whether to force E2E builds/tests regardless of path filter (true when skip-smart-e2e-selection label is used)'
+    description: 'Whether to force E2E builds/tests regardless of path filter (true for skip-smart-e2e-selection label or PRs targeting release/*)'
     value: ${{ steps.final-outputs.outputs.force_run }}
 
 runs:
@@ -71,21 +71,35 @@ runs:
           echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
         fi
 
+    - name: Check release target branch (full E2E, no AI selection)
+      id: check-release-target
+      shell: bash
+      run: |
+        echo "skip_ai_run_all=false" >> "$GITHUB_OUTPUT"
+        if [[ "${{ inputs.event-name }}" != "pull_request" ]]; then
+          exit 0
+        fi
+        BASE='${{ inputs.base-ref }}'
+        if [[ -n "$BASE" && "$BASE" == release/* ]]; then
+          echo "skip_ai_run_all=true" >> "$GITHUB_OUTPUT"
+          echo "⏭️ Base branch is release/* — skipping AI E2E selection; full E2E suite will run"
+        fi
+
     - name: Checkout for PR analysis
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       uses: actions/checkout@v4
       with:
         fetch-depth: 1 # Shallow clone - only need PR commit
 
     - name: Disable sparse checkout and restore all files
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       shell: bash
       run: |
         git sparse-checkout disable
         git checkout HEAD -- .
 
     - name: Fetch base branch for comparison
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       shell: bash
       run: |
         # Unshallow the repository first (if it's shallow)
@@ -94,13 +108,13 @@ runs:
         git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
 
     - name: Setup Node.js
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
 
     - name: Install minimal dependencies for AI analysis
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       shell: bash
       run: |
         echo "📦 Installing only required packages for AI analysis..."
@@ -112,7 +126,7 @@ runs:
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.skip_ai_run_all != 'true'
       shell: bash
       run: |
         echo "📋 Copying AI dependencies to workspace..."
@@ -150,6 +164,11 @@ runs:
         elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="skip-smart-e2e-selection label found"
+          FORCE_RUN=true
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
+        elif [[ "${{ steps.check-release-target.outputs.skip_ai_run_all }}" == "true" ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="PR targets a release branch (release/*)"
           FORCE_RUN=true
           echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         elif [[ "$IS_DRAFT" == "true" ]]; then
@@ -192,7 +211,7 @@ runs:
         else
           echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
         fi
-        # Force run flag (true when skip-smart-e2e-selection label is used)
+        # Force run flag (skip-smart-e2e-selection label or PR base release/*)
         FORCE_RUN='${{ steps.ai-analysis.outputs.FORCE_RUN }}'
         if [[ "$FORCE_RUN" == "true" ]]; then
           echo "force_run=true" >> "$GITHUB_OUTPUT"

@@ -136,7 +136,6 @@ describe('Deposit SDK Context', () => {
           state: mockedState,
         },
       );
-      expect(screen.toJSON()).toMatchSnapshot();
       const textElement = screen.getByText('API Key: test-provider-api-key');
       expect(textElement).toBeOnTheScreen();
     });
@@ -183,7 +182,6 @@ describe('Deposit SDK Context', () => {
           state: mockedState,
         },
       );
-      expect(screen.toJSON()).toMatchSnapshot();
 
       const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
         .value;

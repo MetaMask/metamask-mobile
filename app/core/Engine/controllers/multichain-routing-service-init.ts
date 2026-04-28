@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   MultichainRoutingService,
   type MultichainRoutingServiceMessenger,
@@ -14,7 +14,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const multichainRoutingServiceInit: ControllerInitFunction<
+export const multichainRoutingServiceInit: MessengerClientInitFunction<
   MultichainRoutingService,
   MultichainRoutingServiceMessenger,
   MultichainRoutingServiceInitMessenger

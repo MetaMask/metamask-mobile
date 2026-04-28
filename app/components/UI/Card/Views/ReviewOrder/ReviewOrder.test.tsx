@@ -317,7 +317,9 @@ describe('ReviewOrder without line2', () => {
     expect(getByTestId(ReviewOrderSelectors.ADDRESS_LINE_1)).toHaveTextContent(
       '456 Oak Ave',
     );
-    expect(queryByTestId(ReviewOrderSelectors.ADDRESS_LINE_2)).toBeNull();
+    expect(
+      queryByTestId(ReviewOrderSelectors.ADDRESS_LINE_2),
+    ).not.toBeOnTheScreen();
     expect(
       getByTestId(ReviewOrderSelectors.ADDRESS_CITY_STATE_ZIP),
     ).toHaveTextContent('Los Angeles, CA 90001');

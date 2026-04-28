@@ -14,12 +14,6 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import {
-  TextColor,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
-import { ReactTestInstance } from 'react-test-renderer';
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -69,6 +63,9 @@ jest.mock('../../../multichain-accounts/discovery', () => ({
 const mockNavigate = jest.fn();
 
 const mockNavigationDispatch = jest.fn();
+
+let mockRouteParams: { successFlow?: ONBOARDING_SUCCESS_FLOW } | undefined = {};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -83,15 +80,12 @@ jest.mock('@react-navigation/native', () => {
         pop: jest.fn(),
       }),
     }),
+    useRoute: () => ({
+      key: 'OnboardingSuccess',
+      name: 'OnboardingSuccess',
+      params: mockRouteParams,
+    }),
   };
-});
-
-const createMockRoute = (
-  successFlow: ONBOARDING_SUCCESS_FLOW = ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-) => ({
-  params: { successFlow },
-  key: 'OnboardingSuccess',
-  name: 'OnboardingSuccess' as const,
 });
 
 const mockDispatch = jest.fn();
@@ -201,24 +195,6 @@ describe('OnboardingSuccessComponent', () => {
     expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
   });
 
-  it('renders footer link with Info text color', () => {
-    const { getByTestId } = renderWithProvider(
-      <OnboardingSuccessComponent
-        onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
-      />,
-    );
-
-    const footerButton = getByTestId(
-      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
-    );
-    const footerText = footerButton.children[0] as ReactTestInstance;
-
-    expect(footerText.props.color).toBe(TextColor.InfoDefault);
-    expect(footerText.props.variant).toBe(TextVariant.BodyMd);
-    expect(footerText.props.fontWeight).toBe(FontWeight.Medium);
-  });
-
   it('hides manage default settings button for SETTINGS_BACKUP flow', () => {
     const { queryByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
@@ -255,52 +231,45 @@ describe('OnboardingSuccess', () => {
     // Reset mocks before each test
     (useSelector as jest.Mock).mockReset();
     mockDiscoverAccounts.mockReset();
+    mockRouteParams = {};
   });
 
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(
-            ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-          )}
-        />,
-      );
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+      };
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('fails to add networks to the network controller but renders the component', async () => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+      };
       (
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(
-            ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-          )}
-        />,
-      );
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });
   });
 
   describe('route params successFlow is NO_BACKED_UP_SRP', () => {
     it('renders matching snapshot with route params backedUpSRP true and noSRP false', () => {
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP)}
-        />,
-      );
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      };
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
 
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
-      const { getByTestId } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP)}
-        />,
-      );
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      };
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
       const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
       fireEvent.press(button);
       expect(mockDiscoverAccounts).toHaveBeenCalled();
@@ -313,17 +282,15 @@ describe('OnboardingSuccess', () => {
 
   describe('route params successFlow is BACKED_UP_SRP', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP true', () => {
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP)}
-        />,
-      );
+      mockRouteParams = { successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP };
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });
   });
 
   describe('route params handling', () => {
     it('uses default successFlow when route is undefined', () => {
+      mockRouteParams = undefined;
       const { getByText } = renderWithProvider(<OnboardingSuccess />);
 
       expect(
@@ -332,39 +299,15 @@ describe('OnboardingSuccess', () => {
     });
 
     it('uses default successFlow when route params are undefined', () => {
-      const routeWithNoParams = {
-        params: undefined,
-        key: 'OnboardingSuccess',
-        name: 'OnboardingSuccess' as const,
-      };
-
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={
-            routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
-          }
-        />,
-      );
+      mockRouteParams = undefined;
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       // Should render with default BACKED_UP_SRP flow
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('uses default successFlow when successFlow param is undefined', () => {
-      const routeWithEmptyParams = {
-        params: {},
-        key: 'OnboardingSuccess',
-        name: 'OnboardingSuccess' as const,
-      };
-
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={
-            routeWithEmptyParams as unknown as ReturnType<
-              typeof createMockRoute
-            >
-          }
-        />,
-      );
+      mockRouteParams = {};
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       // Should render with default BACKED_UP_SRP flow
       expect(toJSON()).toMatchSnapshot();
     });

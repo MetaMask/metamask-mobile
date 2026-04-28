@@ -76,15 +76,15 @@ describe('AppInformation', () => {
   });
 
   it('renders correctly with snapshot', async () => {
-    const { toJSON, getByText } = renderScreen(
+    const { getByText } = renderScreen(
       AppInformation,
       { name: 'AppInformation', options: { headerShown: false } },
       { state: MOCK_STATE },
     );
     await waitFor(() => {
-      expect(getByText('MetaMask v7.0.0 (1000)')).toBeTruthy();
+      expect(getByText('MetaMask v7.0.0 (1000)')).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('app_settings.info_title'))).toBeOnTheScreen();
   });
 
   it('renders the container with correct testID', () => {
@@ -247,9 +247,11 @@ describe('AppInformation', () => {
 
       // When the component renders
       // Then it should not display the environment information initially
-      expect(queryByText(/Environment:/)).toBeNull();
-      expect(queryByText(/Remote Feature Flag Env:/)).toBeNull();
-      expect(queryByText(/Remote Feature Flag Distribution:/)).toBeNull();
+      expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
+      expect(queryByText(/Remote Feature Flag Env:/)).not.toBeOnTheScreen();
+      expect(
+        queryByText(/Remote Feature Flag Distribution:/),
+      ).not.toBeOnTheScreen();
     });
 
     it('displays environment information after long-pressing fox icon', async () => {
@@ -300,9 +302,11 @@ describe('AppInformation', () => {
 
       // When initially rendered
       // Then environment info should be hidden
-      expect(queryByText(/Environment:/)).toBeNull();
-      expect(queryByText(/Remote Feature Flag Env:/)).toBeNull();
-      expect(queryByText(/Remote Feature Flag Distribution:/)).toBeNull();
+      expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
+      expect(queryByText(/Remote Feature Flag Env:/)).not.toBeOnTheScreen();
+      expect(
+        queryByText(/Remote Feature Flag Distribution:/),
+      ).not.toBeOnTheScreen();
 
       // When the user long-presses the fox icon
       const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
@@ -401,7 +405,7 @@ describe('AppInformation', () => {
       );
 
       // Given environment info is initially hidden
-      expect(queryByText(/Environment:/)).toBeNull();
+      expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
 
       // When the fox icon is long-pressed
       const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
@@ -435,7 +439,7 @@ describe('AppInformation', () => {
       );
 
       // Given environment info is initially hidden
-      expect(queryByText(/Environment:/)).toBeNull();
+      expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
 
       // When the fox icon is long-pressed
       const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
@@ -504,11 +508,11 @@ describe('AppInformation', () => {
         { state: MOCK_STATE },
       );
 
-      expect(queryByText(/Update ID:/)).toBeNull();
-      expect(queryByText(/OTA Update Channel:/)).toBeNull();
-      expect(queryByText(/OTA Update runtime version:/)).toBeNull();
-      expect(queryByText(/Check Automatically:/)).toBeNull();
-      expect(queryByText(/OTA Update status:/)).toBeNull();
+      expect(queryByText(/Update ID:/)).not.toBeOnTheScreen();
+      expect(queryByText(/OTA Update Channel:/)).not.toBeOnTheScreen();
+      expect(queryByText(/OTA Update runtime version:/)).not.toBeOnTheScreen();
+      expect(queryByText(/Check Automatically:/)).not.toBeOnTheScreen();
+      expect(queryByText(/OTA Update status:/)).not.toBeOnTheScreen();
     });
 
     it('displays OTA updates information after long-pressing fox icon when OTA updates are enabled', async () => {

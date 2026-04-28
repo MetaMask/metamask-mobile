@@ -607,3 +607,20 @@ jest.mock('../../components/Base/RemoteImage', () => {
   const { View } = require('react-native');
   return (props) => <View {...props} testID="mock-remote-image" />;
 });
+
+// Mock Braze SDK (ESM-only package; must be transformed via transformIgnorePatterns)
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    changeUser: jest.fn(),
+    getInitialPushPayload: jest.fn((callback) => {
+      // Call callback with null payload (no initial push)
+      if (typeof callback === 'function') {
+        callback(null);
+      }
+    }),
+    addListener: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+  },
+}));

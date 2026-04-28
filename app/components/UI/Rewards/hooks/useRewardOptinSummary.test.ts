@@ -7,7 +7,8 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AccountGroupId } from '@metamask/account-api';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
@@ -42,10 +43,7 @@ jest.mock(
   }),
 );
 
-// Mock useMetrics hook
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 // Mock useInvalidateByRewardEvents hook
 jest.mock('./useInvalidateByRewardEvents', () => ({
@@ -67,7 +65,7 @@ describe('useRewardOptinSummary', () => {
     useAccountsOperationsLoadingStates as jest.MockedFunction<
       typeof useAccountsOperationsLoadingStates
     >;
-  const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+  const mockUseAnalytics = jest.mocked(useAnalytics);
   const mockUseInvalidateByRewardEvents =
     useInvalidateByRewardEvents as jest.MockedFunction<
       typeof useInvalidateByRewardEvents
@@ -194,10 +192,12 @@ describe('useRewardOptinSummary', () => {
       loadingMessage: null,
     });
 
-    // Mock useMetrics hook
-    mockUseMetrics.mockReturnValue({
-      addTraitsToUser: jest.fn().mockResolvedValue(undefined),
-    } as unknown as ReturnType<typeof useMetrics>);
+    // Mock useAnalytics hook
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        identify: jest.fn().mockResolvedValue(undefined),
+      }),
+    );
 
     // Mock useInvalidateByRewardEvents hook
     mockUseInvalidateByRewardEvents.mockImplementation(() => {
@@ -575,8 +575,8 @@ describe('useRewardOptinSummary', () => {
 
       await waitForNextUpdate();
 
-      // Assert - should call addTraitsToUser with reward-enabled accounts count
-      expect(mockUseMetrics().addTraitsToUser).toHaveBeenCalledWith({
+      // Assert - should call identify with reward-enabled accounts count
+      expect(jest.mocked(useAnalytics)().identify).toHaveBeenCalledWith({
         reward_enabled_accounts_count: 2, // Account1 and Account3 are opted in
       });
     });

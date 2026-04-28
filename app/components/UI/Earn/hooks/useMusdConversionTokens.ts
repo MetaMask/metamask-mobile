@@ -16,6 +16,22 @@ import { Hex } from '@metamask/utils';
 import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 
 /**
+ * Symbols treated as stablecoins for ordering purposes in Money-related
+ * surfaces. Exported so the list can be reused without redefining it per
+ * component.
+ */
+export const STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT', 'DAI']);
+
+/**
+ * Extracts the fiat balance from a token, defaulting to 0 when missing.
+ * Exported so consumers that sort, filter, or project based on the token's
+ * fiat value stay in lockstep with the hook's own internal ordering logic.
+ */
+export const tokenFiatValue = (
+  token: Pick<AssetType, 'fiat'> | undefined | null,
+): number => token?.fiat?.balance ?? 0;
+
+/**
  * The source of truth for the tokens that are eligible for mUSD conversion.
  *
  * @returns Object containing:
@@ -87,14 +103,21 @@ export const useMusdConversionTokens = () => {
     [filterTokensWithAllowlistAndBlocklist, filterTokensWithMinBalance],
   );
 
-  // Allowed tokens for conversion, sorted by fiat balance descending.
-  const conversionTokens = useMemo(
-    () =>
-      filterAllowedTokens(allTokens).sort(
-        (a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0),
-      ),
-    [allTokens, filterAllowedTokens],
-  );
+  // Allowed tokens for conversion, ordered with stablecoins first by fiat
+  // balance descending, then every other token by fiat balance descending.
+  // This matches how Money surfaces prefer to surface conversion candidates.
+  const conversionTokens = useMemo(() => {
+    const allowed = filterAllowedTokens(allTokens);
+    const byFiatDesc = (a: AssetType, b: AssetType) =>
+      tokenFiatValue(b) - tokenFiatValue(a);
+    const stables = allowed
+      .filter((token) => STABLECOIN_SYMBOLS.has(token.symbol))
+      .sort(byFiatDesc);
+    const others = allowed
+      .filter((token) => !STABLECOIN_SYMBOLS.has(token.symbol))
+      .sort(byFiatDesc);
+    return [...stables, ...others];
+  }, [allTokens, filterAllowedTokens]);
 
   const hasConvertibleTokensByChainId = useCallback(
     (chainId: Hex) =>

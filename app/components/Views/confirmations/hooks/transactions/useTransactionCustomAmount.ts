@@ -16,6 +16,7 @@ import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalanc
 import Engine from '../../../../../core/Engine';
 import {
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
@@ -34,6 +35,7 @@ export function useTransactionCustomAmount({
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
   const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
+  const isPostQuote = useTransactionPayIsPostQuote();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
 
@@ -161,7 +163,7 @@ export function useTransactionCustomAmount({
   }, [amountHuman, updateTokenAmountCallback]);
 
   useEffect(() => {
-    if (isTokenAmountUpdated && hasSourceAmount) {
+    if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
       setConfirmationMetric({
         properties: {
           mm_pay_quote_requested: true,
@@ -169,7 +171,12 @@ export function useTransactionCustomAmount({
       });
       setIsTokenAmountUpdated(false);
     }
-  }, [hasSourceAmount, isTokenAmountUpdated, setConfirmationMetric]);
+  }, [
+    hasSourceAmount,
+    isPostQuote,
+    isTokenAmountUpdated,
+    setConfirmationMetric,
+  ]);
 
   return {
     amountFiat,

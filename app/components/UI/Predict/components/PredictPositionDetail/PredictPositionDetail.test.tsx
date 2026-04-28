@@ -13,13 +13,8 @@ import {
 } from '../../types';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-declare global {
-  // eslint-disable-next-line no-var
-  var __mockNavigate: jest.Mock;
-}
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, string | number>) => {
@@ -40,23 +35,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
-  const mockNavigate = jest.fn() as jest.Mock;
-  // expose for tests without out-of-scope reference
-  global.__mockNavigate = mockNavigate;
   return {
     ...actualNav,
-    useNavigation: () => ({ navigate: mockNavigate }),
-    useIsFocused: () => true, // Mock as focused by default
+    useNavigation: () => ({ navigate: jest.fn() }),
+    useIsFocused: () => true,
   };
 });
-
-const mockExecuteGuardedAction = jest.fn(async (action) => await action());
-jest.mock('../../hooks/usePredictActionGuard', () => ({
-  usePredictActionGuard: () => ({
-    executeGuardedAction: mockExecuteGuardedAction,
-    isEligible: true,
-  }),
-}));
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: jest.fn(() => ({
@@ -70,6 +54,11 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: jest.fn(),
+}));
+
+const mockOnCashOut = jest.fn();
+jest.mock('../../hooks/usePredictCashOut', () => ({
+  usePredictCashOut: () => ({ onCashOut: mockOnCashOut }),
 }));
 
 const basePosition: PredictPositionType = {
@@ -215,12 +204,7 @@ describe('PredictPositionDetail', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    global.__mockNavigate.mockClear();
-    mockExecuteGuardedAction.mockClear();
-    mockExecuteGuardedAction.mockImplementation(
-      async (action) => await action(),
-    );
-    // Mock usePredictOrderPreview to return preview data matching position.currentValue
+    mockOnCashOut.mockClear();
     mockUsePredictOrderPreviewFn.mockReturnValue({
       preview: {
         marketId: basePosition.marketId,
@@ -338,17 +322,13 @@ describe('PredictPositionDetail', () => {
     expect(screen.queryByText('Cash out')).toBeNull();
   });
 
-  it('navigates to sell preview with position and outcome on cash out', () => {
+  it('calls onCashOut with position on cash out press', () => {
     renderComponent();
 
     fireEvent.press(screen.getByText('Cash out'));
 
-    expect(global.__mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.SELL_PREVIEW,
-      expect.objectContaining({
-        position: expect.objectContaining({ id: 'pos-1' }),
-        outcome: expect.objectContaining({ id: 'outcome-1' }),
-      }),
+    expect(mockOnCashOut).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'pos-1' }),
     );
   });
 

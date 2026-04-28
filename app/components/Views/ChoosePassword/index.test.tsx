@@ -1348,4 +1348,111 @@ describe('ChoosePassword', () => {
       });
     });
   });
+
+  describe('account_type analytics', () => {
+    it('uses metamask account_type when no provider is set', async () => {
+      mockTrackOnboarding.mockClear();
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        fireEvent.press(checkbox);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              account_type: 'metamask',
+            }),
+          }),
+          expect.any(Function),
+        );
+      });
+    });
+
+    it('uses metamask_google account_type when provider is google', async () => {
+      mockTrackOnboarding.mockClear();
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        provider: 'google',
+        oauthLoginSuccess: true,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              account_type: 'metamask_google',
+            }),
+          }),
+          expect.any(Function),
+        );
+      });
+    });
+  });
 });

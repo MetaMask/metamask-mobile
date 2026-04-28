@@ -1,7 +1,7 @@
 // Third party dependencies
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -331,14 +331,18 @@ const renderComponent = (state: any = {}) =>
 describe('Network Selector', () => {
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent(initialState);
+    expect(
+      screen.getByTestId(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when network UI redesign is enabled', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent(initialState);
+    expect(
+      screen.getByTestId(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when network UI redesign is enabled and calls setNetworkClientIdForDomain', async () => {
@@ -606,7 +610,7 @@ describe('Network Selector', () => {
 
     // Polygon should appear, but others should not
     expect(queryByText('Polygon Mainnet')).toBeTruthy();
-    expect(queryByText('Avalanche Mainnet C-Chain')).toBeNull();
+    expect(queryByText('Avalanche Mainnet C-Chain')).not.toBeOnTheScreen();
 
     // Clear search and check if all networks appear
     fireEvent.changeText(searchInput, '');

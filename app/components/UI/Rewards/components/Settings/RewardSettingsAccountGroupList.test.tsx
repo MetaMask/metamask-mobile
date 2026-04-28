@@ -6,7 +6,11 @@ import {
   useRewardOptinSummary,
   WalletWithAccountGroupsWithOptInStatus,
 } from '../../hooks/useRewardOptinSummary';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { AccountWalletType } from '@metamask/account-api';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
@@ -30,9 +34,7 @@ jest.mock('../../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
@@ -364,7 +366,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
   typeof useRewardOptinSummary
 >;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
   typeof useBulkLinkState
 >;
@@ -445,12 +447,7 @@ describe('RewardSettingsAccountGroupList', () => {
   ] as unknown as WalletWithAccountGroupsWithOptInStatus[];
 
   const mockTrackEvent = jest.fn();
-  const mockCreateEventBuilder = jest.fn(() => ({
-    addProperties: jest.fn().mockReturnThis(),
-    build: jest.fn(() => ({})),
-    addSensitiveProperties: jest.fn().mockReturnThis(),
-    removeProperties: jest.fn().mockReturnThis(),
-  })) as unknown as jest.MockedFunction<(event: unknown) => unknown>;
+  const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
   const mockFetchOptInStatus = jest.fn();
   const mockStartBulkLink = jest.fn();
 
@@ -488,19 +485,13 @@ describe('RewardSettingsAccountGroupList', () => {
       currentAccountGroupPartiallySupported: null,
     });
 
-    // Mock useMetrics hook
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      addTraitsToUser: jest.fn(),
-      isEnabled: true,
-      enable: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDataDeletionTaskStatus: jest.fn(),
-      getDataDeletionTaskId: jest.fn(),
-      getDataDeletionTaskUrl: jest.fn(),
-    } as never);
+    // Mock useAnalytics hook
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Mock useBulkLinkState hook
     mockUseBulkLinkState.mockReturnValue({

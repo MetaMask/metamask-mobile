@@ -160,7 +160,7 @@ const OnboardingNavigator: React.FC = () => {
   const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
     if (cardUserPhase) {
-      if (cardUserPhase === 'ACCOUNT' || !user?.contactVerificationId) {
+      if (cardUserPhase === 'ACCOUNT') {
         return Routes.CARD.ONBOARDING.SIGN_UP;
       }
       if (cardUserPhase === 'PHONE_NUMBER') {
@@ -230,6 +230,11 @@ const OnboardingNavigator: React.FC = () => {
     return Routes.CARD.ONBOARDING.SIGN_UP;
   }, [user, cardUserPhase, onboardingId]);
 
+  // Stable primitives derived from the user object — avoids re-firing the effect
+  // when fetchUserData resolves with a new object reference but identical data.
+  const isUserLoaded = !!user;
+  const userVerificationState = user?.verificationState;
+
   // Show "keep going" modal only when a returning user resumes an incomplete flow
   // isReturningSession is determined at CardSDKProvider mount (when card flow starts),
   // not when this navigator mounts, so it correctly identifies returning users
@@ -237,10 +242,11 @@ const OnboardingNavigator: React.FC = () => {
   useEffect(() => {
     if (
       (isReturningSession || cardUserPhase) &&
+      isUserLoaded &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
       initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
-      user?.verificationState !== 'REJECTED' &&
+      userVerificationState !== 'REJECTED' &&
       !isDeeplinkToComplete
     ) {
       hasShownKeepGoingModal.current = true;
@@ -264,7 +270,8 @@ const OnboardingNavigator: React.FC = () => {
     initialRouteName,
     cardUserPhase,
     navigation,
-    user?.verificationState,
+    isUserLoaded,
+    userVerificationState,
     isDeeplinkToComplete,
   ]);
 

@@ -1,7 +1,7 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getPhishingControllerMessenger } from '../messengers/phishing-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { phishingControllerInit } from './phishing-controller-init';
 import {
   PhishingController,
@@ -12,14 +12,14 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/phishing-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<PhishingControllerMessenger>
+  MessengerClientInitRequest<PhishingControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getPhishingControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

@@ -12,6 +12,10 @@ import Summary from '../../Base/Summary';
 import Text from '../../Base/Text';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTestNet } from '../../../util/networks';
+import TagColored, {
+  TagColor,
+} from '../../../component-library/components-temp/TagColored';
+import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -31,6 +35,7 @@ export default class TransactionSummary extends PureComponent {
     onEditPress: PropTypes.func,
     transactionType: PropTypes.string,
     chainId: PropTypes.string,
+    isGasFeeSponsored: PropTypes.bool,
   };
 
   renderIfGastEstimationReady = (children) => {
@@ -67,6 +72,7 @@ export default class TransactionSummary extends PureComponent {
       gasEstimationReady,
       onEditPress,
       chainId,
+      isGasFeeSponsored,
     } = this.props;
 
     const isTestNetResult = isTestNet(chainId);
@@ -126,12 +132,30 @@ export default class TransactionSummary extends PureComponent {
               </TouchableOpacity>
             )}
           </Summary.Col>
-          {!!fee &&
+          {isGasFeeSponsored ? (
+            <TagColored
+              color={TagColor.Success}
+              labelProps={{
+                variant: TextVariant.BodySM,
+                style: {
+                  textTransform: 'none',
+                  textAlign: 'center',
+                  bottom: 1,
+                  fontWeight: 'normal',
+                },
+                testID: 'paid-by-metamask',
+              }}
+            >
+              {strings('transactions.paid_by_metamask')}
+            </TagColored>
+          ) : (
+            !!fee &&
             this.renderIfGastEstimationReady(
               <Text small primary upper={!isTestNetResult}>
                 {fee}
               </Text>,
-            )}
+            )
+          )}
         </Summary.Row>
         <Summary.Separator />
         <Summary.Row>
@@ -140,17 +164,19 @@ export default class TransactionSummary extends PureComponent {
           </Text>
           {this.renderIfGastEstimationReady(
             <Text small bold primary upper={!isTestNetResult}>
-              {totalAmount}
+              {isGasFeeSponsored ? amount : totalAmount}
             </Text>,
           )}
         </Summary.Row>
-        <Summary.Row end last>
-          {this.renderIfGastEstimationReady(
-            <Text small right upper={!isTestNetResult}>
-              {secondaryTotalAmount}
-            </Text>,
-          )}
-        </Summary.Row>
+        {!isGasFeeSponsored && (
+          <Summary.Row end last>
+            {this.renderIfGastEstimationReady(
+              <Text small right upper={!isTestNetResult}>
+                {secondaryTotalAmount}
+              </Text>,
+            )}
+          </Summary.Row>
+        )}
       </Summary>
     );
   };
