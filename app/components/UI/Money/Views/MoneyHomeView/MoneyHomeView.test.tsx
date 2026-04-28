@@ -23,9 +23,13 @@ import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockMoneyFormatFiat = moneyFormatFiat as jest.MockedFunction<
+  typeof moneyFormatFiat
+>;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -72,10 +76,8 @@ jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   }),
 }));
 
-jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (val: { toFixed: (n: number) => string }) =>
-    `$${val.toFixed(2)}`,
+jest.mock('../../utils/moneyFormatFiat', () => ({
+  moneyFormatFiat: jest.fn(() => '$0.12'),
 }));
 
 jest.mock('../../../../../selectors/cardController', () => ({
@@ -330,6 +332,42 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
       params: { apy: 5 },
+    });
+  });
+
+  describe('projected earnings', () => {
+    it('passes the formatted projected earnings to MoneyEarnings', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.12');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE),
+      ).toHaveTextContent('$0.12');
+    });
+
+    it('displays the zero-formatted value for projected earnings when totalFiatRaw is absent', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.00');
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: undefined,
+        musdFiatFormatted: undefined,
+        musdSHFvdFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        tokenTotal: undefined,
+        isAggregatedBalanceLoading: false,
+        apyDecimal: 0.05,
+        apyPercent: 5,
+        apyPercentFormatted: '5%',
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE),
+      ).toHaveTextContent('$0.00');
     });
   });
 

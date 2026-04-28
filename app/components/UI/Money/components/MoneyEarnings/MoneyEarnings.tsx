@@ -17,18 +17,16 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
 
-const DEFAULT_VALUE = '$0.00';
-
 interface MoneyEarningsProps {
   /**
-   * Cumulative yield earned to date. Falls back to "$0.00" when omitted.
+   * Cumulative yield earned to date, formatted in the user's selected currency.
    */
-  lifetimeEarnings?: string;
+  lifetimeEarnings: string;
   /**
-   * Forward-looking earnings based on current balance and APY. Falls back to
-   * "$0.00" when omitted.
+   * Forward-looking earnings based on current balance and APY, formatted in
+   * the user's selected currency.
    */
-  projectedEarnings?: string;
+  projectedEarnings: string;
   /**
    * Render skeletons in place of the two earnings values while data is being
    * fetched.
@@ -61,8 +59,8 @@ const ValueText = ({
 );
 
 const MoneyEarnings = ({
-  lifetimeEarnings = DEFAULT_VALUE,
-  projectedEarnings = DEFAULT_VALUE,
+  lifetimeEarnings,
+  projectedEarnings,
   isLoading = false,
   onInfoPress,
 }: MoneyEarningsProps) => (

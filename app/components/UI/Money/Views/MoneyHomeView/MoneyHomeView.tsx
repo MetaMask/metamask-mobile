@@ -28,7 +28,8 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
@@ -56,7 +57,7 @@ const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
-  const formatFiat = useFiatFormatter();
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const {
     totalFiatFormatted,
@@ -80,13 +81,18 @@ const MoneyHomeView = () => {
   // Useful for testing how zero and non-zero APYs are handled quickly.
   const DEV_APY = __DEV__ ? 4 : apyPercent;
 
+  const formattedZero = useMemo(
+    () => moneyFormatFiat(new BigNumber(0), currentCurrency),
+    [currentCurrency],
+  );
+
   const projectedEarnings = useMemo(() => {
-    if (!totalFiatRaw || !DEV_APY) return undefined;
+    if (!totalFiatRaw || !DEV_APY) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
-    if (balance.isZero() || balance.isNaN()) return undefined;
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = balance.times(DEV_APY).dividedBy(100);
-    return formatFiat(earnings);
-  }, [totalFiatRaw, DEV_APY, formatFiat]);
+    return moneyFormatFiat(earnings, currentCurrency);
+  }, [totalFiatRaw, DEV_APY, currentCurrency, formattedZero]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -241,7 +247,7 @@ const MoneyHomeView = () => {
         />
         <Divider />
         <MoneyEarnings
-          // TODO: Double check projectedEarnings value after refactoring. This is supposed to represent the earnings a user COULD get if they converted NOT the Money Account's balance.
+          lifetimeEarnings={formattedZero}
           projectedEarnings={projectedEarnings}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
