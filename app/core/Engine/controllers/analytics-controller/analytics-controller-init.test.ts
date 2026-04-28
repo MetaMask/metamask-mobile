@@ -39,7 +39,6 @@ jest.mock('../../../../util/test/utils', () => ({
 
 jest.mock('../../../Braze', () => ({
   getBrazePlugin: jest.fn().mockReturnValue({}),
-  syncBrazeAllowlists: jest.fn(),
 }));
 
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -62,24 +61,16 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
-const mockSyncBrazeAllowlists = jest.requireMock('../../../Braze')
-  .syncBrazeAllowlists as jest.Mock;
 const mockAnalyticsIdentify = jest.mocked(analytics.identify);
 const mockGetAccountCompositionTraits = jest.mocked(
   getAccountCompositionTraits,
 );
 const mockLoggerError = jest.mocked(Logger.error);
 
-const MOCK_BRAZE_SEGMENT_FORWARDING = { allowedEvents: ['event1'] };
-
 function buildInitMessengerMock(): jest.Mocked<AnalyticsControllerInitMessenger> {
   return {
     subscribe: jest.fn(),
-    call: jest.fn().mockReturnValue({
-      remoteFeatureFlags: {
-        brazeSegmentForwarding: MOCK_BRAZE_SEGMENT_FORWARDING,
-      },
-    }),
+    call: jest.fn(),
   } as unknown as jest.Mocked<AnalyticsControllerInitMessenger>;
 }
 
@@ -205,67 +196,6 @@ describe('analyticsControllerInit', () => {
       initFn?.(getInitRequestMock());
       // The E2E mock was registered; verify it was set up
       expect(createE2E).toBeDefined();
-    });
-  });
-
-  describe('RemoteFeatureFlagController:stateChange subscription', () => {
-    it('subscribes to RemoteFeatureFlagController:stateChange', () => {
-      const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
-
-      expect(initMessenger.subscribe).toHaveBeenCalledWith(
-        'RemoteFeatureFlagController:stateChange',
-        expect.any(Function),
-        expect.any(Function),
-      );
-    });
-
-    it('passes syncBrazeAllowlists as the subscriber callback', () => {
-      const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
-
-      const [, callback] = initMessenger.subscribe.mock.calls.find(
-        ([event]) => event === 'RemoteFeatureFlagController:stateChange',
-      ) as Parameters<typeof initMessenger.subscribe>;
-
-      expect(callback).toBe(mockSyncBrazeAllowlists);
-    });
-
-    it('uses brazeSegmentForwarding as the selector', () => {
-      const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
-
-      const [, , selector] = initMessenger.subscribe.mock.calls.find(
-        ([event]) => event === 'RemoteFeatureFlagController:stateChange',
-      ) as Parameters<typeof initMessenger.subscribe>;
-
-      const mockFlags = {
-        remoteFeatureFlags: { brazeSegmentForwarding: { allowedEvents: [] } },
-      };
-      const result = (
-        selector as unknown as (state: typeof mockFlags) => unknown
-      )(mockFlags);
-      expect(result).toBe(mockFlags.remoteFeatureFlags.brazeSegmentForwarding);
-    });
-  });
-
-  describe('initial Braze sync', () => {
-    it('calls getState on RemoteFeatureFlagController', () => {
-      const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
-
-      expect(initMessenger.call).toHaveBeenCalledWith(
-        'RemoteFeatureFlagController:getState',
-      );
-    });
-
-    it('calls syncBrazeAllowlists with the braze segment forwarding flags', () => {
-      const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
-
-      expect(mockSyncBrazeAllowlists).toHaveBeenCalledWith(
-        MOCK_BRAZE_SEGMENT_FORWARDING,
-      );
     });
   });
 
