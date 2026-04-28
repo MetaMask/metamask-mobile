@@ -305,8 +305,8 @@ jobs:
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
-          # Generate build-env.json capturing actual env values used in this build
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env
+          # Generate build-env.json capturing actual env values used in this build (non-critical)
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
 
       - name: Validate secrets
         env:
