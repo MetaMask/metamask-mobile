@@ -1,10 +1,7 @@
 import type { Result } from '../../../types';
 import type { ClobHeaders, OrderResponse } from '../types';
 import { getPolymarketEndpoints } from '../utils';
-import type {
-  Permit2FeeAuthorization,
-  SafeFeeAuthorization,
-} from '../safe/types';
+import type { Permit2FeeAuthorization } from '../safe/types';
 import type { PolymarketProtocolDefinition } from './definitions';
 import type { ProtocolRelayerOrder } from './orderCodec';
 
@@ -29,7 +26,7 @@ export async function submitProtocolClobOrder({
   protocol: Pick<PolymarketProtocolDefinition, 'transport'>;
   headers: ClobHeaders;
   clobOrder: ProtocolRelayerOrder;
-  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+  feeAuthorization?: Permit2FeeAuthorization;
   executor?: string;
   allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> {
@@ -37,9 +34,7 @@ export async function submitProtocolClobOrder({
   const url = `${CLOB_RELAYER}/order`;
   const requestHeaders = normalizeRelayerHeaders(headers);
 
-  if (protocol.transport.clobVersionHeader) {
-    requestHeaders['X-Clob-Version'] = protocol.transport.clobVersionHeader;
-  }
+  requestHeaders['X-Clob-Version'] = protocol.transport.clobVersionHeader;
 
   const body = {
     ...clobOrder,

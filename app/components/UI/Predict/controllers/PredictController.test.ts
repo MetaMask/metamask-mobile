@@ -5721,7 +5721,6 @@ describe('PredictController', () => {
       const mockAccountState = {
         address: '0xProxyAddress' as `0x${string}`,
         isDeployed: true,
-        hasAllowances: true,
         balance: 100.5,
       };
 

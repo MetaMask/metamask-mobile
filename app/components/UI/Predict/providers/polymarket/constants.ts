@@ -5,19 +5,18 @@ export const POLYMARKET_PROVIDER_ID = 'polymarket';
 export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
 export const DEFAULT_CLOB_BASE_URL = 'https://clob.polymarket.com';
-export const LEGACY_V2_CLOB_BASE_URL = 'https://clob-v2.polymarket.com';
 
 /**
  * Default slippage for market orders.
  */
 export const SLIPPAGE_BUY = 0.03; // 3%
 export const SLIPPAGE_SELL = 0.05; // 5%
-// BUY is floored at maxAmountSpent + tickSize. SELL has no floor — user accepts up to 99% less USDC.
+// BUY is floored at maxAmountSpent + tickSize. SELL has no floor — user accepts up to 99% less pUSD.
 export const SLIPPAGE_BEST_AVAILABLE = 0.99; // 99%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 
-export const MIN_COLLATERAL_BALANCE_FOR_CLAIM = 0.5;
+export const MIN_PUSD_BALANCE_FOR_CLAIM_GAS = 0.5;
 
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 export const POLYGON_MAINNET_CAIP_CHAIN_ID =
@@ -76,14 +75,6 @@ export const ROUNDING_CONFIG: Record<TickSize, RoundConfig> = {
  */
 export const SAFE_EXEC_GAS_LIMIT = 121000;
 
-export const MATIC_CONTRACTS: ContractConfig = {
-  exchange: '0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E',
-  negRiskAdapter: '0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296',
-  negRiskExchange: '0xC5d563A36AE78145C45a50134d48A1215220f80a',
-  collateral: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-  conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
-};
-
 export const MATIC_CONTRACTS_V2: ContractConfig = {
   exchange: '0xE111180000d2663C0091e4f400237545B87B996B',
   negRiskAdapter: '0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296',
@@ -92,13 +83,10 @@ export const MATIC_CONTRACTS_V2: ContractConfig = {
   conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
 };
 
-export const USDC_E_ADDRESS = MATIC_CONTRACTS.collateral;
+export const USDC_E_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
 
 export const COLLATERAL_ONRAMP_ADDRESS =
   '0x93070a847efEf7F70739046A929D47a521F5B8ee';
-
-export const COLLATERAL_OFFRAMP_ADDRESS =
-  '0x2957922Eb93258b93368531d39fAcCA3B4dC5854';
 
 export const CTF_COLLATERAL_ADAPTER_ADDRESS =
   '0xADa100874d00e3331D00F2007a9c336a65009718';
@@ -106,8 +94,8 @@ export const CTF_COLLATERAL_ADAPTER_ADDRESS =
 export const NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS =
   '0xAdA200001000ef00D07553cEE7006808F895c6F1';
 
-export const POLYGON_USDC_CAIP_ASSET_ID =
-  `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS.collateral}` as const;
+export const POLYGON_PUSD_CAIP_ASSET_ID =
+  `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS_V2.collateral}` as const;
 
 export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   first_half_moneyline: 'first_half',

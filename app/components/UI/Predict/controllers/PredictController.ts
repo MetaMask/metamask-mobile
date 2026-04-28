@@ -57,7 +57,7 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
-  MATIC_CONTRACTS,
+  MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
@@ -1402,7 +1402,7 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
+        gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
         transactions,
       });
 
@@ -2456,7 +2456,7 @@ export class PredictController extends BaseController<
         disableSequential: true,
         requireApproval: true,
         // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
+        gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
         transactions: [transaction],
       });
 

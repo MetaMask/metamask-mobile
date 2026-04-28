@@ -5,7 +5,7 @@ import { RootState } from '../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { getNetworkImageSource } from '../../../../util/networks';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
-import { POLYGON_USDCE } from '../../../Views/confirmations/constants/predict';
+import { POLYGON_PUSD } from '../../../Views/confirmations/constants/predict';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
@@ -24,10 +24,10 @@ export function usePredictBalanceTokenFilter(
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const usdceToken = useSelector((state: RootState) =>
+  const pusdToken = useSelector((state: RootState) =>
     selectSingleTokenByAddressAndChainId(
       state,
-      POLYGON_USDCE.address,
+      POLYGON_PUSD.address,
       PREDICT_BALANCE_CHAIN_ID,
     ),
   );
@@ -51,11 +51,11 @@ export function usePredictBalanceTokenFilter(
         chainId: PREDICT_BALANCE_CHAIN_ID,
         tokenId: PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
         name: 'Predict balance',
-        symbol: 'USDC.e',
+        symbol: POLYGON_PUSD.symbol,
         balance: balanceStr,
         balanceInSelectedCurrency: balanceFormatted,
-        image: usdceToken?.image ?? '',
-        logo: usdceToken?.image ?? '',
+        image: pusdToken?.image ?? '',
+        logo: pusdToken?.image ?? '',
         networkBadgeSource: getNetworkImageSource({
           chainId: PREDICT_BALANCE_CHAIN_ID,
         }),
@@ -81,7 +81,7 @@ export function usePredictBalanceTokenFilter(
       isPredictBalanceSelected,
       predictBalance,
       formatFiat,
-      usdceToken,
+      pusdToken,
     ],
   );
 }

@@ -612,7 +612,6 @@ export interface PreviewOrderParams {
 export interface AccountState {
   address: Hex;
   isDeployed: boolean;
-  hasAllowances: boolean;
 }
 
 export interface GeoBlockResponse {

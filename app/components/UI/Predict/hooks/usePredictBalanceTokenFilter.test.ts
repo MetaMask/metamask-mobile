@@ -78,7 +78,7 @@ describe('usePredictBalanceTokenFilter', () => {
     mockPredictBalance = 100;
     mockTransactionMeta = null;
     mockHasTransactionType.mockReturnValue(false);
-    mockUseSelector.mockReturnValue({ image: 'usdce-token-image' });
+    mockUseSelector.mockReturnValue({ image: 'pusd-token-image' });
   });
 
   it('returns original tokens when transaction type does not match and forceEnabled is false', () => {
@@ -178,17 +178,17 @@ describe('usePredictBalanceTokenFilter', () => {
     expect(filteredTokens[0].chainId).toBe(PREDICT_BALANCE_CHAIN_ID);
   });
 
-  it('sets symbol to USDC.e on the Predict balance token', () => {
+  it('sets symbol to pUSD on the Predict balance token', () => {
     mockHasTransactionType.mockReturnValue(true);
     const tokens = [createMockToken()];
 
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect(filteredTokens[0].symbol).toBe('USDC.e');
+    expect(filteredTokens[0].symbol).toBe('pUSD');
   });
 
-  it('uses empty string for image when usdceToken is null', () => {
+  it('uses empty string for image when pusdToken is null', () => {
     mockHasTransactionType.mockReturnValue(true);
     mockUseSelector.mockReturnValue(null);
     const tokens = [createMockToken()];

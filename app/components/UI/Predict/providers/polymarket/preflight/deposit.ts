@@ -11,10 +11,13 @@ import {
   getRawTokenBalance,
 } from './core';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
-import { getCanonicalV2AllowanceRequirements } from './v2AllowanceRequirements';
+import {
+  getLegacySweepAllowanceRequirements,
+  type V2AllowanceRequirement,
+} from './v2AllowanceRequirements';
 
 export interface DepositMaintenancePlan {
-  missingRequirements: ReturnType<typeof getCanonicalV2AllowanceRequirements>;
+  missingRequirements: V2AllowanceRequirement[];
   preExistingSafeUsdceBalance: bigint;
   transactions: SafeTransaction[];
 }
@@ -22,20 +25,25 @@ export interface DepositMaintenancePlan {
 export async function planDepositMaintenance({
   safeAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
+  preExistingSafeUsdceBalance: providedPreExistingSafeUsdceBalance,
 }: {
   safeAddress: string;
   protocol?: PolymarketProtocolDefinition;
+  preExistingSafeUsdceBalance?: bigint;
 }): Promise<DepositMaintenancePlan> {
-  const [missingRequirements, preExistingSafeUsdceBalance] = await Promise.all([
-    inspectMissingRequirements({
-      address: safeAddress,
-      requirements: getCanonicalV2AllowanceRequirements(protocol),
-    }),
-    getRawTokenBalance({
+  const preExistingSafeUsdceBalance =
+    providedPreExistingSafeUsdceBalance ??
+    (await getRawTokenBalance({
       address: safeAddress,
       tokenAddress: protocol.collateral.legacyUsdceToken,
-    }),
-  ]);
+    }));
+  const missingRequirements =
+    preExistingSafeUsdceBalance > 0n
+      ? await inspectMissingRequirements({
+          address: safeAddress,
+          requirements: getLegacySweepAllowanceRequirements(protocol),
+        })
+      : [];
 
   return {
     missingRequirements,
@@ -57,7 +65,7 @@ function compileDepositMaintenanceTransactions({
 }: {
   protocol?: PolymarketProtocolDefinition;
   safeAddress: string;
-  missingRequirements: ReturnType<typeof getCanonicalV2AllowanceRequirements>;
+  missingRequirements: V2AllowanceRequirement[];
   preExistingSafeUsdceBalance: bigint;
 }): SafeTransaction[] {
   return compileAllowanceMaintenanceTransactions({
@@ -72,12 +80,18 @@ export async function buildDepositMaintenanceTransaction({
   signer,
   safeAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
+  preExistingSafeUsdceBalance,
 }: {
   signer: Signer;
   safeAddress: string;
   protocol?: PolymarketProtocolDefinition;
+  preExistingSafeUsdceBalance?: bigint;
 }) {
-  const plan = await planDepositMaintenance({ safeAddress, protocol });
+  const plan = await planDepositMaintenance({
+    safeAddress,
+    protocol,
+    preExistingSafeUsdceBalance,
+  });
 
   return buildSignedSafeExecutionIfNeeded({
     signer,
