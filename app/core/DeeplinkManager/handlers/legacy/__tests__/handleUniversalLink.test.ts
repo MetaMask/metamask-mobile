@@ -833,13 +833,14 @@ describe('handleUniversalLink', () => {
 
   describe('ACTIONS.SOCIAL_TRADER_POSITION', () => {
     it('calls _handleSocialTraderPosition when action is SOCIAL_TRADER_POSITION', async () => {
-      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1`;
+      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy`;
       const positionUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: positionUrl,
         pathname: `/${ACTIONS.SOCIAL_TRADER_POSITION}`,
-        search: '?positionId=position-1&traderId=trader-1',
+        search:
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
       };
 
       await handleUniversalLink({
@@ -853,7 +854,8 @@ describe('handleUniversalLink', () => {
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
       expect(handleSocialTraderPositionUrl).toHaveBeenCalledWith({
-        actionPath: '?positionId=position-1&traderId=trader-1',
+        actionPath:
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
       });
       expect(handled).toHaveBeenCalled();
     });

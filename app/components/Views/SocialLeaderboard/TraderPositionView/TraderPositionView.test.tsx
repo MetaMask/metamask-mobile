@@ -13,7 +13,7 @@ const mockPriceChart = jest.fn();
 
 interface MockRouteParams {
   positionId?: string;
-  traderId?: string;
+  traderId: string;
   traderName?: string;
   tokenSymbol?: string;
   position?: Position;

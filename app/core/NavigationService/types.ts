@@ -240,15 +240,9 @@ type TraderPositionViewParams =
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
       positionId: string;
       traderId: string;
-      tokenSymbol: string;
-      // Temporary display placeholders for notification deeplinks:
-      // - traderName
-      // - tokenSymbol
-      // Remove these once the positionId hydration flow can fetch all display
-      // fields needed before the canonical position resolves.
-      traderName?: string;
-      /** Optional — fetched via useTraderProfile when absent. */
-      traderImageUrl?: string;
+      tokenSymbol?: never;
+      traderName?: never;
+      traderImageUrl?: never;
       position?: never;
     };
 

@@ -9,6 +9,8 @@ interface HandleSocialTraderPositionUrlParams {
 interface SocialTraderPositionNavigationParams {
   positionId?: string;
   traderId?: string;
+  deduplicationId?: string;
+  notificationEvent?: string;
 }
 
 const parseSocialTraderPositionNavigationParams = (
@@ -21,6 +23,8 @@ const parseSocialTraderPositionNavigationParams = (
   return {
     positionId: urlParams.get('positionId')?.trim() || undefined,
     traderId: urlParams.get('traderId')?.trim() || undefined,
+    deduplicationId: urlParams.get('deduplication_id')?.trim() || undefined,
+    notificationEvent: urlParams.get('notification_event')?.trim() || undefined,
   };
 };
 
@@ -32,7 +36,7 @@ const navigateToFallback = () => {
  * Handles notification-approved TraderPosition deeplinks.
  *
  * Supported URL format:
- * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>
+ * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_event=<notificationEvent>
  */
 export const handleSocialTraderPositionUrl = ({
   actionPath,
@@ -43,16 +47,16 @@ export const handleSocialTraderPositionUrl = ({
   );
 
   try {
-    const { positionId, traderId } =
+    const { positionId, traderId, deduplicationId, notificationEvent } =
       parseSocialTraderPositionNavigationParams(actionPath);
     DevLogger.log(
       '[handleSocialTraderPositionUrl] Parsed navigation parameters:',
-      { positionId, traderId },
+      { positionId, traderId, deduplicationId, notificationEvent },
     );
 
-    if (!positionId) {
+    if (!positionId || !traderId) {
       DevLogger.log(
-        '[handleSocialTraderPositionUrl] Missing positionId, falling back to social leaderboard',
+        '[handleSocialTraderPositionUrl] Missing positionId or traderId, falling back to social leaderboard',
       );
       navigateToFallback();
       return;
@@ -60,9 +64,7 @@ export const handleSocialTraderPositionUrl = ({
 
     NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
       positionId,
-      traderId: traderId ?? '',
-      traderName: 'Trader',
-      tokenSymbol: 'Token',
+      traderId,
     });
   } catch (error) {
     DevLogger.log(

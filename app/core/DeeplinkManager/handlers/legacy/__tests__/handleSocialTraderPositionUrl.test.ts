@@ -23,7 +23,7 @@ describe('handleSocialTraderPositionUrl', () => {
   it('navigates to TraderPositionView with positionId', () => {
     handleSocialTraderPositionUrl({
       actionPath:
-        '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a&traderId=trader-1',
+        '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -31,8 +31,20 @@ describe('handleSocialTraderPositionUrl', () => {
       {
         positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
         traderId: 'trader-1',
-        traderName: 'Trader',
-        tokenSymbol: 'Token',
+      },
+    );
+  });
+
+  it('navigates with only positionId and traderId route params', () => {
+    handleSocialTraderPositionUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: 'position-1',
+        traderId: 'trader-1',
       },
     );
   });
@@ -40,7 +52,7 @@ describe('handleSocialTraderPositionUrl', () => {
   it('decodes encoded positionId and traderId values', () => {
     handleSocialTraderPositionUrl({
       actionPath:
-        '?positionId=position%20id%2Fwith%20reserved%3Fchars&traderId=trader%20id%2Fwith%20reserved%3Fchars',
+        '?positionId=position%20id%2Fwith%20reserved%3Fchars&traderId=trader%20id%2Fwith%20reserved%3Fchars&deduplication_id=dedup%20id%2Fwith%20reserved%3Fchars&notification_event=follow%20newtrade%2Fbuy',
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -48,26 +60,25 @@ describe('handleSocialTraderPositionUrl', () => {
       {
         positionId: 'position id/with reserved?chars',
         traderId: 'trader id/with reserved?chars',
-        traderName: 'Trader',
-        tokenSymbol: 'Token',
+      },
+    );
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      '[handleSocialTraderPositionUrl] Parsed navigation parameters:',
+      {
+        positionId: 'position id/with reserved?chars',
+        traderId: 'trader id/with reserved?chars',
+        deduplicationId: 'dedup id/with reserved?chars',
+        notificationEvent: 'follow newtrade/buy',
       },
     );
   });
 
-  it('keeps traderId blank for older deeplinks without traderId', () => {
+  it('falls back to social leaderboard when traderId is missing', () => {
     handleSocialTraderPositionUrl({
       actionPath: '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a',
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
-        traderId: '',
-        traderName: 'Trader',
-        tokenSymbol: 'Token',
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
   });
 
   it('falls back to social leaderboard when positionId is missing', () => {
@@ -75,12 +86,14 @@ describe('handleSocialTraderPositionUrl', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
     expect(DevLogger.log).toHaveBeenCalledWith(
-      '[handleSocialTraderPositionUrl] Missing positionId, falling back to social leaderboard',
+      '[handleSocialTraderPositionUrl] Missing positionId or traderId, falling back to social leaderboard',
     );
   });
 
   it('falls back to social leaderboard when positionId is blank', () => {
-    handleSocialTraderPositionUrl({ actionPath: '?positionId=%20%20' });
+    handleSocialTraderPositionUrl({
+      actionPath: '?positionId=%20%20&traderId=trader-1',
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
   });
@@ -91,7 +104,8 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     handleSocialTraderPositionUrl({
-      actionPath: '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a',
+      actionPath:
+        '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a&traderId=trader-1',
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(2);
