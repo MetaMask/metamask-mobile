@@ -62,11 +62,22 @@ function cacheKeyForDevice(device: EmulatorConfig): string {
 }
 
 async function runAdb(args: string[], timeoutMs: number): Promise<string> {
-  const { stdout } = await execFileAsync('adb', args, {
+  const raw = await execFileAsync('adb', args, {
     timeout: timeoutMs,
     maxBuffer: 1024 * 1024,
   });
-  return String(stdout);
+  // Node's real `execFile` uses a promisify symbol that resolves to `{ stdout, stderr }`.
+  // Plain mocks (e.g. Jest) fall back to generic promisify and may resolve a Buffer — handle both.
+  let stdout: unknown = raw;
+  if (
+    raw !== null &&
+    typeof raw === 'object' &&
+    !Buffer.isBuffer(raw) &&
+    'stdout' in raw
+  ) {
+    stdout = (raw as { stdout: Buffer | string }).stdout;
+  }
+  return String(stdout ?? '');
 }
 
 /**
@@ -111,64 +122,71 @@ export async function resolveAndroidAdbUdidForDevice(
   }
 
   const promise = (async () => {
-    if (device.udid) {
-      const udid = device.udid;
-      if (device.name) {
+    try {
+      if (device.udid) {
+        const udid = device.udid;
+        if (device.name) {
+          try {
+            const avd = await getAvdNameForSerial(udid);
+            if (avd && avd !== device.name) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `[resolveAndroidAdbUdid] device.name "${device.name}" does not match adb "emu avd name" for ${udid}: "${avd}"`,
+              );
+            }
+          } catch {
+            // ignore; user may use a non-emulator udid in edge cases
+          }
+        }
+        return udid;
+      }
+
+      if (!device.name) {
+        throw new Error(
+          'Android local emulator: set `use.device.udid` (adb serial, e.g. emulator-5554) or `use.device.name` (AVD name from `adb -s <serial> emu avd name`).',
+        );
+      }
+
+      if (isLikelyAdbSerial(device.name)) {
+        return device.name;
+      }
+
+      const serials = await listAdbEmulatorSerials();
+      if (serials.length === 0) {
+        throw new Error(
+          'No running Android emulators found (`adb devices`). Start an AVD that matches `use.device.name`, or set `use.device.udid` to the adb serial (e.g. emulator-5554).',
+        );
+      }
+
+      const candidates: { serial: string; avdName: string }[] = [];
+      for (const serial of serials) {
         try {
-          const avd = await getAvdNameForSerial(udid);
-          if (avd && avd !== device.name) {
-            // eslint-disable-next-line no-console
-            console.warn(
-              `[resolveAndroidAdbUdid] device.name "${device.name}" does not match adb "emu avd name" for ${udid}: "${avd}"`,
-            );
+          const avdName = await getAvdNameForSerial(serial);
+          candidates.push({ serial, avdName });
+          if (avdName && avdName === device.name.trim()) {
+            return serial;
           }
         } catch {
-          // ignore; user may use a non-emulator udid in edge cases
+          // skip serials that do not support emu avd name
         }
       }
-      return udid;
-    }
 
-    if (!device.name) {
+      const list = candidates
+        .map((c) => `  ${c.serial} -> "${c.avdName}"`)
+        .join('\n');
       throw new Error(
-        'Android local emulator: set `use.device.udid` (adb serial, e.g. emulator-5554) or `use.device.name` (AVD name from `adb -s <serial> emu avd name`).',
+        `No running emulator has AVD name "${device.name}".\n` +
+          (list
+            ? `Candidates:\n${list}\n`
+            : 'Could not read AVD names for running emulators.\n') +
+          'Set `use.device.udid` to the correct serial, or start the matching AVD.',
       );
+    } catch (err) {
+      // Evict before the rejection is observable so callers do not hit a stale
+      // cached rejection; transient adb/emulator failures can retry next call.
+      resolutionCache.delete(key);
+      throw err;
     }
-
-    if (isLikelyAdbSerial(device.name)) {
-      return device.name;
-    }
-
-    const serials = await listAdbEmulatorSerials();
-    if (serials.length === 0) {
-      throw new Error(
-        'No running Android emulators found (`adb devices`). Start an AVD that matches `use.device.name`, or set `use.device.udid` to the adb serial (e.g. emulator-5554).',
-      );
-    }
-
-    const candidates: { serial: string; avdName: string }[] = [];
-    for (const serial of serials) {
-      try {
-        const avdName = await getAvdNameForSerial(serial);
-        candidates.push({ serial, avdName });
-        if (avdName && avdName === device.name.trim()) {
-          return serial;
-        }
-      } catch {
-        // skip serials that do not support emu avd name
-      }
-    }
-
-    const list = candidates
-      .map((c) => `  ${c.serial} -> "${c.avdName}"`)
-      .join('\n');
-    throw new Error(
-      `No running emulator has AVD name "${device.name}".\n` +
-        (list
-          ? `Candidates:\n${list}\n`
-          : 'Could not read AVD names for running emulators.\n') +
-        'Set `use.device.udid` to the correct serial, or start the matching AVD.',
-    );
   })();
 
   resolutionCache.set(key, promise);

@@ -1,8 +1,21 @@
+jest.mock('child_process', () => {
+  const actual =
+    jest.requireActual<typeof import('child_process')>('child_process');
+  return {
+    ...actual,
+    execFile: jest.fn(),
+  };
+});
+
+import { execFile } from 'child_process';
 import {
   __clearAndroidAdbUdidCacheForTests,
   parseAdbDevicesOutput,
   parseAvdNameFromEmuOutput,
+  resolveAndroidAdbUdidForDevice,
 } from './resolveAndroidAdbUdid';
+
+const execFileMock = execFile as jest.Mock;
 
 describe('parseAvdNameFromEmuOutput', () => {
   it('returns the first line when output is a single AVD name', () => {
@@ -68,5 +81,63 @@ emulator-5554   device product:sdk_gphone... model:Pixel_5_Pro
     const result = parseAdbDevicesOutput(out);
 
     expect(result).toEqual(['emulator-5554']);
+  });
+});
+
+describe('resolveAndroidAdbUdidForDevice rejection cache eviction', () => {
+  beforeEach(() => {
+    __clearAndroidAdbUdidCacheForTests();
+    execFileMock.mockReset();
+  });
+
+  it('does not permanently cache a rejected resolution; retries succeed when adb recovers', async () => {
+    let devicesCalls = 0;
+    execFileMock.mockImplementation(
+      (
+        cmd: string,
+        args: string[],
+        _opts: object,
+        cb: (
+          err: Error | null,
+          stdout?: Buffer | string,
+          stderr?: Buffer | string,
+        ) => void,
+      ) => {
+        if (cmd !== 'adb') {
+          cb(new Error('unexpected cmd'));
+          return;
+        }
+        if (args[0] === 'devices') {
+          devicesCalls += 1;
+          if (devicesCalls === 1) {
+            cb(new Error('adb unreachable'));
+            return;
+          }
+          cb(
+            null,
+            Buffer.from(
+              'List of devices attached\nemulator-5554\tdevice\n',
+            ),
+          );
+          return;
+        }
+        if (args[0] === '-s' && args[2] === 'emu') {
+          cb(null, Buffer.from('RetryAvd\nOK\n'));
+          return;
+        }
+        cb(new Error('unexpected adb args'));
+      },
+    );
+
+    const device = { name: 'RetryAvd' };
+
+    await expect(resolveAndroidAdbUdidForDevice(device)).rejects.toThrow(
+      'adb unreachable',
+    );
+
+    await expect(resolveAndroidAdbUdidForDevice(device)).resolves.toBe(
+      'emulator-5554',
+    );
+    expect(devicesCalls).toBe(2);
   });
 });
