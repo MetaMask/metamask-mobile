@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Text, View } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
+import { HardwareWalletError } from '@metamask/hw-wallet-sdk';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { typedSignV3ConfirmationState } from '../../../../../util/test/confirm-data-helpers';
@@ -9,6 +10,16 @@ import { typedSignV3ConfirmationState } from '../../../../../util/test/confirm-d
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import QRInfo from './qr-info';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
+
+const mockShowHardwareWalletError = jest.fn();
+const mockSetQrScanRetryHandler = jest.fn();
+
+jest.mock('../../../../../core/HardwareWallet/contexts', () => ({
+  useHardwareWallet: () => ({
+    showHardwareWalletError: mockShowHardwareWalletError,
+    setQrScanRetryHandler: mockSetQrScanRetryHandler,
+  }),
+}));
 
 const mockQrKeyringBridge = {
   requestScan: jest.fn(),
@@ -27,16 +38,23 @@ jest.mock('uuid', () => ({
 const MockView = View;
 const MockText = Text;
 const MockButton = Button;
+const mockQrHardwareError = {
+  message: 'mock qr hardware error',
+} as unknown as HardwareWalletError;
 jest.mock('../../../../UI/QRHardware/AnimatedQRScanner', () => ({
   __esModule: true,
   default: ({
     hideModal,
     onScanError,
     onScanSuccess,
+    onQRHardwareScanError,
+    onModalHideComplete,
   }: {
     hideModal: () => void;
     onScanError: () => void;
     onScanSuccess: ({ cbor }: { cbor: string }) => void;
+    onQRHardwareScanError?: (error: HardwareWalletError) => void;
+    onModalHideComplete?: () => void;
   }) => (
     <MockView>
       <MockText>Scan your hardware wallet to confirm the transaction</MockText>
@@ -45,6 +63,14 @@ jest.mock('../../../../UI/QRHardware/AnimatedQRScanner', () => ({
       <MockButton
         onPress={() => onScanSuccess({ cbor: 'dummy' })}
         title="onScanSuccess"
+      />
+      <MockButton
+        onPress={() => onQRHardwareScanError?.(mockQrHardwareError)}
+        title="onQRHardwareScanError"
+      />
+      <MockButton
+        onPress={() => onModalHideComplete?.()}
+        title="onModalHideComplete"
       />
     </MockView>
   ),
@@ -132,6 +158,50 @@ describe('QRInfo', () => {
     fireEvent.press(getByText('onScanError'));
     expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
+  });
+
+  it('routes QR hardware scan errors to HardwareWalletBottomSheet after scanner closes', () => {
+    const mockSetScannerVisible = jest.fn();
+    createQRHardwareHookSpy({
+      scannerVisible: true,
+      setScannerVisible: mockSetScannerVisible,
+    });
+    const { getByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+
+    fireEvent.press(getByText('onQRHardwareScanError'));
+    expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
+    expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
+
+    fireEvent.press(getByText('onModalHideComplete'));
+    expect(mockShowHardwareWalletError).toHaveBeenCalledTimes(1);
+    expect(mockShowHardwareWalletError).toHaveBeenCalledWith(
+      mockQrHardwareError,
+    );
+  });
+
+  it('does not call showHardwareWalletError when modal hides without a pending error', () => {
+    createQRHardwareHookSpy({ scannerVisible: true });
+    const { getByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+
+    fireEvent.press(getByText('onModalHideComplete'));
+    expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
+  });
+
+  it('registers a QR scan retry handler that reopens the scanner', () => {
+    const mockSetScannerVisible = jest.fn();
+    createQRHardwareHookSpy({ setScannerVisible: mockSetScannerVisible });
+    renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+
+    expect(mockSetQrScanRetryHandler).toHaveBeenCalled();
+    const retryHandler = mockSetQrScanRetryHandler.mock.calls[0][0];
+    retryHandler();
+    expect(mockSetScannerVisible).toHaveBeenCalledWith(true);
   });
 
   it('submits request when onScanSuccess is called by scanner', () => {

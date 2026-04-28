@@ -4,6 +4,7 @@ import {
   HardwareWalletConnectionState,
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
+import { isQRHardwareScanError, QRHardwareScanErrorType } from '../errors';
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
@@ -185,4 +186,32 @@ export function getErrorDetails(
     };
   }
   return { error_code: '', error_message: '' };
+}
+
+/**
+ * Segment/MetaMetrics properties for QR hardware camera scan failures
+ * (`Hardware Wallet Connection Failed` / recovery UI), when the connection
+ * {@link ConnectionStatus.ErrorState} error is a {@link isQRHardwareScanError}.
+ */
+export function getQrHardwareScanErrorAnalyticsProperties(
+  connectionState: HardwareWalletConnectionState,
+): Record<string, string | boolean> {
+  if (connectionState.status !== ConnectionStatus.ErrorState) {
+    return {};
+  }
+  const { error } = connectionState;
+  if (!isQRHardwareScanError(error)) {
+    return {};
+  }
+  const { metadata } = error;
+  const payload: Record<string, string | boolean> = {
+    error_category: metadata.qrHardwareScanErrorType,
+    is_ur_format: metadata.isUrFormat,
+  };
+  if (
+    metadata.qrHardwareScanErrorType === QRHardwareScanErrorType.WrongURType
+  ) {
+    payload.received_ur_type = metadata.receivedUrType ?? '';
+  }
+  return payload;
 }

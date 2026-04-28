@@ -2,9 +2,10 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { QR_CONTINUE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { act } from '@testing-library/react-hooks';
 import {
   ACCOUNT_SELECTOR_FORGET_BUTTON,
   ACCOUNT_SELECTOR_NEXT_BUTTON,
@@ -14,7 +15,6 @@ import { QrKeyringBridge } from '@metamask/eth-qr-keyring';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import { strings } from '../../../../locales/i18n';
 
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -29,12 +29,63 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
+const mockSetTargetWalletType = jest.fn();
+const mockShowHardwareWalletError = jest.fn();
+const mockSetQrScanRetryHandler = jest.fn();
 
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+jest.mock(
+  '../../../core/HardwareWallet/contexts/HardwareWalletContext',
+  () => ({
+    useHardwareWallet: () => ({
+      setTargetWalletType: mockSetTargetWalletType,
+      showHardwareWalletError: mockShowHardwareWalletError,
+      setQrScanRetryHandler: mockSetQrScanRetryHandler,
+    }),
+  }),
+);
+
+jest.mock('../../UI/QRHardware/AnimatedQRScanner', () => ({
+  __esModule: true,
+  default: ({
+    visible,
+    onQRHardwareScanError,
+    onModalHideComplete,
+  }: {
+    visible: boolean;
+    onQRHardwareScanError?: (error: Error) => void;
+    onModalHideComplete?: () => void;
+  }) => {
+    const ActualReact = jest.requireActual('react');
+    const { View, Button } = jest.requireActual('react-native');
+    const prevVisibleRef = ActualReact.useRef(visible);
+
+    ActualReact.useEffect(() => {
+      if (prevVisibleRef.current && !visible) {
+        onModalHideComplete?.();
+      }
+      prevVisibleRef.current = visible;
+    }, [visible, onModalHideComplete]);
+
+    return visible ? (
+      <View testID="animated-qr-scanner">
+        <Button
+          title="trigger-qr-hardware-error"
+          onPress={() =>
+            onQRHardwareScanError?.(
+              new Error('Scanned QR code is not in UR format'),
+            )
+          }
+        />
+      </View>
+    ) : null;
+  },
 }));
 
 const mockedNavigate = {
@@ -120,10 +171,6 @@ const mockQrKeyring = {
       '0x4678901234567890123456789012345678901210',
       '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
     ]),
-  setAccountToUnlock: jest.fn(),
-  addAccounts: jest
-    .fn()
-    .mockResolvedValue(['0x4678901234567890123456789012345678901210']),
 };
 
 const mockQrKeyringBridge: QrKeyringBridge = {
@@ -140,10 +187,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../core/HardwareWallets/analytics', () => ({
-  getConnectedDevicesCount: jest.fn().mockResolvedValue(1),
-}));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -207,6 +250,31 @@ describe('ConnectQRHardware', () => {
     jest.clearAllMocks();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
+  });
+
+  it('sets QR target wallet type while mounted and clears it on unmount', () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { unmount } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    expect(mockSetTargetWalletType).toHaveBeenCalledWith('qr');
+
+    unmount();
+
+    expect(mockSetTargetWalletType).toHaveBeenCalledWith(null);
+  });
+
+  it('renders correctly to match snapshot', () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+    const wrapper = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {
@@ -347,7 +415,7 @@ describe('ConnectQRHardware', () => {
   it('tracks hardware wallet add account event with QR device type when accounts are unlocked', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
-    const { getByTestId, getByText, getAllByRole } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <ConnectQRHardware navigation={mockedNavigate} />,
       { state: mockInitialState },
     );
@@ -358,20 +426,16 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(button);
     });
 
-    // Pressing the address label does not toggle @react-native-community/checkbox; drive onValueChange.
-    const [firstRowCheckbox] = getAllByRole('checkbox');
+    const checkbox = getByText(mockPage0Accounts[0].shortenedAddress);
+
     await act(async () => {
-      fireEvent(firstRowCheckbox, 'onValueChange', true);
+      fireEvent.press(checkbox);
     });
 
-    const unlockButton = getByText(strings('account_selector.unlock'));
+    const unlockButton = getByText('Unlock');
 
     await act(async () => {
       fireEvent.press(unlockButton);
-    });
-
-    await waitFor(() => {
-      expect(mockedNavigate.pop).toHaveBeenCalledWith(2);
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -431,5 +495,31 @@ describe('ConnectQRHardware', () => {
       device_type: HardwareDeviceTypes.QR,
     });
     expect(mockBuild).toHaveBeenCalled();
+  });
+
+  it('shows hardware wallet bottom sheet error for QR scan errors', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+    mockQrKeyring.getFirstPage.mockImplementationOnce(
+      () => new Promise(() => undefined),
+    );
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId(QR_CONTINUE_BUTTON));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('trigger-qr-hardware-error'));
+    });
+
+    expect(mockShowHardwareWalletError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Scanned QR code is not in UR format',
+      }),
+    );
   });
 });
