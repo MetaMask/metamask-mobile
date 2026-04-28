@@ -217,7 +217,10 @@ const sortMoneylineOutcomes = (
     }
   }
 
-  return [nonDraw[0], draw, ...nonDraw.slice(1)];
+  const sorted = [...nonDraw].sort((a, b) =>
+    (a.groupItemTitle ?? '').localeCompare(b.groupItemTitle ?? ''),
+  );
+  return [sorted[0], draw, ...sorted.slice(1)];
 };
 
 const buildMoneylineButtons = (
