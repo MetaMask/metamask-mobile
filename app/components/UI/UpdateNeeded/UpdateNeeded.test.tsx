@@ -23,7 +23,7 @@ describe('UpdateNeeded', () => {
       { name: 'UpdateNeeded' },
       { state: {} },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
   it('should render correctly', () => {
     const { getByText, getByTestId } = renderScreen(

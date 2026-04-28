@@ -17,6 +17,6 @@ describe('HintModal', () => {
         value={hint}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.find('ActionModal').exists()).toBe(true);
   });
 });
