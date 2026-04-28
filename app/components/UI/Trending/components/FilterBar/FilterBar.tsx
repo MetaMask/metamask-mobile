@@ -38,8 +38,8 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       testID={testID}
       onPress={onPress}
       style={tw.style(
-        'min-w-0 shrink items-center rounded-lg bg-muted',
-        wide ? 'py-2 px-3' : 'p-2',
+        'min-w-0 shrink items-center rounded-xl bg-muted',
+        wide ? 'py-2 px-3' : 'py-2 px-3',
         disabled && 'opacity-50',
         twClassName,
       )}
@@ -48,7 +48,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
     >
       <View style={tw`flex-row items-center justify-center gap-1`}>
         <Text
-          style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
+          style={tw`min-w-0 shrink text-[14px] font-medium text-default`}
           numberOfLines={numberOfLines}
           ellipsizeMode={ellipsizeMode}
         >
@@ -92,7 +92,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const tw = useTailwind();
 
   return (
-    <View style={tw`flex-grow-0 p-4`}>
+    <View style={tw`flex-grow-0 px-4 pb-4`}>
       <View style={tw`flex-row items-center justify-between`}>
         <FilterButton
           testID="price-change-button"
