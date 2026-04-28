@@ -41,7 +41,12 @@ export class EmulatorProvider extends BaseServiceProvider {
             resolve(false);
             return;
           }
-          resolve(stdout.includes(`package:${packageName}`));
+          const expectedLine = `package:${packageName}`;
+          const installed = stdout
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .some((line) => line === expectedLine);
+          resolve(installed);
         },
       );
     });

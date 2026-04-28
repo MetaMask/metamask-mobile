@@ -3,6 +3,7 @@ import {
   WebDriverConfig,
   Platform,
   ProviderName,
+  type DeviceConfig,
   type EmulatorConfig,
 } from '../types.ts';
 import { applyResolvedAndroidAdbToDevice } from '../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
@@ -37,6 +38,7 @@ export interface CurrentDeviceDetails {
   packageName?: string;
   appId?: string;
   launchableActivity?: string;
+  /** Derived from `use.device.provider === ProviderName.BROWSERSTACK` in Playwright config. */
   isBrowserstack: boolean;
 }
 
@@ -85,8 +87,8 @@ export const test = base.extend<TestLevelFixtures>({
     const packageName = project.use.app?.packageName;
     const appId = project.use.app?.appId;
     const launchableActivity = project.use.app?.launchableActivity;
-    const buildPath = project.use.buildPath;
-    const isBrowserstack = buildPath?.startsWith('bs://') ?? false;
+    const deviceConfig = project.use.device as DeviceConfig | undefined;
+    const isBrowserstack = deviceConfig?.provider === ProviderName.BROWSERSTACK;
 
     const hasLocalDeviceId =
       Boolean(deviceNameField) ||
