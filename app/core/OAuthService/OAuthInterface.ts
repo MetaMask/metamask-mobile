@@ -85,6 +85,7 @@ export interface AuthResponse {
   endpoints: Record<string, string>;
   refresh_token?: string;
   revoke_token?: string;
+  account_name?: string;
 }
 
 // return type for auth request with

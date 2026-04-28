@@ -75,6 +75,12 @@ const getAuthConnectionIdFromClientId = (params: {
   return authConnectionConfig[SupportedPlatforms.IOS][authConnection];
 };
 
+const getTokenDebugInfo = (token?: string) => ({
+  present: Boolean(token),
+  length: token?.length ?? 0,
+  prefix: token ? token.slice(0, 12) : null,
+});
+
 interface OAuthServiceLocalState {
   userId?: string;
   accountName?: string;
@@ -176,6 +182,26 @@ export class OAuthService {
 
       await whenEngineReady();
 
+      Logger.log(
+        '[OAuthService] seedless authenticate request:',
+        JSON.stringify({
+          authConnection,
+          clientId,
+          userId,
+          accountName,
+          authConnectionId: authConnectionConfig.authConnectionId,
+          groupedAuthConnectionId:
+            authConnectionConfig.groupedAuthConnectionId ?? null,
+          tokenPresence: {
+            idToken: getTokenDebugInfo(data.id_token),
+            accessToken: getTokenDebugInfo(data.access_token),
+            metadataAccessToken: getTokenDebugInfo(data.metadata_access_token),
+            refreshToken: getTokenDebugInfo(refreshToken),
+            revokeToken: getTokenDebugInfo(revokeToken),
+          },
+        }),
+      );
+
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
@@ -199,6 +225,18 @@ export class OAuthService {
         accountName,
       };
     } catch (error) {
+      Logger.log(
+        '[OAuthService] seedless authenticate error:',
+        JSON.stringify({
+          authConnection,
+          clientId,
+          userId: this.localState.userId ?? null,
+          accountName: this.localState.accountName ?? null,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+          errorMessage:
+            error instanceof Error ? error.message : String(error ?? ''),
+        }),
+      );
       Logger.log(error as Error, {
         message: 'handleCodeFlow',
       });
@@ -306,7 +344,12 @@ export class OAuthService {
           loginHandler.decodeIdToken(data.id_token),
         ) as Partial<OAuthUserInfo>;
         const userId = jwtPayload.sub ?? '';
-        const accountName = jwtPayload.email ?? '';
+        const accountName =
+          data.account_name ??
+          jwtPayload.email ??
+          (authConnection === AuthConnection.Telegram && userId
+            ? `Telegram ${userId}`
+            : '');
 
         this.updateLocalState({
           userId,

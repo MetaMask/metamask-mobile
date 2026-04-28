@@ -69,16 +69,16 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
   main_dev: {
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-dev',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-dev',
-    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-dev',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-dev-group',
     AUTH_SERVER_URL: 'https://auth-service.dev-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_devnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
-    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-dev-common',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-dev-extension',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-ios',
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
-    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-dev-common',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-dev-extension',
   },
   flask_prod: {
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-main',

@@ -1,4 +1,7 @@
-import { AuthRequest, ResponseType } from 'expo-auth-session';
+// TODO: Replace this temporary dependency once Telegram auth flow is finalized.
+// eslint-disable-next-line import-x/no-extraneous-dependencies
+import { openAuthSessionAsync } from 'expo-web-browser';
+import { Alert, Linking } from 'react-native';
 import {
   AuthConnection,
   AuthRequestParams,
@@ -17,6 +20,8 @@ import {
   TelegramAuthServerUrl,
   TelegramAuthServerInitiatePath,
   TelegramAuthServerVerifyPath,
+  TelegramHydraTokenUrl,
+  TelegramHydraClientId,
 } from '../constants';
 import Logger from '../../../../util/Logger';
 
@@ -34,6 +39,18 @@ interface TelegramVerifyResponse {
     profile_id: string;
   };
   token: string;
+}
+
+interface TelegramVerifyTokenPayload {
+  idp_sub?: string;
+  sub?: string;
+}
+
+interface TelegramHydraTokenResponse {
+  access_token: string;
+  expires_in: number;
+  scope: string;
+  token_type: string;
 }
 
 export class TelegramLoginHandler extends BaseLoginHandler {
@@ -72,35 +89,88 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    */
   async login(): Promise<LoginHandlerCodeResult> {
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
+    const initiateUrl = new URL(
+      `${TelegramAuthServerUrl || this.options.authServerUrl}${TelegramAuthServerInitiatePath}`,
+    );
 
-    const authRequest = new AuthRequest({
+    initiateUrl.searchParams.set('client_id', this.clientId);
+    initiateUrl.searchParams.set('response_type', 'code');
+    initiateUrl.searchParams.set('scope', this.#scope.join(' '));
+    initiateUrl.searchParams.set('state', this.nonce);
+    initiateUrl.searchParams.set('redirect_uri', this.redirectUri);
+    initiateUrl.searchParams.set('app_redirect_uri', this.redirectUri);
+    initiateUrl.searchParams.set('code_challenge', challenge);
+
+    Logger.log(
+      '[TelegramLogin] opening auth session:',
+      JSON.stringify({
+        authorizationUrl: initiateUrl.toString(),
+        redirectUri: this.redirectUri,
+        codeChallenge: challenge,
+        expectedState: this.nonce,
+      }),
+    );
+
+    const initialUrl = await Linking.getInitialURL();
+    Logger.log('[TelegramLogin] current initial url before auth:', initialUrl);
+
+    const callbackUrl = await this.loginWithAuthSession(initiateUrl.toString());
+
+    Logger.log('[TelegramLogin] expected redirect uri:', this.redirectUri);
+    Logger.log('[TelegramLogin] auth session callback url:', callbackUrl);
+
+    const callbackParams = Object.fromEntries(
+      new URL(callbackUrl).searchParams.entries(),
+    );
+
+    Logger.log(
+      '[TelegramLogin] auth session callback params:',
+      JSON.stringify(callbackParams),
+    );
+    Alert.alert(
+      'Telegram Callback',
+      `URL:\n${callbackUrl}\n\nParams:\n${JSON.stringify(
+        callbackParams,
+        null,
+        2,
+      )}`,
+    );
+
+    Logger.log('TelegramLoginHandler: success');
+    return {
+      authConnection: this.authConnection,
+      code: challenge,
       clientId: this.clientId,
       redirectUri: this.redirectUri,
-      scopes: this.#scope,
-      responseType: ResponseType.Code,
-      usePKCE: false,
-      state: this.nonce,
-      extraParams: {
-        code_challenge: challenge,
-        app_redirect_uri: this.redirectUri,
+      codeVerifier,
+    };
+  }
+
+  async loginWithAuthSession(authorizationUrl: string): Promise<string> {
+    const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
+      Logger.log('[TelegramLogin] raw incoming app url:', url);
+    });
+
+    const result = await openAuthSessionAsync(
+      authorizationUrl,
+      this.redirectUri,
+      {
+        createTask: true,
+        showInRecents: true,
+        useProxyActivity: true,
       },
-    });
+    );
 
-    const result = await authRequest.promptAsync({
-      authorizationEndpoint: `${TelegramAuthServerUrl || this.options.authServerUrl}${TelegramAuthServerInitiatePath}`,
-    });
+    linkingSubscription.remove();
 
-    Logger.log('TelegramLoginHandler: result', result);
+    Logger.log(
+      '[TelegramLogin] raw auth session result:',
+      JSON.stringify(result),
+    );
+    Logger.log('[TelegramLogin] raw auth session result type:', result.type);
 
     if (result.type === 'success') {
-      Logger.log('TelegramLoginHandler: success');
-      return {
-        authConnection: this.authConnection,
-        code: challenge,
-        clientId: this.clientId,
-        redirectUri: this.redirectUri,
-        codeVerifier,
-      };
+      return result.url;
     }
 
     if (result.type === 'cancel') {
@@ -128,6 +198,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
   /**
    * Exchanges the PKCE code_verifier for the Telegram OIDC token via the verify endpoint,
+   * exchanges that token through Hydra's JWT bearer grant,
    * then mints the standard auth-service token set used by seedless onboarding.
    *
    * The backend recomputes sha256(code_verifier) == code_challenge, consumes
@@ -181,15 +252,70 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       );
     }
 
+    const verifyTokenPayload = JSON.parse(
+      this.decodeIdToken(verifyData.token),
+    ) as TelegramVerifyTokenPayload;
+
+    const hydraFormData = new FormData();
+    hydraFormData.append(
+      'grant_type',
+      'urn:ietf:params:oauth:grant-type:jwt-bearer',
+    );
+    hydraFormData.append('client_id', TelegramHydraClientId);
+    hydraFormData.append('assertion', verifyData.token);
+
+    Logger.log(
+      '[TelegramLogin] hydra token exchange request:',
+      TelegramHydraTokenUrl,
+    );
+
+    const hydraResponse = await fetch(TelegramHydraTokenUrl, {
+      method: 'POST',
+      body: hydraFormData,
+    });
+
+    if (!hydraResponse.ok) {
+      const errorText = await hydraResponse.text();
+      Logger.log('[TelegramLogin] hydra token exchange error:', errorText);
+      throw new OAuthError(
+        `Telegram hydra token exchange failed with status ${hydraResponse.status}: ${errorText}`,
+        OAuthErrorType.AuthServerError,
+      );
+    }
+
+    const hydraData =
+      (await hydraResponse.json()) as TelegramHydraTokenResponse;
+    Logger.log('[TelegramLogin] hydra token exchange success');
+
+    if (!hydraData.access_token) {
+      throw new OAuthError(
+        'Telegram hydra token exchange did not include access_token',
+        OAuthErrorType.LoginError,
+      );
+    }
+
     const mintResponse = await requestAuthTokens(
       {
-        id_token: verifyData.token,
+        id_token: hydraData.access_token,
       },
       this.authServerPath,
       authServerUrl,
     );
 
-    Logger.log('[TelegramLogin] mint success');
+    mintResponse.account_name = verifyTokenPayload.idp_sub
+      ? `Telegram ${verifyTokenPayload.idp_sub}`
+      : 'Telegram account';
+
+    Logger.log(
+      '[TelegramLogin] mint success:',
+      JSON.stringify({
+        hasIdToken: Boolean(mintResponse.id_token),
+        hasAccessToken: Boolean(mintResponse.access_token),
+        hasRefreshToken: Boolean(mintResponse.refresh_token),
+        hasRevokeToken: Boolean(mintResponse.revoke_token),
+        hasMetadataAccessToken: Boolean(mintResponse.metadata_access_token),
+      }),
+    );
     return mintResponse;
   }
 
