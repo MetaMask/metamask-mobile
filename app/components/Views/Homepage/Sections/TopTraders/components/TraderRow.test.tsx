@@ -90,6 +90,29 @@ describe('TraderRow', () => {
     );
   });
 
+  it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
+    const filteredTrader: TopTrader = {
+      ...baseTrader,
+      rank: 1,
+      overallRank: 50,
+    };
+    renderWithProvider(
+      <TraderRow
+        trader={filteredTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('sniperliquid'));
+
+    expect(mockOnTraderPress).toHaveBeenCalledWith(
+      'trader-1',
+      'sniperliquid',
+      50,
+    );
+  });
+
   it('does not fire onTraderPress when the prop is undefined', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,

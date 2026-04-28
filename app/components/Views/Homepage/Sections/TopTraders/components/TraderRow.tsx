@@ -29,7 +29,17 @@ export const TRADER_ROW_HEIGHT = 64;
 export interface TraderRowProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
-  onTraderPress?: (traderId: string, traderName: string, rank: number) => void;
+  /**
+   * Invoked when the row is tapped. The third argument is the trader's
+   * **overall** (unfiltered) rank — used downstream to gate the profile's
+   * podium decoration on true top-3 traders, never the filtered display
+   * rank.
+   */
+  onTraderPress?: (
+    traderId: string,
+    traderName: string,
+    overallRank: number,
+  ) => void;
   testID?: string;
 }
 
@@ -66,7 +76,8 @@ const TraderRow: React.FC<TraderRowProps> = ({
         activeOpacity={onTraderPress ? 0.7 : 1}
         onPress={
           onTraderPress
-            ? () => onTraderPress(trader.id, trader.username, trader.rank)
+            ? () =>
+                onTraderPress(trader.id, trader.username, trader.overallRank)
             : undefined
         }
         style={tw.style('flex-1 min-w-0 mr-3')}

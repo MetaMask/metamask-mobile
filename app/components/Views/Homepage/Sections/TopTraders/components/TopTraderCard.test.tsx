@@ -115,6 +115,29 @@ describe('TopTraderCard', () => {
     );
   });
 
+  it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
+    const filteredTrader: TopTrader = {
+      ...baseTrader,
+      rank: 1,
+      overallRank: 50,
+    };
+    renderWithProvider(
+      <TopTraderCard
+        trader={filteredTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
+    expect(mockOnTraderPress).toHaveBeenCalledWith(
+      'trader-1',
+      'sniperliquid',
+      50,
+    );
+  });
+
   it('does not call onTraderPress when the prop is not provided', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
