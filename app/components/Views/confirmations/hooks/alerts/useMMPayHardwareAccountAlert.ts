@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
@@ -9,9 +10,13 @@ import {
   isHardwareAccount,
   isQRHardwareAccount,
 } from '../../../../../util/address';
+import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
+  const { enabled: isHardwarePayEnabled } = useSelector(
+    selectMetaMaskPayHardwareFlags,
+  );
 
   const {
     txParams: { from },
@@ -29,9 +34,7 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
       return [];
     }
 
-    // QR wallets (e.g. Keystone) do not support MMPay transactions
-    // including mUSD conversion due to signing limitations.
-    if (isMusdConversion && !isQRWallet) {
+    if (isMusdConversion && isHardwarePayEnabled && !isQRWallet) {
       return [];
     }
 
@@ -44,5 +47,5 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
         isBlocking: true,
       },
     ];
-  }, [isHardwareWallet, isMusdConversion, isQRWallet]);
+  }, [isHardwareWallet, isHardwarePayEnabled, isMusdConversion, isQRWallet]);
 }
