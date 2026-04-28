@@ -14,7 +14,6 @@ export enum TabBarIconKey {
   Browser = 'Browser',
   Actions = 'Actions',
   Trade = 'Trade',
-  // TODO: We'll likely want to remove this once the Money tab has been fully implemented.
   Activity = 'Activity',
   Setting = 'Setting',
   Rewards = 'Rewards',

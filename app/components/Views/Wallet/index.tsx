@@ -1390,17 +1390,6 @@ const Wallet = ({
                 endAccessory={
                   <View style={styles.headerEndAccessoryContainer}>
                     <View style={styles.headerActionButtonsContainer}>
-                      <View
-                        testID={
-                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
-                        }
-                      >
-                        <AddressCopy hitSlop={touchAreaSlop} />
-                      </View>
-                      <CardButton
-                        onPress={handleCardPress}
-                        touchAreaSlop={touchAreaSlop}
-                      />
                       {isMoneyHomeScreenEnabled && (
                         <ButtonIcon
                           iconProps={{
@@ -1413,6 +1402,17 @@ const Wallet = ({
                           hitSlop={touchAreaSlop}
                         />
                       )}
+                      <View
+                        testID={
+                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
+                        }
+                      >
+                        <AddressCopy hitSlop={touchAreaSlop} />
+                      </View>
+                      <CardButton
+                        onPress={handleCardPress}
+                        touchAreaSlop={touchAreaSlop}
+                      />
                       {isNotificationsFeatureEnabled() ? (
                         <BadgeWrapper
                           position={BadgeWrapperPosition.TopRight}
