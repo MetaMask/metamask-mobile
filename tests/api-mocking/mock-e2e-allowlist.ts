@@ -14,6 +14,9 @@ export const ALLOWLISTED_HOSTS = [
   'nft.dev-api.cx.metamask.io',
   'nft.uat-api.cx.metamask.io',
   'nft.api.cx.metamask.io',
+  'gamma-api.polymarket.com',
+  'clob.polymarket.com',
+  '*.polymarket.com',
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 

@@ -12,14 +12,8 @@ export const POLYMARKET_GEOBLOCK_ELIGIBLE = {
   },
 } as const;
 
-export const POLYMARKET_POSITIONS_EMPTY = {
-  urlEndpoint: /^https:\/\/data-api\.polymarket\.com\/positions\b/,
-  responseCode: 200,
-  response: [],
-} as const;
-
 export const POLYMARKET_API_MOCKS = {
-  GET: [POLYMARKET_GEOBLOCK_ELIGIBLE, POLYMARKET_POSITIONS_EMPTY],
+  GET: [POLYMARKET_GEOBLOCK_ELIGIBLE],
   POST: [],
   PUT: [],
   DELETE: [],
