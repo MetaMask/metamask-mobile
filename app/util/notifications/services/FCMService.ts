@@ -8,6 +8,7 @@ import {
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
+import Braze from '@braze/react-native-sdk';
 import { NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -127,6 +128,30 @@ async function registerForRemoteMessages() {
 }
 
 /**
+ * Forward an FCM token to Braze on Android.
+ *
+ * The native `braze.xml` has `com_braze_firebase_cloud_messaging_registration_enabled`
+ * disabled, so Braze does not register its own FCM token. We let
+ * `@react-native-firebase/messaging` own the token and replay it to Braze
+ * here. Without this, Braze pushes are not delivered on Android.
+ *
+ * iOS is a no-op: APNs tokens are registered natively in `AppDelegate` via
+ * `Braze.notifications.register(deviceToken:)`, and the FCM token returned
+ * here is not what Braze expects on iOS.
+ */
+function syncBrazePushToken(token: string | null | undefined) {
+  if (!token || Platform.OS !== 'android') {
+    return;
+  }
+  try {
+    Braze.registerPushToken(token);
+  } catch (error) {
+    // Silently fail — Braze pushes will simply not arrive until the next
+    // successful sync; this must never break the in-house token flow.
+  }
+}
+
+/**
  * Processes and handles a remote firebase message.
  * Currently firebase messages only support wallet notifications (from our notification services).
  * @param payload - Firebase Remote Message Payload.
@@ -180,9 +205,34 @@ class FCMService {
     try {
       await registerForRemoteMessages();
       const fcmToken = await messaging().getToken();
+      syncBrazePushToken(fcmToken);
+      this.#registerTokenRefreshOnce();
       return fcmToken;
     } catch {
       return null;
+    }
+  };
+
+  /**
+   * Tracks the active `messaging().onTokenRefresh` subscription so we
+   * register it at most once for the lifetime of the app.
+   */
+  #hasRegisteredTokenRefresh: UnsubscribeFunc | null = null;
+
+  /**
+   * Subscribe to FCM token rotations and forward each new token to Braze.
+   * Idempotent: subsequent calls are no-ops.
+   */
+  #registerTokenRefreshOnce = () => {
+    if (this.#hasRegisteredTokenRefresh) {
+      return;
+    }
+    try {
+      this.#hasRegisteredTokenRefresh = messaging().onTokenRefresh((token) => {
+        syncBrazePushToken(token);
+      });
+    } catch {
+      // Do nothing - silently fail
     }
   };
 
@@ -260,6 +310,8 @@ class FCMService {
   clearRegistration = () => {
     this.#hasRegisteredForeground?.();
     this.#hasRegisteredForeground = null;
+    this.#hasRegisteredTokenRefresh?.();
+    this.#hasRegisteredTokenRefresh = null;
   };
 
   onClickPushNotificationWhenAppClosed = async () => {

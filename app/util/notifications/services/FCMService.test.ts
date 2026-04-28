@@ -1,6 +1,7 @@
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
+import Braze from '@braze/react-native-sdk';
 // eslint-disable-next-line import-x/no-namespace
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
@@ -22,6 +23,7 @@ jest.mock('@react-native-firebase/messaging', () => {
   const onMessage = jest.fn();
   const getInitialNotification = jest.fn();
   const onNotificationOpenedApp = jest.fn();
+  const onTokenRefresh = jest.fn();
 
   // Messaging() function mock
   const mockMessaging = jest.fn(() => ({
@@ -34,6 +36,7 @@ jest.mock('@react-native-firebase/messaging', () => {
     onMessage,
     getInitialNotification,
     onNotificationOpenedApp,
+    onTokenRefresh,
   }));
 
   // Retain the messaging properties
@@ -45,6 +48,15 @@ jest.mock('@react-native-firebase/messaging', () => {
     default: mockMessaging,
   };
 });
+
+// Braze SDK mock — overrides the global testSetup mock so we can assert
+// against `registerPushToken` calls per test.
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    registerPushToken: jest.fn(),
+  },
+}));
 
 // Notification Services Mock
 jest.mock('@metamask/notification-services-controller/notification-services');
@@ -68,6 +80,11 @@ const arrangeFirebaseMocks = () => {
   const mockOnNotificationOpenedApp = jest.mocked(
     messaging().onNotificationOpenedApp,
   );
+  // Return a real unsubscribe handle so FCMService's `#hasRegisteredTokenRefresh`
+  // guard treats the listener as registered (matches the real API contract).
+  const mockOnTokenRefresh = jest
+    .mocked(messaging().onTokenRefresh)
+    .mockReturnValue(jest.fn());
 
   return {
     mockHasPermission,
@@ -77,6 +94,7 @@ const arrangeFirebaseMocks = () => {
     mockOnMessage,
     mockGetInitialNotification,
     mockOnNotificationOpenedApp,
+    mockOnTokenRefresh,
   };
 };
 
@@ -91,8 +109,15 @@ const arrangeNativeModuleMocks = () => {
 };
 
 describe('FCMService - createRegToken()', () => {
+  const originalOS = Platform.OS;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    FCMService.clearRegistration();
+  });
+
+  afterEach(() => {
+    Platform.OS = originalOS;
   });
 
   it('creates registration token', async () => {
@@ -126,6 +151,72 @@ describe('FCMService - createRegToken()', () => {
     const result = await FCMService.createRegToken();
     expect(result).toBe(null);
     expect(firebaseMocks.mockGetToken).toHaveBeenCalled();
+  });
+
+  describe('Braze push token sync', () => {
+    const mockBrazeRegisterPushToken = jest.mocked(Braze.registerPushToken);
+
+    it('forwards the FCM token to Braze on Android', async () => {
+      Platform.OS = 'android';
+      arrangeFirebaseMocks();
+
+      await FCMService.createRegToken();
+
+      expect(mockBrazeRegisterPushToken).toHaveBeenCalledWith('MOCK_FCM_TOKEN');
+    });
+
+    it('does not forward the token to Braze on iOS (APNs is registered natively)', async () => {
+      Platform.OS = 'ios';
+      arrangeFirebaseMocks();
+
+      await FCMService.createRegToken();
+
+      expect(mockBrazeRegisterPushToken).not.toHaveBeenCalled();
+    });
+
+    it('subscribes to FCM token refreshes once and forwards refreshed tokens to Braze on Android', async () => {
+      Platform.OS = 'android';
+      const firebaseMocks = arrangeFirebaseMocks();
+
+      await FCMService.createRegToken();
+      await FCMService.createRegToken();
+
+      expect(firebaseMocks.mockOnTokenRefresh).toHaveBeenCalledTimes(1);
+
+      // Forward a rotated token through the captured listener.
+      const refreshListener =
+        firebaseMocks.mockOnTokenRefresh.mock.calls[0][0];
+      refreshListener('ROTATED_FCM_TOKEN');
+
+      expect(mockBrazeRegisterPushToken).toHaveBeenCalledWith(
+        'ROTATED_FCM_TOKEN',
+      );
+    });
+
+    it('does not subscribe to token refreshes when push permissions are denied', async () => {
+      Platform.OS = 'android';
+      const firebaseMocks = arrangeFirebaseMocks();
+      firebaseMocks.mockHasPermission.mockResolvedValue(
+        messaging.AuthorizationStatus.DENIED,
+      );
+
+      await FCMService.createRegToken();
+
+      expect(firebaseMocks.mockOnTokenRefresh).not.toHaveBeenCalled();
+      expect(mockBrazeRegisterPushToken).not.toHaveBeenCalled();
+    });
+
+    it('does not crash if Braze.registerPushToken throws', async () => {
+      Platform.OS = 'android';
+      arrangeFirebaseMocks();
+      mockBrazeRegisterPushToken.mockImplementationOnce(() => {
+        throw new Error('TEST ERROR');
+      });
+
+      const result = await FCMService.createRegToken();
+
+      expect(result).toBe('MOCK_FCM_TOKEN');
+    });
   });
 });
 

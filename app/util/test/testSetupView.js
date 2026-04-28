@@ -622,5 +622,6 @@ jest.mock('@braze/react-native-sdk', () => ({
     addListener: jest.fn(() => ({
       remove: jest.fn(),
     })),
+    registerPushToken: jest.fn(),
   },
 }));
