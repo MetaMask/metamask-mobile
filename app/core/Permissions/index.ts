@@ -49,11 +49,14 @@ const sortAddressesByLastSelected = (addresses: string[]): string[] => {
     if (cachedLastSelected.has(address)) {
       return cachedLastSelected.get(address);
     }
-    const account = Engine.context.AccountsController.getAccountByAddress(address);
+    const account =
+      Engine.context.AccountsController.getAccountByAddress(address);
     if (!account) {
       return undefined;
     }
-    const context = Engine.context.AccountTreeController.getAccountContext(account.id);
+    const context = Engine.context.AccountTreeController.getAccountContext(
+      account.id,
+    );
     if (!context) {
       return undefined;
     }
@@ -70,7 +73,7 @@ const sortAddressesByLastSelected = (addresses: string[]): string[] => {
   return addresses.sort(
     (a, b) => (getLastSelected(b) ?? 0) - (getLastSelected(a) ?? 0),
   );
-}
+};
 
 /**
  * Sorts a list of multichain account ids by most recently selected by using
