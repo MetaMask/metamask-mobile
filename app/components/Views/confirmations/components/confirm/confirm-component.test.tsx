@@ -1,6 +1,7 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
 import { ScrollView } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -57,6 +58,14 @@ const mockNavigation = {
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
+}));
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
 }));
 
 jest.mock('react-native-safe-area-context', () => {
@@ -203,9 +212,14 @@ describe('Confirm', () => {
   });
 
   it('renders information for personal sign', () => {
-    const { getAllByRole, getByText } = renderWithProvider(<Confirm />, {
-      state: personalSignatureConfirmationState,
-    });
+    const { getAllByRole, getByText } = renderWithProvider(
+      <SafeAreaProvider>
+        <Confirm />
+      </SafeAreaProvider>,
+      {
+        state: personalSignatureConfirmationState,
+      },
+    );
     expect(getByText('Signature request')).toBeDefined();
     expect(
       getByText('Review request details before you confirm.'),
@@ -219,9 +233,14 @@ describe('Confirm', () => {
 
   it('renders information for typed sign v1', () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
-      renderWithProvider(<Confirm />, {
-        state: typedSignV1ConfirmationState,
-      });
+      renderWithProvider(
+        <SafeAreaProvider>
+          <Confirm />
+        </SafeAreaProvider>,
+        {
+          state: typedSignV1ConfirmationState,
+        },
+      );
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('Request from')).toBeDefined();
     expect(getByText('metamask.github.io')).toBeDefined();
@@ -355,7 +374,7 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-transfer')).toBeDefined();
   });
 
-  it('renders InfoLoader for CustomAmount loader', () => {
+  it('renders InfoLoader with SafeAreaView for CustomAmount loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.CustomAmount,
     });
@@ -382,7 +401,7 @@ describe('Confirm', () => {
     expect(scrollViews.length).toBeGreaterThan(0);
   });
 
-  it('renders InfoLoader for PredictClaim loader', () => {
+  it('renders InfoLoader with SafeAreaView for PredictClaim loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.PredictClaim,
     });
@@ -409,7 +428,7 @@ describe('Confirm', () => {
     expect(scrollViews.length).toBeGreaterThan(0);
   });
 
-  it('renders InfoLoader for Transfer loader', () => {
+  it('renders InfoLoader with SafeAreaView for Transfer loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.Transfer,
     });

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { GasFeeToken, TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { act } from '@testing-library/react-native';
+import { act } from '@testing-library/react';
 
 import { useAutomaticGasFeeTokenSelect } from './useAutomaticGasFeeTokenSelect';
 import { useIsGaslessSupported } from './gas/useIsGaslessSupported';

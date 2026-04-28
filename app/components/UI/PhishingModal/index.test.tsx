@@ -1,18 +1,20 @@
 import React from 'react';
 import PhishingModal from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent, act } from '@testing-library/react-native';
-
-import { Linking } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 // Mock Linking API
 const mockCanOpenURL = jest.fn(() => Promise.resolve(true));
 const mockOpenURL = jest.fn(() => Promise.resolve());
+const mockAddEventListener = jest.fn();
+const mockRemoveEventListener = jest.fn();
 
-beforeEach(() => {
-  jest.spyOn(Linking, 'canOpenURL').mockImplementation(mockCanOpenURL);
-  jest.spyOn(Linking, 'openURL').mockImplementation(mockOpenURL);
-});
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: mockOpenURL,
+  canOpenURL: mockCanOpenURL,
+  addEventListener: mockAddEventListener,
+  removeEventListener: mockRemoveEventListener,
+}));
 
 describe('PhishingModal', () => {
   it('should render correctly', () => {
@@ -27,9 +29,7 @@ describe('PhishingModal', () => {
 
     // Find and press the share button
     const shareButton = getByText('If you found this helpful, share on X!');
-    await act(async () => {
-      fireEvent.press(shareButton);
-    });
+    fireEvent.press(shareButton);
 
     // Verify Linking.canOpenURL was called
     expect(mockCanOpenURL).toHaveBeenCalled();
