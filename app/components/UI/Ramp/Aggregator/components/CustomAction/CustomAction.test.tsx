@@ -12,6 +12,8 @@ jest.mock('../../../../../../selectors/preferencesController', () => ({
   selectIpfsGateway: jest.fn(),
 }));
 
+// Override only the hooks this test needs; the base mock is provided by
+// react-native-reanimated/mock which is the official lightweight test helper.
 jest.mock('react-native-reanimated', () => ({
   ...jest.requireActual('react-native-reanimated/mock'),
   // simulate expanded value > 0
