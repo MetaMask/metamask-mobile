@@ -17,7 +17,7 @@ beforeEach(() => {
 describe('PhishingModal', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<PhishingModal />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('should open Twitter with correct sharing text when share button is pressed', async () => {

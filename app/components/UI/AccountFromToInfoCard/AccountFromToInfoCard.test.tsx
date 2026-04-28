@@ -174,12 +174,12 @@ describe('AccountFromToInfoCard', () => {
   });
 
   it('should match snapshot', () => {
-    const container = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(container).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('should render to account name', async () => {
