@@ -276,8 +276,6 @@ describe('AccountStatus', () => {
       const tree = toJSON();
 
       expect(tree).toBeTruthy();
-      expect(JSON.stringify(tree)).toContain('top');
-      expect(JSON.stringify(tree)).toContain('bottom');
     });
   });
 

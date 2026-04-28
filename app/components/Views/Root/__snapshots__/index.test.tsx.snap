@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Root should render null while isTest is true and store is loading 1`] = `null`;

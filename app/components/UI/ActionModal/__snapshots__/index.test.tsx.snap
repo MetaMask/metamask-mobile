@@ -1,3 +1,216 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ActionModal should render correctly 1`] = `<View />`;
+exports[`ActionModal should render correctly 1`] = `
+<View
+  testID="modal-mock"
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "marginHorizontal": 24,
+        },
+        null,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 10,
+            "width": "100%",
+          },
+          null,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            },
+            null,
+          ]
+        }
+      />
+      <View
+        style={
+          [
+            {
+              "borderTopColor": "#b4b4b566",
+              "borderTopWidth": 1,
+              "flexDirection": "row",
+              "padding": 16,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+          testID=""
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#66676a",
+                  "borderWidth": 1,
+                },
+                [
+                  {
+                    "margin": 8,
+                  },
+                  {
+                    "flex": 1,
+                  },
+                ],
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontFamily": "Geist-SemiBold",
+                    "fontSize": 14,
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#66676a",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+          testID=""
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#ca3542",
+                },
+                [
+                  {
+                    "margin": 8,
+                  },
+                  {
+                    "flex": 1,
+                  },
+                ],
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontFamily": "Geist-SemiBold",
+                    "fontSize": 14,
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#ffffff",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Confirm
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;

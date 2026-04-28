@@ -7,7 +7,7 @@ import { SnapInterfaceControllerMessenger } from '@metamask/snaps-controllers';
 import { MaybeUpdateState } from '@metamask/phishing-controller';
 import { RootMessenger } from '../../types';
 
-export { type SnapInterfaceControllerMessenger };
+export type { SnapInterfaceControllerMessenger };
 
 /**
  * Get a messenger for the Snap interface controller. This is scoped

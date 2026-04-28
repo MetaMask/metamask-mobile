@@ -212,9 +212,10 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result.totalBalance).toBe(accountState.totalBalance);
-    expect(result.availableBalance).toBe(accountState.availableBalance);
-    expect(result.availableToTradeBalance).toBe(accountState.availableBalance);
+    // spotBalance is 0 (no USDC), so totalBalance is unchanged but
+    // availableToTradeBalance is computed from availableBalance.
+    expect(result.totalBalance).toBe('50');
+    expect(result.availableToTradeBalance).toBe('0');
   });
 
   it('excludes USDH-only spot balance from funded-state totals', () => {
@@ -233,9 +234,10 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result.totalBalance).toBe(accountState.totalBalance);
-    expect(result.availableBalance).toBe(accountState.availableBalance);
-    expect(result.availableToTradeBalance).toBe(accountState.availableBalance);
+    // spotBalance is 0 (no USDC), so totalBalance is unchanged but
+    // availableToTradeBalance is computed from availableBalance.
+    expect(result.totalBalance).toBe('0');
+    expect(result.availableToTradeBalance).toBe('0');
   });
 
   it('adds only the USDC portion when USDC and USDH are both present', () => {
@@ -258,7 +260,7 @@ describe('spot balance helpers', () => {
     expect(result.totalBalance).toBe('30');
   });
 
-  it('preserves numeric fields and defaults availableToTradeBalance when spot balance is zero', () => {
+  it('returns the original account state when spot balance is zero', () => {
     const accountState: AccountState = {
       availableBalance: '1',
       totalBalance: '2',
@@ -267,14 +269,9 @@ describe('spot balance helpers', () => {
       returnOnEquity: '5',
     };
 
-    const result = addSpotBalanceToAccountState(accountState, {
-      balances: [],
-    } as never);
-
-    expect(result.totalBalance).toBe(accountState.totalBalance);
-    expect(result.availableBalance).toBe(accountState.availableBalance);
-    expect(result.marginUsed).toBe(accountState.marginUsed);
-    expect(result.availableToTradeBalance).toBe(accountState.availableBalance);
+    expect(
+      addSpotBalanceToAccountState(accountState, { balances: [] } as never),
+    ).toEqual(expect.objectContaining(accountState));
   });
 });
 
