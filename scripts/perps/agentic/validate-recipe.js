@@ -354,7 +354,7 @@ function describeStep(step) {
     case 'set_input':
       return `set ${step.test_id}`;
     case 'screenshot':
-      return `capture screenshot ${step.id || step.filename || ''}`.trim();
+      return step.note || `capture screenshot ${step.id || step.filename || ''}`.trim();
     case 'call':
       return `call ${step.ref}`;
     case 'eval_ref':

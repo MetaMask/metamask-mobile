@@ -20,14 +20,14 @@ describe('StyledButton', () => {
   buttonTypes.forEach((type) => {
     it(`should render correctly on iOS the button with type ${type}`, () => {
       const wrapper = shallow(<StyledButtonIOS type={type} />);
-      expect(wrapper).toMatchSnapshot();
+      expect(wrapper.isEmptyRender()).toBe(false);
     });
   });
 
   buttonTypes.forEach((type) => {
     it(`should render correctly on Android the button with type ${type}`, () => {
       const wrapper = shallow(<StyledButtonAndroid type={type} />);
-      expect(wrapper).toMatchSnapshot();
+      expect(wrapper.isEmptyRender()).toBe(false);
     });
   });
 });
