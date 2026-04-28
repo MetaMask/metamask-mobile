@@ -64,15 +64,9 @@ async function parseDeeplink({
         });
         break;
       }
-      case PROTOCOLS.WC: {
-        const preview = url.length > 160 ? `${url.slice(0, 160)}...` : url;
-        DevLogger.log('[wc][parseDeeplink] detected wc:', {
-          origin,
-          preview,
-        });
+      case PROTOCOLS.WC:
         connectWithWC({ handled, wcURL, origin, params });
         break;
-      }
       case PROTOCOLS.ETHEREUM:
         handled();
         handleEthereumUrl({

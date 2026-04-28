@@ -752,13 +752,6 @@ export class WC2Manager {
         (ns) => ns?.chains ?? [],
       );
 
-      DevLogger.log('[wc][WC2Manager.session_proposal] proposal namespaces', {
-        topic: proposal.params.pairingTopic,
-        requiredKeys: Object.keys(requiredNamespaces),
-        optionalKeys: Object.keys(optionalNamespaces),
-        proposalChains,
-      });
-
       // Augment the EVM-derived namespaces with each non-EVM adapter's
       // slice. Adapters look at the dapp proposal + any pre-existing
       // accounts/methods/events on `namespaces` and either return a
@@ -894,32 +887,7 @@ export class WC2Manager {
         approvedChains,
       });
 
-      if (
-        !emitDecision.shouldEmit &&
-        emitDecision.reason === 'chain_not_in_session'
-      ) {
-        DevLogger.log(
-          '[wc][WC2Manager.session_proposal] skip chainChanged emit; chain not in active session',
-          {
-            topic: activeSession.topic,
-            attemptedChainId: chainChangedEmission.chainId,
-            activeSessionChains: emitDecision.activeSessionChains,
-          },
-        );
-      } else if (
-        !emitDecision.shouldEmit &&
-        emitDecision.reason === 'event_not_supported'
-      ) {
-        DevLogger.log(
-          '[wc][WC2Manager.session_proposal] skip chainChanged emit; event not supported by namespace',
-          {
-            topic: activeSession.topic,
-            chainId: chainChangedEmission.chainId,
-            chainChangedNamespace: emitDecision.namespace,
-            chainChangedEventsForNamespace: emitDecision.namespaceEvents,
-          },
-        );
-      } else {
+      if (emitDecision.shouldEmit) {
         await this.web3Wallet.emitSessionEvent({
           topic: activeSession.topic,
           event: {
@@ -1022,30 +990,12 @@ export class WC2Manager {
         }`,
       );
 
-      const wcUriPreview =
-        wcUri.length > 160 ? `${wcUri.slice(0, 160)}...` : wcUri;
-      DevLogger.log('[wc][WC2Manager.connect] start', {
-        origin,
-        redirectUrl,
-        navigationDefined: this.navigation !== undefined,
-        wcUriPreview,
-      });
-
       const params = parseWalletConnectUri(wcUri);
       const isDeepLink = origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
-
-      DevLogger.log('[wc][WC2Manager.connect] parsed wc uri', {
-        protocol: params.protocol,
-        version: params.version,
-        topic: params.topic,
-      });
 
       const rawParams = getAllUrlParams(wcUri);
       // First check if the url continas sessionTopic, meaning it is only here from an existing connection (so we don't need to create pairing)
       if (rawParams.sessionTopic) {
-        DevLogger.log('[wc][WC2Manager.connect] found sessionTopic in uri', {
-          sessionTopic: rawParams.sessionTopic,
-        });
         const { sessionTopic } = rawParams;
         const session = this.sessions[sessionTopic];
         if (session) {
@@ -1067,12 +1017,6 @@ export class WC2Manager {
       if (params.version === 1) {
         // WalletConnect V1 was shut down on June 28, 2023. V1 URIs are no longer supported.
         console.warn(
-          '[wc][WC2Manager.connect] walletconnect v1 uri not supported',
-          {
-            wcUriPreview,
-          },
-        );
-        console.warn(
           `WalletConnect V1 is no longer supported. V1 was shut down on June 28, 2023. URI: ${wcUri}`,
         );
         return;
@@ -1086,21 +1030,12 @@ export class WC2Manager {
             session.pairingTopic === params.topic,
         );
         if (activeSession) {
-          DevLogger.log(
-            '[wc][WC2Manager.connect] active session already exists',
-            {
-              topic: activeSession.topic,
-            },
-          );
           this.sessions[activeSession.topic]?.setDeeplink(isDeepLink);
           return;
         }
 
         // Deduplicate: the OS can deliver the same deeplink multiple times.
         if (this.seenTopics.has(params.topic)) {
-          DevLogger.log('[wc][WC2Manager.connect] duplicate topic deduped', {
-            topic: params.topic,
-          });
           return;
         }
         this.seenTopics.add(params.topic);
@@ -1136,22 +1071,8 @@ export class WC2Manager {
       }
 
       console.warn(`Invalid wallet connect uri`, wcUri);
-      DevLogger.log(
-        '[wc][WC2Manager.connect] invalid parsed wallet connect uri',
-        {
-          version: params.version,
-          topic: params.topic,
-          protocol: params.protocol,
-          wcUriPreview,
-        },
-      );
     } catch (err) {
-      const wcUriPreviewCatch =
-        wcUri.length > 160 ? `${wcUri.slice(0, 160)}...` : wcUri;
-      console.error('[wc][WC2Manager.connect] failed', {
-        wcUriPreview: wcUriPreviewCatch,
-        err,
-      });
+      console.error(`Failed to connect uri=${wcUri}`, err);
     }
   }
 }
