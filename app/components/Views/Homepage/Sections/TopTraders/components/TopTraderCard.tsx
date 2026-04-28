@@ -35,13 +35,27 @@ export interface TopTraderCardProps {
   testID?: string;
 }
 
-const AVATAR_SIZE = 40;
+const AVATAR_SIZE = 60;
+/**
+ * Fixed dimensions for every tile in the homepage Top Traders carousel
+ * (`TopTraderCard`, `TopTraderCardSkeleton`, `ViewMoreCard`). The carousel
+ * deliberately does NOT grow with content — long usernames ellipsize via
+ * `numberOfLines={1}` so all tiles stay visually identical regardless of
+ * trader name length.
+ */
+export const TOP_TRADER_CARD_WIDTH = 200;
+// Per Figma (node 1797:15424): 16 (top padding) + 60 (avatar) + 4 (gap) +
+// 48 (HeadingSm 24 line-height + 2 inner gap + BodySm 22 line-height) + 4
+// (gap) + 40 (ButtonSize.Md) + 16 (bottom padding) = 188. Setting it to
+// any larger value leaks visible empty space below the button because
+// children stack from the top of the column.
+export const TOP_TRADER_CARD_HEIGHT = 188;
 
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
  *
- * Displays a trader's avatar, username, performance stats (ROI + PnL),
- * and a Follow/Following toggle.
+ * Displays a trader's avatar (top-left), username, 30D PnL stats, and a
+ * Follow/Following toggle pinned to the bottom.
  */
 const TopTraderCard: React.FC<TopTraderCardProps> = ({
   trader,
@@ -51,18 +65,14 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const roiSign = trader.percentageChange >= 0 ? '+' : '';
-  const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
   const pnlText = formatPnl(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
-  const isRoiPositive = trader.percentageChange >= 0;
 
   return (
     <Box
-      twClassName="w-[200px] rounded-2xl bg-muted p-4 overflow-hidden"
+      twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-[${TOP_TRADER_CARD_HEIGHT}px] rounded-2xl bg-muted p-4 overflow-hidden gap-1`}
       testID={testID ?? `top-trader-card-${trader.id}`}
     >
-      {/* Top content: avatar + name + stats */}
       <TouchableOpacity
         activeOpacity={onTraderPress ? 0.7 : 1}
         onPress={
@@ -74,8 +84,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         disabled={!onTraderPress}
         testID={`top-trader-card-pressable-${trader.id}`}
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 gap-2 mb-3">
-          {/* Avatar */}
+        <Box alignItems={BoxAlignItems.Center} twClassName="gap-1">
           {trader.avatarUri ? (
             <Image
               source={{ uri: trader.avatarUri }}
@@ -87,60 +96,50 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             />
           ) : (
             <AvatarBase
-              size={AvatarBaseSize.Lg}
+              size={AvatarBaseSize.Xl}
               fallbackText={trader.username.charAt(0).toUpperCase()}
+              twClassName={`w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px]`}
             />
           )}
 
-          {/* Username */}
-          <Text
-            variant={TextVariant.HeadingSm}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-          >
-            {trader.username}
-          </Text>
-
-          {/* Stats: +96.2% · +$963K 30D */}
-          <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+          <Box twClassName="w-full gap-0.5">
             <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              twClassName={
-                isRoiPositive ? 'text-success-default' : 'text-error-default'
-              }
-            >
-              {roiText}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
+              variant={TextVariant.HeadingSm}
+              fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              twClassName="text-center"
             >
-              {' \u00B7 '}
+              {trader.username}
             </Text>
+
             <Text
-              variant={TextVariant.BodyXs}
+              variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              twClassName={
-                isPnlPositive ? 'text-success-default' : 'text-error-default'
-              }
+              twClassName="text-center"
             >
-              {pnlText}
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                twClassName={
+                  isPnlPositive ? 'text-success-default' : 'text-error-default'
+                }
+              >
+                {pnlText}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                {' 30D'}
+              </Text>
             </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {' 30D'}
-            </Text>
-          </Text>
+          </Box>
         </Box>
       </TouchableOpacity>
 
-      {/* Follow / Following button pinned to bottom */}
       <Button
         variant={
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary

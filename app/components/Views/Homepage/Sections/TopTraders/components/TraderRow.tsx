@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import {
   Box,
   Text,
@@ -62,6 +63,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
   const pnlText = formatPnl(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
   const isRoiPositive = trader.percentageChange >= 0;
+
+  const handleFollowPress = useCallback(() => {
+    impactAsync(ImpactFeedbackStyle.Light);
+    onFollowPress(trader.id);
+  }, [onFollowPress, trader.id]);
 
   return (
     <Box
@@ -167,7 +173,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
         size={ButtonSize.Md}
-        onPress={() => onFollowPress(trader.id)}
+        onPress={handleFollowPress}
         twClassName="min-w-[96px] self-center"
       >
         {trader.isFollowing
