@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
@@ -32,7 +26,7 @@ import { useTheme } from '../../../../../util/theme';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { getHardwareWalletTypeName } from '../../../helpers';
 import { ContentLayout } from './ContentLayout';
-import QRSigningContext from '../../../contexts/QRSigningContext';
+import { useHardwareWallet } from '../../../contexts';
 import Engine from '../../../../Engine';
 import AnimatedQRCode from '../../../../../components/UI/QRHardware/AnimatedQRCode';
 import AnimatedQRScannerModal from '../../../../../components/UI/QRHardware/AnimatedQRScanner';
@@ -86,14 +80,15 @@ export const AwaitingConfirmationContent: React.FC<
 > = ({ deviceType, operationType, onCancel }) => {
   const { colors } = useTheme();
   const { createEventBuilder, trackEvent } = useAnalytics();
+  const { qr } = useHardwareWallet();
   const deviceName = getHardwareWalletTypeName(deviceType);
-  const qrSigningContext = useContext(QRSigningContext);
   const isQrFlow = deviceType === HardwareWalletType.Qr;
-  const isSigningQRObject = qrSigningContext?.isSigningQRObject ?? false;
-  const pendingScanRequest = qrSigningContext?.pendingScanRequest;
-  const setRequestCompleted = qrSigningContext?.setRequestCompleted;
-  const cancelQRScanRequestIfPresent =
-    qrSigningContext?.cancelQRScanRequestIfPresent;
+  const {
+    isSigningQRObject,
+    pendingScanRequest,
+    setRequestCompleted,
+    cancelQRScanRequestIfPresent,
+  } = qr;
 
   const [scannerVisible, setScannerVisible] = useState(false);
   const [shouldPause, setShouldPause] = useState(false);
@@ -126,7 +121,7 @@ export const AwaitingConfirmationContent: React.FC<
             type: ur.type,
             cbor: ur.cbor.toString('hex'),
           });
-          setRequestCompleted?.();
+          setRequestCompleted();
           return;
         }
       }
@@ -157,7 +152,7 @@ export const AwaitingConfirmationContent: React.FC<
   const onQrCancel = useCallback(async () => {
     setScannerVisible(false);
     try {
-      await cancelQRScanRequestIfPresent?.();
+      await cancelQRScanRequestIfPresent();
     } catch {
       // Ignore cancel failures; onCancel still runs in `finally` (matches prior `.catch(() => undefined)`).
     } finally {
