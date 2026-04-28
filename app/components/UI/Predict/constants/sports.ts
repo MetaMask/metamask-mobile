@@ -103,7 +103,7 @@ const DRAW_CAPABLE_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
 export const isDrawCapableLeague = (league: PredictSportsLeague): boolean =>
   DRAW_CAPABLE_LEAGUES.has(league);
 
-export const MONEYLINE_MARKET_TYPES = new Set([
+export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'first_half_moneyline',
   'soccer_halftime_result',
