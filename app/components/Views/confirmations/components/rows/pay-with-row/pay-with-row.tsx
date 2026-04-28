@@ -47,6 +47,8 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
+import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
@@ -57,6 +59,8 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const { moneyAccountDisplayToken, isAwaitingAccountSelection } =
+    useMoneyAccountPayToken();
 
   const {
     txParams: { from },
