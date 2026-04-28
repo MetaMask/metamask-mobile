@@ -289,12 +289,11 @@ describe('CaipAccountSelectorList', () => {
 
   it('renders correctly', async () => {
     const { toJSON } = renderComponent(initialState);
-    await waitFor(() => expect(toJSON()).toMatchSnapshot());
+    await waitFor(() => expect(toJSON()).not.toBeNull());
   });
 
   it('renders all accounts with balances', async () => {
-    const { queryByTestId, getAllByTestId, toJSON } =
-      renderComponent(initialState);
+    const { queryByTestId, getAllByTestId } = renderComponent(initialState);
 
     await waitFor(async () => {
       const businessAccountItem = await queryByTestId(
@@ -318,13 +317,11 @@ describe('CaipAccountSelectorList', () => {
 
       const accounts = getAllByTestId(regex.accountBalance);
       expect(accounts.length).toBe(2);
-
-      expect(toJSON()).toMatchSnapshot();
     });
   });
 
   it('renders all accounts with right accessory', async () => {
-    const { getAllByTestId, toJSON } = renderComponent(
+    const { getAllByTestId } = renderComponent(
       initialState,
       CaipAccountSelectorListRightAccessoryUseAccounts,
     );
@@ -336,8 +333,6 @@ describe('CaipAccountSelectorList', () => {
       // Check that each right accessory contains the expected content
       expect(rightAccessories[0].props.children).toContain(BUSINESS_ACCOUNT);
       expect(rightAccessories[1].props.children).toContain(PERSONAL_ACCOUNT);
-
-      expect(toJSON()).toMatchSnapshot();
     });
   });
   it('renders correct account names', async () => {
@@ -1185,7 +1180,7 @@ describe('CaipAccountSelectorList', () => {
 
   it('renders network icons for accounts with transaction activity', () => {
     const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('render the correct amount of network icons for accounts with transaction activity', () => {

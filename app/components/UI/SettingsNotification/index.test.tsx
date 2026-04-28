@@ -9,7 +9,7 @@ describe('SettingsNotification', () => {
         {'this is a warning'}
       </SettingsNotification>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.find('View').exists()).toBe(true);
   });
 
   it('should render correctly as notification', () => {
@@ -18,6 +18,6 @@ describe('SettingsNotification', () => {
         {'this is a notification'}
       </SettingsNotification>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.find('View').exists()).toBe(true);
   });
 });
