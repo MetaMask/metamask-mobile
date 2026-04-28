@@ -18,6 +18,10 @@ import { Hex } from '@metamask/utils';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../../UI/Earn/constants/musd';
+import {
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
@@ -642,6 +646,27 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('250');
+    });
+
+    it('requests fiat rate for mainnet mUSD when transaction is money account withdraw', () => {
+      useTokenFiatRateMock.mockReturnValue(1);
+      useMoneyAccountBalanceMock.mockReturnValue({
+        tokenTotal: new BigNumber(100),
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      runHook({
+        transactionMeta: {
+          type: TransactionType.moneyAccountWithdraw,
+          id: '1',
+          chainId: '0x1' as Hex,
+        } as TransactionMeta,
+      });
+
+      expect(useTokenFiatRateMock).toHaveBeenCalledWith(
+        MUSD_TOKEN_ADDRESS,
+        MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        undefined,
+      );
     });
 
     it('to total money account balance when selecting max', async () => {

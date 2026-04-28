@@ -17,6 +17,10 @@ import {
 } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
+import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
 import {
   useTransactionPayIsMaxAmount,
@@ -63,7 +67,17 @@ export function useTransactionCustomAmount({
     TransactionType.moneyAccountWithdraw,
   ]);
   const tokenAddress = getTokenAddress(transactionMeta);
-  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const payTokenFiatRate =
+    useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const musdFiatRate =
+    useTokenFiatRate(
+      MUSD_TOKEN_ADDRESS,
+      MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+      currency,
+    ) ?? 1;
+  const tokenFiatRate = isMoneyAccountWithdraw
+    ? musdFiatRate
+    : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
   const { updateTokenAmount: updateTokenAmountCallback } =
@@ -251,10 +265,8 @@ function useTokenBalance(tokenUsdRate: number) {
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
   ) {
-    // `totalFiatRaw` is in the user's display currency; percentage amounts must
-    // match `amountHuman = amountFiat / tokenFiatRate` (USD for money withdraw).
-    // `tokenTotal` is mUSD + musdSHFvd in mUSD units — multiply by the same
-    // USD fiat rate used for the pay token.
+    // `tokenTotal` is mUSD-denominated (mUSD + musdSHFvd). Use mUSD's fiat rate
+    // on the canonical chain only — not the pay-token address from tx metadata.
     if (moneyAccountTokenTotal === undefined) {
       return 0;
     }
