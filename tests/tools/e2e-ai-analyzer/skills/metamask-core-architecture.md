@@ -513,7 +513,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 - Snap RPC methods
 - Flask build functionality
 
-**Typical Test Coverage:** FlaskBuildTests
+**Typical Test Coverage:** SmokeSnaps
 
 ## Risk Assessment Framework
 

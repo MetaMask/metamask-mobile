@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -10,7 +10,7 @@ import { testSnapPreinstalledAnalyticsExpectations } from '../../helpers/analyti
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
+describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
   it.todo('displays the Snap settings page');
 
   /**
