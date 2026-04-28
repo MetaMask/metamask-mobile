@@ -83,22 +83,6 @@ jest.mock('../../../hooks/send/metrics/useAssetSelectionMetrics', () => ({
   }),
 }));
 
-jest.mock('../../../../../UI/Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => ({
-    filterAllowedTokens: jest.fn((tokens: unknown[]) => tokens),
-    isConversionToken: jest.fn(() => false),
-    isMusdSupportedOnChain: jest.fn(() => false),
-    hasConvertibleTokensByChainId: jest.fn(() => false),
-    tokens: [],
-  }),
-}));
-
-jest.mock('../../../../../UI/Earn/hooks/useMusdPaymentToken', () => ({
-  useMusdPaymentToken: () => ({
-    onPaymentTokenChange: jest.fn(),
-  }),
-}));
-
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
 const CHAIN_ID_2_MOCK = '0x2' as Hex;
 
@@ -355,11 +339,9 @@ describe('PayWithModal', () => {
         type: TransactionType.predictDepositAndOrder,
       } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
 
-      const { getByText } = render();
+      const { findByText } = render();
 
-      await waitFor(() => {
-        fireEvent.press(getByText('Test Token 1'));
-      });
+      fireEvent.press(await findByText('Test Token 1'));
 
       expect(onPredictPaymentTokenChangeMock).toHaveBeenCalledWith(
         expect.objectContaining({
