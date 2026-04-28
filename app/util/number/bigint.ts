@@ -50,7 +50,7 @@ export const hexToBigInt = (inputHex: string | number | bigint): bigint => {
 };
 
 export const bigIntToHex = (value: bigint): string =>
-  addHexPrefix(value.toString(16));
+  value < 0n ? `-0x${(-value).toString(16)}` : `0x${value.toString(16)}`;
 
 // Setter Maps
 export const toBigInt = {
@@ -122,7 +122,7 @@ export function addHexPrefix(str: string): SignedHex {
   }
 
   if (str.startsWith('-')) {
-    return str.replace('-', '-0x') as SignedHex;
+    return `-0x${str.slice(1)}` as SignedHex;
   }
 
   return `0x${str}`;
@@ -765,16 +765,18 @@ export function safeNumberToBigInt(value: number | string | bigint): bigint {
     return value;
   }
   const safeValue = fastSplit(value?.toString()) || '0';
-  // Nested try/catch because of perforamnce reasons
+  // Nested try/catch because of performance reasons
   try {
     // Try quickly convert number/string which should work in most cases
     return BigInt(safeValue);
   } catch {
     try {
-      // In case of missing hex prefix it will fail so we try to add it
+      // Per ECMA-262, BigInt(string) only accepts a leading sign on
+      // decimal literals, so `BigInt('-0xff')` and `BigInt('-ff')` both
+      // throw and land here. Add the missing prefix; for `-0x…` strip the
+      // sign and negate to preserve full precision.
       const signedHex: string = addHexPrefix(safeValue);
       if (signedHex.startsWith('-0x')) {
-        // BigInt cannot handle -0x prefix directly; negate the positive conversion to preserve full precision
         return -BigInt(signedHex.slice(1));
       }
       return BigInt(signedHex);

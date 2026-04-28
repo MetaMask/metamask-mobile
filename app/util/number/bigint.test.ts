@@ -539,6 +539,15 @@ describe('Number utils :: hexToBigInt', () => {
   });
 });
 
+describe('Number utils :: bigIntToHex negatives', () => {
+  it('formats negative values without going through addHexPrefix', () => {
+    expect(bigIntToHex(-0n)).toBe('0x0');
+    expect(bigIntToHex(-1n)).toBe('-0x1');
+    expect(bigIntToHex(-255n)).toBe('-0xff');
+    expect(bigIntToHex(-1000000000000000000n)).toBe('-0xde0b6b3a7640000');
+  });
+});
+
 describe('Number utils :: toBigInt', () => {
   it('hex converts a hex string to bigint', () => {
     expect(toBigInt.hex('0x539')).toBe(BigInt(1337));
