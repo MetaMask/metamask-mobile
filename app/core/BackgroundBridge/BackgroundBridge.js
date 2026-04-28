@@ -554,7 +554,7 @@ export class BackgroundBridge extends EventEmitter {
       );
       ///: END:ONLY_INCLUDE_IF
 
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleSessionChangedFromSelectedAccountGroupChanges,
       );
