@@ -1,8 +1,10 @@
 import React from 'react';
 import { Pressable } from 'react-native';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './PerpsMarketCategoryBadge.styles';
 import type { PerpsMarketCategoryBadgeProps } from './PerpsMarketCategoryBadge.types';
@@ -38,7 +40,11 @@ const PerpsMarketCategoryBadge: React.FC<PerpsMarketCategoryBadgeProps> = ({
       accessibilityState={{ selected: isSelected }}
       accessibilityLabel={label}
     >
-      <Text variant={TextVariant.BodyMDMedium} style={styles.badgeText}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        style={styles.badgeText}
+      >
         {label}
       </Text>
     </Pressable>
