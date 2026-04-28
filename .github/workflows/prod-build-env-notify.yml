@@ -73,14 +73,16 @@ jobs:
           esac
 
           # Output for next steps
-          echo "build_name=$BUILD_NAME" >> "$GITHUB_OUTPUT"
-          echo "environment=$METAMASK_ENV" >> "$GITHUB_OUTPUT"
-          echo "build_type=$BUILD_TYPE" >> "$GITHUB_OUTPUT"
-          echo "remote_ff_env=$REMOTE_FF_ENV" >> "$GITHUB_OUTPUT"
-          echo "remote_ff_dist=$REMOTE_FF_DIST" >> "$GITHUB_OUTPUT"
-          echo "rewards_url=$REWARDS_URL" >> "$GITHUB_OUTPUT"
-          echo "portfolio_url=$PORTFOLIO_URL" >> "$GITHUB_OUTPUT"
-          echo "ramps_env=$RAMPS_ENV" >> "$GITHUB_OUTPUT"
+          {
+            echo "build_name=$BUILD_NAME"
+            echo "environment=$METAMASK_ENV"
+            echo "build_type=$BUILD_TYPE"
+            echo "remote_ff_env=$REMOTE_FF_ENV"
+            echo "remote_ff_dist=$REMOTE_FF_DIST"
+            echo "rewards_url=$REWARDS_URL"
+            echo "portfolio_url=$PORTFOLIO_URL"
+            echo "ramps_env=$RAMPS_ENV"
+          } >> "$GITHUB_OUTPUT"
 
           echo ""
           echo "=== Extracted Values ==="
