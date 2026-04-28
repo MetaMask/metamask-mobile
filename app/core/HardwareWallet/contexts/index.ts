@@ -3,3 +3,7 @@
  */
 
 export { useHardwareWallet } from './HardwareWalletContext';
+export type {
+  HardwareWalletContextValue,
+  HardwareWalletQRState,
+} from './HardwareWalletContext';

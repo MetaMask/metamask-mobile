@@ -1,14 +1,14 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { StackActions } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { useMusdConfirmNavigation } from './useMusdConfirmNavigation';
-import { useMusdConversionTokens } from './useMusdConversionTokens';
-import { useTransactionPayIsMaxAmount } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { AssetType } from '../../../Views/confirmations/types/token';
+import { selectMoneyHubEnabledFlag } from '../../Money/selectors/featureFlags';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockCanGoBack = jest.fn();
+const mockDispatch = jest.fn();
+const mockGetState = jest.fn();
+const mockGetParent = jest.fn();
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -19,156 +19,92 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    goBack: mockGoBack,
-    canGoBack: mockCanGoBack,
+    getParent: mockGetParent,
   }),
 }));
 
-jest.mock(
-  '../../../Views/confirmations/hooks/pay/useTransactionPayData',
-  () => ({
-    useTransactionPayIsMaxAmount: jest.fn(),
-  }),
-);
+const mockUseSelector = useSelector as jest.Mock;
 
-jest.mock('./useMusdConversionTokens');
+const createParentState = (routeNames: string[]) => ({
+  routes: routeNames.map((name) => ({ name, key: `${name}-key` })),
+});
 
-const mockUseTransactionPayIsMaxAmount =
-  useTransactionPayIsMaxAmount as jest.MockedFunction<
-    typeof useTransactionPayIsMaxAmount
-  >;
-const mockUseMusdConversionTokens =
-  useMusdConversionTokens as jest.MockedFunction<
-    typeof useMusdConversionTokens
-  >;
-
-const createTokenWithBalance = (
-  overrides: Partial<AssetType> = {},
-): AssetType =>
-  ({
-    address: '0xToken1',
-    chainId: '0x1',
-    symbol: 'USDC',
-    rawBalance: '0x1000',
-    ...overrides,
-  }) as AssetType;
+const setupMoneyHubEnabled = (enabled: boolean) => {
+  mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectMoneyHubEnabledFlag) return enabled;
+    return undefined;
+  });
+};
 
 describe('useMusdConfirmNavigation', () => {
-  const useSelectorMock = useSelector as jest.Mock;
-
   beforeEach(() => {
-    jest.resetAllMocks();
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
-    mockUseMusdConversionTokens.mockReturnValue({
-      tokens: [
-        createTokenWithBalance(),
-        createTokenWithBalance({ address: '0xToken2', symbol: 'USDT' }),
-      ],
-      filterAllowedTokens: jest.fn(),
-      isConversionToken: jest.fn(),
-      isMusdSupportedOnChain: jest.fn(),
-      hasConvertibleTokensByChainId: jest.fn(),
+    jest.clearAllMocks();
+    setupMoneyHubEnabled(false);
+    mockGetParent.mockReturnValue({
+      dispatch: mockDispatch,
+      getState: mockGetState,
     });
   });
 
-  it('goes back when quick convert is enabled and navigation can go back', () => {
-    useSelectorMock.mockReturnValue(true);
-    mockCanGoBack.mockReturnValue(true);
-
-    const { result } = renderHook(() => useMusdConfirmNavigation());
-
-    act(() => {
-      result.current.navigateOnConfirm();
+  describe('when Money Hub is enabled', () => {
+    beforeEach(() => {
+      setupMoneyHubEnabled(true);
     });
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
+    it('pops the parent stack when CashTokensFullView is already below', () => {
+      mockGetState.mockReturnValue(
+        createParentState(['Home', Routes.WALLET.CASH_TOKENS_FULL_VIEW]),
+      );
+
+      const { result } = renderHook(() => useMusdConfirmNavigation());
+
+      act(() => {
+        result.current.navigateOnConfirm();
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('replaces the current route with CashTokensFullView when it is not in the stack', () => {
+      mockGetState.mockReturnValue(createParentState(['Home']));
+
+      const { result } = renderHook(() => useMusdConfirmNavigation());
+
+      act(() => {
+        result.current.navigateOnConfirm();
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.WALLET.CASH_TOKENS_FULL_VIEW),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('falls back to wallet view when parent navigation is unavailable', () => {
+      mockGetParent.mockReturnValue(null);
+
+      const { result } = renderHook(() => useMusdConfirmNavigation());
+
+      act(() => {
+        result.current.navigateOnConfirm();
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    });
   });
 
-  it('navigates to wallet view when quick convert is enabled and cannot go back', () => {
-    useSelectorMock.mockReturnValue(true);
-    mockCanGoBack.mockReturnValue(false);
+  describe('when Money Hub is disabled', () => {
+    it('navigates to wallet view', () => {
+      const { result } = renderHook(() => useMusdConfirmNavigation());
 
-    const { result } = renderHook(() => useMusdConfirmNavigation());
+      act(() => {
+        result.current.navigateOnConfirm();
+      });
 
-    act(() => {
-      result.current.navigateOnConfirm();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
-
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
-  });
-
-  it('navigates to wallet view when quick convert is disabled', () => {
-    useSelectorMock.mockReturnValue(false);
-
-    const { result } = renderHook(() => useMusdConfirmNavigation());
-
-    act(() => {
-      result.current.navigateOnConfirm();
-    });
-
-    expect(mockCanGoBack).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
-  });
-
-  it('navigates to wallet view when max converting the last token', () => {
-    useSelectorMock.mockReturnValue(true);
-    mockCanGoBack.mockReturnValue(true);
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
-    mockUseMusdConversionTokens.mockReturnValue({
-      tokens: [createTokenWithBalance()],
-      filterAllowedTokens: jest.fn(),
-      isConversionToken: jest.fn(),
-      isMusdSupportedOnChain: jest.fn(),
-      hasConvertibleTokensByChainId: jest.fn(),
-    });
-
-    const { result } = renderHook(() => useMusdConfirmNavigation());
-
-    act(() => {
-      result.current.navigateOnConfirm();
-    });
-
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
-  });
-
-  it('goes back when max converting with multiple tokens remaining', () => {
-    useSelectorMock.mockReturnValue(true);
-    mockCanGoBack.mockReturnValue(true);
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
-
-    const { result } = renderHook(() => useMusdConfirmNavigation());
-
-    act(() => {
-      result.current.navigateOnConfirm();
-    });
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('goes back when custom converting the last token with partial amount', () => {
-    useSelectorMock.mockReturnValue(true);
-    mockCanGoBack.mockReturnValue(true);
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
-    mockUseMusdConversionTokens.mockReturnValue({
-      tokens: [createTokenWithBalance()],
-      filterAllowedTokens: jest.fn(),
-      isConversionToken: jest.fn(),
-      isMusdSupportedOnChain: jest.fn(),
-      hasConvertibleTokensByChainId: jest.fn(),
-    });
-
-    const { result } = renderHook(() => useMusdConfirmNavigation());
-
-    act(() => {
-      result.current.navigateOnConfirm();
-    });
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

@@ -259,6 +259,7 @@ export interface RootStackParamList extends ParamListBase {
   SendTransaction: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
+  RampHeadlessPlayground: undefined;
   RampAmountInput:
     | (SimpleRampBuildQuoteParams & { nativeFlowError?: string })
     | undefined;
@@ -559,9 +560,15 @@ export interface RootStackParamList extends ParamListBase {
   TraderProfileView: { traderId: string; traderName: string };
   TraderPositionView: {
     traderId: string;
-    traderName: string;
     tokenSymbol: string;
+    /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
     position?: Position;
+    /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
+    positionId?: string;
+    /** Optional — fetched via useTraderProfile when absent. */
+    traderName?: string;
+    /** Optional — fetched via useTraderProfile when absent. */
+    traderImageUrl?: string;
   };
 
   // Misc routes
@@ -621,7 +628,7 @@ export interface RootStackParamList extends ParamListBase {
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes
   SnapsSettingsList: undefined;
   SnapSettings: SnapSettingsParams | undefined;

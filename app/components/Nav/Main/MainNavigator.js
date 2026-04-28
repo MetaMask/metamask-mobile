@@ -61,6 +61,7 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
+import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -73,9 +74,10 @@ import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
+import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -99,7 +101,7 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MoneyScreenStack } from '../../UI/Money/routes';
+import { MoneyScreenStack, MoneyModalStack } from '../../UI/Money/routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -123,6 +125,7 @@ import {
   TopTradersView,
   TraderProfileView,
   TraderPositionView,
+  NotificationPreferencesView,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -409,7 +412,7 @@ const ExploreHome = () => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -496,6 +499,11 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.RAMP.ACTIVATION_KEY_FORM}
         component={RampActivationKeyForm}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.HEADLESS_PLAYGROUND}
+        component={RampHeadlessPlayground}
         options={{ headerShown: false }}
       />
       {
@@ -610,13 +618,15 @@ const SettingsFlow = () => {
         options={{ headerShown: false }}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
-      <Stack.Screen
-        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-        component={SnapsSettingsStack}
-        options={{ headerShown: false }}
-      />
+      {CAN_INSTALL_THIRD_PARTY_SNAPS && (
+        <Stack.Screen
+          name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+          component={SnapsSettingsStack}
+          options={{ headerShown: false }}
+        />
+      )}
       {
         ///: END:ONLY_INCLUDE_IF
       }
@@ -1195,11 +1205,21 @@ const MainNavigator = () => {
         }}
       />
       {isMoneyHomeScreenEnabled && (
-        <Stack.Screen
-          name={Routes.MONEY.ROOT}
-          component={MoneyScreenStack}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
+        <>
+          <Stack.Screen
+            name={Routes.MONEY.ROOT}
+            component={MoneyScreenStack}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
+          />
+          <Stack.Screen
+            name={Routes.MONEY.MODALS.ROOT}
+            component={MoneyModalStack}
+            options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
+            }}
+          />
+        </>
       )}
       <Stack.Screen
         name="StakeModals"
@@ -1306,6 +1326,13 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES}
+          component={NotificationPreferencesView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}

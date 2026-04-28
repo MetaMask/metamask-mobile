@@ -44,7 +44,7 @@ export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
       'ApprovalController:hasRequest',
       'ApprovalController:acceptRequest',
       'ApprovalController:rejectRequest',
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       'SnapController:getPermittedSnaps',
       'SnapController:installSnaps',
       'SubjectMetadataController:getSubjectMetadata',

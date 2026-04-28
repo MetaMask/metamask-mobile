@@ -76,7 +76,8 @@ const TraderRow: React.FC<TraderRowProps> = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            twClassName="w-6 text-right"
+            numberOfLines={1}
+            twClassName="w-8 text-right"
           >
             {`${trader.rank}.`}
           </Text>
@@ -150,9 +151,9 @@ const TraderRow: React.FC<TraderRowProps> = ({
       {/* Follow / Following button */}
       <Button
         variant={
-          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
-        size={ButtonSize.Sm}
+        size={ButtonSize.Md}
         onPress={() => onFollowPress(trader.id)}
         twClassName="min-w-[96px]"
       >
