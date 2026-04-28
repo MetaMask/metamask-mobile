@@ -21,7 +21,17 @@ import { formatPnl } from '../utils/formatPnl';
 export interface TopTraderCardProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
-  onTraderPress?: (traderId: string, traderName: string) => void;
+  /**
+   * Invoked when the card is tapped. The third argument is the trader's
+   * **overall** (unfiltered) rank — used downstream to gate the profile's
+   * podium decoration on true top-3 traders, never the filtered display
+   * rank.
+   */
+  onTraderPress?: (
+    traderId: string,
+    traderName: string,
+    overallRank: number,
+  ) => void;
   testID?: string;
 }
 
@@ -57,7 +67,8 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         activeOpacity={onTraderPress ? 0.7 : 1}
         onPress={
           onTraderPress
-            ? () => onTraderPress(trader.id, trader.username)
+            ? () =>
+                onTraderPress(trader.id, trader.username, trader.overallRank)
             : undefined
         }
         disabled={!onTraderPress}
@@ -132,10 +143,10 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       {/* Follow / Following button pinned to bottom */}
       <Button
         variant={
-          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
-        size={ButtonSize.Sm}
-        twClassName="self-center"
+        size={ButtonSize.Md}
+        isFullWidth
         onPress={() => onFollowPress(trader.id)}
       >
         {trader.isFollowing
