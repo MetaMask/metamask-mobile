@@ -15,4 +15,6 @@ export const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
 PerpsSection.displayName = 'PerpsSection';
 
+// test smart selector
+
 export default PerpsSection;
