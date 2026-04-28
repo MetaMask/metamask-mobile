@@ -122,7 +122,13 @@ const createTestState = (
   selectedGroupId?: string,
 ) => {
   const wallets = accountGroups.map((group, index) => {
-    const walletId = `wallet${index + 1}`;
+    // Extract wallet ID from group ID (e.g., 'entropy:wallet1/group1' -> 'entropy:wallet1')
+    const groupIdStr = group.id as string;
+    const slashIndex = groupIdStr.indexOf('/');
+    const walletId =
+      slashIndex !== -1
+        ? groupIdStr.substring(0, slashIndex)
+        : `wallet${index + 1}`;
     return createMockEntropyWallet(walletId, `Wallet ${index + 1}`, [group]);
   });
 
@@ -309,7 +315,7 @@ describe('AccountSelector', () => {
       // Button should have syncing message and be in disabled state
       expect(addButton).toHaveTextContent('Syncing...');
       // Verify the button is disabled
-      expect(addButton.props.disabled).toBe(true);
+      expect(addButton).toBeDisabled();
     });
 
     it('shows "Add wallet" text when syncing completes', () => {
