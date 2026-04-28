@@ -931,7 +931,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
     });
 
-    it('renders the entries-closed CTA when campaign is complete and user is not opted in', () => {
+    it('does not render the CTA when campaign is complete and user is not opted in', () => {
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       const yesterday = new Date();
@@ -946,8 +946,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
   });
 
