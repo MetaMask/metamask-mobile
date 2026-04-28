@@ -43,10 +43,11 @@ import Icon, {
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { HardwareWalletError } from '@metamask/hw-wallet-sdk';
 import {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
-  type QRHardwareScanError,
+  isQRHardwareScanError,
   QRHardwareScanErrorType,
 } from '../../../core/HardwareWallet/errors';
 
@@ -234,7 +235,7 @@ interface AnimatedQRScannerProps {
   purpose: QrScanRequestType;
   onScanSuccess: (ur: UR) => void;
   onScanError: (error: string) => void;
-  onQRHardwareScanError?: (error: QRHardwareScanError) => void;
+  onQRHardwareScanError?: (error: HardwareWalletError) => void;
   hideModal: () => void;
   pauseQRCode?: (x: boolean) => void;
   onModalHideComplete?: () => void;
@@ -254,9 +255,8 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
-  const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
+  const [scanError, setScanError] = useState<HardwareWalletError | null>(null);
 
-  const scanErrorActiveRef = useRef(false);
   const onQRHardwareScanErrorRef = useRef(onQRHardwareScanError);
   onQRHardwareScanErrorRef.current = onQRHardwareScanError;
   const theme = useTheme();
@@ -320,7 +320,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   }, []);
 
   const reset = useCallback(() => {
-    scanErrorActiveRef.current = false;
     resetDecoder();
     setScanError(null);
   }, [resetDecoder]);
@@ -359,11 +358,10 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   useEffect(() => {
     if (scanError && onQRHardwareScanErrorRef.current) {
       const errorCallback = onQRHardwareScanErrorRef.current;
-      scanErrorActiveRef.current = false;
       setScanError(null);
       errorCallback(scanError);
     }
-  }, [onQRHardwareScanError, scanError]);
+  }, [scanError]);
 
   const onError = useCallback(
     async (error: Error) => {
@@ -381,13 +379,18 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const showScannerError = useCallback(
-    async (error: QRHardwareScanError) => {
-      if (scanErrorActiveRef.current) {
+    async (error: HardwareWalletError) => {
+      resetDecoder();
+
+      if (!isQRHardwareScanError(error)) {
         return;
       }
 
-      scanErrorActiveRef.current = true;
-      resetDecoder();
+      const metadata = error.metadata as {
+        qrHardwareScanErrorType: QRHardwareScanErrorType;
+        receivedUrType?: string;
+        isUrFormat: boolean;
+      };
 
       const errorCallback = onQRHardwareScanErrorRef.current;
       if (errorCallback) {
@@ -399,9 +402,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       sendErrorAnalytics(
         buildQrHardwareWalletErrorAnalyticsProperties({
           error: error.message,
-          error_category: error.metadata.qrHardwareScanErrorType,
-          is_ur_format: error.metadata.isUrFormat,
-          received_ur_type: error.metadata.receivedUrType,
+          error_category: metadata.qrHardwareScanErrorType,
+          is_ur_format: metadata.isUrFormat,
+          received_ur_type: metadata.receivedUrType,
         }),
       ).catch(() => undefined);
     },
@@ -410,7 +413,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const onBarCodeRead = useCallback(
     async (codes: Code[]) => {
-      if (!visible || scanErrorActiveRef.current || !codes.length) {
+      if (!visible || !codes.length) {
         return;
       }
       const response = { data: codes[0].value };
@@ -426,6 +429,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             createQRHardwareScanError({
               errorType: QRHardwareScanErrorType.NonURQrScanned,
               purpose,
+              technicalMessage: 'Scanned QR code is not in UR format',
               isUrFormat: false,
             }),
           );
@@ -455,6 +459,10 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               createQRHardwareScanError({
                 errorType: QRHardwareScanErrorType.WrongURType,
                 purpose,
+                technicalMessage:
+                  purpose === QrScanRequestType.PAIR
+                    ? 'Received UR type is not valid for pairing flow'
+                    : 'Received UR type is not valid for signing flow',
                 receivedUrType: ur.type,
                 isUrFormat: true,
               }),
@@ -500,10 +508,13 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     [purpose, styles],
   );
 
-  const errorTitle = useMemo(
-    () => (scanError ? getQRHardwareScanErrorTitle(scanError) : null),
-    [scanError],
-  );
+  const errorTitle = useMemo(() => {
+    if (scanError && isQRHardwareScanError(scanError)) {
+      return getQRHardwareScanErrorTitle(scanError);
+    }
+
+    return null;
+  }, [scanError]);
 
   const handleLearnMore = useCallback(() => {
     Linking.openURL(QR_HARDWARE_LEARN_MORE_URL);

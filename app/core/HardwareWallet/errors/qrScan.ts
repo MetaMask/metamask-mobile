@@ -3,25 +3,27 @@ import { strings } from '../../../../locales/i18n';
 import {
   Category,
   ErrorCode,
+  HardwareWalletError,
   HardwareWalletType,
   Severity,
 } from '@metamask/hw-wallet-sdk';
-
-import { QRHardwareScanError } from './qrHardwareScanError';
-import {
-  QRHardwareScanErrorType,
-  type QRHardwareScanErrorMetadata,
-  type QRHardwareScanErrorOptions,
-} from './qrScan.types';
 import { RecoveryAction } from './types';
 
-export {
-  QRHardwareScanErrorType,
-  type QRHardwareScanErrorMetadata,
-  type QRHardwareScanErrorOptions,
-};
+export enum QRHardwareScanErrorType {
+  NonURQrScanned = 'non_ur_qr_scanned',
+  WrongURType = 'wrong_ur_type',
+  URDecodeError = 'ur_decode_error',
+  ScanException = 'scan_exception',
+}
 
-export { QRHardwareScanError } from './qrHardwareScanError';
+interface QRHardwareScanErrorMetadata {
+  walletType: HardwareWalletType.Qr;
+  recoveryAction: RecoveryAction.RETRY;
+  qrHardwareScanErrorType: QRHardwareScanErrorType;
+  qrScanPurpose: QrScanRequestType;
+  receivedUrType?: string;
+  isUrFormat: boolean;
+}
 
 interface CreateQRHardwareScanErrorParams {
   errorType: QRHardwareScanErrorType;
@@ -81,35 +83,52 @@ export function createQRHardwareScanError({
   technicalMessage,
   receivedUrType,
   isUrFormat,
-}: CreateQRHardwareScanErrorParams): QRHardwareScanError {
+}: CreateQRHardwareScanErrorParams): HardwareWalletError {
   const copyKeyPrefix = getErrorCopyKeyPrefix(errorType, purpose);
-  const metadata = {
-    walletType: HardwareWalletType.Qr,
-    recoveryAction: RecoveryAction.RETRY,
-    qrHardwareScanErrorType: errorType,
-    qrScanPurpose: purpose,
-    receivedUrType,
-    isUrFormat,
-  } satisfies QRHardwareScanErrorMetadata;
 
-  return new QRHardwareScanError(
+  return new HardwareWalletError(
     technicalMessage ?? getDefaultTechnicalMessage({ errorType, purpose }),
     {
       code: ErrorCode.Unknown,
       severity: Severity.Warning,
       category: Category.Unknown,
       userMessage: strings(`${copyKeyPrefix}.body`),
-      metadata,
+      metadata: {
+        walletType: HardwareWalletType.Qr,
+        recoveryAction: RecoveryAction.RETRY,
+        qrHardwareScanErrorType: errorType,
+        qrScanPurpose: purpose,
+        receivedUrType,
+        isUrFormat,
+      } satisfies QRHardwareScanErrorMetadata,
     },
   );
 }
 
+export function isQRHardwareScanError(
+  error: unknown,
+): error is HardwareWalletError & { metadata: QRHardwareScanErrorMetadata } {
+  if (!HardwareWalletError.isHardwareWalletError(error)) {
+    return false;
+  }
+
+  const metadata = error.metadata as
+    | Partial<QRHardwareScanErrorMetadata>
+    | undefined;
+  return Boolean(
+    metadata?.walletType === HardwareWalletType.Qr &&
+      metadata?.qrHardwareScanErrorType &&
+      metadata?.qrScanPurpose,
+  );
+}
+
 export function getQRHardwareScanErrorTitle(
-  error: QRHardwareScanError,
+  error: HardwareWalletError,
 ): string {
+  const metadata = error.metadata as unknown as QRHardwareScanErrorMetadata;
   const copyKeyPrefix = getErrorCopyKeyPrefix(
-    error.metadata.qrHardwareScanErrorType,
-    error.metadata.qrScanPurpose,
+    metadata.qrHardwareScanErrorType,
+    metadata.qrScanPurpose,
   );
 
   return strings(`${copyKeyPrefix}.title`);
