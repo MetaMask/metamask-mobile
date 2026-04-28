@@ -93,11 +93,12 @@ export const getMedalColors = (rank: number): MedalColors | null => {
 };
 
 /**
- * Emoji that floats above each podium avatar. Rank 1 gets a crown to give the
- * top spot a more distinctive treatment than a plain gold medal.
+ * Medal emoji that floats above each podium avatar. The same glyph family
+ * (gold / silver / bronze medal) is used for all three ranks so they share
+ * a consistent visual footprint.
  */
 export const PODIUM_EMOJI: Readonly<Record<1 | 2 | 3, string>> = {
-  1: '👑',
+  1: '🥇',
   2: '🥈',
   3: '🥉',
 };

@@ -9,8 +9,8 @@ interface CrownEmojiProps {
 }
 
 /**
- * Floating emoji anchored above the top-right corner of the avatar (rank
- * 1 = 👑, rank 2 = 🥈, rank 3 = 🥉).
+ * Floating medal emoji anchored above the top-right corner of the avatar
+ * (rank 1 = 🥇, rank 2 = 🥈, rank 3 = 🥉).
  *
  * Slight rotation makes the emoji look like it is sitting on the avatar's
  * shoulder rather than perfectly aligned, which reads better at this size.

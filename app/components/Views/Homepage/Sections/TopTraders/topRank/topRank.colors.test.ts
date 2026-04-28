@@ -35,8 +35,8 @@ describe('getMedalColors', () => {
 });
 
 describe('PODIUM_EMOJI', () => {
-  it('uses a crown for rank 1 and medal emojis for ranks 2 and 3', () => {
-    expect(PODIUM_EMOJI[1]).toBe('👑');
+  it('uses gold/silver/bronze medal emojis for ranks 1, 2 and 3', () => {
+    expect(PODIUM_EMOJI[1]).toBe('🥇');
     expect(PODIUM_EMOJI[2]).toBe('🥈');
     expect(PODIUM_EMOJI[3]).toBe('🥉');
   });
