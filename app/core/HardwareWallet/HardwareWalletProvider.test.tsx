@@ -649,6 +649,51 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
+    describe('QR scan retry', () => {
+      it('calls registered QR scan retry handler for non-signing QR errors', () => {
+        const { result } = renderWithActions();
+        const retryHandler = jest.fn();
+
+        act(() => {
+          result.current.actions.showHardwareWalletError(
+            new Error('QR scan failed'),
+          );
+        });
+        act(() => {
+          result.current.actions.setQrScanRetryHandler?.(retryHandler);
+        });
+        act(() => {
+          (capturedBottomSheetProps.onRetryQrScan as () => void)();
+        });
+
+        expect(retryHandler).toHaveBeenCalledTimes(1);
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
+      });
+
+      it('returns to awaiting confirmation when retrying a signing QR error', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('message');
+        });
+        await act(async () => {
+          result.current.actions.showHardwareWalletError(
+            new Error('QR scan failed'),
+          );
+        });
+        act(() => {
+          (capturedBottomSheetProps.onRetryQrScan as () => void)();
+        });
+
+        expect(result.current.state.connectionState).toMatchObject({
+          status: ConnectionStatus.AwaitingConfirmation,
+          operationType: 'message',
+        });
+      });
+    });
+
     describe('retryEnsureDeviceReady (internal, via bottom sheet props)', () => {
       it('transitions to connecting state when retrying a connection error', async () => {
         const { result } = renderWithActions();

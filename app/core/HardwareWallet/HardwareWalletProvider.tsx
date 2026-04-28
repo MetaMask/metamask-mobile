@@ -88,6 +88,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
   const operationTypeRef = useRef<'transaction' | 'message' | null>(null);
+  const qrScanRetryHandlerRef = useRef<(() => void) | null>(null);
 
   const [analyticsFlow, setAnalyticsFlow] = useState(
     HardwareWalletAnalyticsFlow.Connection,
@@ -134,6 +135,13 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       handleError(error);
     },
     [handleError],
+  );
+
+  const setQrScanRetryHandler = useCallback(
+    (handler: (() => void) | null) => {
+      qrScanRetryHandlerRef.current = handler;
+    },
+    [],
   );
 
   const showAwaitingConfirmation = useCallback(
@@ -187,6 +195,21 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     }
     await retryEnsureDeviceReady();
   }, [handleCloseFlow, retryEnsureDeviceReady]);
+
+  const handleRetryQrScan = useCallback(() => {
+    if (operationTypeRef.current !== null) {
+      updateConnectionState({
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: deviceId ?? 'unknown',
+        operationType: operationTypeRef.current,
+      });
+      return;
+    }
+
+    updateConnectionState({ status: ConnectionStatus.Disconnected });
+    qrScanRetryHandlerRef.current?.();
+  }, [deviceId, updateConnectionState]);
+
   const handleAwaitingConfirmationCancel = useCallback(() => {
     DevLogger.log('[HardwareWallet] handleAwaitingConfirmationCancel');
     const onReject = awaitingConfirmationRejectRef.current;
@@ -248,6 +271,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setTargetWalletType: setters.setTargetWalletType,
       setPendingOperationAddress,
       showHardwareWalletError,
+      setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
       qr: qrSigningValue,
@@ -261,6 +285,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setters.setTargetWalletType,
       setPendingOperationAddress,
       showHardwareWalletError,
+      setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
       qrSigningValue,
@@ -282,6 +307,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleBottomSheetConnectionSuccess}
         onCTAClicked={trackCTAClicked}
+        onRetryQrScan={handleRetryQrScan}
       />
     </HardwareWalletContext.Provider>
   );

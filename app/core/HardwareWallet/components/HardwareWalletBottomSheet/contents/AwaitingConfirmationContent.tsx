@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
@@ -23,7 +29,10 @@ import Alert, { AlertType } from '../../../../../components/Base/Alert';
 
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import {
+  HardwareWalletError,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 import { getHardwareWalletTypeName } from '../../../helpers';
 import { ContentLayout } from './ContentLayout';
 import { useHardwareWallet } from '../../../contexts';
@@ -73,14 +82,24 @@ export interface AwaitingConfirmationContentProps {
   operationType?: string;
   /** Optional callback when user wants to cancel/reject */
   onCancel?: () => void;
+  /** Open the QR scanner as soon as this content mounts after QR error retry. */
+  openQrScannerOnMount?: boolean;
+  /** Callback fired after the mount-triggered QR scanner has opened. */
+  onQrScannerOpened?: () => void;
 }
 
 export const AwaitingConfirmationContent: React.FC<
   AwaitingConfirmationContentProps
-> = ({ deviceType, operationType, onCancel }) => {
+> = ({
+  deviceType,
+  operationType,
+  onCancel,
+  openQrScannerOnMount,
+  onQrScannerOpened,
+}) => {
   const { colors } = useTheme();
   const { createEventBuilder, trackEvent } = useAnalytics();
-  const { qr } = useHardwareWallet();
+  const { qr, showHardwareWalletError } = useHardwareWallet();
   const deviceName = getHardwareWalletTypeName(deviceType);
   const isQrFlow = deviceType === HardwareWalletType.Qr;
   const {
@@ -93,6 +112,16 @@ export const AwaitingConfirmationContent: React.FC<
   const [scannerVisible, setScannerVisible] = useState(false);
   const [shouldPause, setShouldPause] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const pendingQrScanErrorRef = useRef<HardwareWalletError | null>(null);
+
+  useEffect(() => {
+    if (!openQrScannerOnMount || !isQrFlow || !isSigningQRObject) {
+      return;
+    }
+
+    setScannerVisible(true);
+    onQrScannerOpened?.();
+  }, [isQrFlow, isSigningQRObject, onQrScannerOpened, openQrScannerOnMount]);
 
   useEffect(() => {
     if (!isSigningQRObject) {
@@ -148,6 +177,21 @@ export const AwaitingConfirmationContent: React.FC<
     setScannerVisible(false);
     setErrorMessage(error);
   }, []);
+
+  const onQRHardwareScanError = useCallback((error: HardwareWalletError) => {
+    pendingQrScanErrorRef.current = error;
+    setScannerVisible(false);
+  }, []);
+
+  const handleScannerModalHide = useCallback(() => {
+    const pendingError = pendingQrScanErrorRef.current;
+    if (!pendingError) {
+      return;
+    }
+
+    pendingQrScanErrorRef.current = null;
+    showHardwareWalletError(pendingError);
+  }, [showHardwareWalletError]);
 
   const onQrCancel = useCallback(async () => {
     setScannerVisible(false);
@@ -286,6 +330,8 @@ export const AwaitingConfirmationContent: React.FC<
           purpose={QrScanRequestType.SIGN}
           onScanSuccess={onScanSuccess}
           onScanError={onScanError}
+          onQRHardwareScanError={onQRHardwareScanError}
+          onModalHideComplete={handleScannerModalHide}
           hideModal={() => setScannerVisible(false)}
         />
       </>
