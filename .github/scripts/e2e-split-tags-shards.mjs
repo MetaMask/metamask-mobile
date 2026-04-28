@@ -262,15 +262,27 @@ async function fetchE2ETestTimes() {
 
     console.log(`📥 Fetching qa-stats artifact from latest successful main run #${run.id}`);
 
-    const zipRes = await fetch(artifact.archive_download_url, {
+    // GitHub redirects to a pre-signed S3/Azure URL. Follow manually so the
+    // Authorization header is not forwarded to the storage backend (which
+    // rejects requests carrying an unexpected Authorization header).
+    const redirectRes = await fetch(artifact.archive_download_url, {
       headers: {
         Authorization: `Bearer ${env.GITHUB_TOKEN}`,
         Accept: 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
         'User-Agent': 'metamask-mobile-ci',
       },
-      redirect: 'follow',
+      redirect: 'manual',
     });
+
+    const downloadUrl = redirectRes.headers.get('location');
+    if (!downloadUrl) {
+      throw new Error(
+        `no redirect URL returned for qa-stats artifact (status ${redirectRes.status})`,
+      );
+    }
+
+    const zipRes = await fetch(downloadUrl);
     if (!zipRes.ok) {
       throw new Error(`download zip → ${zipRes.status} ${zipRes.statusText}`);
     }
