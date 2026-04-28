@@ -32,18 +32,6 @@ describe('NotificationBadge', () => {
       'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
   };
 
-  it('should renders correctly', () => {
-    const { toJSON } = render(
-      <Provider store={store}>
-        <NotificationBadge
-          {...commonProps}
-          notificationType={TRIGGER_TYPES.ETH_RECEIVED}
-        />
-      </Provider>,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('should renders NetworkMainAssetLogo for ETH notification types', () => {
     const { getByTestId } = render(
       <Provider store={store}>

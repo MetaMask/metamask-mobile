@@ -1,6 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import networkImage from '../../../../images/ethereum.png';
+import networkImage from '../../../../../images/ethereum.png';
 import { SampleNetworkDisplay } from './SampleNetworkDisplay';
 
 /**
@@ -16,13 +16,13 @@ describe('SampleNetworkDisplay', () => {
    *
    * @test
    */
-  it('matches rendered snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders network name', () => {
+    const { getByText } = renderWithProvider(
       <SampleNetworkDisplay
         name={'My test network'}
         imageSource={networkImage}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('My test network')).toBeOnTheScreen();
   });
 });

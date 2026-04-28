@@ -91,4 +91,12 @@ describe('Transaction Pay Controller Init', () => {
 
     expect(state).toBe(MOCK_TRANSACTION_PAY_CONTROLLER_STATE);
   });
+
+  it('does not override strategy selection in mobile init', () => {
+    const getStrategy = testConstructorOption('getStrategy');
+    const getStrategies = testConstructorOption('getStrategies');
+
+    expect(getStrategy).toBeUndefined();
+    expect(getStrategies).toBeUndefined();
+  });
 });

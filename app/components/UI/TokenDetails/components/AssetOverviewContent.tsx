@@ -61,20 +61,19 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import { getSecurityBadgeConfig } from '../../SecurityTrust/utils/securityUtils';
+import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
   Icon,
-  IconName,
   IconSize,
-  IconColor,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { SecurityBanner } from './SecurityBanner';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
@@ -278,6 +277,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           return;
         }
         handlePerpsAction?.('long');
+      }).finally(() => {
+        // Release the TokenDetailsActions nav lock whenever gate() settles
+        // without navigating (compliance block modal or geo-block tooltip).
+        // Safe no-op if handlePerpsAction navigated since the focus/state
+        // listeners also clear the lock.
+        resetNavigationLockRef.current?.();
       }),
     [gate, isEligible, track, handlePerpsAction],
   );
@@ -296,6 +301,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           return;
         }
         handlePerpsAction?.('short');
+      }).finally(() => {
+        resetNavigationLockRef.current?.();
       }),
     [gate, isEligible, track, handlePerpsAction],
   );
@@ -334,75 +341,52 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [isMerklClaimingEnabled, token.chainId, token.address],
   );
 
-  const securityBadge = useMemo(
-    () => getSecurityBadgeConfig(securityData),
-    [securityData],
+  const securityConfig = useMemo(
+    () => getResultTypeConfig(securityData?.resultType),
+    [securityData?.resultType],
   );
 
   const handleSecurityBadgePress = useCallback(() => {
-    if (!securityData?.resultType || securityData.resultType === 'Benign')
+    if (
+      !securityData?.resultType ||
+      securityData.resultType === 'Benign' ||
+      !securityConfig.icon ||
+      !securityConfig.iconColor ||
+      !securityConfig.sheetTitle ||
+      !securityConfig.getSheetDescription
+    ) {
       return;
-
-    const configMap: Record<
-      string,
-      {
-        icon: IconName;
-        iconColor: IconColor;
-        title: string;
-        description: string;
-      }
-    > = {
-      Verified: {
-        icon: IconName.VerifiedFilled,
-        iconColor: IconColor.IconDefault,
-        title: strings('security_trust.verified_token_title'),
-        description: strings('security_trust.verified_token_description', {
-          symbol: token.symbol,
-        }),
-      },
-      Warning: {
-        icon: IconName.Warning,
-        iconColor: IconColor.WarningDefault,
-        title: strings('security_trust.risky_token_title'),
-        description: strings('security_trust.risky_token_description', {
-          symbol: token.symbol,
-        }),
-      },
-      Spam: {
-        icon: IconName.Warning,
-        iconColor: IconColor.WarningDefault,
-        title: strings('security_trust.risky_token_title'),
-        description: strings('security_trust.risky_token_description', {
-          symbol: token.symbol,
-        }),
-      },
-      Malicious: {
-        icon: IconName.Danger,
-        iconColor: IconColor.ErrorDefault,
-        title: strings('security_trust.malicious_token_title'),
-        description: strings(
-          'security_trust.malicious_token_sheet_description',
-          { symbol: token.symbol },
-        ),
-      },
-    };
-
-    const config = configMap[securityData.resultType];
-    if (config) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-        params: {
-          ...config,
-          source: 'badge',
-          severity: securityData.resultType,
-          tokenAddress: token.address,
-          tokenSymbol: token.symbol,
-          chainId: token.chainId,
-        },
-      });
     }
+
+    // For Verified tokens, use badge icon (VerifiedFilled) instead of tag icon (SecurityTick)
+    const isVerified = securityData.resultType === 'Verified';
+    const displayIcon =
+      isVerified && securityConfig.badge
+        ? securityConfig.badge.icon
+        : securityConfig.icon;
+    const displayIconColor =
+      isVerified && securityConfig.badge
+        ? securityConfig.badge.iconColor
+        : securityConfig.iconColor;
+
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+      params: {
+        icon: displayIcon,
+        iconColor: displayIconColor,
+        title: securityConfig.sheetTitle,
+        description: securityConfig.getSheetDescription(token.symbol),
+        source: 'badge',
+        severity: securityData.resultType,
+        tokenAddress: token.address,
+        tokenSymbol: token.symbol,
+        chainId: token.chainId,
+        features: securityData.features,
+      },
+    });
   }, [
-    securityData?.resultType,
+    securityData,
+    securityConfig,
     token.symbol,
     token.address,
     token.chainId,
@@ -579,6 +563,46 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         renderWarning()
       ) : (
         <View>
+          {securityData &&
+            (securityData.resultType === 'Malicious' ||
+              securityData.resultType === 'Warning' ||
+              securityData.resultType === 'Spam') && (
+              <SecurityBanner
+                securityConfig={securityConfig}
+                backgroundClass={
+                  securityData.resultType === 'Malicious'
+                    ? 'bg-error-muted'
+                    : 'bg-warning-muted'
+                }
+                titleFontWeight={
+                  securityData.resultType === 'Malicious'
+                    ? FontWeight.Bold
+                    : FontWeight.Medium
+                }
+                testID={
+                  securityData.resultType === 'Malicious'
+                    ? 'security-banner-malicious'
+                    : 'security-banner-warning'
+                }
+                title={
+                  securityData.resultType === 'Malicious'
+                    ? strings('security_trust.malicious_token_title')
+                    : undefined
+                }
+                description={
+                  securityData.resultType === 'Malicious'
+                    ? strings('security_trust.malicious_token_description', {
+                        symbol: token.symbol,
+                      })
+                    : strings('security_trust.suspicious_token_description', {
+                        symbol: token.symbol,
+                      })
+                }
+                className="mx-4 mb-3 gap-4"
+                onPress={handleSecurityBadgePress}
+              />
+            )}
+
           {/* Token icon + name row */}
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -615,53 +639,21 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     {token.name || token.symbol}
                   </Text>
                 </Box>
-                {securityBadge && securityBadge.label === null && (
-                  <Box twClassName="shrink-0 pb-[2px]">
-                    <TouchableOpacity
-                      onPress={handleSecurityBadgePress}
-                      testID="security-badge-verified"
-                    >
-                      <Icon
-                        name={securityBadge.icon}
-                        size={IconSize.Md}
-                        color={securityBadge.iconColor}
-                      />
-                    </TouchableOpacity>
-                  </Box>
-                )}
-                {securityBadge && securityBadge.label !== null && (
-                  <Box twClassName="shrink-0 pb-[2px]">
-                    <TouchableOpacity
-                      onPress={handleSecurityBadgePress}
-                      testID={
-                        securityData?.resultType === 'Malicious'
-                          ? 'security-badge-malicious'
-                          : 'security-badge-warning'
-                      }
-                    >
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
+                {securityData?.resultType === 'Verified' &&
+                  securityConfig.badge && (
+                    <Box twClassName="shrink-0 pb-[2px]">
+                      <TouchableOpacity
+                        onPress={handleSecurityBadgePress}
+                        testID="security-badge-verified"
                       >
                         <Icon
-                          name={securityBadge.icon}
-                          size={IconSize.Sm}
-                          color={securityBadge.iconColor}
+                          name={securityConfig.badge.icon}
+                          size={IconSize.Md}
+                          color={securityConfig.badge.iconColor}
                         />
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={securityBadge.textColor}
-                          fontWeight={FontWeight.Medium}
-                          numberOfLines={1}
-                          twClassName="overflow-hidden text-center"
-                        >
-                          {securityBadge.label}
-                        </Text>
-                      </Box>
-                    </TouchableOpacity>
-                  </Box>
-                )}
+                      </TouchableOpacity>
+                    </Box>
+                  )}
                 {!token.name && isStockToken(token as BridgeToken) && (
                   <Box twClassName="shrink-0">
                     <StockBadge token={token as BridgeToken} />
@@ -689,43 +681,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               ) : null}
             </Box>
           </Box>
-
-          {securityData?.resultType === 'Malicious' && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Start}
-              twClassName="self-stretch mx-4 mt-3 min-h-[100px] min-w-[280px] py-3 pl-6 pr-4 gap-4 rounded-2xl bg-error-muted"
-            >
-              <Box twClassName="pt-[2px]">
-                <Icon
-                  name={IconName.Danger}
-                  size={IconSize.Md}
-                  color={IconColor.ErrorDefault}
-                />
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                alignItems={BoxAlignItems.Start}
-                twClassName="flex-1"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('security_trust.malicious_token_title')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('security_trust.malicious_token_description', {
-                    symbol: token.symbol,
-                  })}
-                </Text>
-              </Box>
-            </Box>
-          )}
 
           <Price
             asset={token}

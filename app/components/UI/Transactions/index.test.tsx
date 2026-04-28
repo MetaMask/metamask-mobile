@@ -21,7 +21,10 @@ import { TransactionDetailLocation } from '../../../core/Analytics/events/transa
 import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { isHardwareAccount } from '../../../util/address';
 import NotificationManager from '../../../core/NotificationManager';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import {
+  updateIncomingTransactions,
+  speedUpTransaction,
+} from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
@@ -73,6 +76,37 @@ jest.mock('../../../util/transaction-controller', () => ({
 jest.mock('../../../util/confirmation/gas', () => ({
   getGasValuesForReplacement: jest.fn((gasValues) => gasValues),
   getMediumGasPriceHex: jest.fn(() => '0x123'),
+  normalizeReplacementGasFeeParams: jest.fn((replacementParams) => {
+    if (replacementParams?.legacyGasFee?.gasPrice) {
+      return { gasPrice: replacementParams.legacyGasFee.gasPrice };
+    }
+
+    if (
+      replacementParams?.eip1559GasFee?.maxFeePerGas &&
+      replacementParams?.eip1559GasFee?.maxPriorityFeePerGas
+    ) {
+      return {
+        maxFeePerGas: replacementParams.eip1559GasFee.maxFeePerGas,
+        maxPriorityFeePerGas:
+          replacementParams.eip1559GasFee.maxPriorityFeePerGas,
+      };
+    }
+
+    return undefined;
+  }),
+}));
+
+const mockExecuteHardwareWalletOperation = jest.fn();
+jest.mock('../../../core/HardwareWallet', () => ({
+  useHardwareWallet: () => ({
+    ensureDeviceReady: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+  }),
+  executeHardwareWalletOperation: (...args: unknown[]) =>
+    mockExecuteHardwareWalletOperation(...args),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -91,6 +125,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: jest.fn(),
+    closeToast: jest.fn(),
+  },
+}));
+
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -103,11 +145,6 @@ jest.mock('../TransactionElement', () => ({
 
 // Mock other connected components
 jest.mock('../TransactionActionModal', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-jest.mock('./RetryModal', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -190,6 +227,7 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+const LEDGER_ADDRESS = '0x29D68015EE8Eb26fD23579a1df80ff1fb0F26209';
 
 const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
   typeof isNonEvmChainId
@@ -227,6 +265,9 @@ const mockUpdateIncomingTransactions =
   updateIncomingTransactions as jest.MockedFunction<
     typeof updateIncomingTransactions
   >;
+const mockSpeedUpTransaction = speedUpTransaction as jest.MockedFunction<
+  typeof speedUpTransaction
+>;
 
 jest.useFakeTimers();
 
@@ -260,6 +301,7 @@ describe('Transactions', () => {
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
     mockUpdateIncomingTransactions.mockResolvedValue(undefined);
+    mockExecuteHardwareWalletOperation.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -352,19 +394,10 @@ describe('Transactions', () => {
       const mockState = {
         speedUpIsOpen: false,
         cancelIsOpen: false,
-        retryIsOpen: false,
-        errorMsg: null,
       };
 
       const newState = { ...mockState, speedUpIsOpen: true };
       expect(newState.speedUpIsOpen).toBe(true);
-
-      const errorState = {
-        ...mockState,
-        retryIsOpen: true,
-        errorMsg: 'Test error',
-      };
-      expect(errorState.errorMsg).toBe('Test error');
     });
 
     it('calculates gas prices', () => {
@@ -1561,6 +1594,21 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.setState).toHaveBeenCalled();
   });
 
+  it('resets state when onSpeedUpAction is called with false', () => {
+    instance.setState = jest.fn();
+    instance.speedUpTxId = 'old-tx';
+    instance.existingTx = { id: 'old-tx' };
+
+    instance.onSpeedUpAction(false, null);
+
+    expect(instance.setState).toHaveBeenCalledWith({
+      speedUpIsOpen: false,
+      cancelIsOpen: false,
+    });
+    expect(instance.speedUpTxId).toBeNull();
+    expect(instance.existingTx).toBeNull();
+  });
+
   it('should test onCancelAction method directly', () => {
     instance.setState = jest.fn();
     const tx = { id: 'tx-456' };
@@ -1574,6 +1622,21 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       cancelIsOpen: true,
       confirmDisabled: false,
     });
+  });
+
+  it('resets state when onCancelAction is called with false', () => {
+    instance.setState = jest.fn();
+    instance.cancelTxId = 'old-cancel';
+    instance.existingTx = { id: 'old-cancel' };
+
+    instance.onCancelAction(false, null);
+
+    expect(instance.setState).toHaveBeenCalledWith({
+      speedUpIsOpen: false,
+      cancelIsOpen: false,
+    });
+    expect(instance.cancelTxId).toBeNull();
+    expect(instance.existingTx).toBeNull();
   });
 
   it('should test closeSpeedUpCancelModal method directly', () => {
@@ -1609,39 +1672,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onScroll(event);
 
     expect(mockOnScrollThroughContent).toHaveBeenCalledWith(100);
-  });
-
-  it('should test toggleRetry method directly', () => {
-    instance.setState = jest.fn();
-
-    const errorMsg = 'Test error message';
-    instance.toggleRetry(errorMsg);
-
-    expect(instance.setState).toHaveBeenCalled();
-  });
-
-  it('should test retry method directly', () => {
-    instance.setState = jest.fn();
-    instance.onSpeedUpAction = jest.fn();
-    instance.onCancelAction = jest.fn();
-    instance.speedUpTxId = 'speed-up-tx';
-    instance.existingTx = { id: 'speed-up-tx' };
-
-    instance.retry();
-
-    // The retry method calls setState with a function, not an object
-    expect(instance.setState).toHaveBeenCalled();
-
-    // Test that the state function produces the expected result
-    const setStateCall = instance.setState.mock.calls[0][0];
-    const newState = setStateCall({
-      retryIsOpen: true,
-      errorMsg: 'test error',
-    });
-    expect(newState).toEqual({
-      retryIsOpen: false,
-      errorMsg: undefined,
-    });
   });
 
   it('should test navigation patterns for coverage', () => {
@@ -1960,6 +1990,67 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
+  it('returns early from speedUpTransaction when transactionObject has error', async () => {
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    await instance.speedUpTransaction({ error: 'Some error' });
+
+    expect(instance.closeSpeedUpCancelModal).not.toHaveBeenCalled();
+    expect(mockSpeedUpTransaction).not.toHaveBeenCalled();
+  });
+
+  it('closes modals when speedUpTransaction fails', async () => {
+    mockIsHardwareAccount.mockReturnValue(false);
+    instance.speedUpTxId = 'tx-fail';
+    instance.getCancelOrSpeedupValues = jest.fn().mockReturnValue({
+      gasPrice: '0x123',
+    });
+    instance.setState = jest.fn();
+
+    const { speedUpTransaction: speedUpFn } = jest.requireMock(
+      '../../../util/transaction-controller',
+    );
+    speedUpFn.mockRejectedValueOnce(new Error('Speed up failed'));
+
+    await instance.speedUpTransaction({ gasPrice: '0x123' });
+
+    expect(instance.setState).toHaveBeenCalledWith({
+      speedUpIsOpen: false,
+      cancelIsOpen: false,
+    });
+  });
+
+  it('closes modals when cancelTransaction fails', async () => {
+    mockIsHardwareAccount.mockReturnValue(false);
+    instance.cancelTxId = 'tx-cancel-fail';
+    instance.getCancelOrSpeedupValues = jest.fn().mockReturnValue({
+      gasPrice: '0x123',
+    });
+    instance.setState = jest.fn();
+
+    (
+      Engine.context.TransactionController.stopTransaction as jest.Mock
+    ).mockRejectedValueOnce(new Error('Cancel failed'));
+
+    await instance.cancelTransaction({ gasPrice: '0x123' });
+
+    expect(instance.setState).toHaveBeenCalledWith({
+      speedUpIsOpen: false,
+      cancelIsOpen: false,
+    });
+  });
+
+  it('returns early from cancelTransaction when transactionObject has error', async () => {
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    await instance.cancelTransaction({ error: 'Some error' });
+
+    expect(instance.closeSpeedUpCancelModal).not.toHaveBeenCalled();
+    expect(
+      Engine.context.TransactionController.stopTransaction,
+    ).not.toHaveBeenCalled();
+  });
+
   it('should test cancelTransaction method directly', async () => {
     mockIsHardwareAccount.mockReturnValue(false);
     instance.cancelTxId = 'tx-456';
@@ -2102,14 +2193,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       ready: true,
-      retryIsOpen: false,
-      errorMsg: null,
     };
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
-    instance.toggleRetry = jest.fn();
-    instance.retry = jest.fn();
 
     const result = instance.render();
     expect(result).toBeDefined();
@@ -2318,35 +2405,341 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.signLedgerTransaction).toHaveBeenCalled();
   });
 
-  it('should test retry method with different scenarios', () => {
-    instance.setState = jest.fn();
-    instance.onSpeedUpAction = jest.fn();
-    instance.onCancelAction = jest.fn();
+  it('does not close the modal twice after a hardware speed up signs successfully', async () => {
+    mockIsHardwareAccount.mockReturnValue(true);
+    instance.speedUpTxId = 'tx-123';
+    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.signLedgerTransaction = jest.fn().mockImplementation(async () => {
+      instance.closeSpeedUpCancelModal();
+    });
 
-    // Test retry with speedUpTxId
-    instance.speedUpTxId = 'speed-up-tx';
-    instance.cancelTxId = null;
-    instance.existingTx = { id: 'speed-up-tx' };
+    await instance.speedUpTransaction({
+      suggestedMaxFeePerGasHex: '123',
+      suggestedMaxPriorityFeePerGasHex: '456',
+    });
 
-    instance.retry();
+    expect(instance.signLedgerTransaction).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalledTimes(1);
+  });
 
-    expect(instance.setState).toHaveBeenCalled();
+  it('does not close the modal twice after a hardware cancel signs successfully', async () => {
+    mockIsHardwareAccount.mockReturnValue(true);
+    instance.cancelTxId = 'tx-456';
+    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.signLedgerTransaction = jest.fn().mockImplementation(async () => {
+      instance.closeSpeedUpCancelModal();
+    });
 
-    // Test retry with cancelTxId
-    instance.speedUpTxId = null;
-    instance.cancelTxId = 'cancel-tx';
+    await instance.cancelTransaction({
+      suggestedMaxFeePerGasHex: '123',
+      suggestedMaxPriorityFeePerGasHex: '456',
+    });
 
-    instance.retry();
+    expect(instance.signLedgerTransaction).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalledTimes(1);
+  });
 
-    expect(instance.setState).toHaveBeenCalled();
+  it('signs a plain Ledger transaction through ApprovalController when no replacement params are present', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
 
-    // Test retry with neither speedUpTxId nor cancelTxId
-    instance.speedUpTxId = null;
-    instance.cancelTxId = null;
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ execute }) => {
+        await execute();
+        return true;
+      },
+    );
 
-    instance.retry();
+    await instance.signLedgerTransaction({
+      id: 'plain-ledger-sign',
+    });
 
-    expect(instance.setState).toHaveBeenCalled();
+    expect(
+      Engine.context.ApprovalController.acceptRequest,
+    ).toHaveBeenCalledWith('plain-ledger-sign', undefined, {
+      waitForResult: true,
+    });
+  });
+
+  it('calls speedUpTransaction when signLedgerTransaction receives speedUp replacementParams with legacy gas', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ execute }: { execute: () => Promise<void> }) => {
+        await execute();
+        return true;
+      },
+    );
+
+    await instance.signLedgerTransaction({
+      id: 'speedup-tx-id',
+      replacementParams: {
+        type: 'speedUp',
+        legacyGasFee: { gasPrice: '0xabc' },
+      },
+    });
+
+    expect(mockSpeedUpTransaction).toHaveBeenCalledWith('speedup-tx-id', {
+      gasPrice: '0xabc',
+    });
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
+  });
+
+  it('calls speedUpTransaction with eip1559 gas when signLedgerTransaction receives speedUp with eip1559GasFee', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ execute }: { execute: () => Promise<void> }) => {
+        await execute();
+        return true;
+      },
+    );
+
+    await instance.signLedgerTransaction({
+      id: 'eip1559-speedup',
+      replacementParams: {
+        type: 'speedUp',
+        eip1559GasFee: {
+          maxFeePerGas: '0xdef',
+          maxPriorityFeePerGas: '0x111',
+        },
+      },
+    });
+
+    expect(mockSpeedUpTransaction).toHaveBeenCalledWith('eip1559-speedup', {
+      maxFeePerGas: '0xdef',
+      maxPriorityFeePerGas: '0x111',
+    });
+  });
+
+  it('calls stopTransaction when signLedgerTransaction receives cancel replacementParams with eip1559 gas', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ execute }: { execute: () => Promise<void> }) => {
+        await execute();
+        return true;
+      },
+    );
+
+    await instance.signLedgerTransaction({
+      id: 'cancel-tx-id',
+      replacementParams: {
+        type: 'cancel',
+        eip1559GasFee: {
+          maxFeePerGas: '0x456',
+          maxPriorityFeePerGas: '0x789',
+        },
+      },
+    });
+
+    expect(
+      Engine.context.TransactionController.stopTransaction,
+    ).toHaveBeenCalledWith('cancel-tx-id', {
+      maxFeePerGas: '0x456',
+      maxPriorityFeePerGas: '0x789',
+    });
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
+  });
+
+  it('calls stopTransaction with legacy gas when signLedgerTransaction receives cancel replacementParams with legacyGasFee', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ execute }: { execute: () => Promise<void> }) => {
+        await execute();
+        return true;
+      },
+    );
+
+    await instance.signLedgerTransaction({
+      id: 'legacy-cancel',
+      replacementParams: {
+        type: 'cancel',
+        legacyGasFee: { gasPrice: '0x999' },
+      },
+    });
+
+    expect(
+      Engine.context.TransactionController.stopTransaction,
+    ).toHaveBeenCalledWith('legacy-cancel', { gasPrice: '0x999' });
+  });
+
+  it('passes undefined to stopTransaction when eip1559 replacement params are incomplete', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ execute }: { execute: () => Promise<void> }) => {
+        await execute();
+        return true;
+      },
+    );
+
+    await instance.signLedgerTransaction({
+      id: 'incomplete-eip1559-cancel',
+      replacementParams: {
+        type: 'cancel',
+        eip1559GasFee: {
+          maxFeePerGas: '0x456',
+        },
+      },
+    });
+
+    expect(
+      Engine.context.TransactionController.stopTransaction,
+    ).toHaveBeenCalledWith('incomplete-eip1559-cancel', undefined);
+  });
+
+  it('does not close modal when executeHardwareWalletOperation returns false', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    mockExecuteHardwareWalletOperation.mockResolvedValueOnce(false);
+
+    await instance.signLedgerTransaction({ id: 'rejected-tx-id' });
+
+    expect(instance.closeSpeedUpCancelModal).not.toHaveBeenCalled();
+  });
+
+  it('forwards hardwareWallet props into executeHardwareWalletOperation', async () => {
+    const mockEnsureDeviceReady = jest.fn();
+    const mockSetTargetWalletType = jest.fn();
+    const mockShowAwaiting = jest.fn();
+    const mockHideAwaiting = jest.fn();
+    const mockShowError = jest.fn();
+
+    instance.props = {
+      ...instance.props,
+      selectedAddress: LEDGER_ADDRESS,
+      hardwareWallet: {
+        ensureDeviceReady: mockEnsureDeviceReady,
+        setPendingOperationAddress: mockSetTargetWalletType,
+        showAwaitingConfirmation: mockShowAwaiting,
+        hideAwaitingConfirmation: mockHideAwaiting,
+        showHardwareWalletError: mockShowError,
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let capturedOptions: any;
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async (options: any) => {
+        capturedOptions = options;
+        await options.execute();
+        return true;
+      },
+    );
+
+    await instance.signLedgerTransaction({ id: 'param-test-tx' });
+
+    expect(capturedOptions.address).toBe(LEDGER_ADDRESS);
+    expect(capturedOptions.operationType).toBe('transaction');
+    expect(capturedOptions.ensureDeviceReady).toBe(mockEnsureDeviceReady);
+    expect(capturedOptions.setPendingOperationAddress).toBe(
+      mockSetTargetWalletType,
+    );
+    expect(capturedOptions.showAwaitingConfirmation).toBe(mockShowAwaiting);
+    expect(capturedOptions.hideAwaitingConfirmation).toBe(mockHideAwaiting);
+    expect(capturedOptions.showHardwareWalletError).toBe(mockShowError);
+    expect(capturedOptions.onRejected).toBe(instance.closeSpeedUpCancelModal);
+  });
+
+  it('throws before executeHardwareWalletOperation when selectedAddress is empty', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: '',
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+
+    mockExecuteHardwareWalletOperation.mockResolvedValueOnce(false);
+
+    await expect(
+      instance.signLedgerTransaction({ id: 'missing-address-tx' }),
+    ).rejects.toThrow('Missing selected address for hardware wallet operation');
+    expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
   });
 
   describe('asset-chain explorer (tokenChainId / AssetDetails)', () => {

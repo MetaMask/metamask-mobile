@@ -228,6 +228,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
         </View>
       </View>
       <CheckBox
+        testID="token-select-checkbox"
         style={styles.checkBox}
         value={selected}
         onValueChange={triggerToggleSelected}

@@ -122,9 +122,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockGate = jest.fn(
+  async (action: () => Promise<unknown>) => await action(),
+);
 jest.mock('../../Compliance', () => ({
   useComplianceGate: () => ({
-    gate: (action: () => Promise<unknown>) => action(),
+    gate: (action: () => Promise<unknown>) => mockGate(action),
     isBlocked: false,
     isComplianceEnabled: false,
     checkCompliance: jest.fn(),
@@ -317,6 +320,51 @@ describe('AssetOverviewContent', () => {
 
       expect(mockHandlePerpsAction).toHaveBeenCalledWith('short');
       expect(mockTrack).not.toHaveBeenCalled();
+    });
+
+    it('releases the navigation lock when gate() settles without navigating so Long can be pressed again', async () => {
+      // Simulate a blocked wallet: gate() shows the compliance modal and
+      // returns without invoking the action. Without releasing the nav lock
+      // in the finally(), the second press would be silently ignored.
+      mockGate.mockImplementationOnce(async () => undefined);
+      mockGate.mockImplementationOnce(async () => undefined);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(true) },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      });
+      expect(mockGate).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+      });
+      expect(mockGate).toHaveBeenCalledTimes(2);
+      expect(mockHandlePerpsAction).not.toHaveBeenCalled();
+    });
+
+    it('releases the navigation lock when gate() settles without navigating so Short can be pressed again', async () => {
+      mockGate.mockImplementationOnce(async () => undefined);
+      mockGate.mockImplementationOnce(async () => undefined);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(true) },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+      });
+      expect(mockGate).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+      });
+      expect(mockGate).toHaveBeenCalledTimes(2);
+      expect(mockHandlePerpsAction).not.toHaveBeenCalled();
     });
 
     it('closes geo block modal when closeEligibilityModal is called', () => {
@@ -594,8 +642,8 @@ describe('AssetOverviewContent', () => {
       );
 
       expect(queryByTestId('security-badge-verified')).toBeNull();
-      expect(queryByTestId('security-badge-warning')).toBeNull();
-      expect(queryByTestId('security-badge-malicious')).toBeNull();
+      expect(queryByTestId('security-banner-warning')).toBeNull();
+      expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
 
     it('renders warning badge when securityData resultType is Warning', () => {
@@ -607,8 +655,8 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      const badge = getByTestId('security-badge-warning');
-      expect(badge).toBeOnTheScreen();
+      const banner = getByTestId('security-banner-warning');
+      expect(banner).toBeOnTheScreen();
     });
 
     it('renders warning badge when securityData resultType is Spam', () => {
@@ -620,8 +668,8 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      const badge = getByTestId('security-badge-warning');
-      expect(badge).toBeOnTheScreen();
+      const banner = getByTestId('security-banner-warning');
+      expect(banner).toBeOnTheScreen();
     });
 
     it('renders malicious badge when securityData resultType is Malicious', () => {
@@ -633,8 +681,8 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      const badge = getByTestId('security-badge-malicious');
-      expect(badge).toBeOnTheScreen();
+      const banner = getByTestId('security-banner-malicious');
+      expect(banner).toBeOnTheScreen();
     });
 
     it('navigates to security badge bottom sheet when verified badge is pressed', () => {
@@ -671,7 +719,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId('security-badge-warning'));
+      fireEvent.press(getByTestId('security-banner-warning'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
@@ -696,7 +744,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId('security-badge-warning'));
+      fireEvent.press(getByTestId('security-banner-warning'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
@@ -721,7 +769,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId('security-badge-malicious'));
+      fireEvent.press(getByTestId('security-banner-malicious'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
@@ -757,8 +805,8 @@ describe('AssetOverviewContent', () => {
       );
 
       expect(queryByTestId('security-badge-verified')).toBeNull();
-      expect(queryByTestId('security-badge-warning')).toBeNull();
-      expect(queryByTestId('security-badge-malicious')).toBeNull();
+      expect(queryByTestId('security-banner-warning')).toBeNull();
+      expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
 
     it('does not render badge when securityData is undefined', () => {
@@ -768,8 +816,8 @@ describe('AssetOverviewContent', () => {
       );
 
       expect(queryByTestId('security-badge-verified')).toBeNull();
-      expect(queryByTestId('security-badge-warning')).toBeNull();
-      expect(queryByTestId('security-badge-malicious')).toBeNull();
+      expect(queryByTestId('security-banner-warning')).toBeNull();
+      expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
 
     it('renders malicious warning banner when resultType is Malicious', () => {

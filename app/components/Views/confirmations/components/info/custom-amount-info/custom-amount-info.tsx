@@ -46,7 +46,10 @@ import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigatio
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   Button,
@@ -125,42 +128,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
-      string | undefined
-    >(undefined);
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
-    const globalSelectedAddress = useSelector(
-      selectSelectedInternalAccountAddress,
+    const [selectedAddress, setSelectedAddress] = useState<string | undefined>(
+      undefined,
     );
-    const initialFromAddress =
-      (transactionMeta?.txParams?.from as string | undefined) ??
-      globalSelectedAddress;
-    const [selectedFromAddress, setSelectedFromAddress] = useState<
-      string | undefined
-    >(initialFromAddress);
 
-    const handleRecipientAccountSelected = useCallback(
+    const handleAccountSelected = useCallback(
       (address: string) => {
         if (transactionId) {
-          updateEditableParams(transactionId, { to: address as Hex });
+          setSelectedAddress(address);
+          Engine.context.TransactionPayController.setTransactionConfig(
+            transactionId,
+            (config) => {
+              config.accountOverride = address as Hex;
+            },
+          );
         }
-        setSelectedRecipientAddress(address);
       },
       [transactionId],
     );
-
-    const handleFromAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          updateEditableParams(transactionId, { from: address as Hex });
-        }
-        setSelectedFromAddress(address);
-      },
-      [transactionId],
-    );
-
-    const isRecipientMissing =
-      isMoneyAccountWithdraw && !selectedRecipientAddress;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -241,14 +228,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {isMoneyAccountDeposit && (
                 <AccountSelector
                   label={strings('confirm.label.from')}
-                  selectedAddress={selectedFromAddress}
-                  onAccountSelected={handleFromAccountSelected}
+                  selectedAddress={selectedAddress}
+                  onAccountSelected={handleAccountSelected}
                 />
               )}
               {isMoneyAccountWithdraw && (
                 <AccountSelector
-                  selectedAddress={selectedRecipientAddress}
-                  onAccountSelected={handleRecipientAccountSelected}
+                  selectedAddress={selectedAddress}
+                  onAccountSelected={handleAccountSelected}
                 />
               )}
             </>
@@ -289,14 +276,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax && !isNativePayToken}
+              hasMax={hasMax && (isWithdraw || !isNativePayToken)}
             />
           )}
           {!hasTokens && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm || isRecipientMissing}
+              disableConfirm={disableConfirm}
             />
           )}
         </Box>

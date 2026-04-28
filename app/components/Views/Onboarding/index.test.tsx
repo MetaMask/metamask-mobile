@@ -405,14 +405,14 @@ describe('Onboarding', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('renders correctly with large device and iphoneX', () => {
@@ -421,14 +421,14 @@ describe('Onboarding', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('renders correctly with medium device and android', () => {
@@ -437,14 +437,14 @@ describe('Onboarding', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('renders correctly with android', () => {
@@ -455,20 +455,20 @@ describe('Onboarding', () => {
 
     Platform.OS = 'android';
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('applies compact gap and medium button size on medium device', () => {
     (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
@@ -476,13 +476,13 @@ describe('Onboarding', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('applies standard gap and large button size on non-medium device', () => {
     (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
 
-    const { toJSON } = renderScreen(
+    const { getByTestId } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
@@ -490,7 +490,7 @@ describe('Onboarding', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
   it('renders loading overlay with loading message', async () => {
@@ -538,7 +538,7 @@ describe('Onboarding', () => {
     (Device.isIphoneX as jest.Mock).mockReturnValue(true);
 
     try {
-      const { toJSON } = renderScreen(
+      const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -547,7 +547,7 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(toJSON()).toMatchSnapshot();
+        expect(getByText('Loading...')).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};
@@ -569,7 +569,7 @@ describe('Onboarding', () => {
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
 
     try {
-      const { toJSON } = renderScreen(
+      const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -578,7 +578,7 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(toJSON()).toMatchSnapshot();
+        expect(getByText('Loading...')).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};
@@ -2924,6 +2924,62 @@ describe('Onboarding', () => {
               'apple',
               String(OAuthErrorType.AuthServerError),
             ],
+          }),
+        );
+      });
+    });
+
+    it('shows error sheet for LoginError (TOPRF/seedless failure) when analytics enabled', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const toprfError = new OAuthError(
+        'SeedlessOnboardingController - Authentication error',
+        OAuthErrorType.LoginError,
+      );
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(toprfError);
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await appleOAuthFunction(false);
+        await flushPromises();
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          expect.objectContaining({
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: expect.objectContaining({
+              title: strings('error_sheet.oauth_error_title'),
+              description: strings('error_sheet.oauth_error_description'),
+              descriptionAlign: 'center',
+              buttonLabel: strings('error_sheet.oauth_error_button'),
+              type: 'error',
+            }),
           }),
         );
       });

@@ -4,6 +4,7 @@ import {
   getDefaultDestToken,
   tokenMatchesQuery,
 } from './tokenUtils';
+import { getSecurityWarnings } from './tokenSecurityUtils';
 import { BridgeToken } from '../types';
 import {
   getNativeAssetForChainId,
