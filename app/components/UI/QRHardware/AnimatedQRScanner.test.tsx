@@ -210,10 +210,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         throw new Error('onCodeScanned callback is null');
       }
 
+      const onCodeScanned = callbacks.onCodeScanned;
       await act(async () => {
-        await callbacks.onCodeScanned([
-          { value: 'https://metamask.io', type: 'qr' },
-        ]);
+        await onCodeScanned([{ value: 'https://metamask.io', type: 'qr' }]);
       });
 
       await waitFor(() => {
@@ -256,10 +255,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         throw new Error('onCodeScanned callback is null');
       }
 
+      const onCodeScanned = callbacks.onCodeScanned;
       await act(async () => {
-        await callbacks.onCodeScanned([
-          { value: 'https://metamask.io', type: 'qr' },
-        ]);
+        await onCodeScanned([{ value: 'https://metamask.io', type: 'qr' }]);
       });
 
       await waitFor(() => {
@@ -545,8 +543,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         throw new Error('onCodeScanned callback is null');
       }
 
+      const onCodeScanned = callbacks.onCodeScanned;
       await act(async () => {
-        await callbacks.onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
       });
 
       expect(mockOnQRHardwareScanError).toHaveBeenCalledWith(
@@ -587,8 +586,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         throw new Error('onCodeScanned callback is null');
       }
 
+      const onCodeScanned = callbacks.onCodeScanned;
       await act(async () => {
-        await callbacks.onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
       });
 
       await waitFor(() => {
@@ -602,9 +602,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       fireEvent.press(getByText('hardware_wallet.common.try_again'));
 
       await act(async () => {
-        await callbacks.onCodeScanned([
-          { value: 'ur:crypto-hdkey/1-1', type: 'qr' },
-        ]);
+        await onCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
       });
 
       await waitFor(() => {
@@ -616,7 +614,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
     });
 
     it('opens support article when learn more is pressed', async () => {
-      const openUrlSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue();
+      const openUrlSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
       const { getByText } = render(
         <AnimatedQRScannerModal {...defaultProps} />,
       );
@@ -631,8 +631,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         throw new Error('onCodeScanned callback is null');
       }
 
+      const onCodeScanned = callbacks.onCodeScanned;
       await act(async () => {
-        await callbacks.onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
       });
 
       fireEvent.press(getByText('hardware_wallet.common.learn_more'));
