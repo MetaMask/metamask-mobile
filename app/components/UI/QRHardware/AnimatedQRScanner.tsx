@@ -256,6 +256,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const [progress, setProgress] = useState(0);
   const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
 
+  const scanErrorActiveRef = useRef(false);
   const onQRHardwareScanErrorRef = useRef(onQRHardwareScanError);
   onQRHardwareScanErrorRef.current = onQRHardwareScanError;
   const theme = useTheme();
@@ -319,6 +320,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   }, []);
 
   const reset = useCallback(() => {
+    scanErrorActiveRef.current = false;
     resetDecoder();
     setScanError(null);
   }, [resetDecoder]);
@@ -379,6 +381,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const showScannerError = useCallback(
     async (error: QRHardwareScanError) => {
+      if (scanErrorActiveRef.current) {
+        return;
+      }
+
+      scanErrorActiveRef.current = true;
       resetDecoder();
 
       const errorCallback = onQRHardwareScanErrorRef.current;
@@ -402,7 +409,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const onBarCodeRead = useCallback(
     async (codes: Code[]) => {
-      if (!visible || !codes.length) {
+      if (!visible || scanErrorActiveRef.current || !codes.length) {
         return;
       }
       const response = { data: codes[0].value };
