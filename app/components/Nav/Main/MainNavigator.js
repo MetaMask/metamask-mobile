@@ -101,7 +101,7 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MoneyScreenStack } from '../../UI/Money/routes';
+import { MoneyScreenStack, MoneyModalStack } from '../../UI/Money/routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -1205,11 +1205,21 @@ const MainNavigator = () => {
         }}
       />
       {isMoneyHomeScreenEnabled && (
-        <Stack.Screen
-          name={Routes.MONEY.ROOT}
-          component={MoneyScreenStack}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
+        <>
+          <Stack.Screen
+            name={Routes.MONEY.ROOT}
+            component={MoneyScreenStack}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
+          />
+          <Stack.Screen
+            name={Routes.MONEY.MODALS.ROOT}
+            component={MoneyModalStack}
+            options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
+            }}
+          />
+        </>
       )}
       <Stack.Screen
         name="StakeModals"

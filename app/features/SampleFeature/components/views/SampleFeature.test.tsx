@@ -228,7 +228,9 @@ describe('SampleFeature', () => {
       });
 
       // Assert
-      expect(getByTestId('mocked-sample-counter-pane')).toBeDefined();
+      expect(getByTestId('sample-feature-container')).toBeOnTheScreen();
+      expect(getByTestId('mocked-sample-counter-pane')).toBeOnTheScreen();
+      expect(getByTestId('mocked-sample-pet-names')).toBeOnTheScreen();
     });
 
     it('does not render SampleCounterPane when feature flag is disabled', () => {
@@ -236,40 +238,17 @@ describe('SampleFeature', () => {
       mockSelectSampleFeatureCounterEnabled.mockReturnValue(false);
 
       // Act
-      const { queryByTestId } = renderWithProvider(<SampleFeature />, {
-        state: initialRootState,
-      });
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <SampleFeature />,
+        {
+          state: initialRootState,
+        },
+      );
 
       // Assert
+      expect(getByTestId('sample-feature-container')).toBeOnTheScreen();
       expect(queryByTestId('mocked-sample-counter-pane')).toBeNull();
-    });
-  });
-
-  describe('Snapshot Tests', () => {
-    it('matches rendered snapshot when feature flag is enabled', () => {
-      // Arrange
-      mockSelectSampleFeatureCounterEnabled.mockReturnValue(true);
-
-      // Act
-      const { toJSON } = renderWithProvider(<SampleFeature />, {
-        state: initialRootState,
-      });
-
-      // Assert
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('matches rendered snapshot when feature flag is disabled', () => {
-      // Arrange
-      mockSelectSampleFeatureCounterEnabled.mockReturnValue(false);
-
-      // Act
-      const { toJSON } = renderWithProvider(<SampleFeature />, {
-        state: initialRootState,
-      });
-
-      // Assert
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('mocked-sample-pet-names')).toBeOnTheScreen();
     });
   });
 });
