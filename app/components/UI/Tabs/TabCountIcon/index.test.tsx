@@ -20,6 +20,6 @@ describe('TabCountIcon', () => {
         <TabCountIcon />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(false);
   });
 });

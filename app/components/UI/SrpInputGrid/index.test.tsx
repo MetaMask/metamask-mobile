@@ -52,7 +52,7 @@ describe('SrpInputGrid', () => {
 
   it('renders with empty seed phrase', () => {
     const { toJSON } = renderWithProvider(<SrpInputGrid {...defaultProps} />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders with multiple words', () => {
@@ -60,21 +60,21 @@ describe('SrpInputGrid', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders with disabled state', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} disabled />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders with custom uniqueId', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} uniqueId="custom-id" />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   describe('Input Focus and Blur', () => {

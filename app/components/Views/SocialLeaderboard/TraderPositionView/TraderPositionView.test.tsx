@@ -12,9 +12,10 @@ const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
 
 interface MockRouteParams {
+  positionId?: string;
   traderId: string;
-  traderName: string;
-  tokenSymbol: string;
+  traderName?: string;
+  tokenSymbol?: string;
   position?: Position;
 }
 
@@ -38,6 +39,7 @@ const makeMockTrades = (): Trade[] => [
 ];
 
 const makeDefaultPosition = (): Position => ({
+  positionId: 'pepe-base',
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
   tokenAddress: '0x1234567890123456789012345678901234567890',
@@ -77,6 +79,27 @@ const mockState = {
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn().mockResolvedValue({}),
+}));
+
+// New hooks added for deep-link self-sufficiency. Existing tests pass `position`
+// via route params, so these are effectively no-ops in the existing flow.
+jest.mock('./hooks/useTraderPosition', () => ({
+  useTraderPosition: jest.fn(() => ({
+    position: undefined,
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('../TraderProfileView/hooks/useTraderProfile', () => ({
+  useTraderProfile: jest.fn(() => ({
+    profile: null,
+    isLoading: false,
+    error: null,
+    isFollowing: false,
+    toggleFollow: jest.fn(),
+    refresh: jest.fn(),
+  })),
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
@@ -183,25 +206,70 @@ describe('TraderPositionView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to the route tokenSymbol when position is undefined', () => {
+  it('renders the fallback when position is undefined and no positionId is provided', () => {
     mockRouteParams.position = undefined;
     mockRouteParams.tokenSymbol = 'DOGE';
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    expect(screen.getAllByText('DOGE').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+    ).toBeOnTheScreen();
+    // Price chart should not be rendered in the fallback state
+    expect(screen.queryByTestId('price-chart-mock')).toBeNull();
   });
 
-  it('does not leave price chart in loading state when position is undefined', async () => {
+  it('renders the skeleton while a positionId fetch is in flight', () => {
+    const { useTraderPosition } = jest.requireMock('./hooks/useTraderPosition');
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: true,
+      error: null,
+    });
+
     mockRouteParams.position = undefined;
-    mockRouteParams.tokenSymbol = 'DOGE';
+    (mockRouteParams as { positionId?: string }).positionId = 'position-uuid-1';
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    await waitFor(() => {
-      const lastCall =
-        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
-      expect(lastCall).toMatchObject({ isLoading: false });
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+    ).toBeOnTheScreen();
+
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('renders content when position is fetched via positionId', () => {
+    const { useTraderPosition } = jest.requireMock('./hooks/useTraderPosition');
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: makeDefaultPosition(),
+      isLoading: false,
+      error: null,
+    });
+
+    mockRouteParams.position = undefined;
+    (mockRouteParams as { positionId?: string }).positionId = 'position-uuid-1';
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+    ).toBeNull();
+
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: false,
+      error: null,
     });
   });
 

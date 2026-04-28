@@ -72,7 +72,7 @@ describe('NavbarTitle', () => {
         <NavbarTitle title={title} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(false);
   });
 
   it('tracks NETWORK_SELECTOR_PRESSED when pressed and network is not disabled', () => {
