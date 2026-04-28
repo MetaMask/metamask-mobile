@@ -10,6 +10,11 @@ import {
   normalizeDappUrl,
   isValidUrl,
   getUnverifiedRequestOrigin,
+  normalizeCaipChainIdInboundForWalletConnect,
+  normalizeCaipChainIdOutboundForWalletConnect,
+  getCompatibleTronCaipChainIdsForWalletConnect,
+  getChainChangedEmissionForWalletConnect,
+  shouldEmitChainChangedForWalletConnect,
 } from './wc-utils';
 import type { WalletKitTypes } from '@reown/walletkit';
 import type {
@@ -465,6 +470,234 @@ describe('WalletConnect Utils', () => {
           defaultOrigin,
         ),
       ).toBe(defaultOrigin);
+    });
+  });
+
+  describe('normalizeCaipChainIdOutboundForWalletConnect', () => {
+    it('rewrites tron decimal references to hex form for WalletConnect', () => {
+      const input = 'tron:728126428';
+
+      const result = normalizeCaipChainIdOutboundForWalletConnect(input);
+
+      expect(result).toBe('tron:0x2b6653dc');
+    });
+
+    it('keeps tron hex references unchanged', () => {
+      const input = 'tron:0x2b6653dc';
+
+      const result = normalizeCaipChainIdOutboundForWalletConnect(input);
+
+      expect(result).toBe('tron:0x2b6653dc');
+    });
+
+    it('returns eip155 chain ids unchanged', () => {
+      const input = 'eip155:1';
+
+      const result = normalizeCaipChainIdOutboundForWalletConnect(input);
+
+      expect(result).toBe('eip155:1');
+    });
+  });
+
+  describe('normalizeCaipChainIdInboundForWalletConnect', () => {
+    it('rewrites tron hex references to decimal form for the wallet', () => {
+      const input = 'tron:0x2b6653dc';
+
+      const result = normalizeCaipChainIdInboundForWalletConnect(input);
+
+      expect(result).toBe('tron:728126428');
+    });
+
+    it('keeps tron decimal references unchanged', () => {
+      const input = 'tron:728126428';
+
+      const result = normalizeCaipChainIdInboundForWalletConnect(input);
+
+      expect(result).toBe('tron:728126428');
+    });
+
+    it('returns eip155 chain ids unchanged', () => {
+      const input = 'eip155:137';
+
+      const result = normalizeCaipChainIdInboundForWalletConnect(input);
+
+      expect(result).toBe('eip155:137');
+    });
+  });
+
+  describe('getCompatibleTronCaipChainIdsForWalletConnect', () => {
+    it('returns decimal chain id followed by its hex equivalent', () => {
+      const input = 'tron:728126428';
+
+      const result = getCompatibleTronCaipChainIdsForWalletConnect(input);
+
+      expect(result).toStrictEqual(['tron:728126428', 'tron:0x2b6653dc']);
+    });
+
+    it('returns hex chain id followed by its decimal equivalent', () => {
+      const input = 'tron:0x2b6653dc';
+
+      const result = getCompatibleTronCaipChainIdsForWalletConnect(input);
+
+      expect(result).toStrictEqual(['tron:0x2b6653dc', 'tron:728126428']);
+    });
+
+    it('returns only the input chain id for non-tron namespaces', () => {
+      const input = 'eip155:1';
+
+      const result = getCompatibleTronCaipChainIdsForWalletConnect(input);
+
+      expect(result).toStrictEqual(['eip155:1']);
+    });
+  });
+
+  describe('getChainChangedEmissionForWalletConnect', () => {
+    it('prefers a non-EVM namespace chain id and uses it as both chainId and data', () => {
+      const namespaces = {
+        eip155: { chains: ['eip155:1'] },
+        tron: { chains: ['tron:728126428'] },
+      };
+
+      const result = getChainChangedEmissionForWalletConnect({
+        namespaces,
+        fallbackEvmDecimal: 1,
+        fallbackEvmHex: '0x1',
+      });
+
+      expect(result).toStrictEqual({
+        chainId: 'tron:728126428',
+        data: 'tron:728126428',
+      });
+    });
+
+    it('prefers any non-EVM namespace, not just tron', () => {
+      const namespaces = {
+        eip155: { chains: ['eip155:1'] },
+        solana: {
+          chains: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc7N1Q5cYjC'],
+        },
+      };
+
+      const result = getChainChangedEmissionForWalletConnect({
+        namespaces,
+        fallbackEvmDecimal: 1,
+        fallbackEvmHex: '0x1',
+      });
+
+      expect(result.chainId).toBe(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc7N1Q5cYjC',
+      );
+      expect(result.data).toBe(result.chainId);
+    });
+
+    it('skips non-EVM namespaces with empty chain arrays', () => {
+      const namespaces = {
+        eip155: { chains: ['eip155:1'] },
+        tron: { chains: [] },
+      };
+
+      const result = getChainChangedEmissionForWalletConnect({
+        namespaces,
+        fallbackEvmDecimal: 1,
+        fallbackEvmHex: '0x1',
+      });
+
+      expect(result).toStrictEqual({ chainId: 'eip155:1', data: '0x1' });
+    });
+
+    it('treats wallet namespace as EVM and falls through to eip155', () => {
+      const namespaces = {
+        wallet: { chains: ['wallet:eip155'] },
+        eip155: { chains: ['eip155:137'] },
+      };
+
+      const result = getChainChangedEmissionForWalletConnect({
+        namespaces,
+        fallbackEvmDecimal: 137,
+        fallbackEvmHex: '0x89',
+      });
+
+      expect(result).toStrictEqual({ chainId: 'eip155:137', data: '0x89' });
+    });
+
+    it('returns the EVM eip155 chain id and hex data when only eip155 is present', () => {
+      const namespaces = {
+        eip155: { chains: ['eip155:1'] },
+      };
+
+      const result = getChainChangedEmissionForWalletConnect({
+        namespaces,
+        fallbackEvmDecimal: 1,
+        fallbackEvmHex: '0x1',
+      });
+
+      expect(result).toStrictEqual({ chainId: 'eip155:1', data: '0x1' });
+    });
+
+    it('falls back to constructed eip155 chain id when no namespaces have chains', () => {
+      const result = getChainChangedEmissionForWalletConnect({
+        namespaces: {},
+        fallbackEvmDecimal: 137,
+        fallbackEvmHex: '0x89',
+      });
+
+      expect(result).toStrictEqual({ chainId: 'eip155:137', data: '0x89' });
+    });
+
+    it('returns the fallback when namespaces is undefined', () => {
+      const result = getChainChangedEmissionForWalletConnect({
+        namespaces: undefined,
+        fallbackEvmDecimal: 1,
+        fallbackEvmHex: '0x1',
+      });
+
+      expect(result).toStrictEqual({ chainId: 'eip155:1', data: '0x1' });
+    });
+  });
+
+  describe('shouldEmitChainChangedForWalletConnect', () => {
+    it('returns shouldEmit true when chain is in the session and namespace lists chainChanged', () => {
+      const namespaces = {
+        eip155: { chains: ['eip155:1'], events: ['chainChanged'] },
+      };
+
+      const result = shouldEmitChainChangedForWalletConnect({
+        chainId: 'eip155:1',
+        namespaces,
+      });
+
+      expect(result).toStrictEqual({ shouldEmit: true });
+    });
+
+    it('returns shouldEmit false with chain_not_in_session when chain is missing', () => {
+      const namespaces = {
+        eip155: { chains: ['eip155:137'], events: ['chainChanged'] },
+      };
+
+      const result = shouldEmitChainChangedForWalletConnect({
+        chainId: 'eip155:1',
+        namespaces,
+      });
+
+      expect(result.shouldEmit).toBe(false);
+      expect(result.reason).toBe('chain_not_in_session');
+      expect(result.activeSessionChains).toStrictEqual(['eip155:137']);
+    });
+
+    it('returns shouldEmit false with event_not_supported when namespace omits chainChanged', () => {
+      const namespaces = {
+        tron: { chains: ['tron:728126428'], events: [] },
+      };
+
+      const result = shouldEmitChainChangedForWalletConnect({
+        chainId: 'tron:728126428',
+        namespaces,
+      });
+
+      expect(result.shouldEmit).toBe(false);
+      expect(result.reason).toBe('event_not_supported');
+      expect(result.namespace).toBe('tron');
+      expect(result.namespaceEvents).toStrictEqual([]);
     });
   });
 });

@@ -45,15 +45,15 @@ import {
   getHostname,
   normalizeDappUrl,
   normalizeCaipChainIdInbound,
-} from './wc-utils';
-import {
-  adaptWalletConnectRequestForSnap,
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
-} from './multichain-connectors';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { TrxAccountType } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
+} from './wc-utils';
+import {
+  buildAdapterNamespaces,
+  mapRequestForSnap,
+  normalizeSnapResponse,
+  proposalReferencedAdapterNamespaces,
+} from './multichain';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
@@ -593,71 +593,41 @@ class WalletConnect2Session {
         ...namespaces,
       };
 
-      // Keep tron namespace aligned with dapp-requested tron chains.
-      // Per WalletConnect spec, approved chains MUST be a subset of
-      // required+optional. Some dapp adapters crash when they iterate
-      // `namespace.chains` and hit unexpected chain ids (e.g., mainnet
-      // when only testnet was asked for). Restrict approved chains to
-      // exactly what the dapp requested (plus dec<->hex variant for compat).
-      const requestedTronChainIds = Array.from(
-        new Set([
-          ...(this.session.requiredNamespaces?.tron?.chains ?? []),
-          ...(this.session.optionalNamespaces?.tron?.chains ?? []),
-        ]),
+      // Keep non-EVM namespaces aligned with what the dapp requested at
+      // session-proposal time. Per WC spec, approved chains MUST be a
+      // subset of the original required+optional, and some dapp adapters
+      // crash when they hit unexpected chain ids. Delegate the slice
+      // construction to each adapter.
+      const adapterSlices = buildAdapterNamespaces({
+        proposal: {
+          requiredNamespaces: this.session.requiredNamespaces,
+          optionalNamespaces: this.session.optionalNamespaces,
+        },
+        existingNamespaces: mergedNamespaces,
+      });
+      Object.assign(mergedNamespaces, adapterSlices);
+
+      // If the original proposal referenced any non-EVM namespace but no
+      // adapter slice was produced (e.g. wallet has no Tron account), do
+      // not emit a chainChanged with an EVM fallback. Non-EVM dapps don't
+      // recognise EVM hex chain ids and WalletKit may reject the emit.
+      const expectedAdapterNamespaces = proposalReferencedAdapterNamespaces({
+        requiredNamespaces: this.session.requiredNamespaces,
+        optionalNamespaces: this.session.optionalNamespaces,
+      });
+      const missingAdapterNamespaces = expectedAdapterNamespaces.filter(
+        (ns) => !mergedNamespaces[ns]?.chains?.length,
       );
-      if (requestedTronChainIds.length > 0) {
-        // Echo back exactly the CAIP chain ids the dapp requested.
-        // See rationale in WalletConnectV2._handleSessionProposal.
-        const finalTronChains = Array.from(new Set(requestedTronChainIds));
-
-        const existingTronAddresses = Array.from(
-          new Set(
-            (mergedNamespaces.tron?.accounts ?? [])
-              .map((account) => account.split(':').slice(2).join(':'))
-              .filter(Boolean),
-          ),
-        );
-        const discoveredTronAddresses =
-          existingTronAddresses.length > 0
-            ? []
-            : Engine.context.AccountsController.listAccounts()
-                .filter(
-                  (account: { type: string }) =>
-                    account.type === TrxAccountType.Eoa,
-                )
-                .map((account: { address: string }) => account.address);
-        const tronAddresses = Array.from(
-          new Set([...existingTronAddresses, ...discoveredTronAddresses]),
-        );
-
-        mergedNamespaces.tron = {
-          chains: finalTronChains,
-          methods: mergedNamespaces.tron?.methods ?? [
-            'tron_signTransaction',
-            'tron_signMessage',
-          ],
-          events: mergedNamespaces.tron?.events ?? [],
-          accounts: tronAddresses.flatMap((address) =>
-            finalTronChains.map(
-              (chainId) =>
-                `${chainId}:${address}` as `${string}:${string}:${string}`,
-            ),
-          ),
-        };
-      }
-
-      if (!mergedNamespaces.tron?.chains?.length) {
+      if (missingAdapterNamespaces.length > 0) {
         DevLogger.log(
-          '[wc][WC2Session.updateSession] no tron namespace available in merged namespaces',
+          '[wc][WC2Session.updateSession] missing non-EVM namespace(s) in merged namespaces',
           {
             topic: this.session.topic,
+            missingAdapterNamespaces,
             computedNamespaces: namespaces,
             existingSessionNamespaces: this.session.namespaces,
           },
         );
-        // Do not emit chainChanged with an EVM fallback for a session that
-        // should be multichain/tron-aware. WalletKit rejects these emits and
-        // this blocks the connection flow.
         return;
       }
 
@@ -702,21 +672,15 @@ class WalletConnect2Session {
         };
       }
 
-      const namespacesForEmission = {
-        tron: { chains: this.session.namespaces?.tron?.chains },
-        eip155: { chains: this.session.namespaces?.eip155?.chains },
-      };
-
       const chainChangedEmission = getChainChangedEmissionForWalletConnect({
-        namespaces: namespacesForEmission,
+        namespaces: this.session.namespaces,
         fallbackEvmDecimal: chainId,
         fallbackEvmHex: `0x${chainId.toString(16)}`,
       });
 
       DevLogger.log('[wc][WC2Session.updateSession] emitting chainChanged', {
         topic: this.session.topic,
-        tronChainId: namespacesForEmission.tron.chains?.[0],
-        eip155ChainId: namespacesForEmission.eip155.chains?.[0],
+        sessionNamespaceKeys: Object.keys(this.session.namespaces ?? {}),
         chainIdForEvent: chainChangedEmission.chainId,
         chainChangedEventData: chainChangedEmission.data,
       });
@@ -1074,7 +1038,7 @@ class WalletConnect2Session {
     scope: CaipChainId,
   ) => {
     const { method, params } = requestEvent.params.request;
-    const mappedRequest = adaptWalletConnectRequestForSnap({ method, params });
+    const mappedRequest = mapRequestForSnap({ scope, method, params });
 
     const namespace = scope.split(':')[0];
     const connectedAddresses = (this.session.namespaces?.[namespace]
@@ -1102,52 +1066,12 @@ class WalletConnect2Session {
           },
         },
       );
-      let walletConnectResult = result;
-      if (method === 'tron_signTransaction') {
-        const firstParam = Array.isArray(params) ? params[0] : params;
-        const transactionContainer =
-          typeof firstParam === 'object' && firstParam !== null
-            ? (firstParam as Record<string, unknown>).transaction
-            : undefined;
-        const originalTransaction =
-          typeof transactionContainer === 'object' &&
-          transactionContainer !== null &&
-          !Array.isArray(transactionContainer) &&
-          typeof (transactionContainer as Record<string, unknown>)
-            .transaction === 'object' &&
-          (transactionContainer as Record<string, unknown>).transaction !== null
-            ? ((transactionContainer as Record<string, unknown>)
-                .transaction as Record<string, unknown>)
-            : typeof transactionContainer === 'object' &&
-                transactionContainer !== null &&
-                !Array.isArray(transactionContainer)
-              ? (transactionContainer as Record<string, unknown>)
-              : undefined;
-
-        const resultObject =
-          typeof result === 'object' &&
-          result !== null &&
-          !Array.isArray(result)
-            ? (result as Record<string, unknown>)
-            : undefined;
-        const signatureValue = resultObject?.signature;
-        const normalizedSignature = Array.isArray(signatureValue)
-          ? signatureValue
-          : typeof signatureValue === 'string'
-            ? [signatureValue]
-            : undefined;
-
-        if (
-          originalTransaction &&
-          normalizedSignature &&
-          !(typeof resultObject?.txID === 'string')
-        ) {
-          walletConnectResult = {
-            ...originalTransaction,
-            signature: normalizedSignature,
-          };
-        }
-      }
+      const walletConnectResult = normalizeSnapResponse({
+        scope,
+        method,
+        params,
+        result,
+      });
       await this.approveRequest({
         id: requestEvent.id + '',
         result: walletConnectResult,

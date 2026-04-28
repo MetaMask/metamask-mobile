@@ -23,7 +23,6 @@ import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
 import {
-  addPermittedAccounts,
   getDefaultCaip25CaveatValue,
   getPermittedAccounts,
   updatePermittedChains,
@@ -35,27 +34,26 @@ import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import {
   getHostname,
-  normalizeCaipChainIdOutbound,
   getScopedPermissions,
   hideWCLoadingState,
   parseWalletConnectUri,
   showWCLoadingState,
   isValidUrl,
-} from './wc-utils';
-import {
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
-} from './multichain-connectors';
+} from './wc-utils';
 
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
-import { CaipAccountId, CaipChainId } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
+import { CaipChainId } from '@metamask/utils';
+import {
+  buildAdapterNamespaces,
+  proposalReferencedAdapterNamespaces,
+  seedAdapterPermissions,
+} from './multichain';
 import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -710,32 +708,9 @@ export class WC2Manager {
         );
       }
 
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      // Register Tron accounts in the permission system so the CAIP-25 caveat
-      // reflects Tron authorization alongside EVM.
-      try {
-        const tronAccounts =
-          Engine.context.AccountsController.listAccounts().filter(
-            (account: { type: string }) => account.type === TrxAccountType.Eoa,
-          );
-        if (tronAccounts.length > 0) {
-          const tronCaipAccountIds = tronAccounts.map(
-            (account: { address: string }) =>
-              `${TrxScope.Mainnet}:${account.address}` as CaipAccountId,
-          );
-          addPermittedAccounts(channelId, tronCaipAccountIds);
-          DevLogger.log(
-            `WC2::session_proposal Tron accounts added to permissions`,
-            tronCaipAccountIds,
-          );
-        }
-      } catch (err) {
-        DevLogger.log(
-          `WC2::session_proposal error adding Tron account permissions`,
-          err,
-        );
-      }
-      ///: END:ONLY_INCLUDE_IF
+      // Let every non-EVM adapter seed its own accounts into the CAIP-25
+      // caveat. No-op for chains that aren't enabled or have no accounts.
+      await seedAdapterPermissions({ proposal: proposal.params, channelId });
     } catch (err) {
       DevLogger.log(`WC2::session_proposal requestPermissions error`, {
         err,
@@ -764,13 +739,8 @@ export class WC2Manager {
       // Use getScopedPermissions to get properly formatted namespaces
       const namespaces = await getScopedPermissions({ channelId });
 
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      // Ensure Tron namespace is present when requested by the dapp proposal.
-      // In some flows, permission-derived namespaces can temporarily contain only eip155.
       const requiredNamespaces = proposal.params.requiredNamespaces ?? {};
       const optionalNamespaces = proposal.params.optionalNamespaces ?? {};
-      const requiredKeys = Object.keys(requiredNamespaces);
-      const optionalKeys = Object.keys(optionalNamespaces);
       const allProposalNamespaces = {
         ...optionalNamespaces,
         ...requiredNamespaces,
@@ -781,104 +751,28 @@ export class WC2Manager {
       const proposalChains = Object.values(allProposalNamespaces).flatMap(
         (ns) => ns?.chains ?? [],
       );
-      const requestedTronNamespace =
-        allProposalNamespaces.tron ??
-        (proposalChains.some((chain) => chain.startsWith('tron:'))
-          ? {
-              chains: proposalChains.filter((chain) =>
-                chain.startsWith('tron:'),
-              ),
-              methods: ['tron_signTransaction', 'tron_signMessage'],
-              events: [],
-            }
-          : undefined);
 
       DevLogger.log('[wc][WC2Manager.session_proposal] proposal namespaces', {
         topic: proposal.params.pairingTopic,
-        requiredKeys,
-        optionalKeys,
+        requiredKeys: Object.keys(requiredNamespaces),
+        optionalKeys: Object.keys(optionalNamespaces),
         proposalChains,
       });
 
-      if (requestedTronNamespace) {
-        const requestedTronChains = requestedTronNamespace.chains ?? [];
-        // Per WalletConnect/CAIP spec, approved chains MUST match what the
-        // dapp requested. Dapp Tron adapters look up each approved chain id
-        // in an internal config map keyed by the canonical CAIP format they
-        // sent (typically hex), and crash reading `.chains` on undefined
-        // when they encounter a variant they don't recognize (e.g. decimal).
-        // Echo back exactly what was requested, deduplicated.
-        const tronChains =
-          requestedTronChains.length > 0
-            ? Array.from(new Set(requestedTronChains))
-            : [normalizeCaipChainIdOutbound(TrxScope.Mainnet)];
-
-        // Prefer addresses already granted via scoped permissions so we
-        // don't lose accounts when AccountsController filtering misses them.
-        const existingTronAddresses = Array.from(
-          new Set(
-            (namespaces.tron?.accounts ?? [])
-              .map((account) => {
-                const parts = account.split(':');
-                return parts.length >= 3 ? parts.slice(2).join(':') : '';
-              })
-              .filter(Boolean),
-          ),
-        );
-        const fallbackTronAddresses =
-          existingTronAddresses.length > 0
-            ? []
-            : Engine.context.AccountsController.listAccounts()
-                .filter(
-                  (account: { type: string }) =>
-                    account.type === TrxAccountType.Eoa,
-                )
-                .map((account: { address: string }) => account.address);
-        const tronAddresses = Array.from(
-          new Set([...existingTronAddresses, ...fallbackTronAddresses]),
-        );
-        const requestedTronMethods = requestedTronNamespace.methods ?? [];
-        const requestedTronEvents = requestedTronNamespace.events ?? [];
-
-        namespaces.tron = {
-          chains: tronChains,
-          methods:
-            requestedTronMethods.length > 0
-              ? requestedTronMethods
-              : (namespaces.tron?.methods ?? [
-                  'tron_signTransaction',
-                  'tron_signMessage',
-                ]),
-          events:
-            requestedTronEvents.length > 0
-              ? requestedTronEvents
-              : (namespaces.tron?.events ?? []),
-          accounts: tronAddresses.flatMap((address) =>
-            tronChains.map(
-              (chainId) =>
-                `${chainId}:${address}` as `${string}:${string}:${string}`,
-            ),
-          ),
-        };
-
-        DevLogger.log(
-          '[wc][WC2Manager.session_proposal] normalized tron namespace from proposal',
-          {
-            topic: proposal.params.pairingTopic,
-            requestedTronChains,
-            finalTronChains: namespaces.tron.chains,
-            accountsCount: namespaces.tron.accounts.length,
-            addressSource:
-              existingTronAddresses.length > 0
-                ? 'scopedPermissions'
-                : 'accountsController',
-          },
-        );
-      }
+      // Augment the EVM-derived namespaces with each non-EVM adapter's
+      // slice. Adapters look at the dapp proposal + any pre-existing
+      // accounts/methods/events on `namespaces` and either return a
+      // slice or skip themselves.
+      const adapterSlices = buildAdapterNamespaces({
+        proposal: proposal.params,
+        existingNamespaces: namespaces,
+      });
+      Object.assign(namespaces, adapterSlices);
 
       // Some SDK restore paths still resolve delegated chains (wallet:eip155)
-      // by looking up a `wallet` namespace and reading `.chains`.
-      // Mirror eip155 into wallet namespace when the proposal requested it.
+      // by looking up a `wallet` namespace and reading `.chains`. Mirror
+      // eip155 into the wallet namespace when the proposal requested it.
+      // (EVM-only logic — kept here on purpose.)
       const requestedWalletNamespace =
         allProposalNamespaces.wallet ??
         (proposalChains.some((chain) => chain.startsWith('wallet:'))
@@ -906,7 +800,6 @@ export class WC2Manager {
           }),
         };
       }
-      ///: END:ONLY_INCLUDE_IF
 
       // Filter out namespaces the dapp never requested. Some dapp universal
       // providers (e.g. chain-specific Tron adapters) only register sub-
@@ -920,7 +813,6 @@ export class WC2Manager {
         ...Object.keys(proposal.params.requiredNamespaces ?? {}),
         ...Object.keys(proposal.params.optionalNamespaces ?? {}),
       ]);
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       // If the proposal referenced `wallet:eip155` (delegated chain), the
       // eip155 namespace is implicitly requested as well.
       if (
@@ -929,13 +821,13 @@ export class WC2Manager {
       ) {
         allowedNamespaceKeys.add('eip155');
       }
-      // Tron chains can be requested as bare `tron:<ref>` in optional scopes
-      // without a `tron` namespace key on some dapps — keep tron if any
-      // proposal chain uses it.
-      if (proposalChains.some((chain) => chain.startsWith('tron:'))) {
-        allowedNamespaceKeys.add('tron');
+      // Non-EVM adapters can match a proposal via bare `<ns>:<ref>`
+      // chains under another namespace key, which the simple
+      // `Object.keys(...)` collection above misses. Let each adapter
+      // self-report.
+      for (const ns of proposalReferencedAdapterNamespaces(proposal.params)) {
+        allowedNamespaceKeys.add(ns);
       }
-      ///: END:ONLY_INCLUDE_IF
       if (allowedNamespaceKeys.size > 0) {
         for (const key of Object.keys(namespaces)) {
           if (!allowedNamespaceKeys.has(key)) {

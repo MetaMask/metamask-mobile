@@ -16,8 +16,14 @@ import { Minimizer } from '../NativeModules';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { Hex, CaipChainId, KnownCaipNamespace } from '@metamask/utils';
-import { handleSnapRequest } from '../Snaps/utils';
+import Engine from '../Engine';
 import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
+
+const mockedMessengerCall = (
+  Engine as unknown as {
+    controllerMessenger: { call: jest.Mock };
+  }
+).controllerMessenger.call;
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -101,11 +107,15 @@ jest.mock('../Engine/Engine', () => {
           .mockReturnValue(() => ({ result: true })),
       },
     },
+    controllerMessenger: {
+      call: jest.fn().mockResolvedValue('snap-result'),
+    },
   };
   return {
     __esModule: true,
     default: mockEngine,
     context: mockEngine.context,
+    controllerMessenger: mockEngine.controllerMessenger,
   };
 });
 jest.mock('../SDKConnect/utils/DevLogger', () => ({
@@ -1249,7 +1259,8 @@ describe('WalletConnect2Session', () => {
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
     });
 
-    it('routes tron_signTransaction to Tron Snap', async () => {
+    it('routes tron_signTransaction through MultichainRoutingService with the snap-shaped request', async () => {
+      mockedMessengerCall.mockResolvedValueOnce('snap-result');
       const requestId = Math.floor(Math.random() * 1000000);
       const request: WalletKitTypes.SessionRequest = {
         id: requestId,
@@ -1286,12 +1297,11 @@ describe('WalletConnect2Session', () => {
       (session as any).topicByRequestId[requestId] = mockSession.topic;
       await session.handleRequest(request);
 
-      expect(handleSnapRequest).toHaveBeenCalledWith(
-        expect.anything(),
+      expect(mockedMessengerCall).toHaveBeenCalledWith(
+        'MultichainRoutingService:handleRequest',
         expect.objectContaining({
-          snapId: 'npm:@metamask/tron-wallet-snap',
           origin: 'metamask',
-          handler: 'onRpcRequest',
+          scope: 'tron:728126428',
           request: expect.objectContaining({
             method: 'signTransaction',
             params: {
@@ -1312,7 +1322,7 @@ describe('WalletConnect2Session', () => {
 
     it('merges Tron signature-only Snap result into original transaction', async () => {
       const requestId = Math.floor(Math.random() * 1000000);
-      (handleSnapRequest as jest.Mock).mockResolvedValueOnce({
+      mockedMessengerCall.mockResolvedValueOnce({
         signature: '0xsignature',
       });
       const request: WalletKitTypes.SessionRequest = {
@@ -1409,7 +1419,7 @@ describe('WalletConnect2Session', () => {
     it('rejects Tron Snap request and calls rejectRequest on error', async () => {
       const requestId = Math.floor(Math.random() * 1000000);
       const snapError = new Error('Snap rejected');
-      (handleSnapRequest as jest.Mock).mockRejectedValueOnce(snapError);
+      mockedMessengerCall.mockRejectedValueOnce(snapError);
 
       const request: WalletKitTypes.SessionRequest = {
         id: requestId,
