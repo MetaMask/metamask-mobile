@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       selected_tags:
-        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeAccounts", "SmokeTrade"])'
+        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeAccounts", "SmokeSwap"])'
         required: false
         type: string
         default: '["ALL"]'
@@ -37,17 +37,35 @@ jobs:
       metamask_environment: 'qa'
     secrets: inherit
 
-  trade-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeTrade')
+  swap-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSwap')
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: swap-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'SmokeSwap'
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
+      build_type: 'main'
+      metamask_environment: 'qa'
+    secrets: inherit
+
+  stake-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeStake')
     strategy:
       matrix:
         split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: trade-ios-smoke-${{ matrix.split }}
+      test-suite-name: stake-ios-smoke-${{ matrix.split }}
       platform: ios
-      test_suite_tag: 'SmokeTrade'
+      test_suite_tag: 'SmokeStake'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
@@ -295,7 +313,8 @@ jobs:
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - confirmations-ios-smoke
-      - trade-ios-smoke
+      - swap-ios-smoke
+      - stake-ios-smoke
       - perps-ios-smoke
       - wallet-platform-ios-smoke
       - identity-ios-smoke

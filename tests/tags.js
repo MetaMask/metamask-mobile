@@ -14,7 +14,7 @@ const smokeTags = {
   smokeConfirmations: {
     tag: 'SmokeConfirmations:',
     description:
-      'Tests the transaction and signature confirmation UI system. Covers signature request types: personal_sign messages, Sign-In with Ethereum (SIWE/EIP-4361), and typed data signing (EIP-712 V1/V3/V4). Tests Blockaid security alert integration for detecting malicious signature requests. Validates smart contract interactions including contract deployment, method calls, and token approvals (ERC-20 approve, increaseAllowance, ERC-721/ERC-1155 setApprovalForAll). Tests transaction sending for native tokens (ETH), ERC-20 tokens, and Solana SPL tokens. Covers gas fee customization (EIP-1559 and legacy), transaction simulation previews, and advanced EIP-7702 account abstraction features like batch transactions and gas fee token payments. Also tests per-dApp network selection within confirmations. Swap and bridge flows (SmokeTrade) require confirmations—when selecting SmokeTrade for swap/bridge, also select SmokeConfirmations. Solana transaction/signing flows (SmokeNetworkExpansion) also hit confirmations—when selecting SmokeNetworkExpansion for Solana flows, also select SmokeConfirmations. Integrates with SmokeNetworkExpansion for cross-chain transactions.',
+      'Tests the transaction and signature confirmation UI system. Covers signature request types: personal_sign messages, Sign-In with Ethereum (SIWE/EIP-4361), and typed data signing (EIP-712 V1/V3/V4). Tests Blockaid security alert integration for detecting malicious signature requests. Validates smart contract interactions including contract deployment, method calls, and token approvals (ERC-20 approve, increaseAllowance, ERC-721/ERC-1155 setApprovalForAll). Tests transaction sending for native tokens (ETH), ERC-20 tokens, and Solana SPL tokens. Covers gas fee customization (EIP-1559 and legacy), transaction simulation previews, and advanced EIP-7702 account abstraction features like batch transactions and gas fee token payments. Also tests per-dApp network selection within confirmations. Swap and bridge flows (SmokeSwap) and stake/lending flows (SmokeStake) require confirmations—when selecting those tags, also select SmokeConfirmations. Solana transaction/signing flows (SmokeNetworkExpansion) also hit confirmations—when selecting SmokeNetworkExpansion for Solana flows, also select SmokeConfirmations. Integrates with SmokeNetworkExpansion for cross-chain transactions.',
   },
   smokeIdentity: {
     tag: 'SmokeIdentity:',
@@ -31,25 +31,30 @@ const smokeTags = {
     description:
       'Tests non-EVM blockchain support and multi-chain provider architecture. Focuses on Solana Wallet Standard compliance: dApp connect/disconnect flows, displaying Solana account addresses to dApps, account switching with dApp notification, session persistence after page refresh, SOL token transfers, and Solana message signing. Tests the multi-chain provider system enabling simultaneous connections from a single dApp to multiple blockchain networks (e.g., EVM and Solana together). Covers initial connection permission flows for multi-chain dApps and account selection across chain types. When selecting SmokeNetworkExpansion for Solana transaction or signing flows, also select SmokeConfirmations (Solana confirmations). Integrates with SmokeNetworkAbstractions for chain permissions and SmokeMultiChainAPI for session-based multi-chain.',
   },
-  smokeTrade: {
-    tag: 'SmokeTrade:',
+  smokeSwap: {
+    tag: 'SmokeSwap:',
     description:
-      'Tests DeFi trading and financial features accessed via the Trade wallet actions menu. Covers token swaps: executing swaps (e.g., ETH to USDC) through the unified swap interface, quote fetching, and swap completion verification in activities. Tests cross-chain bridging between networks (e.g., Ethereum mainnet to Base). Validates gasless swap execution via Smart Transactions where users do not pay gas directly. Tests native ETH staking flows initiated from the wallet actions menu. Covers deep link navigation into swap and bridge screens from external sources. Validates analytics event tracking for swap started, swap completed, quotes received, and bridge events. The TradeWalletActions bottom sheet provides entry points to Swap, Bridge, Perps, Predictions, and Earn features. When selecting SmokeTrade for swap or bridge flows, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
+      'Tests swap and bridge trading flows. Covers token swaps (e.g., ETH to USDC), quote fetching, bridge actions, deep link entry into swap/bridge screens, gasless swaps, and swap completion validation in activities. Includes unified wallet actions entry to trade flows. When selecting SmokeSwap, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
+  },
+  smokeStake: {
+    tag: 'SmokeStake:',
+    description:
+      'Tests wallet staking and lending flows. Covers stake entry from wallet actions, lending deposits, and lending withdrawals. Validates on-chain operations initiated from wallet surfaces. When selecting SmokeStake, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
   },
   smokeWalletPlatform: {
     tag: 'SmokeWalletPlatform:',
     description:
-      'Tests core wallet platform features and services. Covers the Trending discovery tab: search functionality, browsing content feeds (Predictions, Tokens, Perps, Sites sections), and browser navigation integration. Trending is the connecting point for all subsections—changes to Perps, Predictions, or Tokens views (headers, lists, full views) that are embedded in Trending affect this tag. Tests transaction history: displaying incoming/outgoing ETH transactions, token transfer details, and privacy mode support to hide sensitive balances. Validates wallet lifecycle analytics tracking for new wallet creation and SRP import events. Tests multi-SRP wallet architecture: importing additional Secret Recovery Phrases, adding accounts to different SRPs, exporting SRP from Settings and account action menus, and managing separate account hierarchies per SRP. Covers account deletion flows and EVM provider event handling (accountsChanged, chainChanged) for dApp communication. Integrates with SmokeAccounts for account management, SmokeTrade for activity display, SmokePerps (Perps section inside Trending), and SmokeIdentity for sync features.',
+      'Tests core wallet platform features and services. Covers the Trending discovery tab: search functionality, browsing content feeds (Predictions, Tokens, Perps, Sites sections), and browser navigation integration. Trending is the connecting point for all subsections—changes to Perps, Predictions, or Tokens views (headers, lists, full views) that are embedded in Trending affect this tag. Tests transaction history: displaying incoming/outgoing ETH transactions, token transfer details, and privacy mode support to hide sensitive balances. Validates wallet lifecycle analytics tracking for new wallet creation and SRP import events. Tests multi-SRP wallet architecture: importing additional Secret Recovery Phrases, adding accounts to different SRPs, exporting SRP from Settings and account action menus, and managing separate account hierarchies per SRP. Covers account deletion flows and EVM provider event handling (accountsChanged, chainChanged) for dApp communication. Integrates with SmokeAccounts for account management, SmokeSwap/SmokeStake for activity display, SmokePerps (Perps section inside Trending), and SmokeIdentity for sync features.',
   },
   smokeCard: {
     tag: 'SmokeCard:',
     description:
-      'Tests MetaMask Card integration for crypto-to-fiat spending. Covers the Card home screen display showing card status and balance, the Add Funds button with Deposit and Swap funding options, and Advanced Card Management which opens the external card dashboard in the browser. Tests the Card navbar button for quick navigation to Card home. Validates card-related analytics events: Card Button Viewed, Card Home Clicked, Card Add Funds Clicked, and Card Advanced Management Clicked. The Card feature is controlled by experimental feature flags. When selecting SmokeCard, also select SmokeTrade and SmokeConfirmations (Add Funds uses swaps which require transaction confirmations). Integrates with SmokeTrade for funding via swaps.',
+      'Tests MetaMask Card integration for crypto-to-fiat spending. Covers the Card home screen display showing card status and balance, the Add Funds button with Deposit and Swap funding options, and Advanced Card Management which opens the external card dashboard in the browser. Tests the Card navbar button for quick navigation to Card home. Validates card-related analytics events: Card Button Viewed, Card Home Clicked, Card Add Funds Clicked, and Card Advanced Management Clicked. The Card feature is controlled by experimental feature flags. When selecting SmokeCard, also select SmokeSwap and SmokeConfirmations (Add Funds uses swaps which require transaction confirmations). Integrates with SmokeSwap for funding via swaps.',
   },
   smokePerps: {
     tag: 'SmokePerps:',
     description:
-      'Tests perpetuals (perps) futures trading functionality on Arbitrum One. Covers the Add Funds flow to deposit USDC into the Perps trading account, balance verification after deposits, and balance updates reflecting correctly in the Perps interface. Tests with multi-account setups and existing user states (non-first-time users). Entry point is via the Perps button in the TradeWalletActions menu. Perps is also a section inside the Trending tab (SmokeWalletPlatform); changes to Perps views (headers, lists, full views, e.g. PerpsHomeView, PerpsMarketListView, PerpsWithdrawView) affect Trending. When selecting SmokePerps, also select SmokeWalletPlatform (Trending section) and SmokeConfirmations (Add Funds deposits are on-chain transactions). Integrates with SmokeTrade for the trading category entry.',
+      'Tests perpetuals (perps) futures trading functionality on Arbitrum One. Covers the Add Funds flow to deposit USDC into the Perps trading account, balance verification after deposits, and balance updates reflecting correctly in the Perps interface. Tests with multi-account setups and existing user states (non-first-time users). Entry point is via the Perps button in the TradeWalletActions menu. Perps is also a section inside the Trending tab (SmokeWalletPlatform); changes to Perps views (headers, lists, full views, e.g. PerpsHomeView, PerpsMarketListView, PerpsWithdrawView) affect Trending. When selecting SmokePerps, also select SmokeWalletPlatform (Trending section) and SmokeConfirmations (Add Funds deposits are on-chain transactions). Integrates with SmokeSwap for the trading category entry.',
   },
   smokeRamps: {
     tag: 'SmokeRamps:',
@@ -64,7 +69,7 @@ const smokeTags = {
   smokePredictions: {
     tag: 'SmokePredictions:',
     description:
-      'Tests Polymarket prediction market integration. Covers the full position lifecycle: opening new positions on available markets (sports, crypto, events), cashing out open positions early, and claiming winnings from resolved markets. Tests balance synchronization after prediction transactions, verifying USDC balance updates correctly. Validates the Positions tab for viewing all open positions and the Activities tab for transaction history. Tests error handling scenarios: API failures when Polymarket is unavailable and geographic restriction handling for unsupported regions. Entry point is via the Predict button in TradeWalletActions. Predictions is also a section inside the Trending tab (SmokeWalletPlatform); changes to Predictions views (headers, lists, full views) affect Trending. When selecting SmokePredictions, also select SmokeWalletPlatform (Trending section) and SmokeConfirmations (opening/closing positions are on-chain transactions). Integrates with SmokeTrade for the trading category.',
+      'Tests Polymarket prediction market integration. Covers the full position lifecycle: opening new positions on available markets (sports, crypto, events), cashing out open positions early, and claiming winnings from resolved markets. Tests balance synchronization after prediction transactions, verifying USDC balance updates correctly. Validates the Positions tab for viewing all open positions and the Activities tab for transaction history. Tests error handling scenarios: API failures when Polymarket is unavailable and geographic restriction handling for unsupported regions. Entry point is via the Predict button in TradeWalletActions. Predictions is also a section inside the Trending tab (SmokeWalletPlatform); changes to Predictions views (headers, lists, full views) affect Trending. When selecting SmokePredictions, also select SmokeWalletPlatform (Trending section) and SmokeConfirmations (opening/closing positions are on-chain transactions). Integrates with SmokeSwap for the trading category.',
   },
   smokeSeedlessOnboarding: {
     tag: 'SmokeSeedlessOnboarding:',
@@ -112,7 +117,8 @@ const SmokeNetworkAbstractions = (testName) =>
   `${smokeTags.smokeNetworkAbstractions.tag} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
   `${smokeTags.smokeNetworkExpansion.tag} ${testName}`;
-const SmokeTrade = (testName) => `${smokeTags.smokeTrade.tag} ${testName}`;
+const SmokeSwap = (testName) => `${smokeTags.smokeSwap.tag} ${testName}`;
+const SmokeStake = (testName) => `${smokeTags.smokeStake.tag} ${testName}`;
 const SmokeWalletPlatform = (testName) =>
   `${smokeTags.smokeWalletPlatform.tag} ${testName}`;
 const SmokeCard = (testName) => `${smokeTags.smokeCard.tag} ${testName}`;
@@ -159,7 +165,8 @@ export {
   SmokeIdentity,
   SmokeNetworkAbstractions,
   SmokeNetworkExpansion,
-  SmokeTrade,
+  SmokeSwap,
+  SmokeStake,
   SmokeWalletPlatform,
   SmokeCard,
   SmokePerps,
