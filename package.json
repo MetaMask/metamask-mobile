@@ -332,7 +332,7 @@
     "@metamask/snaps-rpc-methods": "^15.1.1",
     "@metamask/snaps-sdk": "^11.1.0",
     "@metamask/snaps-utils": "^12.2.0",
-    "@metamask/social-controllers": "^2.0.0",
+    "@metamask/social-controllers": "^2.2.0",
     "@metamask/solana-wallet-snap": "^2.8.0",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
@@ -541,12 +541,6 @@
     "valid-url": "1.0.9",
     "viem": "^2.28.0",
     "vm-browserify": "1.1.2"
-  },
-  "previewBuilds": {
-    "@metamask/social-controllers": {
-      "type": "non-breaking",
-      "previewVersion": "2.1.0-preview-495c91e"
-    }
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
