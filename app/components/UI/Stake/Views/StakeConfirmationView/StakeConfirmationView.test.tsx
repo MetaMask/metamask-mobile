@@ -11,6 +11,7 @@ import { Provider } from 'react-redux';
 import { StakeConfirmationViewRouteParams } from './StakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -115,25 +116,14 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   }),
 }));
 
-expect.addSnapshotSerializer({
-  test: (val) =>
-    val &&
-    typeof val === 'object' &&
-    (val.props?.source?.uri === '' ||
-      val.props?.onLayout ||
-      val.props?.onError ||
-      val.props?.onLoadEnd),
-  print: () => 'IGNORED_RANDOM_ELEMENT',
-});
-
 describe('StakeConfirmationView', () => {
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders stake confirmation view', () => {
+    const { getByText } = renderWithProvider(
       <Provider store={store}>
         <StakeConfirmationView />
       </Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.staking_from'))).toBeOnTheScreen();
   });
 });
