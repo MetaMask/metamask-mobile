@@ -3,10 +3,40 @@ import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
+import {
+  SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
+  useSocialLeaderboardAnalytics,
+  type TraderFollowInteractionSource,
+} from '../Views/SocialLeaderboard/analytics';
+import { MetaMetricsEvents } from '../../core/Analytics';
+
+/**
+ * Analytics context attached to a follow/unfollow action so the
+ * `Trader Follow Interaction` event carries the originating surface and
+ * (optionally) the trader's leaderboard rank.
+ */
+export interface FollowToggleAnalyticsContext {
+  /** Surface where the toggle was triggered. */
+  source: TraderFollowInteractionSource;
+  /**
+   * Wallet address of the trader. Required for the analytics event because
+   * the hook's `addressOrId` argument can be a Clicker `profileId` (UUID),
+   * not a wallet address.
+   */
+  traderAddress: string;
+  /** Display name of the trader, when available. */
+  traderUsername?: string;
+  /** Leaderboard rank when triggered from leaderboard / home_carousel. */
+  traderRank?: number;
+}
 
 export interface UseFollowToggleManyResult {
   isFollowing: (addressOrId: string) => boolean;
-  toggleFollow: (addressOrId: string) => Promise<void>;
+  toggleFollow: (
+    addressOrId: string,
+    analyticsContext?: FollowToggleAnalyticsContext,
+  ) => Promise<void>;
 }
 
 /**
@@ -21,6 +51,7 @@ export interface UseFollowToggleManyResult {
  */
 export const useFollowToggleMany = (): UseFollowToggleManyResult => {
   const followingProfileIds = useSelector(selectFollowingProfileIds);
+  const { track } = useSocialLeaderboardAnalytics();
 
   const [optimisticFollowState, setOptimisticFollowState] = useState<
     Record<string, boolean>
@@ -35,7 +66,10 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
   );
 
   const toggleFollow = useCallback(
-    async (addressOrId: string): Promise<void> => {
+    async (
+      addressOrId: string,
+      analyticsContext?: FollowToggleAnalyticsContext,
+    ): Promise<void> => {
       if (inflightIdsRef.current.has(addressOrId)) {
         return;
       }
@@ -59,6 +93,20 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             : 'SocialController:unfollowTrader',
           opts,
         );
+        if (analyticsContext) {
+          track(MetaMetricsEvents.SOCIAL_TRADER_FOLLOW_INTERACTION, {
+            [SocialLeaderboardEventProperties.ACTION]: nextValue
+              ? SocialLeaderboardEventValues.ACTION.FOLLOW
+              : SocialLeaderboardEventValues.ACTION.UNFOLLOW,
+            [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+              analyticsContext.traderAddress,
+            [SocialLeaderboardEventProperties.TRADER_USERNAME]:
+              analyticsContext.traderUsername,
+            [SocialLeaderboardEventProperties.SOURCE]: analyticsContext.source,
+            [SocialLeaderboardEventProperties.TRADER_RANK]:
+              analyticsContext.traderRank,
+          });
+        }
       } catch (err) {
         setOptimisticFollowState((prev) => {
           const next = { ...prev };
@@ -70,7 +118,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         inflightIdsRef.current.delete(addressOrId);
       }
     },
-    [optimisticFollowState, followingProfileIds],
+    [optimisticFollowState, followingProfileIds, track],
   );
 
   useEffect(() => {
@@ -93,7 +141,9 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
 
 export interface UseFollowToggleResult {
   isFollowing: boolean;
-  toggleFollow: () => Promise<void>;
+  toggleFollow: (
+    analyticsContext?: FollowToggleAnalyticsContext,
+  ) => Promise<void>;
 }
 
 /**
@@ -102,7 +152,8 @@ export interface UseFollowToggleResult {
 export const useFollowToggle = (addressOrId: string): UseFollowToggleResult => {
   const { isFollowing, toggleFollow } = useFollowToggleMany();
   const toggle = useCallback(
-    () => toggleFollow(addressOrId),
+    (analyticsContext?: FollowToggleAnalyticsContext) =>
+      toggleFollow(addressOrId, analyticsContext),
     [toggleFollow, addressOrId],
   );
   return {

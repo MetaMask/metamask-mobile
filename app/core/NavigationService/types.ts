@@ -556,8 +556,22 @@ export interface RootStackParamList extends ParamListBase {
   PredictGTMModal: undefined;
 
   // Social Leaderboard routes
-  TopTradersView: undefined;
-  TraderProfileView: { traderId: string; traderName: string };
+  TopTradersView: {
+    /** Analytics entry-point that opened the leaderboard. Narrowed at the
+     * receiver to LeaderboardScreenViewedSource. */
+    source?: string;
+  };
+  TraderProfileView: {
+    traderId: string;
+    traderName: string;
+    /** Wallet address (LeaderboardEntry.addresses[0]); used as analytics key. */
+    traderAddress?: string;
+    /** Analytics entry-point that opened the profile. Narrowed at the
+     * receiver to TraderProfileScreenViewedSource. */
+    source?: string;
+    /** Leaderboard rank when arriving from leaderboard / home carousel. */
+    traderRank?: number;
+  };
   TraderPositionView: {
     traderId: string;
     tokenSymbol: string;
@@ -569,6 +583,11 @@ export interface RootStackParamList extends ParamListBase {
     traderName?: string;
     /** Optional — fetched via useTraderProfile when absent. */
     traderImageUrl?: string;
+    /** Wallet address; forwarded for QuickBuy analytics. */
+    traderAddress?: string;
+    /** Analytics entry-point that opened the position view. Narrowed at the
+     * receiver into the QuickBuy / FollowTradingToken source enums. */
+    source?: string;
   };
 
   // Misc routes

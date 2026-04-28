@@ -5,7 +5,10 @@ import type {
   FetchTraderProfileOptions,
 } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
-import { useFollowToggle } from '../../../../hooks/useFollowToggle';
+import {
+  useFollowToggle,
+  type UseFollowToggleResult,
+} from '../../../../hooks/useFollowToggle';
 
 export interface UseTraderProfileOptions {
   refetchInterval?: number;
@@ -16,7 +19,7 @@ export interface UseTraderProfileResult {
   isLoading: boolean;
   error: string | null;
   isFollowing: boolean;
-  toggleFollow: () => void;
+  toggleFollow: UseFollowToggleResult['toggleFollow'];
   refresh: () => Promise<void>;
 }
 

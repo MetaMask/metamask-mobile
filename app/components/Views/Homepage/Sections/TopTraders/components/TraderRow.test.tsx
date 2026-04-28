@@ -8,6 +8,7 @@ import type { TopTrader } from '../types';
 
 const baseTrader: TopTrader = {
   id: 'trader-1',
+  address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   username: 'sniperliquid',
   avatarUri: 'https://example.com/avatar.png',

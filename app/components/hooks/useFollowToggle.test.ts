@@ -12,6 +12,13 @@ jest.mock('../../selectors/socialController', () => ({
   selectFollowingProfileIds: jest.fn(),
 }));
 
+jest.mock(
+  '../Views/SocialLeaderboard/analytics/useSocialLeaderboardAnalytics',
+  () => ({
+    useSocialLeaderboardAnalytics: () => ({ track: jest.fn() }),
+  }),
+);
+
 jest.mock('../../util/Logger', () => ({
   error: jest.fn(),
 }));

@@ -24,11 +24,20 @@ export interface QuickBuyBottomSheetProps {
   isVisible: boolean;
   position: Position | null;
   onClose: () => void;
+  /** Wallet address of the trader being copied; required for analytics. */
+  traderAddress?: string;
+  /** Destination-token market cap (in user currency); forwarded for analytics. */
+  marketCap?: number;
+  /** Surface that opened the sheet; forwarded for analytics. */
+  source?: 'notification' | 'profile_position' | 'leaderboard';
 }
 
 interface InnerProps {
   position: Position;
   onClose: () => void;
+  traderAddress?: string;
+  marketCap?: number;
+  source?: 'notification' | 'profile_position' | 'leaderboard';
 }
 
 /**
@@ -39,6 +48,9 @@ interface InnerProps {
 const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
   position,
   onClose,
+  traderAddress,
+  marketCap,
+  source,
 }) => {
   const { colors } = useTheme();
   const {
@@ -72,7 +84,11 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     handleAmountAreaPress,
     handleAmountChange,
     handleConfirm,
-  } = useQuickBuyBottomSheet(position, onClose);
+  } = useQuickBuyBottomSheet(position, onClose, {
+    traderAddress,
+    marketCap,
+    source,
+  });
 
   return (
     <>
@@ -143,6 +159,9 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
 const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   position,
   onClose,
+  traderAddress,
+  marketCap,
+  source,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
@@ -166,7 +185,13 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
     >
       <QuickBuyHeader position={position} onClose={handleClose} />
       {isContentReady ? (
-        <QuickBuyBottomSheetContent position={position} onClose={onClose} />
+        <QuickBuyBottomSheetContent
+          position={position}
+          onClose={onClose}
+          traderAddress={traderAddress}
+          marketCap={marketCap}
+          source={source}
+        />
       ) : (
         <QuickBuyBottomSheetSkeleton />
       )}
@@ -183,9 +208,20 @@ const QuickBuyBottomSheet: React.FC<QuickBuyBottomSheetProps> = ({
   isVisible,
   position,
   onClose,
+  traderAddress,
+  marketCap,
+  source,
 }) => {
   if (!isVisible || !position) return null;
-  return <QuickBuyBottomSheetInner position={position} onClose={onClose} />;
+  return (
+    <QuickBuyBottomSheetInner
+      position={position}
+      onClose={onClose}
+      traderAddress={traderAddress}
+      marketCap={marketCap}
+      source={source}
+    />
+  );
 };
 
 export default QuickBuyBottomSheet;

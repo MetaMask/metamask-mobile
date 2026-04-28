@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -8,6 +8,13 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import {
+  SocialLeaderboardEventProperties,
+  useSocialLeaderboardAnalytics,
+} from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { chainNameToId } from '../utils/chainMapping';
+import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -87,7 +94,15 @@ const TraderProfileView = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
-  const { traderId, traderName } = route.params;
+  const {
+    traderId,
+    traderName,
+    traderAddress: traderAddressParam,
+    source: sourceParam,
+    traderRank,
+  } = route.params;
+  const source = sourceParam ?? 'deep_link';
+  const { track } = useSocialLeaderboardAnalytics();
 
   const {
     profile,
@@ -99,6 +114,24 @@ const TraderProfileView = () => {
   } = useTraderProfile(traderId, { refetchInterval: 30_000 });
   const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
     useTraderPositions(traderId, { refetchInterval: 30_000 });
+
+  const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
+  // Fire Trader Profile Screen Viewed once profile resolves so we have an
+  // accurate trader_address / is_following at the point the user lands.
+  const hasFiredScreenViewedRef = useRef(false);
+  useEffect(() => {
+    if (hasFiredScreenViewedRef.current) return;
+    if (!profile) return;
+    hasFiredScreenViewedRef.current = true;
+    track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED, {
+      [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+        traderAddress || profile.profile.address,
+      [SocialLeaderboardEventProperties.TRADER_USERNAME]: profile.profile.name,
+      [SocialLeaderboardEventProperties.SOURCE]: source,
+      [SocialLeaderboardEventProperties.IS_FOLLOWING]: isFollowing,
+      [SocialLeaderboardEventProperties.TRADER_RANK]: traderRank,
+    });
+  }, [profile, traderAddress, source, isFollowing, traderRank, track]);
 
   const {
     preferences,
@@ -131,17 +164,65 @@ const TraderProfileView = () => {
     }
   }, [isLoadingPreferences, preferences.enabled]);
 
+  const handleFollowPress = useCallback(() => {
+    toggleFollow({
+      source: 'trader_profile',
+      traderAddress: traderAddress || profile?.profile.address || '',
+      traderUsername: profile?.profile.name,
+      // Rank only meaningful when arriving from a ranked surface; omit on
+      // trader_profile to keep schema clean.
+    });
+  }, [toggleFollow, traderAddress, profile]);
+
+  const handleTabChange = useCallback(
+    (tab: 'open' | 'closed') => {
+      setActiveTab((prev) => {
+        if (prev === tab) return prev;
+        if (traderAddress) {
+          track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED, {
+            [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+            [SocialLeaderboardEventProperties.TAB]: tab,
+          });
+        }
+        return tab;
+      });
+    },
+    [traderAddress, track],
+  );
+
   const handlePositionPress = useCallback(
     (position: Position) => {
+      const caipChainId = chainNameToId(position.chain);
+      const caip19 = caipChainId
+        ? (toAssetId(position.tokenAddress, caipChainId) ?? '')
+        : '';
+      if (traderAddress && caip19) {
+        track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_POSITION_CLICKED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+          [SocialLeaderboardEventProperties.CAIP19]: caip19,
+          [SocialLeaderboardEventProperties.ASSET_NAME]: position.tokenSymbol,
+          [SocialLeaderboardEventProperties.IS_OPEN]: activeTab === 'open',
+        });
+      }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
         traderId,
         traderName,
         traderImageUrl: profile?.profile.imageUrl ?? undefined,
+        traderAddress: traderAddress || undefined,
         tokenSymbol: position.tokenSymbol,
         position,
+        source: 'profile_position',
       });
     },
-    [navigation, traderId, traderName, profile?.profile.imageUrl],
+    [
+      navigation,
+      traderId,
+      traderName,
+      profile?.profile.imageUrl,
+      traderAddress,
+      activeTab,
+      track,
+    ],
   );
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =
@@ -228,7 +309,7 @@ const TraderProfileView = () => {
                         : ButtonVariant.Primary
                     }
                     isFullWidth
-                    onPress={toggleFollow}
+                    onPress={handleFollowPress}
                     testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
                   >
                     {isFollowing
@@ -247,13 +328,13 @@ const TraderProfileView = () => {
                   <TabButton
                     label={strings('social_leaderboard.trader_profile.open')}
                     isActive={activeTab === 'open'}
-                    onPress={() => setActiveTab('open')}
+                    onPress={() => handleTabChange('open')}
                     testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
                   />
                   <TabButton
                     label={strings('social_leaderboard.trader_profile.closed')}
                     isActive={activeTab === 'closed'}
-                    onPress={() => setActiveTab('closed')}
+                    onPress={() => handleTabChange('closed')}
                     testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
                   />
                 </Box>

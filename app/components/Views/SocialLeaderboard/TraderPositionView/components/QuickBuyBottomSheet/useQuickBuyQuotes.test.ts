@@ -51,6 +51,15 @@ jest.mock('../../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
+const mockTrack = jest.fn();
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
+
 const mockSelectBridgeQuotesBase = jest.fn();
 
 jest.mock('@metamask/bridge-controller', () => {

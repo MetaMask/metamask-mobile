@@ -11,10 +11,12 @@ const mockNavigate = jest.fn();
 const mockTraders = [
   {
     id: 'trader-1',
+    address: '0x0000000000000000000000000000000000000001',
     rank: 1,
     username: 'alice',
     percentageChange: 96.2,
     pnlValue: 963000,
+    pnlPerChain: { base: 963000 },
     isFollowing: false,
   },
 ];
@@ -124,7 +126,9 @@ describe('TopTradersSection', () => {
 
     fireEvent.press(screen.getByText('Top Traders'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      source: 'home_carousel',
+    });
   });
 
   it('navigates to the trader profile with correct params when a card is tapped', () => {
@@ -134,7 +138,13 @@ describe('TopTradersSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.PROFILE,
-      { traderId: 'trader-1', traderName: 'alice' },
+      {
+        traderId: 'trader-1',
+        traderName: 'alice',
+        traderAddress: '0x0000000000000000000000000000000000000001',
+        source: 'home_carousel',
+        traderRank: 1,
+      },
     );
   });
 

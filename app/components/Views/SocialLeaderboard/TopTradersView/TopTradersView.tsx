@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   FlatList,
   Pressable,
@@ -7,8 +13,18 @@ import {
   StyleSheet,
   Text as RNText,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
+import {
+  SocialLeaderboardEventProperties,
+  useSocialLeaderboardAnalytics,
+} from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -127,12 +143,18 @@ const ChainPill: React.FC<ChainPillProps> = ({
 
 const TopTradersView = () => {
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const tw = useTailwind();
   const { colors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const { track } = useSocialLeaderboardAnalytics();
+  const source = route.params?.source ?? 'nav_tab';
 
   const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
+  // Tracks whether we've already emitted the screen-viewed event this mount.
+  // Avoids re-firing if the user changes filters or refreshes.
+  const hasFiredScreenViewedRef = useRef(false);
 
   const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
     limit: 250,
@@ -145,6 +167,35 @@ const TopTradersView = () => {
     }
   }, [isEnabled, navigation]);
 
+  useEffect(() => {
+    if (!isEnabled || hasFiredScreenViewedRef.current) return;
+    hasFiredScreenViewedRef.current = true;
+    track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED, {
+      [SocialLeaderboardEventProperties.SOURCE]: source,
+      [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedChain,
+    });
+    // selectedChain is intentionally captured at mount-time so subsequent
+    // pill changes only fire the chain-filter-changed event.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEnabled, source, track]);
+
+  const handleChainFilterPress = useCallback(
+    (next: ChainFilter) => {
+      setSelectedChain((prev) => {
+        if (prev === next) return prev;
+        track(
+          MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED,
+          {
+            [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
+            [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: prev,
+          },
+        );
+        return next;
+      });
+    },
+    [track],
+  );
+
   const filteredTraders = useMemo(() => {
     const filtered =
       selectedChain === 'all'
@@ -153,6 +204,19 @@ const TopTradersView = () => {
 
     return filtered.slice(0, 50).map((t, i) => ({ ...t, rank: i + 1 }));
   }, [traders, selectedChain]);
+
+  const handleFollowPress = useCallback(
+    (traderId: string) => {
+      const trader = filteredTraders.find((t) => t.id === traderId);
+      toggleFollow(traderId, {
+        source: 'leaderboard',
+        traderAddress: trader?.address ?? '',
+        traderUsername: trader?.username,
+        traderRank: trader?.rank,
+      });
+    },
+    [filteredTraders, toggleFollow],
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -178,12 +242,24 @@ const TopTradersView = () => {
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
+      const trader = filteredTraders.find((t) => t.id === traderId);
+      if (trader) {
+        track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: trader.address,
+          [SocialLeaderboardEventProperties.TRADER_USERNAME]: trader.username,
+          [SocialLeaderboardEventProperties.TRADER_RANK]: trader.rank,
+          [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedChain,
+        });
+      }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
+        traderAddress: trader?.address,
+        source: 'leaderboard',
+        traderRank: trader?.rank,
       });
     },
-    [navigation],
+    [navigation, filteredTraders, selectedChain, track],
   );
 
   return (
@@ -232,7 +308,7 @@ const TopTradersView = () => {
             filterKey={key}
             label={label}
             isSelected={selectedChain === key}
-            onPress={() => setSelectedChain(key)}
+            onPress={() => handleChainFilterPress(key)}
           />
         ))}
       </ScrollView>
@@ -261,7 +337,7 @@ const TopTradersView = () => {
           renderItem={({ item }) => (
             <TraderRow
               trader={item}
-              onFollowPress={toggleFollow}
+              onFollowPress={handleFollowPress}
               onTraderPress={handleTraderPress}
             />
           )}

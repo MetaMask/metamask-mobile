@@ -6,6 +6,8 @@
 export interface TopTrader {
   /** Clicker profile ID. */
   id: string;
+  /** Primary wallet address. Used for analytics keys. */
+  address: string;
   /** Rank position in the leaderboard (1-based). */
   rank: number;
   /** Display username or truncated address. */

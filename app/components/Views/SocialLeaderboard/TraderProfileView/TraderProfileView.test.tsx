@@ -10,6 +10,7 @@ import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -18,7 +19,18 @@ const mockRefresh = jest.fn();
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
+  toAssetId: (address: string, chainId: string) =>
+    `${chainId}/erc20:${address}`,
 }));
+
+const mockTrack = jest.fn();
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
@@ -132,7 +144,13 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
     useRoute: () => ({
-      params: { traderId: 'trader-1', traderName: 'dutchiono' },
+      params: {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+        traderAddress: '0xabc',
+        source: 'leaderboard',
+        traderRank: 1,
+      },
     }),
   };
 });
@@ -293,8 +311,10 @@ describe('TraderProfileView', () => {
         traderId: 'trader-1',
         traderName: 'dutchiono',
         traderImageUrl: 'https://example.com/avatar.png',
+        traderAddress: '0xabc',
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
+        source: 'profile_position',
       },
     );
   });
@@ -434,6 +454,34 @@ describe('TraderProfileView', () => {
         screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
       ).not.toBeOnTheScreen();
       expect(screen.getByText('45 followers')).toBeOnTheScreen();
+    });
+  });
+
+  describe('analytics', () => {
+    it('fires Trader Profile Screen Viewed once profile resolves with route source/rank', () => {
+      renderWithProvider(<TraderProfileView />);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
+        expect.objectContaining({
+          trader_address: '0xabc',
+          trader_username: 'dutchiono',
+          source: 'leaderboard',
+          is_following: false,
+          trader_rank: 1,
+        }),
+      );
+    });
+
+    it('forwards an analyticsContext when the follow button is pressed', () => {
+      renderWithProvider(<TraderProfileView />);
+      fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
+      expect(mockToggleFollow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'trader_profile',
+          traderAddress: '0xabc',
+          traderUsername: 'dutchiono',
+        }),
+      );
     });
   });
 });

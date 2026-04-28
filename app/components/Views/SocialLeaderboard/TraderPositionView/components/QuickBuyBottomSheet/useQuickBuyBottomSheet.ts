@@ -50,6 +50,27 @@ import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { calcTokenValue } from '../../../../../../util/transactions';
+import {
+  SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
+  useSocialLeaderboardAnalytics,
+  type QuickBuySheetSource,
+} from '../../../analytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { chainNameToId } from '../../../utils/chainMapping';
+import { toAssetId } from '../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+
+type QuickBuyDismissStage =
+  (typeof SocialLeaderboardEventValues.DISMISS_STAGE)[keyof typeof SocialLeaderboardEventValues.DISMISS_STAGE];
+
+export interface QuickBuyAnalyticsContext {
+  /** Wallet address of the trader being copied. Required for analytics. */
+  traderAddress?: string;
+  /** Destination-token market cap; passes through on sheet-viewed. */
+  marketCap?: number;
+  /** Surface that opened the sheet. */
+  source?: QuickBuySheetSource;
+}
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -113,13 +134,42 @@ export interface UseQuickBuyBottomSheetResult {
 export function useQuickBuyBottomSheet(
   position: Position,
   onClose: () => void,
+  analyticsContext?: QuickBuyAnalyticsContext,
 ): UseQuickBuyBottomSheetResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const { track } = useSocialLeaderboardAnalytics();
+
+  // Stable refs so analytics callbacks don't capture stale context across
+  // unmount cleanups. The cleanup effect below reads these to fire the
+  // dismissed event without re-binding on each amount change.
+  const traderAddress = analyticsContext?.traderAddress ?? '';
+  const caip19 = useMemo(() => {
+    const caipChainId = chainNameToId(position.chain);
+    if (!caipChainId) return '';
+    return toAssetId(position.tokenAddress, caipChainId) ?? '';
+  }, [position.chain, position.tokenAddress]);
 
   const [usdAmount, setUsdAmount] = useState('');
   const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
+  // Marks where the current usdAmount value came from. Reset to 'preset' when
+  // a chip is pressed, otherwise 'custom_input' on each keystroke. Used to
+  // disambiguate the analytics method without re-firing on every keystroke.
+  const lastInputMethodRef = useRef<'preset' | 'custom_input'>('custom_input');
+  // Last usdAmount we already emitted analytics for; prevents duplicate
+  // events when redux state churns and effects re-run.
+  const lastTrackedAmountRef = useRef<string>('');
+  // Tracks the highest dismiss-stage the user reached so the cleanup effect
+  // can attach the right `dismiss_stage` to the dismissed event.
+  const dismissStageRef = useRef<QuickBuyDismissStage>(
+    SocialLeaderboardEventValues.DISMISS_STAGE.TOKEN_DETAIL,
+  );
+  // Cleared once the trade is submitted (success path) so we don't double-
+  // count dismissed events on top of completed events.
+  const tradeSubmittedRef = useRef(false);
+  // Captures the trade timer so trade-completed can compute execution_time_ms.
+  const submitStartedAtRef = useRef<number | null>(null);
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
@@ -214,6 +264,10 @@ export function useQuickBuyBottomSheet(
     balance: sourceToken?.balance,
   });
 
+  const usdAmountNumber = useMemo(() => {
+    const v = Number(usdAmount);
+    return Number.isFinite(v) ? v : 0;
+  }, [usdAmount]);
   const {
     activeQuote,
     destTokenAmount: estimatedReceiveAmount,
@@ -225,6 +279,11 @@ export function useQuickBuyBottomSheet(
     sourceToken,
     destToken,
     sourceTokenAmount,
+    analyticsContext: {
+      traderAddress,
+      caip19,
+      amountUsd: usdAmountNumber,
+    },
   });
 
   const networkFeeRawUsd = useMemo(() => {
@@ -303,30 +362,70 @@ export function useQuickBuyBottomSheet(
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
-  // Cleanup bridge state on unmount
+  // Cleanup bridge state on unmount, and emit `Quick Buy Dismissed` whenever
+  // the sheet closes without a successful submission.
   useEffect(
     () => () => {
       dispatch(resetBridgeState());
       if (Engine.context.BridgeController?.resetState) {
         Engine.context.BridgeController.resetState();
       }
+      if (!tradeSubmittedRef.current && traderAddress && caip19) {
+        const numeric = Number(lastTrackedAmountRef.current);
+        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_DISMISSED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+          [SocialLeaderboardEventProperties.CAIP19]: caip19,
+          [SocialLeaderboardEventProperties.DISMISS_STAGE]:
+            dismissStageRef.current,
+          [SocialLeaderboardEventProperties.AMOUNT_USD]:
+            Number.isFinite(numeric) && numeric > 0 ? numeric : undefined,
+        });
+      }
     },
-    [dispatch],
+    [dispatch, traderAddress, caip19, track],
   );
 
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
-  const handlePresetPress = useCallback((preset: string) => {
-    setUsdAmount(preset);
-  }, []);
+  const handlePresetPress = useCallback(
+    (preset: string) => {
+      lastInputMethodRef.current = 'preset';
+      setUsdAmount(preset);
+      const numericPreset = Number(preset);
+      const presetValue =
+        numericPreset === 20 ||
+        numericPreset === 50 ||
+        numericPreset === 100 ||
+        numericPreset === 250
+          ? numericPreset
+          : undefined;
+      lastTrackedAmountRef.current = preset;
+      if (traderAddress && caip19) {
+        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+          [SocialLeaderboardEventProperties.CAIP19]: caip19,
+          [SocialLeaderboardEventProperties.AMOUNT_USD]: numericPreset,
+          [SocialLeaderboardEventProperties.AMOUNT_SELECTION_METHOD]:
+            SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.PRESET,
+          [SocialLeaderboardEventProperties.PRESET_VALUE]: presetValue,
+          [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
+            sourceToken?.symbol,
+        });
+      }
+      dismissStageRef.current =
+        SocialLeaderboardEventValues.DISMISS_STAGE.AMOUNT_SELECTION;
+    },
+    [traderAddress, caip19, sourceToken?.symbol, track],
+  );
 
   const handleAmountAreaPress = useCallback(() => {
     hiddenInputRef.current?.focus();
   }, []);
 
   const handleAmountChange = useCallback((text: string) => {
+    lastInputMethodRef.current = 'custom_input';
     const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
     const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
     const parts = normalized.split('.');
@@ -335,20 +434,107 @@ export function useQuickBuyBottomSheet(
     setUsdAmount(normalized);
   }, []);
 
+  // Debounced track for custom amount entries — fires once after the user
+  // stops typing for 500ms, so we don't emit on every keystroke.
+  useEffect(() => {
+    if (lastInputMethodRef.current !== 'custom_input') return;
+    if (!usdAmount) return;
+    const numeric = Number(usdAmount);
+    if (!Number.isFinite(numeric) || numeric <= 0) return;
+    if (lastTrackedAmountRef.current === usdAmount) return;
+    const handle = setTimeout(() => {
+      lastTrackedAmountRef.current = usdAmount;
+      if (traderAddress && caip19) {
+        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+          [SocialLeaderboardEventProperties.CAIP19]: caip19,
+          [SocialLeaderboardEventProperties.AMOUNT_USD]: numeric,
+          [SocialLeaderboardEventProperties.AMOUNT_SELECTION_METHOD]:
+            SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
+          [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
+            sourceToken?.symbol,
+        });
+      }
+      dismissStageRef.current =
+        SocialLeaderboardEventValues.DISMISS_STAGE.AMOUNT_SELECTION;
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [usdAmount, traderAddress, caip19, sourceToken?.symbol, track]);
+
   const handleConfirm = useCallback(async () => {
     if (!activeQuote || !walletAddress) return;
 
+    const amountUsd = usdAmountNumber;
+    const amountTokenRaw = activeQuote.toTokenAmount?.amount;
+    const amountToken =
+      amountTokenRaw != null && isNumberValue(amountTokenRaw)
+        ? Number(amountTokenRaw)
+        : undefined;
+    const submittedTraderAddress = traderAddress;
+    const submittedCaip19 = caip19;
+    const submittedAssetName = destToken?.symbol ?? position.tokenSymbol;
+    const submittedPayWith = sourceToken?.symbol;
+
+    // Shared by the SUBMITTED + COMPLETED (success / failure) events. Built
+    // once here so the success vs failure delta stays small at the call sites.
+    const tradeBaseProps =
+      submittedTraderAddress && submittedCaip19
+        ? {
+            [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+              submittedTraderAddress,
+            [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
+            [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
+            [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
+            [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
+          }
+        : null;
+
+    if (tradeBaseProps) {
+      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_SUBMITTED, tradeBaseProps);
+    }
+    tradeSubmittedRef.current = true;
+    dismissStageRef.current =
+      SocialLeaderboardEventValues.DISMISS_STAGE.CONFIRMATION;
+    submitStartedAtRef.current = Date.now();
+
+    const elapsedMs = () =>
+      submitStartedAtRef.current ? Date.now() - submitStartedAtRef.current : 0;
+
     try {
       dispatch(setIsSubmittingTx(true));
-      await submitBridgeTx({ quoteResponse: activeQuote });
+      const submitResult = await submitBridgeTx({ quoteResponse: activeQuote });
       setTxPhase('success');
       notificationAsync(NotificationFeedbackType.Success);
+      const txHash =
+        submitResult &&
+        typeof (submitResult as { hash?: unknown }).hash === 'string'
+          ? ((submitResult as { hash?: string }).hash as string)
+          : undefined;
+      if (tradeBaseProps) {
+        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED, {
+          ...tradeBaseProps,
+          [SocialLeaderboardEventProperties.AMOUNT_TOKEN]: amountToken,
+          [SocialLeaderboardEventProperties.TX_HASH]: txHash,
+          [SocialLeaderboardEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
+          [SocialLeaderboardEventProperties.STATUS]:
+            SocialLeaderboardEventValues.STATUS.SUCCESS,
+        });
+      }
       await new Promise((resolve) => setTimeout(resolve, 800));
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
       notificationAsync(NotificationFeedbackType.Error);
+      if (tradeBaseProps) {
+        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED, {
+          ...tradeBaseProps,
+          [SocialLeaderboardEventProperties.AMOUNT_TOKEN]: amountToken,
+          [SocialLeaderboardEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
+          [SocialLeaderboardEventProperties.STATUS]:
+            SocialLeaderboardEventValues.STATUS.FAILED,
+        });
+      }
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
@@ -359,6 +545,13 @@ export function useQuickBuyBottomSheet(
     dispatch,
     onClose,
     navigation,
+    usdAmountNumber,
+    traderAddress,
+    caip19,
+    destToken?.symbol,
+    position.tokenSymbol,
+    sourceToken?.symbol,
+    track,
   ]);
 
   const sourceBalanceFiat = useMemo(() => {
