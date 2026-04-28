@@ -24,13 +24,13 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
 jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => null),
 }));
-jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (amount: { toString: () => string }) =>
-    `$${Number(amount.toString()).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`,
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => 'usd'),
+}));
+
+jest.mock('../../utils/moneyFormatFiat', () => ({
+  moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 
 const makeToken = (overrides: Partial<AssetType>): AssetType =>
@@ -77,7 +77,7 @@ describe('PotentialEarningsTokenRow', () => {
       />,
     );
 
-    expect(getByText('$5,000.00')).toBeOnTheScreen();
+    expect(getByText('$5000.00')).toBeOnTheScreen();
   });
 
   it('renders projected earnings when multiplier produces a positive value', () => {
@@ -90,7 +90,7 @@ describe('PotentialEarningsTokenRow', () => {
       />,
     );
 
-    expect(getByText('+$1,000.00')).toBeOnTheScreen();
+    expect(getByText('+$1000.00')).toBeOnTheScreen();
   });
 
   it('hides projected earnings when multiplier is zero', () => {

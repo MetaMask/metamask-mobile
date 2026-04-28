@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -22,7 +23,8 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { tokenFiatValue } from '../../../Earn/hooks/useMusdConversionTokens';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -43,16 +45,22 @@ const PotentialEarningsTokenRow = ({
   projectedMultiplier: number;
   onPress: () => void;
 }) => {
-  const formatFiat = useFiatFormatter();
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const networkBadgeSource = useMemo(
     () => (token.chainId ? NetworkBadgeSource(token.chainId as Hex) : null),
     [token.chainId],
   );
 
   const projectedFiatNumber = tokenFiatValue(token) * projectedMultiplier;
-  const projectedFiatFormatted = formatFiat(new BigNumber(projectedFiatNumber));
+  const projectedFiatFormatted = moneyFormatFiat(
+    new BigNumber(projectedFiatNumber),
+    currentCurrency,
+  );
 
-  const balanceFiatFormatted = token.balanceInSelectedCurrency;
+  const balanceFiatFormatted = moneyFormatFiat(
+    new BigNumber(tokenFiatValue(token)),
+    currentCurrency,
+  );
 
   return (
     <Box

@@ -1,11 +1,9 @@
 import React from 'react';
-import { BigNumber } from 'bignumber.js';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
-import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
