@@ -152,7 +152,7 @@ jest.mock('../../../../hooks/useFormatters', () => ({
 }));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: jest.fn((value: number) => value),
+  useDebouncedValue: jest.fn((value: unknown) => value),
 }));
 
 jest.mock('../../hooks/useBlinkingCursor', () => ({
@@ -358,7 +358,7 @@ describe('BuildQuote', () => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
-    mockUseDebouncedValue.mockImplementation((value: number) => value);
+    mockUseDebouncedValue.mockImplementation((value: unknown) => value);
     mockUseRampsQuotes.mockImplementation((options) =>
       defaultQuotesHookResult(options),
     );
@@ -646,6 +646,75 @@ describe('BuildQuote', () => {
       expect(continueButton).toBeDisabled();
     });
 
+    it('debounces the visible limit error while keeping quote validation immediate', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 120,
+        maxAmount: 1000,
+      });
+      let debouncedLimitError: string | null = null;
+      mockUseDebouncedValue.mockImplementation((value: unknown) =>
+        typeof value === 'number' ? value : debouncedLimitError,
+      );
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { queryByText, getByTestId, rerender } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      expect(queryByText('Minimum purchase is $120.00')).not.toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(
+        continueButton.props.isDisabled ??
+          continueButton.props.disabled ??
+          continueButton.props.accessibilityState?.disabled,
+      ).toBe(true);
+
+      debouncedLimitError = 'Minimum purchase is $120.00';
+      rerender(<BuildQuote />);
+
+      expect(queryByText('Minimum purchase is $120.00')).toBeOnTheScreen();
+    });
+
+    it('clears the visible limit error immediately once the amount is no longer invalid', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 10,
+        maxAmount: 80,
+      });
+      const debouncedLimitError: string | null = 'Maximum purchase is $80.00';
+      mockUseDebouncedValue.mockImplementation((value: unknown) =>
+        typeof value === 'number' ? value : debouncedLimitError,
+      );
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { getByText, queryByText, getByTestId } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      expect(getByText('Maximum purchase is $80.00')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('keypad-trigger-empty'));
+
+      expect(queryByText('Maximum purchase is $80.00')).not.toBeOnTheScreen();
+    });
+
     it('fetches quotes normally when the amount is within provider limits', () => {
       const providerWithLimits = buildProviderWithLimits({
         minAmount: 50,
@@ -679,7 +748,9 @@ describe('BuildQuote', () => {
         maxAmount: 200,
       });
       let debouncedAmount = 100;
-      mockUseDebouncedValue.mockImplementation(() => debouncedAmount);
+      mockUseDebouncedValue.mockImplementation((value: unknown) =>
+        typeof value === 'number' ? debouncedAmount : value,
+      );
       mockUseRampsController.mockReturnValue(
         buildRampsControllerResult({
           providers: [providerWithLimits, NATIVE_PROVIDER],

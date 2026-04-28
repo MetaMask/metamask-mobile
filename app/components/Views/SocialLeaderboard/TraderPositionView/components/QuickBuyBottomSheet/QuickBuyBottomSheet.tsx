@@ -14,9 +14,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
-import { useQuickBuySetup } from './useQuickBuySetup';
 import QuickBuyHeader from './QuickBuyHeader';
 import QuickBuyAmountInput from './QuickBuyAmountInput';
+import QuickBuyBanners from './QuickBuyBanners';
 import QuickBuyFooter from './QuickBuyFooter';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 
@@ -54,15 +54,16 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     usdAmount,
     estimatedReceiveAmount,
     sourceBalanceFiat,
+    formattedNetworkFee,
+    formattedSlippage,
+    formattedMinimumReceived,
+    formattedPriceImpact,
+    totalAmountUsd,
     isQuoteLoading,
-    estimatedPoints,
-    isRewardsLoading,
-    shouldShowLiveRewardsEstimate,
-    shouldShowRewardsOptInCta,
-    shouldShowRewardsFallbackZero,
-    hasRewardsError,
-    rewardsAccountScope,
-    hasError,
+    isTotalLoading,
+    isHardwareSolanaBlocked,
+    priceImpactViewData,
+    isPriceImpactError,
     hasValidAmount,
     isConfirmDisabled,
     confirmButtonState,
@@ -89,16 +90,30 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
             estimatedReceiveAmount={estimatedReceiveAmount}
             isQuoteLoading={isQuoteLoading}
             hasValidAmount={hasValidAmount}
-            hasError={hasError}
             hiddenInputRef={hiddenInputRef}
             onAmountAreaPress={handleAmountAreaPress}
             onAmountChange={handleAmountChange}
             colors={colors}
           />
 
+          <QuickBuyBanners
+            isHardwareSolanaBlocked={isHardwareSolanaBlocked}
+            isPriceImpactError={isPriceImpactError}
+            isPriceImpactWarning={
+              !isPriceImpactError && !!priceImpactViewData.icon
+            }
+            formattedPriceImpact={formattedPriceImpact}
+          />
+
           <QuickBuyFooter
             usdAmount={usdAmount}
+            formattedNetworkFee={formattedNetworkFee}
+            formattedSlippage={formattedSlippage}
+            formattedMinimumReceived={formattedMinimumReceived}
+            formattedPriceImpact={formattedPriceImpact}
+            priceImpactViewData={priceImpactViewData}
             sourceToken={sourceToken}
+            totalAmountUsd={totalAmountUsd}
             sourceChainId={sourceChainId}
             sourceTokenOptions={sourceTokenOptions}
             selectedSourceToken={selectedSourceToken}
@@ -106,13 +121,7 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
             setIsSourcePickerOpen={setIsSourcePickerOpen}
             setSelectedSourceToken={setSelectedSourceToken}
             sourceBalanceFiat={sourceBalanceFiat}
-            estimatedPoints={estimatedPoints}
-            isRewardsLoading={isRewardsLoading}
-            shouldShowLiveRewardsEstimate={shouldShowLiveRewardsEstimate}
-            shouldShowRewardsOptInCta={shouldShowRewardsOptInCta}
-            shouldShowRewardsFallbackZero={shouldShowRewardsFallbackZero}
-            hasRewardsError={hasRewardsError}
-            rewardsAccountScope={rewardsAccountScope}
+            isTotalLoading={isTotalLoading}
             isConfirmDisabled={isConfirmDisabled}
             confirmButtonState={confirmButtonState}
             getButtonLabel={getButtonLabel}
@@ -138,7 +147,6 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const { destToken } = useQuickBuySetup(position);
 
   useEffect(() => {
     bottomSheetRef.current?.onOpenBottomSheet(() => {
@@ -156,11 +164,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >
-      <QuickBuyHeader
-        position={position}
-        destToken={destToken}
-        onClose={handleClose}
-      />
+      <QuickBuyHeader position={position} onClose={handleClose} />
       {isContentReady ? (
         <QuickBuyBottomSheetContent position={position} onClose={onClose} />
       ) : (
