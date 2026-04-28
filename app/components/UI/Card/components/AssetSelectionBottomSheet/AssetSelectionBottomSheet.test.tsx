@@ -69,13 +69,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-const mockNavigateToCardPage = jest.fn();
-jest.mock('../../hooks/useNavigateToCardPage', () => ({
-  useNavigateToCardPage: jest.fn(() => ({
-    navigateToCardPage: mockNavigateToCardPage,
-  })),
-}));
-
 jest.mock('../../hooks/useAssetBalances', () => ({
   useAssetBalances: jest.fn(),
 }));
@@ -130,7 +123,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
@@ -253,10 +245,6 @@ describe('AssetSelectionBottomSheet', () => {
     });
 
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
-
-    (useNavigateToCardPage as jest.Mock).mockReturnValue({
-      navigateToCardPage: mockNavigateToCardPage,
-    });
 
     // Mock useUpdateFundingPriority to call onSuccess by default
     mockUpdateFundingPriority.mockImplementation(async () => true);

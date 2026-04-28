@@ -17,7 +17,7 @@ import {
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
 } from './core-backend';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   getCronjobControllerMessenger,
   getExecutionServiceMessenger,
@@ -272,7 +272,7 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getDeFiPositionsControllerMessenger,
     getInitMessenger: getDeFiPositionsControllerInitMessenger,
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   AuthenticationController: {
     getMessenger: getAuthenticationControllerMessenger,
     getInitMessenger: noop,

@@ -26,7 +26,7 @@ import {
 import { getHardwareWalletTypeForAddress } from '../../../core/HardwareWallet/helpers';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApproval';
 ///: END:ONLY_INCLUDE_IF
@@ -201,7 +201,7 @@ const RootRPCMethodsUI = (props) => {
       <FlowLoaderModal />
       <TemplateConfirmationModal />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
       <InstallSnapApproval />
       <SnapDialogApproval />
