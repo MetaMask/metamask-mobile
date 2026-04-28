@@ -51,7 +51,6 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
-import Logger from '../../../util/Logger';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
@@ -183,17 +182,8 @@ const QRScanner = ({
 
   const onBarCodeRead = useCallback(
     async (codes: Code[]) => {
-      Logger.log('[wc][scan] onBarCodeRead invoked', {
-        codesCount: codes.length,
-        shouldRead: shouldReadBarCodeRef.current,
-        mounted: mountedRef.current,
-        origin,
-      });
       // Early exit if no codes detected
-      if (!codes.length) {
-        Logger.log('[wc][scan] exit: no codes');
-        return;
-      }
+      if (!codes.length) return;
 
       /**
        * Barcode read triggers multiple times
@@ -201,10 +191,6 @@ const QRScanner = ({
        * Think of this as a allow or disallow bar code reading
        */
       if (!shouldReadBarCodeRef.current || !mountedRef.current) {
-        Logger.log('[wc][scan] exit: read blocked by refs', {
-          shouldRead: shouldReadBarCodeRef.current,
-          mounted: mountedRef.current,
-        });
         return;
       }
 
@@ -212,7 +198,6 @@ const QRScanner = ({
       let content = response.data;
 
       if (!content) {
-        Logger.log('[wc][scan] exit: empty code value');
         return;
       }
 
@@ -572,23 +557,6 @@ const QRScanner = ({
           return;
         }
 
-        const looksLikeWalletConnect =
-          content.startsWith('wc:') ||
-          content.startsWith('wc://') ||
-          content.includes('wc:');
-
-        if (looksLikeWalletConnect) {
-          Logger.log(
-            '[wc][QRScanner] parsing scanned WalletConnect QR content',
-            {
-              origin,
-              contentPreview: `${content.slice(0, 120)}${
-                content.length > 120 ? '...' : ''
-              }`,
-            },
-          );
-        }
-
         const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           onHandled: () => {
@@ -600,9 +568,6 @@ const QRScanner = ({
         });
 
         if (handledByDeeplink) {
-          if (looksLikeWalletConnect) {
-            Logger.log('[wc][QRScanner] SharedDeeplinkManager handled content');
-          }
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
               .addProperties({
