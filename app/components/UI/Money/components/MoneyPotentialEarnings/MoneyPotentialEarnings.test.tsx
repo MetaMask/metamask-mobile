@@ -1,9 +1,11 @@
 import React from 'react';
+import { BigNumber } from 'bignumber.js';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -27,13 +29,13 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 }));
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
-jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (amount: { toString: () => string }) =>
-    `$${Number(amount.toString()).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`,
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => 'usd'),
+}));
+
+jest.mock('../../utils/moneyFormatFiat', () => ({
+  moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 
 const makeToken = (overrides: Partial<AssetType>): AssetType =>
@@ -113,13 +115,13 @@ describe('MoneyPotentialEarnings', () => {
   });
 
   it('computes the aggregate projected amount from token fiat balances', () => {
-    // USDC 5000 + USDT 4000 = 9000 * 0.2 = 1800
+    // USDC $5000 + USDT $4000 = $9000 × (4% APY × 1 year) = $360.00
     const { getByTestId } = render(
       <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC, MOCK_USDT]} />,
     );
 
-    expect(getByTestId(MoneyPotentialEarningsTestIds.AMOUNT)).toHaveTextContent(
-      '+$1,800.00',
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+      '+$360.00',
     );
   });
 
@@ -216,7 +218,7 @@ describe('MoneyPotentialEarnings', () => {
     );
 
     expect(
-      queryByTestId(MoneyPotentialEarningsTestIds.AMOUNT),
+      queryByTestId(MoneyPotentialEarningsTestIds.TEXT),
     ).not.toBeOnTheScreen();
   });
 
@@ -235,9 +237,7 @@ describe('MoneyPotentialEarnings', () => {
       const { getByTestId, getByText } = render(
         <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} condensed />,
       );
-      expect(
-        getByTestId(MoneyPotentialEarningsTestIds.AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toBeOnTheScreen();
       expect(
         getByText(strings('money.potential_earnings.description')),
       ).toBeOnTheScreen();

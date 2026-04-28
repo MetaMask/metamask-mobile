@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -13,7 +14,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import {
   STABLECOIN_SYMBOLS,
   tokenFiatValue,
@@ -22,9 +24,9 @@ import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
 import MoneyGradientText from './MoneyGradientText';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
+import { PROJECTION_YEARS } from '../../utils/projections';
 
 /** Number of years the projected earnings are simulated over. */
-const PROJECTION_YEARS = 5;
 const MAX_TOKENS = 5;
 
 /**
@@ -59,7 +61,7 @@ const MoneyPotentialEarnings = ({
   onHeaderPress,
   condensed = false,
 }: MoneyPotentialEarningsProps) => {
-  const formatFiat = useFiatFormatter();
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const projectedMultiplier = useMemo(
     () => ((apy ?? 0) / 100) * PROJECTION_YEARS,
     [apy],
@@ -109,7 +111,7 @@ const MoneyPotentialEarnings = ({
 
         {isPositiveNumber(projectedAmount) && (
           <MoneyGradientText
-            value={`+${formatFiat(new BigNumber(projectedAmount))}`}
+            value={`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
           />
         )}
 
