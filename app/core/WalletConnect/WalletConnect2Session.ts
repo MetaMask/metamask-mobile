@@ -537,19 +537,6 @@ class WalletConnect2Session {
             ? sessionTopicApprovedAccounts
             : fallbackApprovedAccounts;
         if (effectiveApprovedAccounts.length > 0) {
-          if (
-            sessionTopicApprovedAccounts.length === 0 &&
-            fallbackApprovedAccounts.length > 0
-          ) {
-            DevLogger.log(
-              '[wc][WC2Session.updateSession] no accounts on session topic; using channelId fallback',
-              {
-                sessionTopic,
-                channelId: this.channelId,
-                fallbackAccountsCount: fallbackApprovedAccounts.length,
-              },
-            );
-          }
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
             effectiveApprovedAccounts,
@@ -619,15 +606,6 @@ class WalletConnect2Session {
         (ns) => !mergedNamespaces[ns]?.chains?.length,
       );
       if (missingAdapterNamespaces.length > 0) {
-        DevLogger.log(
-          '[wc][WC2Session.updateSession] missing non-EVM namespace(s) in merged namespaces',
-          {
-            topic: this.session.topic,
-            missingAdapterNamespaces,
-            computedNamespaces: namespaces,
-            existingSessionNamespaces: this.session.namespaces,
-          },
-        );
         return;
       }
 
@@ -647,10 +625,6 @@ class WalletConnect2Session {
       if (allowedNamespaceKeys.size > 0) {
         for (const key of Object.keys(mergedNamespaces)) {
           if (!allowedNamespaceKeys.has(key)) {
-            DevLogger.log(
-              '[wc][WC2Session.updateSession] dropping unrequested namespace',
-              { key, allowedNamespaceKeys: Array.from(allowedNamespaceKeys) },
-            );
             delete mergedNamespaces[key];
           }
         }
@@ -678,45 +652,11 @@ class WalletConnect2Session {
         fallbackEvmHex: `0x${chainId.toString(16)}`,
       });
 
-      DevLogger.log('[wc][WC2Session.updateSession] emitting chainChanged', {
-        topic: this.session.topic,
-        sessionNamespaceKeys: Object.keys(this.session.namespaces ?? {}),
-        chainIdForEvent: chainChangedEmission.chainId,
-        chainChangedEventData: chainChangedEmission.data,
-      });
-
       const emitDecision = shouldEmitChainChangedForWalletConnect({
         chainId: String(chainChangedEmission.chainId),
         namespaces: this.session.namespaces,
       });
-      if (
-        !emitDecision.shouldEmit &&
-        emitDecision.reason === 'chain_not_in_session'
-      ) {
-        DevLogger.log(
-          '[wc][WC2Session.updateSession] skip chainChanged emit; chain not in active session',
-          {
-            topic: this.session.topic,
-            activeSessionChainIds: emitDecision.activeSessionChains,
-            attemptedChainId: chainChangedEmission.chainId,
-          },
-        );
-        return;
-      }
-
-      if (
-        !emitDecision.shouldEmit &&
-        emitDecision.reason === 'event_not_supported'
-      ) {
-        DevLogger.log(
-          '[wc][WC2Session.updateSession] skip chainChanged emit; event not supported by namespace',
-          {
-            topic: this.session.topic,
-            targetNamespace: emitDecision.namespace,
-            targetNamespaceEvents: emitDecision.namespaceEvents,
-            chainId: chainChangedEmission.chainId,
-          },
-        );
+      if (!emitDecision.shouldEmit) {
         return;
       }
 

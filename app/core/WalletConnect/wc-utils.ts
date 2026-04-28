@@ -254,12 +254,8 @@ export const normalizeCaipChainIdInbound = (caipChainId: string): string =>
  * All conversions are currently no-ops (commented out per chain) until dApps adopt
  * the canonical formats from ChainAgnostic/namespaces.
  */
-export const normalizeCaipChainIdOutbound = (caipChainId: string): string => {
-  DevLogger.log(`WC::normalizeCaipChainIdOutbound caipChainId=${caipChainId}`);
-  const normalized = normalizeCaipChainIdOutboundForWalletConnect(caipChainId);
-  DevLogger.log(`WC::normalizeCaipChainIdOutbound normalized=${normalized}`);
-  return normalized;
-};
+export const normalizeCaipChainIdOutbound = (caipChainId: string): string =>
+  normalizeCaipChainIdOutboundForWalletConnect(caipChainId);
 
 export function normalizeCaipChainIdInboundForWalletConnect(
   caipChainId: string,
@@ -270,12 +266,7 @@ export function normalizeCaipChainIdInboundForWalletConnect(
     const chainRef = caipChainId.slice('tron:'.length);
     if (chainRef.startsWith('0x')) {
       const decimalRef = parseInt(chainRef, 16);
-      const normalized = `tron:${decimalRef}`;
-      DevLogger.log('[wc][caip] normalize inbound tron chainId hex->dec', {
-        input: caipChainId,
-        output: normalized,
-      });
-      return normalized;
+      return `tron:${decimalRef}`;
     }
   }
 
@@ -291,12 +282,7 @@ export function normalizeCaipChainIdOutboundForWalletConnect(
     const chainRef = caipChainId.slice('tron:'.length);
     if (!chainRef.startsWith('0x')) {
       const hexRef = parseInt(chainRef, 10).toString(16);
-      const normalized = `tron:0x${hexRef}`;
-      DevLogger.log('[wc][caip] normalize outbound tron chainId dec->hex', {
-        input: caipChainId,
-        output: normalized,
-      });
-      return normalized;
+      return `tron:0x${hexRef}`;
     }
   }
 
