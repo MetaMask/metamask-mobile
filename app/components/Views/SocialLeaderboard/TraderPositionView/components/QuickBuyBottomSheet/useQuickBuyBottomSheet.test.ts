@@ -5,18 +5,24 @@ import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
-import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import Engine from '../../../../../../core/Engine';
 import {
   selectIsSubmittingTx,
   selectDestAddress,
+  selectSlippage,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectBridgeFeatureFlags,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 
 jest.mock('react-redux', () => ({
@@ -38,10 +44,6 @@ jest.mock('./useSourceTokenOptions', () => ({
 
 jest.mock('./useQuickBuyQuotes', () => ({
   useQuickBuyQuotes: jest.fn(),
-}));
-
-jest.mock('../../../../../UI/Bridge/hooks/useRewards', () => ({
-  useRewards: jest.fn(),
 }));
 
 jest.mock('../../../../../UI/Bridge/hooks/useLatestBalance', () => ({
@@ -72,13 +74,16 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../../../../../selectors/smartTransactionsController', () => ({
+  selectShouldUseSmartTransaction: jest.fn(),
 }));
 
 jest.mock('../../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
+jest.mock('../../../../confirmations/hooks/gas/useGasFeeEstimates', () => ({
+  useGasFeeEstimates: jest.fn(),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -86,6 +91,10 @@ jest.mock('../../../../../../core/Engine', () => ({
   default: {
     context: {
       BridgeController: { resetState: jest.fn() },
+      BridgeStatusController: { submitTx: jest.fn() },
+      NetworkController: {
+        findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+      },
     },
   },
 }));
@@ -107,12 +116,27 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   })),
   selectIsSubmittingTx: jest.fn(),
   selectDestAddress: jest.fn(),
+  selectSlippage: jest.fn(),
   selectIsEvmNonEvmBridge: jest.fn(),
   selectIsNonEvmNonEvmBridge: jest.fn(),
+  selectIsSolanaSourced: jest.fn(),
+  selectBridgeFeatureFlags: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/address', () => ({
+  isHardwareAccount: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../UI/Bridge/hooks/usePriceImpactViewData', () => ({
+  usePriceImpactViewData: jest.fn(),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -120,7 +144,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 const mockDispatch = jest.fn();
-const mockSubmitBridgeTx = jest.fn();
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
   ({
@@ -174,8 +197,22 @@ const setupDefaultMocks = () => {
     '0xWALLET',
   );
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
+  (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
   (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
+  (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(false);
+  (selectBridgeFeatureFlags as unknown as jest.Mock).mockReturnValue({
+    priceImpactThreshold: { warning: 0.05, error: 0.25 },
+  });
+  (
+    selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
+  ).mockReturnValue('0xWALLET');
+  (usePriceImpactViewData as jest.Mock).mockReturnValue({
+    textColor: TextColor.TextAlternative,
+    icon: undefined,
+    title: 'bridge.price_impact_info_title',
+    description: 'bridge.price_impact_info_description',
+  });
 
   (useQuickBuySetup as jest.Mock).mockReturnValue({
     chainId: '0x1',
@@ -204,15 +241,6 @@ const setupDefaultMocks = () => {
     isActiveQuoteForCurrentTokenPair: true,
   });
 
-  (useRewards as jest.Mock).mockReturnValue({
-    estimatedPoints: undefined,
-    isLoading: false,
-    shouldShowRewardsRow: false,
-    hasError: false,
-    accountOptedIn: false,
-    rewardsAccountScope: null,
-  });
-
   (useLatestBalance as jest.Mock).mockReturnValue({
     atomicBalance: undefined,
     displayBalance: undefined,
@@ -220,9 +248,12 @@ const setupDefaultMocks = () => {
 
   (useIsInsufficientBalance as jest.Mock).mockReturnValue(false);
   (useHasSufficientGas as jest.Mock).mockReturnValue(true);
-  (useSubmitBridgeTx as jest.Mock).mockReturnValue({
-    submitBridgeTx: mockSubmitBridgeTx,
-  });
+  (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
+    false,
+  );
+  (
+    Engine.context.BridgeStatusController.submitTx as jest.Mock
+  ).mockResolvedValue(undefined);
 };
 
 describe('useQuickBuyBottomSheet', () => {
@@ -300,14 +331,28 @@ describe('useQuickBuyBottomSheet', () => {
       );
     });
 
-    it('returns insufficient funds label when source balance is too low', () => {
+    it('returns the insufficient-funds label when source balance is too low', () => {
       (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() =>
         useQuickBuyBottomSheet(createPosition(), jest.fn()),
       );
 
+      expect(result.current.buttonError).toBe('insufficient_balance');
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_funds');
+    });
+
+    it('returns the insufficient-gas label when gas is short', () => {
+      (useHasSufficientGas as jest.Mock).mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      expect(result.current.buttonError).toBe('insufficient_gas');
+      expect(result.current.getButtonLabel()).toBe('bridge.insufficient_gas');
+
+      (useHasSufficientGas as jest.Mock).mockReturnValue(true);
     });
   });
 
@@ -505,7 +550,91 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.confirmButtonState).toBe('loading');
+      expect(result.current.confirmButtonState).toBe('idle');
+    });
+
+    const settleQuote = () => {
+      const quoteState: {
+        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
+        destTokenAmount: string | undefined;
+        isQuoteLoading: boolean;
+        isNoQuotesAvailable: boolean;
+        quoteFetchError: null;
+        isActiveQuoteForCurrentTokenPair: boolean;
+      } = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        position: createPosition(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+      rerender(props);
+
+      return { result, rerender, props };
+    };
+
+    it('is disabled when a hardware wallet sources from Solana', () => {
+      (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+      const { isHardwareAccount } = jest.requireMock(
+        '../../../../../../util/address',
+      );
+      isHardwareAccount.mockReturnValue(true);
+
+      const { result } = settleQuote();
+
+      expect(result.current.isHardwareSolanaBlocked).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+
+      isHardwareAccount.mockReturnValue(false);
+    });
+
+    it('is disabled when the price impact exceeds the error threshold', () => {
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
+        activeQuote: {
+          quote: { priceData: { priceImpact: '0.30' } },
+        },
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      }));
+
+      const props = {
+        position: createPosition(),
+        onClose: jest.fn(),
+      };
+      const { result } = renderHook(
+        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      expect(result.current.isPriceImpactError).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
     });
   });
 
@@ -538,6 +667,67 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('handleConfirm', () => {
+    it('submits via BridgeStatusController.submitTx with normalised approval and stxEnabled', async () => {
+      const activeQuote = {
+        ...createActiveQuote(),
+        approval: null,
+      } as unknown as ReturnType<typeof createActiveQuote>;
+
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+      (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      const onClose = jest.fn();
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), onClose),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(
+        Engine.context.BridgeStatusController.submitTx,
+      ).toHaveBeenCalledWith(
+        '0xWALLET',
+        expect.objectContaining({ approval: undefined }),
+        true,
+      );
+    });
+
+    it('does not call submitTx when there is no active quote', async () => {
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(
+        Engine.context.BridgeStatusController.submitTx,
+      ).not.toHaveBeenCalled();
     });
   });
 });

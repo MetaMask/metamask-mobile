@@ -560,10 +560,15 @@ export interface RootStackParamList extends ParamListBase {
   TraderProfileView: { traderId: string; traderName: string };
   TraderPositionView: {
     traderId: string;
-    traderName: string;
-    traderImageUrl?: string;
     tokenSymbol: string;
+    /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
     position?: Position;
+    /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
+    positionId?: string;
+    /** Optional — fetched via useTraderProfile when absent. */
+    traderName?: string;
+    /** Optional — fetched via useTraderProfile when absent. */
+    traderImageUrl?: string;
   };
 
   // Misc routes
