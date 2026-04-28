@@ -8883,6 +8883,14 @@
       "cash": "Money",
       "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
       "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
+      "cash_empty_state": {
+        "get_started": "Get started",
+        "earn_apy": "Earn {{percentage}}% APY"
+      },
+      "cash_filled_state": {
+        "add": "Add",
+        "apy": "{{percentage}}% APY"
+      },
       "tokens": "Tokens",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",

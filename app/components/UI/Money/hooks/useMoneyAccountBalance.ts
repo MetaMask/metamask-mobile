@@ -162,6 +162,7 @@ const useMoneyAccountBalance = (
   const musdSHFvdFiatFormatted = musdSHFvdFiat
     ? formatFiat(musdSHFvdFiat)
     : undefined;
+  // TODO: Fix formatting to match the TokenListItem currency formatting.
   const totalFiatFormatted = totalFiat ? formatFiat(totalFiat) : undefined;
   const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
 
