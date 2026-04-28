@@ -5,6 +5,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  TabEmptyState,
   Text,
   TextColor,
   TextVariant,
@@ -70,6 +71,9 @@ const AllSportsPillSection: React.FC<AllSportsPillSectionProps> = ({
     active === undefined ||
     (active.isFetching && active.marketData.length === 0);
 
+  const showEmpty =
+    active !== undefined && !showSkeleton && active.marketData.length === 0;
+
   return (
     <Box twClassName="mb-6">
       <PillRow
@@ -90,10 +94,16 @@ const AllSportsPillSection: React.FC<AllSportsPillSectionProps> = ({
             </Box>
           ))}
         </Box>
+      ) : showEmpty && active ? (
+        <Box twClassName="items-center py-8" testID="all-sports-empty-state">
+          <TabEmptyState
+            description={strings('trending.all_sports_no_markets')}
+          />
+        </Box>
       ) : (
         <>
           <FlashList
-            data={active.marketData}
+            data={active?.marketData ?? []}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
             scrollEnabled={false}
@@ -101,18 +111,18 @@ const AllSportsPillSection: React.FC<AllSportsPillSectionProps> = ({
             testID={`all-sports-list-${activeKey}`}
           />
 
-          {active.hasMore && (
+          {active?.hasMore && (
             <Box
               flexDirection={BoxFlexDirection.Row}
               justifyContent={BoxJustifyContent.Center}
               twClassName="mt-3"
             >
               <TouchableOpacity
-                onPress={active.fetchMore}
-                disabled={active.isFetchingMore}
+                onPress={active?.fetchMore}
+                disabled={active?.isFetchingMore}
                 testID="all-sports-load-more"
               >
-                {active.isFetchingMore ? (
+                {active?.isFetchingMore ? (
                   <ActivityIndicator color={theme.colors.primary.default} />
                 ) : (
                   <Text
