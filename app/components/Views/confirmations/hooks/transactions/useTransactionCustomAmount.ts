@@ -59,6 +59,9 @@ export function useTransactionCustomAmount({
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
+  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
   const balanceUsd = useTokenBalance(tokenFiatRate);
@@ -162,13 +165,14 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // For perps withdraw, do NOT set isMaxAmount=true. TPC's
-      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw`
-      // (the Arbitrum USDC wallet balance — wrong for a HyperLiquid-source
-      // withdrawal) instead of `token.amountRaw` (the typed HL balance).
-      // Letting isMaxAmount stay false routes the typed amount through,
-      // so the user actually withdraws their full balance.
-      const shouldSetMax = percentage === 100 && !isPerpsWithdraw;
+      // Do NOT set isMaxAmount=true for perps or money-account withdraw. TPC's
+      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
+      // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
+      // balance) and wrong for money account (on-chain mUSD only vs mUSD +
+      // musdSHFvd fiat total). Keeping isMaxAmount false routes the typed
+      // amount through as token.amountRaw.
+      const shouldSetMax =
+        percentage === 100 && !isPerpsWithdraw && !isMoneyAccountWithdraw;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -178,7 +182,14 @@ export function useTransactionCustomAmount({
 
       setAmountFiat(newAmount);
     },
-    [balanceUsd, isMaxAmount, isPerpsWithdraw, setIsMax, setConfirmationMetric],
+    [
+      balanceUsd,
+      isMaxAmount,
+      isPerpsWithdraw,
+      isMoneyAccountWithdraw,
+      setIsMax,
+      setConfirmationMetric,
+    ],
   );
 
   const updateTokenAmount = useCallback(() => {
@@ -229,7 +240,7 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
-  const { totalFiatRaw: moneyAccountTotalFiatRaw } = useMoneyAccountBalance();
+  const { tokenTotal: moneyAccountTokenTotal } = useMoneyAccountBalance();
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
@@ -240,7 +251,16 @@ function useTokenBalance(tokenUsdRate: number) {
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
   ) {
-    return moneyAccountTotalFiatRaw ? parseFloat(moneyAccountTotalFiatRaw) : 0;
+    // `totalFiatRaw` is in the user's display currency; percentage amounts must
+    // match `amountHuman = amountFiat / tokenFiatRate` (USD for money withdraw).
+    // `tokenTotal` is mUSD + musdSHFvd in mUSD units — multiply by the same
+    // USD fiat rate used for the pay token.
+    if (moneyAccountTokenTotal === undefined) {
+      return 0;
+    }
+    return new BigNumber(moneyAccountTokenTotal)
+      .multipliedBy(tokenUsdRate)
+      .toNumber();
   }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
