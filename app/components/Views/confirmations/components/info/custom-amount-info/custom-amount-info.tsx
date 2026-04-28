@@ -125,7 +125,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
-
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
