@@ -20,16 +20,16 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
       - name: Download build-env artifact from triggering workflow
         continue-on-error: true
         id: download-artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: build-env-main-prod-${{ github.event.workflow_run.name == 'Runway iOS Production' && 'ios' || 'android' }}
           path: build-env-artifacts
