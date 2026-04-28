@@ -229,22 +229,16 @@ const buildMoneylineButtons = (
     (outcome) => outcome.tokens[0] !== undefined,
   );
 
-  return sortedWithTokens.flatMap((outcome, i) => {
+  return sortedWithTokens.map((outcome, i) => {
     const yesToken = outcome.tokens[0];
 
-    if (!yesToken) {
-      return [];
-    }
-
-    return [
-      {
-        label: yesToken.shortTitle ?? yesToken.title,
-        price: Math.round(yesToken.price * 100),
-        onPress: () => onBuyPress(outcome, yesToken),
-        variant: getButtonVariant(i, sortedWithTokens.length, true),
-        teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
-      },
-    ];
+    return {
+      label: yesToken.shortTitle ?? yesToken.title,
+      price: Math.round(yesToken.price * 100),
+      onPress: () => onBuyPress(outcome, yesToken),
+      variant: getButtonVariant(i, sortedWithTokens.length, true),
+      teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
+    };
   });
 };
 
