@@ -636,11 +636,13 @@ async function main() {
     }
   }
 
-  // 5) Log and run the selected specs for the given shard split
-  console.log(`\n🧪 Running ${runFiles.length} spec files for this given shard split (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`);
-  for (const f of runFiles) {
-    console.log(`  - ${f}`);
-  }
+  // 5) Log and run the selected specs for the given shard split.
+  //    Emit the header and file list as a single write so they cannot be
+  //    interleaved with the spawned yarn/detox stdout (both share the same fd
+  //    when stdout is a pipe in CI, and Node's console.log is async on pipes).
+  const header = `\n🧪 Running ${runFiles.length} spec files for this given shard split (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`;
+  const body = runFiles.map((f) => `  - ${f}`).join('\n');
+  console.log(`${header}\n${body}`);
 
   const args = [...runFiles];
   try {
