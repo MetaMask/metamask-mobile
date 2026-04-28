@@ -18,13 +18,6 @@ jest.mock('../../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    AuthenticationController: {
-      getSessionProfile: jest
-        .fn()
-        .mockResolvedValue({ profileId: 'mock-profile-id' }),
-    },
-  },
   controllerMessenger: {
     call: jest.fn(),
     subscribe: jest.fn(),
@@ -118,6 +111,7 @@ describe('useTopTraders', () => {
       expect(result.current.traders[0]).toEqual({
         id: first.profileId,
         rank: first.rank,
+        overallRank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent30d * 100,
@@ -217,10 +211,7 @@ describe('useTopTraders', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
         'SocialController:followTrader',
-        {
-          addressOrUid: 'mock-profile-id',
-          targets: [mockTraders[0].profileId],
-        },
+        { targets: [mockTraders[0].profileId] },
       );
     });
 
@@ -234,10 +225,7 @@ describe('useTopTraders', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
         'SocialController:unfollowTrader',
-        {
-          addressOrUid: 'mock-profile-id',
-          targets: [mockTraders[0].profileId],
-        },
+        { targets: [mockTraders[0].profileId] },
       );
     });
 

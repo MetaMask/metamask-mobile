@@ -1,12 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountStatus Snapshots android renders correctly with accountName in route params 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -165,6 +167,69 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -249,6 +314,71 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -314,16 +444,18 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots android renders correctly with type="found" 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -482,6 +614,69 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -566,6 +761,71 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -631,16 +891,18 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots android renders correctly with type="not_exist" 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -799,6 +1061,69 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -883,6 +1208,71 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -948,16 +1338,18 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with accountName in route params 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -1116,6 +1508,69 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1200,6 +1655,71 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1265,16 +1785,18 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -1433,6 +1955,69 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1517,6 +2102,71 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1582,16 +2232,18 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`] = `
-<View
+<RNCSafeAreaView
   edges={
-    [
-      "top",
-      "bottom",
-    ]
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
   }
   style={
     {
@@ -1750,6 +2402,69 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1834,6 +2549,71 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#b4b4b528",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1899,5 +2679,5 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       </View>
     </View>
   </View>
-</View>
+</RNCSafeAreaView>
 `;

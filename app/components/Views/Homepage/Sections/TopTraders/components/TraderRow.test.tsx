@@ -1,14 +1,15 @@
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { screen, fireEvent } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import TraderRow from './TraderRow';
 import type { TopTrader } from '../types';
+import TraderRow from './TraderRow';
 
 const baseTrader: TopTrader = {
   id: 'trader-1',
   rank: 1,
+  overallRank: 1,
   username: 'sniperliquid',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
@@ -29,7 +30,7 @@ describe('TraderRow', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('1.')).toBeOnTheScreen();
+    expect(screen.getByText('1')).toBeOnTheScreen();
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
     expect(screen.getByText('+43.0%')).toBeOnTheScreen();
     expect(screen.getByText('+$963K')).toBeOnTheScreen();
@@ -82,7 +83,34 @@ describe('TraderRow', () => {
       />,
     );
     fireEvent.press(screen.getByText('sniperliquid'));
-    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'sniperliquid');
+    expect(mockOnTraderPress).toHaveBeenCalledWith(
+      'trader-1',
+      'sniperliquid',
+      1,
+    );
+  });
+
+  it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
+    const filteredTrader: TopTrader = {
+      ...baseTrader,
+      rank: 1,
+      overallRank: 50,
+    };
+    renderWithProvider(
+      <TraderRow
+        trader={filteredTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('sniperliquid'));
+
+    expect(mockOnTraderPress).toHaveBeenCalledWith(
+      'trader-1',
+      'sniperliquid',
+      50,
+    );
   });
 
   it('does not fire onTraderPress when the prop is undefined', () => {
@@ -137,6 +165,13 @@ describe('TraderRow', () => {
       return flat?.minWidth;
     };
 
+    const resolveAlignSelf = (node: ReactTestInstance): string | undefined => {
+      const flat = StyleSheet.flatten(node.props.style) as
+        | { alignSelf?: string }
+        | undefined;
+      return flat?.alignSelf;
+    };
+
     it('renders the stats line with numberOfLines=1 so it does not wrap when the button grows', () => {
       const trader: TopTrader = {
         ...baseTrader,
@@ -169,6 +204,38 @@ describe('TraderRow', () => {
 
       expect(buttonWithMinWidth).not.toBeNull();
       expect(resolveMinWidth(buttonWithMinWidth as ReactTestInstance)).toBe(96);
+    });
+
+    it('renders the rank on a single line so the trailing dot does not wrap for double-digit ranks', () => {
+      const doubleDigitTrader: TopTrader = {
+        ...baseTrader,
+        rank: 20,
+        overallRank: 20,
+      };
+      renderWithProvider(
+        <TraderRow
+          trader={doubleDigitTrader}
+          onFollowPress={mockOnFollowPress}
+        />,
+      );
+
+      const rankText = screen.getByText('20');
+
+      expect(rankText.props.numberOfLines).toBe(1);
+    });
+
+    it('vertically centers the Follow button so it sits in the middle of the row (overrides ButtonBase self-start default)', () => {
+      renderWithProvider(
+        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+      );
+
+      const followLabel = screen.getByText('Follow');
+      const buttonWithAlignSelf = findAncestor(
+        followLabel,
+        (node) => resolveAlignSelf(node) === 'center',
+      );
+
+      expect(buttonWithAlignSelf).not.toBeNull();
     });
 
     it('keeps the same minimum width when toggling between Follow and Following', () => {

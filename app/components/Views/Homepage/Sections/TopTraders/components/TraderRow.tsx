@@ -19,13 +19,27 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 import { formatPnl } from '../utils/formatPnl';
+import { TopRankAvatar, TopRankIndicator } from '../topRank';
 
 const AVATAR_SIZE = 40;
+// Fixed row height so the skeleton placeholder can match it exactly without
+// drifting due to font-scale or button-size differences.
+export const TRADER_ROW_HEIGHT = 64;
 
 export interface TraderRowProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
-  onTraderPress?: (traderId: string, traderName: string) => void;
+  /**
+   * Invoked when the row is tapped. The third argument is the trader's
+   * **overall** (unfiltered) rank — used downstream to gate the profile's
+   * podium decoration on true top-3 traders, never the filtered display
+   * rank.
+   */
+  onTraderPress?: (
+    traderId: string,
+    traderName: string,
+    overallRank: number,
+  ) => void;
   testID?: string;
 }
 
@@ -54,14 +68,16 @@ const TraderRow: React.FC<TraderRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4 py-3"
+      twClassName="px-4"
+      style={{ height: TRADER_ROW_HEIGHT }}
       testID={testID ?? `trader-row-${trader.id}`}
     >
       <TouchableOpacity
         activeOpacity={onTraderPress ? 0.7 : 1}
         onPress={
           onTraderPress
-            ? () => onTraderPress(trader.id, trader.username)
+            ? () =>
+                onTraderPress(trader.id, trader.username, trader.overallRank)
             : undefined
         }
         style={tw.style('flex-1 min-w-0 mr-3')}
@@ -72,29 +88,27 @@ const TraderRow: React.FC<TraderRowProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={3}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            twClassName="w-6 text-right"
-          >
-            {`${trader.rank}.`}
-          </Text>
+          <TopRankIndicator
+            rank={trader.rank}
+            podiumRank={trader.overallRank}
+          />
 
-          {trader.avatarUri ? (
-            <Image
-              source={{ uri: trader.avatarUri }}
-              style={tw.style(
-                `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
-              )}
-              resizeMode="cover"
-            />
-          ) : (
-            <AvatarBase
-              size={AvatarBaseSize.Lg}
-              fallbackText={trader.username.charAt(0).toUpperCase()}
-            />
-          )}
+          <TopRankAvatar rank={trader.overallRank}>
+            {trader.avatarUri ? (
+              <Image
+                source={{ uri: trader.avatarUri }}
+                style={tw.style(
+                  `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
+                )}
+                resizeMode="cover"
+              />
+            ) : (
+              <AvatarBase
+                size={AvatarBaseSize.Lg}
+                fallbackText={trader.username.charAt(0).toUpperCase()}
+              />
+            )}
+          </TopRankAvatar>
 
           <Box twClassName="flex-1 min-w-0">
             <Text
@@ -150,11 +164,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
       {/* Follow / Following button */}
       <Button
         variant={
-          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
-        size={ButtonSize.Sm}
+        size={ButtonSize.Md}
         onPress={() => onFollowPress(trader.id)}
-        twClassName="min-w-[96px]"
+        twClassName="min-w-[96px] self-center"
       >
         {trader.isFollowing
           ? strings('social_leaderboard.following')

@@ -21,6 +21,8 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'TransakService',
   'ComplianceService',
   'SocialService',
+  'AuthenticatedUserStorageService',
+  'MoneyAccountBalanceService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -56,7 +58,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TransactionController:stateChange',
   'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'SnapController:stateChange',
   'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',

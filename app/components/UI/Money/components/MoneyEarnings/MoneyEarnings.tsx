@@ -49,13 +49,16 @@ interface MoneyEarningsProps {
 const ValueText = ({
   children,
   testID,
+  color,
 }: {
   children: string;
   testID: string;
+  color?: TextColor;
 }) => (
   <Text
     variant={TextVariant.BodyMd}
     fontWeight={FontWeight.Medium}
+    color={color}
     testID={testID}
   >
     {children}
@@ -91,7 +94,14 @@ const MoneyEarnings = ({
             testID={MoneyEarningsTestIds.LIFETIME_SKELETON}
           />
         ) : (
-          <ValueText testID={MoneyEarningsTestIds.LIFETIME_VALUE}>
+          <ValueText
+            testID={MoneyEarningsTestIds.LIFETIME_VALUE}
+            color={
+              lifetimeEarnings.startsWith('+')
+                ? TextColor.SuccessDefault
+                : undefined
+            }
+          >
             {lifetimeEarnings}
           </ValueText>
         )}

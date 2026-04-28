@@ -619,7 +619,7 @@ describe('ConfirmEmail Component', () => {
       );
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('should remain enabled when confirmation code is incomplete', () => {
@@ -634,7 +634,7 @@ describe('ConfirmEmail Component', () => {
       fireEvent.changeText(codeFieldInput, '123');
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('should be enabled when confirmation code is complete', () => {
@@ -649,7 +649,7 @@ describe('ConfirmEmail Component', () => {
       fireEvent.changeText(codeFieldInput, '123456');
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('should navigate to CONFIRM_PHONE_NUMBER when continue button is pressed', async () => {
