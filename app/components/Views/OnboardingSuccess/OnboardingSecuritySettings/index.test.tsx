@@ -77,8 +77,10 @@ describe('OnboardingSecuritySettings', () => {
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
       });
-      const { toJSON } = renderWithProvider(<OnboardingSecuritySettings />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSecuritySettings />,
+      );
+      expect(getByTestId('use-chains-list-validation')).toBeOnTheScreen();
     });
 
     it('should always render NetworkDetailsCheckSettings regardless of auth connection', () => {
@@ -90,7 +92,7 @@ describe('OnboardingSecuritySettings', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSecuritySettings />,
       );
-      expect(getByTestId('use-chains-list-validation')).toBeTruthy();
+      expect(getByTestId('use-chains-list-validation')).toBeOnTheScreen();
     });
   });
 

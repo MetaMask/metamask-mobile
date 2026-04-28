@@ -8,20 +8,20 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { usePerpsLiveAccount } from '../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount';
-import {
-  formatPerpsFiat,
-  parseCurrencyString,
-} from '../../../../../UI/Perps/utils/formatUtils';
+import { formatPerpsBalance } from '../../../../../UI/Perps/utils/formatUtils';
 import styleSheet from './perps-withdraw-balance.styles';
 
 export function PerpsWithdrawBalance() {
   const { styles } = useStyles(styleSheet, {});
   const { account } = usePerpsLiveAccount();
 
-  const balanceFormatted = useMemo(() => {
-    if (!account?.availableBalance) return formatPerpsFiat(0);
-    return formatPerpsFiat(parseCurrencyString(account.availableBalance));
-  }, [account?.availableBalance]);
+  // formatPerpsBalance truncates (ROUND_DOWN) to 2 decimals so the displayed
+  // balance matches the Max button value and never overstates what the user
+  // can actually withdraw.
+  const balanceFormatted = useMemo(
+    () => formatPerpsBalance(account?.availableBalance),
+    [account?.availableBalance],
+  );
 
   return (
     <Box alignItems={AlignItems.center} style={styles.container}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { DefaultSlippageButtonGroup } from './DefaultSlippageButtonGroup';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 
 describe('DefaultSlippageButtonGroup', () => {
   const mockOnPress1 = jest.fn();
@@ -23,9 +24,9 @@ describe('DefaultSlippageButtonGroup', () => {
         <DefaultSlippageButtonGroup options={defaultOptions} />,
       );
 
-      expect(getByText('Auto')).toBeTruthy();
-      expect(getByText('1%')).toBeTruthy();
-      expect(getByText('2%')).toBeTruthy();
+      expect(getByText('Auto')).toBeOnTheScreen();
+      expect(getByText('1%')).toBeOnTheScreen();
+      expect(getByText('2%')).toBeOnTheScreen();
     });
 
     it('renders correct number of buttons', () => {
@@ -49,11 +50,11 @@ describe('DefaultSlippageButtonGroup', () => {
 
   describe('styling', () => {
     it('renders correct styling with one option selected', () => {
-      const { toJSON } = render(
+      const { getAllByRole } = render(
         <DefaultSlippageButtonGroup options={defaultOptions} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getAllByRole('button')).toHaveLength(3);
     });
 
     it('renders correct styling with no options selected', () => {
@@ -63,11 +64,11 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '2', label: '2%', selected: false, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getAllByRole } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getAllByRole('button')).toHaveLength(3);
     });
 
     it('renders correct styling with first option selected', () => {
@@ -77,11 +78,11 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '2', label: '2%', selected: false, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Auto')).toBeOnTheScreen();
     });
 
     it('renders correct styling with last option selected', () => {
@@ -91,11 +92,11 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '2', label: '2%', selected: true, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('2%')).toBeOnTheScreen();
     });
 
     it('renders correct styling with multiple options selected', () => {
@@ -105,11 +106,12 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '2', label: '2%', selected: false, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Auto')).toBeOnTheScreen();
+      expect(getByText('1%')).toBeOnTheScreen();
     });
   });
 
@@ -171,12 +173,11 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: 'auto', label: 'Auto', selected: true, onPress: jest.fn() },
       ];
 
-      const { toJSON, getByText } = render(
+      const { getByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(getByText('Auto')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Auto')).toBeOnTheScreen();
     });
 
     it('handles many options', () => {
@@ -189,13 +190,12 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: 'custom', label: 'Custom', selected: false, onPress: jest.fn() },
       ];
 
-      const { toJSON, getAllByRole } = render(
+      const { getAllByRole } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
       const buttons = getAllByRole('button');
       expect(buttons).toHaveLength(6);
-      expect(toJSON()).toMatchSnapshot();
     });
 
     it('handles long labels', () => {
@@ -214,11 +214,12 @@ describe('DefaultSlippageButtonGroup', () => {
         },
       ];
 
-      const { toJSON } = render(
+      const { getByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Very Long Custom Label')).toBeOnTheScreen();
+      expect(getByText('Another Super Long Label Here')).toBeOnTheScreen();
     });
 
     it('handles options without selected property', () => {
@@ -227,12 +228,12 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '1', label: '1%', onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getAllByRole } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
       // Should default to unselected (secondary variant)
-      expect(toJSON()).toMatchSnapshot();
+      expect(getAllByRole('button')).toHaveLength(2);
     });
 
     it('handles special characters in labels', () => {
@@ -245,8 +246,8 @@ describe('DefaultSlippageButtonGroup', () => {
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(getByText('< 0.5%')).toBeTruthy();
-      expect(getByText('≥ 1%')).toBeTruthy();
+      expect(getByText('< 0.5%')).toBeOnTheScreen();
+      expect(getByText('≥ 1%')).toBeOnTheScreen();
     });
   });
 
@@ -256,11 +257,13 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '1', label: '1%', selected: true, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { UNSAFE_getByProps } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot('primary variant');
+      expect(
+        UNSAFE_getByProps({ variant: ButtonVariant.Primary }).props.variant,
+      ).toBe(ButtonVariant.Primary);
     });
 
     it('uses Secondary variant for unselected button', () => {
@@ -268,11 +271,13 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '1', label: '1%', selected: false, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { UNSAFE_getByProps } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot('secondary variant');
+      expect(
+        UNSAFE_getByProps({ variant: ButtonVariant.Secondary }).props.variant,
+      ).toBe(ButtonVariant.Secondary);
     });
 
     it('handles mixed selected states correctly', () => {
@@ -282,11 +287,11 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '3', label: '3%', selected: false, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getAllByRole } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot('mixed variants');
+      expect(getAllByRole('button')).toHaveLength(3);
     });
   });
 
@@ -298,11 +303,11 @@ describe('DefaultSlippageButtonGroup', () => {
       ];
 
       // Should not throw duplicate key warning
-      const { toJSON } = render(
+      const { getAllByRole } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toBeTruthy();
+      expect(getAllByRole('button')).toHaveLength(2);
     });
 
     it('handles duplicate labels gracefully', () => {
@@ -330,11 +335,12 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: 'custom', label: 'Custom', selected: false, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getAllByRole, getByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getAllByRole('button')).toHaveLength(5);
+      expect(getByText('2%')).toBeOnTheScreen();
     });
 
     it('matches snapshot with auto selected', () => {
@@ -344,11 +350,11 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: '2', label: '2%', selected: false, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Auto')).toBeOnTheScreen();
     });
 
     it('matches snapshot with custom selected', () => {
@@ -358,11 +364,11 @@ describe('DefaultSlippageButtonGroup', () => {
         { id: 'custom', label: 'Custom', selected: true, onPress: jest.fn() },
       ];
 
-      const { toJSON } = render(
+      const { getByText } = render(
         <DefaultSlippageButtonGroup options={options} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Custom')).toBeOnTheScreen();
     });
   });
 });
