@@ -267,6 +267,15 @@ const SubgroupCards = memo(
     const title = getSportsMarketTypeLabel(subgroup.key);
     const testID = `${groupKey}-${subgroup.key}-${index}`;
 
+    const subtitle = useMemo(
+      () => buildMoneylineSubtitle(subgroup.outcomes),
+      [subgroup.outcomes],
+    );
+    const buttons = useMemo(
+      () => buildMoneylineButtons(subgroup.outcomes, onBuyPress, game),
+      [subgroup.outcomes, onBuyPress, game],
+    );
+
     if (
       isMoneylineLikeMarketType(subgroup.key) &&
       subgroup.outcomes.length > 1
@@ -274,8 +283,8 @@ const SubgroupCards = memo(
       return (
         <PredictSportOutcomeCard
           title={title}
-          subtitle={buildMoneylineSubtitle(subgroup.outcomes)}
-          buttons={buildMoneylineButtons(subgroup.outcomes, onBuyPress, game)}
+          subtitle={subtitle}
+          buttons={buttons}
           buttonLayout="stacked"
           testID={testID}
         />
@@ -320,6 +329,15 @@ const OutcomesContent = memo(
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
   }) => {
+    const subtitle = useMemo(
+      () => buildMoneylineSubtitle(group.outcomes),
+      [group.outcomes],
+    );
+    const buttons = useMemo(
+      () => buildMoneylineButtons(group.outcomes, onBuyPress, game),
+      [group.outcomes, onBuyPress, game],
+    );
+
     if (group.subgroups && group.subgroups.length > 0) {
       return (
         <>
@@ -346,8 +364,8 @@ const OutcomesContent = memo(
       return (
         <PredictSportOutcomeCard
           title={getSportsMarketTypeLabel(firstType)}
-          subtitle={buildMoneylineSubtitle(group.outcomes)}
-          buttons={buildMoneylineButtons(group.outcomes, onBuyPress, game)}
+          subtitle={subtitle}
+          buttons={buttons}
           buttonLayout="stacked"
           testID={`${group.key}-moneyline`}
         />

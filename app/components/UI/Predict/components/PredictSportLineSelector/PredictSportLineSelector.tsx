@@ -159,7 +159,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
               const isSelected = index === selectedIndex;
               return (
                 <Pressable
-                  key={`${index}-${line}`}
+                  key={`line-${line}`}
                   onPress={() => selectWithHaptics(line, index)}
                   testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.LINE_PREFIX}${index}-${line}`}
                   style={({ pressed }) =>
