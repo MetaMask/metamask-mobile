@@ -17,7 +17,7 @@ import {
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
 } from './core-backend';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   getCronjobControllerMessenger,
   getExecutionServiceMessenger,
@@ -113,6 +113,7 @@ import {
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
 import { getEarnControllerMessenger } from './earn-controller-messenger';
 import { getMoneyAccountControllerMessenger } from './money-account-controller-messenger';
+import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
@@ -149,6 +150,7 @@ import { getAnalyticsControllerMessenger } from './analytics-controller-messenge
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
+import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
@@ -270,7 +272,7 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getDeFiPositionsControllerMessenger,
     getInitMessenger: getDeFiPositionsControllerInitMessenger,
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   AuthenticationController: {
     getMessenger: getAuthenticationControllerMessenger,
     getInitMessenger: noop,
@@ -468,12 +470,20 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getAiDigestControllerMessenger,
     getInitMessenger: noop,
   },
+  MoneyAccountBalanceService: {
+    getMessenger: getMoneyAccountBalanceServiceMessenger,
+    getInitMessenger: noop,
+  },
   SocialService: {
     getMessenger: getSocialServiceMessenger,
     getInitMessenger: noop,
   },
   SocialController: {
     getMessenger: getSocialControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AuthenticatedUserStorageService: {
+    getMessenger: getAuthenticatedUserStorageServiceMessenger,
     getInitMessenger: noop,
   },
   CardController: {

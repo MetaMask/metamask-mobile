@@ -25,6 +25,7 @@ import { CustomNetworkInformation } from './NetworkVerificationInfo.types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
+import { ADD_CUSTOM_NETWORK_ARTCILE } from '../../../constants/urls';
 import {
   ButtonSize,
   ButtonVariants,
@@ -41,7 +42,6 @@ import { convertHexToDecimal } from '@metamask/controller-utils';
 import { isValidASCIIURL, toPunycodeURL } from '../../../util/url';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { MISSMATCH_RPC_URL_TEST_ID } from './NetworkVerificationInfo.constants';
-import { ADD_CUSTOM_NETWORK_ARTCILE } from '../../../constants/urls';
 
 interface Alert {
   alertError: string;
@@ -99,9 +99,7 @@ const NetworkVerificationInfo = ({
   }, [matchingPopularNetwork, customNetworkInformation.rpcUrl]);
 
   const goToLearnMore = () => {
-    Linking.openURL(
-      'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/',
-    );
+    Linking.openURL(ADD_CUSTOM_NETWORK_ARTCILE);
   };
 
   useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);

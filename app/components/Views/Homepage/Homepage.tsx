@@ -11,7 +11,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
 import WhatsHappeningSection from './Sections/WhatsHappening';
-import PerpsSection from './Sections/Perpetuals';
+import PerpsSectionWithProvider from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
@@ -38,6 +38,7 @@ import { useOwnedNfts } from './Sections/NFTs/hooks';
 import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
+import { HomepageTrendingAbTestContext } from './context/HomepageTrendingAbTestContext';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -69,11 +70,20 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
 
-  const { variant: abVariant } = useABTest(
+  const {
+    variant: abVariant,
+    isActive: isAbActive,
+    variantName: abVariantName,
+  } = useABTest(
     HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
     HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
   );
   const separateTrending = abVariant.separateTrending;
+
+  const trendingAbTestContextValue = useMemo(
+    () => ({ isActive: isAbActive, variantName: abVariantName }),
+    [isAbActive, abVariantName],
+  );
 
   const ownedNfts = useOwnedNfts();
   const hasNfts = ownedNfts.length > 0;
@@ -101,12 +111,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       const sections: { name: HomeSectionName; enabled: boolean }[] = [
         { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
+        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         {
           name: HomeSectionNames.TOP_TRADERS,
           enabled: isTopTradersEnabled,
         },
-        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
       ];
 
@@ -141,12 +151,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
     return [
       { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
       { name: HomeSectionNames.TOKENS, enabled: true },
+      { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+      { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
       {
         name: HomeSectionNames.TOP_TRADERS,
         enabled: isTopTradersEnabled,
       },
-      { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-      { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
       {
         name: HomeSectionNames.WHATS_HAPPENING,
         enabled: isWhatsHappeningEnabled,
@@ -200,12 +210,17 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       trendingPerpsSection: React.ReactNode,
     ) => (
       <>
-        {isPredictEnabled && (
-          <PredictionsSection
-            ref={predictionsSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+        <PredictionsSection
+          ref={predictionsSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+          totalSectionsLoaded={totalSectionsLoaded}
+          mode={sectionMode}
+        />
+        {isTopTradersEnabled && (
+          <TopTradersSection
+            ref={topTradersSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
             totalSectionsLoaded={totalSectionsLoaded}
-            mode={sectionMode}
           />
         )}
         {isDeFiEnabled && (
@@ -240,16 +255,14 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           titleOverride={strings('homepage.sections.trending_tokens')}
         />
         {trendingPerpsSection}
-        {isPredictEnabled && (
-          <PredictionsSection
-            ref={trendingPredictionsRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PREDICT)}
-            totalSectionsLoaded={totalSectionsLoaded}
-            mode="trending-only"
-            sectionName={HomeSectionNames.TRENDING_PREDICT}
-            titleOverride={strings('homepage.sections.trending_predictions')}
-          />
-        )}
+        <PredictionsSection
+          ref={trendingPredictionsRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PREDICT)}
+          totalSectionsLoaded={totalSectionsLoaded}
+          mode="trending-only"
+          sectionName={HomeSectionNames.TRENDING_PREDICT}
+          titleOverride={strings('homepage.sections.trending_predictions')}
+        />
 
         {/* NFTs below trending when user has no NFTs */}
         {!hasNfts && (
@@ -274,22 +287,78 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
     );
 
     return (
+      <HomepageTrendingAbTestContext.Provider
+        value={trendingAbTestContextValue}
+      >
+        <Box
+          gap={8}
+          marginBottom={8}
+          paddingTop={6}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+        >
+          {/* Cash — always first */}
+          <CashSection
+            ref={cashSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+
+          {/* Position sections — hidden when empty */}
+          <TokensSection
+            ref={tokensSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+            mode={sectionMode}
+          />
+          {isPerpsEnabled && (
+            <PerpsConnectionProvider suppressErrorView>
+              <PerpsStreamProvider>
+                <PerpsSectionBase
+                  ref={perpsSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                  mode={sectionMode}
+                />
+                <Box gap={8}>
+                  {renderTreatmentNonPerpsSections(trendingPerpsSection)}
+                </Box>
+              </PerpsStreamProvider>
+            </PerpsConnectionProvider>
+          )}
+          {!isPerpsEnabled && renderTreatmentNonPerpsSections(null)}
+        </Box>
+      </HomepageTrendingAbTestContext.Provider>
+    );
+  }
+
+  return (
+    <HomepageTrendingAbTestContext.Provider value={trendingAbTestContextValue}>
       <Box
         gap={8}
         marginBottom={8}
         paddingTop={6}
         testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
       >
-        {/* Cash — always first */}
         <CashSection
+          ref={cashSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
           totalSectionsLoaded={totalSectionsLoaded}
         />
-
-        {/* Position sections — hidden when empty */}
         <TokensSection
           ref={tokensSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+          totalSectionsLoaded={totalSectionsLoaded}
+          mode={sectionMode}
+        />
+        <PerpsSectionWithProvider
+          ref={perpsSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+          totalSectionsLoaded={totalSectionsLoaded}
+          mode={sectionMode}
+        />
+        <PredictionsSection
+          ref={predictionsSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
           totalSectionsLoaded={totalSectionsLoaded}
           mode={sectionMode}
         />
@@ -300,76 +369,23 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
             totalSectionsLoaded={totalSectionsLoaded}
           />
         )}
-        {isPerpsEnabled && (
-          <PerpsConnectionProvider suppressErrorView>
-            <PerpsStreamProvider>
-              <PerpsSectionBase
-                ref={perpsSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-                mode={sectionMode}
-              />
-              <Box gap={8}>
-                {renderTreatmentNonPerpsSections(trendingPerpsSection)}
-              </Box>
-            </PerpsStreamProvider>
-          </PerpsConnectionProvider>
-        )}
-        {!isPerpsEnabled && renderTreatmentNonPerpsSections(null)}
-      </Box>
-    );
-  }
-
-  return (
-    <Box
-      gap={8}
-      marginBottom={8}
-      paddingTop={6}
-      testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
-    >
-      <CashSection
-        ref={cashSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <TokensSection
-        ref={tokensSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      {isTopTradersEnabled && (
-        <TopTradersSection
-          ref={topTradersSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+        <WhatsHappeningSection
+          ref={whatsHappeningSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
           totalSectionsLoaded={totalSectionsLoaded}
         />
-      )}
-      <PerpsSection
-        ref={perpsSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <PredictionsSection
-        ref={predictionsSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <WhatsHappeningSection
-        ref={whatsHappeningSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <DeFiSection
-        ref={defiSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <NFTsSection
-        ref={nftsSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-    </Box>
+        <DeFiSection
+          ref={defiSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
+          totalSectionsLoaded={totalSectionsLoaded}
+        />
+        <NFTsSection
+          ref={nftsSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+          totalSectionsLoaded={totalSectionsLoaded}
+        />
+      </Box>
+    </HomepageTrendingAbTestContext.Provider>
   );
 });
 

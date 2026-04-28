@@ -1,5 +1,6 @@
 import { Asset, TokenRwaData } from '@metamask/assets-controllers';
 import { Hex, CaipChainId } from '@metamask/utils';
+import { SecurityData } from './hooks/usePopularTokens';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
 export interface BridgeToken {
@@ -25,6 +26,7 @@ export interface BridgeToken {
   aggregators?: string[];
   metadata?: Record<string, unknown>;
   rwaData?: TokenRwaData;
+  securityData?: SecurityData;
 }
 
 export enum BridgeViewMode {

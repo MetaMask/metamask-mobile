@@ -24,12 +24,13 @@ import { POLYMARKET_API_MOCKS } from './polymarket-apis.ts';
 import { INFURA_MOCKS } from '../infura-mocks.ts';
 import { CHAINS_NETWORK_MOCK_RESPONSE } from '../chains-network-mocks.ts';
 import { DEFAULT_REWARDS_MOCKS } from './rewards.ts';
-import { ACL_EXECUTION_MOCKS } from './acl-execution.ts';
+import { SNAPS_REGISTRY_MOCKS } from './snaps-registry.ts';
 import { CONTENTFUL_BANNERS_MOCKS } from './contentful-banners.ts';
 import { PERPS_HYPERLIQUID_MOCKS } from './perps-hyperliquid.ts';
 import { TRENDING_API_MOCKS } from '../trending-api-mocks.ts';
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
 import { DIGEST_API_MOCKS } from './digest-api.ts';
+import { MONEY_ACCOUNT_MOCKS } from './money-account.ts';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -53,10 +54,11 @@ export const DEFAULT_MOCKS = {
     ...(POLYMARKET_API_MOCKS.GET || []),
     ...(INFURA_MOCKS.GET || []),
     ...(DEFAULT_REWARDS_MOCKS.GET || []),
-    ...(ACL_EXECUTION_MOCKS.GET || []),
+    ...(SNAPS_REGISTRY_MOCKS.GET || []),
     ...(CONTENTFUL_BANNERS_MOCKS.GET || []),
     ...(TRENDING_API_MOCKS.GET || []),
     ...(DIGEST_API_MOCKS.GET || []),
+    ...(MONEY_ACCOUNT_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',

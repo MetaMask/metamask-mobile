@@ -32,10 +32,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual<
+    typeof import('../../../../selectors/networkController')
+  >('../../../../selectors/networkController'),
   selectEvmChainId: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/accountsController', () => ({
+  ...jest.requireActual<
+    typeof import('../../../../selectors/accountsController')
+  >('../../../../selectors/accountsController'),
   selectSelectedInternalAccount: jest.fn(),
 }));
 
@@ -315,6 +321,27 @@ describe('useTokenActions', () => {
       );
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('includes asset_symbol in RAMPS_BUTTON_CLICKED event', () => {
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.onBuy();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'TokenDetails',
+          asset_symbol: 'DAI',
+        }),
+      );
     });
   });
 

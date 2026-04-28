@@ -167,9 +167,9 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   }, [navigation, token.assetId, token.symbol]);
 
   const handleBuy = useCallback(() => {
-    trackBuyButtonClicked();
+    trackBuyButtonClicked(token.symbol);
     goToBuy({ assetId: token.assetId }, { buyFlowOrigin: 'homeTokenList' });
-  }, [trackBuyButtonClicked, goToBuy, token.assetId]);
+  }, [trackBuyButtonClicked, goToBuy, token.assetId, token.symbol]);
 
   const priceDisplay = useMemo(() => {
     if (token.price === undefined) {

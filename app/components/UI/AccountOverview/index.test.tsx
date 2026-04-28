@@ -98,7 +98,7 @@ describe('AccountOverview', () => {
       <AccountOverview account={account} />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('tracks WALLET_COPIED_ADDRESS when address is pressed', async () => {

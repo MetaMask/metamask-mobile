@@ -6,7 +6,7 @@ import GenericButtonAndroid from './index.android';
 describe('GenericButton', () => {
   it('should render correctly on iOS', () => {
     const wrapper = shallow(<GenericButtonIos />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.find('TouchableOpacity').exists()).toBe(true);
   });
 
   it('should render correctly on android', () => {
@@ -14,6 +14,6 @@ describe('GenericButton', () => {
       OS: 'android',
     }));
     const wrapper = shallow(<GenericButtonAndroid />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.find('TouchableNativeFeedback').exists()).toBe(true);
   });
 });

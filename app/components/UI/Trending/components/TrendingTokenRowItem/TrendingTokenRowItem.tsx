@@ -22,6 +22,18 @@ import {
   isCaipChainId,
   parseCaipChainId,
 } from '@metamask/utils';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Icon,
+  IconAlert,
+  IconSize,
+  Text as DesignSystemText,
+  TextVariant as DesignSystemTextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 
 /**
  * Converts CAIP chain ID to hex chain ID
@@ -33,6 +45,7 @@ const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
     : (caipChainId as Hex);
 };
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
   getDefaultNetworkByChainId,
   getTestNetImageByChainId,
@@ -136,6 +149,8 @@ interface TrendingTokenRowItemProps {
    * @default TokenDetailsSource.Trending
    */
   tokenDetailsSource?: TokenDetailsSource;
+  /** Passed through to Asset navigation for tx-scoped `active_ab_tests` */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /**
    * Custom press handler. When provided, bypasses default navigation to the
    * asset details screen (including network-add logic and analytics tracking).
@@ -149,6 +164,7 @@ interface TrendingTokenRowItemProps {
 const getAssetNavigationParams = (
   token: TrendingAsset,
   source: TokenDetailsSource,
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[],
 ) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
   if (!isCaipChainId(caipChainId)) return null;
@@ -177,6 +193,7 @@ const getAssetNavigationParams = (
     source,
     rwaData: token.rwaData,
     securityData: token.securityData,
+    ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
   };
 };
 
@@ -186,6 +203,7 @@ const TrendingTokenRowItem = ({
   position,
   filterContext,
   tokenDetailsSource = TokenDetailsSource.Trending,
+  transactionActiveAbTests,
   onPress,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -203,13 +221,23 @@ const TrendingTokenRowItem = ({
   );
 
   const assetParams = useMemo(
-    () => getAssetNavigationParams(token, tokenDetailsSource),
-    [token, tokenDetailsSource],
+    () =>
+      getAssetNavigationParams(
+        token,
+        tokenDetailsSource,
+        transactionActiveAbTests,
+      ),
+    [token, tokenDetailsSource, transactionActiveAbTests],
   );
 
   const networkBadgeImageSource = useMemo(
     () => getNetworkBadgeSource(caipChainId),
     [caipChainId],
+  );
+
+  const securityBadge = useMemo(
+    () => getResultTypeConfig(token.securityData?.resultType).badge,
+    [token.securityData?.resultType],
   );
 
   // Parse price change percentage from API (comes as string like "-3.44" or "+0.456")
@@ -324,9 +352,57 @@ const TrendingTokenRowItem = ({
             color={TextColor.Default}
             numberOfLines={1}
             ellipsizeMode="tail"
+            style={styles.tokenName}
           >
             {token?.name ?? token?.symbol}
           </Text>
+          {securityBadge && securityBadge.label === null && (
+            <>
+              {securityBadge.iconAlertSeverity ? (
+                <IconAlert
+                  severity={securityBadge.iconAlertSeverity}
+                  size={IconSize.Sm}
+                  testID="security-badge-icon"
+                />
+              ) : (
+                <Icon
+                  name={securityBadge.icon}
+                  size={IconSize.Sm}
+                  color={securityBadge.iconColor}
+                  testID="security-badge-icon"
+                />
+              )}
+            </>
+          )}
+          {securityBadge && securityBadge.label !== null && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName={`rounded min-w-[22px] px-1.5 gap-1 shrink-0 ${securityBadge.bg}`}
+            >
+              {securityBadge.iconAlertSeverity ? (
+                <IconAlert
+                  severity={securityBadge.iconAlertSeverity}
+                  size={IconSize.Sm}
+                />
+              ) : (
+                <Icon
+                  name={securityBadge.icon}
+                  size={IconSize.Sm}
+                  color={securityBadge.iconColor}
+                />
+              )}
+              <DesignSystemText
+                variant={DesignSystemTextVariant.BodySm}
+                color={securityBadge.textColor}
+                fontWeight={FontWeight.Medium}
+                numberOfLines={1}
+                twClassName="whitespace-nowrap"
+              >
+                {securityBadge.label}
+              </DesignSystemText>
+            </Box>
+          )}
         </View>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {formatMarketStats(

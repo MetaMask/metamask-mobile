@@ -5,8 +5,10 @@ import {
   CardStatus,
   CardType,
   FundingAssetStatus,
+  CardProviderError,
   CardProviderErrorCode,
   type CardAuthTokens,
+  FundingApprovalParams,
 } from '../provider-types';
 import Logger from '../../../../../util/Logger';
 import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
@@ -654,12 +656,20 @@ describe('BaanxProvider', () => {
               getLogs: getLogsMock,
             }) as unknown as ethers.providers.JsonRpcProvider,
         );
-      contractSpy = jest.spyOn(ethers, 'Contract').mockImplementation(
-        () =>
-          ({
-            spendersAllowancesForTokens: spendersMock,
-          }) as unknown as ethers.Contract,
-      );
+      contractSpy = jest
+        .spyOn(ethers, 'Contract')
+        .mockImplementation((address: string) => {
+          if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+            return {
+              spendersAllowancesForTokens: spendersMock,
+            } as unknown as ethers.Contract;
+          }
+          return {
+            balanceOf: jest
+              .fn()
+              .mockResolvedValue(ethers.utils.parseUnits('100', 6)),
+          } as unknown as ethers.Contract;
+        });
     });
 
     afterEach(() => {
@@ -686,6 +696,11 @@ describe('BaanxProvider', () => {
       expect(result.primaryFundingAsset?.status).toBe(
         FundingAssetStatus.Limited,
       );
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('50');
+      const assetB = result.fundingAssets.find(
+        (a) => a.address.toLowerCase() === tokenB.toLowerCase(),
+      );
+      expect(assetB?.spendableBalance).toBe('0');
     });
 
     it('reads card feature flags lazily when checking on-chain assets', async () => {
@@ -781,6 +796,129 @@ describe('BaanxProvider', () => {
       expect(result.primaryFundingAsset?.address.toLowerCase()).toBe(
         tokenA.toLowerCase(),
       );
+    });
+
+    it('sets spendableBalance to wallet balance when wallet is below allowance', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      contractSpy.mockImplementation((address: string) => {
+        if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+          return {
+            spendersAllowancesForTokens: spendersMock,
+          } as unknown as ethers.Contract;
+        }
+        if (address.toLowerCase() === tokenA.toLowerCase()) {
+          return {
+            balanceOf: jest
+              .fn()
+              .mockResolvedValue(ethers.utils.parseUnits('25', 6)),
+          } as unknown as ethers.Contract;
+        }
+        return {
+          balanceOf: jest
+            .fn()
+            .mockResolvedValue(ethers.utils.parseUnits('100', 6)),
+        } as unknown as ethers.Contract;
+      });
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('25');
+    });
+
+    it('sets spendableBalance to zero when on-chain wallet balance is zero', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      contractSpy.mockImplementation((address: string) => {
+        if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+          return {
+            spendersAllowancesForTokens: spendersMock,
+          } as unknown as ethers.Contract;
+        }
+        return {
+          balanceOf: jest.fn().mockResolvedValue(ethers.constants.Zero),
+        } as unknown as ethers.Contract;
+      });
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('0');
+    });
+
+    it('treats balanceOf failure as zero wallet balance and logs an error', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      contractSpy.mockImplementation((address: string) => {
+        if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+          return {
+            spendersAllowancesForTokens: spendersMock,
+          } as unknown as ethers.Contract;
+        }
+        if (address.toLowerCase() === tokenA.toLowerCase()) {
+          return {
+            balanceOf: jest
+              .fn()
+              .mockRejectedValue(new Error('balanceOf reverted')),
+          } as unknown as ethers.Contract;
+        }
+        return {
+          balanceOf: jest
+            .fn()
+            .mockResolvedValue(ethers.utils.parseUnits('100', 6)),
+        } as unknown as ethers.Contract;
+      });
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(result.primaryFundingAsset?.spendableBalance).toBe('0');
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            name: 'BaanxProvider',
+            data: expect.objectContaining({
+              method: 'fetchOnChainAllowances/balanceOf',
+              tokenAddr: tokenA,
+              owner: ownerAddr,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('calls balanceOf on each token contract with the owner address', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      const balanceOfTokenA = jest
+        .fn()
+        .mockResolvedValue(ethers.utils.parseUnits('100', 6));
+      const balanceOfTokenB = jest
+        .fn()
+        .mockResolvedValue(ethers.utils.parseUnits('100', 6));
+
+      contractSpy.mockImplementation((address: string) => {
+        if (address.toLowerCase() === scannerAddr.toLowerCase()) {
+          return {
+            spendersAllowancesForTokens: spendersMock,
+          } as unknown as ethers.Contract;
+        }
+        if (address.toLowerCase() === tokenA.toLowerCase()) {
+          return {
+            balanceOf: balanceOfTokenA,
+          } as unknown as ethers.Contract;
+        }
+        if (address.toLowerCase() === tokenB.toLowerCase()) {
+          return {
+            balanceOf: balanceOfTokenB,
+          } as unknown as ethers.Contract;
+        }
+        return {} as unknown as ethers.Contract;
+      });
+
+      const p = new BaanxProvider({ service, cardFeatureFlag });
+      await p.getOnChainAssets(ownerAddr);
+
+      expect(balanceOfTokenA).toHaveBeenCalledWith(ownerAddr);
+      expect(balanceOfTokenB).toHaveBeenCalledWith(ownerAddr);
     });
   });
 
@@ -1560,57 +1698,65 @@ describe('BaanxProvider', () => {
     });
   });
 
+  describe('fetchDelegationChallenge', () => {
+    it('GETs delegation token and maps fields', async () => {
+      service.get.mockResolvedValue({
+        token: 'jwt-session',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        nonce: 'server-nonce',
+      });
+
+      const result = await provider.fetchDelegationChallenge(
+        { network: 'linea', address: '0xAbC', faucet: true },
+        AUTH_TOKENS,
+      );
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/delegation/token?network=linea&address=0xAbC&faucet=true',
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual({
+        delegationToken: 'jwt-session',
+        nonce: 'server-nonce',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('omits faucet query param when false', async () => {
+      service.get.mockResolvedValue({
+        token: 't',
+        expiresAt: 'e',
+        nonce: 'n',
+      });
+
+      await provider.fetchDelegationChallenge(
+        { network: 'base', address: '0x1' },
+        AUTH_TOKENS,
+      );
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/delegation/token?network=base&address=0x1',
+        AUTH_TOKENS,
+      );
+    });
+  });
+
   describe('approveFunding', () => {
-    it('posts funding approval to the delegation endpoint', async () => {
-      service.post.mockResolvedValue({});
-
-      await provider.approveFunding(
-        {
-          address: '0xwallet',
-          amount: '1000',
-          currency: 'USDC',
-          network: 'linea',
-          faucet: true,
-        },
-        AUTH_TOKENS,
-        {} as never,
-      );
-
-      expect(service.post).toHaveBeenCalledWith(
-        '/v1/delegation/evm/post-approval',
-        {
-          walletAddress: '0xwallet',
-          amount: '1000',
-          currency: 'USDC',
-          network: 'linea',
-          faucet: true,
-        },
-        AUTH_TOKENS,
-      );
+    it('throws when delegation completion fields are missing', async () => {
+      await expect(
+        provider.approveFunding(
+          {
+            address: '0xwallet',
+            amount: '1000',
+            currency: 'USDC',
+            network: 'linea',
+          } as FundingApprovalParams,
+          AUTH_TOKENS,
+        ),
+      ).rejects.toThrow(CardProviderError);
     });
 
-    it('defaults faucet to false when not provided', async () => {
-      service.post.mockResolvedValue({});
-
-      await provider.approveFunding(
-        {
-          address: '0xwallet',
-          amount: '500',
-          currency: 'mUSD',
-          network: 'base',
-        },
-        AUTH_TOKENS,
-        {} as never,
-      );
-
-      expect(service.post).toHaveBeenCalledWith(
-        '/v1/delegation/evm/post-approval',
-        expect.objectContaining({ faucet: false }),
-        AUTH_TOKENS,
-      );
-    });
-
-    it('propagates error when funding approval fails', async () => {
+    it('propagates error when post-approval fails', async () => {
       service.post.mockRejectedValue(
         new CardApiError(
           500,
@@ -1619,6 +1765,8 @@ describe('BaanxProvider', () => {
         ),
       );
 
+      const sigHash = `0x${'b'.repeat(130)}`;
+
       await expect(
         provider.approveFunding(
           {
@@ -1626,11 +1774,81 @@ describe('BaanxProvider', () => {
             amount: '1000',
             currency: 'USDC',
             network: 'linea',
+            txHash: '0xabc',
+            sigHash,
+            sigMessage: 'msg',
+            token: 'jwt',
           },
           AUTH_TOKENS,
-          {} as never,
         ),
       ).rejects.toThrow();
+    });
+
+    it('posts spending-limit completion to EVM post-approval when proof fields are set', async () => {
+      service.post.mockResolvedValue({});
+      const sigHash = `0x${'a'.repeat(130)}`;
+
+      await provider.approveFunding(
+        {
+          address: '0x0000000000000000000000000000000000000001',
+          amount: '100',
+          currency: 'USDC',
+          network: 'linea',
+          txHash: '0xtxhash',
+          sigHash,
+          sigMessage: 'siwe-message',
+          token: 'delegation-jwt',
+        },
+        AUTH_TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/delegation/evm/post-approval',
+        {
+          address: '0x0000000000000000000000000000000000000001',
+          network: 'linea',
+          currency: 'usdc',
+          amount: '100',
+          txHash: '0xtxhash',
+          sigHash,
+          sigMessage: 'siwe-message',
+          token: 'delegation-jwt',
+        },
+        AUTH_TOKENS,
+      );
+    });
+
+    it('posts spending-limit completion to Solana post-approval for solana network', async () => {
+      service.post.mockResolvedValue({});
+
+      await provider.approveFunding(
+        {
+          address: 'SoLanaAddrSoLanaAddrSoLanaAddrSoLanaAddrSoL',
+          amount: '50',
+          currency: 'USDC',
+          network: 'solana',
+          txHash: '5'.repeat(88),
+          sigHash: 'sig',
+          sigMessage: 'siwe-sol',
+          token: 'jwt-sol',
+        },
+        AUTH_TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/delegation/solana/post-approval',
+        {
+          address: 'SoLanaAddrSoLanaAddrSoLanaAddrSoLanaAddrSoL',
+          network: 'solana',
+          currency: 'usdc',
+          amount: '50',
+          txHash: '5'.repeat(88),
+          sigHash: 'sig',
+          sigMessage: 'siwe-sol',
+          token: 'jwt-sol',
+        },
+        AUTH_TOKENS,
+      );
     });
   });
 
