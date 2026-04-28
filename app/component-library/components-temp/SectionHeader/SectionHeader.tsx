@@ -4,13 +4,13 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import {
-  Icon,
-  IconSize,
   Text,
   IconName,
   TextVariant,
   TextColor,
   IconColor,
+  ButtonIcon,
+  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -74,11 +74,12 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 
       {/* Arrow icon: visual indicator only, no touch handling */}
       {onPress && (
-        <Icon
-          name={endIconName}
-          size={IconSize.Md}
-          color={endIconColor}
-          style={tw.style('ml-1')}
+        <ButtonIcon
+          iconName={endIconName}
+          size={ButtonIconSize.Sm}
+          iconProps={{
+            color: endIconColor,
+          }}
         />
       )}
 
@@ -93,6 +94,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         onPress={onPress}
         style={containerStyle}
         activeOpacity={0.7}
+        accessibilityRole="button"
         accessibilityLabel={typeof title === 'string' ? title : undefined}
       >
         {innerContent}

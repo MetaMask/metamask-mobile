@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View, Animated } from 'react-native';
+import { View, Animated, Pressable } from 'react-native';
 
 // External dependencies.
 import Icon, { IconSize, IconColor } from '../../components/Icons/Icon';
@@ -45,7 +45,7 @@ const MainActionButton = ({
     <Animated.View
       style={[{ transform: [{ scale: scaleAnim }] }, containerStyle]}
     >
-      <TouchableOpacity
+      <Pressable
         testID={testID}
         style={styles.base}
         onPress={!isDisabled ? onPress : undefined}
@@ -71,7 +71,7 @@ const MainActionButton = ({
             {label}
           </Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   );
 };
