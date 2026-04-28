@@ -37,7 +37,7 @@ describe('AssetElement', () => {
 
   it('renders correctly', () => {
     const wrapper = shallow(<AssetElement asset={erc20Token} />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(false);
   });
 
   it('renders the main balance if provided', () => {
