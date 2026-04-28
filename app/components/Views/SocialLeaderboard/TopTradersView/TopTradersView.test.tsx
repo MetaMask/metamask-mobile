@@ -279,7 +279,7 @@ describe('TopTradersView', () => {
       'TraderProfileView',
       expect.objectContaining({
         traderId: 'trader-1',
-        rank: 50,
+        traderRank: 50,
       }),
     );
   });

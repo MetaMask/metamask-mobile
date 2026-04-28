@@ -266,7 +266,7 @@ const TopTradersView = () => {
         traderName,
         traderAddress: trader?.address,
         source: 'leaderboard',
-        traderRank: trader?.rank,
+        traderRank: trader?.overallRank,
       });
     },
     [navigation, filteredTraders, selectedChain, track],
