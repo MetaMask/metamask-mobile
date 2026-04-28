@@ -25,7 +25,6 @@ import {
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
@@ -227,22 +226,6 @@ const TraderProfileView = () => {
                       isFollowing
                         ? ButtonVariant.Secondary
                         : ButtonVariant.Primary
-                    }
-                    style={
-                      isFollowing
-                        ? undefined
-                        : {
-                            backgroundColor: lightTheme.colors.primary.default,
-                          }
-                    }
-                    textProps={
-                      isFollowing
-                        ? undefined
-                        : {
-                            style: {
-                              color: lightTheme.colors.overlay.inverse,
-                            },
-                          }
                     }
                     isFullWidth
                     onPress={toggleFollow}
