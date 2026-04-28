@@ -151,7 +151,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
       {/* Follow / Following button */}
       <Button
         variant={
-          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
         size={ButtonSize.Sm}
         onPress={() => onFollowPress(trader.id)}

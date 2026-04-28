@@ -197,8 +197,8 @@ const TraderProfileView = () => {
                   <Button
                     variant={
                       isFollowing
-                        ? ButtonVariant.Primary
-                        : ButtonVariant.Secondary
+                        ? ButtonVariant.Secondary
+                        : ButtonVariant.Primary
                     }
                     isFullWidth
                     onPress={toggleFollow}

@@ -16,6 +16,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../../locales/i18n';
+import { formatTokenAmount } from '../../../utils/formatters';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 50 },
@@ -75,7 +76,7 @@ const QuickBuyAmountInput: React.FC<QuickBuyAmountInputProps> = ({
           color={TextColor.TextAlternative}
         >
           {estimatedReceiveAmount
-            ? `${estimatedReceiveAmount} ${position.tokenSymbol}`
+            ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${position.tokenSymbol}`
             : hasError && hasValidAmount
               ? strings('social_leaderboard.quick_buy.no_quotes')
               : `0 ${position.tokenSymbol}`}

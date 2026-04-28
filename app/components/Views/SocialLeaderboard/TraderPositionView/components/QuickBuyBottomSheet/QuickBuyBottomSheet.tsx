@@ -14,7 +14,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
-import { useQuickBuySetup } from './useQuickBuySetup';
 import QuickBuyHeader from './QuickBuyHeader';
 import QuickBuyAmountInput from './QuickBuyAmountInput';
 import QuickBuyFooter from './QuickBuyFooter';
@@ -138,7 +137,6 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const { destToken } = useQuickBuySetup(position);
 
   useEffect(() => {
     bottomSheetRef.current?.onOpenBottomSheet(() => {
@@ -156,11 +154,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >
-      <QuickBuyHeader
-        position={position}
-        destToken={destToken}
-        onClose={handleClose}
-      />
+      <QuickBuyHeader position={position} onClose={handleClose} />
       {isContentReady ? (
         <QuickBuyBottomSheetContent position={position} onClose={onClose} />
       ) : (
