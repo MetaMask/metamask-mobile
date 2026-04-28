@@ -47,7 +47,12 @@ const config = {
   // Disable coverage collection for Reassure runs to avoid OOM
   collectCoverage: !isReassureRun && process.env.NODE_ENV !== 'production',
   collectCoverageFrom: !isReassureRun
-    ? ['<rootDir>/app/**/*.{js,ts,tsx,jsx}', '!<rootDir>/app/**/*.stories.tsx']
+    ? [
+        '<rootDir>/app/**/*.{js,ts,tsx,jsx}',
+        '!<rootDir>/app/**/*.stories.tsx',
+        '!<rootDir>/app/**/*.test.{js,ts,tsx,jsx}',
+        '!<rootDir>/app/**/*.spec.{js,ts,tsx,jsx}',
+      ]
     : undefined,
   coveragePathIgnorePatterns: [
     '__mocks__/',

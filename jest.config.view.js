@@ -10,6 +10,5 @@ module.exports = {
   testMatch: ['**/*.view.test.ts?(x)'],
   testTimeout: 30000,
   forceExit: true,
-  maxWorkers: process.env.CI ? 2 : 1,
-  workerIdleMemoryLimit: '512MB',
+  maxWorkers: 1,
 };
