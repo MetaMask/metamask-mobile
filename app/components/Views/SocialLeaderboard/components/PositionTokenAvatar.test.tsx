@@ -65,6 +65,7 @@ const lastAvatarTokenProps = () =>
   };
 
 const basePosition: Position = {
+  positionId: 'starkbot-base',
   tokenSymbol: 'STARKBOT',
   tokenName: 'Starkbot',
   tokenAddress: '0xabc',
