@@ -49,25 +49,13 @@ jest.mock('@react-navigation/stack', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
+  const Actual = jest.requireActual('@metamask/design-system-react-native');
   const stub = () => ReactActual.createElement(View, null);
   return {
-    BadgeWrapper: ({ children }: { children: React.ReactNode }) =>
-      ReactActual.createElement(View, null, children),
-    BadgeWrapperPosition: { BottomRight: 'bottom-right' },
-    Box: ({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(View, null, children),
-    BoxAlignItems: { Center: 'center' },
-    BoxFlexDirection: { Row: 'row' },
+    ...Actual,
     Icon: stub,
-    IconColor: { IconAlternative: 'alternative' },
-    IconName: { Search: 'search', Close: 'close' },
-    IconSize: { Sm: 'sm' },
     Skeleton: stub,
-    Text: ({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(Text, null, children),
-    TextColor: { TextAlternative: 'alternative' },
-    TextVariant: { BodyMd: 'body-md', HeadingSm: 'heading-sm' },
   };
 });
 
@@ -129,41 +117,6 @@ jest.mock(
     };
   },
 );
-
-jest.mock('../../../../component-library/components-temp/HeaderSearch', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Pressable, TextInput } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    HeaderSearchVariant: { Inline: 'inline', Screen: 'screen' },
-    default: ({
-      onPressCancelButton,
-      textFieldSearchProps,
-      cancelButtonProps,
-    }: {
-      onPressCancelButton: () => void;
-      textFieldSearchProps?: {
-        value?: string;
-        onChangeText?: (t: string) => void;
-        placeholder?: string;
-        testID?: string;
-      };
-      cancelButtonProps?: { testID?: string };
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'header-search' },
-        ReactActual.createElement(TextInput, {
-          ...textFieldSearchProps,
-          testID: textFieldSearchProps?.testID ?? 'search-input',
-        }),
-        ReactActual.createElement(Pressable, {
-          onPress: onPressCancelButton,
-          testID: cancelButtonProps?.testID ?? 'search-close',
-        }),
-      ),
-  };
-});
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');

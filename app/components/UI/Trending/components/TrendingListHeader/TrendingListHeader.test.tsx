@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import TrendingListHeader from './TrendingListHeader';
 
 // Mock navigation
@@ -15,12 +16,15 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock tailwind hook
 jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const { Theme } = jest.requireActual('@metamask/design-system-twrnc-preset');
   const tw = Object.assign((..._args: unknown[]) => ({}), {
     style: (..._args: unknown[]) => ({}),
   });
 
   return {
+    Theme,
     useTailwind: () => tw,
+    useTheme: () => Theme.Light,
   };
 });
 describe('TrendingListHeader', () => {
@@ -39,7 +43,7 @@ describe('TrendingListHeader', () => {
   });
 
   it('renders back button and title when search is not visible', () => {
-    const { getByTestId, queryByTestId } = render(
+    const { getByTestId, queryByPlaceholderText, queryByTestId } = render(
       <TrendingListHeader {...defaultProps} />,
     );
 
@@ -48,7 +52,9 @@ describe('TrendingListHeader', () => {
 
     expect(backButton).toBeOnTheScreen();
     expect(searchToggle).toBeOnTheScreen();
-    expect(queryByTestId('trending-list-header-search-bar')).toBeNull();
+    expect(
+      queryByPlaceholderText(strings('trending.search_placeholder')),
+    ).toBeNull();
   });
 
   it('calls onBack handler when back button is pressed', () => {
@@ -78,14 +84,16 @@ describe('TrendingListHeader', () => {
   });
 
   it('renders search bar when search is visible', () => {
-    const { getByTestId, queryByTestId } = render(
+    const { getByPlaceholderText, getByTestId, queryByTestId } = render(
       <TrendingListHeader {...defaultProps} isSearchVisible />,
     );
 
-    const searchBar = getByTestId('trending-list-header-search-bar');
+    const searchInput = getByPlaceholderText(
+      strings('trending.search_placeholder'),
+    );
     const searchClose = getByTestId('trending-list-header-search-close');
 
-    expect(searchBar).toBeOnTheScreen();
+    expect(searchInput).toBeOnTheScreen();
     expect(searchClose).toBeOnTheScreen();
     expect(queryByTestId('trending-list-header-back-button')).toBeNull();
   });
@@ -93,7 +101,7 @@ describe('TrendingListHeader', () => {
   it('calls onSearchQueryChange when search text changes', () => {
     const onSearchQueryChange = jest.fn();
 
-    const { getByTestId } = render(
+    const { getByPlaceholderText } = render(
       <TrendingListHeader
         {...defaultProps}
         isSearchVisible
@@ -101,9 +109,11 @@ describe('TrendingListHeader', () => {
       />,
     );
 
-    const searchBar = getByTestId('trending-list-header-search-bar');
+    const searchInput = getByPlaceholderText(
+      strings('trending.search_placeholder'),
+    );
 
-    fireEvent.changeText(searchBar, 'eth');
+    fireEvent.changeText(searchInput, 'eth');
 
     expect(onSearchQueryChange).toHaveBeenCalledWith('eth');
   });

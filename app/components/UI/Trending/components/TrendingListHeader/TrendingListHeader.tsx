@@ -1,11 +1,12 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { IconName as DSIconName } from '@metamask/design-system-react-native';
+import {
+  HeaderSearch,
+  HeaderSearchVariant,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import HeaderSearch, {
-  HeaderSearchVariant,
-} from '../../../../../component-library/components-temp/HeaderSearch';
 import type { TrendingListHeaderProps } from './TrendingListHeader.types';
 
 /**

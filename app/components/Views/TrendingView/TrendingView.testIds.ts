@@ -11,7 +11,8 @@ export const TrendingViewSelectorsIDs = {
   ALL_NETWORKS_BUTTON: 'all-networks-button',
   CLOSE_BUTTON: 'close-button',
   TRENDING_TOKENS_HEADER_SEARCH_TOGGLE: 'trending-tokens-header-search-toggle',
-  TRENDING_TOKENS_HEADER_SEARCH_BAR: 'trending-tokens-header-search-bar',
+  /** Matches design-system TextFieldSearch `testID` (custom id is not forwarded). */
+  TRENDING_TOKENS_HEADER_SEARCH_BAR: 'textfieldsearch',
 } as const;
 
 export type TrendingViewSelectorsIDsType = typeof TrendingViewSelectorsIDs;

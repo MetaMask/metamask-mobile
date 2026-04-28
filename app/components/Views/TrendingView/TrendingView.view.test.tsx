@@ -1,6 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
+import { strings } from '../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   setupTrendingApiFetchMock,
@@ -299,7 +300,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
   });
 
   it('user can search on trending tokens full view', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
+    const { findByPlaceholderText, getByTestId, queryByTestId } =
       renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -329,8 +330,8 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
     );
     await actButtonPress(searchToggle);
 
-    const searchInput = await findByTestId(
-      TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER_SEARCH_BAR,
+    const searchInput = await findByPlaceholderText(
+      strings('trending.search_placeholder'),
     );
     expect(searchInput).toBeOnTheScreen();
 
