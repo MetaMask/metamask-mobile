@@ -169,12 +169,11 @@ export const useExploreTabPanelSections = (
         return { sections: next };
       }
       case 'rwas': {
-        const next: (SectionConfig & { id: SectionId })[] = [
-          SECTIONS_CONFIG.stocks,
-        ];
+        const next: (SectionConfig & { id: SectionId })[] = [];
         if (isPredictEnabled) {
           next.push(SECTIONS_CONFIG.politics_predictions);
         }
+        next.push(SECTIONS_CONFIG.stocks);
         if (isPerpsEnabled) {
           next.push(SECTIONS_CONFIG.rwa_perps);
         }

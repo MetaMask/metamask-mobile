@@ -78,11 +78,11 @@ describe('useExploreTabPanelSections', () => {
       ]);
     });
 
-    it('rwas tab always starts with stocks and conditionally appends predict + perps', () => {
+    it('rwas tab matches other tabs: predictions first when on, then stocks and perps', () => {
       setFlags({ perps: true, predict: true });
       expect(sectionIdsFor('rwas')).toEqual([
-        'stocks',
         'politics_predictions',
+        'stocks',
         'rwa_perps',
       ]);
       setFlags({ perps: false, predict: false });
