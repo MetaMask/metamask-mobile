@@ -20,10 +20,7 @@ interface BuildEnvJson {
 /**
  * Load build environment from JSON file and extract values
  */
-export function validateEnv(
-  buildEnvPath: string,
-  _expectedBuildName: string,
-): EnvValidationResult {
+export function validateEnv(buildEnvPath: string): EnvValidationResult {
   if (!existsSync(buildEnvPath)) {
     throw new Error(`Build environment file not found: ${buildEnvPath}`);
   }

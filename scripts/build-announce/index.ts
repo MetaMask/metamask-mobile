@@ -80,7 +80,7 @@ function buildMoreInfoSection(buildInfo: BuildInfo): string {
 /**
  * Look for build-env.json artifacts and extract environment values
  */
-function performEnvValidation(buildName: string): {
+function performEnvValidation(): {
   androidResult?: EnvValidationResult;
   iosResult?: EnvValidationResult;
   error?: string;
@@ -111,7 +111,7 @@ function performEnvValidation(buildName: string): {
         const flatPath = join(artifactsDir, 'build-env.json');
         if (existsSync(flatPath)) {
           console.log(`Found build-env.json at ${flatPath}`);
-          const result = validateEnv(flatPath, buildName);
+          const result = validateEnv(flatPath);
           results.androidResult = result;
           break;
         }
@@ -122,7 +122,7 @@ function performEnvValidation(buildName: string): {
 
       // Determine platform from directory name
       const platform = dir.name.includes('android') ? 'android' : 'ios';
-      const result = validateEnv(buildEnvPath, buildName);
+      const result = validateEnv(buildEnvPath);
 
       if (platform === 'android') {
         results.androidResult = result;
@@ -247,7 +247,7 @@ async function main(): Promise<void> {
 
   // Extract environment values from build artifacts
   console.log('\n=== Build Environment ===\n');
-  const envValidation = performEnvValidation('main-rc');
+  const envValidation = performEnvValidation();
 
   if (envValidation.androidResult || envValidation.iosResult) {
     const result = envValidation.androidResult || envValidation.iosResult;
