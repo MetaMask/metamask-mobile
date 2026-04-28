@@ -7,7 +7,6 @@ import {
   Icon,
   IconName,
   IconSize,
-  BoxProps,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +15,16 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 import { SEARCH_ENGINE_URLS, SearchEngine } from '../../../../../util/browser';
 import AppConstants from '../../../../../core/AppConstants';
+
+// TODO: @MetaMask/design-system-engineers
+// Use the concrete Box component props here instead of BoxProps.
+// In MetaMask Mobile, extending BoxProps in forwarding wrappers can fail TS checks
+// because consumer code may resolve older @types/react-native callback types while
+// MMDS Box resolves React Native bundled types. Deriving props from the component
+// keeps wrapper props aligned with the actual JSX contract until the library-level
+// typing story is unified.
+// https://github.com/MetaMask/metamask-design-system/issues/1115
+type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
@@ -27,7 +36,7 @@ export interface SitesSearchFooterProps {
    * @returns
    */
   onPress?: (url: string) => void;
-  containerStyle?: BoxProps['style'];
+  containerStyle?: BoxComponentProps['style'];
 }
 
 /**
