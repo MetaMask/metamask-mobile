@@ -19,7 +19,9 @@ describe('SnapUILink', () => {
   };
 
   it('renders correctly with valid props', () => {
-    const { getByTestId } = render(<SnapUILink {...validProps} />);
+    const { getByTestId, UNSAFE_getByType } = render(
+      <SnapUILink {...validProps} />,
+    );
 
     const linkText = getByTestId('snaps-ui-link');
     expect(linkText).toBeTruthy();
@@ -30,8 +32,9 @@ describe('SnapUILink', () => {
     expect(children[0]).toBe('Visit MetaMask');
     expect(children[1].props.style).toEqual({ width: 4 });
 
-    const icon = getByTestId('snaps-ui-link-icon');
+    const icon = UNSAFE_getByType(Icon);
     expect(icon.props.name).toBe(IconName.Export);
+    expect(icon.props.color).toBe(IconColor.Primary);
   });
 
   it('opens URL when pressed with valid https URL', () => {

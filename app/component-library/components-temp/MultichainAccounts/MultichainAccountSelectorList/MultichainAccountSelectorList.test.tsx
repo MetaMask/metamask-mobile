@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 
-// FlashList v2 mock - see app/util/test/mockFlashList.ts
+// FlashList v2 mock – see app/util/test/mockFlashList.ts
 jest.mock('@shopify/flash-list', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { flashListMock } = require('../../../../util/test/mockFlashList');
@@ -93,7 +93,7 @@ describe('MultichainAccountSelectorList', () => {
   // Helper function to perform search and wait for results
   const performSearch = async (
     getByTestId: ReturnType<typeof renderWithProvider>['getByTestId'],
-    queryAllByText: ReturnType<typeof renderWithProvider>['queryAllByText'],
+    queryByText: ReturnType<typeof renderWithProvider>['queryByText'],
     searchTerm: string,
     expectedVisible: string[],
     expectedHidden: string[],
@@ -111,10 +111,10 @@ describe('MultichainAccountSelectorList', () => {
     await waitFor(
       () => {
         expectedVisible.forEach((text) => {
-          expect(queryAllByText(text).length).toBeGreaterThan(0);
+          expect(queryByText(text)).toBeOnTheScreen();
         });
         expectedHidden.forEach((text) => {
-          expect(queryAllByText(text).length).toBe(0);
+          expect(queryByText(text)).not.toBeOnTheScreen();
         });
       },
       { timeout: 1000 },
@@ -158,14 +158,14 @@ describe('MultichainAccountSelectorList', () => {
       account1,
       account2,
     ]);
-    const { getAllByText } = renderComponentWithMockState(
+    const { getByText } = renderComponentWithMockState(
       [wallet1, wallet2],
       internalAccounts,
       [],
     );
 
-    expect(getAllByText('Wallet 1').length).toBeGreaterThan(0);
-    expect(getAllByText('Wallet 2').length).toBeGreaterThan(0);
+    expect(getByText('Wallet 1')).toBeTruthy();
+    expect(getByText('Wallet 2')).toBeTruthy();
   });
 
   it('shows accounts correctly when there are multiple accounts with different categories', () => {
@@ -186,14 +186,14 @@ describe('MultichainAccountSelectorList', () => {
       srpAccount,
       snapAccount,
     ]);
-    const { getAllByText } = renderComponentWithMockState(
+    const { getByText } = renderComponentWithMockState(
       [srpWallet, snapWallet],
       internalAccounts,
       [],
     );
 
-    expect(getAllByText('Wallet 1').length).toBeGreaterThan(0);
-    expect(getAllByText('Simple Keyring').length).toBeGreaterThan(0);
+    expect(getByText('Wallet 1')).toBeTruthy();
+    expect(getByText('Simple Keyring')).toBeTruthy();
   });
 
   it('shows accounts correctly when there are multiple accounts with hardware wallets', () => {
@@ -214,14 +214,14 @@ describe('MultichainAccountSelectorList', () => {
       srpAccount,
       ledgerAccount,
     ]);
-    const { getAllByText } = renderComponentWithMockState(
+    const { getByText } = renderComponentWithMockState(
       [srpWallet, ledgerWallet],
       internalAccounts,
       [],
     );
 
-    expect(getAllByText('Wallet 1').length).toBeGreaterThan(0);
-    expect(getAllByText('Ledger').length).toBeGreaterThan(0);
+    expect(getByText('Wallet 1')).toBeTruthy();
+    expect(getByText('Ledger')).toBeTruthy();
   });
 
   it('shows the correct account as selected', async () => {
@@ -243,13 +243,11 @@ describe('MultichainAccountSelectorList', () => {
       account2,
     ]);
 
-    const { getAllByTestId, rerender, queryByText, queryAllByText } =
+    const { getAllByTestId, rerender, queryByText } =
       renderComponentWithMockState([wallet1], internalAccounts, [account2]);
 
     await waitFor(() => {
-      expect(
-        getAllByTestId(AccountCellIds.CONTAINER).length,
-      ).toBeGreaterThanOrEqual(2);
+      expect(getAllByTestId(AccountCellIds.CONTAINER)).toHaveLength(2);
     });
 
     const accountCells = getAllByTestId(AccountCellIds.CONTAINER);
@@ -264,8 +262,7 @@ describe('MultichainAccountSelectorList', () => {
     expect(account1Cell).toBeTruthy();
     expect(account2Cell).toBeTruthy();
 
-    const account1Texts = queryAllByText('Account 1');
-    const account1Text = account1Texts[0];
+    const account1Text = queryByText('Account 1');
     const account1TouchableParent = account1Text?.parent?.parent;
 
     if (account1TouchableParent) {
@@ -280,8 +277,7 @@ describe('MultichainAccountSelectorList', () => {
 
     mockOnSelectAccount.mockClear();
 
-    const account2Texts = queryAllByText('Account 2');
-    const account2Text = account2Texts[0];
+    const account2Text = queryByText('Account 2');
     const account2TouchableParent = account2Text?.parent?.parent;
 
     if (account2TouchableParent) {
@@ -308,12 +304,12 @@ describe('MultichainAccountSelectorList', () => {
       const account2Checkbox = getAllByTestId(
         `account-list-cell-checkbox-${account2.id}`,
       );
-      expect(account2Checkbox.length).toBeGreaterThanOrEqual(1);
+      expect(account2Checkbox).toHaveLength(1);
 
       const account1Checkbox = getAllByTestId(
         `account-list-cell-checkbox-${account1.id}`,
       );
-      expect(account1Checkbox.length).toBeGreaterThanOrEqual(1);
+      expect(account1Checkbox).toHaveLength(1);
     });
   });
 
@@ -345,21 +341,21 @@ describe('MultichainAccountSelectorList', () => {
         account2,
         account3,
       ]);
-      const { getByTestId, queryAllByText } = renderComponentWithMockState(
+      const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
         [account1],
       );
 
       // Initially all accounts should be visible
-      expect(queryAllByText('My Account').length).toBeGreaterThan(0);
-      expect(queryAllByText('Test Account').length).toBeGreaterThan(0);
-      expect(queryAllByText('Another Account').length).toBeGreaterThan(0);
+      expect(queryByText('My Account')).toBeTruthy();
+      expect(queryByText('Test Account')).toBeTruthy();
+      expect(queryByText('Another Account')).toBeTruthy();
 
       // Search for "Test"
       await performSearch(
         getByTestId,
-        queryAllByText,
+        queryByText,
         'Test',
         ['Test Account'],
         ['My Account', 'Another Account'],
@@ -386,15 +382,15 @@ describe('MultichainAccountSelectorList', () => {
         account1,
         account2,
       ]);
-      const { getByTestId, queryAllByText } = renderComponentWithMockState(
+      const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
         [account1],
       );
 
       // Initially all accounts should be visible
-      expect(queryAllByText('My Account').length).toBeGreaterThan(0);
-      expect(queryAllByText('Test Account').length).toBeGreaterThan(0);
+      expect(queryByText('My Account')).toBeTruthy();
+      expect(queryByText('Test Account')).toBeTruthy();
 
       // Type "Test" in search input
       const searchInput = getByTestId(
@@ -406,14 +402,14 @@ describe('MultichainAccountSelectorList', () => {
       });
 
       // Immediately after typing, both accounts should still be visible (debounced)
-      expect(queryAllByText('My Account').length).toBeGreaterThan(0);
-      expect(queryAllByText('Test Account').length).toBeGreaterThan(0);
+      expect(queryByText('My Account')).toBeTruthy();
+      expect(queryByText('Test Account')).toBeTruthy();
 
       // Wait for debounce delay (200ms) and check that filtering has occurred
       await waitFor(
         () => {
-          expect(queryAllByText('My Account').length).toBe(0);
-          expect(queryAllByText('Test Account').length).toBeGreaterThan(0);
+          expect(queryByText('My Account')).toBeFalsy();
+          expect(queryByText('Test Account')).toBeTruthy();
         },
         { timeout: 1000 },
       );
@@ -450,21 +446,21 @@ describe('MultichainAccountSelectorList', () => {
         [account1, account2, account3],
         customAddresses,
       );
-      const { getByTestId, queryAllByText } = renderComponentWithMockState(
+      const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
         [account1],
       );
 
       // Initially all accounts should be visible
-      expect(queryAllByText('Account 1').length).toBeGreaterThan(0);
-      expect(queryAllByText('Account 2').length).toBeGreaterThan(0);
-      expect(queryAllByText('Account 3').length).toBeGreaterThan(0);
+      expect(queryByText('Account 1')).toBeTruthy();
+      expect(queryByText('Account 2')).toBeTruthy();
+      expect(queryByText('Account 3')).toBeTruthy();
 
       // Search for "fedcba" (only matches Account 3)
       await performSearch(
         getByTestId,
-        queryAllByText,
+        queryByText,
         'fedcba',
         ['Account 3'],
         ['Account 1', 'Account 2'],
@@ -497,20 +493,20 @@ describe('MultichainAccountSelectorList', () => {
         [account1, account2],
         customAddresses,
       );
-      const { getByTestId, queryAllByText } = renderComponentWithMockState(
+      const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
         [account1],
       );
 
       // Initially all groups should be visible
-      expect(queryAllByText('Group 1').length).toBeGreaterThan(0);
-      expect(queryAllByText('Group 2').length).toBeGreaterThan(0);
+      expect(queryByText('Group 1')).toBeTruthy();
+      expect(queryByText('Group 2')).toBeTruthy();
 
       // Search for "2222" (matches one account in Group 1)
       await performSearch(
         getByTestId,
-        queryAllByText,
+        queryByText,
         '2222',
         ['Group 1'],
         ['Group 2'],
@@ -545,21 +541,21 @@ describe('MultichainAccountSelectorList', () => {
         account2,
         account3,
       ]);
-      const { getByTestId, queryAllByText } = renderComponentWithMockState(
+      const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1, wallet2],
         internalAccounts,
         [],
       );
 
       // Initially all accounts should be visible
-      expect(queryAllByText('Account 1').length).toBeGreaterThan(0);
-      expect(queryAllByText('Account 2').length).toBeGreaterThan(0);
-      expect(queryAllByText('Account 3').length).toBeGreaterThan(0);
+      expect(queryByText('Account 1')).toBeTruthy();
+      expect(queryByText('Account 2')).toBeTruthy();
+      expect(queryByText('Account 3')).toBeTruthy();
 
       // Search for "Account 2"
       await performSearch(
         getByTestId,
-        queryAllByText,
+        queryByText,
         'Account 2',
         ['Account 2'],
         ['Account 1', 'Account 3'],
@@ -631,7 +627,7 @@ describe('MultichainAccountSelectorList', () => {
         account1,
         account2,
       ]);
-      const { getByTestId, queryAllByText } = renderComponentWithMockState(
+      const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
         [account1],
@@ -648,10 +644,10 @@ describe('MultichainAccountSelectorList', () => {
       });
       await waitFor(
         () => {
-          expect(queryAllByText('My Account').length).toBeGreaterThan(0);
-          expect(queryAllByText('Test Account').length).toBe(0);
+          expect(queryByText('My Account')).toBeTruthy();
+          expect(queryByText('Test Account')).toBeFalsy();
         },
-        { timeout: 1000 },
+        { timeout: 1000 }, // Increased timeout for debounced search
       );
 
       // Test mixed case search
@@ -660,10 +656,10 @@ describe('MultichainAccountSelectorList', () => {
       });
       await waitFor(
         () => {
-          expect(queryAllByText('My Account').length).toBe(0);
-          expect(queryAllByText('Test Account').length).toBeGreaterThan(0);
+          expect(queryByText('My Account')).toBeFalsy();
+          expect(queryByText('Test Account')).toBeTruthy();
         },
-        { timeout: 1000 },
+        { timeout: 1000 }, // Increased timeout for debounced search
       );
     });
 
@@ -685,7 +681,7 @@ describe('MultichainAccountSelectorList', () => {
         account1,
         account2,
       ]);
-      const { getByTestId, queryAllByText } = renderComponentWithMockState(
+      const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
         [account1],
@@ -696,8 +692,8 @@ describe('MultichainAccountSelectorList', () => {
       );
 
       // Initially all accounts should be visible
-      expect(queryAllByText('My Account').length).toBeGreaterThan(0);
-      expect(queryAllByText('Test Account').length).toBeGreaterThan(0);
+      expect(queryByText('My Account')).toBeTruthy();
+      expect(queryByText('Test Account')).toBeTruthy();
 
       // Search for something
       await act(async () => {
@@ -705,8 +701,8 @@ describe('MultichainAccountSelectorList', () => {
       });
       await waitFor(
         () => {
-          expect(queryAllByText('My Account').length).toBe(0);
-          expect(queryAllByText('Test Account').length).toBeGreaterThan(0);
+          expect(queryByText('My Account')).toBeFalsy();
+          expect(queryByText('Test Account')).toBeTruthy();
         },
         { timeout: 1000 },
       );
@@ -717,8 +713,8 @@ describe('MultichainAccountSelectorList', () => {
       });
       await waitFor(
         () => {
-          expect(queryAllByText('My Account').length).toBeGreaterThan(0);
-          expect(queryAllByText('Test Account').length).toBeGreaterThan(0);
+          expect(queryByText('My Account')).toBeTruthy();
+          expect(queryByText('Test Account')).toBeTruthy();
         },
         { timeout: 1000 },
       );
@@ -742,7 +738,7 @@ describe('MultichainAccountSelectorList', () => {
         account1,
         account2,
       ]);
-      const { getByTestId, queryAllByText } = renderComponentWithMockState(
+      const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
         [account1],
@@ -758,10 +754,10 @@ describe('MultichainAccountSelectorList', () => {
       });
       await waitFor(
         () => {
-          expect(queryAllByText('My Account').length).toBeGreaterThan(0);
-          expect(queryAllByText('Test Account').length).toBe(0);
+          expect(queryByText('My Account')).toBeTruthy();
+          expect(queryByText('Test Account')).toBeFalsy();
         },
-        { timeout: 1000 },
+        { timeout: 1000 }, // Increased timeout to account for debounce delay
       );
     });
   });
@@ -853,9 +849,7 @@ describe('MultichainAccountSelectorList', () => {
         const externalRowButton = getByTestId(
           'external-account-cell-touchable',
         );
-        await act(async () => {
-          fireEvent.press(externalRowButton);
-        });
+        fireEvent.press(externalRowButton);
         expect(mockOnSelectExternalAccount).toHaveBeenCalledWith(
           testCase.input,
         );
@@ -876,7 +870,7 @@ describe('MultichainAccountSelectorList', () => {
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
       const mockState = createMockState([wallet1], internalAccounts);
 
-      const { getAllByText } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account1]}
@@ -885,8 +879,8 @@ describe('MultichainAccountSelectorList', () => {
       );
 
       // Verify the component renders correctly with AccountListFooter
-      expect(getAllByText('Account 1').length).toBeGreaterThan(0);
-      expect(getAllByText('Add account').length).toBeGreaterThan(0);
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Add account')).toBeTruthy();
     });
 
     it('handles multiple wallets with AccountListFooter', () => {
@@ -920,7 +914,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // Should have multiple "Add account" buttons (one per wallet)
       const createAccountButtons = getAllByText('Add account');
-      expect(createAccountButtons.length).toBeGreaterThanOrEqual(2);
+      expect(createAccountButtons.length).toBe(2);
     });
 
     it('passes walletId to AccountListFooter', () => {
@@ -934,7 +928,7 @@ describe('MultichainAccountSelectorList', () => {
 
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
 
-      const { getAllByText } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account1]}
@@ -943,8 +937,8 @@ describe('MultichainAccountSelectorList', () => {
       );
 
       // Verify the component renders correctly
-      expect(getAllByText('Account 1').length).toBeGreaterThan(0);
-      expect(getAllByText('Add account').length).toBeGreaterThan(0);
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Add account')).toBeTruthy();
     });
 
     it('positions the list so the first selected account is initially visible', () => {
@@ -965,7 +959,7 @@ describe('MultichainAccountSelectorList', () => {
         account1,
         account2,
       ]);
-      const { queryAllByText } = renderWithProvider(
+      const { queryByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account2]}
@@ -973,11 +967,9 @@ describe('MultichainAccountSelectorList', () => {
         { state: createMockState([wallet1], internalAccounts) },
       );
 
-      expect(queryAllByText('Account 2').length).toBeGreaterThan(0);
+      expect(queryByText('Account 2')).toBeTruthy();
     });
-    // Skipped: MockFlashList renders all items (no virtualization), so visibility assertions are not meaningful
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('renders a far selected account in the initial viewport when provided as initial selection', async () => {
+    it('renders a far selected account in the initial viewport when provided as initial selection', async () => {
       // Create many accounts so the selected one is far enough to require initialScrollIndex
       const total = 60;
       const accounts = Array.from({ length: total }, (_, i) =>
@@ -1006,7 +998,8 @@ describe('MultichainAccountSelectorList', () => {
 
       // After scroll, the selected account should be visible
       expect(queryByText(`Account ${selectedIdx + 1}`)).toBeTruthy();
-      expect(queryByText('Account 1')).toBeFalsy();
+      // Note: FlashList mock renders all items (no virtualization),
+      // so we cannot assert that 'Account 1' is off-screen
     });
   });
 
@@ -1165,7 +1158,7 @@ describe('MultichainAccountSelectorList', () => {
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
       const mockState = createMockState([wallet1], internalAccounts);
 
-      const { getAllByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[]}
@@ -1175,8 +1168,8 @@ describe('MultichainAccountSelectorList', () => {
       );
 
       expect(
-        getAllByTestId(`account-list-cell-checkbox-${account1.id}`).length,
-      ).toBeGreaterThan(0);
+        getByTestId(`account-list-cell-checkbox-${account1.id}`),
+      ).toBeTruthy();
     });
 
     it('hides checkboxes when showCheckbox prop is false', () => {
@@ -1240,15 +1233,17 @@ describe('MultichainAccountSelectorList', () => {
       const account2Checkboxes = getAllByTestId(
         `account-list-cell-checkbox-${account2.id}`,
       );
-      expect(account1Checkboxes.length).toBeGreaterThanOrEqual(1); // Container should have the testID (selected account)
-      expect(account2Checkboxes.length).toBeGreaterThanOrEqual(1); // Container (unselected account, no icon rendered)
+      expect(account1Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
+      expect(account2Checkboxes.length).toEqual(1); // Only container should have the testID (unselected account)
 
       // Check that there is at least 1 checked checkbox icon (for the selected account)
-      const selectedAccount = account1;
+      // The checkbox icon uses the testID from the Checkbox component, which is overridden by the custom testID
+      // So we need to look for the actual checkbox elements with the custom testID
+      const selectedAccount = account1; // account1 is selected
       const checkboxElements = getAllByTestId(
         `account-list-cell-checkbox-${selectedAccount.id}`,
       );
-      expect(checkboxElements.length).toBeGreaterThanOrEqual(1);
+      expect(checkboxElements.length).toEqual(1); // Only container should have the testID (selected account)
     });
 
     it('displays unchecked checkbox for unselected accounts', () => {
@@ -1288,14 +1283,14 @@ describe('MultichainAccountSelectorList', () => {
       const account2Checkboxes = getAllByTestId(
         `account-list-cell-checkbox-${account2.id}`,
       );
-      expect(account1Checkboxes.length).toBeGreaterThanOrEqual(1); // Container (unselected account, no icon rendered)
-      expect(account2Checkboxes.length).toBeGreaterThanOrEqual(1); // Container (unselected account, no icon rendered)
+      expect(account1Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
+      expect(account2Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
 
       // Check that there are no checked checkbox icons (since none are selected)
       expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
     });
 
-    it('calls onSelectAccount when checkbox is pressed', async () => {
+    it('calls onSelectAccount when checkbox is pressed', () => {
       const account1 = createMockAccountGroup(
         'keyring:wallet1/group1',
         'Account 1',
@@ -1317,9 +1312,7 @@ describe('MultichainAccountSelectorList', () => {
       const checkboxElements = getAllByTestId(
         `account-list-cell-checkbox-${account1.id}`,
       );
-      await act(async () => {
-        fireEvent.press(checkboxElements[0]);
-      });
+      fireEvent.press(checkboxElements[0]);
 
       expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
     });
@@ -1371,19 +1364,23 @@ describe('MultichainAccountSelectorList', () => {
       const account3Checkboxes = getAllByTestId(
         `account-list-cell-checkbox-${account3.id}`,
       );
-      expect(account1Checkboxes.length).toBeGreaterThanOrEqual(1);
-      expect(account2Checkboxes.length).toBeGreaterThanOrEqual(1);
-      expect(account3Checkboxes.length).toBeGreaterThanOrEqual(1);
+      expect(account1Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
+      expect(account2Checkboxes.length).toEqual(1); // Only container should have the testID (unselected account)
+      expect(account3Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
 
-      // Check that checkboxes exist for the 2 selected accounts
+      // Check that there are checked checkbox icons (for the 2 selected accounts)
+      // The checkbox icon uses the testID from the Checkbox component, which is overridden by the custom testID
+      // So we need to look for the actual checkbox elements with their custom testIDs
+      const selectedAccount1 = account1; // account1 is selected
+      const selectedAccount3 = account3; // account3 is selected
       const checkboxElements1 = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
+        `account-list-cell-checkbox-${selectedAccount1.id}`,
       );
       const checkboxElements3 = getAllByTestId(
-        `account-list-cell-checkbox-${account3.id}`,
+        `account-list-cell-checkbox-${selectedAccount3.id}`,
       );
-      expect(checkboxElements1.length).toBeGreaterThanOrEqual(1);
-      expect(checkboxElements3.length).toBeGreaterThanOrEqual(1);
+      expect(checkboxElements1.length).toEqual(1); // Only container should have the testID (selected account)
+      expect(checkboxElements3.length).toEqual(1); // Only container should have the testID (selected account)
     });
   });
 });
