@@ -142,8 +142,10 @@ const snapMethodMiddlewareBuilder = (
       SnapInterfaceControllerResolveInterfaceAction,
       origin as SnapId,
     ),
-    getSnap: (snapId: SnapId) =>
-      controllerMessenger.call(SnapControllerGetSnapAction, snapId),
+    getSnap: controllerMessenger.call.bind(
+      controllerMessenger,
+      SnapControllerGetSnapAction,
+    ),
     trackError: (error: Error) => captureException(error),
     trackEvent: trackSnapEvent,
     openWebSocket: controllerMessenger.call.bind(

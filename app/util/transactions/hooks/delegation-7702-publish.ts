@@ -38,7 +38,6 @@ import {
   waitForRelayResult,
 } from '../transaction-relay';
 import { NetworkClientId } from '@metamask/network-controller';
-import { SentinelMeta } from '@metamask/smart-transactions-controller';
 import { toHex } from '@metamask/controller-utils';
 import { isE2ETest, stripSingleLeadingZero } from '../util';
 import {
@@ -199,10 +198,7 @@ export class Delegation7702PublishHook {
       data: transactionData,
       to: delegationManagerAddress,
       metadata: {
-        // `SentinelMeta.txType` comes from `@metamask/smart-transactions-controller`,
-        // which still depends on an older major of `@metamask/transaction-controller`
-        // than mobile's direct dependency. The runtime values are compatible.
-        txType: transactionMeta.type as SentinelMeta['txType'],
+        txType: transactionMeta.type,
         client: getClientForTransactionMetadata(),
         origin: sanitizeOrigin(transactionMeta.origin),
       },

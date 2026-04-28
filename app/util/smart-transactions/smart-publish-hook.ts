@@ -29,15 +29,6 @@ type AllowedActions = never;
 
 type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
 
-// `@metamask/smart-transactions-controller` still depends on an older major
-// of `@metamask/transaction-controller` than mobile's direct dependency, so
-// `TransactionType` is structurally distinct between the two packages even
-// though the runtime values are compatible. Use the STX-controller's own
-// `txType` shape to drive inference at the boundaries below.
-type StxTxType = NonNullable<
-  SignedTransactionWithMetadata['metadata']
->['txType'];
-
 export interface SubmitSmartTransactionRequest {
   transactionMeta: TransactionMeta;
   signedTransactionInHex?: Hex;
@@ -332,7 +323,7 @@ class SmartTransactionHook {
           const signedTx: SignedTransactionWithMetadata = { tx: tx.signedTx };
           if (transactionMeta) {
             signedTx.metadata = {
-              txType: transactionMeta.type as StxTxType,
+              txType: transactionMeta.type,
               client: getClientForTransactionMetadata(),
               origin: sanitizeOrigin(transactionMeta.origin),
             };
@@ -345,7 +336,7 @@ class SmartTransactionHook {
         {
           tx: this.#signedTransactionInHex,
           metadata: {
-            txType: this.#transactionMeta.type as StxTxType,
+            txType: this.#transactionMeta.type,
             client: getClientForTransactionMetadata(),
             origin: sanitizeOrigin(this.#transactionMeta.origin),
           },
@@ -359,7 +350,7 @@ class SmartTransactionHook {
       signedTransactionsWithMetadata = signed.map((signedTx) => ({
         tx: signedTx,
         metadata: {
-          txType: this.#transactionMeta.type as StxTxType,
+          txType: this.#transactionMeta.type,
           client: getClientForTransactionMetadata(),
           origin: sanitizeOrigin(this.#transactionMeta.origin),
         },
@@ -371,9 +362,7 @@ class SmartTransactionHook {
       signedTransactionsWithMetadata,
       signedCanceledTransactions: [],
       txParams: this.#txParams,
-      transactionMeta: this.#transactionMeta as unknown as Parameters<
-        SmartTransactionsController['submitSignedTransactions']
-      >[0]['transactionMeta'],
+      transactionMeta: this.#transactionMeta,
       networkClientId: this.#transactionMeta.networkClientId,
     });
   };
