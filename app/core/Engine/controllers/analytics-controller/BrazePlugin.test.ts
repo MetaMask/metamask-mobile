@@ -13,6 +13,8 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
+jest.mock('@braze/react-native-sdk');
+
 const mockBraze = jest.mocked(Braze);
 
 const makeTrackEvent = (

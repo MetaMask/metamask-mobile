@@ -106,7 +106,7 @@ export { TIME_PERIODS };
 
 export function useTraderPositionData(
   positionParam: Position | undefined,
-  tokenSymbol: string,
+  tokenSymbol?: string,
 ): TraderPositionData {
   const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
 
@@ -268,7 +268,7 @@ export function useTraderPositionData(
 
   // ── Position card ──────────────────────────────────────────────────────
 
-  const symbol = positionParam?.tokenSymbol ?? tokenSymbol;
+  const symbol = positionParam?.tokenSymbol ?? tokenSymbol ?? '';
   const isClosed =
     positionParam != null &&
     positionParam.positionAmount === 0 &&

@@ -25,7 +25,7 @@ export class BrowserStackConfigBuilder {
   build() {
     const platformName = this.project.use.platform;
     const projectName = path.basename(process.cwd());
-    const appBsUrl = this.project.use.buildPath;
+    const appBsUrl = this.project.use.app?.buildPath;
     const device = this.project.use.device as BrowserStackConfig;
 
     if (!appBsUrl) {

@@ -1,9 +1,18 @@
+import Logger from '../../../../util/Logger';
 import type {
+  CloseSessionOptions,
   HeadlessBuyCallbacks,
+  HeadlessBuyCloseInfo,
   HeadlessBuyParams,
   HeadlessSession,
   HeadlessSessionStatus,
 } from './types';
+
+function isTerminalSessionStatus(status: HeadlessSessionStatus): boolean {
+  return (
+    status === 'completed' || status === 'cancelled' || status === 'failed'
+  );
+}
 
 /**
  * Module-level registry that holds the live headless buy sessions. Sessions
@@ -88,6 +97,65 @@ export function setStatus(id: string, status: HeadlessSessionStatus): void {
 
 export function endSession(id: string): void {
   sessions.delete(id);
+}
+
+/**
+ * Returns the id of the first non-terminal session, if any. Used by
+ * `startHeadlessBuy` to enforce a "single live session at a time" policy:
+ * starting a new session auto-cancels the previous one (Phase 5).
+ *
+ * Sessions are iterated in insertion order, but the registry only ever
+ * carries one live session under correct usage, so this is effectively
+ * O(1) in practice.
+ */
+export function getActiveSessionId(): string | undefined {
+  for (const [id, session] of sessions) {
+    if (!isTerminalSessionStatus(session.status)) {
+      return id;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Idempotent "stop and notify" used by both consumer-driven cancellation
+ * and the auto-cancel path of `startHeadlessBuy`.
+ *
+ * - Marks the session `cancelled` (if it isn't already terminal).
+ * - Removes it from the registry so subsequent `getSession(id)` returns `undefined` and lookups in downstream screens become no-ops.
+ * - Fires `onClose(info)` exactly once.
+ *
+ * Safe to call with an unknown id — does nothing in that case so callers
+ * don't have to null-check.
+ *
+ * If `onClose` throws, the error is logged: the session is already removed
+ * from the map, but operators need visibility when a consumer handler breaks.
+ */
+export function closeSession(
+  id: string | undefined,
+  info: HeadlessBuyCloseInfo,
+  options?: CloseSessionOptions,
+): void {
+  if (!id) {
+    return;
+  }
+  const session = sessions.get(id);
+  if (!session) {
+    return;
+  }
+  if (!isTerminalSessionStatus(session.status)) {
+    session.status =
+      options?.terminalStatus === 'failed' ? 'failed' : 'cancelled';
+  }
+  sessions.delete(id);
+  try {
+    session.callbacks.onClose(info);
+  } catch (e) {
+    Logger.error(
+      e instanceof Error ? e : new Error(String(e)),
+      'headless sessionRegistry: onClose callback threw',
+    );
+  }
 }
 
 /**
