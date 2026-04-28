@@ -47,32 +47,32 @@ import { hexToBigInt, bigIntToHex, fromWei, toWei, ... } from '../util/number/bi
 
 ## Function mapping (A → Z)
 
-| Legacy (`index.js`)                 | BigInt (`bigint.ts`)                | Notes                                                                         |
-| ----------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------- |
-| `hexToBN(hex)`                      | `hexToBigInt(hex)`                  | Returns `bigint` instead of `BN`                                              |
-| `BNToHex(bn)`                       | `bigIntToHex(bi)`                   | Accepts `bigint`, returns `0x`-prefixed string                                |
-| `safeBNToHex(value)`                | `safeBigIntToHex(value)`            | Null-safe wrapper                                                             |
-| `safeNumberToBN(value)`             | `safeNumberToBigInt(value)`         | Truncates decimals, returns `bigint`                                          |
-| `isBN(value)`                       | `isBigInt(value)`                   | Checks `typeof value === 'bigint'`                                            |
-| `toBN(value)`                       | `BigInt(value)`                     | Direct native constructor                                                     |
-| `fromWei(value, unit)`              | `fromWei(value, unit)`              | Same API, accepts `bigint` input                                              |
-| `toWei(value, unit)`                | `toWei(value, unit)`                | Returns `bigint` instead of `BN`                                              |
-| `fromTokenMinimalUnit(v, d)`        | `fromTokenMinimalUnit(v, d)`        | Same API, accepts `bigint` input                                              |
-| `toTokenMinimalUnit(v, d)`          | `toTokenMinimalUnit(v, d)`          | Returns `bigint` instead of `BN`                                              |
-| `renderFromWei(v)`                  | `renderFromWei(v)`                  | Identical API and output                                                      |
-| `renderFromTokenMinimalUnit(v, d)`  | `renderFromTokenMinimalUnit(v, d)`  | Identical API and output                                                      |
-| `weiToFiat(wei, rate, currency)`    | `weiToFiat(wei, rate, currency)`    | Accepts `bigint` directly (no `.toString()` needed)                           |
-| `weiToFiatNumber(wei, rate, dec)`   | `weiToFiatNumber(wei, rate, dec)`   | Accepts `bigint` directly                                                     |
-| `balanceToFiat(...)`                | `balanceToFiat(...)`                | Same API                                                                      |
-| `balanceToFiatNumber(...)`          | `balanceToFiatNumber(...)`          | Same API                                                                      |
-| `fiatNumberToWei(fiat, rate)`       | `fiatNumberToWei(fiat, rate)`       | Returns `bigint` instead of `BN`                                              |
-| `fiatNumberToTokenMinimalUnit(...)` | `fiatNumberToTokenMinimalUnit(...)` | Returns `bigint` instead of `BN`                                              |
-| `addHexPrefix(str)`                 | `addHexPrefix(str)`                 | Same behavior                                                                 |
-| `renderNumber(str)`                 | `renderNumber(str)`                 | **Behavior diverges for integer strings** — see note below                    |
-| `toHexadecimal(dec)`                | `toHexadecimal(dec)`                | Minor difference: returns `"0"` for `null`/`undefined` instead of passthrough |
-| `isZeroValue(v)`                    | `isZeroValue(v)`                    | Same behavior, also accepts `bigint`                                          |
-| `calculateEthFeeForMultiLayer(p)`   | `calculateEthFeeForMultiLayer(p)`   | Same API                                                                      |
-| `conversionUtil(...)`               | `conversionUtil(...)`               | Same API                                                                      |
+| Legacy (`index.js`)                 | BigInt (`bigint.ts`)                | Notes                                                                                                                  |
+| ----------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `hexToBN(hex)`                      | `hexToBigInt(hex)`                  | Returns `bigint` instead of `BN`                                                                                       |
+| `BNToHex(bn)`                       | `bigIntToHex(bi)`                   | Accepts `bigint`, returns `0x`-prefixed string                                                                         |
+| `safeBNToHex(value)`                | `safeBigIntToHex(value)`            | Null-safe wrapper                                                                                                      |
+| `safeNumberToBN(value)`             | `safeNumberToBigInt(value)`         | Truncates decimals, returns `bigint`                                                                                   |
+| `isBN(value)`                       | `isBigInt(value)`                   | Checks `typeof value === 'bigint'`                                                                                     |
+| `toBN(value)`                       | `BigInt(value)`                     | Direct native constructor                                                                                              |
+| `fromWei(value, unit)`              | `fromWei(value, unit)`              | Same API, accepts `bigint` input                                                                                       |
+| `toWei(value, unit)`                | `toWei(value, unit)`                | Returns `bigint` instead of `BN`                                                                                       |
+| `fromTokenMinimalUnit(v, d)`        | `fromTokenMinimalUnit(v, d)`        | Same API, accepts `bigint` input                                                                                       |
+| `toTokenMinimalUnit(v, d)`          | `toTokenMinimalUnit(v, d)`          | Returns `bigint` instead of `BN`                                                                                       |
+| `renderFromWei(v)`                  | `renderFromWei(v)`                  | Identical API and output                                                                                               |
+| `renderFromTokenMinimalUnit(v, d)`  | `renderFromTokenMinimalUnit(v, d)`  | Identical API and output                                                                                               |
+| `weiToFiat(wei, rate, currency)`    | `weiToFiat(wei, rate, currency)`    | Accepts `bigint` directly (no `.toString()` needed)                                                                    |
+| `weiToFiatNumber(wei, rate, dec)`   | `weiToFiatNumber(wei, rate, dec)`   | Accepts `bigint` directly                                                                                              |
+| `balanceToFiat(...)`                | `balanceToFiat(...)`                | Same API                                                                                                               |
+| `balanceToFiatNumber(...)`          | `balanceToFiatNumber(...)`          | Same API                                                                                                               |
+| `fiatNumberToWei(fiat, rate)`       | `fiatNumberToWei(fiat, rate)`       | Returns `bigint` instead of `BN`                                                                                       |
+| `fiatNumberToTokenMinimalUnit(...)` | `fiatNumberToTokenMinimalUnit(...)` | Returns `bigint` instead of `BN`                                                                                       |
+| `addHexPrefix(str)`                 | `addHexPrefix(str)`                 | **Behavior diverges for uppercase `0X` prefixes** (legacy bug fixed in bigint) — see note below                        |
+| `renderNumber(str)`                 | `renderNumber(str)`                 | **Behavior diverges for integer strings** — see note below                                                             |
+| `toHexadecimal(dec)`                | `toHexadecimal(dec)`                | `null`/`undefined` pass through (same as legacy); minor difference for other falsy inputs (`0`, `''`) — see note below |
+| `isZeroValue(v)`                    | `isZeroValue(v)`                    | Same behavior, also accepts `bigint`                                                                                   |
+| `calculateEthFeeForMultiLayer(p)`   | `calculateEthFeeForMultiLayer(p)`   | Same API                                                                                                               |
+| `conversionUtil(...)`               | `conversionUtil(...)`               | Same API                                                                                                               |
 
 Functions with **identical names** (e.g. `fromWei`, `renderFromWei`) have the same API — just change the import path.
 
@@ -104,6 +104,56 @@ to the bigint version will cause those values to render with their full integer
 portion instead of being silently chopped to 5 characters. This is a fix, but
 it is a visible behavioral change — verify your feature tolerates it before
 switching.
+
+### `addHexPrefix` behavior change
+
+The bigint `addHexPrefix` fixes another long-standing bug in the legacy
+implementation: how it handles uppercase `0X` prefixes.
+
+```js
+// Legacy (index.js)
+export const addHexPrefix = (str) => {
+  if (typeof str !== 'string' || str.match(regex.hexPrefix)) {
+    return str; // (1)
+  }
+
+  if (str.match(regex.hexPrefix)) {
+    // (2) unreachable — same regex as (1)
+    return str.replace('0X', '0x');
+  }
+
+  if (str.startsWith('-')) {
+    return str.replace('-', '-0x'); // (3) runs even for '-0X…'
+  }
+
+  return `0x${str}`; // (4) runs for '0X…'
+};
+```
+
+`regex.hexPrefix` is `/^-?0x/u` — case-sensitive. So the early-return at
+(1) only matches lowercase `0x` / `-0x`; uppercase variants fall through.
+Branch (2) repeats the same regex, so it can never run, and the intended
+`0X → 0x` normalization is unreachable. Uppercase inputs end up in (3) or
+(4), producing malformed strings.
+
+The bigint version replaces (2) with `str.match(/^-?0X/u)` so uppercase
+prefixes are correctly normalized to lowercase before returning.
+
+| Input       | Legacy output    | BigInt output |
+| ----------- | ---------------- | ------------- |
+| `'0x1a2b'`  | `'0x1a2b'`       | `'0x1a2b'`    |
+| `'1a2b'`    | `'0x1a2b'`       | `'0x1a2b'`    |
+| `'-1a2b'`   | `'-0x1a2b'`      | `'-0x1a2b'`   |
+| `'0X1A2B'`  | `'0x0X1A2B'` ⚠️  | `'0x1A2B'`    |
+| `'-0X1A2B'` | `'-0x0X1A2B'` ⚠️ | `'-0x1A2B'`   |
+
+In practice, all known production call sites pass lowercase hex strings (or
+strings that don't start with a prefix at all), so the divergence is unlikely
+to affect production. But because the parity tests for these inputs are
+[`describe.skip`'d as a known-divergent case](../app/util/number/bigint-parity.test.ts),
+the bigint version is **not** a guaranteed-identical drop-in for `addHexPrefix`
+when callers might pass uppercase `0X` prefixes — verify your input shape
+before migrating.
 
 ## Arithmetic migration
 
@@ -317,9 +367,29 @@ toWei('1').add(toWei('2'));
 toWei('1') + toWei('2');
 ```
 
-### 7. `toHexadecimal` null handling difference
+### 7. `toHexadecimal` falsy-input handling
 
-The legacy version returns `null`/`undefined` for `null`/`undefined` input. The BigInt version returns `"0"`. Both are safe since callers typically check for falsy values before using the result.
+Both the legacy and BigInt versions pass `null` and `undefined` through unchanged
+— there is **no divergence** for those inputs.
+
+The implementations differ for **non-null falsy inputs**:
+
+| Input       | Legacy       | BigInt         |
+| ----------- | ------------ | -------------- |
+| `null`      | `null`       | `null`         |
+| `undefined` | `undefined`  | `undefined`    |
+| `0`         | `0` (number) | `'0'` (string) |
+| `''`        | `''`         | `'0'`          |
+
+Legacy short-circuits via `if (!decimal) return decimal;`, so any falsy value
+is passed through as-is (including the raw number `0` and the empty string).
+BigInt narrows that guard to `decimal == null`, so `0` and `''` fall through
+to `BigInt(String(decimal)).toString(16)` and produce the string `'0'`.
+
+In practice all known call sites pass non-empty hex / decimal strings, so this
+divergence is unlikely to affect production. If your call site can pass raw
+`0` or `''` and downstream code distinguishes them from `'0'`, normalize the
+input before switching imports.
 
 ## Migration checklist
 

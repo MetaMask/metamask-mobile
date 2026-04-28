@@ -282,6 +282,60 @@ describe('Divergence: renderNumber (legacy bug fixed in bigint)', () => {
       },
     );
   });
+
+  // Pin the divergence to the exact input shape used by real call sites:
+  // Ramp / Bridge / Deposit pass `String(cryptoAmount)` (or `token.balance ?? '0'`)
+  // straight into `renderNumber`. cryptoAmount may be either a decimal string
+  // (e.g. "1.5") or a large integer string (e.g. "123456789" for sats / wei).
+  // These inputs must produce the documented output in BOTH APIs so a future
+  // refactor cannot silently shift behavior for these specific call sites.
+  describe('call-site input shapes (Ramp / Bridge / Deposit cryptoAmount)', () => {
+    const CRYPTO_AMOUNT_CASES: {
+      label: string;
+      input: string;
+      legacy: string;
+      bigint: string;
+    }[] = [
+      {
+        label: 'small integer crypto amount (no divergence)',
+        input: '12345',
+        legacy: '12345',
+        bigint: '12345',
+      },
+      {
+        label: 'large integer crypto amount (sats / wei) — divergence',
+        input: '123456789',
+        legacy: '12345',
+        bigint: '123456789',
+      },
+      {
+        label: 'decimal crypto amount (no divergence)',
+        input: '1.5',
+        legacy: '1.5',
+        bigint: '1.5',
+      },
+      {
+        label: 'decimal crypto amount with > 5 decimals (no divergence)',
+        input: '0.123456789',
+        legacy: '0.12345',
+        bigint: '0.12345',
+      },
+      {
+        label: 'fallback "0" used by Bridge useTokensWithBalance',
+        input: '0',
+        legacy: '0',
+        bigint: '0',
+      },
+    ];
+
+    it.each(CRYPTO_AMOUNT_CASES)(
+      '$label: legacy=$legacy, bigint=$bigint',
+      ({ input, legacy, bigint }) => {
+        expect(legacyRenderNumber(input)).toBe(legacy);
+        expect(bigintRenderNumber(input)).toBe(bigint);
+      },
+    );
+  });
 });
 
 /**
@@ -394,8 +448,6 @@ describe('Parity: normalizeToDotDecimal', () => {
 });
 
 describe('Parity: formatAmountWithThreshold', () => {
-  // NaN omitted: legacy limitToMaximumDecimalPlaces returns the number NaN;
-  // bigint returns the string "NaN" (see bigint.test.ts).
   const CASES: [number, number | undefined][] = [
     [0.000001, undefined],
     [0.00001, undefined],
@@ -418,6 +470,16 @@ describe('Parity: formatAmountWithThreshold', () => {
       expect(bigint).toBe(legacy);
     },
   );
+
+  it('formatAmountWithThreshold(NaN) matches legacy (raw NaN number)', () => {
+    const legacy = legacyFormatAmountWithThreshold(Number.NaN);
+    const bigint = bigintFormatAmountWithThreshold(Number.NaN);
+    // Both must return the raw NaN number (not the string "NaN").
+    expect(typeof bigint).toBe(typeof legacy);
+    expect(typeof bigint).toBe('number');
+    expect(Number.isNaN(bigint as unknown as number)).toBe(true);
+    expect(Number.isNaN(legacy as unknown as number)).toBe(true);
+  });
 });
 
 /**
@@ -447,12 +509,58 @@ describe('Parity: safeNumberToBigInt vs safeNumberToBN', () => {
   );
 });
 
-//TODO: legacy addHexPrefix seems incorrect but we are not changing legacy code for now
-describe.skip('Parity: addHexPrefix', () => {
-  const CASES = ['0x1a2b', '1a2b', '-1a2b', '0X1A2B', '-0X1A2B'];
+/**
+ * `addHexPrefix` is intentionally NOT at full parity with the legacy
+ * implementation. The legacy version has a long-standing bug for uppercase
+ * `0X` prefixes — its early-return guards on `regex.hexPrefix` (lowercase
+ * only), but the second branch that's supposed to normalize `0X → 0x`
+ * uses the same regex and is therefore unreachable. Uppercase inputs fall
+ * through to the default branch and get a stray `0x` prepended.
+ *
+ * The bigint version fixes this by branching on `/^-?0X/u` for the uppercase
+ * normalization. See `docs/bigint-migration-guide.md` (`addHexPrefix
+ * behavior change`) for the full table.
+ *
+ * These tests pin BOTH behaviors so lowercase/unprefixed/negative inputs are
+ * guaranteed identical (safe drop-in migration paths) and the uppercase
+ * divergence cannot silently regress in either direction.
+ */
+describe('Divergence: addHexPrefix (legacy bug fixed in bigint)', () => {
+  describe('cases where legacy and bigint agree (safe migration paths)', () => {
+    const AGREE_CASES: [string, string][] = [
+      ['0x1a2b', '0x1a2b'],
+      ['1a2b', '0x1a2b'],
+      ['-1a2b', '-0x1a2b'],
+      ['-0x1a2b', '-0x1a2b'],
+      ['', '0x'],
+    ];
 
-  it.each(CASES)('addHexPrefix(%s) matches legacy', (value) => {
-    expect(bigintAddHexPrefix(value)).toBe(legacyAddHexPrefix(value));
+    it.each(AGREE_CASES)(
+      'addHexPrefix(%p) → %p in both APIs',
+      (input, expected) => {
+        expect(legacyAddHexPrefix(input)).toBe(expected);
+        expect(bigintAddHexPrefix(input)).toBe(expected);
+      },
+    );
+  });
+
+  describe('cases where bigint corrects the legacy bug (uppercase 0X)', () => {
+    const DIVERGENCE_CASES: {
+      input: string;
+      legacy: string;
+      bigint: string;
+    }[] = [
+      { input: '0X1A2B', legacy: '0x0X1A2B', bigint: '0x1A2B' },
+      { input: '-0X1A2B', legacy: '-0x0X1A2B', bigint: '-0x1A2B' },
+    ];
+
+    it.each(DIVERGENCE_CASES)(
+      'addHexPrefix($input): legacy=$legacy, bigint=$bigint',
+      ({ input, legacy, bigint }) => {
+        expect(legacyAddHexPrefix(input)).toBe(legacy);
+        expect(bigintAddHexPrefix(input)).toBe(bigint);
+      },
+    );
   });
 });
 
@@ -463,8 +571,34 @@ describe('Parity: toHexadecimal', () => {
     expect(bigintToHexadecimal(value)).toBe(legacyToHexadecimal(value));
   });
 
-  it('toHexadecimal(null) matches legacy', () => {
+  // null and undefined: BOTH APIs pass the input through unchanged.
+  // This is parity, contrary to what an earlier draft of the migration guide claimed.
+  it('toHexadecimal(null) matches legacy (both passthrough)', () => {
+    expect(bigintToHexadecimal(null)).toBeNull();
+    expect(legacyToHexadecimal(null)).toBeNull();
     expect(bigintToHexadecimal(null)).toBe(legacyToHexadecimal(null));
+  });
+
+  it('toHexadecimal(undefined) matches legacy (both passthrough)', () => {
+    expect(bigintToHexadecimal(undefined as unknown as null)).toBeUndefined();
+    expect(legacyToHexadecimal(undefined)).toBeUndefined();
+    expect(bigintToHexadecimal(undefined as unknown as null)).toBe(
+      legacyToHexadecimal(undefined),
+    );
+  });
+
+  // 0 and '' are documented divergences (legacy short-circuits via !decimal).
+  // Pin both behaviors so the divergence cannot silently change.
+  describe('Divergence: non-null falsy inputs (0 and "")', () => {
+    it('toHexadecimal(0): legacy=0 (number), bigint="0" (string)', () => {
+      expect(legacyToHexadecimal(0)).toBe(0);
+      expect(bigintToHexadecimal(0)).toBe('0');
+    });
+
+    it("toHexadecimal(''): legacy='' (string), bigint='0' (string)", () => {
+      expect(legacyToHexadecimal('')).toBe('');
+      expect(bigintToHexadecimal('')).toBe('0');
+    });
   });
 });
 

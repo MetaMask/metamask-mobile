@@ -357,16 +357,22 @@ export function renderFiatAddition(
 
 /**
  * Limits a number to a max decimal places.
+ *
+ * Matches the legacy `index.js` behavior: when `num` (or `maxDecimalPlaces`)
+ * is `NaN`, the raw `num` is returned unchanged. This preserves callers that
+ * rely on `typeof result === 'number'` or `isNaN(result)` checks downstream
+ * (e.g. via `formatAmountWithThreshold`).
+ *
  * @param {number} num
  * @param {number} maxDecimalPlaces
- * @returns {string}
+ * @returns {string | number} Formatted string, or the original `num` when NaN.
  */
 export function limitToMaximumDecimalPlaces(
   num: number,
   maxDecimalPlaces = 5,
-): string {
+): string | number {
   if (isNaN(num) || isNaN(maxDecimalPlaces)) {
-    return num.toString();
+    return num;
   }
   return roundToDecimalString(num, maxDecimalPlaces);
 }
@@ -379,14 +385,18 @@ export const MINIMUM_DISPLAY_THRESHOLD = 0.00001;
 /**
  * Formats a number with decimal capping and threshold handling.
  * Shows "< 0.00001" for very small positive values, otherwise caps at maxDecimalPlaces.
+ *
+ * For `NaN` input the raw `NaN` is returned (delegated to
+ * `limitToMaximumDecimalPlaces`), matching the legacy implementation.
+ *
  * @param {number} num - The number to format
  * @param {number} maxDecimalPlaces - Maximum decimal places to show (default 5)
- * @returns {string} - Formatted number string
+ * @returns {string | number} - Formatted number string, or `NaN` for NaN input.
  */
 export function formatAmountWithThreshold(
   num: number,
   maxDecimalPlaces = 5,
-): string {
+): string | number {
   if (num < MINIMUM_DISPLAY_THRESHOLD && num > 0) {
     return `< ${MINIMUM_DISPLAY_THRESHOLD}`;
   }
@@ -889,7 +899,10 @@ export function renderWei(value?: bigint | null): string {
   return weiDisplay.toString();
 }
 /**
- * Format a string number in an string number with at most 5 decimal places
+ * Format a string number into a string number with at most 5 decimal places.
+ *
+ * Behavior diverges from the legacy `renderNumber` in `index.js` for **integer
+ * strings**.
  *
  * @param {string} number - String containing a number
  * @returns {string} - String number with none or at most 5 decimal places

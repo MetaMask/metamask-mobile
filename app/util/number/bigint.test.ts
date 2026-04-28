@@ -57,9 +57,15 @@ describe('Number utils :: bigIntToHex', () => {
 });
 
 describe('BigNumber global isolation', () => {
-  // TODO: enable this test when we migrate to BigInt
+  // Skipped: the legacy `app/util/number/index.js` mutates the global
+  // `BigNumber` class with `BigNumber.config({ DECIMAL_PLACES: 36 })` at
+  // module load. That module is transitively imported by Jest setup, so by
+  // the time this test runs the global default is already 36 — the test
+  // would fail through no fault of `bigint.ts` (which uses
+  // `BigNumber.clone(...)` and does NOT mutate the parent).
+  // Re-enable once the legacy `index.js` is removed.
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip('does not mutate the global BigNumber DECIMAL_PLACES default', () => {
-    // The bignumber.js library default is 20; importing bigint.ts must not change it
     expect(BigNumber.config().DECIMAL_PLACES).toBe(20);
   });
 });
@@ -370,8 +376,10 @@ describe('Number utils :: formatAmountWithThreshold', () => {
     expect(formatAmountWithThreshold(-1.234, 2)).toBe('-1.23');
   });
 
-  it('returns string for NaN input per limitToMaximumDecimalPlaces', () => {
-    expect(formatAmountWithThreshold(Number.NaN)).toBe('NaN');
+  it('returns raw NaN for NaN input (parity with legacy)', () => {
+    const result = formatAmountWithThreshold(Number.NaN);
+    expect(typeof result).toBe('number');
+    expect(Number.isNaN(result)).toBe(true);
   });
 });
 
@@ -1080,6 +1088,18 @@ describe('Number utils :: limitToMaximumDecimalPlaces', () => {
 
   it('does not add any decimal places for a whole number', () => {
     expect(limitToMaximumDecimalPlaces(5)).toBe('5');
+  });
+
+  it('returns the raw NaN number when num is NaN (parity with legacy)', () => {
+    const result = limitToMaximumDecimalPlaces(Number.NaN);
+    expect(typeof result).toBe('number');
+    expect(Number.isNaN(result)).toBe(true);
+  });
+
+  it('returns the raw num when maxDecimalPlaces is NaN (parity with legacy)', () => {
+    const result = limitToMaximumDecimalPlaces(1.234, Number.NaN);
+    expect(typeof result).toBe('number');
+    expect(result).toBe(1.234);
   });
 });
 
