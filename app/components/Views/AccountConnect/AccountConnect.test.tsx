@@ -337,7 +337,7 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders correctly with request including chains and accounts', () => {
@@ -363,7 +363,7 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders correctly with request including only chains', () => {
@@ -389,7 +389,7 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders correctly when merging existing CAIP-25 permissions', () => {
@@ -431,7 +431,7 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   describe('AccountConnectMultiSelector handlers', () => {

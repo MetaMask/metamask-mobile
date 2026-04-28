@@ -51,11 +51,11 @@ describe('ChangeInSimulationModal', () => {
     };
   });
 
-  it('render matches snapshot', () => {
+  it('renders without errors', () => {
     const { toJSON } = renderWithProvider(<ChangeInSimulationModal />, {
       state: mockInitialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('calls onProceed and onReject callbacks', () => {

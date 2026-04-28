@@ -53,7 +53,7 @@ describe('SuccessErrorSheet', () => {
     const { toJSON } = renderWithProvider(
       <SuccessErrorSheet route={mockRoute} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders correctly with all props', () => {

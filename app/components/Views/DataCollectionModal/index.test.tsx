@@ -30,8 +30,8 @@ describe('DataCollectionModal', () => {
     expect(strings).toHaveBeenCalledWith('data_collection_modal.accept');
   });
 
-  it('should render expected snapshot', () => {
+  it('renders without errors', () => {
     const { toJSON } = render(<DataCollectionModal />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

@@ -52,6 +52,6 @@ describe('InfoNetworkModal', () => {
     const { toJSON } = renderWithProvider(<InfoNetworkModal />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

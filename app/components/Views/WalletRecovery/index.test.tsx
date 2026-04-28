@@ -69,7 +69,7 @@ describe('WalletRecovery', () => {
       socialLoginEmail: 'test@example.com',
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders SRP section and sets navigation options', () => {

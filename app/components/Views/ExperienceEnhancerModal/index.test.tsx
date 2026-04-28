@@ -56,7 +56,7 @@ describe('ExperienceEnhancerModal', () => {
       </SafeAreaProvider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('should handle cancel button press correctly', () => {

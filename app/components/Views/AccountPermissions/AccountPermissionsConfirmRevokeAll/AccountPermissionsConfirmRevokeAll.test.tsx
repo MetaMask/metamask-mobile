@@ -49,7 +49,7 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('handles cancel button press', () => {

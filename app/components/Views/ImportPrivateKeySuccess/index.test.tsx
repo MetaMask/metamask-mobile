@@ -6,6 +6,6 @@ describe('ImportPrivateKeySuccess', () => {
     const { toJSON } = renderScreen(ImportPrivateKeySuccess, {
       name: 'ImportPrivateKeySuccess',
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

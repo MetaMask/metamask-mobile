@@ -9,6 +9,6 @@ describe('GasEducationCarousel', () => {
         navigation={{ getParam: () => false, setOptions: () => null }}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

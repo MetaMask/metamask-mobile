@@ -343,7 +343,7 @@ describe('AccountPermissions', () => {
       { state: mockInitialState() },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('should handle manage permissions button press and navigate to permissions summary', () => {

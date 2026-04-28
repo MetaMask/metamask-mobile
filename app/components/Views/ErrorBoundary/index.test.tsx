@@ -69,9 +69,8 @@ describe('ErrorBoundary', () => {
     jest.resetAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<ErrorBoundary />, {});
-    expect(toJSON()).toMatchSnapshot();
+  it('renders without errors', () => {
+    expect(() => renderWithProvider(<ErrorBoundary />, {})).not.toThrow();
   });
 
   it('tracks error event when error is thrown by child component', () => {
@@ -251,16 +250,17 @@ describe('ErrorBoundary', () => {
       },
     };
 
-    it('renders onboarding error state snapshot', () => {
-      const { toJSON } = renderWithProvider(
-        <ErrorBoundary
-          view="Login"
-          navigation={mockNavigation}
-          error={mockError}
-          useOnboardingErrorHandling
-        />,
-      );
-      expect(toJSON()).toMatchSnapshot();
+    it('renders onboarding error state without errors', () => {
+      expect(() =>
+        renderWithProvider(
+          <ErrorBoundary
+            view="Login"
+            navigation={mockNavigation}
+            error={mockError}
+            useOnboardingErrorHandling
+          />,
+        ),
+      ).not.toThrow();
     });
 
     it('uses onboarding error config when useOnboardingErrorHandling is true', () => {

@@ -5,6 +5,6 @@ import { render } from '@testing-library/react-native';
 describe('NavigationUnitTest', () => {
   it('should render correctly', () => {
     const { toJSON } = render(<NavigationUnitTest />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

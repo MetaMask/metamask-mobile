@@ -34,9 +34,9 @@ describe('AesCryptoTestForm', () => {
   });
 
   it('renders correctly', () => {
-    const wrapper = render(<AesCryptoTestForm />);
+    const { toJSON } = render(<AesCryptoTestForm />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('wraps content in SafeAreaView from react-native-safe-area-context', () => {

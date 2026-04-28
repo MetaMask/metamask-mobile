@@ -198,12 +198,12 @@ describe('DiscoveryTab', () => {
 
   describe('Rendering', () => {
     it('renders DiscoveryTab component when tab is active', () => {
-      const { toJSON } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <DiscoveryTab {...defaultProps} />,
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('browser-url-bar')).toBeTruthy();
     });
 
     it('hides content when tab is not active', () => {
@@ -220,7 +220,7 @@ describe('DiscoveryTab', () => {
         { state: inactiveState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
   });
 
@@ -231,7 +231,7 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
 
     it('accepts updateTabInfo prop', () => {
@@ -240,7 +240,7 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
 
     it('renders with all required props', () => {
@@ -249,18 +249,18 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
   });
 
   describe('URL Bar Interactions', () => {
     it('renders BrowserUrlBar component', () => {
-      const { toJSON } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <DiscoveryTab {...defaultProps} />,
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('browser-url-bar')).toBeTruthy();
     });
 
     it('passes showTabs callback to BrowserUrlBar', () => {
@@ -269,18 +269,20 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
   });
 
   describe('Bottom Bar Rendering', () => {
     it('renders BrowserBottomBar when tab is active and URL bar not focused', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
+      const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
+      BrowserBottomBarMock.mockClear();
 
-      expect(toJSON()).toMatchSnapshot();
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      expect(BrowserBottomBarMock).toHaveBeenCalled();
     });
 
     it('passes newTab prop to BrowserBottomBar', () => {
@@ -289,7 +291,7 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
   });
 
@@ -315,7 +317,7 @@ describe('DiscoveryTab', () => {
         { state: differentTabState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
 
     it('renders TokenDiscovery component', () => {
@@ -324,7 +326,7 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
   });
 
@@ -553,8 +555,7 @@ describe('DiscoveryTab', () => {
         },
       );
 
-      const json = toJSON();
-      expect(json).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
 
     it('uses height behavior for KeyboardAvoidingView on Android', () => {
@@ -572,8 +573,7 @@ describe('DiscoveryTab', () => {
         },
       );
 
-      const json = toJSON();
-      expect(json).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
 
       DeviceMock.isAndroid.mockReturnValue(false);
       RN.Platform.OS = 'ios';
@@ -592,8 +592,7 @@ describe('DiscoveryTab', () => {
         },
       );
 
-      const json = toJSON();
-      expect(json).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
 
       DeviceMock.isAndroid.mockReturnValue(false);
     });

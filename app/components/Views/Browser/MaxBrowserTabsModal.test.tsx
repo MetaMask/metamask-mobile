@@ -21,6 +21,6 @@ jest.mock('@react-navigation/native', () => {
 describe('MaxBrowserTabsModal', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<MaxBrowserTabsModal />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

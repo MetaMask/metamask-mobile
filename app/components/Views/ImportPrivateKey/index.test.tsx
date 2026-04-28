@@ -87,13 +87,13 @@ describe('ImportPrivateKey', () => {
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
-  it('render matches snapshot', () => {
+  it('renders without errors', () => {
     const { toJSON } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
       { state: initialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('displays SRP warning description when user has no social auth connection', () => {

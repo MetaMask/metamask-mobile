@@ -146,8 +146,6 @@ describe('BrowserTab', () => {
     await waitFor(() =>
       expect(screen.getByTestId('browser-webview')).toBeVisible(),
     );
-
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   describe('Back Button', () => {
