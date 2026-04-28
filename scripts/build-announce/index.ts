@@ -99,6 +99,16 @@ function performEnvValidation(): {
   } = {};
 
   try {
+    // Check for flat path first (in case merge-multiple flattens all artifacts)
+    const flatPath = join(artifactsDir, 'build-env.json');
+    if (existsSync(flatPath)) {
+      console.log(`Found build-env.json at ${flatPath}`);
+      const result = validateEnv(flatPath);
+      results.androidResult = result;
+      return results;
+    }
+
+    // Otherwise look in subdirectories
     const dirs = readdirSync(artifactsDir, { withFileTypes: true });
 
     for (const dir of dirs) {
@@ -107,14 +117,6 @@ function performEnvValidation(): {
       const buildEnvPath = join(artifactsDir, dir.name, 'build-env.json');
 
       if (!existsSync(buildEnvPath)) {
-        // Try without nested directory (in case merge-multiple flattens)
-        const flatPath = join(artifactsDir, 'build-env.json');
-        if (existsSync(flatPath)) {
-          console.log(`Found build-env.json at ${flatPath}`);
-          const result = validateEnv(flatPath);
-          results.androidResult = result;
-          break;
-        }
         continue;
       }
 
