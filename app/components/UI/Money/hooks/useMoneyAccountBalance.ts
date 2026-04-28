@@ -7,10 +7,8 @@ import {
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import {
-  addCurrencySymbol,
-  fromTokenMinimalUnitString,
-} from '../../../../util/number';
+import { fromTokenMinimalUnitString } from '../../../../util/number';
+import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
   selectCurrencyRates,
@@ -163,19 +161,14 @@ const useMoneyAccountBalance = (
     musdFiatRate,
   ]);
 
-  const formatFiatBalance = (value: BigNumber): string => {
-    const num = value.toNumber();
-    return num >= 0.01 || num === 0
-      ? addCurrencySymbol(num.toFixed(2), currentCurrency)
-      : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
-  };
-
-  const musdFiatFormatted = musdFiat ? formatFiatBalance(musdFiat) : undefined;
+  const musdFiatFormatted = musdFiat
+    ? moneyFormatFiat(musdFiat, currentCurrency)
+    : undefined;
   const musdSHFvdFiatFormatted = musdSHFvdFiat
-    ? formatFiatBalance(musdSHFvdFiat)
+    ? moneyFormatFiat(musdSHFvdFiat, currentCurrency)
     : undefined;
   const totalFiatFormatted = totalFiat
-    ? formatFiatBalance(totalFiat)
+    ? moneyFormatFiat(totalFiat, currentCurrency)
     : undefined;
   const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
 

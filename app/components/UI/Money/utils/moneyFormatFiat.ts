@@ -24,5 +24,5 @@ export const moneyFormatFiat = (
   const num = value.toNumber();
   return num >= 0.01 || num === 0
     ? addCurrencySymbol(num.toFixed(2), currentCurrency)
-    : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+    : `<${addCurrencySymbol('0.01', currentCurrency)}`;
 };
