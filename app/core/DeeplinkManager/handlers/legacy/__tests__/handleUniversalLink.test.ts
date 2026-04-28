@@ -848,9 +848,10 @@ describe('handleUniversalLink', () => {
         urlObj: positionUrlObj,
         browserCallBack: mockBrowserCallBack,
         url: positionUrl,
-        source: AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+        source: 'test-source',
       });
 
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
       expect(handleSocialTraderPositionUrl).toHaveBeenCalledWith({
         actionPath: '?positionId=position-1',
       });
