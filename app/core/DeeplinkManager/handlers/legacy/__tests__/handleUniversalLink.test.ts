@@ -16,6 +16,7 @@ import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
+import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -40,6 +41,7 @@ jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
 jest.mock('../handleTrendingUrl');
+jest.mock('../handleSocialTraderPositionUrl');
 jest.mock('../../../../redux', () => ({
   __esModule: true,
   default: {
@@ -826,6 +828,36 @@ describe('handleUniversalLink', () => {
 
         expect(handled).toHaveBeenCalled();
       }
+    });
+  });
+
+  describe('ACTIONS.SOCIAL_TRADER_POSITION', () => {
+    it('calls _handleSocialTraderPosition when action is SOCIAL_TRADER_POSITION', async () => {
+      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy`;
+      const positionUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: positionUrl,
+        pathname: `/${ACTIONS.SOCIAL_TRADER_POSITION}`,
+        search:
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: positionUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: positionUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleSocialTraderPositionUrl).toHaveBeenCalledWith({
+        actionPath:
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
+      });
+      expect(handled).toHaveBeenCalled();
     });
   });
 
