@@ -7,27 +7,22 @@ import {
   HardwareWalletType,
   Severity,
 } from '@metamask/hw-wallet-sdk';
+
+import { QRHardwareScanError } from './qrHardwareScanError';
+import {
+  QRHardwareScanErrorType,
+  type QRHardwareScanErrorMetadata,
+  type QRHardwareScanErrorOptions,
+} from './qrScan.types';
 import { RecoveryAction } from './types';
 
-export enum QRHardwareScanErrorType {
-  NonURQrScanned = 'non_ur_qr_scanned',
-  WrongURType = 'wrong_ur_type',
-  URDecodeError = 'ur_decode_error',
-  ScanException = 'scan_exception',
-}
-
-export interface QRHardwareScanErrorMetadata {
-  walletType: HardwareWalletType.Qr;
-  recoveryAction: RecoveryAction.RETRY;
-  qrHardwareScanErrorType: QRHardwareScanErrorType;
-  qrScanPurpose: QrScanRequestType;
-  receivedUrType?: string;
-  isUrFormat: boolean;
-}
-
-export type QRHardwareScanError = HardwareWalletError & {
-  metadata: QRHardwareScanErrorMetadata;
+export {
+  QRHardwareScanErrorType,
+  type QRHardwareScanErrorMetadata,
+  type QRHardwareScanErrorOptions,
 };
+
+export { QRHardwareScanError } from './qrHardwareScanError';
 
 function isQRHardwareScanErrorMetadata(
   metadata: unknown,
@@ -127,7 +122,7 @@ export function createQRHardwareScanError({
     isUrFormat,
   } satisfies QRHardwareScanErrorMetadata;
 
-  const error = new HardwareWalletError(
+  return new QRHardwareScanError(
     technicalMessage ?? getDefaultTechnicalMessage({ errorType, purpose }),
     {
       code: ErrorCode.Unknown,
@@ -137,18 +132,6 @@ export function createQRHardwareScanError({
       metadata,
     },
   );
-
-  return Object.assign(error, { metadata });
-}
-
-export function isQRHardwareScanError(
-  error: unknown,
-): error is QRHardwareScanError {
-  if (!HardwareWalletError.isHardwareWalletError(error)) {
-    return false;
-  }
-
-  return isQRHardwareScanErrorMetadata(error.metadata);
 }
 
 export function getQRHardwareScanErrorTitle(
