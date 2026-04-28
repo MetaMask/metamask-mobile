@@ -5583,12 +5583,6 @@ export class HyperLiquidProvider implements PerpsProvider {
           'HyperLiquidProvider: Getting account state in standalone mode',
           { userAddress },
         );
-        if (!/^0[xX][0-9a-fA-F]+$/u.test(userAddress)) {
-          this.#deps.debugLogger.log(
-            '[PR-29420] BUG_MARKER: non-EVM standalone account state address passed to HyperLiquid',
-            { userAddress },
-          );
-        }
 
         const standaloneInfoClient = createStandaloneInfoClient({
           isTestnet: this.#clientService.isTestnetMode(),
