@@ -1,0 +1,94 @@
+diff --git a/dist/TransactionController.cjs b/dist/TransactionController.cjs
+index 88203b572578477512d6c474149e05c3f0275f48..ec2f692a3fdf695c674f9489d140847d8c6fcedb 100644
+--- a/dist/TransactionController.cjs
++++ b/dist/TransactionController.cjs
+@@ -97,6 +97,12 @@ const metadata = {
+         includeInDebugSnapshot: false,
+         usedInUi: false,
+     },
++    swapsTransactions: {
++        includeInStateLogs: true,
++        persist: true,
++        includeInDebugSnapshot: false,
++        usedInUi: true,
++    },
+ };
+ /**
+  * Multiplier used to determine a transaction's increased gas fee during cancellation
+diff --git a/dist/TransactionController.mjs b/dist/TransactionController.mjs
+index 0ea5bf2c4f54d770e5891369f069af3e294db48d..984dba93e8d1f5682f4954db8492e101fa29dbf5 100644
+--- a/dist/TransactionController.mjs
++++ b/dist/TransactionController.mjs
+@@ -99,6 +99,12 @@ const metadata = {
+         includeInDebugSnapshot: false,
+         usedInUi: false,
+     },
++    swapsTransactions: {
++        includeInStateLogs: true,
++        persist: true,
++        includeInDebugSnapshot: false,
++        usedInUi: true,
++    },
+ };
+ /**
+  * Multiplier used to determine a transaction's increased gas fee during cancellation
+diff --git a/dist/types.cjs b/dist/types.cjs
+index 0a83050978f13f7ed4e76ccdc250826e0ed0c6ab..2870d525100e99824b3705146a25933992df4d02 100644
+--- a/dist/types.cjs
++++ b/dist/types.cjs
+@@ -132,6 +132,10 @@ var TransactionType;
+      * Deposit funds to be available for trading via Perps.
+      */
+     TransactionType["perpsDeposit"] = "perpsDeposit";
++    /**
++     * Deposit funds and place an order via Perps (one-click trade).
++     */
++    TransactionType["perpsDepositAndOrder"] = "perpsDepositAndOrder";
+     /**
+      * A transaction for personal sign.
+      */
+diff --git a/dist/types.d.cts b/dist/types.d.cts
+index 2f1660ce03f2aea99a9202edb06ffb0e21072d0c..92fbc94f1490bb4867b1de90494ce028aa094ea5 100644
+--- a/dist/types.d.cts
++++ b/dist/types.d.cts
+@@ -631,6 +631,10 @@ export declare enum TransactionType {
+      * Deposit funds to be available for trading via Perps.
+      */
+     perpsDeposit = "perpsDeposit",
++    /**
++     * Deposit funds and place an order via Perps (one-click trade).
++     */
++    perpsDepositAndOrder = "perpsDepositAndOrder",
+     /**
+      * A transaction for personal sign.
+      */
+diff --git a/dist/types.d.mts b/dist/types.d.mts
+index 8ca4cbfc5f93ae0366ec8a3a88cead6e5c5e7d47..cd3e8b221d0b083d3d27c78b9174f9eaa5e8b359 100644
+--- a/dist/types.d.mts
++++ b/dist/types.d.mts
+@@ -631,6 +631,10 @@ export declare enum TransactionType {
+      * Deposit funds to be available for trading via Perps.
+      */
+     perpsDeposit = "perpsDeposit",
++    /**
++     * Deposit funds and place an order via Perps (one-click trade).
++     */
++    perpsDepositAndOrder = "perpsDepositAndOrder",
+     /**
+      * A transaction for personal sign.
+      */
+diff --git a/dist/types.mjs b/dist/types.mjs
+index 42528d6ffa0defad5e8bd281916f4137e7d2f641..5760f6fed78f849f351f82d41c079c63ab3add76 100644
+--- a/dist/types.mjs
++++ b/dist/types.mjs
+@@ -129,6 +129,10 @@ export var TransactionType;
+      * Deposit funds to be available for trading via Perps.
+      */
+     TransactionType["perpsDeposit"] = "perpsDeposit";
++    /**
++     * Deposit funds and place an order via Perps (one-click trade).
++     */
++    TransactionType["perpsDepositAndOrder"] = "perpsDepositAndOrder";
+     /**
+      * A transaction for personal sign.
+      */
