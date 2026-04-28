@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { Animated } from 'react-native';
 
 // External dependencies.
 import { BoxProps } from '@metamask/design-system-react-native';
@@ -51,4 +52,9 @@ export interface TabsBarProps extends BoxProps {
    * Disables horizontal scrolling and gap spacing. Defaults to false.
    */
   fillWidth?: boolean;
+  /**
+   * Optional Animated.Value (0=visible, 1=hidden) that collapses the tab row height to zero.
+   * Requires useNativeDriver: false on the driving animation.
+   */
+  collapseAnim?: Animated.Value;
 }

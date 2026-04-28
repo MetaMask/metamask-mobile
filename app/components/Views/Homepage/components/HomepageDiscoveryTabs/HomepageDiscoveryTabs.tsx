@@ -153,14 +153,29 @@ const HomepageDiscoveryTabs = forwardRef<
     // Ref so the animated reaction closure always calls the latest animation starter
     const iconCollapseAnimRef = useRef(iconCollapseAnim);
 
+    // Drives TabsBar height collapse on the Predictions tab only (useNativeDriver: false)
+    const tabBarCollapseAnim = useRef(new Animated.Value(0)).current;
+    const tabBarCollapseAnimRef = useRef(tabBarCollapseAnim);
+
     // Triggered directly from the scroll worklet via onHeaderHiddenChange —
     // fires in the same frame as the hide/show decision, not based on position.
     const animateIcons = useCallback((hidden: boolean) => {
+      const toValue = hidden ? 1 : 0;
+      const duration = hidden ? 300 : 250;
+
       Animated.timing(iconCollapseAnimRef.current, {
-        toValue: hidden ? 1 : 0,
-        duration: hidden ? 300 : 250,
+        toValue,
+        duration,
         useNativeDriver: true,
       }).start();
+
+      if (activeTabIndexRef.current === TAB_INDEX.PREDICTIONS) {
+        Animated.timing(tabBarCollapseAnimRef.current, {
+          toValue,
+          duration,
+          useNativeDriver: false,
+        }).start();
+      }
     }, []);
 
     const { scrollHandler, onTabEnter: portfolioOnTabEnter } =
@@ -217,6 +232,18 @@ const HomepageDiscoveryTabs = forwardRef<
         const prevIndex = activeTabIndexRef.current;
         activeTabIndexRef.current = i;
 
+        // Reset tab bar collapse when leaving Predictions
+        if (
+          prevIndex === TAB_INDEX.PREDICTIONS &&
+          i !== TAB_INDEX.PREDICTIONS
+        ) {
+          Animated.timing(tabBarCollapseAnimRef.current, {
+            toValue: 0,
+            duration: 250,
+            useNativeDriver: false,
+          }).start();
+        }
+
         if (prevIndex !== i) {
           // Snap outgoing to 1 and incoming to 0 before animating, in case a
           // previous transition was interrupted mid-flight.
@@ -249,7 +276,7 @@ const HomepageDiscoveryTabs = forwardRef<
             onChangeTab={handleChangeTab}
             tabsListContentTwClassName="px-0"
             style={tw.style('mt-2')}
-            tabsBarProps={{ fillWidth: true }}
+            tabsBarProps={{ fillWidth: true, collapseAnim: tabBarCollapseAnim }}
           >
             <DiscoveryTabView tabLabel="Portfolio" tabIcon={IconName.Portfolio}>
               <Reanimated.ScrollView
@@ -282,7 +309,7 @@ const HomepageDiscoveryTabs = forwardRef<
 
             <DiscoveryTabView tabLabel="Predictions" tabIcon={IconName.Predict}>
               <PredictPreviewSheetProvider>
-                <PredictFeed hideHeader />
+                <PredictFeed hideHeader onHeaderHiddenChange={animateIcons} />
               </PredictPreviewSheetProvider>
             </DiscoveryTabView>
           </TabsList>

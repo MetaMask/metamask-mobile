@@ -27,6 +27,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
   testID,
   twClassName,
   fillWidth = false,
+  collapseAnim,
   ...boxProps
 }) => {
   const tw = useTailwind();
@@ -47,6 +48,16 @@ const TabsBar: React.FC<TabsBarProps> = ({
   // State for automatic overflow detection
   const [scrollEnabled, setScrollEnabled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+
+  // Height collapse animation state
+  const [tabRowHeight, setTabRowHeight] = useState(0);
+  const animatedHeight =
+    collapseAnim && tabRowHeight > 0
+      ? collapseAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [tabRowHeight, 0],
+        })
+      : undefined;
 
   // Keep activeIndexRef in sync with activeIndex
   useEffect(() => {
@@ -305,7 +316,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
                 onPress={() => handleTabPress(index)}
                 onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
                 testID={tab.testID ?? `${testID}-tab-${index}`}
-                style={hasIcons ? tw.style('py-2') : undefined}
+                style={hasIcons ? tw.style('py-2') : tw.style('py-1')}
               />
             ))}
 
@@ -324,10 +335,20 @@ const TabsBar: React.FC<TabsBarProps> = ({
           </Box>
         </ScrollView>
       ) : (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName={`relative ${fillWidth ? '' : 'gap-6'}`}
+        <Animated.View
+          onLayout={({ nativeEvent }) => {
+            if (tabRowHeight === 0 && nativeEvent.layout.height > 0) {
+              setTabRowHeight(nativeEvent.layout.height);
+            }
+          }}
+          style={[
+            tw.style(
+              `relative ${fillWidth ? 'flex-row items-center' : 'gap-6 flex-row items-center'} ${animatedHeight !== undefined ? 'overflow-hidden' : ''}`,
+            ),
+            animatedHeight !== undefined
+              ? { height: animatedHeight }
+              : undefined,
+          ]}
         >
           {tabs.map((tab, index) => (
             <Tab
@@ -355,7 +376,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
               )}
             />
           )}
-        </Box>
+        </Animated.View>
       )}
     </Box>
   );
