@@ -10,6 +10,8 @@ import MoneyPotentialEarningsView from '../Views/MoneyPotentialEarningsView';
 import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
+import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
+import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
@@ -69,6 +71,16 @@ const MoneyModalStack = () => (
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET}
       component={MoneyTransferSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.APY_INFO_SHEET}
+      component={MoneyApyInfoSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.EARNINGS_INFO_SHEET}
+      component={MoneyEarningsInfoSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

@@ -16,6 +16,7 @@ import { MoneyFooterTestIds } from '../../components/MoneyFooter/MoneyFooter.tes
 import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
 import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
 import { MoneyMusdTokenRowTestIds } from '../../components/MoneyMusdTokenRow/MoneyMusdTokenRow.testIds';
+import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { strings } from '../../../../../../locales/i18n';
@@ -68,13 +69,6 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
     initiateCustomConversion: jest.fn(),
-  }),
-}));
-
-jest.mock('../../../../hooks/useTooltipModal', () => ({
-  __esModule: true,
-  default: () => ({
-    openTooltipModal: jest.fn(),
   }),
 }));
 
@@ -315,6 +309,28 @@ describe('MoneyHomeView', () => {
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+  });
+
+  it('opens the APY info sheet when the APY info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
+      params: { apy: 5 },
+    });
+  });
+
+  it('opens the earnings info sheet when the earnings info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneySectionHeaderTestIds.INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { apy: 5 },
+    });
   });
 
   describe('milestone state (1-9 transactions)', () => {

@@ -4,15 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
-import {
-  Box,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
-import useTooltipModal from '../../../../hooks/useTooltipModal';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
@@ -41,7 +34,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
-import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
@@ -64,7 +56,6 @@ const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
-  const { openTooltipModal } = useTooltipModal();
   const formatFiat = useFiatFormatter();
 
   const {
@@ -129,57 +120,23 @@ const MoneyHomeView = () => {
     });
   }, [navigation]);
 
-  // TODO: Consider breaking out this tooltip into a separate component since the inline definition is quite long.
+  const handleGetNowPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation]);
+
   const handleApyInfoPress = useCallback(() => {
-    openTooltipModal(
-      strings('money.apy_tooltip.title'),
-      <Box twClassName="gap-4">
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.apy_tooltip.paragraph_1', { percentage: DEV_APY })}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.apy_tooltip.paragraph_2')}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.apy_tooltip.paragraph_3')}
-        </Text>
-      </Box>,
-      undefined,
-      strings('money.apy_tooltip.learn_more'),
-      () => Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE),
-      false,
-    );
-  }, [openTooltipModal, DEV_APY]);
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
+      params: { apy: DEV_APY },
+    });
+  }, [navigation, DEV_APY]);
 
-  // TODO: Consider breaking out this tooltip into a separate component since the inline definition is quite long.
   const handleEarningsInfoPress = useCallback(() => {
-    openTooltipModal(
-      strings('money.earnings_tooltip.title'),
-      <Box twClassName="gap-4">
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {strings('money.earnings_tooltip.lifetime_heading')}
-          </Text>
-          {'\n'}
-          {strings('money.earnings_tooltip.lifetime_body')}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {strings('money.earnings_tooltip.projected_heading')}
-          </Text>
-          {'\n'}
-          {strings('money.earnings_tooltip.projected_body')}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.earnings_tooltip.disclaimer', {
-            percentage: DEV_APY,
-          })}
-        </Text>
-      </Box>,
-    );
-  }, [openTooltipModal, DEV_APY]);
-
-  const handleGetNowPress = displayUnderConstructionAlert;
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { apy: DEV_APY },
+    });
+  }, [navigation, DEV_APY]);
 
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {

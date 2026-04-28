@@ -426,6 +426,8 @@ const Routes = {
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
       MORE_SHEET: 'MoneyMoreSheet',
       TRANSFER_MONEY_SHEET: 'MoneyTransferSheet',
+      APY_INFO_SHEET: 'MoneyApyInfoSheet',
+      EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
