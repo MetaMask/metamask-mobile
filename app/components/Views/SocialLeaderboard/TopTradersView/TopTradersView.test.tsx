@@ -1,11 +1,11 @@
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { act, screen, fireEvent } from '@testing-library/react-native';
+import Logger from '../../../../util/Logger';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import TopTradersView from './TopTradersView';
-import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
-import Logger from '../../../../util/Logger';
+import TopTradersView from './TopTradersView';
+import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -235,7 +235,7 @@ describe('TopTradersView', () => {
       screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_SOLANA),
     );
     expect(screen.getByText('1')).toBeOnTheScreen();
-    expect(screen.queryByText('3.')).not.toBeOnTheScreen();
+    expect(screen.queryByText('3')).not.toBeOnTheScreen();
   });
 
   it('renders skeletons during initial load', () => {
