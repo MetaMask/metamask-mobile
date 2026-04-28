@@ -1355,7 +1355,8 @@ export const mergeChildEventsIntoParent = (
     throw new Error('No events to merge');
   }
 
-  const [parent, ...children] = events;
+  const parent = events.find((e) => !e.parentEventId) ?? events[0];
+  const children = events.filter((e) => e !== parent);
 
   if (children.length === 0) {
     return parent;

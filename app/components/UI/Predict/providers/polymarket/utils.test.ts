@@ -5496,6 +5496,27 @@ describe('polymarket utils', () => {
       expect(result.markets[0].conditionId).toBe('parent-mkt');
     });
 
+    it('identifies parent by missing parentEventId when parent is not first', () => {
+      const childMarket = buildMarket({ conditionId: 'child-mkt' });
+      const parentMarket = buildMarket({ conditionId: 'parent-mkt' });
+      const child = buildEvent({
+        id: 'child-1',
+        parentEventId: 'parent-1',
+        markets: [childMarket],
+      });
+      const parent = buildEvent({
+        id: 'parent-1',
+        markets: [parentMarket],
+      });
+
+      const result = mergeChildEventsIntoParent([child, parent]);
+
+      expect(result.id).toBe('parent-1');
+      expect(result.markets).toHaveLength(2);
+      expect(result.markets[0].conditionId).toBe('parent-mkt');
+      expect(result.markets[1].conditionId).toBe('child-mkt');
+    });
+
     it('does not duplicate parent markets', () => {
       const parentMarket = buildMarket({ conditionId: 'parent-mkt' });
       const childMarket = buildMarket({ conditionId: 'child-mkt' });
