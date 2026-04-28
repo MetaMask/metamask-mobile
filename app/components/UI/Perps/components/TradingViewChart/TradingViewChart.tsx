@@ -101,6 +101,19 @@ const TradingViewChart = React.forwardRef<
       data: CandleData;
       timestamp: number;
     } | null>(null);
+    // Signature of the last dataset sent to the WebView. Used to route updates:
+    // - SET_CANDLESTICK_DATA (full reload) for initial load, symbol/interval change,
+    //   history prepend, or first send after a WebView remount (null signature).
+    // - UPDATE_LAST_CANDLE (incremental) for live ticks and single-bar appends on
+    //   the same symbol/interval/firstTime. Avoids full-chart resets on every tick
+    //   which caused viewport jumps when revisiting a cached interval.
+    const lastSentSignatureRef = useRef<{
+      symbol: string;
+      interval: string;
+      firstTime: number;
+      count: number;
+      lastTime: number;
+    } | null>(null);
 
     // Format OHLC values using the same formatting as the header
     const formattedOhlcData = useMemo(() => {
@@ -250,6 +263,9 @@ const TradingViewChart = React.forwardRef<
 
           switch (message.type) {
             case 'CHART_READY':
+              // WebView (re)mounted — the chart has no data, so the next send
+              // must be a full reload regardless of prior signature state.
+              lastSentSignatureRef.current = null;
               setIsChartReady(true);
               onChartReady?.();
               break;
@@ -391,8 +407,11 @@ const TradingViewChart = React.forwardRef<
         dataToUse = candleData;
       }
 
-      // If no data available, clear the chart to prevent stale data display
+      // If no data available, clear the chart to prevent stale data display.
+      // Also reset the signature so the next data send is a full reload — the
+      // WebView chart no longer holds any candles to incrementally update.
       if (!dataToUse?.candles?.length) {
+        lastSentSignatureRef.current = null;
         webViewRef.current.postMessage(
           JSON.stringify({
             type: 'CLEAR_DATA',
@@ -415,15 +434,63 @@ const TradingViewChart = React.forwardRef<
         dataSource = 'real';
       }
 
-      if (dataToSend) {
-        const message = {
-          type: 'SET_CANDLESTICK_DATA',
-          data: dataToSend,
-          source: dataSource,
-          visibleCandleCount,
-          interval: dataToUse?.interval, // Pass interval for zoom reset on change
+      if (dataToSend && dataToUse) {
+        // Compute signature for incremental-vs-full routing.
+        // Times are read from the raw CandleData (milliseconds) — only used
+        // for equality checks, so the unit doesn't matter as long as it's stable.
+        const firstCandle = dataToUse.candles[0];
+        const lastCandle = dataToUse.candles[dataToUse.candles.length - 1];
+        const nextSignature = {
+          symbol: dataToUse.symbol,
+          interval: dataToUse.interval,
+          firstTime: firstCandle.time,
+          count: dataToUse.candles.length,
+          lastTime: lastCandle.time,
         };
-        webViewRef.current.postMessage(JSON.stringify(message));
+
+        const prev = lastSentSignatureRef.current;
+
+        // Treat as an incremental (live) update only when:
+        // 1. We have previously sent a full dataset for this chart instance.
+        // 2. Symbol, interval, and firstTime are unchanged (no history prepend
+        //    or dataset swap).
+        // 3. Count is unchanged (tick on current bar) or grew by exactly 1
+        //    (a new bar was appended).
+        // Any other change (history prepend, interval/symbol switch, count
+        // decrease, multi-bar jump) falls through to a full reload.
+        const canIncrementalUpdate =
+          prev !== null &&
+          prev.symbol === nextSignature.symbol &&
+          prev.interval === nextSignature.interval &&
+          prev.firstTime === nextSignature.firstTime &&
+          (nextSignature.count === prev.count ||
+            nextSignature.count === prev.count + 1);
+
+        if (canIncrementalUpdate) {
+          // Send the last candle for same-count ticks, or the last two candles
+          // for a bar-close transition (previous bar may have been finalized
+          // at a different close than its last streamed value).
+          const sliceSize =
+            nextSignature.count === (prev?.count ?? 0) + 1 ? 2 : 1;
+          const incrementalCandles = dataToSend.slice(-sliceSize);
+          webViewRef.current.postMessage(
+            JSON.stringify({
+              type: 'UPDATE_LAST_CANDLE',
+              candles: incrementalCandles,
+            }),
+          );
+        } else {
+          const message = {
+            type: 'SET_CANDLESTICK_DATA',
+            data: dataToSend,
+            source: dataSource,
+            visibleCandleCount,
+            interval: dataToUse.interval, // Pass interval for zoom reset on change
+          };
+          webViewRef.current.postMessage(JSON.stringify(message));
+        }
+
+        lastSentSignatureRef.current = nextSignature;
       }
     }, [
       isChartReady,
