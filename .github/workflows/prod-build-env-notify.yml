@@ -64,6 +64,8 @@ jobs:
             production) REMOTE_FF_ENV="prod" ;;
             rc) REMOTE_FF_ENV="rc" ;;
             beta) REMOTE_FF_ENV="beta" ;;
+            test|e2e) REMOTE_FF_ENV="test" ;;
+            exp) REMOTE_FF_ENV="exp" ;;
             *) REMOTE_FF_ENV="dev" ;;
           esac
 
