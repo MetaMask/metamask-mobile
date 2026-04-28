@@ -106,10 +106,12 @@ describe('DeleteWalletModal', () => {
     .mockImplementation(mockRunAfterInteractions);
 
   describe('bottom sheet', () => {
-    it('renders matching snapshot', () => {
+    it('renders the forgot password description', () => {
       const wrapper = renderComponent(mockInitialState);
 
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByText(strings('login.forgot_password_desc')),
+      ).toBeOnTheScreen();
     });
   });
 

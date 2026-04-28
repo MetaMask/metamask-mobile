@@ -252,7 +252,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             gap={8}
           >
             {isAccountSyncingInProgress && <ActivityIndicator size="small" />}
-            <Text variant={TextVariant.BodyMDBold}>{buttonLabel}</Text>
+            <Text variant={TextVariant.BodyMDMedium}>{buttonLabel}</Text>
           </Box>
         ),
         size: ButtonSize.Lg,
