@@ -22,6 +22,40 @@ describe('handleSocialTraderPositionUrl', () => {
 
   it('navigates to TraderPositionView with positionId', () => {
     handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a&traderId=trader-1',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
+        traderId: 'trader-1',
+        traderName: 'Trader',
+        tokenSymbol: 'Token',
+      },
+    );
+  });
+
+  it('decodes encoded positionId and traderId values', () => {
+    handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=position%20id%2Fwith%20reserved%3Fchars&traderId=trader%20id%2Fwith%20reserved%3Fchars',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: 'position id/with reserved?chars',
+        traderId: 'trader id/with reserved?chars',
+        traderName: 'Trader',
+        tokenSymbol: 'Token',
+      },
+    );
+  });
+
+  it('keeps traderId blank for older deeplinks without traderId', () => {
+    handleSocialTraderPositionUrl({
       actionPath: '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a',
     });
 
@@ -29,22 +63,6 @@ describe('handleSocialTraderPositionUrl', () => {
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
-        traderId: '',
-        traderName: 'Trader',
-        tokenSymbol: 'Token',
-      },
-    );
-  });
-
-  it('decodes encoded positionId values', () => {
-    handleSocialTraderPositionUrl({
-      actionPath: '?positionId=position%20id%2Fwith%20reserved%3Fchars',
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        positionId: 'position id/with reserved?chars',
         traderId: '',
         traderName: 'Trader',
         tokenSymbol: 'Token',

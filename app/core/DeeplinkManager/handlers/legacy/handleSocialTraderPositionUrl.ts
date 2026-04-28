@@ -8,6 +8,7 @@ interface HandleSocialTraderPositionUrlParams {
 
 interface SocialTraderPositionNavigationParams {
   positionId?: string;
+  traderId?: string;
 }
 
 const parseSocialTraderPositionNavigationParams = (
@@ -19,6 +20,7 @@ const parseSocialTraderPositionNavigationParams = (
 
   return {
     positionId: urlParams.get('positionId')?.trim() || undefined,
+    traderId: urlParams.get('traderId')?.trim() || undefined,
   };
 };
 
@@ -30,7 +32,7 @@ const navigateToFallback = () => {
  * Handles notification-approved TraderPosition deeplinks.
  *
  * Supported URL format:
- * - https://link.metamask.io/social-trader-position?positionId=<positionId>
+ * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>
  */
 export const handleSocialTraderPositionUrl = ({
   actionPath,
@@ -41,13 +43,14 @@ export const handleSocialTraderPositionUrl = ({
   );
 
   try {
-    const navParams = parseSocialTraderPositionNavigationParams(actionPath);
+    const { positionId, traderId } =
+      parseSocialTraderPositionNavigationParams(actionPath);
     DevLogger.log(
       '[handleSocialTraderPositionUrl] Parsed navigation parameters:',
-      navParams,
+      { positionId, traderId },
     );
 
-    if (!navParams.positionId) {
+    if (!positionId) {
       DevLogger.log(
         '[handleSocialTraderPositionUrl] Missing positionId, falling back to social leaderboard',
       );
@@ -56,8 +59,8 @@ export const handleSocialTraderPositionUrl = ({
     }
 
     NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
-      positionId: navParams.positionId,
-      traderId: '',
+      positionId,
+      traderId: traderId ?? '',
       traderName: 'Trader',
       tokenSymbol: 'Token',
     });
