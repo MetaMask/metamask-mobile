@@ -12,16 +12,14 @@ jest.mock('../../../../../../selectors/preferencesController', () => ({
   selectIpfsGateway: jest.fn(),
 }));
 
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  // eslint-disable-next-line no-empty-function
-  Reanimated.default.call = () => {};
-  Reanimated.useSharedValue = jest.fn(() => ({
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated/mock'),
+  // simulate expanded value > 0
+  useSharedValue: jest.fn(() => ({
     value: 1,
-  }));
-  Reanimated.useAnimatedStyle = jest.fn((callback) => callback());
-  return Reanimated;
-});
+  })),
+  useAnimatedStyle: jest.fn((callback) => callback()),
+}));
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

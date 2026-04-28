@@ -186,431 +186,425 @@ describe('ManualBackupStep3', () => {
     );
   };
 
-  describe('ManualBackupStep3', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      store.clearActions();
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
-      (StorageWrapper.setItem as jest.Mock).mockResolvedValue(undefined);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    store.clearActions();
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    (StorageWrapper.setItem as jest.Mock).mockResolvedValue(undefined);
+    (Device.isAndroid as jest.Mock).mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  describe('rendering', () => {
+    it('renders OnboardingSuccessComponent', async () => {
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders AndroidBackHandler on Android', async () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('android-back-handler')).toBeOnTheScreen();
+      });
+    });
+
+    it('does not render AndroidBackHandler on non-Android', async () => {
       (Device.isAndroid as jest.Mock).mockReturnValue(false);
-    });
+      const { queryByTestId } = renderComponent();
 
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
-    describe('rendering', () => {
-      it('renders OnboardingSuccessComponent', async () => {
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
-        });
-      });
-
-      it('renders AndroidBackHandler on Android', async () => {
-        (Device.isAndroid as jest.Mock).mockReturnValue(true);
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByTestId('android-back-handler')).toBeOnTheScreen();
-        });
-      });
-
-      it('does not render AndroidBackHandler on non-Android', async () => {
-        (Device.isAndroid as jest.Mock).mockReturnValue(false);
-        const { queryByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(queryByTestId('android-back-handler')).toBeNull();
-        });
-      });
-
-      it('renders HintModal', async () => {
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByTestId('hint-modal')).toBeOnTheScreen();
-        });
-      });
-
-      it('passes backedUpSRP=true to OnboardingSuccessComponent', async () => {
-        const { getByText } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByText('backed-up')).toBeOnTheScreen();
-        });
+      await waitFor(() => {
+        expect(queryByTestId('android-back-handler')).toBeNull();
       });
     });
 
-    describe('componentDidMount', () => {
-      it('sets navigation options on mount with context colors', async () => {
-        renderComponent();
+    it('renders HintModal', async () => {
+      const { getByTestId } = renderComponent();
 
-        await waitFor(() => {
-          expect(
-            mockGetTransparentOnboardingNavbarOptions,
-          ).toHaveBeenCalledWith(mockTheme.colors);
-          expect(mockSetOptions).toHaveBeenCalledWith({ headerShown: false });
-        });
+      await waitFor(() => {
+        expect(getByTestId('hint-modal')).toBeOnTheScreen();
       });
+    });
 
-      it('falls back to mockTheme.colors when context has no colors', async () => {
-        renderComponent(createProps(), {});
+    it('passes backedUpSRP=true to OnboardingSuccessComponent', async () => {
+      const { getByText } = renderComponent();
 
-        await waitFor(() => {
-          expect(
-            mockGetTransparentOnboardingNavbarOptions,
-          ).toHaveBeenCalledWith(mockTheme.colors);
-        });
+      await waitFor(() => {
+        expect(getByText('backed-up')).toBeOnTheScreen();
       });
+    });
+  });
 
-      it('registers BackHandler on mount', async () => {
-        const addSpy = jest.spyOn(BackHandler, 'addEventListener');
-        renderComponent();
+  describe('componentDidMount', () => {
+    it('sets navigation options on mount with context colors', async () => {
+      renderComponent();
 
-        await waitFor(() => {
-          expect(addSpy).toHaveBeenCalledWith(
-            'hardwareBackPress',
-            expect.any(Function),
-          );
-        });
-
-        addSpy.mockRestore();
-      });
-
-      it('loads existing hint from storage on mount', async () => {
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify({ manualBackup: 'my saved hint' }),
+      await waitFor(() => {
+        expect(mockGetTransparentOnboardingNavbarOptions).toHaveBeenCalledWith(
+          mockTheme.colors,
         );
-
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByTestId('hint-input').props.value).toBe('my saved hint');
-        });
-      });
-
-      it('leaves hint input empty when storage returns null', async () => {
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-            SEED_PHRASE_HINTS,
-          );
-        });
-
-        expect(getByTestId('hint-input').props.value).toBeUndefined();
-      });
-
-      it('leaves hint input empty when storage has no manualBackup key', async () => {
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify({ otherKey: 'value' }),
-        );
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-            SEED_PHRASE_HINTS,
-          );
-        });
-
-        expect(getByTestId('hint-input').props.value).toBeUndefined();
+        expect(mockSetOptions).toHaveBeenCalledWith({ headerShown: false });
       });
     });
 
-    describe('componentWillUnmount', () => {
-      it('removes BackHandler listener on unmount', async () => {
-        const removeSpy = jest.spyOn(BackHandler, 'removeEventListener');
-        const { unmount } = renderComponent();
+    it('falls back to mockTheme.colors when context has no colors', async () => {
+      renderComponent(createProps(), {});
 
-        await waitFor(() => {
-          expect(mockSetOptions).toHaveBeenCalled();
-        });
+      await waitFor(() => {
+        expect(mockGetTransparentOnboardingNavbarOptions).toHaveBeenCalledWith(
+          mockTheme.colors,
+        );
+      });
+    });
 
-        unmount();
+    it('registers BackHandler on mount', async () => {
+      const addSpy = jest.spyOn(BackHandler, 'addEventListener');
+      renderComponent();
 
-        expect(removeSpy).toHaveBeenCalledWith(
+      await waitFor(() => {
+        expect(addSpy).toHaveBeenCalledWith(
           'hardwareBackPress',
           expect.any(Function),
         );
+      });
 
-        removeSpy.mockRestore();
+      addSpy.mockRestore();
+    });
+
+    it('loads existing hint from storage on mount', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify({ manualBackup: 'my saved hint' }),
+      );
+
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('hint-input').props.value).toBe('my saved hint');
       });
     });
 
-    describe('toggleHint', () => {
-      it('opens hint modal when cancel button is pressed', async () => {
-        const { getByTestId } = renderComponent();
+    it('leaves hint input empty when storage returns null', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+      const { getByTestId } = renderComponent();
 
-        await waitFor(() => {
-          expect(getByTestId('hint-modal')).toBeOnTheScreen();
-        });
+      await waitFor(() => {
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(SEED_PHRASE_HINTS);
+      });
 
+      expect(getByTestId('hint-input').props.value).toBeUndefined();
+    });
+
+    it('leaves hint input empty when storage has no manualBackup key', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify({ otherKey: 'value' }),
+      );
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(SEED_PHRASE_HINTS);
+      });
+
+      expect(getByTestId('hint-input').props.value).toBeUndefined();
+    });
+  });
+
+  describe('componentWillUnmount', () => {
+    it('removes BackHandler listener on unmount', async () => {
+      const removeSpy = jest.spyOn(BackHandler, 'removeEventListener');
+      const { unmount } = renderComponent();
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      unmount();
+
+      expect(removeSpy).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+
+      removeSpy.mockRestore();
+    });
+  });
+
+  describe('toggleHint', () => {
+    it('opens hint modal when cancel button is pressed', async () => {
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('hint-modal')).toBeOnTheScreen();
+      });
+
+      expect(getByTestId('hint-modal').props.accessibilityState.expanded).toBe(
+        false,
+      );
+
+      fireEvent.press(getByTestId('hint-cancel'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('hint-modal').props.accessibilityState.expanded,
+        ).toBe(true);
+      });
+    });
+
+    it('closes hint modal when cancel button is pressed again', async () => {
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('hint-modal')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId('hint-cancel'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('hint-modal').props.accessibilityState.expanded,
+        ).toBe(true);
+      });
+
+      fireEvent.press(getByTestId('hint-cancel'));
+
+      await waitFor(() => {
         expect(
           getByTestId('hint-modal').props.accessibilityState.expanded,
         ).toBe(false);
+      });
+    });
+  });
 
-        fireEvent.press(getByTestId('hint-cancel'));
+  describe('handleChangeText', () => {
+    it('updates hint text when user types', async () => {
+      const { getByTestId } = renderComponent();
 
-        await waitFor(() => {
-          expect(
-            getByTestId('hint-modal').props.accessibilityState.expanded,
-          ).toBe(true);
-        });
+      await waitFor(() => {
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
       });
 
-      it('closes hint modal when cancel button is pressed again', async () => {
-        const { getByTestId } = renderComponent();
+      fireEvent.changeText(getByTestId('hint-input'), 'new hint text');
 
-        await waitFor(() => {
-          expect(getByTestId('hint-modal')).toBeOnTheScreen();
-        });
+      await waitFor(() => {
+        expect(getByTestId('hint-input').props.value).toBe('new hint text');
+      });
+    });
+  });
 
-        fireEvent.press(getByTestId('hint-cancel'));
+  describe('saveHint', () => {
+    it('skips storage write when hint text is empty', async () => {
+      const { getByTestId } = renderComponent();
 
-        await waitFor(() => {
-          expect(
-            getByTestId('hint-modal').props.accessibilityState.expanded,
-          ).toBe(true);
-        });
+      await waitFor(() => {
+        expect(getByTestId('hint-confirm')).toBeOnTheScreen();
+      });
 
-        fireEvent.press(getByTestId('hint-cancel'));
+      fireEvent.press(getByTestId('hint-confirm'));
 
-        await waitFor(() => {
-          expect(
-            getByTestId('hint-modal').props.accessibilityState.expanded,
-          ).toBe(false);
-        });
+      await waitFor(() => {
+        expect(StorageWrapper.setItem).not.toHaveBeenCalled();
       });
     });
 
-    describe('handleChangeText', () => {
-      it('updates hint text when user types', async () => {
-        const { getByTestId } = renderComponent();
+    it('shows alert when hint matches seed phrase', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert');
 
-        await waitFor(() => {
-          expect(getByTestId('hint-input')).toBeOnTheScreen();
-        });
+      const { getByTestId } = renderComponent();
 
-        fireEvent.changeText(getByTestId('hint-input'), 'new hint text');
+      await waitFor(() => {
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
+      });
 
-        await waitFor(() => {
-          expect(getByTestId('hint-input').props.value).toBe('new hint text');
-        });
+      fireEvent.changeText(getByTestId('hint-input'), 'apple banana cherry');
+      fireEvent.press(getByTestId('hint-confirm'));
+
+      await waitFor(() => {
+        expect(alertSpy).toHaveBeenCalledWith('Error!', expect.any(String));
+        expect(StorageWrapper.setItem).not.toHaveBeenCalled();
+      });
+
+      alertSpy.mockRestore();
+    });
+
+    it('shows alert when hint matches seed phrase case-insensitively', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert');
+
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(getByTestId('hint-input'), 'APPLE BANANA CHERRY');
+      fireEvent.press(getByTestId('hint-confirm'));
+
+      await waitFor(() => {
+        expect(alertSpy).toHaveBeenCalledWith('Error!', expect.any(String));
+      });
+
+      alertSpy.mockRestore();
+    });
+
+    it('writes hint to storage for valid hint', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify({ existingKey: 'value' }),
+      );
+
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(getByTestId('hint-input'), 'my valid hint');
+      fireEvent.press(getByTestId('hint-confirm'));
+
+      await waitFor(() => {
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          SEED_PHRASE_HINTS,
+          JSON.stringify({
+            existingKey: 'value',
+            manualBackup: 'my valid hint',
+          }),
+        );
       });
     });
 
-    describe('saveHint', () => {
-      it('skips storage write when hint text is empty', async () => {
-        const { getByTestId } = renderComponent();
+    it('tracks onboarding event after saving valid hint', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify({}),
+      );
 
-        await waitFor(() => {
-          expect(getByTestId('hint-confirm')).toBeOnTheScreen();
-        });
+      const { getByTestId } = renderComponent();
 
-        fireEvent.press(getByTestId('hint-confirm'));
-
-        await waitFor(() => {
-          expect(StorageWrapper.setItem).not.toHaveBeenCalled();
-        });
+      await waitFor(() => {
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
       });
 
-      it('shows alert when hint matches seed phrase', async () => {
-        const alertSpy = jest.spyOn(Alert, 'alert');
+      fireEvent.changeText(getByTestId('hint-input'), 'my valid hint');
+      fireEvent.press(getByTestId('hint-confirm'));
 
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByTestId('hint-input')).toBeOnTheScreen();
-        });
-
-        fireEvent.changeText(getByTestId('hint-input'), 'apple banana cherry');
-        fireEvent.press(getByTestId('hint-confirm'));
-
-        await waitFor(() => {
-          expect(alertSpy).toHaveBeenCalledWith('Error!', expect.any(String));
-          expect(StorageWrapper.setItem).not.toHaveBeenCalled();
-        });
-
-        alertSpy.mockRestore();
-      });
-
-      it('shows alert when hint matches seed phrase case-insensitively', async () => {
-        const alertSpy = jest.spyOn(Alert, 'alert');
-
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByTestId('hint-input')).toBeOnTheScreen();
-        });
-
-        fireEvent.changeText(getByTestId('hint-input'), 'APPLE BANANA CHERRY');
-        fireEvent.press(getByTestId('hint-confirm'));
-
-        await waitFor(() => {
-          expect(alertSpy).toHaveBeenCalledWith('Error!', expect.any(String));
-        });
-
-        alertSpy.mockRestore();
-      });
-
-      it('writes hint to storage for valid hint', async () => {
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify({ existingKey: 'value' }),
+      await waitFor(() => {
+        expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
         );
-
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByTestId('hint-input')).toBeOnTheScreen();
-        });
-
-        fireEvent.changeText(getByTestId('hint-input'), 'my valid hint');
-        fireEvent.press(getByTestId('hint-confirm'));
-
-        await waitFor(() => {
-          expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-            SEED_PHRASE_HINTS,
-            JSON.stringify({
-              existingKey: 'value',
-              manualBackup: 'my valid hint',
-            }),
-          );
-        });
-      });
-
-      it('tracks onboarding event after saving valid hint', async () => {
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify({}),
-        );
-
-        const { getByTestId } = renderComponent();
-
-        await waitFor(() => {
-          expect(getByTestId('hint-input')).toBeOnTheScreen();
-        });
-
-        fireEvent.changeText(getByTestId('hint-input'), 'my valid hint');
-        fireEvent.press(getByTestId('hint-confirm'));
-
-        await waitFor(() => {
-          expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-            MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
-          );
-          expect(trackOnboarding).toHaveBeenCalledWith(
-            { event: 'mock-event' },
-            expect.any(Function),
-          );
-        });
-
-        const actions = store.getActions();
-        expect(actions).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({ type: 'SAVE_EVENT' }),
-          ]),
+        expect(trackOnboarding).toHaveBeenCalledWith(
+          { event: 'mock-event' },
+          expect.any(Function),
         );
       });
 
-      it('closes hint modal after successful save', async () => {
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify({}),
-        );
+      const actions = store.getActions();
+      expect(actions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ type: 'SAVE_EVENT' }),
+        ]),
+      );
+    });
 
-        const { getByTestId } = renderComponent();
+    it('closes hint modal after successful save', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify({}),
+      );
 
-        await waitFor(() => {
-          expect(getByTestId('hint-input')).toBeOnTheScreen();
-        });
+      const { getByTestId } = renderComponent();
 
-        fireEvent.press(getByTestId('hint-cancel'));
-        await waitFor(() => {
-          expect(
-            getByTestId('hint-modal').props.accessibilityState.expanded,
-          ).toBe(true);
-        });
+      await waitFor(() => {
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
+      });
 
-        fireEvent.changeText(getByTestId('hint-input'), 'a valid hint');
-        fireEvent.press(getByTestId('hint-confirm'));
+      fireEvent.press(getByTestId('hint-cancel'));
+      await waitFor(() => {
+        expect(
+          getByTestId('hint-modal').props.accessibilityState.expanded,
+        ).toBe(true);
+      });
 
-        await waitFor(() => {
-          expect(
-            getByTestId('hint-modal').props.accessibilityState.expanded,
-          ).toBe(false);
+      fireEvent.changeText(getByTestId('hint-input'), 'a valid hint');
+      fireEvent.press(getByTestId('hint-confirm'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('hint-modal').props.accessibilityState.expanded,
+        ).toBe(false);
+      });
+    });
+  });
+
+  describe('isHintSeedPhrase', () => {
+    it('returns false when words param is not provided', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert');
+
+      const props = createProps({
+        route: { params: { steps: ['s1'] } },
+      });
+      const { getByTestId } = renderComponent(props);
+
+      await waitFor(() => {
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(getByTestId('hint-input'), 'any text here');
+      fireEvent.press(getByTestId('hint-confirm'));
+
+      await waitFor(() => {
+        expect(alertSpy).not.toHaveBeenCalled();
+        expect(StorageWrapper.setItem).toHaveBeenCalled();
+      });
+
+      alertSpy.mockRestore();
+    });
+  });
+
+  describe('done', () => {
+    it('resets navigation to HomeNav', async () => {
+      const props = createProps();
+      const { getByTestId } = renderComponent(props);
+
+      await waitFor(() => {
+        expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId('onboarding-success-done'));
+
+      await waitFor(() => {
+        expect(props.navigation.reset).toHaveBeenCalledWith({
+          routes: [{ name: 'HomeNav' }],
         });
       });
     });
+  });
 
-    describe('isHintSeedPhrase', () => {
-      it('returns false when words param is not provided', async () => {
-        const alertSpy = jest.spyOn(Alert, 'alert');
-
-        const props = createProps({
-          route: { params: { steps: ['s1'] } },
-        });
-        const { getByTestId } = renderComponent(props);
-
-        await waitFor(() => {
-          expect(getByTestId('hint-input')).toBeOnTheScreen();
+  describe('hardwareBackPress', () => {
+    it('handler returns empty object (prevents default back)', async () => {
+      let capturedHandler: (() => unknown) | undefined;
+      const addSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          capturedHandler = handler as () => unknown;
+          return { remove: jest.fn() };
         });
 
-        fireEvent.changeText(getByTestId('hint-input'), 'any text here');
-        fireEvent.press(getByTestId('hint-confirm'));
+      renderComponent();
 
-        await waitFor(() => {
-          expect(alertSpy).not.toHaveBeenCalled();
-          expect(StorageWrapper.setItem).toHaveBeenCalled();
-        });
-
-        alertSpy.mockRestore();
+      await waitFor(() => {
+        expect(addSpy).toHaveBeenCalled();
       });
-    });
 
-    describe('done', () => {
-      it('resets navigation to HomeNav', async () => {
-        const props = createProps();
-        const { getByTestId } = renderComponent(props);
+      if (capturedHandler) {
+        const result = capturedHandler();
+        expect(result).toEqual({});
+      } else {
+        fail('BackHandler handler was not captured');
+      }
 
-        await waitFor(() => {
-          expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
-        });
-
-        fireEvent.press(getByTestId('onboarding-success-done'));
-
-        await waitFor(() => {
-          expect(props.navigation.reset).toHaveBeenCalledWith({
-            routes: [{ name: 'HomeNav' }],
-          });
-        });
-      });
-    });
-
-    describe('hardwareBackPress', () => {
-      it('handler returns empty object (prevents default back)', async () => {
-        let capturedHandler: (() => unknown) | undefined;
-        const addSpy = jest
-          .spyOn(BackHandler, 'addEventListener')
-          .mockImplementation((_event, handler) => {
-            capturedHandler = handler as () => unknown;
-            return { remove: jest.fn() };
-          });
-
-        renderComponent();
-
-        await waitFor(() => {
-          expect(addSpy).toHaveBeenCalled();
-        });
-
-        if (capturedHandler) {
-          const result = capturedHandler();
-          expect(result).toEqual({});
-        } else {
-          fail('BackHandler handler was not captured');
-        }
-
-        addSpy.mockRestore();
-      });
+      addSpy.mockRestore();
     });
   });
 });
