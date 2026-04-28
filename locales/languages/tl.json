@@ -117,7 +117,6 @@
       "message": "Hindi available ang ruta ng pagbabayad na ito sa ngayon. Subukang baguhin ang halaga, network, o token at hahanapin namin ang pinakamainam na opsyon.",
       "title": "Walang mga quote"
     },
-
     "account_no_funds": {
       "message": "Walang available na mga pondo. Gumamit ng ibang account."
     },
@@ -3518,7 +3517,6 @@
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "smart_account_dapp_requests_heading": "Mga kahilingan na smart account mula sa dapps",
-    "smart_account_dapp_requests_desc": "Hayaan ang dapps na hilingin ang mga feature ng smart account para sa mga standard na account. Hindi nito maaapektuhan ang mga smart account na.",
     "smart_transactions_opt_in_heading": "Mga Smart Transaction",
     "smart_transactions_opt_in_desc_supported_networks": "I-on ang mga Smart na Transaksyon para sa mas maaasahan at ligtas na mga transaksyon sa mga suportadong network.",
     "smart_transactions_learn_more": "Matuto pa",
@@ -7748,8 +7746,6 @@
         "manage_spending_limit": "Pamahalaan ang limit",
         "manage_spending_limit_description_restricted": "Naka-on ang limitadong paggastos",
         "manage_spending_limit_description_full": "Naka-on ang buong pag-access",
-        "manage_card": "Pamahalaan ang card",
-        "advanced_card_management_description": "Tingnan ang aktibidad, cashback, freeze card, at higit pa",
         "travel_title": "MetaMask Travel",
         "travel_description": "Mag-book ng mga hotel na may hanggang 70% diskuwento",
         "card_tos_title": "Mga tuntunin at kundisyon",
