@@ -34,7 +34,9 @@ export function useUpdateTokenAmount() {
 
   const { decimals } =
     useSelector((state: RootState) =>
-      selectSingleTokenByAddressAndChainId(state, to as Hex, chainId as Hex),
+      to && chainId
+        ? selectSingleTokenByAddressAndChainId(state, to as Hex, chainId as Hex)
+        : undefined,
     ) ?? {};
 
   const amountRaw = useMemo(() => {
@@ -55,6 +57,11 @@ export function useUpdateTokenAmount() {
 
   const updateTokenAmount = useCallback(
     (amountHuman: string) => {
+      // No ERC20 transfer calldata to update (e.g. moneyAccountDeposit)
+      if (!data) {
+        return;
+      }
+
       const newAmountRaw = calcTokenValue(
         amountHuman,
         decimals ?? 18,

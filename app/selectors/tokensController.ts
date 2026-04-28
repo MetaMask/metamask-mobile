@@ -222,7 +222,7 @@ export const selectSingleTokenByAddressAndChainId = createSelector(
     const chainTokens = Object.values(allTokens[chainId] ?? {}).flat();
 
     return chainTokens.find(
-      (token) => token.address.toLowerCase() === tokenAddress.toLowerCase(),
+      (token) => token.address?.toLowerCase() === tokenAddress?.toLowerCase(),
     );
   },
 );
