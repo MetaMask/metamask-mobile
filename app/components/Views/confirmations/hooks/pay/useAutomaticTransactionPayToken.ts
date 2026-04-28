@@ -161,7 +161,6 @@ export function useAutomaticTransactionPayToken({
     setPayToken,
     tokens,
     transactionId,
-    transactionMeta,
   ]);
 
   const prevFromRef = useRef(from);
