@@ -49,7 +49,7 @@ const displayUnderConstructionAlert = () => alert('Under construction 🚧');
 
 const MoneyHomeView = () => {
   // TODO: wire to initiateDeposit(amount) once the amount entry UI is ready
-  // const { initiateDeposit } = useMoneyAccountDeposit();
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
@@ -73,7 +73,10 @@ const MoneyHomeView = () => {
   // // eslint-disable-next-line no-alert
   const handleMenuPress = displayUnderConstructionAlert;
 
-  const handleAddPress = displayUnderConstructionAlert;
+  const handleAddPress = useCallback(
+    () => initiateDeposit(BigInt(1000000)),
+    [initiateDeposit],
+  );
   const handleTransferPress = displayUnderConstructionAlert;
   const handleCardPress = displayUnderConstructionAlert;
   const handleApyInfoPress = displayUnderConstructionAlert;
