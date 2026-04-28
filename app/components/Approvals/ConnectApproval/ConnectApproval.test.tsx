@@ -33,14 +33,14 @@ describe('ConnectApproval', () => {
 
     const wrapper = shallow(<ConnectApproval navigation={{}} />);
 
-    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('sets isVisible to false if no approval request', () => {
     mockApprovalRequest(undefined);
 
     const wrapper = shallow(<ConnectApproval navigation={{}} />);
-    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(false);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -49,6 +49,6 @@ describe('ConnectApproval', () => {
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
     const wrapper = shallow(<ConnectApproval navigation={{}} />);
-    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(false);
+    expect(wrapper).toMatchSnapshot();
   });
 });

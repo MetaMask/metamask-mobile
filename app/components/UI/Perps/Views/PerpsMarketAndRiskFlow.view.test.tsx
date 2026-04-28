@@ -270,7 +270,12 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(
       await screen.findByTestId(PerpsStopLossPromptSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('spinner-container')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsStopLossPromptSelectorsIDs.LOADING),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.stop_loss_prompt.set_button')),
+    ).not.toBeOnTheScreen();
 
     // Stop-loss success state — button shows check icon
     cleanup();

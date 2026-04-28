@@ -121,6 +121,12 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
             valueWidth={56}
             showInfoIcon
           />
+
+          <QuickBuySkeletonRow
+            label={strings('social_leaderboard.quick_buy.est_points')}
+            valueWidth={64}
+            showInfoIcon
+          />
         </Box>
 
         <Skeleton

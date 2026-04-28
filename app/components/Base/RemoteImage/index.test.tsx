@@ -57,7 +57,7 @@ describe('RemoteImage', () => {
   });
 
   it('renders svg correctly', () => {
-    const { UNSAFE_getByType } = render(
+    const { toJSON } = render(
       <RemoteImage
         source={{
           uri: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
@@ -65,13 +65,11 @@ describe('RemoteImage', () => {
       />,
     );
 
-    expect(UNSAFE_getByType(Image).props.source.uri).toBe(
-      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
-    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders static sources', () => {
-    const { UNSAFE_getByType } = render(
+    const { toJSON } = render(
       <RemoteImage
         source={{
           uri: 'https://s3.amazonaws.com/airswap-token-images/OXT.png',
@@ -79,17 +77,14 @@ describe('RemoteImage', () => {
       />,
     );
 
-    const image = UNSAFE_getByType(Image);
-    expect(image.props.source.uri).toBe(
-      'https://s3.amazonaws.com/airswap-token-images/OXT.png',
-    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders ipfs sources', async () => {
     const testIpfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
     mockGetFormattedIpfsUrl.mockResolvedValue(testIpfsUri);
 
-    const { UNSAFE_getByType } = render(
+    const wrapper = render(
       <RemoteImage
         source={{
           uri: testIpfsUri,
@@ -102,8 +97,7 @@ describe('RemoteImage', () => {
     });
 
     await waitFor(() => {
-      const image = UNSAFE_getByType(Image);
-      expect(image.props.source.uri).toBe(testIpfsUri);
+      expect(wrapper).toMatchSnapshot();
     });
   });
 
@@ -124,7 +118,7 @@ describe('RemoteImage', () => {
       return selector(mockState);
     });
 
-    const { UNSAFE_getByType } = render(
+    const wrapper = render(
       <RemoteImage
         fadeIn
         isTokenImage
@@ -139,8 +133,7 @@ describe('RemoteImage', () => {
     });
 
     await waitFor(() => {
-      const image = UNSAFE_getByType(Image);
-      expect(image.props.source.uri).toBe('https://example.com/token.png');
+      expect(wrapper).toMatchSnapshot();
     });
   });
 
@@ -331,7 +324,7 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         expect(queryByTestId('identicon')).not.toBeOnTheScreen();
         const image = UNSAFE_getByType(Image);
-        expect(image).not.toBeNull();
+        expect(image).toBeDefined();
       });
     });
   });
@@ -569,7 +562,7 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).not.toBeNull();
+        expect(image).toBeDefined();
       });
     });
   });
@@ -585,6 +578,7 @@ describe('RemoteImage', () => {
       );
 
       const image = UNSAFE_getByType(Image);
+      expect(image).toBeDefined();
       expect(image.props.source.uri).toBe('https://example.com/image.png');
     });
 
@@ -606,6 +600,7 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
+        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/image.png');
       });
     });
@@ -627,6 +622,7 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
+        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/token.png');
       });
     });
@@ -678,6 +674,7 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
+        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/token.png');
       });
     });

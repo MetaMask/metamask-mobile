@@ -13,6 +13,6 @@ describe('ApprovalModal', () => {
         <div>test</div>
       </ApprovalModal>,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

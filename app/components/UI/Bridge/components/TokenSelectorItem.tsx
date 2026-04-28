@@ -62,7 +62,6 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { SHOW_TOKEN_WARNINGS } from './TokenSelectorItem.config';
-import { getBridgeTokenSecurityConfig } from '../utils/tokenSecurityUtils';
 
 const createStyles = ({
   theme,
@@ -175,10 +174,22 @@ const isLoadingBalance = (balance?: string) =>
 export const getSecurityTag = (securityType: SecurityDataType | undefined) => {
   if (
     securityType === SecurityDataType.Warning ||
-    securityType === SecurityDataType.Spam ||
-    securityType === SecurityDataType.Malicious
+    securityType === SecurityDataType.Spam
   ) {
-    return getBridgeTokenSecurityConfig(securityType);
+    return {
+      severity: TagSeverity.Warning,
+      label: strings('bridge.token_suspicious'),
+      iconName: IconName.Danger,
+      iconColor: IconColor.WarningDefault,
+    };
+  }
+  if (securityType === SecurityDataType.Malicious) {
+    return {
+      severity: TagSeverity.Danger,
+      label: strings('bridge.token_malicious'),
+      iconName: IconName.Warning,
+      iconColor: IconColor.ErrorDefault,
+    };
   }
   return null;
 };

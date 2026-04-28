@@ -34,8 +34,7 @@ describe('WatchAssetApproval', () => {
 
     const wrapper = shallow(<WatchAssetApproval />);
 
-    expect(wrapper.isEmptyRender()).toBe(false);
-    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('returns null if no request data', () => {
@@ -47,14 +46,14 @@ describe('WatchAssetApproval', () => {
 
     const wrapper = shallow(<WatchAssetApproval />);
 
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
     const wrapper = shallow(<WatchAssetApproval />);
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -66,6 +65,6 @@ describe('WatchAssetApproval', () => {
     } as any);
 
     const wrapper = shallow(<WatchAssetApproval />);
-    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(false);
+    expect(wrapper).toMatchSnapshot();
   });
 });

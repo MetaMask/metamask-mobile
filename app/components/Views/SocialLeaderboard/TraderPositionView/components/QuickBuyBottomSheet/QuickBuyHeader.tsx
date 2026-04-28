@@ -10,18 +10,22 @@ import {
   IconName as DsIconName,
   BoxFlexDirection,
   BoxAlignItems,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { strings } from '../../../../../../../locales/i18n';
-import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
 
 interface QuickBuyHeaderProps {
   position: Position;
+  destToken: BridgeToken | undefined;
   onClose: () => void;
 }
 
 const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
   position,
+  destToken,
   onClose,
 }) => (
   <Box
@@ -31,7 +35,11 @@ const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
     twClassName="h-20 px-4"
   >
     <Box twClassName="w-12 h-12 rounded-xl overflow-hidden">
-      <PositionTokenAvatar position={position} />
+      <AvatarToken
+        name={position.tokenSymbol}
+        src={destToken?.image ? { uri: destToken.image } : undefined}
+        size={AvatarTokenSize.Lg}
+      />
     </Box>
     <Box twClassName="flex-1">
       <Text

@@ -36,9 +36,9 @@ describe('MaxInputModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders use max button', () => {
-    const { getByText } = renderMaxInputModal();
-    expect(getByText('Use max')).toBeOnTheScreen();
+  it('render matches snapshot', () => {
+    const { toJSON } = renderMaxInputModal();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls handleMaxPress when "Use max" button is pressed', () => {
@@ -80,6 +80,6 @@ describe('MaxInputModal', () => {
     const ethDescriptionText = queryByText(
       strings('stake.max_modal.eth.description'),
     );
-    expect(ethDescriptionText).toBeOnTheScreen();
+    expect(ethDescriptionText).toBeTruthy();
   });
 });

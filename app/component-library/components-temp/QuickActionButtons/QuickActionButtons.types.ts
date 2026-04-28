@@ -1,23 +1,13 @@
 // Third party dependencies
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 // External dependencies
-import { Box } from '@metamask/design-system-react-native';
-
-// TODO: @MetaMask/design-system-engineers
-// Use the concrete Box component props here instead of BoxProps.
-// In MetaMask Mobile, extending BoxProps in forwarding wrappers can fail TS checks
-// because consumer code may resolve older @types/react-native callback types while
-// MMDS Box resolves React Native bundled types. Deriving props from the component
-// keeps wrapper props aligned with the actual JSX contract until the library-level
-// typing story is unified.
-// https://github.com/MetaMask/metamask-design-system/issues/1115
-type BoxComponentProps = React.ComponentProps<typeof Box>;
+import { BoxProps } from '@metamask/design-system-react-native';
 
 /**
  * QuickActionButtons container component props
  */
-export interface QuickActionButtonsProps extends BoxComponentProps {
+export interface QuickActionButtonsProps extends BoxProps {
   /**
    * Child components to render (QuickActionButton or custom components)
    */
@@ -30,13 +20,13 @@ export interface QuickActionButtonsProps extends BoxComponentProps {
   /**
    * Props to apply to each row wrapper Box
    */
-  rowWrapperProps?: BoxComponentProps;
+  rowWrapperProps?: BoxProps;
   /**
    * Props to apply to each button wrapper Box
    */
-  buttonWrapperProps?: BoxComponentProps;
+  buttonWrapperProps?: BoxProps;
   /**
    * Props to apply to spacer elements
    */
-  spacerProps?: BoxComponentProps;
+  spacerProps?: BoxProps;
 }

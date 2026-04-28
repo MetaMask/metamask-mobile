@@ -129,7 +129,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     }
 
     // Default icon handling
-    let iconName: IconName = IconName.Danger;
+    let iconName = IconName.Danger;
     let iconStyle = 'text-warning-default';
 
     switch (type) {

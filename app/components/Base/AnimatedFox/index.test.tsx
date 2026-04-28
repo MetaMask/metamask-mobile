@@ -25,13 +25,13 @@ describe('AnimatedFox', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  it('renders correctly', () => {
-    // Mock device memory to ensure consistent environment
+  it('renders correctly and matches snapshot', () => {
+    // Mock device memory to ensure consistent environment for snapshot
     (getTotalMemorySync as jest.Mock).mockReturnValueOnce(
       3 * 1024 * 1024 * 1024,
     ); // Mock 3GB device
 
     const { toJSON } = render(<AnimatedFox bgColor="black" />);
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

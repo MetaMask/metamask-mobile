@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Image, Linking, Pressable } from 'react-native';
+import React from 'react';
+import { Image } from 'react-native';
 import {
   Box,
   Text,
@@ -10,10 +10,6 @@ import {
   BoxAlignItems,
   AvatarBase,
   AvatarBaseSize,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,21 +21,13 @@ const AVATAR_SIZE = 40;
 export interface ProfileHeaderProps {
   profile: TraderProfile;
   followerCount: number;
-  twitterHandle?: string | null;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   profile,
   followerCount,
-  twitterHandle,
 }) => {
   const tw = useTailwind();
-
-  const handleTwitterPress = useCallback(() => {
-    if (twitterHandle) {
-      Linking.openURL(`https://x.com/${twitterHandle}`);
-    }
-  }, [twitterHandle]);
 
   return (
     <Box
@@ -65,37 +53,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       )}
 
       <Box twClassName="flex-1 min-w-0">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
+        <Text
+          variant={TextVariant.HeadingMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
         >
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            twClassName="flex-shrink"
-          >
-            {profile.name}
-          </Text>
-          {twitterHandle ? (
-            <Pressable
-              onPress={handleTwitterPress}
-              testID={TraderProfileViewSelectorsIDs.TWITTER_LINK}
-              accessibilityRole="link"
-              accessibilityLabel={strings(
-                'social_leaderboard.trader_profile.twitter_link',
-              )}
-            >
-              <Icon
-                name={IconName.X}
-                size={IconSize.Sm}
-                color={IconColor.IconDefault}
-              />
-            </Pressable>
-          ) : null}
-        </Box>
+          {profile.name}
+        </Text>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}

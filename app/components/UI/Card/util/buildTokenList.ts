@@ -76,6 +76,7 @@ export function shouldProcessNetwork(
 
 /**
  * Single source of truth for building token lists from delegation settings.
+ * Single source of truth for building token lists, used by AssetSelectionBottomSheet and useSpendingLimitData.
  */
 export function buildDelegationTokenList({
   delegationSettings,

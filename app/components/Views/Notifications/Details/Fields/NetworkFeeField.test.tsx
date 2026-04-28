@@ -67,7 +67,7 @@ describe('NetworkFeeField', () => {
       />,
     );
 
-    expect(toJSON()).toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders loading state', () => {

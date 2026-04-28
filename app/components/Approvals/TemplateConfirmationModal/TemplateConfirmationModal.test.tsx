@@ -36,8 +36,7 @@ describe('TemplateConfirmationModal', () => {
 
     const wrapper = shallow(<TemplateConfirmationModal />);
 
-    expect(wrapper.isEmptyRender()).toBe(false);
-    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders if approval type is error result', () => {
@@ -52,15 +51,14 @@ describe('TemplateConfirmationModal', () => {
 
     const wrapper = shallow(<TemplateConfirmationModal />);
 
-    expect(wrapper.isEmptyRender()).toBe(false);
-    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders nothing if no approval request', () => {
     mockApprovalRequest(undefined);
 
     const wrapper = shallow(<TemplateConfirmationModal />);
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders nothing if incorrect approval request type', () => {
@@ -69,6 +67,6 @@ describe('TemplateConfirmationModal', () => {
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
     const wrapper = shallow(<TemplateConfirmationModal />);
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 });

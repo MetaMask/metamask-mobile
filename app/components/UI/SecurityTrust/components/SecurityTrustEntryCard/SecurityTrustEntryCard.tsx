@@ -11,7 +11,6 @@ import {
   IconName,
   IconSize,
   IconColor,
-  IconAlert,
   BoxFlexDirection,
   BoxAlignItems,
   FontWeight,
@@ -42,7 +41,8 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   const hasTrackedView = useRef(false);
 
   const config = getResultTypeConfig(securityData?.resultType);
-  const { iconAlertSeverity } = config;
+  const tagIcon = config.icon;
+  const tagIconColor = config.iconColor;
   const { tags: featureTags, remainingCount } = securityData
     ? getFeatureTags(securityData.features ?? [], securityData.resultType)
     : { tags: [], remainingCount: 0 };
@@ -145,8 +145,12 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
                 twClassName="bg-muted rounded self-start min-w-[22px] px-1.5 py-0.5"
                 gap={1}
               >
-                {iconAlertSeverity && (
-                  <IconAlert severity={iconAlertSeverity} size={IconSize.Sm} />
+                {tagIcon && tagIconColor && (
+                  <Icon
+                    name={tagIcon}
+                    size={IconSize.Sm}
+                    color={tagIconColor}
+                  />
                 )}
                 <Text
                   variant={TextVariant.BodySm}

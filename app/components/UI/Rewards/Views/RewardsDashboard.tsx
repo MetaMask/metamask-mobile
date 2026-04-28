@@ -21,7 +21,6 @@ import {
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
-import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -43,7 +42,6 @@ const RewardsDashboard: React.FC = () => {
   const hasTrackedDashboardViewed = useRef(false);
 
   useTrackRewardsPageView({ page_type: 'home' });
-  useOndoOutcomeToast();
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );

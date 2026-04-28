@@ -27,18 +27,22 @@ describe('RewardsCard', () => {
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
-  it('renders reward rate, ETH rewards, and fiat rewards', () => {
+  it('render matches snapshot', () => {
     const props: RewardsCardProps = {
       rewardRate: '2.6%',
       rewardsEth: '0.13 ETH',
       rewardsFiat: '$334.93',
     };
 
-    const { getByText } = renderWithProvider(<RewardsCard {...props} />);
+    const { getByText, toJSON } = renderWithProvider(
+      <RewardsCard {...props} />,
+    );
 
-    expect(getByText(props.rewardRate)).toBeOnTheScreen();
-    expect(getByText(props.rewardsEth)).toBeOnTheScreen();
-    expect(getByText(props.rewardsFiat)).toBeOnTheScreen();
+    expect(getByText(props.rewardRate)).toBeDefined();
+    expect(getByText(props.rewardsEth)).toBeDefined();
+    expect(getByText(props.rewardsFiat)).toBeDefined();
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('reward rate tooltip displayed when pressed', () => {
@@ -48,7 +52,9 @@ describe('RewardsCard', () => {
       rewardsFiat: '$334.93',
     };
 
-    const { getByLabelText } = renderWithProvider(<RewardsCard {...props} />);
+    const { toJSON, getByLabelText } = renderWithProvider(
+      <RewardsCard {...props} />,
+    );
 
     fireEvent.press(
       getByLabelText(`${strings('tooltip_modal.reward_rate.title')} tooltip`),
@@ -64,6 +70,8 @@ describe('RewardsCard', () => {
       },
       screen: 'tooltipModal',
     });
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('reward frequency tooltip displayed when pressed', () => {
@@ -73,7 +81,9 @@ describe('RewardsCard', () => {
       rewardsFiat: '$334.93',
     };
 
-    const { getByLabelText } = renderWithProvider(<RewardsCard {...props} />);
+    const { toJSON, getByLabelText } = renderWithProvider(
+      <RewardsCard {...props} />,
+    );
 
     fireEvent.press(
       getByLabelText(
@@ -91,5 +101,7 @@ describe('RewardsCard', () => {
       },
       screen: 'tooltipModal',
     });
+
+    expect(toJSON()).toMatchSnapshot();
   });
 });

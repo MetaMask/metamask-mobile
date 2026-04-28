@@ -568,11 +568,7 @@ describe('captureSentryFeedback', () => {
 
     it('masks initial root state fixture', () => {
       const maskedState = maskObject(rootState, sentryStateMask);
-      expect(maskedState).toBeDefined();
-      expect(typeof maskedState).toBe('object');
-      expect(maskedState).toHaveProperty('engine');
-      expect(maskedState).toHaveProperty('user');
-      expect(maskedState).toHaveProperty('settings');
+      expect(maskedState).toMatchSnapshot();
     });
 
     it('handles undefined mask', () => {

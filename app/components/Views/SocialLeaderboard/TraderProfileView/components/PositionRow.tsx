@@ -55,7 +55,7 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        <PositionTokenAvatar position={position} showChainBadge />
+        <PositionTokenAvatar position={position} />
 
         <Box twClassName="flex-1 min-w-0">
           <Text

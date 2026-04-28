@@ -1,7 +1,6 @@
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import React from 'react';
-import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -449,11 +448,11 @@ describe('EarnWithdrawInputView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('renders withdraw input view with review button', async () => {
+  it('render matches snapshot', async () => {
     render(EarnWithdrawInputView);
 
     await waitFor(async () => {
-      expect(screen.getByTestId('review-button')).toBeOnTheScreen();
+      expect(screen.toJSON()).toMatchSnapshot();
     });
   });
 
@@ -466,7 +465,7 @@ describe('EarnWithdrawInputView', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('4000 USD')).toBeOnTheScreen();
+        expect(screen.getByText('4000 USD')).toBeTruthy();
       });
     });
   });
@@ -475,10 +474,10 @@ describe('EarnWithdrawInputView', () => {
     it('switches between ETH and fiat correctly', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeTruthy();
       fireEvent.press(screen.getByText('0 USD'));
 
-      expect(screen.getByText('USD')).toBeOnTheScreen();
+      expect(screen.getByText('USD')).toBeTruthy();
     });
   });
 
@@ -488,7 +487,7 @@ describe('EarnWithdrawInputView', () => {
 
       fireEvent.press(screen.getByText('25%'));
 
-      expect(screen.getByText('1.44783')).toBeOnTheScreen();
+      expect(screen.getByText('1.44783')).toBeTruthy();
     });
 
     it('handles Max button press and sets full balance', async () => {
@@ -498,7 +497,7 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(screen.getByText('Max'));
       });
 
-      expect(screen.getByText('5.79133')).toBeOnTheScreen();
+      expect(screen.getByText('5.79133')).toBeTruthy();
     });
 
     it('tracks quick amount button press for staking flows', async () => {
@@ -529,7 +528,7 @@ describe('EarnWithdrawInputView', () => {
     it('displays `Enter amount` if input is 0', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('Enter amount')).toBeOnTheScreen();
+      expect(screen.getByText('Enter amount')).toBeTruthy();
     });
 
     it('displays `Review` on withdraw button if input is valid', () => {
@@ -537,7 +536,7 @@ describe('EarnWithdrawInputView', () => {
 
       fireEvent.press(screen.getByText('1'));
 
-      expect(screen.getByText('Review')).toBeOnTheScreen();
+      expect(screen.getByText('Review')).toBeTruthy();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
@@ -914,7 +913,7 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(screen.getByText('1'));
       });
       await waitFor(() => {
-        expect(screen.getAllByText('Unstake')[0]).toBeOnTheScreen();
+        expect(screen.getAllByText('Unstake')[0]).toBeTruthy();
       });
     });
 
@@ -936,15 +935,15 @@ describe('EarnWithdrawInputView', () => {
         tronToken,
       );
 
-      expect(getByText('Max')).toBeOnTheScreen();
+      expect(getByText('Max')).toBeTruthy();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
       await waitFor(() => {
-        expect(queryByText('Max')).not.toBeOnTheScreen();
-        expect(getByText('Done')).toBeOnTheScreen();
+        expect(queryByText('Max')).toBeNull();
+        expect(getByText('Done')).toBeTruthy();
       });
     });
   });

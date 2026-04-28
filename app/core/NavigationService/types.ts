@@ -560,15 +560,10 @@ export interface RootStackParamList extends ParamListBase {
   TraderProfileView: { traderId: string; traderName: string };
   TraderPositionView: {
     traderId: string;
-    tokenSymbol: string;
-    /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
-    position?: Position;
-    /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
-    positionId?: string;
-    /** Optional — fetched via useTraderProfile when absent. */
-    traderName?: string;
-    /** Optional — fetched via useTraderProfile when absent. */
+    traderName: string;
     traderImageUrl?: string;
+    tokenSymbol: string;
+    position?: Position;
   };
 
   // Misc routes
@@ -628,7 +623,7 @@ export interface RootStackParamList extends ParamListBase {
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   // Snaps routes
   SnapsSettingsList: undefined;
   SnapSettings: SnapSettingsParams | undefined;

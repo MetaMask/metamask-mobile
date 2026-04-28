@@ -23,7 +23,6 @@ import useHomeViewedEvent, {
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { useTopTraders } from './hooks';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import ViewMoreCard from '../../components/ViewMoreCard';
 
 const HOME_TRADER_LIMIT = 3;
 const SKELETON_KEYS = Array.from(
@@ -127,13 +126,6 @@ const TopTradersSection = forwardRef<
                   onTraderPress={handleTraderPress}
                 />
               ))}
-          {!isLoading && traders.length > 0 && (
-            <ViewMoreCard
-              onPress={handleViewAll}
-              twClassName="w-[200px] h-[180px]"
-              testID="top-traders-view-more-card"
-            />
-          )}
         </ScrollView>
       </Box>
     </View>

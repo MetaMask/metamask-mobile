@@ -7,11 +7,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
   ButtonSize,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Buttons/Button';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -400,16 +400,15 @@ const PerpsOrderDetailsView: React.FC = () => {
       {canCancel ? (
         <View style={styles.footer}>
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
             isDanger
+            label={strings('perps.order_details.cancel_order')}
             onPress={handleCancelOrder}
-            isLoading={isCanceling}
+            loading={isCanceling}
             testID={PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON}
-          >
-            {strings('perps.order_details.cancel_order')}
-          </Button>
+          />
         </View>
       ) : null}
     </SafeAreaView>

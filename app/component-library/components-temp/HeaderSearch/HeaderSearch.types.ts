@@ -1,6 +1,6 @@
 // External dependencies.
 import {
-  Box,
+  BoxProps,
   ButtonIconProps,
   ButtonProps,
 } from '@metamask/design-system-react-native';
@@ -16,20 +16,10 @@ export enum HeaderSearchVariant {
   Inline = 'inline',
 }
 
-// TODO: @MetaMask/design-system-engineers
-// Use the concrete Box component props here instead of BoxProps.
-// In MetaMask Mobile, extending BoxProps in forwarding wrappers can fail TS checks
-// because consumer code may resolve older @types/react-native callback types while
-// MMDS Box resolves React Native bundled types. Deriving props from the component
-// keeps wrapper props aligned with the actual JSX contract until the library-level
-// typing story is unified.
-// https://github.com/MetaMask/metamask-design-system/issues/1115
-type BoxComponentProps = React.ComponentProps<typeof Box>;
-
 /**
  * Base props shared by both variants - extends BoxProps.
  */
-interface HeaderSearchBaseProps extends Omit<BoxComponentProps, 'children'> {
+interface HeaderSearchBaseProps extends Omit<BoxProps, 'children'> {
   /**
    * Props to pass to the TextFieldSearch component.
    */

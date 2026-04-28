@@ -49,7 +49,7 @@ export function useCardHomeActions({
   const { toastRef } = useContext(ToastContext);
   const { reauthenticate } = useAuthentication();
 
-  const { navigateToTravelPage, navigateToCardTosPage } =
+  const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
     useNavigateToCardPage(navigation);
   const { freeze, unfreeze } = useCardFreeze(data?.card?.id);
   const {
@@ -457,6 +457,7 @@ export function useCardHomeActions({
     logoutAction,
     orderMetalCardAction,
     cashbackAction,
+    navigateToCardPage,
     navigateToTravelPage,
     navigateToCardTosPage,
   };

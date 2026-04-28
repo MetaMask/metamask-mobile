@@ -118,7 +118,7 @@ describe('Blockies', () => {
       const result = toDataUrl(zeroAddress);
 
       expect(result).toMatch(/^data:image\/png;base64,/);
-      expect(result).toMatch(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/);
+      expect(result).toMatchSnapshot('zero-address-blockies');
     });
 
     test('should handle max address', () => {
@@ -126,41 +126,38 @@ describe('Blockies', () => {
       const result = toDataUrl(maxAddress);
 
       expect(result).toMatch(/^data:image\/png;base64,/);
-      expect(result).toMatch(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/);
+      expect(result).toMatchSnapshot('max-address-blockies');
     });
   });
 
-  describe('Consistency for known addresses', () => {
+  describe('Snapshots for consistency', () => {
+    // Snapshot tests to catch visual regressions
     test('should generate consistent blockies for known addresses', () => {
       const knownAddresses = [
-        '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-        '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed',
-        '0x742d35Cc6634C0532925a3b8D42C96D8FbBBcC3f',
-        '0x1234567890123456789012345678901234567890',
+        '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', // Vitalik's address
+        '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed', // Test address
+        '0x742d35Cc6634C0532925a3b8D42C96D8FbBBcC3f', // Another test address
+        '0x1234567890123456789012345678901234567890', // Simple pattern
       ];
 
-      knownAddresses.forEach((address) => {
-        const result1 = toDataUrl(address);
-        const result2 = toDataUrl(address);
-        expect(result1).toBe(result2);
-        expect(result1).toMatch(/^data:image\/png;base64,/);
+      knownAddresses.forEach((address, index) => {
+        const result = toDataUrl(address);
+        expect(result).toMatchSnapshot(`blockies-address-${index}`);
       });
     });
 
     test('should generate consistent blockies for different patterns', () => {
       const patternAddresses = [
-        '0x0000000000000000000000000000000000000001',
-        '0x1111111111111111111111111111111111111111',
-        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        '0x0123456789abcdef0123456789abcdef01234567',
-        '0xfedcba9876543210fedcba9876543210fedcba98',
+        '0x0000000000000000000000000000000000000001', // Mostly zeros
+        '0x1111111111111111111111111111111111111111', // All ones
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', // All a's
+        '0x0123456789abcdef0123456789abcdef01234567', // Sequential hex
+        '0xfedcba9876543210fedcba9876543210fedcba98', // Reverse sequential
       ];
 
-      patternAddresses.forEach((address) => {
-        const result1 = toDataUrl(address);
-        const result2 = toDataUrl(address);
-        expect(result1).toBe(result2);
-        expect(result1).toMatch(/^data:image\/png;base64,/);
+      patternAddresses.forEach((address, index) => {
+        const result = toDataUrl(address);
+        expect(result).toMatchSnapshot(`blockies-pattern-${index}`);
       });
     });
   });

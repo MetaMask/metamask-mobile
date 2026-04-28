@@ -25,13 +25,6 @@ const {
 
 const MUST_ASSERT = new Set(['eval_sync', 'eval_async', 'eval_ref']);
 const HOOK_ONLY_ACTIONS = new Set([...EXECUTABLE_ACTIONS]);
-const CURRENT_SCHEMA_VERSION = 1;
-
-function parseSchemaVersion(value) {
-  if (value == null || value === '') return 0;
-  const num = Number.parseInt(String(value), 10);
-  return Number.isFinite(num) && num >= 0 ? num : 0;
-}
 
 function requireFields(node, fields, issues) {
   fields.forEach((field) => {
@@ -41,8 +34,7 @@ function requireFields(node, fields, issues) {
   });
 }
 
-function validateActionShape(node, issues, context = {}) {
-  const { schemaVersion = 1, fileLabel = '?' } = context;
+function validateActionShape(node, issues) {
   switch (node.action) {
     case 'navigate':
       requireFields(node, ['target'], issues);
@@ -70,23 +62,6 @@ function validateActionShape(node, issues, context = {}) {
     case 'switch_provider':
       requireFields(node, ['provider'], issues);
       break;
-    case 'screenshot': {
-      requireFields(node, ['filename'], issues);
-      const note = typeof node.note === 'string' ? node.note.trim() : '';
-      const noteOk = note.length >= 3;
-      if (!noteOk) {
-        if (schemaVersion >= 1) {
-          issues.push(
-            `  [${node.id || '?'}] action="screenshot" requires "note" (>= 3 chars) at schema_version ${schemaVersion}`
-          );
-        } else {
-          console.warn(
-            `  warning [${fileLabel}] [${node.id || '?'}] screenshot missing "note" — caption will fall back to filename. Add a note, then declare top-level "schema_version": ${CURRENT_SCHEMA_VERSION} to opt into strict validation.`
-          );
-        }
-      }
-      break;
-    }
     case 'log_watch':
       if (!(node.watch_for?.length || node.must_not_appear?.length)) {
         issues.push(
@@ -190,7 +165,7 @@ function validateReference(node, appRoot, defaultTeam, issues) {
   }
 }
 
-function validateNodeCommon(node, issues, context = {}) {
+function validateNodeCommon(node, issues) {
   const action = node.action || '';
   const id = node.id || '?';
 
@@ -207,10 +182,10 @@ function validateNodeCommon(node, issues, context = {}) {
     issues.push(`  [${id}] save_as must be a non-empty string`);
   }
 
-  validateActionShape(node, issues, context);
+  validateActionShape(node, issues);
 }
 
-function validateHookSection(sectionName, steps, appRoot, defaultTeam, issues, seenIds, context = {}) {
+function validateHookSection(sectionName, steps, appRoot, defaultTeam, issues, seenIds) {
   steps.forEach((step, index) => {
     const node = {
       ...step,
@@ -233,12 +208,12 @@ function validateHookSection(sectionName, steps, appRoot, defaultTeam, issues, s
       return;
     }
 
-    validateNodeCommon(node, issues, context);
+    validateNodeCommon(node, issues);
     validateReference(node, appRoot, defaultTeam, issues);
   });
 }
 
-function validateWorkflowNodes(normalizedDocument, appRoot, defaultTeam, issues, seenIds, context = {}) {
+function validateWorkflowNodes(normalizedDocument, appRoot, defaultTeam, issues, seenIds) {
   const workflow = normalizedDocument.workflow;
 
   if (!workflow.entry) {
@@ -272,7 +247,7 @@ function validateWorkflowNodes(normalizedDocument, appRoot, defaultTeam, issues,
       issues.push(`  [${nodeId}] control nodes cannot use when/unless guards`);
     }
 
-    validateNodeCommon(node, issues, context);
+    validateNodeCommon(node, issues);
     validateReference(node, appRoot, defaultTeam, issues);
 
     if (node.action === 'end') {
@@ -329,13 +304,6 @@ function validateScenario(filePath, registry) {
   }
 
   const seenIds = new Set();
-  const schemaVersion = parseSchemaVersion(document.schema_version);
-  if (schemaVersion > CURRENT_SCHEMA_VERSION) {
-    issues.push(
-      `  [schema_version] declared "${document.schema_version}" exceeds validator's known max (${CURRENT_SCHEMA_VERSION}). Update validator or fix the recipe.`
-    );
-  }
-  const context = { schemaVersion, fileLabel: path.basename(filePath) };
 
   validatePreConditions(normalizedDocument.hooks.pre_conditions || [], registry, issues);
   validateHookSection(
@@ -344,8 +312,7 @@ function validateScenario(filePath, registry) {
     appRoot,
     defaultTeam,
     issues,
-    seenIds,
-    context
+    seenIds
   );
   validateHookSection(
     'teardown',
@@ -353,10 +320,9 @@ function validateScenario(filePath, registry) {
     appRoot,
     defaultTeam,
     issues,
-    seenIds,
-    context
+    seenIds
   );
-  validateWorkflowNodes(normalizedDocument, appRoot, defaultTeam, issues, seenIds, context);
+  validateWorkflowNodes(normalizedDocument, appRoot, defaultTeam, issues, seenIds);
 
   const inputs = document.inputs || {};
   const inputKeys = new Set(Object.keys(inputs));

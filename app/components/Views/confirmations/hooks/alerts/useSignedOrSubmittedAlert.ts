@@ -12,6 +12,7 @@ import { selectTransactions } from '../../../../../selectors/transactionControll
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { isHardwareAccount } from '../../../../../util/address';
 
 export const PAY_TYPES = [
   TransactionType.perpsDeposit,
@@ -67,8 +68,13 @@ export const useSignedOrSubmittedAlert = () => {
     existingTransaction || hasExistingTransactionOnPayChain,
   );
 
+  const isHardwareWallet = isHardwareAccount(from ?? '');
+  const isMusdConversion = hasTransactionType(transactionMetadata, [
+    TransactionType.musdConversion,
+  ]);
+
   return useMemo(() => {
-    if (!showAlert) {
+    if (!showAlert || (isHardwareWallet && isMusdConversion)) {
       return [];
     }
 
@@ -89,5 +95,11 @@ export const useSignedOrSubmittedAlert = () => {
         severity: Severity.Danger,
       },
     ];
-  }, [hasExistingTransactionOnPayChain, isTransactionPay, showAlert]);
+  }, [
+    hasExistingTransactionOnPayChain,
+    isHardwareWallet,
+    isMusdConversion,
+    isTransactionPay,
+    showAlert,
+  ]);
 };

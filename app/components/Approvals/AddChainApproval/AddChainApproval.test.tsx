@@ -34,14 +34,14 @@ describe('AddChainApproval', () => {
 
     const wrapper = shallow(<AddChainApproval />);
 
-    expect(wrapper.isEmptyRender()).toBe(false);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
     const wrapper = shallow(<AddChainApproval />);
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -50,6 +50,6 @@ describe('AddChainApproval', () => {
     mockApprovalRequest({ type: ApprovalTypes.CONNECT_ACCOUNTS } as any);
 
     const wrapper = shallow(<AddChainApproval />);
-    expect(wrapper.isEmptyRender()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
   });
 });

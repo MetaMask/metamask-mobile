@@ -298,11 +298,9 @@ describe('EmptyStateCta', () => {
     });
   });
 
-  it('renders learn more link', () => {
-    const { getByText } = renderComponent(mockEarnToken);
-    expect(
-      getByText(strings('earn.empty_state_cta.learn_more')),
-    ).toBeOnTheScreen();
+  it('renders correctly', () => {
+    const { toJSON } = renderComponent(mockEarnToken);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to lending historic apy modal when "learn more" is clicked', async () => {
@@ -455,10 +453,8 @@ describe('EmptyStateCta', () => {
   });
 
   it('does not render if token prop is missing', () => {
-    const { queryByText } = renderComponent({} as TokenI);
-    expect(
-      queryByText(strings('earn.empty_state_cta.learn_more')),
-    ).not.toBeOnTheScreen();
+    const { toJSON } = renderComponent({} as TokenI);
+    expect(toJSON()).toBeNull();
   });
 
   it('does not render if stablecoin lending feature flag is disabled', () => {
@@ -468,10 +464,8 @@ describe('EmptyStateCta', () => {
       >
     ).mockReturnValue(false);
 
-    const { queryByText } = renderComponent(mockEarnToken);
-    expect(
-      queryByText(strings('earn.empty_state_cta.learn_more')),
-    ).not.toBeOnTheScreen();
+    const { toJSON } = renderComponent(mockEarnToken);
+    expect(toJSON()).toBeNull();
   });
 
   it('does not render when user is not eligible', () => {
@@ -482,10 +476,8 @@ describe('EmptyStateCta', () => {
       refreshPooledStakingEligibility: jest.fn(),
     });
 
-    const { queryByText } = renderComponent(mockEarnToken);
+    const { toJSON } = renderComponent(mockEarnToken);
 
-    expect(
-      queryByText(strings('earn.empty_state_cta.learn_more')),
-    ).not.toBeOnTheScreen();
+    expect(toJSON()).toBeNull();
   });
 });
