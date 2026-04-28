@@ -782,13 +782,13 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      if (childMarketIds) {
-        parsedMarket.childMarketIds = childMarketIds;
-      }
-
       const result = isSportsEvent
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
+
+      if (childMarketIds) {
+        result.childMarketIds = childMarketIds;
+      }
 
       return result;
     } catch (error) {
