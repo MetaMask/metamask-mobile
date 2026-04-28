@@ -10,8 +10,6 @@ import {
   getRawStringOrImageProp,
   getRawStringProp,
 } from './brazeBannerProperties';
-import Logger from '../../../util/Logger';
-
 export type BrazeBannerStatus = 'loading' | 'visible' | 'empty' | 'dismissed';
 
 export interface UseBrazeBannerResult {
@@ -133,20 +131,19 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       clearNoResponseTimeout();
       lastTrackingIdRef.current = candidate.trackingId;
 
-      // A fresh, displayable banner has passed all checks — the stale-cache
-      // guard is no longer needed for this session or the next cold start.
-      if (lastDismissedBrazeBannerRef.current !== null) {
-        lastDismissedBrazeBannerRef.current = null;
-        dispatch(setLastDismissedBrazeBanner(null));
-      }
-
       setBanner(candidate);
       setStatus('visible');
     },
-    [placementId, clearNoResponseTimeout, dispatch],
+    [placementId, clearNoResponseTimeout],
   );
 
   useEffect(() => {
+    // Consume the stale-cache guard: the ref already holds the value for this
+    // session, so clear storage now — the next session starts with no guard.
+    if (lastDismissedBrazeBannerRef.current !== null) {
+      dispatch(setLastDismissedBrazeBanner(null));
+    }
+
     // Warm-cache probe: if the SDK already has a banner cached for this
     // placement (e.g. returning user), show it immediately without waiting for
     // the next `bannerCardsUpdated` event.

@@ -439,14 +439,18 @@ describe('useBrazeBanner', () => {
       expect(nullPayloadCalls).toHaveLength(1);
     });
 
-    it('does not dispatch null when the incoming banner is still the dismissed one', () => {
+    it('dispatches null on mount and still blocks the dismissed banner', () => {
       mockLastDismissed = 'campaign-xyz';
-      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
-      // This event is skipped because banner_name matches lastDismissed
+      // Storage is cleared on mount so the next session has no guard.
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ payload: null }),
+      );
+
+      // The in-memory ref still guards this session — the same banner is blocked.
       fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
-
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(result.current.status).not.toBe('visible');
     });
   });
 
