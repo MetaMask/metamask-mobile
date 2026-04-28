@@ -10,7 +10,6 @@ import {
   IconName as DsIconName,
   BoxFlexDirection,
   BoxAlignItems,
-  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../../locales/i18n';
@@ -32,11 +31,7 @@ const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
     twClassName="h-20 px-4"
   >
     <Box twClassName="w-12 h-12 rounded-xl overflow-hidden">
-      <PositionTokenAvatar
-        position={position}
-        size={AvatarTokenSize.Lg}
-        showChainBadge
-      />
+      <PositionTokenAvatar position={position} />
     </Box>
     <Box twClassName="flex-1">
       <Text
