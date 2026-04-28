@@ -287,7 +287,7 @@ builds:
 
   # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
   main-dev:
-    github_environment: build-exp
+    github_environment: build-dev
     signing: *signing_dev
     env:
       <<: *public_envs
