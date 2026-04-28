@@ -19,21 +19,19 @@ export const TrendingViewSelectorsIDs = {
 export const TrendingViewSelectorsText = {
   // Section titles - must match the actual localized strings from sections.config.tsx
   SECTION_PREDICTIONS: 'Predictions',
-  SECTION_TOKENS: 'Trending tokens',
+  /** Now tab — `crypto_movers` section (`trending.crypto_movers`). */
+  SECTION_CRYPTO_MOVERS: 'Crypto movers',
   SECTION_STOCKS: 'Stocks',
   SECTION_PERPS: 'Perps',
-  SECTION_SITES: 'Sites',
 } as const;
 
 // Map section to its full view back button Test ID
 export const SECTION_BACK_BUTTONS: Record<string, string> = {
-  [TrendingViewSelectorsText.SECTION_TOKENS]:
+  [TrendingViewSelectorsText.SECTION_CRYPTO_MOVERS]:
     'trending-tokens-header-back-button',
   [TrendingViewSelectorsText.SECTION_STOCKS]: 'rwa-tokens-header-back-button',
   [TrendingViewSelectorsText.SECTION_PERPS]:
     'perps-market-list-close-button-back-button',
-  [TrendingViewSelectorsText.SECTION_SITES]:
-    'sites-full-view-header-back-button',
   [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button',
 };
 
@@ -46,8 +44,7 @@ export const DETAILS_BACK_BUTTONS: Record<string, string> = {
 
 // Map section to its full view header Test ID
 export const SECTION_FULL_VIEW_HEADERS: Record<string, string> = {
-  [TrendingViewSelectorsText.SECTION_SITES]: 'sites-full-view-header',
-  [TrendingViewSelectorsText.SECTION_TOKENS]: 'trending-tokens-header',
+  [TrendingViewSelectorsText.SECTION_CRYPTO_MOVERS]: 'trending-tokens-header',
   [TrendingViewSelectorsText.SECTION_STOCKS]: 'rwa-tokens-header',
   [TrendingViewSelectorsText.SECTION_PERPS]: 'perps-market-list-close-button',
   [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button', // PredictFeed uses back-button as main identifier

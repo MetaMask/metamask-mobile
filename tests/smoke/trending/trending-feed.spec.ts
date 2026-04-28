@@ -41,8 +41,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         // Navigate to Trending Tab
         await TrendingView.tapTrendingTab();
 
-        // Define the sections to visit in feed order (top to bottom) for reliable
-        // progressive downward scrolling: predictions → tokens → perps → stocks → sites
+        // Now tab only — feed order: predictions → crypto movers (pills) → perps → stocks
         const sectionsConfig = [
           {
             section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
@@ -55,15 +54,15 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             tapBack: () => TrendingView.tapBackFromPredictionDetails(),
           },
           {
-            section: TrendingViewSelectorsText.SECTION_TOKENS,
+            section: TrendingViewSelectorsText.SECTION_CRYPTO_MOVERS,
             itemId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             itemTitle: 'USD Coin',
             verifyItemVisible: () =>
-              TrendingView.verifyTokenVisible(
+              TrendingView.verifyCryptoMoversPillVisible(
                 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
               ),
             tapItem: () =>
-              TrendingView.tapTokenRow(
+              TrendingView.tapCryptoMoversPill(
                 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
               ),
             verifyDetailsVisible: () =>
@@ -91,16 +90,6 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
                 'Ondo US Dollar Yield (Ondo Tokenized)',
               ),
             tapBack: () => TrendingView.tapBackFromTokenDetails(),
-          },
-          {
-            section: TrendingViewSelectorsText.SECTION_SITES,
-            itemId: 'Uniswap',
-            itemTitle: 'Uniswap',
-            verifyItemVisible: () => TrendingView.verifySiteVisible('Uniswap'),
-            tapItem: () => TrendingView.tapSiteRow('Uniswap'),
-            verifyDetailsVisible: () =>
-              TrendingView.verifyBrowserUrlVisible('uniswap.org'),
-            tapBack: () => TrendingView.tapBackFromBrowser(),
           },
         ];
 

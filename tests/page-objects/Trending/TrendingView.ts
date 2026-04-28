@@ -67,6 +67,11 @@ class TrendingView {
     );
   }
 
+  /** Crypto movers section uses `SectionPill` with `section-pill-${assetId}`. */
+  getCryptoMoversPill(assetId: string): DetoxElement {
+    return Matchers.getElementByID(`section-pill-${assetId}`, 0);
+  }
+
   getSectionHeader(title: string): DetoxElement {
     return Matchers.getElementByText(title);
   }
@@ -142,7 +147,7 @@ class TrendingView {
    */
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
-      'Trending tokens': 'tokens',
+      'Crypto movers': 'crypto_movers',
       Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
@@ -158,7 +163,7 @@ class TrendingView {
     );
 
     // Predictions is at the top of the feed; scroll up to find it.
-    // All other sections (tokens, perps, stocks, sites) are below.
+    // All other sections (crypto movers, perps, stocks) are below.
     const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
 
     // Use generic scroll method
@@ -291,6 +296,22 @@ class TrendingView {
 
   async tapTokenRow(assetId: string): Promise<void> {
     await this.tapItemRow(() => this.getTokenRow(assetId), assetId, 'token');
+  }
+
+  async verifyCryptoMoversPillVisible(assetId: string): Promise<void> {
+    await this.verifyItemVisible(
+      () => this.getCryptoMoversPill(assetId),
+      assetId,
+      'crypto movers pill',
+    );
+  }
+
+  async tapCryptoMoversPill(assetId: string): Promise<void> {
+    await this.tapItemRow(
+      () => this.getCryptoMoversPill(assetId),
+      assetId,
+      'crypto movers pill',
+    );
   }
 
   async verifyPerpVisible(symbol: string): Promise<void> {
