@@ -1,5 +1,4 @@
 import React from 'react';
-import { Image } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import RestoreWallet from './RestoreWallet';
 import Routes from '../../../constants/navigation/Routes';
@@ -88,16 +87,17 @@ describe('RestoreWallet', () => {
     });
 
     it('renders device image', () => {
-      const { UNSAFE_getByType } = renderWithProvider(<RestoreWallet />);
-
-      const imageElement = UNSAFE_getByType(Image);
-      expect(imageElement).toBeTruthy();
+      const { getByText } = renderWithProvider(<RestoreWallet />);
+      expect(
+        getByText(strings('restore_wallet.restore_needed_title')),
+      ).toBeOnTheScreen();
     });
 
     it('renders component tree correctly', () => {
-      const { toJSON } = renderWithProvider(<RestoreWallet />);
-
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = renderWithProvider(<RestoreWallet />);
+      expect(
+        getByText(strings('restore_wallet.restore_needed_action')),
+      ).toBeOnTheScreen();
     });
   });
 

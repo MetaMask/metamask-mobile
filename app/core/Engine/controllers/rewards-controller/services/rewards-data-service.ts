@@ -34,6 +34,7 @@ import type {
   OndoGmPortfolioDto,
   PaginatedOndoGmActivityDto,
   OndoGmCampaignDepositsDto,
+  OndoGmCampaignParticipantOutcomeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -257,6 +258,11 @@ export interface RewardsDataServiceGetOndoCampaignDepositsAction {
   handler: RewardsDataService['getOndoCampaignDeposits'];
 }
 
+export interface RewardsDataServiceGetOndoCampaignParticipantOutcomeAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignParticipantOutcome`;
+  handler: RewardsDataService['getOndoCampaignParticipantOutcome'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -327,7 +333,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
-  | RewardsDataServiceGetOndoCampaignDepositsAction;
+  | RewardsDataServiceGetOndoCampaignDepositsAction
+  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -497,6 +504,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getOndoCampaignDeposits`,
       this.getOndoCampaignDeposits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignParticipantOutcome`,
+      this.getOndoCampaignParticipantOutcome.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1689,5 +1700,24 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as OndoGmCampaignDepositsDto;
+  }
+
+  async getOndoCampaignParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmCampaignParticipantOutcomeDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/outcome/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Ondo GM participant outcome failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as OndoGmCampaignParticipantOutcomeDto;
   }
 }
