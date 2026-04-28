@@ -68,13 +68,42 @@ import { hexToBigInt, bigIntToHex, fromWei, toWei, ... } from '../util/number/bi
 | `fiatNumberToWei(fiat, rate)`       | `fiatNumberToWei(fiat, rate)`       | Returns `bigint` instead of `BN`                                              |
 | `fiatNumberToTokenMinimalUnit(...)` | `fiatNumberToTokenMinimalUnit(...)` | Returns `bigint` instead of `BN`                                              |
 | `addHexPrefix(str)`                 | `addHexPrefix(str)`                 | Same behavior                                                                 |
-| `renderNumber(str)`                 | `renderNumber(str)`                 | Same behavior                                                                 |
+| `renderNumber(str)`                 | `renderNumber(str)`                 | **Behavior diverges for integer strings** — see note below                    |
 | `toHexadecimal(dec)`                | `toHexadecimal(dec)`                | Minor difference: returns `"0"` for `null`/`undefined` instead of passthrough |
 | `isZeroValue(v)`                    | `isZeroValue(v)`                    | Same behavior, also accepts `bigint`                                          |
 | `calculateEthFeeForMultiLayer(p)`   | `calculateEthFeeForMultiLayer(p)`   | Same API                                                                      |
 | `conversionUtil(...)`               | `conversionUtil(...)`               | Same API                                                                      |
 
 Functions with **identical names** (e.g. `fromWei`, `renderFromWei`) have the same API — just change the import path.
+
+### `renderNumber` behavior change
+
+The bigint `renderNumber` fixes a long-standing bug in the legacy implementation:
+
+```ts
+// Legacy (index.js): if (index === 0) return number;
+// BigInt (bigint.ts): if (index === -1) return number;
+```
+
+`indexOf('.')` returns `-1` when the string has no decimal point, not `0`. The
+legacy check is a typo, so for integer-only strings legacy falls through to
+`substring(0, -1 + 6)` which truncates the value to its first 5 characters.
+
+| Input           | Legacy output | BigInt output |
+| --------------- | ------------- | ------------- |
+| `'1.123456789'` | `'1.12345'`   | `'1.12345'`   |
+| `'1.123'`       | `'1.123'`     | `'1.123'`     |
+| `'12345'`       | `'12345'`     | `'12345'`     |
+| `'123456'`      | `'12345'` ⚠️  | `'123456'`    |
+| `'123456789'`   | `'12345'` ⚠️  | `'123456789'` |
+| `'.123'`        | `'.123'`      | `'.123'`      |
+
+In practice this affects integer-valued crypto amounts ≥ 100,000 displayed by
+the Ramp / Bridge / Deposit notification flows (the only call sites). Migrating
+to the bigint version will cause those values to render with their full integer
+portion instead of being silently chopped to 5 characters. This is a fix, but
+it is a visible behavioral change — verify your feature tolerates it before
+switching.
 
 ## Arithmetic migration
 

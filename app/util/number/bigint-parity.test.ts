@@ -228,12 +228,59 @@ describe('Parity: renderFromTokenMinimalUnit', () => {
   );
 });
 
-// TODO: legacy renderNumber seems incorrect but we are not touching legacy code at this point
-describe.skip('Parity: renderNumber', () => {
-  const CASES = ['123456789', '12345', '1', '1.123456789', '1.123'];
+/**
+ * `renderNumber` is intentionally NOT at parity with the legacy implementation.
+ *
+ * The legacy version checks `indexOf('.') === 0` to detect "no decimal point",
+ * which is a typo — `indexOf` returns `-1` when not found, not `0`. As a
+ * result, legacy `renderNumber('123456789')` returns `'12345'` (truncates the
+ * integer to 5 characters), while bigint correctly returns `'123456789'`.
+ *
+ * The migration guide (`docs/bigint-migration-guide.md`) documents this
+ * divergence. These tests pin both behaviors so the divergence cannot
+ * silently regress in either direction.
+ */
+describe('Divergence: renderNumber (legacy bug fixed in bigint)', () => {
+  describe('cases where legacy and bigint agree', () => {
+    const AGREE_CASES: [string, string][] = [
+      ['1.123456789', '1.12345'],
+      ['1.123', '1.123'],
+      ['12345', '12345'],
+      ['1', '1'],
+      ['.123', '.123'],
+    ];
 
-  it.each(CASES)('bigintRenderNumber(%s) matches legacy', (value) => {
-    expect(bigintRenderNumber(value)).toBe(legacyRenderNumber(value));
+    it.each(AGREE_CASES)(
+      'renderNumber(%p) → %p in both APIs',
+      (input, expected) => {
+        expect(legacyRenderNumber(input)).toBe(expected);
+        expect(bigintRenderNumber(input)).toBe(expected);
+      },
+    );
+  });
+
+  describe('cases where bigint corrects the legacy bug', () => {
+    const DIVERGENCE_CASES: {
+      input: string;
+      legacy: string;
+      bigint: string;
+    }[] = [
+      { input: '123456', legacy: '12345', bigint: '123456' },
+      { input: '123456789', legacy: '12345', bigint: '123456789' },
+      {
+        input: '1000000000000000000',
+        legacy: '10000',
+        bigint: '1000000000000000000',
+      },
+    ];
+
+    it.each(DIVERGENCE_CASES)(
+      'renderNumber($input): legacy=$legacy, bigint=$bigint',
+      ({ input, legacy, bigint }) => {
+        expect(legacyRenderNumber(input)).toBe(legacy);
+        expect(bigintRenderNumber(input)).toBe(bigint);
+      },
+    );
   });
 });
 
