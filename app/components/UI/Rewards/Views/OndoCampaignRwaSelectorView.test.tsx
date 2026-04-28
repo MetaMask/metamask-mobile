@@ -90,16 +90,25 @@ jest.mock(
         title,
         onBack,
         onClose,
+        backButtonProps,
+        endButtonIconProps,
+        testID,
       }: {
         title: React.ReactNode;
         onBack?: () => void;
         onClose?: () => void;
+        backButtonProps?: { onPress?: () => void };
+        endButtonIconProps?: {
+          onPress?: () => void;
+          testID?: string;
+        }[];
+        testID?: string;
       }) =>
         ReactActual.createElement(
           View,
-          { testID: 'header' },
+          { testID: testID ?? 'header' },
           ReactActual.createElement(Pressable, {
-            onPress: onBack ?? onClose,
+            onPress: backButtonProps?.onPress ?? onBack ?? onClose,
             testID: 'header-back-button',
           }),
           typeof title === 'string'
@@ -109,10 +118,52 @@ jest.mock(
                 title,
               )
             : title,
+          ...(endButtonIconProps ?? []).map((iconProps, index) =>
+            ReactActual.createElement(Pressable, {
+              key: `end-icon-${index}`,
+              onPress: iconProps.onPress,
+              testID: iconProps.testID ?? 'search-toggle',
+            }),
+          ),
         ),
     };
   },
 );
+
+jest.mock('../../../../component-library/components-temp/HeaderSearch', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Pressable, TextInput } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    HeaderSearchVariant: { Inline: 'inline', Screen: 'screen' },
+    default: ({
+      onPressCancelButton,
+      textFieldSearchProps,
+      cancelButtonProps,
+    }: {
+      onPressCancelButton: () => void;
+      textFieldSearchProps?: {
+        value?: string;
+        onChangeText?: (t: string) => void;
+        placeholder?: string;
+        testID?: string;
+      };
+      cancelButtonProps?: { testID?: string };
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'header-search' },
+        ReactActual.createElement(TextInput, {
+          ...textFieldSearchProps,
+          testID: textFieldSearchProps?.testID ?? 'search-input',
+        }),
+        ReactActual.createElement(Pressable, {
+          onPress: onPressCancelButton,
+          testID: cancelButtonProps?.testID ?? 'search-close',
+        }),
+      ),
+  };
+});
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -294,59 +345,6 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: jest.requireActual('react-native').View,
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
-
-// Mock the shared ListHeaderWithSearch used by TrendingListHeader
-jest.mock('../../shared/ListHeaderWithSearch', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text, Pressable, TextInput } =
-    jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      title,
-      isSearchVisible,
-      searchQuery,
-      onSearchQueryChange,
-      onBack,
-      onSearchToggle,
-      searchPlaceholder,
-      testID,
-    }: {
-      title: React.ReactNode;
-      isSearchVisible: boolean;
-      searchQuery: string;
-      onSearchQueryChange: (q: string) => void;
-      onBack: () => void;
-      onSearchToggle: () => void;
-      searchPlaceholder?: string;
-      cancelText?: string;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: testID ?? 'header' },
-        ReactActual.createElement(Pressable, {
-          onPress: onBack,
-          testID: 'header-back-button',
-        }),
-        typeof title === 'string'
-          ? ReactActual.createElement(Text, { testID: 'header-title' }, title)
-          : title,
-        ReactActual.createElement(Pressable, {
-          onPress: onSearchToggle,
-          testID: 'search-toggle',
-        }),
-        isSearchVisible
-          ? ReactActual.createElement(TextInput, {
-              testID: 'search-input',
-              placeholder: searchPlaceholder,
-              value: searchQuery,
-              onChangeText: onSearchQueryChange,
-            })
-          : null,
-      ),
-  };
-});
 
 // Mock FilterBar
 jest.mock('../../Trending/components/FilterBar/FilterBar', () => {
@@ -806,15 +804,15 @@ describe('OndoCampaignRwaSelectorView', () => {
         <OndoCampaignRwaSelectorView />,
       );
       expect(getByTestId('filter-bar')).toBeDefined();
-      fireEvent.press(getByTestId('search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-toggle'));
       expect(queryByTestId('filter-bar')).toBeNull();
     });
 
     it('shows filter bar again when search is dismissed', () => {
       mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-      fireEvent.press(getByTestId('search-toggle'));
-      fireEvent.press(getByTestId('search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-close'));
       expect(getByTestId('filter-bar')).toBeDefined();
     });
   });
