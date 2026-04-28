@@ -369,6 +369,57 @@ describe('gameParser', () => {
       });
     });
 
+    it('normalizes score order for home-first leagues', () => {
+      const homeTeam: PredictSportTeam = {
+        id: 'team-home',
+        name: 'Real Madrid',
+        logo: 'https://example.com/rma.png',
+        abbreviation: 'RMA',
+        color: TEST_HEX_COLORS.WHITE_FULL,
+        alias: 'Madrid',
+      };
+
+      const awayTeam: PredictSportTeam = {
+        id: 'team-away',
+        name: 'Barcelona',
+        logo: 'https://example.com/bar.png',
+        abbreviation: 'BAR',
+        color: TEST_HEX_COLORS.PURE_BLACK,
+        alias: 'Barça',
+      };
+
+      const homeFirstTeamLookup = (
+        league: PredictSportsLeague,
+        abbr: string,
+      ): PredictSportTeam | undefined => {
+        if (league !== 'ucl') return undefined;
+        const teams: Record<string, PredictSportTeam> = {
+          rma: homeTeam,
+          bar: awayTeam,
+        };
+        return teams[abbr.toLowerCase()];
+      };
+
+      const event = createMockEvent({
+        gameId: 'game-456',
+        slug: 'ucl-rma-bar-2025-01-12',
+        title: 'Real Madrid vs Barcelona',
+        tags: [
+          { id: '1', label: 'UCL', slug: 'ucl' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        score: '2-1',
+        period: 'FT',
+        ended: true,
+      });
+
+      const result = buildGameData(event, 'ucl', homeFirstTeamLookup);
+
+      expect(result?.score).toEqual({ away: 1, home: 2, raw: '2-1' });
+      expect(result?.homeTeam).toEqual(homeTeam);
+      expect(result?.awayTeam).toEqual(awayTeam);
+    });
+
     it('returns null when gameId is missing', () => {
       const event = createMockEvent({ gameId: undefined });
 
@@ -455,6 +506,12 @@ describe('gameParser', () => {
       const result = parseScore('14-7');
 
       expect(result).toEqual({ away: 14, home: 7, raw: '14-7' });
+    });
+
+    it('normalizes home-first league scores into away and home values', () => {
+      const result = parseScore('2-1', 'ucl');
+
+      expect(result).toEqual({ away: 1, home: 2, raw: '2-1' });
     });
 
     it('returns null for undefined score', () => {
