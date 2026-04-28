@@ -162,7 +162,7 @@ const TopTradersView = () => {
     // so podium decorations only apply to true top-3 traders.
     return filtered
       .slice(0, 50)
-      .map((t, i) => ({ ...t, rank: i + 1, overallRank: t.rank }));
+      .map((t, i) => ({ ...t, rank: i + 1, overallRank: t.overallRank }));
   }, [traders, selectedChain]);
 
   const handleBack = useCallback(() => {

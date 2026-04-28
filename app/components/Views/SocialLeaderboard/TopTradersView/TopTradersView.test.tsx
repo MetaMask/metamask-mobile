@@ -238,6 +238,30 @@ describe('TopTradersView', () => {
     expect(screen.queryByText('3')).not.toBeOnTheScreen();
   });
 
+  it('preserves the upstream overallRank when navigating to a profile (does not re-derive it from the displayed rank)', () => {
+    mockUseTopTradersHook.mockReturnValueOnce({
+      ...defaultUseTopTradersResult,
+      traders: [
+        {
+          ...fixtureTraders[0],
+          rank: 1,
+          overallRank: 50,
+        },
+      ],
+    });
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(screen.getByText('sniperliquid.hl'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'TraderProfileView',
+      expect.objectContaining({
+        traderId: 'trader-1',
+        rank: 50,
+      }),
+    );
+  });
+
   it('renders skeletons during initial load', () => {
     mockUseTopTradersHook.mockReturnValueOnce({
       ...defaultUseTopTradersResult,
