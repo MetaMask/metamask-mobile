@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 
 import HardwareWalletContext from './contexts/HardwareWalletContext';
-import QRSigningContext from './contexts/QRSigningContext';
 import { HardwareWalletBottomSheet } from './components';
 import { getHardwareWalletTypeForAddress } from './helpers';
 import {
@@ -24,7 +23,7 @@ import {
   useDeviceConnectionFlow,
   useQRSigningState,
 } from './hooks';
-import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 
 interface HardwareWalletProviderProps {
@@ -45,16 +44,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const { state, refs, setters } = useHardwareWalletStateManager();
   const { connectionState, deviceId, walletType, targetWalletType } = state;
 
-  const [pendingOperationAddress, setPendingOperationAddress] = useState<
-    string | null
-  >(null);
-
-  const walletTypeFromPendingAddress = pendingOperationAddress
-    ? (getHardwareWalletTypeForAddress(pendingOperationAddress) ?? null)
-    : null;
+  const [pendingOperationWalletType, setPendingOperationWalletTypeState] =
+    useState<HardwareWalletType | null>(null);
 
   const effectiveWalletType =
-    targetWalletType ?? walletTypeFromPendingAddress ?? walletType;
+    targetWalletType ?? pendingOperationWalletType ?? walletType;
 
   const { handleDeviceEvent, handleError, updateConnectionState } =
     useDeviceEventHandlers({
@@ -94,7 +88,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
   const operationTypeRef = useRef<'transaction' | 'message' | null>(null);
-  const qrScanRetryHandlerRef = useRef<(() => void) | null>(null);
 
   const [analyticsFlow, setAnalyticsFlow] = useState(
     HardwareWalletAnalyticsFlow.Connection,
@@ -164,7 +157,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const hideAwaitingConfirmation = useCallback(() => {
     DevLogger.log('[HardwareWallet] hideAwaitingConfirmation');
     awaitingConfirmationRejectRef.current = null;
-    operationTypeRef.current = null;
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [updateConnectionState]);
 
@@ -192,11 +184,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     }
     await retryEnsureDeviceReady();
   }, [handleCloseFlow, retryEnsureDeviceReady]);
-
-  const setQrScanRetryHandler = useCallback((handler: (() => void) | null) => {
-    qrScanRetryHandlerRef.current = handler;
-  }, []);
-
   const handleAwaitingConfirmationCancel = useCallback(() => {
     DevLogger.log('[HardwareWallet] handleAwaitingConfirmationCancel');
     // eslint-disable-next-line no-empty-function
@@ -209,24 +196,43 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation, refs.adapterRef]);
 
-  const handleRetryQrScan = useCallback(() => {
-    if (operationTypeRef.current === null) {
-      const retryHandler = qrScanRetryHandlerRef.current;
-      if (!retryHandler) {
-        return;
-      }
+  const setPendingOperationAddress = useCallback(
+    (address: string | null) => {
+      const nextPendingOperationWalletType = address
+        ? (getHardwareWalletTypeForAddress(address) ?? null)
+        : null;
 
-      updateConnectionState({ status: ConnectionStatus.Disconnected });
-      retryHandler();
-      return;
-    }
+      setters.setPendingOperationWalletType(nextPendingOperationWalletType);
+      setPendingOperationWalletTypeState(nextPendingOperationWalletType);
+    },
+    [setters],
+  );
 
-    updateConnectionState({
-      status: ConnectionStatus.AwaitingConfirmation,
-      deviceId: deviceId ?? 'unknown',
-      operationType: operationTypeRef.current,
-    });
-  }, [deviceId, updateConnectionState]);
+  const {
+    pendingScanRequest,
+    isSigningQRObject,
+    setRequestCompleted,
+    isRequestCompleted,
+    cancelQRScanRequestIfPresent,
+  } = useQRSigningState();
+  // Memoize the provider's `qr` object so its reference stays stable when the
+  // underlying QR fields have not changed.
+  const qrSigningValue = useMemo(
+    () => ({
+      pendingScanRequest,
+      isSigningQRObject,
+      setRequestCompleted,
+      isRequestCompleted,
+      cancelQRScanRequestIfPresent,
+    }),
+    [
+      pendingScanRequest,
+      isSigningQRObject,
+      setRequestCompleted,
+      isRequestCompleted,
+      cancelQRScanRequestIfPresent,
+    ],
+  );
 
   const contextValue = useMemo(
     () => ({
@@ -238,9 +244,9 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setTargetWalletType: setters.setTargetWalletType,
       setPendingOperationAddress,
       showHardwareWalletError,
-      setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
+      qr: qrSigningValue,
     }),
     [
       effectiveWalletType,
@@ -251,33 +257,28 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setters.setTargetWalletType,
       setPendingOperationAddress,
       showHardwareWalletError,
-      setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
+      qrSigningValue,
     ],
   );
 
-  const qrSigningValue = useQRSigningState();
-
   return (
     <HardwareWalletContext.Provider value={contextValue}>
-      <QRSigningContext.Provider value={qrSigningValue}>
-        {children}
-        <HardwareWalletBottomSheet
-          connectionState={connectionState}
-          deviceSelection={deviceSelection}
-          walletType={effectiveWalletType}
-          retryEnsureDeviceReady={handleRetryOrClose}
-          onRetryQrScan={handleRetryQrScan}
-          selectDevice={selectDevice}
-          rescan={rescan}
-          connect={connect}
-          onClose={handleCloseFlow}
-          onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
-          onConnectionSuccess={handleBottomSheetConnectionSuccess}
-          onCTAClicked={trackCTAClicked}
-        />
-      </QRSigningContext.Provider>
+      {children}
+      <HardwareWalletBottomSheet
+        connectionState={connectionState}
+        deviceSelection={deviceSelection}
+        walletType={effectiveWalletType}
+        retryEnsureDeviceReady={handleRetryOrClose}
+        selectDevice={selectDevice}
+        rescan={rescan}
+        connect={connect}
+        onClose={handleCloseFlow}
+        onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
+        onConnectionSuccess={handleBottomSheetConnectionSuccess}
+        onCTAClicked={trackCTAClicked}
+      />
     </HardwareWalletContext.Provider>
   );
 };

@@ -100,7 +100,7 @@ const mockExecuteHardwareWalletOperation = jest.fn();
 jest.mock('../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: jest.fn(),
-    setTargetWalletType: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
     showAwaitingConfirmation: jest.fn(),
     hideAwaitingConfirmation: jest.fn(),
     showHardwareWalletError: jest.fn(),
@@ -2445,7 +2445,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
-        setTargetWalletType: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
         showAwaitingConfirmation: jest.fn(),
         hideAwaitingConfirmation: jest.fn(),
         showHardwareWalletError: jest.fn(),
@@ -2477,7 +2477,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
-        setTargetWalletType: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
         showAwaitingConfirmation: jest.fn(),
         hideAwaitingConfirmation: jest.fn(),
         showHardwareWalletError: jest.fn(),
@@ -2512,7 +2512,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
-        setTargetWalletType: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
         showAwaitingConfirmation: jest.fn(),
         hideAwaitingConfirmation: jest.fn(),
         showHardwareWalletError: jest.fn(),
@@ -2550,7 +2550,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
-        setTargetWalletType: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
         showAwaitingConfirmation: jest.fn(),
         hideAwaitingConfirmation: jest.fn(),
         showHardwareWalletError: jest.fn(),
@@ -2591,7 +2591,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
-        setTargetWalletType: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
         showAwaitingConfirmation: jest.fn(),
         hideAwaitingConfirmation: jest.fn(),
         showHardwareWalletError: jest.fn(),
@@ -2625,7 +2625,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
-        setTargetWalletType: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
         showAwaitingConfirmation: jest.fn(),
         hideAwaitingConfirmation: jest.fn(),
         showHardwareWalletError: jest.fn(),
@@ -2661,7 +2661,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
-        setTargetWalletType: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
         showAwaitingConfirmation: jest.fn(),
         hideAwaitingConfirmation: jest.fn(),
         showHardwareWalletError: jest.fn(),
@@ -2688,7 +2688,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: LEDGER_ADDRESS,
       hardwareWallet: {
         ensureDeviceReady: mockEnsureDeviceReady,
-        setTargetWalletType: mockSetTargetWalletType,
+        setPendingOperationAddress: mockSetTargetWalletType,
         showAwaitingConfirmation: mockShowAwaiting,
         hideAwaitingConfirmation: mockHideAwaiting,
         showHardwareWalletError: mockShowError,
@@ -2712,7 +2712,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(capturedOptions.address).toBe(LEDGER_ADDRESS);
     expect(capturedOptions.operationType).toBe('transaction');
     expect(capturedOptions.ensureDeviceReady).toBe(mockEnsureDeviceReady);
-    expect(capturedOptions.setTargetWalletType).toBe(mockSetTargetWalletType);
+    expect(capturedOptions.setPendingOperationAddress).toBe(
+      mockSetTargetWalletType,
+    );
     expect(capturedOptions.showAwaitingConfirmation).toBe(mockShowAwaiting);
     expect(capturedOptions.hideAwaitingConfirmation).toBe(mockHideAwaiting);
     expect(capturedOptions.showHardwareWalletError).toBe(mockShowError);
@@ -2725,7 +2727,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       selectedAddress: '',
       hardwareWallet: {
         ensureDeviceReady: jest.fn(),
-        setTargetWalletType: jest.fn(),
+        setPendingOperationAddress: jest.fn(),
         showAwaitingConfirmation: jest.fn(),
         hideAwaitingConfirmation: jest.fn(),
         showHardwareWalletError: jest.fn(),

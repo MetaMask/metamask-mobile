@@ -38,62 +38,74 @@ const RootRPCMethodsUI = (props) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     ensureDeviceReady,
-    setTargetWalletType,
+    setPendingOperationAddress,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
   } = useHardwareWallet();
 
-  const trackCancelledTransaction = useCallback(
-    (error) => {
-      const message = error?.message ?? '';
+  const isCancelledError = useCallback((error) => {
+    const message = error?.message ?? '';
+    return (
+      message.startsWith(KEYSTONE_TX_CANCELED) ||
+      message.startsWith(STX_NO_HASH_ERROR)
+    );
+  }, []);
 
-      if (
-        !message.startsWith(KEYSTONE_TX_CANCELED) &&
-        !message.startsWith(STX_NO_HASH_ERROR)
-      ) {
-        return false;
-      }
-
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-        ).build(),
-      );
-      return true;
-    },
-    [trackEvent, createEventBuilder],
-  );
+  const trackTransactionCancelledEvent = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED).build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const handleAutoSignError = useCallback(
     (error) => {
-      if (trackCancelledTransaction(error)) {
+      if (isCancelledError(error)) {
+        trackTransactionCancelledEvent();
         return true;
       }
 
       Logger.error(error, 'error while trying to send transaction (Main)');
       return false;
     },
-    [trackCancelledTransaction],
+    [isCancelledError, trackTransactionCancelledEvent],
+  );
+
+  const showAutoSignError = useCallback(
+    (error) => {
+      if (isCancelledError(error)) {
+        trackTransactionCancelledEvent();
+        return true;
+      }
+
+      Alert.alert(
+        strings('transactions.transaction_error'),
+        error && error.message,
+        [{ text: strings('navigation.ok') }],
+      );
+      Logger.error(error, 'error while trying to send transaction (Main)');
+      return false;
+    },
+    [isCancelledError, trackTransactionCancelledEvent],
   );
 
   const autoSign = useCallback(
     async (transactionMeta) => {
-      const walletType = getHardwareWalletTypeForAddress(
-        transactionMeta.txParams.from,
-      );
+      try {
+        const walletType = getHardwareWalletTypeForAddress(
+          transactionMeta.txParams.from,
+        );
 
-      if (!walletType) {
-        return;
-      }
+        if (!walletType) {
+          return;
+        }
 
-      // As the `TransactionController:unapprovedTransactionAdded` event is emitted
-      // before the approval request is added to `ApprovalController`, we need to wait
-      // for the next tick to make sure the approval request is present when auto-approve it
-      await new Promise((resolve) => setTimeout(resolve, 0));
+        // As the `TransactionController:unapprovedTransactionAdded` event is emitted
+        // before the approval request is added to `ApprovalController`, we need to wait
+        // for the next tick to make sure the approval request is present when auto-approve it
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-      if (walletType === HardwareWalletType.Qr) {
-        try {
+        if (walletType === HardwareWalletType.Qr) {
           props.navigation.navigate(
             ...createQRSigningTransactionModalNavDetails({
               transactionId: transactionMeta.id,
@@ -102,58 +114,47 @@ const RootRPCMethodsUI = (props) => {
             }),
           );
           return;
-        } catch (error) {
-          if (!trackCancelledTransaction(error)) {
-            Alert.alert(
-              strings('transactions.transaction_error'),
-              error && error.message,
-              [{ text: strings('navigation.ok') }],
-            );
-            Logger.error(
-              error,
-              'error while trying to send transaction (Main)',
-            );
-          }
-          return;
         }
-      }
 
-      await executeHardwareWalletOperation({
-        address: transactionMeta.txParams.from,
-        operationType: 'transaction',
-        ensureDeviceReady,
-        setTargetWalletType,
-        showAwaitingConfirmation,
-        hideAwaitingConfirmation,
-        showHardwareWalletError,
-        onError: handleAutoSignError,
-        execute: async () => {
-          await Engine.context.ApprovalController.acceptRequest(
-            transactionMeta.id,
-            undefined,
-            {
-              waitForResult: true,
-            },
-          );
-        },
-        onRejected: () => {
-          Engine.rejectPendingApproval(
-            transactionMeta.id,
-            new Error('User rejected the transaction'),
-            { ignoreMissing: true, logErrors: false },
-          );
-        },
-      });
+        await executeHardwareWalletOperation({
+          address: transactionMeta.txParams.from,
+          operationType: 'transaction',
+          ensureDeviceReady,
+          setPendingOperationAddress,
+          showAwaitingConfirmation,
+          hideAwaitingConfirmation,
+          showHardwareWalletError,
+          onError: handleAutoSignError,
+          execute: async () => {
+            await Engine.context.ApprovalController.acceptRequest(
+              transactionMeta.id,
+              undefined,
+              {
+                waitForResult: true,
+              },
+            );
+          },
+          onRejected: () => {
+            Engine.rejectPendingApproval(
+              transactionMeta.id,
+              new Error('User rejected the transaction'),
+              { ignoreMissing: true, logErrors: false },
+            );
+          },
+        });
+      } catch (error) {
+        showAutoSignError(error);
+      }
     },
     [
       props.navigation,
       ensureDeviceReady,
-      setTargetWalletType,
+      setPendingOperationAddress,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
       showHardwareWalletError,
-      trackCancelledTransaction,
       handleAutoSignError,
+      showAutoSignError,
     ],
   );
 

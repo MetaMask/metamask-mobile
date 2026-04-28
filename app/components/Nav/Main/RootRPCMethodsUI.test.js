@@ -54,7 +54,7 @@ const mockExecuteHardwareWalletOperation = jest.fn();
 jest.mock('../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: jest.fn(),
-    setTargetWalletType: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
     showAwaitingConfirmation: jest.fn(),
     hideAwaitingConfirmation: jest.fn(),
     showHardwareWalletError: jest.fn(),
@@ -133,6 +133,13 @@ describe('RootRPCMethodsUI', () => {
     });
 
     it('uses the shared hardware wallet execution flow for Ledger auto-sign', async () => {
+      mockExecuteHardwareWalletOperation.mockImplementationOnce(
+        async ({ execute }) => {
+          await execute();
+          return true;
+        },
+      );
+
       const mockNavigate = jest.fn();
       render(<RootRPCMethodsUI navigation={{ navigate: mockNavigate }} />);
 
@@ -152,7 +159,7 @@ describe('RootRPCMethodsUI', () => {
         address: LEDGER_ADDRESS,
         operationType: 'transaction',
         ensureDeviceReady: expect.any(Function),
-        setTargetWalletType: expect.any(Function),
+        setPendingOperationAddress: expect.any(Function),
         showAwaitingConfirmation: expect.any(Function),
         hideAwaitingConfirmation: expect.any(Function),
         showHardwareWalletError: expect.any(Function),
@@ -160,10 +167,6 @@ describe('RootRPCMethodsUI', () => {
         execute: expect.any(Function),
         onRejected: expect.any(Function),
       });
-
-      const executeArg =
-        mockExecuteHardwareWalletOperation.mock.calls[0][0].execute;
-      await executeArg();
 
       expect(
         Engine.context.ApprovalController.acceptRequest,
@@ -195,6 +198,40 @@ describe('RootRPCMethodsUI', () => {
 
       expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('surfaces unexpected errors from hardware wallet type lookup', async () => {
+      const error = new Error('Unable to read hardware wallet account');
+      mockGetHardwareWalletTypeForAddress.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      render(<RootRPCMethodsUI navigation={{ navigate: jest.fn() }} />);
+
+      const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
+      const handleUnapprovedTransaction = subscribeCall[1];
+      handleUnapprovedTransaction({
+        id: 'tx-lookup-error',
+        txParams: { from: LEDGER_ADDRESS },
+      });
+
+      await expect(
+        capturedAutoSign({
+          id: 'tx-lookup-error',
+          txParams: { from: LEDGER_ADDRESS },
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Transaction error',
+        error.message,
+        [{ text: 'OK' }],
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'error while trying to send transaction (Main)',
+      );
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
     });
   });
 

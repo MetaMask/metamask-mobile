@@ -35,12 +35,14 @@ const createMockRefs = (): HardwareWalletRefs => ({
   isConnectingRef: { current: false },
   abortControllerRef: { current: null },
   targetWalletTypeRef: { current: null },
+  pendingOperationWalletTypeRef: { current: null },
 });
 
 const createMockSetters = (): HardwareWalletStateSetters => ({
   setConnectionState: jest.fn(),
   setDeviceId: jest.fn(),
   setTargetWalletType: jest.fn(),
+  setPendingOperationWalletType: jest.fn(),
 });
 
 const createDefaultOptions = (overrides = {}) => ({
@@ -136,6 +138,30 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
+    it('uses pendingOperationWalletTypeRef before the render catches up', async () => {
+      const refs = createMockRefs();
+      refs.pendingOperationWalletTypeRef.current = HardwareWalletType.Qr;
+      const mockAdapter = createMockAdapter({
+        walletType: HardwareWalletType.Qr,
+        requiresDeviceDiscovery: false,
+      });
+      const createAdapterWithCallbacks = jest.fn().mockReturnValue(mockAdapter);
+      const options = createDefaultOptions({
+        refs,
+        walletType: HardwareWalletType.Ledger,
+        createAdapterWithCallbacks,
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      await expect(result.current.ensureDeviceReady()).resolves.toBe(true);
+
+      expect(createAdapterWithCallbacks).toHaveBeenCalledWith(
+        HardwareWalletType.Qr,
+      );
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('default');
+    });
+
     it('calls onFlowStart callback', async () => {
       const mockAdapter = createMockAdapter();
       const onFlowStart = jest.fn();
@@ -159,7 +185,7 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
-    it('abandons previous pending readiness check', async () => {
+    it('cancels previous pending readiness check when a new flow starts', async () => {
       const mockAdapter = createMockAdapter();
       const options = createDefaultOptions({
         createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
@@ -173,16 +199,16 @@ describe('useDeviceConnectionFlow', () => {
         result.current.ensureDeviceReady(),
       );
 
-      // Start second flow (abandons first)
+      // Start second flow (cancels first)
       const { readyPromise: secondPromise } = await capturePendingReadiness(
         () => result.current.ensureDeviceReady(),
       );
 
-      // Close to resolve second
+      await expect(firstPromise).resolves.toBe(false);
+
       await act(async () => {
         result.current.closeFlow();
-        const resolved = await secondPromise;
-        expect(resolved).toBe(false);
+        await expect(secondPromise).resolves.toBe(false);
       });
     });
 
@@ -373,6 +399,10 @@ describe('useDeviceConnectionFlow', () => {
         () => result.current.ensureDeviceReady(),
         { flushMicrotaskInAct: false },
       );
+
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Connecting,
+      });
 
       // QR path resolves the pending promise directly on success
       const resolved = await readyPromise;
@@ -823,7 +853,7 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
-    it('invokes connection success callback and resolves with true', async () => {
+    it('resolves pending readiness with true on connection success', async () => {
       const mockAdapter = createMockAdapter();
       const options = createDefaultOptions({
         createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),

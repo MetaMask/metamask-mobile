@@ -62,6 +62,9 @@ export const useDeviceConnectionFlow = ({
 
   const connectionSuccessCallbackRef = useRef<(() => void) | null>(null);
 
+  const lastDeviceIdRef = useRef<string | null>(deviceId);
+  lastDeviceIdRef.current = deviceId;
+
   /**
    * Resolve an existing adapter or create a new one if the wallet type
    * doesn't match. Named replacement for the inline IIFE that was previously
@@ -178,6 +181,7 @@ export const useDeviceConnectionFlow = ({
         }
 
         setters.setDeviceId(targetDeviceId);
+        lastDeviceIdRef.current = targetDeviceId;
 
         DevLogger.log(
           '[HardwareWallet] Connect succeeded, continuing readiness check...',
@@ -209,12 +213,20 @@ export const useDeviceConnectionFlow = ({
 
       if (pendingReadyResolveRef.current) {
         DevLogger.log(
-          '[HardwareWallet] Abandoning previous pending readiness check (not resolving)',
+          '[HardwareWallet] Cancelling previous pending readiness check',
         );
-        pendingReadyResolveRef.current = null;
+        const resolvePending = pendingReadyResolveRef.current;
+        if (resolvePending) {
+          pendingReadyResolveRef.current = null;
+          connectionSuccessCallbackRef.current = null;
+          resolvePending(false);
+        }
       }
 
-      const targetType = refs.targetWalletTypeRef.current ?? walletType;
+      const targetType =
+        refs.targetWalletTypeRef.current ??
+        refs.pendingOperationWalletTypeRef.current ??
+        walletType;
 
       if (!targetType) {
         throw new Error('ensureDeviceReady called without a wallet type');
@@ -222,6 +234,9 @@ export const useDeviceConnectionFlow = ({
 
       if (!targetDeviceId) {
         setters.setDeviceId(null);
+        lastDeviceIdRef.current = null;
+      } else {
+        lastDeviceIdRef.current = targetDeviceId;
       }
 
       const adapter = resolveOrCreateAdapter(targetType);
@@ -244,9 +259,7 @@ export const useDeviceConnectionFlow = ({
             DevLogger.log(
               '[HardwareWallet] No device ID but discovery not required - checking readiness',
             );
-            if (adapter.walletType !== HardwareWalletType.Qr) {
-              updateConnectionState({ status: ConnectionStatus.Connecting });
-            }
+            updateConnectionState({ status: ConnectionStatus.Connecting });
 
             (async () => {
               try {
@@ -318,20 +331,19 @@ export const useDeviceConnectionFlow = ({
       return;
     }
 
-    if (deviceId && adapter) {
-      if (adapter.walletType !== HardwareWalletType.Qr) {
-        updateConnectionState({ status: ConnectionStatus.Connecting });
-      }
+    const effectiveDeviceId = lastDeviceIdRef.current;
+
+    if (effectiveDeviceId && adapter) {
+      updateConnectionState({ status: ConnectionStatus.Connecting });
       try {
-        await tryEnsureReady(adapter, deviceId);
+        await tryEnsureReady(adapter, effectiveDeviceId);
       } catch (error) {
         handleError(error);
       }
-    } else if (adapter?.walletType !== HardwareWalletType.Qr) {
+    } else {
       updateConnectionState({ status: ConnectionStatus.Scanning });
     }
   }, [
-    deviceId,
     handleError,
     updateConnectionState,
     refs,
@@ -340,9 +352,11 @@ export const useDeviceConnectionFlow = ({
   ]);
 
   const closeFlow = useCallback(() => {
-    if (pendingReadyResolveRef.current) {
-      pendingReadyResolveRef.current(false);
+    const resolvePending = pendingReadyResolveRef.current;
+    if (resolvePending) {
       pendingReadyResolveRef.current = null;
+      connectionSuccessCallbackRef.current = null;
+      resolvePending(false);
     }
     setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });

@@ -79,7 +79,7 @@ const mockExecuteHardwareWalletOperation = jest.fn();
 jest.mock('../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: jest.fn(),
-    setTargetWalletType: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
     showAwaitingConfirmation: jest.fn(),
     hideAwaitingConfirmation: jest.fn(),
     showHardwareWalletError: jest.fn(),
@@ -572,7 +572,7 @@ describe('useUnifiedTxActions', () => {
         address: SELECTED_ADDRESS,
         operationType: 'transaction',
         ensureDeviceReady: expect.any(Function),
-        setTargetWalletType: expect.any(Function),
+        setPendingOperationAddress: expect.any(Function),
         showAwaitingConfirmation: expect.any(Function),
         hideAwaitingConfirmation: expect.any(Function),
         showHardwareWalletError: expect.any(Function),
@@ -598,7 +598,7 @@ describe('useUnifiedTxActions', () => {
         address: SELECTED_ADDRESS,
         operationType: 'transaction',
         ensureDeviceReady: expect.any(Function),
-        setTargetWalletType: expect.any(Function),
+        setPendingOperationAddress: expect.any(Function),
         showAwaitingConfirmation: expect.any(Function),
         hideAwaitingConfirmation: expect.any(Function),
         showHardwareWalletError: expect.any(Function),
@@ -611,17 +611,17 @@ describe('useUnifiedTxActions', () => {
     it('accepts a plain Ledger signing request when no replacement params are present', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
 
+      mockExecuteHardwareWalletOperation.mockImplementationOnce(
+        async ({ execute }) => {
+          await execute();
+          return true;
+        },
+      );
+
       await act(async () => {
         await result.current.signLedgerTransaction({
           id: 'plain-ledger-sign',
         });
-      });
-
-      const executeArg = mockExecuteHardwareWalletOperation.mock.calls[0][0]
-        .execute as () => Promise<void>;
-
-      await act(async () => {
-        await executeArg();
       });
 
       const acceptMock = engineContext.ApprovalController
@@ -706,16 +706,16 @@ describe('useUnifiedTxActions', () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = { id: 'ledger-speedup-3' } as unknown as TransactionMeta;
 
+          mockExecuteHardwareWalletOperation.mockImplementationOnce(
+            async ({ execute }) => {
+              await execute();
+              return true;
+            },
+          );
+
           act(() => result.current.onSpeedUpAction(true, tx));
           await act(async () => {
             await result.current.speedUpTransaction({} as SpeedUpCancelParams);
-          });
-
-          const executeArg = mockExecuteHardwareWalletOperation.mock.calls[0][0]
-            .execute as () => Promise<void>;
-
-          await act(async () => {
-            await executeArg();
           });
 
           expect(speedUpTx).toHaveBeenCalledWith('ledger-speedup-3', {
@@ -730,16 +730,16 @@ describe('useUnifiedTxActions', () => {
             txParams: { gasPrice: '0x123' },
           } as unknown as TransactionMeta;
 
+          mockExecuteHardwareWalletOperation.mockImplementationOnce(
+            async ({ execute }) => {
+              await execute();
+              return true;
+            },
+          );
+
           act(() => result.current.onSpeedUpAction(true, tx));
           await act(async () => {
             await result.current.speedUpTransaction({} as SpeedUpCancelParams);
-          });
-
-          const executeArg = mockExecuteHardwareWalletOperation.mock.calls[0][0]
-            .execute as () => Promise<void>;
-
-          await act(async () => {
-            await executeArg();
           });
 
           expect(speedUpTx).toHaveBeenCalledWith(
@@ -871,16 +871,16 @@ describe('useUnifiedTxActions', () => {
           const { result } = renderUnifiedTxActions();
           const tx = { id: 'ledger-cancel-3' } as unknown as TransactionMeta;
 
+          mockExecuteHardwareWalletOperation.mockImplementationOnce(
+            async ({ execute }) => {
+              await execute();
+              return true;
+            },
+          );
+
           act(() => result.current.onCancelAction(true, tx));
           await act(async () => {
             await result.current.cancelTransaction({} as SpeedUpCancelParams);
-          });
-
-          const executeArg = mockExecuteHardwareWalletOperation.mock.calls[0][0]
-            .execute as () => Promise<void>;
-
-          await act(async () => {
-            await executeArg();
           });
 
           expect(
@@ -897,6 +897,13 @@ describe('useUnifiedTxActions', () => {
             txParams: { gasPrice: '0x456' },
           } as unknown as TransactionMeta;
 
+          mockExecuteHardwareWalletOperation.mockImplementationOnce(
+            async ({ execute }) => {
+              await execute();
+              return true;
+            },
+          );
+
           act(() => result.current.onCancelAction(true, tx));
           await act(async () => {
             await result.current.cancelTransaction({} as SpeedUpCancelParams);
@@ -905,12 +912,6 @@ describe('useUnifiedTxActions', () => {
           // legacyGasFee is undefined because getCancelOrSpeedupValues returns
           // undefined when existing gasPrice is non-zero, letting the
           // TransactionController apply its internal rate multiplication (1.1x).
-          const executeArg = mockExecuteHardwareWalletOperation.mock.calls[0][0]
-            .execute as () => Promise<void>;
-
-          await act(async () => {
-            await executeArg();
-          });
 
           expect(
             engineContext.TransactionController.stopTransaction,
