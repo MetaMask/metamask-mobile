@@ -1,13 +1,13 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import AssetActionButton from '.';
 
 describe('AssetActionButtons', () => {
   const mockText = 'mock text';
 
   it('should render correctly', () => {
-    const { toJSON } = render(<AssetActionButton label={mockText} />);
-    expect(toJSON()).toBeDefined();
+    render(<AssetActionButton label={mockText} />);
+    expect(screen.getByText(mockText)).toBeDefined();
   });
 
   it('should render type send correctly', () => {
