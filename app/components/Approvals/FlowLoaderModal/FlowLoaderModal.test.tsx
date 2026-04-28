@@ -48,7 +48,8 @@ describe('FlowLoaderModal', () => {
 
     const wrapper = shallow(<FlowLoaderModal />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(false);
+    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(true);
   });
 
   it('returns null if no approval flow', () => {
@@ -56,7 +57,7 @@ describe('FlowLoaderModal', () => {
     mockApprovalRequest(undefined);
 
     const wrapper = shallow(<FlowLoaderModal />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(true);
   });
 
   it('returns null if approval request', () => {
@@ -66,6 +67,6 @@ describe('FlowLoaderModal', () => {
     mockApprovalRequest({ type: ApprovalTypes.CONNECT_ACCOUNTS } as any);
 
     const wrapper = shallow(<FlowLoaderModal />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(true);
   });
 });
