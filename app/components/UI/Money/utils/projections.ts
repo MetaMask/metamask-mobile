@@ -1,5 +1,5 @@
 /** Number of years the projected earnings are simulated over. */
-export const PROJECTION_YEARS = 5;
+export const PROJECTION_YEARS = 1;
 
 /**
  * Linear projection of earnings over a given time period.
