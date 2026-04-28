@@ -2,7 +2,10 @@ import { merge } from 'lodash';
 import { BigNumber } from 'bignumber.js';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionCustomAmount } from './useTransactionCustomAmount';
-import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { act } from 'react';
@@ -657,7 +660,7 @@ describe('useTransactionCustomAmount', () => {
       runHook({
         transactionMeta: {
           type: TransactionType.moneyAccountWithdraw,
-          id: '1',
+          id: transactionIdMock,
           chainId: '0x1' as Hex,
         } as TransactionMeta,
       });
