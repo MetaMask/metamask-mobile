@@ -107,7 +107,7 @@ const DEFAULT_MUSD_BALANCE_QUERY: QueryState<{ balance: string }> = {
   isLoading: false,
 };
 const DEFAULT_VAULT_APY_QUERY: QueryState<{ apy: number }> = {
-  data: { apy: 5.5 },
+  data: { apy: 0.05 },
   isLoading: false,
 };
 const DEFAULT_MUSD_EQUIVALENT_BALANCE_QUERY: QueryState<{
@@ -285,5 +285,37 @@ describe('useMoneyAccountBalance', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.totalFiatRaw).toBe('3');
+  });
+
+  it('returns apyDecimal as the raw vault APY value from the API', () => {
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyDecimal).toBe(0.05);
+  });
+
+  it('returns apyPercent as the vault APY multiplied by 100', () => {
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyPercent).toBe(5);
+  });
+
+  it('returns apyPercentFormatted as a display-ready percentage string', () => {
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyPercentFormatted).toBe('5%');
+  });
+
+  it('returns undefined for all APY fields when vault APY data is not available', () => {
+    mockUseQueries.mockReturnValue(
+      makeQueryResults({
+        vaultApy: { data: undefined, isLoading: true },
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyDecimal).toBeUndefined();
+    expect(result.current.apyPercent).toBeUndefined();
+    expect(result.current.apyPercentFormatted).toBeUndefined();
   });
 });

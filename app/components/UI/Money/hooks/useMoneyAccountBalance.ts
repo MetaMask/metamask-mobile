@@ -165,6 +165,13 @@ const useMoneyAccountBalance = (
   const totalFiatFormatted = totalFiat ? formatFiat(totalFiat) : undefined;
   const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
 
+  const rawApy = vaultApyQuery.data?.apy;
+
+  const apyDecimal = rawApy;
+  const apyPercent = rawApy !== undefined ? rawApy * 100 : undefined;
+  const apyPercentFormatted =
+    apyPercent !== undefined ? `${apyPercent}%` : undefined;
+
   return {
     musdBalanceQuery,
     vaultApyQuery,
@@ -175,6 +182,10 @@ const useMoneyAccountBalance = (
     tokenTotal,
     totalFiatFormatted,
     totalFiatRaw,
+    apyDecimal,
+    apyPercent,
+    // TODO: Update consumers to use apyPercent instead of formatting repeatedly.
+    apyPercentFormatted,
   };
 };
 

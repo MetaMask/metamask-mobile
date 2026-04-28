@@ -54,8 +54,12 @@ const MoneyHomeView = () => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
 
-  const { totalFiatFormatted, vaultApyQuery, isAggregatedBalanceLoading } =
-    useMoneyAccountBalance();
+  const {
+    totalFiatFormatted,
+    vaultApyQuery,
+    isAggregatedBalanceLoading,
+    apyPercent,
+  } = useMoneyAccountBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
@@ -133,7 +137,7 @@ const MoneyHomeView = () => {
 
   // TODO: Remove before launch
   // Useful for testing how zero and non-zero APYs are handled quickly.
-  const DEV_APY = __DEV__ ? 4 : vaultApyQuery.data?.apy;
+  const DEV_APY = __DEV__ ? 4 : apyPercent;
 
   return (
     <Box

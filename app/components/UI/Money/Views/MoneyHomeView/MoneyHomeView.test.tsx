@@ -127,8 +127,11 @@ describe('MoneyHomeView', () => {
       totalFiatRaw: '3',
       tokenTotal: undefined,
       isAggregatedBalanceLoading: false,
+      apyDecimal: 0.05,
+      apyPercent: 5,
+      apyPercentFormatted: '5%',
       vaultApyQuery: {
-        data: { apy: 5.5, timestamp: '2026-01-01T00:00:00Z' },
+        data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
       },
       musdBalanceQuery: {
