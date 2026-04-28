@@ -49,13 +49,6 @@ describe('SuccessErrorSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { getByText } = renderWithProvider(
-      <SuccessErrorSheet route={mockRoute} />,
-    );
-    getByText('Test Title');
-  });
-
   it('renders correctly with all props', () => {
     const { getByText, getByRole } = renderWithProvider(
       <SuccessErrorSheet route={mockRoute} />,

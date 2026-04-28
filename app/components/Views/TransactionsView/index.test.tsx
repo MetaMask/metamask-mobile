@@ -403,22 +403,6 @@ describe('TransactionsView', () => {
   });
 
   describe('Basic Rendering', () => {
-    it('renders correctly and matches snapshot', async () => {
-      (
-        selectSelectedInternalAccount as jest.MockedFunction<
-          typeof selectSelectedInternalAccount
-        >
-      ).mockReturnValue(createMockAccount() as any);
-
-      const component = renderTransactionsView();
-
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(component.toJSON()).not.toBeNull();
-    });
-
     it('renders with loading state initially', () => {
       (
         selectSelectedInternalAccount as jest.MockedFunction<

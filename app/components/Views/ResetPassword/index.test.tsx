@@ -301,13 +301,6 @@ describe('ResetPassword', () => {
     mockNavigation.push.mockClear();
   });
 
-  it('render matches snapshot', async () => {
-    const component = renderComponent();
-    await flushMicrotasks();
-
-    component.getByText(strings('password_reset.change_password'));
-  });
-
   describe('confirm current password view', () => {
     it('renders header with Change password title', async () => {
       const component = renderComponent();
