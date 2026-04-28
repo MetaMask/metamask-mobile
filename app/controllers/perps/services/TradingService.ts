@@ -34,6 +34,20 @@ import type {
 import { ensureError } from '../utils/errorUtils';
 
 /**
+ * Thrown by TradingService.placeOrder when the provider does not respond within
+ * PERPS_CONSTANTS.PlaceOrderTimeoutMs. Caught in the same method so the
+ * PerpsPlaceOrder trace can be tagged with reason: 'timeout'.
+ */
+export class PerpsOrderTimeoutError extends Error {
+  constructor() {
+    super(
+      `Order submission timed out after ${PERPS_CONSTANTS.PlaceOrderTimeoutMs}ms`,
+    );
+    this.name = 'PerpsOrderTimeoutError';
+  }
+}
+
+/**
  * Controller-level dependencies for TradingService.
  * These are singletons that don't change per-call, injected once via setControllerDependencies().
  */
@@ -368,7 +382,12 @@ export class TradingService {
     const traceId = uuidv4();
     const startTime = this.#deps.performance.now();
     let traceData:
-      | { success: boolean; error?: string; orderId?: string }
+      | {
+          success: boolean;
+          error?: string;
+          orderId?: string;
+          reason?: 'error' | 'timeout';
+        }
       | undefined;
 
     const paymentToken =
@@ -429,11 +448,22 @@ export class TradingService {
         },
       );
 
-      // Execute order with fee discount management
+      // Execute order with fee discount management.
+      // The timeout race lives inside the operation callback so that
+      // #withFeeDiscount's fee-discount cleanup still runs on timeout.
       const result = await this.#withFeeDiscount({
         provider,
         feeDiscountBips,
-        operation: () => provider.placeOrder(params),
+        operation: () =>
+          Promise.race([
+            provider.placeOrder(params),
+            new Promise<never>((_resolve, reject) =>
+              setTimeout(
+                () => reject(new PerpsOrderTimeoutError()),
+                PERPS_CONSTANTS.PlaceOrderTimeoutMs,
+              ),
+            ),
+          ]),
       });
 
       this.#deps.debugLogger.log('TradingService: Provider response received', {
@@ -458,7 +488,11 @@ export class TradingService {
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
-        traceData = { success: false, error: result.error ?? 'Unknown error' };
+        traceData = {
+          success: false,
+          reason: 'error',
+          error: result.error ?? 'Unknown error',
+        };
       }
 
       // Track analytics (success or failure)
@@ -502,6 +536,7 @@ export class TradingService {
 
       traceData = {
         success: false,
+        reason: error instanceof PerpsOrderTimeoutError ? 'timeout' : 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
       };
       throw error;

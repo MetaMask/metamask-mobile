@@ -41,6 +41,9 @@ export const PERPS_CONSTANTS = {
   BalanceUpdateThrottleMs: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
   InitialDataDelayMs: 100, // Delay to allow initial data to load after connection establishment
 
+  // Order submission timing
+  PlaceOrderTimeoutMs: 60_000, // Hard timeout for provider round-trip in TradingService.placeOrder
+
   // Deposit toast timing
   DepositTakingLongerToastDelayMs: 30_000, // Delay before showing "Deposit taking longer than usual" toast
 

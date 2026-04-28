@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { TraceName, TraceOperation } from '../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -14,7 +13,6 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
-import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsOrderExecutionParams {
@@ -45,15 +43,6 @@ export function usePerpsOrderExecution(
   const [isPlacing, setIsPlacing] = useState(false);
   const [lastResult, setLastResult] = useState<OrderResult>();
   const [error, setError] = useState<string>();
-
-  // Track order submission toast with unified measurement hook
-  usePerpsMeasurement({
-    traceName: TraceName.PerpsOrderSubmissionToast,
-    op: TraceOperation.PerpsOrderSubmission,
-    startConditions: [isPlacing], // Start when placing begins
-    endConditions: [!!lastResult || !!error], // End when we have result or error
-    resetConditions: [!isPlacing], // Reset when not placing
-  });
 
   const placeOrder = useCallback(
     async (orderParams: OrderParams) => {
