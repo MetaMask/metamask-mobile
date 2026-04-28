@@ -18,3 +18,8 @@ export {
   isQRHardwareScanError,
   QRHardwareScanErrorType,
 } from './qrScan';
+
+export type {
+  QRHardwareScanError,
+  QRHardwareScanErrorMetadata,
+} from './qrScan';
