@@ -81,14 +81,15 @@ describe('SwitchChainApproval', () => {
 
     const wrapper = shallow(<SwitchChainApproval />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(false);
+    expect(wrapper.find('ApprovalModal').prop('isVisible')).toBe(true);
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
     const wrapper = shallow(<SwitchChainApproval />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(true);
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -97,7 +98,7 @@ describe('SwitchChainApproval', () => {
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
     const wrapper = shallow(<SwitchChainApproval />);
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.isEmptyRender()).toBe(true);
   });
 
   it('calls networkSwitched action when confirm is pressed', () => {
