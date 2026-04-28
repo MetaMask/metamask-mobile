@@ -10152,9 +10152,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/social-controllers@npm:2.0.0"
+"@metamask/social-controllers@npm:@metamask-previews/social-controllers@2.1.0-preview-495c91e":
+  version: 2.1.0-preview-495c91e
+  resolution: "@metamask-previews/social-controllers@npm:2.1.0-preview-495c91e"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/base-data-service": "npm:^0.1.1"
@@ -10162,7 +10162,7 @@ __metadata:
     "@metamask/messenger": "npm:^1.1.1"
     "@metamask/profile-sync-controller": "npm:^28.0.2"
     "@metamask/superstruct": "npm:^3.1.0"
-  checksum: 10/0165cf574f46415c4208bede2d9676423f5c75d8eb181ee48fd801254aec9e53aa4b4cd2aca7a9093f0ced3a262f7b648851025e52dc8a336fd9e82eee000be5
+  checksum: 10/d014b0b0af3aa263657755d9f6a869dda6aeca63a5c3345f4720751a2dcabbad8aa7ed817f141cecce5aff2eac551f40857ab873941ca5e58b8922e60f04bf9b
   languageName: node
   linkType: hard
 
