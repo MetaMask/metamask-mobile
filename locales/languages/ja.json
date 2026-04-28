@@ -7746,8 +7746,6 @@
         "manage_spending_limit": "利用限度額の管理",
         "manage_spending_limit_description_restricted": "利用制限がオンになっています",
         "manage_spending_limit_description_full": "フルアクセスがオンになっています",
-        "manage_card": "カードの管理",
-        "advanced_card_management_description": "アクティビティやキャッシュバックの確認、カードの凍結など",
         "travel_title": "MetaMask Travel",
         "travel_description": "最大70%割引でホテルを予約",
         "card_tos_title": "利用規約",
