@@ -15,8 +15,6 @@ export interface FilterButtonProps {
   disabled?: boolean;
   numberOfLines?: number;
   ellipsizeMode?: 'tail' | 'head' | 'middle' | 'clip';
-  /** Extra horizontal padding (px-3) vs default (p-2) */
-  wide?: boolean;
   /** Optional Tailwind class overrides for layout in custom contexts */
   twClassName?: string;
 }
@@ -28,7 +26,6 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   disabled = false,
   numberOfLines,
   ellipsizeMode,
-  wide = false,
   twClassName,
 }) => {
   const tw = useTailwind();
@@ -38,8 +35,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       testID={testID}
       onPress={onPress}
       style={tw.style(
-        'min-w-0 shrink items-center rounded-xl bg-muted',
-        wide ? 'py-2 px-3' : 'py-2 px-3',
+        'min-w-0 shrink items-center rounded-xl bg-muted py-2 px-3',
         disabled && 'opacity-50',
         twClassName,
       )}
@@ -99,7 +95,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
           label={priceChangeButtonText}
           onPress={onPriceChangePress}
           disabled={isPriceChangeDisabled}
-          wide
         />
         <View style={tw`ml-2 min-w-0 shrink flex-row items-center gap-2`}>
           <FilterButton
