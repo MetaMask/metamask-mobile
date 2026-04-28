@@ -7,15 +7,20 @@ import {
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import {
+  addCurrencySymbol,
+  fromTokenMinimalUnitString,
+} from '../../../../util/number';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_DECIMALS,
 } from '../../Earn/constants/musd';
-import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
@@ -41,7 +46,7 @@ const useMoneyAccountBalance = (
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const formatFiat = useFiatFormatter();
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const [musdBalanceQuery, vaultApyQuery, musdEquivalentBalanceQuery] =
     useQueries({
@@ -158,12 +163,20 @@ const useMoneyAccountBalance = (
     musdFiatRate,
   ]);
 
-  const musdFiatFormatted = musdFiat ? formatFiat(musdFiat) : undefined;
+  const formatFiatBalance = (value: BigNumber): string => {
+    const num = value.toNumber();
+    return num >= 0.01 || num === 0
+      ? addCurrencySymbol(num.toFixed(2), currentCurrency)
+      : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+  };
+
+  const musdFiatFormatted = musdFiat ? formatFiatBalance(musdFiat) : undefined;
   const musdSHFvdFiatFormatted = musdSHFvdFiat
-    ? formatFiat(musdSHFvdFiat)
+    ? formatFiatBalance(musdSHFvdFiat)
     : undefined;
-  // TODO: Fix formatting to match the TokenListItem currency formatting.
-  const totalFiatFormatted = totalFiat ? formatFiat(totalFiat) : undefined;
+  const totalFiatFormatted = totalFiat
+    ? formatFiatBalance(totalFiat)
+    : undefined;
   const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
 
   const rawApy = vaultApyQuery.data?.apy;

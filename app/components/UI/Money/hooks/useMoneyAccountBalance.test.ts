@@ -6,7 +6,10 @@ import useMoneyAccountBalance, {
 } from './useMoneyAccountBalance';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 
@@ -18,12 +21,6 @@ jest.mock('react-redux', () => ({
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueries: jest.fn(),
-}));
-
-jest.mock('../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (val: { toFixed: (n: number) => string }) =>
-    `$${val.toFixed(2)}`,
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -46,6 +43,7 @@ jest.mock('../../../../selectors/tokenRatesController', () => ({
 }));
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(),
+  selectCurrentCurrency: jest.fn(),
 }));
 jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(),
@@ -92,6 +90,9 @@ function setupDefaultSelectors() {
     }
     if (selector === selectNetworkConfigurations) {
       return MOCK_NETWORK_CONFIGURATIONS;
+    }
+    if (selector === selectCurrentCurrency) {
+      return 'usd';
     }
     return undefined;
   });
