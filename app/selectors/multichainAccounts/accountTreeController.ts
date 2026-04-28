@@ -11,6 +11,7 @@ import {
   parseAccountGroupId,
 } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import {
   AccountWalletObject,
   AccountGroupObject,
@@ -417,6 +418,12 @@ export const selectSelectedAccountGroupInternalAccounts = createSelector(
 
     return (group?.accounts ?? EMPTY_ARR) as readonly InternalAccount[];
   },
+);
+
+export const selectSelectedAccountGroupEvmInternalAccount = createSelector(
+  selectSelectedAccountGroupInternalAccounts,
+  (accounts): InternalAccount | null =>
+    accounts.find((account) => isEvmAccountType(account.type)) ?? null,
 );
 
 /**
