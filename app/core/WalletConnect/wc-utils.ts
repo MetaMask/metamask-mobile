@@ -558,3 +558,106 @@ export const getUnverifiedRequestOrigin = (
   }
   return defaultOrigin;
 };
+
+/**
+ * Minimal shape of session namespaces consumed by chainChanged emission
+ * helpers. Mirrors `SessionTypes.Namespaces` but kept loose so we don't
+ * pull a heavy WC type dependency into helper code.
+ */
+interface ChainChangedNamespacesLike {
+  [namespace: string]: { chains?: string[]; events?: string[] } | undefined;
+}
+
+/** CAIP-2 namespace keys that are treated as "EVM" by the emission helper. */
+const EVM_NAMESPACE_KEYS = new Set<string>(['eip155', 'wallet']);
+
+export interface ChainChangedEmission {
+  chainId: string;
+  data: string | number;
+}
+
+export interface ChainChangedEmitDecision {
+  shouldEmit: boolean;
+  reason?: 'chain_not_in_session' | 'event_not_supported';
+  namespace?: string;
+  activeSessionChains?: string[];
+  namespaceEvents?: string[];
+}
+
+/**
+ * Pick the best `chainChanged` emission target for a WalletConnect session.
+ *
+ * Any non-EVM namespace (Tron, Solana, Bitcoin, ...) takes priority when
+ * present — its CAIP-2 chain id is used as both the `chainId` envelope and
+ * the `data` payload, since non-EVM dapps don't recognise EVM hex chain
+ * ids. Otherwise we fall back to EVM, using the wallet's active EVM chain
+ * when the session doesn't expose any.
+ */
+export const getChainChangedEmissionForWalletConnect = ({
+  namespaces,
+  fallbackEvmDecimal,
+  fallbackEvmHex,
+}: {
+  namespaces?: ChainChangedNamespacesLike;
+  fallbackEvmDecimal: number;
+  fallbackEvmHex: string;
+}): ChainChangedEmission => {
+  const nonEvmEntry = Object.entries(namespaces ?? {}).find(
+    ([key, slice]) =>
+      !EVM_NAMESPACE_KEYS.has(key) && (slice?.chains?.length ?? 0) > 0,
+  );
+  if (nonEvmEntry) {
+    const firstChain = nonEvmEntry[1]?.chains?.[0] as string;
+    return { chainId: firstChain, data: firstChain };
+  }
+
+  const eip155Chain = namespaces?.eip155?.chains?.[0];
+  if (eip155Chain) {
+    return {
+      chainId: eip155Chain,
+      data: fallbackEvmHex,
+    };
+  }
+
+  return {
+    chainId: `eip155:${fallbackEvmDecimal}`,
+    data: fallbackEvmHex,
+  };
+};
+
+/**
+ * Decide whether a `chainChanged` event should be forwarded to a session.
+ * WalletKit rejects emits for chains that aren't part of the session or for
+ * namespaces that don't list `chainChanged` in their events.
+ */
+export const shouldEmitChainChangedForWalletConnect = ({
+  chainId,
+  namespaces,
+}: {
+  chainId: string;
+  namespaces?: ChainChangedNamespacesLike;
+}): ChainChangedEmitDecision => {
+  const activeSessionChains = Object.values(namespaces ?? {}).flatMap(
+    (ns) => ns?.chains ?? [],
+  );
+  if (!activeSessionChains.includes(chainId)) {
+    return {
+      shouldEmit: false,
+      reason: 'chain_not_in_session',
+      activeSessionChains,
+    };
+  }
+
+  const namespace = chainId.split(':')[0];
+  const namespaceEvents = namespaces?.[namespace]?.events ?? [];
+  if (!namespaceEvents.includes('chainChanged')) {
+    return {
+      shouldEmit: false,
+      reason: 'event_not_supported',
+      namespace,
+      namespaceEvents,
+    };
+  }
+
+  return { shouldEmit: true };
+};

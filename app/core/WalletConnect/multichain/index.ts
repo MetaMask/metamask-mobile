@@ -1,0 +1,84 @@
+/**
+ * Public entry point for the WalletConnect multichain adapter layer.
+ *
+ * This module re-exports the orchestration helpers used by the WC2
+ * session classes and provides per-request dispatchers
+ * (`mapRequestForSnap` / `normalizeSnapResponse`) that pick the right
+ * adapter from the request scope's CAIP-2 namespace.
+ *
+ * The WC2 classes only depend on this barrel — they never import a
+ * specific chain (`./tron`, `./solana`, ...) directly.
+ */
+
+import { getAdapter } from './registry';
+import type { SnapMappedRequest } from './types';
+
+export {
+  buildAdapterNamespaces,
+  proposalReferencedAdapterNamespaces,
+  seedAdapterPermissions,
+} from './namespaces';
+export type { ApprovedNamespaces } from './namespaces';
+export {
+  getAdapter,
+  getAllAdapters,
+  getAllRegisteredNamespaces,
+} from './registry';
+export type {
+  BuildNamespaceArgs,
+  ChainAdapter,
+  NamespaceConfig,
+  ProposalLike,
+  SnapMappedRequest,
+} from './types';
+
+const splitNamespace = (scope: string): string => scope.split(':')[0];
+
+/**
+ * Translate a WalletConnect request into the parameter shape the
+ * Snap behind this scope expects. Falls through unchanged when no
+ * adapter matches.
+ */
+export const mapRequestForSnap = ({
+  scope,
+  method,
+  params,
+}: {
+  scope: string;
+  method: string;
+  params: unknown;
+}): SnapMappedRequest => {
+  const adapter = getAdapter(splitNamespace(scope));
+  return adapter
+    ? adapter.mapRequestForSnap({ method, params })
+    : { method, params };
+};
+
+/**
+ * Normalize the Snap result back into the shape the dapp expects.
+ * Falls through unchanged when no adapter matches.
+ */
+export const normalizeSnapResponse = ({
+  scope,
+  method,
+  params,
+  result,
+}: {
+  scope: string;
+  method: string;
+  params: unknown;
+  result: unknown;
+}): unknown => {
+  const adapter = getAdapter(splitNamespace(scope));
+  return adapter
+    ? adapter.normalizeSnapResponse({ method, params, result })
+    : result;
+};
+
+/** Methods (across all chains) that should redirect the user back to the dapp. */
+export const getRedirectMethodsForChain = (
+  scope: string,
+): readonly string[] => {
+  const adapter = getAdapter(splitNamespace(scope));
+  return adapter?.redirectMethods ?? [];
+};
