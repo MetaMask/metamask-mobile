@@ -31,6 +31,7 @@ import {
   type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
+  type OHLCVBar as OHLCVBarData,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
@@ -59,6 +60,52 @@ import type {
 import PriceLegacy from './Price.legacy';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
+
+// Fixed point count keeps react-native-graph's interpolation stable across
+// timeframe changes — variable counts cause two-stage animations.
+const NORMALIZED_POINT_COUNT = 100;
+
+const buildGraphPoints = (
+  data: readonly OHLCVBarData[],
+  fromMs: number,
+): GraphPoint[] => {
+  if (data.length === 0) return [];
+  const trimmed = data.filter((bar) => bar.time >= fromMs);
+  if (trimmed.length === 0) return [];
+
+  if (trimmed.length <= NORMALIZED_POINT_COUNT) {
+    const points = trimmed.map((bar) => ({
+      value: bar.close,
+      date: new Date(bar.time),
+    }));
+    if (points.length >= 2 && points.length < NORMALIZED_POINT_COUNT) {
+      const result: GraphPoint[] = new Array(NORMALIZED_POINT_COUNT);
+      const step = (points.length - 1) / (NORMALIZED_POINT_COUNT - 1);
+      for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
+        const rawIdx = i * step;
+        const lo = Math.floor(rawIdx);
+        const hi = Math.min(lo + 1, points.length - 1);
+        const t = rawIdx - lo;
+        result[i] = {
+          value: points[lo].value * (1 - t) + points[hi].value * t,
+          date: new Date(
+            points[lo].date.getTime() * (1 - t) + points[hi].date.getTime() * t,
+          ),
+        };
+      }
+      return result;
+    }
+    return points;
+  }
+  const result: GraphPoint[] = new Array(NORMALIZED_POINT_COUNT);
+  const step = (trimmed.length - 1) / (NORMALIZED_POINT_COUNT - 1);
+  for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
+    const idx = Math.round(i * step);
+    const bar = trimmed[idx];
+    result[i] = { value: bar.close, date: new Date(bar.time) };
+  }
+  return result;
+};
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -107,14 +154,16 @@ const PriceAdvanced = ({
   const handlePointSelected = useCallback((point: GraphPoint) => {
     // Bridge LineGraph scrub into the existing crosshair-driven header so
     // displayPrice / displayDiff / displayDate update the same way as candles.
+    const value = point.value;
+    const time = point.date.getTime();
     setCrosshairData({
-      time: point.date.getTime(),
-      open: point.value,
-      high: point.value,
-      low: point.value,
-      close: point.value,
+      time,
+      open: value,
+      high: value,
+      low: value,
+      close: value,
       volume: 0,
-    } as CrosshairData);
+    });
   }, []);
 
   const handleCrosshairMove = useCallback(
@@ -191,6 +240,9 @@ const PriceAdvanced = ({
   );
 
   const assetId = useMemo(() => {
+    // Normalize Polygon's native token address (0x...001010) to zero address
+    // before formatting to CAIP-19 assetId. formatAddressToAssetId will convert
+    // zero address to proper SLIP-44 format (e.g., eip155:137/slip44:966 for Polygon)
     const normalizedAddress = normalizeTokenAddress(
       asset.address,
       asset.chainId as Hex,
@@ -208,6 +260,9 @@ const PriceAdvanced = ({
   }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
 
+  /**
+   * Used to make sure changing time range always sends a full SET_OHLCV_DATA
+   */
   const ohlcvSeriesKey = useMemo(
     () =>
       `${assetId}|${config.timePeriod}|${config.interval}|${currentCurrency}`,
@@ -249,67 +304,24 @@ const PriceAdvanced = ({
 
   const visibleToMs = lastBarTime;
 
-  // Build graph points by trimming to the visible window and resampling to a
-  // fixed point count. Fixed cardinality lets react-native-graph interpolate
-  // cleanly between timeframes — variable counts cause two-stage animations
-  // (rebuild then settle).
-  const NORMALIZED_POINT_COUNT = 100;
-  const buildGraphPoints = useCallback(
-    (data: typeof ohlcvData, fromMs: number): GraphPoint[] => {
-      if (data.length === 0) return [];
-      const trimmed = data.filter((bar) => bar.time >= fromMs);
-      if (trimmed.length === 0) return [];
-
-      if (trimmed.length <= NORMALIZED_POINT_COUNT) {
-        const points = trimmed.map((bar) => ({
-          value: bar.close,
-          date: new Date(bar.time),
-        }));
-        if (points.length >= 2 && points.length < NORMALIZED_POINT_COUNT) {
-          const result: GraphPoint[] = [];
-          const step = (points.length - 1) / (NORMALIZED_POINT_COUNT - 1);
-          for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
-            const rawIdx = i * step;
-            const lo = Math.floor(rawIdx);
-            const hi = Math.min(lo + 1, points.length - 1);
-            const t = rawIdx - lo;
-            result.push({
-              value: points[lo].value * (1 - t) + points[hi].value * t,
-              date: new Date(
-                points[lo].date.getTime() * (1 - t) +
-                  points[hi].date.getTime() * t,
-              ),
-            });
-          }
-          return result;
-        }
-        return points;
-      }
-      const result: GraphPoint[] = [];
-      const step = (trimmed.length - 1) / (NORMALIZED_POINT_COUNT - 1);
-      for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
-        const idx = Math.round(i * step);
-        const bar = trimmed[idx];
-        result.push({ value: bar.close, date: new Date(bar.time) });
-      }
-      return result;
-    },
-    [],
-  );
-
-  // Commit a new point set only when the underlying ohlcvData *array reference*
-  // changes (i.e. a fresh fetch landed). This prevents a re-window of the
-  // previous fetch's data while the new fetch is still in-flight.
-  const [graphPoints, setGraphPoints] = useState<GraphPoint[]>([]);
-  const committedDataRef = useRef<typeof ohlcvData | null>(null);
-  if (
-    ohlcvData !== committedDataRef.current &&
-    ohlcvData.length > 0 &&
-    visibleFromMs != null
-  ) {
+  const committedPointsRef = useRef<GraphPoint[]>([]);
+  const committedSeriesKeyRef = useRef<string>(ohlcvSeriesKey);
+  const committedDataRef = useRef<readonly OHLCVBarData[]>(ohlcvData);
+  const graphPoints = useMemo(() => {
+    const seriesChanged = committedSeriesKeyRef.current !== ohlcvSeriesKey;
+    const dataIsFresh = ohlcvData !== committedDataRef.current;
+    if (seriesChanged && !dataIsFresh) {
+      return committedPointsRef.current;
+    }
+    if (ohlcvData.length === 0 || visibleFromMs == null) {
+      return committedPointsRef.current;
+    }
+    const next = buildGraphPoints(ohlcvData, visibleFromMs);
+    committedPointsRef.current = next;
+    committedSeriesKeyRef.current = ohlcvSeriesKey;
     committedDataRef.current = ohlcvData;
-    setGraphPoints(buildGraphPoints(ohlcvData, visibleFromMs));
-  }
+    return next;
+  }, [ohlcvData, visibleFromMs, ohlcvSeriesKey]);
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
@@ -362,16 +374,22 @@ const PriceAdvanced = ({
 
   // LineGraph stroke + gradient colors derive from displayDiff so the line
   // matches the price-up / price-down state of the header.
-  const chartColor =
-    displayDiff != null && displayDiff > 0
-      ? theme.colors.success.default
-      : displayDiff != null && displayDiff < 0
-        ? theme.colors.error.default
-        : theme.colors.text.alternative;
+  const chartColor = useMemo(() => {
+    if (displayDiff != null && displayDiff > 0)
+      return theme.colors.success.default;
+    if (displayDiff != null && displayDiff < 0)
+      return theme.colors.error.default;
+    return theme.colors.text.alternative;
+  }, [displayDiff, theme.colors]);
   const gradientColors = useMemo(
     () => [chartColor + '40', chartColor + '20', chartColor + '00'],
     [chartColor],
   );
+
+  const handleLineGraphGestureEnd = useCallback(() => {
+    handleTouchEnd();
+    setCrosshairData(null);
+  }, [handleTouchEnd]);
 
   const shouldFallbackToLegacy =
     !chartLoading &&
@@ -495,10 +513,7 @@ const PriceAdvanced = ({
               enableFadeInMask
               onPointSelected={handlePointSelected}
               onGestureStart={handleTouchStart}
-              onGestureEnd={() => {
-                handleTouchEnd();
-                setCrosshairData(null);
-              }}
+              onGestureEnd={handleLineGraphGestureEnd}
             />
           ) : (
             <AdvancedChart

@@ -11,7 +11,6 @@ import { LineGraph, GraphPoint } from 'react-native-graph';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../component-library/hooks';
-import { useTheme } from '../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -43,14 +42,17 @@ const PriceChart = ({
   const emptyDisplayTrackedRef = useRef(false);
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
-  useTheme();
 
-  const chartColor =
-    priceDiff > 0
-      ? theme.colors.success.default
-      : priceDiff < 0
-        ? theme.colors.error.default
-        : theme.colors.text.alternative;
+  const chartColor = useMemo(() => {
+    if (priceDiff > 0) return theme.colors.success.default;
+    if (priceDiff < 0) return theme.colors.error.default;
+    return theme.colors.text.alternative;
+  }, [priceDiff, theme.colors]);
+
+  const gradientFillColors = useMemo(
+    () => [chartColor + '40', chartColor + '20', chartColor + '00'],
+    [chartColor],
+  );
 
   const graphPoints: GraphPoint[] = useMemo(
     () =>
@@ -60,6 +62,15 @@ const PriceChart = ({
       })),
     [prices],
   );
+
+  // O(1) timestamp -> index lookup; onPointSelected fires per pan-gesture frame.
+  const indexByTime = useMemo(() => {
+    const map = new Map<number, number>();
+    for (let i = 0; i < graphPoints.length; i++) {
+      map.set(graphPoints[i].date.getTime(), i);
+    }
+    return map;
+  }, [graphPoints]);
 
   const chartHasData = graphPoints.length >= CHART_DATA_THRESHOLD;
   const hasInsufficientData =
@@ -81,12 +92,9 @@ const PriceChart = ({
 
   const onPointSelected = useCallback(
     (point: GraphPoint) => {
-      const index = graphPoints.findIndex(
-        (p) => p.date.getTime() === point.date.getTime(),
-      );
-      onChartIndexChange(index >= 0 ? index : -1);
+      onChartIndexChange(indexByTime.get(point.date.getTime()) ?? -1);
     },
-    [graphPoints, onChartIndexChange],
+    [indexByTime, onChartIndexChange],
   );
 
   const onGestureStart = useCallback(() => {
@@ -130,11 +138,7 @@ const PriceChart = ({
             animated
             points={graphPoints}
             color={chartColor}
-            gradientFillColors={[
-              chartColor + '40',
-              chartColor + '20',
-              chartColor + '00',
-            ]}
+            gradientFillColors={gradientFillColors}
             style={styles.chartArea}
             enablePanGesture
             enableIndicator
