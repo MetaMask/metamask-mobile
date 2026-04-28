@@ -26,6 +26,13 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 
+// TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
+const DEV_APY = {
+  decimal: 0.04,
+  percent: 4,
+  percentFormatted: '4%',
+};
+
 /**
  * Fetches the live exchange rate for the mUSD token.
  * This is necessary when we need the most current rate at runtime (e.g. Money account withdrawal).
@@ -110,7 +117,8 @@ const useMoneyAccountBalance = (
     const musdDecimal = musdBalanceQuery.data?.balance
       ? new BigNumber(
           fromTokenMinimalUnitString(
-            musdBalanceQuery.data.balance,
+            // musdBalanceQuery.data.balance,
+            '10000000',
             MUSD_DECIMALS,
           ),
         )
@@ -189,10 +197,12 @@ const useMoneyAccountBalance = (
     tokenTotal,
     totalFiatFormatted,
     totalFiatRaw,
-    apyDecimal,
-    apyPercent,
-    // TODO: Update consumers to use apyPercent instead of formatting repeatedly.
-    apyPercentFormatted,
+    // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
+    apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
+    apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
+    apyPercentFormatted: __DEV__
+      ? DEV_APY.percentFormatted
+      : apyPercentFormatted,
   };
 };
 

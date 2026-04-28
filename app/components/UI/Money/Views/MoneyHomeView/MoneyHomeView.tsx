@@ -77,22 +77,18 @@ const MoneyHomeView = () => {
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
   const isCardholderWithMilestone = isMilestone && isCardholder;
 
-  // TODO: Remove before launch
-  // Useful for testing how zero and non-zero APYs are handled quickly.
-  const DEV_APY = __DEV__ ? 4 : apyPercent;
-
   const formattedZero = useMemo(
     () => moneyFormatFiat(new BigNumber(0), currentCurrency),
     [currentCurrency],
   );
 
   const projectedEarnings = useMemo(() => {
-    if (!totalFiatRaw || !DEV_APY) return formattedZero;
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
-    const earnings = balance.times(DEV_APY).dividedBy(100);
+    const earnings = balance.times(apyPercent).dividedBy(100);
     return moneyFormatFiat(earnings, currentCurrency);
-  }, [totalFiatRaw, DEV_APY, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -133,16 +129,16 @@ const MoneyHomeView = () => {
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: DEV_APY },
+      params: { apy: apyPercent },
     });
-  }, [navigation, DEV_APY]);
+  }, [navigation, apyPercent]);
 
   const handleEarningsInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
-      params: { apy: DEV_APY },
+      params: { apy: apyPercent },
     });
-  }, [navigation, DEV_APY]);
+  }, [navigation, apyPercent]);
 
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
@@ -230,7 +226,7 @@ const MoneyHomeView = () => {
         showsVerticalScrollIndicator={false}
       >
         <MoneyBalanceSummary
-          apy={DEV_APY}
+          apy={apyPercent}
           balance={totalFiatFormatted ?? '--.--'}
           onApyInfoPress={handleApyInfoPress}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
@@ -256,7 +252,7 @@ const MoneyHomeView = () => {
         {!isMilestone && (
           <>
             <MoneyHowItWorks
-              apy={DEV_APY}
+              apy={apyPercent}
               onHeaderPress={handleHowItWorksHeaderPress}
               isLoading={vaultApyQuery.isLoading}
             />
@@ -283,7 +279,7 @@ const MoneyHomeView = () => {
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
-              apy={DEV_APY}
+              apy={apyPercent}
               condensed={isMilestone}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
@@ -297,7 +293,7 @@ const MoneyHomeView = () => {
           onGetNowPress={handleGetNowPress}
           onHeaderPress={handleHeaderPress}
           onLinkPress={handleLinkCardPress}
-          apy={DEV_APY}
+          apy={apyPercent}
         />
         <Divider />
         {isMilestone && (
@@ -312,7 +308,7 @@ const MoneyHomeView = () => {
         )}
         {!isMilestone && (
           <MoneyWhatYouGet
-            apy={DEV_APY}
+            apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}
           />
         )}
