@@ -55,6 +55,7 @@ export const useTopTraders = (
       id: entry.profileId,
       address: entry.addresses?.[0] ?? '',
       rank: entry.rank,
+      overallRank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
       percentageChange: (entry.roiPercent30d ?? 0) * 100,

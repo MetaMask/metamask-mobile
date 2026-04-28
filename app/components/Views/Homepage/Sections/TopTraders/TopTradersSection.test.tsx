@@ -13,6 +13,7 @@ const mockTraders = [
     id: 'trader-1',
     address: '0x0000000000000000000000000000000000000001',
     rank: 1,
+    overallRank: 1,
     username: 'alice',
     percentageChange: 96.2,
     pnlValue: 963000,

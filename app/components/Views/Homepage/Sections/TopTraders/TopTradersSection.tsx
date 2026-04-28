@@ -1,3 +1,7 @@
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   forwardRef,
   useCallback,
@@ -6,24 +10,20 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import { SectionRefreshHandle } from '../../types';
-import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import { strings } from '../../../../../../locales/i18n';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { RootStackParamList } from '../../../../../core/NavigationService/types';
+import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import ViewMoreCard from '../../components/ViewMoreCard';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { useTopTraders } from './hooks';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import ViewMoreCard from '../../components/ViewMoreCard';
 
 const HOME_TRADER_LIMIT = 3;
 const SKELETON_KEYS = Array.from(

@@ -10,6 +10,12 @@ export interface TopTrader {
   address: string;
   /** Rank position in the leaderboard (1-based). */
   rank: number;
+  /**
+   * Overall rank across all chains (1-based). Preserved through chain
+   * filtering so podium decorations (gold/silver/bronze treatments) only
+   * apply to true top-3 traders rather than the top of an arbitrary filter.
+   */
+  overallRank: number;
   /** Display username or truncated address. */
   username: string;
   /** Profile avatar URL. */

@@ -8,7 +8,8 @@ import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import Engine from '../../../../../../core/Engine';
 import {
   selectIsSubmittingTx,
   selectDestAddress,
@@ -73,9 +74,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../../../../../selectors/smartTransactionsController', () => ({
+  selectShouldUseSmartTransaction: jest.fn(),
 }));
 
 jest.mock('../../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
@@ -91,6 +91,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   default: {
     context: {
       BridgeController: { resetState: jest.fn() },
+      BridgeStatusController: { submitTx: jest.fn() },
       NetworkController: {
         findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
       },
@@ -152,7 +153,6 @@ jest.mock('../../../analytics', () => {
 });
 
 const mockDispatch = jest.fn();
-const mockSubmitBridgeTx = jest.fn();
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
   ({
@@ -257,9 +257,12 @@ const setupDefaultMocks = () => {
 
   (useIsInsufficientBalance as jest.Mock).mockReturnValue(false);
   (useHasSufficientGas as jest.Mock).mockReturnValue(true);
-  (useSubmitBridgeTx as jest.Mock).mockReturnValue({
-    submitBridgeTx: mockSubmitBridgeTx,
-  });
+  (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
+    false,
+  );
+  (
+    Engine.context.BridgeStatusController.submitTx as jest.Mock
+  ).mockResolvedValue(undefined);
 };
 
 describe('useQuickBuyBottomSheet', () => {
@@ -673,6 +676,67 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('handleConfirm', () => {
+    it('submits via BridgeStatusController.submitTx with normalised approval and stxEnabled', async () => {
+      const activeQuote = {
+        ...createActiveQuote(),
+        approval: null,
+      } as unknown as ReturnType<typeof createActiveQuote>;
+
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+      (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      const onClose = jest.fn();
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), onClose),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(
+        Engine.context.BridgeStatusController.submitTx,
+      ).toHaveBeenCalledWith(
+        '0xWALLET',
+        expect.objectContaining({ approval: undefined }),
+        true,
+      );
+    });
+
+    it('does not call submitTx when there is no active quote', async () => {
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(
+        Engine.context.BridgeStatusController.submitTx,
+      ).not.toHaveBeenCalled();
     });
   });
 });

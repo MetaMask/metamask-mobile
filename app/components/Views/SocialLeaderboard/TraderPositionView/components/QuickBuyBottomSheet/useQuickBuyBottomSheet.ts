@@ -39,7 +39,7 @@ import {
   parsePriceImpact,
   exceedsPriceImpactErrorThreshold,
 } from '../../../../../UI/Bridge/utils/getPriceImpactViewData';
-import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useRecipientInitialization } from '../../../../../UI/Bridge/hooks/useRecipientInitialization';
@@ -358,7 +358,7 @@ export function useQuickBuyBottomSheet(
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
 
-  const { submitBridgeTx } = useSubmitBridgeTx();
+  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
@@ -502,7 +502,11 @@ export function useQuickBuyBottomSheet(
 
     try {
       dispatch(setIsSubmittingTx(true));
-      const submitResult = await submitBridgeTx({ quoteResponse: activeQuote });
+      const submitResult = await Engine.context.BridgeStatusController.submitTx(
+        walletAddress,
+        { ...activeQuote, approval: activeQuote.approval ?? undefined },
+        stxEnabled,
+      );
       setTxPhase('success');
       notificationAsync(NotificationFeedbackType.Success);
       const txHash =
@@ -541,7 +545,7 @@ export function useQuickBuyBottomSheet(
   }, [
     activeQuote,
     walletAddress,
-    submitBridgeTx,
+    stxEnabled,
     dispatch,
     onClose,
     navigation,

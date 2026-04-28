@@ -115,6 +115,7 @@ describe('useTopTraders', () => {
         id: first.profileId,
         address: first.addresses[0],
         rank: first.rank,
+        overallRank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent30d * 100,
