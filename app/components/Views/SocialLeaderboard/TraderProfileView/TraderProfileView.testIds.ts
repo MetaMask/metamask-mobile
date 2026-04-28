@@ -8,4 +8,5 @@ export const TraderProfileViewSelectorsIDs = {
   TAB_OPEN: 'trader-profile-tab-open',
   TAB_CLOSED: 'trader-profile-tab-closed',
   ERROR_BANNER: 'trader-profile-error-banner',
+  TWITTER_LINK: 'trader-profile-twitter-link',
 };

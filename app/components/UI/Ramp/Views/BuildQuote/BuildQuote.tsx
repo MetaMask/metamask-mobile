@@ -396,6 +396,9 @@ function BuildQuote() {
     amount: amountAsNumber,
     currency,
   });
+  const debouncedAmountLimitError = useDebouncedValue(amountLimitError);
+  const displayedAmountLimitError =
+    amountLimitError === debouncedAmountLimitError ? amountLimitError : null;
   const quoteFetchEnabled = !!(
     walletAddress &&
     selectedPaymentMethod &&
@@ -663,7 +666,8 @@ function BuildQuote() {
     return firstError?.error;
   }, [hasNoQuotes, quotesResponse?.error]);
 
-  const inlineQuoteError = amountLimitError ?? providerQuoteError ?? null;
+  const inlineQuoteError =
+    displayedAmountLimitError ?? providerQuoteError ?? null;
   const hasGenericNoQuotes = hasNoQuotes && !providerQuoteError;
   const amountInputHasError = Boolean(
     rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
@@ -718,7 +722,15 @@ function BuildQuote() {
         </Text>
       );
     }
-    return null;
+    return (
+      <Text
+        testID={BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER}
+        variant={TextVariant.BodySm}
+        style={styles.poweredByText}
+      >
+        {''}
+      </Text>
+    );
   })();
 
   return (
