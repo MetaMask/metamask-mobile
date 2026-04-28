@@ -25,7 +25,7 @@ export const useCardAuth = () => {
 
   const initiate = useMutation({
     mutationKey: cardQueries.auth.keys.initiate(),
-    mutationFn: (country: string) => getController().initiateAuth(country),
+    mutationFn: () => getController().initiateAuth(),
     retry: false,
   });
 

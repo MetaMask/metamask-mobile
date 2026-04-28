@@ -1163,13 +1163,12 @@ describe('BaanxProvider', () => {
   });
 
   describe('initiateAuth', () => {
-    it('returns oauth2 session and sets service location from country', async () => {
-      const session = await provider.initiateAuth('US');
+    it('returns oauth2 session without pre-setting service location', async () => {
+      const session = await provider.initiateAuth();
 
       expect(session.currentStep).toStrictEqual({ type: 'oauth2' });
       expect(session.id.startsWith('oauth2-')).toBe(true);
-      expect(session._metadata).toStrictEqual({ location: 'us' });
-      expect(service.setLocation).toHaveBeenCalledWith('us');
+      expect(service.setLocation).not.toHaveBeenCalled();
     });
   });
 
@@ -1185,13 +1184,14 @@ describe('BaanxProvider', () => {
         refresh_token_expires_in: 86400,
       });
 
-      const session = await provider.initiateAuth('international');
+      const session = await provider.initiateAuth();
 
       const result = await provider.submitCredentials(session, {
         type: 'oauth2',
         code: 'code-1',
         codeVerifier: 'verifier-1',
         redirectUri,
+        appId: 'FOX_US',
       });
 
       expect(result.done).toBe(true);
@@ -1206,7 +1206,7 @@ describe('BaanxProvider', () => {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-          location: 'international',
+          location: 'us',
           timeout: 30_000,
         }),
       );
@@ -1219,13 +1219,14 @@ describe('BaanxProvider', () => {
         refresh_token: 'rt',
         expires_in: 3600,
       });
-      const session = await provider.initiateAuth('US');
+      const session = await provider.initiateAuth();
 
       await provider.submitCredentials(session, {
         type: 'oauth2',
         code: 'c',
         codeVerifier: 'v',
         redirectUri,
+        appId: 'FOX',
       });
 
       const [, opts] = (service.request as jest.Mock).mock.calls[0];
@@ -1238,22 +1239,29 @@ describe('BaanxProvider', () => {
       expect(params.get('client_id')).toBe('test-api-key');
     });
 
-    it('throws when session metadata location is missing', async () => {
-      await expect(
-        provider.submitCredentials(
-          {
-            id: 'x',
-            currentStep: { type: 'oauth2' },
-            _metadata: {},
-          },
-          {
-            type: 'oauth2',
-            code: 'c',
-            codeVerifier: 'v',
-            redirectUri,
-          },
-        ),
-      ).rejects.toThrow('missing location');
+    it('completes oauth2 when session has empty _metadata', async () => {
+      const accessJwt = buildAccessTokenJwt('FOX');
+      service.request.mockResolvedValue({
+        access_token: accessJwt,
+        refresh_token: 'rt',
+        expires_in: 3600,
+      });
+
+      const result = await provider.submitCredentials(
+        {
+          id: 'x',
+          currentStep: { type: 'oauth2' },
+        },
+        {
+          type: 'oauth2',
+          code: 'c',
+          codeVerifier: 'v',
+          redirectUri,
+          appId: 'FOX',
+        },
+      );
+
+      expect(result.done).toBe(true);
     });
 
     it('throws when OAuth2 response has no access token', async () => {
@@ -1261,7 +1269,7 @@ describe('BaanxProvider', () => {
         refresh_token: 'rt',
         expires_in: 3600,
       });
-      const session = await provider.initiateAuth('US');
+      const session = await provider.initiateAuth();
 
       await expect(
         provider.submitCredentials(session, {
@@ -1269,36 +1277,41 @@ describe('BaanxProvider', () => {
           code: 'c',
           codeVerifier: 'v',
           redirectUri,
+          appId: 'FOX',
         }),
       ).rejects.toMatchObject({
         code: CardProviderErrorCode.InvalidCredentials,
       });
     });
 
-    it('throws when access token JWT app_id is unknown', async () => {
-      const payload = base64UrlEncodeUtf8(JSON.stringify({ app_id: 'OTHER' }));
-      const badJwt = `h.${payload}.s`;
+    it('maps unknown redirect appId to international for token exchange', async () => {
+      const accessJwt = buildAccessTokenJwt('FOX');
       service.request.mockResolvedValue({
-        access_token: badJwt,
+        access_token: accessJwt,
         refresh_token: 'rt',
         expires_in: 3600,
       });
-      const session = await provider.initiateAuth('US');
+      const session = await provider.initiateAuth();
 
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'oauth2',
-          code: 'c',
-          codeVerifier: 'v',
-          redirectUri,
-        }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.InvalidCredentials,
+      const result = await provider.submitCredentials(session, {
+        type: 'oauth2',
+        code: 'c',
+        codeVerifier: 'v',
+        redirectUri,
+        appId: 'OTHER',
       });
+
+      expect(result.done).toBe(true);
+      expect(service.request).toHaveBeenCalledWith(
+        '/v1/auth/oauth2/token',
+        expect.objectContaining({
+          location: 'international',
+        }),
+      );
     });
 
     it('maps token exchange CardApiError to CardProviderError', async () => {
-      const session = await provider.initiateAuth('US');
+      const session = await provider.initiateAuth();
       service.request.mockRejectedValue(
         new CardApiError(401, '/v1/auth/oauth2/token', 'Unauthorized'),
       );
@@ -1309,22 +1322,11 @@ describe('BaanxProvider', () => {
           code: 'c',
           codeVerifier: 'v',
           redirectUri,
+          appId: 'FOX',
         }),
       ).rejects.toMatchObject({
         code: CardProviderErrorCode.InvalidCredentials,
       });
-    });
-
-    it('throws for unsupported credential type', async () => {
-      const session = await provider.initiateAuth('US');
-
-      await expect(
-        provider.submitCredentials(session, {
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'p',
-        }),
-      ).rejects.toThrow('Unsupported credential type');
     });
   });
 

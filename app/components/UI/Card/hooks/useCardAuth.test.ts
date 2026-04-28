@@ -37,6 +37,7 @@ const oauth2Credentials = {
   code: 'c',
   codeVerifier: 'v',
   redirectUri: 'https://link.metamask.io/card-oauth',
+  appId: 'FOX',
 };
 
 describe('useCardAuth', () => {
@@ -85,10 +86,10 @@ describe('useCardAuth', () => {
       const { result } = renderHook(() => useCardAuth());
 
       await act(async () => {
-        await result.current.initiate.mutateAsync('US');
+        await result.current.initiate.mutateAsync();
       });
 
-      expect(mockController.initiateAuth).toHaveBeenCalledWith('US');
+      expect(mockController.initiateAuth).toHaveBeenCalledWith();
     });
   });
 

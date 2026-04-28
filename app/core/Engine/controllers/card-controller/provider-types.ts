@@ -78,7 +78,6 @@ export type CardAuthStep =
 export interface CardAuthSession {
   id: string;
   currentStep: CardAuthStep;
-  _metadata: Record<string, unknown>;
 }
 
 export interface CardCredentials {
@@ -328,7 +327,7 @@ export interface ICardProvider {
   readonly id: CardProviderId;
   readonly capabilities: CardProviderCapabilities;
 
-  initiateAuth(country: string): Promise<CardAuthSession>;
+  initiateAuth(): Promise<CardAuthSession>;
   submitCredentials(
     session: CardAuthSession,
     credentials: CardCredentials,

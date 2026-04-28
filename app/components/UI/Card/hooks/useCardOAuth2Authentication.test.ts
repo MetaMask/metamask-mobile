@@ -57,7 +57,6 @@ describe('useCardOAuth2Authentication', () => {
 
     const { result } = renderHook(() =>
       useCardOAuth2Authentication({
-        isUsRegion: false,
         submitCredentials,
       }),
     );
@@ -70,7 +69,6 @@ describe('useCardOAuth2Authentication', () => {
 
     const { result } = renderHook(() =>
       useCardOAuth2Authentication({
-        isUsRegion: false,
         submitCredentials,
       }),
     );
@@ -91,7 +89,6 @@ describe('useCardOAuth2Authentication', () => {
 
     const { result } = renderHook(() =>
       useCardOAuth2Authentication({
-        isUsRegion: false,
         submitCredentials,
       }),
     );
@@ -112,12 +109,12 @@ describe('useCardOAuth2Authentication', () => {
       params: {
         code: 'authorization-code',
         state: 'fixed-oauth-state',
+        app_id: 'FOX',
       },
     });
 
     const { result } = renderHook(() =>
       useCardOAuth2Authentication({
-        isUsRegion: false,
         submitCredentials,
       }),
     );
@@ -148,12 +145,12 @@ describe('useCardOAuth2Authentication', () => {
       params: {
         code: 'authorization-code',
         state: 'wrong-state',
+        app_id: 'FOX',
       },
     });
 
     const { result } = renderHook(() =>
       useCardOAuth2Authentication({
-        isUsRegion: false,
         submitCredentials,
       }),
     );
@@ -179,12 +176,12 @@ describe('useCardOAuth2Authentication', () => {
       params: {
         code: 'authorization-code',
         state: 'fixed-oauth-state',
+        app_id: 'FOX',
       },
     });
 
     const { result } = renderHook(() =>
       useCardOAuth2Authentication({
-        isUsRegion: false,
         submitCredentials,
       }),
     );
@@ -201,7 +198,6 @@ describe('useCardOAuth2Authentication', () => {
 
     const { result } = renderHook(() =>
       useCardOAuth2Authentication({
-        isUsRegion: false,
         submitCredentials,
       }),
     );

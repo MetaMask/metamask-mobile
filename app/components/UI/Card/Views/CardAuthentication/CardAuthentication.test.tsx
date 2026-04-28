@@ -113,8 +113,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
     const mockStrings: { [key: string]: string } = {
       'card.card_authentication.title': 'Log in to your card account',
-      'card.card_authentication.location_button_text': 'International',
-      'card.card_authentication.location_button_text_us': 'United States',
       'card.card_authentication.login_button': 'Log in',
       'card.card_authentication.signup_button': "I don't have an account",
       'card.card_authentication.errors.invalid_credentials':
@@ -140,7 +138,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-function render(location: 'international' | 'us' = 'international') {
+function render() {
   return renderScreen(
     CardAuthentication,
     {
@@ -149,13 +147,7 @@ function render(location: 'international' | 'us' = 'international') {
     {
       state: {
         engine: {
-          backgroundState: {
-            ...backgroundState,
-            CardController: {
-              ...backgroundState.CardController,
-              providerData: { baanx: { location } },
-            },
-          },
+          backgroundState,
         },
       },
     },
@@ -185,7 +177,7 @@ describe('CardAuthentication Component', () => {
   });
 
   describe('OAuth login step', () => {
-    it('renders location picker and log in without email or password fields', () => {
+    it('renders OAuth log in without email or password fields', () => {
       render();
 
       expect(screen.getByText('Log in to your card account')).toBeOnTheScreen();
@@ -194,10 +186,6 @@ describe('CardAuthentication Component', () => {
           'Continue with your MetaMask account to sign in securely.',
         ),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('international-location-box'),
-      ).toBeOnTheScreen();
-      expect(screen.getByTestId('us-location-box')).toBeOnTheScreen();
       expect(screen.queryByTestId('email-field')).toBeNull();
       expect(screen.queryByTestId('password-field')).toBeNull();
       expect(
@@ -221,7 +209,7 @@ describe('CardAuthentication Component', () => {
       );
 
       await waitFor(() => {
-        expect(mockInitiateMutateAsync).toHaveBeenCalled();
+        expect(mockInitiateMutateAsync).toHaveBeenCalledWith();
         expect(mockOAuthLogin).toHaveBeenCalled();
       });
     });
@@ -261,19 +249,9 @@ describe('CardAuthentication Component', () => {
         expect(mockOAuthClearError).toHaveBeenCalled();
         expect(mockInitiateReset).toHaveBeenCalled();
         expect(mockSubmitReset).toHaveBeenCalled();
-        expect(mockInitiateMutateAsync).toHaveBeenCalled();
+        expect(mockInitiateMutateAsync).toHaveBeenCalledWith();
         expect(mockOAuthLogin).toHaveBeenCalled();
       });
-    });
-
-    it('clears oauth errors and resets mutations when changing location', () => {
-      render();
-
-      fireEvent.press(screen.getByTestId('us-location-box'));
-
-      expect(mockInitiateReset).toHaveBeenCalled();
-      expect(mockSubmitReset).toHaveBeenCalled();
-      expect(mockOAuthClearError).toHaveBeenCalled();
     });
   });
 

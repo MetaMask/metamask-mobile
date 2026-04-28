@@ -196,24 +196,20 @@ export class BaanxProvider implements ICardProvider {
 
   // -- Auth --
 
-  async initiateAuth(country: string): Promise<CardAuthSession> {
-    const location = mapCountryToLocation(country);
-    this.service.setLocation(location);
-
+  async initiateAuth(): Promise<CardAuthSession> {
     return {
       id: `oauth2-${Date.now()}`,
       currentStep: { type: 'oauth2' },
-      _metadata: { location },
     };
   }
 
   async submitCredentials(
-    session: CardAuthSession,
+    _session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult> {
     if (credentials.type === 'oauth2') {
       try {
-        return await this.handleOAuth2(session, credentials);
+        return await this.handleOAuth2(credentials);
       } catch (error) {
         throw mapApiError(error, 'oauth2');
       }
@@ -1135,18 +1131,8 @@ export class BaanxProvider implements ICardProvider {
   // ---- Private helpers ----
 
   private async handleOAuth2(
-    session: CardAuthSession,
     credentials: Extract<CardCredentials, { type: 'oauth2' }>,
   ): Promise<CardAuthResult> {
-    const uiSelectedLocation = session._metadata.location;
-
-    if (typeof uiSelectedLocation !== 'string') {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Invalid auth session: missing location in _metadata',
-      );
-    }
-
     const returnedLocation = this.mapBaanxAppIdToLocation(credentials.appId);
 
     const formBody = new URLSearchParams({

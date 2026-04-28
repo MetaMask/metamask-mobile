@@ -36,8 +36,6 @@ const buildDiscoveryDocument = (baseUrl: string): DiscoveryDocument => ({
 });
 
 export interface UseCardOAuth2AuthenticationOptions {
-  /** When true, adds `region=us` to the authorize request per Baanx spec. */
-  isUsRegion: boolean;
   /** Typically `submit.mutateAsync` from `useCardAuth` so React Query `onSuccess` runs. */
   submitCredentials: (credentials: CardCredentials) => Promise<CardAuthResult>;
 }
@@ -53,7 +51,7 @@ export interface UseCardOAuth2AuthenticationReturn {
 export function useCardOAuth2Authentication(
   options: UseCardOAuth2AuthenticationOptions,
 ): UseCardOAuth2AuthenticationReturn {
-  const { isUsRegion, submitCredentials } = options;
+  const { submitCredentials } = options;
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -74,12 +72,6 @@ export function useCardOAuth2Authentication(
   const redirectUri = getOAuthRedirectUri();
   const state = useMemo(() => generateState(), []);
 
-  const extraParams = useMemo(
-    (): Record<string, string> | undefined =>
-      isUsRegion ? { region: 'us' } : undefined,
-    [isUsRegion],
-  );
-
   const [request, , promptAsync] = useAuthRequest(
     {
       clientId,
@@ -89,7 +81,6 @@ export function useCardOAuth2Authentication(
       usePKCE: true,
       state,
       prompt: Prompt.Consent,
-      extraParams,
     },
     discovery,
   );

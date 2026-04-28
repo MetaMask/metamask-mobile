@@ -260,9 +260,9 @@ describe('CardController — auth methods', () => {
       provider.initiateAuth.mockResolvedValue(mockSession);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
 
-      expect(provider.initiateAuth).toHaveBeenCalledWith('US');
+      expect(provider.initiateAuth).toHaveBeenCalledWith();
       expect(controller.getCurrentAuthStep()).toStrictEqual(
         mockSession.currentStep,
       );
@@ -275,7 +275,7 @@ describe('CardController — auth methods', () => {
         state: { activeProviderId: null },
       });
 
-      await expect(controller.initiateAuth('US')).rejects.toBeInstanceOf(
+      await expect(controller.initiateAuth()).rejects.toBeInstanceOf(
         CardProviderError,
       );
     });
@@ -305,7 +305,7 @@ describe('CardController — auth methods', () => {
       mockTokenStore.set.mockResolvedValue(true);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       const result = await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
@@ -363,7 +363,7 @@ describe('CardController — auth methods', () => {
 
       expect(getOnChainAssetsMock).toHaveBeenCalledTimes(1);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
@@ -395,7 +395,7 @@ describe('CardController — auth methods', () => {
       mockTokenStore.set.mockResolvedValue(false);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
@@ -414,7 +414,7 @@ describe('CardController — auth methods', () => {
       });
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       const result = await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
@@ -438,7 +438,7 @@ describe('CardController — auth methods', () => {
       });
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       const result = await controller.submitCredentials({
         type: 'email_password',
         email: 'a@b.com',
@@ -467,7 +467,7 @@ describe('CardController — auth methods', () => {
       (provider.executeStepAction as jest.Mock).mockResolvedValue(undefined);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       await controller.executeStepAction();
 
       expect(provider.executeStepAction).toHaveBeenCalledWith(mockSession);
@@ -478,7 +478,7 @@ describe('CardController — auth methods', () => {
       provider.initiateAuth.mockResolvedValue(mockSession);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       await expect(controller.executeStepAction()).resolves.toBeUndefined();
     });
   });

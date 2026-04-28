@@ -1,5 +1,5 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import type { CardCredentials } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { TouchableOpacity } from 'react-native';
 import {
@@ -7,9 +7,6 @@ import {
   FontWeight,
   Text,
   TextVariant,
-  Icon,
-  IconName,
-  IconSize,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -24,14 +21,11 @@ import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
-import { selectCardUserLocation } from '../../../../../selectors/cardController';
-import { CardMessageBoxType, type CardLocation } from '../../types';
+import { CardMessageBoxType } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CardAuthenticationParams = {
@@ -39,16 +33,11 @@ type CardAuthenticationParams = {
 };
 
 const CardAuthentication = () => {
-  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
   const showAuthPrompt = route.params?.showAuthPrompt ?? false;
-  const persistedLocation = useSelector(selectCardUserLocation);
-  const [selectedLocation, setSelectedLocation] = useState<CardLocation>(
-    persistedLocation ?? 'international',
-  );
   const dispatch = useDispatch();
   const theme = useTheme();
 
@@ -60,19 +49,8 @@ const CardAuthentication = () => {
   );
 
   const oauth = useCardOAuth2Authentication({
-    isUsRegion: selectedLocation === 'us',
     submitCredentials,
   });
-
-  const handleLocationChange = useCallback(
-    (loc: CardLocation) => {
-      setSelectedLocation(loc);
-      initiate.reset();
-      submit.reset();
-      oauth.clearError();
-    },
-    [initiate, submit, oauth],
-  );
 
   const loading = initiate.isPending || submit.isPending || oauth.loading;
   const submitOrInitiateError =
@@ -105,7 +83,7 @@ const CardAuthentication = () => {
     );
 
     try {
-      await initiate.mutateAsync(selectedLocation);
+      await initiate.mutateAsync();
       const result = await oauth.login();
 
       if (!result) {
@@ -136,7 +114,6 @@ const CardAuthentication = () => {
   }, [
     initiate,
     oauth,
-    selectedLocation,
     navigation,
     dispatch,
     trackEvent,
@@ -150,54 +127,11 @@ const CardAuthentication = () => {
   const description = strings('card.card_authentication.oauth_description');
 
   const formFields = useMemo(
-    () => (
-      <>
-        {showAuthPrompt && (
-          <CardMessageBox messageType={CardMessageBoxType.AuthPrompt} />
-        )}
-        <Box twClassName="flex-row justify-between gap-2">
-          <TouchableOpacity
-            onPress={() => handleLocationChange('international')}
-            style={tw.style(
-              `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'international' ? 'border border-text-default' : ''}`,
-            )}
-          >
-            <Box
-              twClassName="flex flex-col items-center justify-center w-full p-4"
-              testID="international-location-box"
-            >
-              <Icon name={IconName.Global} size={IconSize.Lg} />
-              <Text
-                twClassName="text-center text-body-sm font-medium"
-                variant={TextVariant.BodySm}
-              >
-                {strings('card.card_authentication.location_button_text')}
-              </Text>
-            </Box>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleLocationChange('us')}
-            style={tw.style(
-              `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'us' ? 'border border-text-default' : ''}`,
-            )}
-          >
-            <Box
-              twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
-              testID="us-location-box"
-            >
-              <Text twClassName="text-center">{countryCodeToFlag('US')}</Text>
-              <Text
-                twClassName="text-center text-body-sm font-medium"
-                variant={TextVariant.BodySm}
-              >
-                {strings('card.card_authentication.location_button_text_us')}
-              </Text>
-            </Box>
-          </TouchableOpacity>
-        </Box>
-      </>
-    ),
-    [handleLocationChange, selectedLocation, showAuthPrompt, tw],
+    () =>
+      showAuthPrompt ? (
+        <CardMessageBox messageType={CardMessageBoxType.AuthPrompt} />
+      ) : null,
+    [showAuthPrompt],
   );
 
   const actions = useMemo(
