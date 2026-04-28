@@ -235,8 +235,6 @@ export class DeeplinkManager {
         const branchError = new Error(error);
         Logger.error(branchError, 'Error subscribing to branch.');
       }
-      // Branch resolved — cancel any deferred Android stub fallback so we don't double-process the deeplink.
-      clearAndroidBranchStub();
 
       // Branch.subscribe fires for every onNewIntent on Android, including
       // intents that carry a non-Branch URI (e.g. `metamask://buy`). For those
@@ -247,6 +245,9 @@ export class DeeplinkManager {
       // `+non_branch_link` and dispatch it a second time.
       const isBranchClick = opts.params?.['+clicked_branch_link'] === true;
       if (!opts.uri && !isBranchClick) return;
+
+      // Branch resolved with a valid deeplink — cancel the deferred Android stub fallback so we don't double-process the deeplink.
+      clearAndroidBranchStub();
 
       const rewritten = rewriteBranchUri(
         opts.uri,

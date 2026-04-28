@@ -724,4 +724,44 @@ describe('DeeplinkManager.start Android Branch stub deferral', () => {
 
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: stubUrl });
   });
+
+  it('preserves the fallback timer when branch.subscribe fires with an error and no uri', () => {
+    // Regression: clearAndroidBranchStub() must NOT run when Branch fails
+    // (no uri, no click flag) — otherwise the 3-second safety-net is silently
+    // cancelled and the deeplink is lost.
+    DeeplinkManager.start();
+    const branchCallback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    linkingListener?.({ url: stubUrl });
+
+    // Branch fires with an error and no resolved URI (network failure scenario).
+    branchCallback({
+      error: 'Branch network timeout',
+      uri: undefined,
+      params: { '+clicked_branch_link': false },
+    });
+
+    // The stub must NOT have fired yet (timer still running).
+    expect(handleDeeplink).not.toHaveBeenCalledWith({ uri: stubUrl });
+
+    // After the fallback timeout the stub fires as the safety net.
+    jest.advanceTimersByTime(3000);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: stubUrl });
+  });
+
+  it('preserves the fallback timer when branch.subscribe fires with empty params (no uri, no click flag)', () => {
+    // Regression: a bare `{}` callback (non-Branch intent) must not cancel
+    // the pending stub timer — the deeplink must still be delivered via fallback.
+    DeeplinkManager.start();
+    const branchCallback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    linkingListener?.({ url: stubUrl });
+
+    branchCallback({ uri: undefined, params: { '+clicked_branch_link': false } });
+
+    expect(handleDeeplink).not.toHaveBeenCalledWith({ uri: stubUrl });
+
+    jest.advanceTimersByTime(3000);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: stubUrl });
+  });
 });
