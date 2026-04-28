@@ -76,6 +76,8 @@ export interface BrowserStackConfig {
   osVersion: string;
   orientation?: DeviceOrientation;
   enableCameraImageInjection?: boolean;
+  selfHeal?: boolean;
+  otherApps?: string[];
 }
 
 export interface AppConfig {

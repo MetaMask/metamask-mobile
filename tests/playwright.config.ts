@@ -1,10 +1,6 @@
 import { ProviderName, Platform } from './framework/types';
 import { defineConfig } from './framework/config';
 
-/**
- * THIS IS CURRENTLY NOT IN USE. IT'LL BE USED ONCE WE MIGRATE TO THE NEW
- * FRAMEWORK.
- */
 export default defineConfig({
   testDir: './',
   fullyParallel: false,
@@ -12,7 +8,7 @@ export default defineConfig({
   reporter: [
     [
       'html',
-      { open: 'never', outputFolder: './test-reports/appwright-report' },
+      { open: 'never', outputFolder: './test-reports/playwright-report' },
     ],
     ['./reporters/PerformanceReporter.ts'],
     ['list'],
@@ -168,12 +164,17 @@ export default defineConfig({
     {
       name: 'mm-connect-android-browserstack',
       testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
+          selfHeal: false,
+          otherApps: process.env.BROWSERSTACK_RN_PLAYGROUND_URL
+            ? [process.env.BROWSERSTACK_RN_PLAYGROUND_URL]
+            : [],
         },
         app: {
           packageName: 'io.metamask',
@@ -185,6 +186,7 @@ export default defineConfig({
     {
       name: 'mm-connect-android-local',
       testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
         device: {

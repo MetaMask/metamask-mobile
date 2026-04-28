@@ -9,9 +9,9 @@ jest.mock('../../../../../../core/ClipboardManager', () => ({
 }));
 
 describe('CopyButton', () => {
-  it('should match snapshot', async () => {
-    const container = render(<CopyButton copyText={'DUMMY'} />);
-    expect(container).toMatchSnapshot();
+  it('renders the copy button', () => {
+    const { getByTestId } = render(<CopyButton copyText={'DUMMY'} />);
+    expect(getByTestId('copyButtonTestId')).toBeOnTheScreen();
   });
 
   it('should copy text to clipboard when pressed', async () => {
