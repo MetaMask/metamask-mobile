@@ -20,8 +20,13 @@ import {
   STABLECOIN_SYMBOLS,
   tokenFiatValue,
 } from '../../../Earn/hooks/useMusdConversionTokens';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import Logger from '../../../../../util/Logger';
+import Routes from '../../../../../constants/navigation/Routes';
+import { AssetType } from '../../../../Views/confirmations/types/token';
+import { Hex } from '@metamask/utils';
 import MoneyGradientText from '../../components/MoneyPotentialEarnings/MoneyGradientText';
 import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import { isPositiveNumber } from '../../utils/number';
@@ -36,6 +41,7 @@ const MoneyPotentialEarningsView = () => {
   const formatFiat = useFiatFormatter();
 
   const { tokens } = useMusdConversionTokens();
+  const { initiateCustomConversion } = useMusdConversion();
   const { apyPercent } = useMoneyAccountBalance();
 
   // TODO: It likely makes more sense to use the apyDecimal from useMoneyAccountBalance instead of apyPercent in this calculation.
@@ -62,9 +68,24 @@ const MoneyPotentialEarningsView = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleTokenPress = useCallback(() => {
-    // TODO: Wire to initiateCustomConversion once Phase 4 lands
-  }, []);
+  const handleTokenPress = useCallback(
+    (token: AssetType) => async () => {
+      try {
+        await initiateCustomConversion({
+          preferredPaymentToken: {
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          },
+          navigationStack: Routes.MONEY.ROOT,
+        });
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: '[MoneyPotentialEarningsView] Failed to initiate conversion',
+        });
+      }
+    },
+    [initiateCustomConversion],
+  );
 
   return (
     <Box
@@ -108,7 +129,7 @@ const MoneyPotentialEarningsView = () => {
             token={token}
             hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
             projectedMultiplier={projectedMultiplier}
-            onPress={handleTokenPress}
+            onPress={handleTokenPress(token)}
           />
         ))}
       </ScrollView>

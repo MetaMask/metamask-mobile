@@ -44,6 +44,11 @@ interface MoneyEarningsProps {
    * on your crypto" page (MUSD follow-up).
    */
   onProjectedPress?: () => void;
+  /**
+   * Handler fired when the info icon next to the section title is tapped.
+   * Opens the Earnings tooltip bottom sheet.
+   */
+  onInfoPress?: () => void;
 }
 
 const ValueText = ({
@@ -70,9 +75,14 @@ const MoneyEarnings = ({
   projectedEarnings = DEFAULT_VALUE,
   isLoading = false,
   onProjectedPress,
+  onInfoPress,
 }: MoneyEarningsProps) => (
   <Box twClassName="px-4 py-3" testID={MoneyEarningsTestIds.CONTAINER}>
-    <MoneySectionHeader title={strings('money.earnings.title')} />
+    <MoneySectionHeader
+      title={strings('money.earnings.title')}
+      onInfoPress={onInfoPress}
+      infoAccessibilityLabel={strings('money.earnings.info_label')}
+    />
 
     <Box
       flexDirection={BoxFlexDirection.Row}

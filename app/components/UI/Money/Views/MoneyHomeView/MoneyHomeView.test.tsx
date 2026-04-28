@@ -65,6 +65,25 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: () => ({
+    initiateCustomConversion: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../../hooks/useTooltipModal', () => ({
+  __esModule: true,
+  default: () => ({
+    openTooltipModal: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
+  __esModule: true,
+  default: () => (val: { toFixed: (n: number) => string }) =>
+    `$${val.toFixed(2)}`,
+}));
+
 jest.mock('../../../../../selectors/cardController', () => ({
   ...jest.requireActual('../../../../../selectors/cardController'),
   selectIsCardholder: jest.fn(),
@@ -270,6 +289,34 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  it('opens the More sheet when menu button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyHeaderTestIds.MENU_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.MORE_SHEET,
+    });
+  });
+
+  it('opens the Transfer sheet when Transfer button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+    });
+  });
+
+  it('navigates to Card root when Card button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+  });
+
   describe('milestone state (1-9 transactions)', () => {
     beforeEach(() => {
       mockUseMoneyAccountTransactions.mockReturnValue({
@@ -322,11 +369,12 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('fires handleCardPress when onboarding CTA is tapped', () => {
+    it('navigates to Card root when onboarding CTA is tapped', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(() => {
-        fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
-      }).not.toThrow();
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
     });
   });
 
@@ -424,11 +472,14 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('fires handleLinkCardPress when onboarding CTA is tapped', () => {
+    it('navigates to Card home when onboarding CTA is tapped by cardholder', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(() => {
-        fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
-      }).not.toThrow();
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+      });
     });
   });
 

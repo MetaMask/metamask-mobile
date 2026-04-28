@@ -87,6 +87,12 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: () => ({
+    initiateCustomConversion: jest.fn(),
+  }),
+}));
+
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
   () => 'AssetLogo',
