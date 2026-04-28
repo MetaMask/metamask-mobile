@@ -168,6 +168,24 @@ describe('isQRHardwareScanError', () => {
 
     expect(result).toBe(false);
   });
+
+  it('returns false when QR scan metadata is incomplete', () => {
+    const error = new HardwareWalletError('Scan failed', {
+      code: ErrorCode.Unknown,
+      severity: Severity.Warning,
+      category: Category.Unknown,
+      userMessage: 'Scan failed',
+      metadata: {
+        walletType: HardwareWalletType.Qr,
+        qrHardwareScanErrorType: QRHardwareScanErrorType.NonURQrScanned,
+        qrScanPurpose: QrScanRequestType.PAIR,
+      },
+    });
+
+    const result = isQRHardwareScanError(error);
+
+    expect(result).toBe(false);
+  });
 });
 
 describe('getQRHardwareScanErrorTitle', () => {
