@@ -48,6 +48,7 @@ import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
+import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -642,6 +643,10 @@ const Wallet = ({
    * A string that represents the selected address
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  // TODO: Determine if this is necessary
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
 
   /**
    * Provider configuration for the current selected network
@@ -1050,6 +1055,19 @@ const Wallet = ({
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation, trackEvent]);
 
+  const handleActivityPress = useCallback(() => {
+    // TODO: Update this event. NAVIGATION_TAPS_TRANSACTION_HISTORY is not the correct event for this action since it relates to the bottom wallet actions bar.
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
+      ).build(),
+    );
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { showBackButton: true },
+    });
+  }, [navigation, trackEvent]);
+
   const getTokenAddedAnalyticsParams = useCallback(
     ({ address, symbol }: { address: string; symbol: string }) => {
       try {
@@ -1383,6 +1401,18 @@ const Wallet = ({
                         onPress={handleCardPress}
                         touchAreaSlop={touchAreaSlop}
                       />
+                      {isMoneyHomeScreenEnabled && (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={handleActivityPress}
+                          iconName={MMDSIconName.Clock}
+                          size={ButtonIconSize.Md}
+                          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
                       {isNotificationsFeatureEnabled() ? (
                         <BadgeWrapper
                           position={BadgeWrapperPosition.TopRight}
