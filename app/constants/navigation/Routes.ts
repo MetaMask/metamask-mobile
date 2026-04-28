@@ -420,9 +420,12 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
+    POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
+      MORE_SHEET: 'MoneyMoreSheet',
+      TRANSFER_MONEY_SHEET: 'MoneyTransferSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
