@@ -302,6 +302,19 @@ android {
     buildTypes {
         debug {
             manifestPlaceholders.isDebug = true
+            // AGP installs a built-in default debug signingConfig on this buildType
+            // (pointing at ~/.android/debug.keystore on the developer's machine), and
+            // during variant merging the buildType's signingConfig wins over the
+            // productFlavor's. For local dev builds (METAMASK_ENVIRONMENT=dev) this
+            // silently overrides the prod/flask `*Dev` signingConfigs declared on the
+            // productFlavors below, so APKs ship with each developer's personal keystore
+            // instead of the committed `android/app/debug.keystore` whose SHA-1 is
+            // registered in GCP for Google Sign-In. Pin the committed keystore here for
+            // dev-env builds; non-dev envs retain AGP's auto-default (Bitrise CI builds
+            // Release, so its signing path is unaffected).
+            if (System.getenv("METAMASK_ENVIRONMENT") == "dev") {
+                signingConfig signingConfigs.mainDev
+            }
         }
         release {
             manifestPlaceholders.isDebug = false
