@@ -7,7 +7,13 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  Hex,
+  Json,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import {
@@ -45,11 +51,7 @@ import {
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
 } from './multichain-connectors';
-import { HandlerType } from '@metamask/snaps-utils';
-import { SnapId } from '@metamask/snaps-sdk';
-import { handleSnapRequest } from '../Snaps/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { TRON_WALLET_SNAP_ID } from '../SnapKeyring/TronWalletSnap';
 import { TrxAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
@@ -930,18 +932,16 @@ class WalletConnect2Session {
       this.requestsToRedirect[requestEvent.id] = true;
     }
 
-    // Non-EVM namespace routing: each chain maps to its Snap ID.
-    // To add a new chain, append an entry inside the flag block below
-    // (or add a new flag block for the new chain).
-    const nonEvmSnapIdByNamespace: Record<string, string> = {};
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    nonEvmSnapIdByNamespace[KnownCaipNamespace.Tron] = TRON_WALLET_SNAP_ID;
-    ///: END:ONLY_INCLUDE_IF
-
-    const nonEvmSnapId =
-      requestNamespace && nonEvmSnapIdByNamespace[requestNamespace];
-    if (nonEvmSnapId) {
-      return this.routeToSnap(requestEvent, nonEvmSnapId, unverifiedOrigin);
+    // Non-EVM namespace routing: delegate to MultichainRoutingService which
+    // resolves the correct Snap internally via the SnapKeyring. The scope
+    // (CAIP-2 chainId) and the dapp-permitted accounts for that namespace
+    // are passed through untouched.
+    if (
+      requestNamespace &&
+      requestNamespace !== KnownCaipNamespace.Eip155 &&
+      requestNamespace !== KnownCaipNamespace.Wallet
+    ) {
+      return this.routeToSnap(requestEvent, requestChainId);
     }
 
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
@@ -1064,33 +1064,44 @@ class WalletConnect2Session {
   };
 
   /**
-   * Routes a WalletConnect session request to a Snap via OnRpcRequest.
-   * Generic handler for non-EVM namespaces (Tron, and future chains).
+   * Routes a non-EVM WalletConnect session request through the
+   * `MultichainRoutingService`. The routing service resolves the correct
+   * Snap from the connected account address and dispatches the request,
+   * keeping this class chain-agnostic.
    */
   private routeToSnap = async (
     requestEvent: WalletKitTypes.SessionRequest,
-    snapId: string,
-    unverifiedOrigin: string,
+    scope: CaipChainId,
   ) => {
     const { method, params } = requestEvent.params.request;
     const mappedRequest = adaptWalletConnectRequestForSnap({ method, params });
-    const snapExecutionOrigin =
-      snapId === TRON_WALLET_SNAP_ID ? 'metamask' : unverifiedOrigin;
+
+    const namespace = scope.split(':')[0];
+    const connectedAddresses = (this.session.namespaces?.[namespace]
+      ?.accounts ?? []) as CaipAccountId[];
+
     DevLogger.log(
-      `WC2::routeToSnap snapId=${snapId} method=${method} mappedMethod=${mappedRequest.method} origin=${unverifiedOrigin}`,
+      `WC2::routeToSnap scope=${scope} method=${method} mappedMethod=${mappedRequest.method} connectedAddresses=${connectedAddresses.length}`,
     );
     try {
-      const result = await handleSnapRequest(Engine.controllerMessenger, {
-        origin: snapExecutionOrigin,
-        snapId: snapId as SnapId,
-        handler: HandlerType.OnRpcRequest,
-        request: {
-          jsonrpc: '2.0',
-          id: requestEvent.id,
-          method: mappedRequest.method,
-          params: mappedRequest.params,
+      const result = await Engine.controllerMessenger.call(
+        'MultichainRoutingService:handleRequest',
+        {
+          connectedAddresses,
+          origin: 'metamask',
+          scope,
+          request: {
+            jsonrpc: '2.0' as const,
+            id: requestEvent.id,
+            method: mappedRequest.method,
+            ...(mappedRequest.params
+              ? {
+                  params: mappedRequest.params as Record<string, Json> | Json[],
+                }
+              : {}),
+          },
         },
-      });
+      );
       let walletConnectResult = result;
       if (method === 'tron_signTransaction') {
         const firstParam = Array.isArray(params) ? params[0] : params;
