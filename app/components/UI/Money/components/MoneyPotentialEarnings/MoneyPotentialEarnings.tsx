@@ -1,13 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
-import LinearGradient from 'react-native-linear-gradient';
 import { BigNumber } from 'bignumber.js';
-import { brandColor } from '@metamask/design-tokens';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -19,35 +13,19 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import {
   STABLECOIN_SYMBOLS,
   tokenFiatValue,
 } from '../../../Earn/hooks/useMusdConversionTokens';
-import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
+import MoneyGradientText from './MoneyGradientText';
+import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
 
 /** Number of years the projected earnings are simulated over. */
 const PROJECTION_YEARS = 5;
 const MAX_TOKENS = 5;
-const GRADIENT_COLORS = [brandColor.lime100, brandColor.lime200];
-const GRADIENT_START = { x: 0, y: 0 };
-const GRADIENT_END = { x: 1, y: 0 };
-
-const styles = StyleSheet.create({
-  gradientContainer: { flexDirection: 'row' },
-  gradient: { flex: 1 },
-  rowPressable: { flex: 1 },
-});
 
 /**
  * True when the token list contains at least one token with a positive fiat
@@ -72,140 +50,6 @@ interface MoneyPotentialEarningsProps {
   /** When true, hides token rows and shows a single "View potential earnings" button. */
   condensed?: boolean;
 }
-
-const GradientAmountText = ({ value }: { value: string }) => {
-  const textProps = {
-    variant: TextVariant.HeadingMd,
-    fontWeight: FontWeight.Bold,
-  };
-  return (
-    <MaskedView
-      style={styles.gradientContainer}
-      maskElement={
-        <Text {...textProps} color={TextColor.TextDefault}>
-          {value}
-        </Text>
-      }
-    >
-      <LinearGradient
-        colors={GRADIENT_COLORS}
-        start={GRADIENT_START}
-        end={GRADIENT_END}
-        style={styles.gradient}
-      >
-        <Text
-          {...textProps}
-          twClassName="opacity-0"
-          testID={MoneyPotentialEarningsTestIds.AMOUNT}
-        >
-          {value}
-        </Text>
-      </LinearGradient>
-    </MaskedView>
-  );
-};
-
-const TokenRow = ({
-  token,
-  hasSubsidizedFee,
-  projectedMultiplier,
-  onPress,
-}: {
-  token: AssetType;
-  hasSubsidizedFee: boolean;
-  projectedMultiplier: number;
-  onPress: () => void;
-}) => {
-  const formatFiat = useFiatFormatter();
-  const networkBadgeSource = useMemo(
-    () => (token.chainId ? NetworkBadgeSource(token.chainId as Hex) : null),
-    [token.chainId],
-  );
-
-  const projectedFiatNumber = tokenFiatValue(token) * projectedMultiplier;
-  const projectedFiatFormatted = formatFiat(new BigNumber(projectedFiatNumber));
-
-  const balanceFiatFormatted = token.balanceInSelectedCurrency;
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="px-4 py-3 gap-4"
-    >
-      <Pressable onPress={onPress} style={styles.rowPressable}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-4"
-        >
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
-                />
-              )
-            }
-          >
-            <AssetLogo asset={token} />
-          </BadgeWrapper>
-
-          <Box twClassName="flex-1">
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
-            >
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {token.symbol}
-              </Text>
-              {hasSubsidizedFee && (
-                <Box twClassName="rounded bg-muted px-1.5">
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('money.potential_earnings.no_fee')}
-                  </Text>
-                </Box>
-              )}
-            </Box>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
-            >
-              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-                {balanceFiatFormatted}
-              </Text>
-              {isPositiveNumber(projectedFiatNumber) && (
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
-                >
-                  {`+${projectedFiatFormatted}`}
-                </Text>
-              )}
-            </Box>
-          </Box>
-        </Box>
-      </Pressable>
-
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Md}
-        onPress={onPress}
-      >
-        {strings('money.potential_earnings.convert')}
-      </Button>
-    </Box>
-  );
-};
 
 const MoneyPotentialEarnings = ({
   tokens,
@@ -264,7 +108,7 @@ const MoneyPotentialEarnings = ({
         />
 
         {isPositiveNumber(projectedAmount) && (
-          <GradientAmountText
+          <MoneyGradientText
             value={`+${formatFiat(new BigNumber(projectedAmount))}`}
           />
         )}
@@ -295,7 +139,7 @@ const MoneyPotentialEarnings = ({
       ) : (
         <>
           {visibleTokens.map((token) => (
-            <TokenRow
+            <PotentialEarningsTokenRow
               key={`${token.address}-${token.chainId}`}
               token={token}
               hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
