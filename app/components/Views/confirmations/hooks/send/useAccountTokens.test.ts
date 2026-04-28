@@ -802,7 +802,7 @@ describe('useAccountTokens', () => {
     });
   });
 
-  describe('txParams.from override', () => {
+  describe('accountOverride', () => {
     const overrideAssets = {
       '0x89': [
         {
@@ -815,8 +815,10 @@ describe('useAccountTokens', () => {
       ],
     };
 
-    it('uses from account assets when txParams.from resolves to an account group', () => {
-      useTransactionAccountOverrideMock.mockReturnValue('0xFromAddress' as Hex);
+    it('uses accountOverride assets when it resolves to an account group', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(
+        '0xFromAddress' as never,
+      );
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectAssetsBySelectedAccountGroup) {
@@ -844,7 +846,7 @@ describe('useAccountTokens', () => {
       expect(result.current[0].symbol).toBe('OVERRIDE');
     });
 
-    it('falls back to global assets when txParams.from is not available', () => {
+    it('falls back to global assets when accountOverride is undefined', () => {
       useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
       const { result } = renderHook(() => useAccountTokens());
