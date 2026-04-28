@@ -287,7 +287,6 @@ const MoneyHomeView = () => {
           // TODO: Double check projectedEarnings value after refactoring. This is supposed to represent the earnings a user COULD get if they converted NOT the Money Account's balance.
           projectedEarnings={projectedEarnings}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
-          onProjectedPress={handleEarnCryptoPress}
           onInfoPress={handleEarningsInfoPress}
         />
         <Divider />
