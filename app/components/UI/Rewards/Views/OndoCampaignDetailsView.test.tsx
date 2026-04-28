@@ -147,6 +147,22 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   };
 });
 
+jest.mock('../components/Campaigns/CampaignEndedStats', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const { CAMPAIGN_ENDED_STATS_TEST_IDS: actualTestIds } = jest.requireActual(
+    '../components/Campaigns/CampaignEndedStats',
+  );
+  return {
+    __esModule: true,
+    CAMPAIGN_ENDED_STATS_TEST_IDS: actualTestIds,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: actualTestIds.CONTAINER,
+      }),
+  };
+});
+
 const mockCampaignStatsSummary = jest.fn();
 jest.mock('../components/Campaigns/CampaignStatsSummary', () => {
   const ReactActual = jest.requireActual('react');
@@ -1114,7 +1130,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
     });
 
-    it('does not render OndoPrizePool when campaign is complete', () => {
+    it('renders OndoPrizePool when campaign is complete', () => {
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       const yesterday = new Date();
@@ -1129,8 +1145,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeDefined();
     });
   });
 
