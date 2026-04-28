@@ -153,7 +153,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
         variant={
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
-        size={ButtonSize.Sm}
+        size={ButtonSize.Md}
         onPress={() => onFollowPress(trader.id)}
         twClassName="min-w-[96px]"
       >

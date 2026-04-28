@@ -134,7 +134,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         variant={
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
-        size={ButtonSize.Sm}
+        size={ButtonSize.Md}
         isFullWidth
         onPress={() => onFollowPress(trader.id)}
       >
