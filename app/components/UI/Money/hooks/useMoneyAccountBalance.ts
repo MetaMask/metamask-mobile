@@ -117,6 +117,7 @@ const useMoneyAccountBalance = (
     const musdDecimal = musdBalanceQuery.data?.balance
       ? new BigNumber(
           fromTokenMinimalUnitString(
+            // TODO: Remove after testing.
             // musdBalanceQuery.data.balance,
             '10000000',
             MUSD_DECIMALS,
