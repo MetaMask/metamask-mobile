@@ -559,6 +559,16 @@ export type OndoGmCampaignDepositsDto = {
   totalUsdDeposited: string;
 };
 
+export type OndoGmCampaignParticipantOutcomeStatus = 'pending' | 'finalized';
+
+export interface OndoGmCampaignParticipantOutcomeDto {
+  subscriptionId: string;
+  outcomeStatus: OndoGmCampaignParticipantOutcomeStatus;
+  winnerVerificationCode?: string | null;
+  tierRank?: number;
+  tier?: string;
+}
+
 /**
  * Cached portfolio payload (explicit shape for Json / StateConstraint compatibility).
  */
