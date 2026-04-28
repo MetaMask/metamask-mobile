@@ -178,6 +178,42 @@ describe('CampaignEndedStats', () => {
     expect(skeletons.length).toBeGreaterThanOrEqual(3);
   });
 
+  it('caps winners at 5 per tier even when more qualified entries exist', () => {
+    const makeEntry = (rank: number, referralCode: string) => ({
+      rank,
+      referralCode,
+      rateOfReturn: 0.1,
+      qualifiedDays: 10,
+      qualified: true,
+    });
+    const leaderboard = makeLeaderboard({
+      tiers: {
+        STARTER: {
+          totalParticipants: 100,
+          entries: [1, 2, 3, 4, 5, 6, 7].map((r) => makeEntry(r, `S${r}`)),
+        },
+        MID: {
+          totalParticipants: 50,
+          entries: [1, 2, 3].map((r) => makeEntry(r, `M${r}`)),
+        },
+      },
+    });
+
+    const { getByTestId } = render(
+      <CampaignEndedStats
+        leaderboard={leaderboard}
+        totalUsdDeposited={null}
+        isLeaderboardLoading={false}
+        isDepositsLoading={false}
+      />,
+    );
+
+    // STARTER has 7 qualified but caps at 5; MID has 3 qualified → total 8
+    expect(
+      getByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.WINNERS).props.children,
+    ).toBe('8');
+  });
+
   it('handles an empty leaderboard with no entries', () => {
     const emptyLeaderboard = makeLeaderboard({
       tiers: {

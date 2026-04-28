@@ -55,7 +55,11 @@ const CampaignEndedStats: React.FC<CampaignEndedStatsProps> = ({
       allEntries.length > 0
         ? Math.max(...allEntries.map((e) => e.rateOfReturn))
         : null;
-    const winners = allEntries.filter((e) => e.qualified).length;
+    const winners = tiers.reduce(
+      (sum, tier) =>
+        sum + Math.min(5, tier.entries.filter((e) => e.qualified).length),
+      0,
+    );
 
     return { totalParticipants, topReturn, winners };
   }, [leaderboard]);
