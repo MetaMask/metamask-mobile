@@ -1,5 +1,6 @@
 {
   "pr": "29303",
+  "schema_version": 1,
   "title": "TAT-3047 validation — single-account state machine (parametric)",
   "jira": "TAT-3047",
   "description": "Single-account validation. Reviewer picks the fixture via `--input address=0x...` (default Trading). Recipe entry probes for open positions/orders and routes to one of two paths: Path A (clean account) runs the full Unified ↔ Standard mode-flip state machine to prove the mode-aware fold gate; Path B (positions present, e.g. Trading with HIP-3 hold) skips mode flips (HL rejects them while positions exist) and exercises the spot-fold math under non-trivial spot.hold. Manual reproduction steps map each state to an HL-web action: docs/perps/perps-account-abstraction-and-balance-contract.md#manual-reproduction. Recovery: if Path A crashes mid-mode-flip, the account is left in Standard — restore via `hl-provision-fixture abstraction=unifiedAccount transferDirection=none` standalone or by toggling 'Disable Unified Account Mode' off in HL web settings.",
@@ -125,6 +126,7 @@
         "shared-screenshot-market-list": {
           "action": "screenshot",
           "filename": "shared-market-list.png",
+          "note": "AC4: Market list header renders spendableBalance",
           "next": "shared-nav-withdraw"
         },
         "shared-nav-withdraw": {
@@ -154,6 +156,7 @@
         "shared-screenshot-withdraw": {
           "action": "screenshot",
           "filename": "shared-withdraw-folded.png",
+          "note": "AC3: Withdraw view shows withdrawableBalance, never $0 (TAT-3047 fix)",
           "next": "shared-valid-clear"
         },
         "shared-valid-clear": {
