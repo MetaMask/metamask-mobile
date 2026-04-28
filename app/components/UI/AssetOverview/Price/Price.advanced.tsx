@@ -23,6 +23,7 @@ import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
+import { LineGraph, GraphPoint } from 'react-native-graph';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
@@ -30,6 +31,7 @@ import {
   type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
+  type OHLCVBar as OHLCVBarData,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
@@ -58,6 +60,52 @@ import type {
 import PriceLegacy from './Price.legacy';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
+
+// Fixed point count keeps react-native-graph's interpolation stable across
+// timeframe changes — variable counts cause two-stage animations.
+const NORMALIZED_POINT_COUNT = 100;
+
+const buildGraphPoints = (
+  data: readonly OHLCVBarData[],
+  fromMs: number,
+): GraphPoint[] => {
+  if (data.length === 0) return [];
+  const trimmed = data.filter((bar) => bar.time >= fromMs);
+  if (trimmed.length === 0) return [];
+
+  if (trimmed.length <= NORMALIZED_POINT_COUNT) {
+    const points = trimmed.map((bar) => ({
+      value: bar.close,
+      date: new Date(bar.time),
+    }));
+    if (points.length >= 2 && points.length < NORMALIZED_POINT_COUNT) {
+      const result: GraphPoint[] = new Array(NORMALIZED_POINT_COUNT);
+      const step = (points.length - 1) / (NORMALIZED_POINT_COUNT - 1);
+      for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
+        const rawIdx = i * step;
+        const lo = Math.floor(rawIdx);
+        const hi = Math.min(lo + 1, points.length - 1);
+        const t = rawIdx - lo;
+        result[i] = {
+          value: points[lo].value * (1 - t) + points[hi].value * t,
+          date: new Date(
+            points[lo].date.getTime() * (1 - t) + points[hi].date.getTime() * t,
+          ),
+        };
+      }
+      return result;
+    }
+    return points;
+  }
+  const result: GraphPoint[] = new Array(NORMALIZED_POINT_COUNT);
+  const step = (trimmed.length - 1) / (NORMALIZED_POINT_COUNT - 1);
+  for (let i = 0; i < NORMALIZED_POINT_COUNT; i++) {
+    const idx = Math.round(i * step);
+    const bar = trimmed[idx];
+    result[i] = { value: bar.close, date: new Date(bar.time) };
+  }
+  return result;
+};
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -103,18 +151,25 @@ const PriceAdvanced = ({
   );
   const { setIsChartBeingTouched } = usePriceChart();
 
+  const handlePointSelected = useCallback((point: GraphPoint) => {
+    // Bridge LineGraph scrub into the existing crosshair-driven header so
+    // displayPrice / displayDiff / displayDate update the same way as candles.
+    const value = point.value;
+    const time = point.date.getTime();
+    setCrosshairData({
+      time,
+      open: value,
+      high: value,
+      low: value,
+      close: value,
+      volume: 0,
+    });
+  }, []);
+
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
-
-  const handleTouchStart = useCallback(() => {
-    setIsChartBeingTouched(true);
-  }, [setIsChartBeingTouched]);
-
-  const handleTouchEnd = useCallback(() => {
-    setIsChartBeingTouched(false);
-  }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
@@ -155,6 +210,14 @@ const PriceAdvanced = ({
     );
     dispatch(setTokenOverviewChartType(next));
   }, [chartType, createEventBuilder, trackEvent, dispatch]);
+
+  const handleTouchStart = useCallback(() => {
+    setIsChartBeingTouched(true);
+  }, [setIsChartBeingTouched]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsChartBeingTouched(false);
+  }, [setIsChartBeingTouched]);
 
   const handleTimeRangeSelect = useCallback(
     (range: TimeRange) => {
@@ -241,6 +304,25 @@ const PriceAdvanced = ({
 
   const visibleToMs = lastBarTime;
 
+  const committedPointsRef = useRef<GraphPoint[]>([]);
+  const committedSeriesKeyRef = useRef<string>(ohlcvSeriesKey);
+  const committedDataRef = useRef<readonly OHLCVBarData[]>(ohlcvData);
+  const graphPoints = useMemo(() => {
+    const seriesChanged = committedSeriesKeyRef.current !== ohlcvSeriesKey;
+    const dataIsFresh = ohlcvData !== committedDataRef.current;
+    if (seriesChanged && !dataIsFresh) {
+      return committedPointsRef.current;
+    }
+    if (ohlcvData.length === 0 || visibleFromMs == null) {
+      return committedPointsRef.current;
+    }
+    const next = buildGraphPoints(ohlcvData, visibleFromMs);
+    committedPointsRef.current = next;
+    committedSeriesKeyRef.current = ohlcvSeriesKey;
+    committedDataRef.current = ohlcvData;
+    return next;
+  }, [ohlcvData, visibleFromMs, ohlcvSeriesKey]);
+
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
   // Calculate the current compare price from OHLCV data
@@ -290,6 +372,25 @@ const PriceAdvanced = ({
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
+  // LineGraph stroke + gradient colors derive from displayDiff so the line
+  // matches the price-up / price-down state of the header.
+  const chartColor = useMemo(() => {
+    if (displayDiff != null && displayDiff > 0)
+      return theme.colors.success.default;
+    if (displayDiff != null && displayDiff < 0)
+      return theme.colors.error.default;
+    return theme.colors.text.alternative;
+  }, [displayDiff, theme.colors]);
+  const gradientColors = useMemo(
+    () => [chartColor + '40', chartColor + '20', chartColor + '00'],
+    [chartColor],
+  );
+
+  const handleLineGraphGestureEnd = useCallback(() => {
+    handleTouchEnd();
+    setCrosshairData(null);
+  }, [handleTouchEnd]);
+
   const shouldFallbackToLegacy =
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
@@ -313,7 +414,7 @@ const PriceAdvanced = ({
   return (
     <>
       <View style={styles.wrapper}>
-        {!isNaN(currentPrice) && (
+        {!isNaN(displayPrice) && (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
             variant={TextVariant.DisplayLg}
@@ -399,30 +500,46 @@ const PriceAdvanced = ({
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
-          <AdvancedChart
-            ohlcvData={ohlcvData}
-            ohlcvSeriesKey={ohlcvSeriesKey}
-            height={CHART_HEIGHT}
-            showVolume={chartType === ChartType.Candles}
-            volumeOverlay
-            chartType={chartType}
-            indicators={EMPTY_INDICATORS}
-            lineChrome={advancedChartLineChromePresets.tokenOverview}
-            isLoading={chartLoading}
-            ohlcvPagination={ohlcvPagination}
-            visibleFromMs={visibleFromMs}
-            visibleToMs={visibleToMs}
-            onCrosshairMove={handleCrosshairMove}
-            onChartInteracted={handleChartInteracted}
-            onChartTradingViewClicked={handleChartTradingViewClicked}
-          />
+          {chartType === ChartType.Line ? (
+            <LineGraph
+              animated
+              points={graphPoints}
+              color={chartColor}
+              gradientFillColors={gradientColors}
+              style={styles.lineGraph}
+              enablePanGesture
+              enableIndicator
+              indicatorPulsating
+              enableFadeInMask
+              onPointSelected={handlePointSelected}
+              onGestureStart={handleTouchStart}
+              onGestureEnd={handleLineGraphGestureEnd}
+            />
+          ) : (
+            <AdvancedChart
+              ohlcvData={ohlcvData}
+              ohlcvSeriesKey={ohlcvSeriesKey}
+              height={CHART_HEIGHT}
+              showVolume={chartType === ChartType.Candles}
+              volumeOverlay
+              chartType={chartType}
+              indicators={EMPTY_INDICATORS}
+              lineChrome={advancedChartLineChromePresets.tokenOverview}
+              isLoading={chartLoading}
+              ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
+              visibleToMs={visibleToMs}
+              onCrosshairMove={handleCrosshairMove}
+              onChartInteracted={handleChartInteracted}
+              onChartTradingViewClicked={handleChartTradingViewClicked}
+            />
+          )}
         </View>
       </Box>
 
       <View style={styles.timeRangeContainer}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
-            isChartLoading={chartLoading}
             selected={timeRange}
             onSelect={handleTimeRangeSelect}
             chartType={chartType}

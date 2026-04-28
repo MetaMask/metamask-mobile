@@ -1,19 +1,16 @@
-/* eslint-disable react/no-unstable-nested-components */
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Dimensions,
-  GestureResponderEvent,
-  PanResponder,
-  View,
-} from 'react-native';
-import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
-import { AreaChart } from 'react-native-svg-charts';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import { Dimensions, View } from 'react-native';
+import { LineGraph, GraphPoint } from 'react-native-graph';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../component-library/hooks';
-import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -24,22 +21,6 @@ import styleSheet from './PriceChart.styles';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import { Box } from '@metamask/design-system-react-native';
-
-interface LineProps {
-  line: string;
-  lineStrokeActive: boolean;
-}
-
-interface TooltipProps {
-  x: (index: number) => number;
-  y: (value: number) => number;
-  ticks: number[];
-  width?: number;
-  height?: number;
-}
-
-/** Design: 16×16 logical px circle (TradingView-style last-point marker). */
-const END_DOT_DIAMETER = 16;
 
 interface PriceChartProps {
   prices: TokenPrice[];
@@ -60,73 +41,40 @@ const PriceChart = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const emptyDisplayTrackedRef = useRef(false);
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
-
-  const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
-  /** Laid-out width of the chart row — used for touch mapping and skeleton (not screen width). */
-  const [chartRowWidth, setChartRowWidth] = useState(0);
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
-  const { themeAppearance } = useTheme();
-  const chartColor =
-    themeAppearance === AppThemeKey.light
-      ? LIGHT_MODE_SUCCESS_GREEN
-      : theme.colors.success.default;
 
-  useEffect(() => {
-    setPositionX(-1);
-  }, [prices]);
+  const chartColor = useMemo(() => {
+    if (priceDiff > 0) return theme.colors.success.default;
+    if (priceDiff < 0) return theme.colors.error.default;
+    return theme.colors.text.alternative;
+  }, [priceDiff, theme.colors]);
 
-  const apx = (size = 0) => {
-    const width = Dimensions.get('window').width;
-    return (width / 750) * size;
-  };
+  const gradientFillColors = useMemo(
+    () => [chartColor + '40', chartColor + '20', chartColor + '00'],
+    [chartColor],
+  );
 
-  const priceList = prices.map((_: TokenPrice) => _[1]);
+  const graphPoints: GraphPoint[] = useMemo(
+    () =>
+      prices.map(([timestamp, value]) => ({
+        value,
+        date: new Date(timestamp),
+      })),
+    [prices],
+  );
 
-  // Detect if this is a stablecoin and calculate appropriate Y-axis range
-  const { isStablecoin, yMin, yMax } = useMemo(() => {
-    if (priceList.length === 0) {
-      return { isStablecoin: false, yMin: undefined, yMax: undefined };
+  // O(1) timestamp -> index lookup; onPointSelected fires per pan-gesture frame.
+  const indexByTime = useMemo(() => {
+    const map = new Map<number, number>();
+    for (let i = 0; i < graphPoints.length; i++) {
+      map.set(graphPoints[i].date.getTime(), i);
     }
+    return map;
+  }, [graphPoints]);
 
-    // Use median for better outlier resistance
-    const sortedPrices = [...priceList].sort((a, b) => a - b);
-    const medianPrice = sortedPrices[Math.floor(sortedPrices.length / 2)];
-    const minPrice = sortedPrices[0];
-    const maxPrice = sortedPrices[sortedPrices.length - 1];
-
-    // Detect stablecoin: median price between $0.90 and $1.10
-    const isStablecoinPrice = medianPrice >= 0.9 && medianPrice <= 1.1;
-
-    if (!isStablecoinPrice) {
-      return { isStablecoin: false, yMin: undefined, yMax: undefined };
-    }
-
-    // For stablecoins, create an intelligently zoomed view
-    const priceRange = maxPrice - minPrice;
-
-    // Ensure minimum range of 2% of median price for meaningful visualization
-    // This prevents over-zooming on very stable prices (e.g., all $1.000)
-    const minRange = medianPrice * 0.02; // 2% range minimum
-
-    // Use larger of actual range or minimum range
-    const effectiveRange = Math.max(priceRange, minRange);
-
-    // Add 20% padding to the effective range for visual breathing room
-    const padding = effectiveRange * 0.2;
-
-    // Center the range around the median for balanced visualization
-    const halfRange = effectiveRange / 2;
-
-    return {
-      isStablecoin: true,
-      yMin: Math.max(0, medianPrice - halfRange - padding),
-      yMax: medianPrice + halfRange + padding,
-    };
-  }, [priceList]);
-
-  const chartHasData = priceList.length >= CHART_DATA_THRESHOLD;
+  const chartHasData = graphPoints.length >= CHART_DATA_THRESHOLD;
   const hasInsufficientData =
-    priceList.length > 0 && priceList.length < CHART_DATA_THRESHOLD;
+    graphPoints.length > 0 && graphPoints.length < CHART_DATA_THRESHOLD;
 
   useEffect(() => {
     if (chartHasData || isLoading) {
@@ -142,144 +90,21 @@ const PriceChart = ({
     );
   }, [chartHasData, isLoading, trackEvent, createEventBuilder]);
 
-  const onActiveIndexChange = (index: number) => {
-    setPositionX(index);
-    onChartIndexChange(index);
-  };
-
-  const updatePosition = (x: number) => {
-    if (x === -1) {
-      onActiveIndexChange(-1);
-      return;
-    }
-    const chartWidth =
-      chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width;
-    const xDistance = chartWidth / priceList.length;
-    if (x <= 0) {
-      x = 0;
-    }
-    if (x >= chartWidth) {
-      x = chartWidth;
-    }
-    let value = Number((x / xDistance).toFixed(0));
-    if (value >= priceList.length - 1) {
-      value = priceList.length - 1;
-    }
-    onActiveIndexChange(value);
-  };
-
-  const prevTouch = useRef({ x: 0, y: 0 });
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponderCapture: () => true,
-      onPanResponderTerminationRequest: () => true,
-      onPanResponderGrant: (evt: GestureResponderEvent) => {
-        // save current touch for the next move
-        prevTouch.current = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-        updatePosition(evt.nativeEvent.locationX);
-      },
-      onPanResponderMove: (evt: GestureResponderEvent) => {
-        const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
-        const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
-        const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
-
-        setIsChartBeingTouched(isHorizontalSwipe);
-        updatePosition(isHorizontalSwipe ? evt.nativeEvent.locationX : -1);
-
-        // save current touch for the next move
-        prevTouch.current = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-      },
-
-      onPanResponderRelease: () => {
-        setIsChartBeingTouched(false);
-        updatePosition(-1);
-      },
-    }),
+  const onPointSelected = useCallback(
+    (point: GraphPoint) => {
+      onChartIndexChange(indexByTime.get(point.date.getTime()) ?? -1);
+    },
+    [indexByTime, onChartIndexChange],
   );
 
-  const Line = (props: Partial<LineProps>) => {
-    const { line, lineStrokeActive } = props as LineProps;
-    return (
-      <Path
-        key="line"
-        d={line}
-        stroke={lineStrokeActive ? chartColor : theme.colors.text.alternative}
-        strokeWidth={apx(4)}
-        fill="none"
-        opacity={lineStrokeActive ? 1 : 0.85}
-      />
-    );
-  };
+  const onGestureStart = useCallback(() => {
+    setIsChartBeingTouched(true);
+  }, [setIsChartBeingTouched]);
 
-  const Tooltip = ({ x, y, height: svgHeight }: Partial<TooltipProps>) => {
-    if (positionX < 0) {
-      return null;
-    }
-    const lineHeight =
-      typeof svgHeight === 'number' && svgHeight > 0 ? svgHeight : chartHeight;
-    return (
-      <G x={x?.(positionX)} key="tooltip">
-        <G>
-          <SvgLine
-            y1={1}
-            y2={lineHeight}
-            stroke={styles.tooltipLine.color}
-            strokeWidth={1}
-          />
-          <Circle
-            cy={y?.(priceList[positionX])}
-            r={apx(20 / 2)}
-            stroke={styles.tooltipLine.color}
-            strokeWidth={apx(1)}
-            fill={chartColor}
-          />
-        </G>
-      </G>
-    );
-  };
-
-  const endDotRadius = END_DOT_DIAMETER / 2;
-  const endDotInsetRight = endDotRadius + 8;
-
-  /** Last-point marker — TradingView-style line end dot. Requires right contentInset or SVG clips half the circle. */
-  const EndDot = ({ x, y }: Partial<TooltipProps>) => {
-    if (!chartHasData || x === undefined || y === undefined) {
-      return null;
-    }
-    const lastIdx = priceList.length - 1;
-    const lastY = priceList[lastIdx];
-    const cx = x(lastIdx);
-    const cy = y(lastY);
-    if (
-      typeof cx !== 'number' ||
-      typeof cy !== 'number' ||
-      Number.isNaN(cx) ||
-      Number.isNaN(cy)
-    ) {
-      return null;
-    }
-    return (
-      <Circle
-        key="end-dot"
-        testID="price-chart-end-dot"
-        cx={cx}
-        cy={cy}
-        r={endDotRadius}
-        fill={chartColor}
-        stroke={theme.colors.background.default}
-        strokeWidth={Math.max(1.5, apx(2))}
-      />
-    );
-  };
+  const onGestureEnd = useCallback(() => {
+    setIsChartBeingTouched(false);
+    onChartIndexChange(-1);
+  }, [setIsChartBeingTouched, onChartIndexChange]);
 
   /**
    * Loading overlay component.
@@ -294,50 +119,35 @@ const PriceChart = ({
         highlightColor={theme.colors.background.subsection}
       >
         <SkeletonPlaceholder.Item
-          width={
-            chartRowWidth > 0
-              ? chartRowWidth
-              : Dimensions.get('window').width - 32
-          }
+          width={Dimensions.get('window').width - 32}
           height={chartHeight}
           borderRadius={6}
-        ></SkeletonPlaceholder.Item>
+        />
       </SkeletonPlaceholder>
     </Box>
   );
 
   return (
-    <View
-      style={styles.chart}
-      onLayout={(e) => {
-        const w = e.nativeEvent.layout.width;
-        if (w > 0) {
-          setChartRowWidth(w);
-        }
-      }}
-    >
+    <View style={styles.chart}>
       <View
         style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
-        {...(chartHasData ? panResponder.current.panHandlers : {})}
       >
-        {chartHasData ? (
-          <AreaChart
+        {chartHasData && !isLoading ? (
+          <LineGraph
+            animated
+            points={graphPoints}
+            color={chartColor}
+            gradientFillColors={gradientFillColors}
             style={styles.chartArea}
-            data={priceList}
-            contentInset={{
-              top: apx(40),
-              bottom: apx(40),
-              right: endDotInsetRight,
-            }}
-            svg={!isLoading ? { fill: 'none' } : undefined}
-            yMin={isStablecoin ? yMin : undefined}
-            yMax={isStablecoin ? yMax : undefined}
-          >
-            {!isLoading && <Line lineStrokeActive />}
-            {!isLoading && <Tooltip />}
-            {!isLoading && <EndDot />}
-          </AreaChart>
+            enablePanGesture
+            enableIndicator
+            indicatorPulsating
+            enableFadeInMask
+            onPointSelected={onPointSelected}
+            onGestureStart={onGestureStart}
+            onGestureEnd={onGestureEnd}
+          />
         ) : null}
         {isLoading && (
           <View style={styles.loadingOverlayContainer}>
