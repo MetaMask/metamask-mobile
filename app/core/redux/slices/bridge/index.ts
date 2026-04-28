@@ -36,6 +36,12 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
+import {
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+} from '../../../../selectors/assets/assets-migration';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -452,9 +458,17 @@ const selectControllerFields = (state: RootState) => ({
   gasFeeEstimatesByChainId:
     state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
     {},
-  ...state.engine.backgroundState.MultichainAssetsRatesController,
-  ...state.engine.backgroundState.TokenRatesController,
-  ...state.engine.backgroundState.CurrencyRateController,
+  ...{
+    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
+    historicalPrices: {},
+  },
+  ...{
+    marketData: getTokenRatesControllerMarketData(state),
+  },
+  ...{
+    currencyRates: getCurrencyRateControllerCurrencyRates(state),
+    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
+  },
   participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
