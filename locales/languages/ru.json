@@ -8511,7 +8511,7 @@
   },
   "trending": {
     "title": "Обзор",
-    "trending_tokens": "Популярные токены",
+    "trending_tokens": "Тренды",
     "stocks": "Акции",
     "price_change": "Изменение цены",
     "all_networks": "Все сети",
@@ -8668,7 +8668,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "Популярные токены",
+      "trending_tokens": "Тренды",
       "trending_perpetuals": "Популярные перпы",
       "trending_predictions": "Популярные прогнозы",
       "import_nfts": "Импорт NFT",

@@ -8511,7 +8511,7 @@
   },
   "trending": {
     "title": "Explorer",
-    "trending_tokens": "Jetons tendance",
+    "trending_tokens": "Tendances",
     "stocks": "Actions",
     "price_change": "Variation du prix",
     "all_networks": "Tous les réseaux",
@@ -8668,7 +8668,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "Jetons tendance",
+      "trending_tokens": "Tendances",
       "trending_perpetuals": "Contrats à terme perpétuels populaires",
       "trending_predictions": "Prédictions populaires",
       "import_nfts": "Importer des NFT",

@@ -8511,7 +8511,7 @@
   },
   "trending": {
     "title": "Entdecken",
-    "trending_tokens": "Trendige Tokens",
+    "trending_tokens": "Trending",
     "stocks": "Aktien",
     "price_change": "Preisänderung",
     "all_networks": "Alle Netzwerke",
@@ -8668,7 +8668,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "Trendige Tokens",
+      "trending_tokens": "Trending",
       "trending_perpetuals": "Trendige Perpetuals",
       "trending_predictions": "Trendige Prognosen",
       "import_nfts": "NFTs importieren",

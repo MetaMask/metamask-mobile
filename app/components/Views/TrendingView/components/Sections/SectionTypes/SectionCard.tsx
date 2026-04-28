@@ -10,11 +10,9 @@ import { useNavigation } from '@react-navigation/native';
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     cardContainer: {
-      borderRadius: 12,
-      marginBottom: 20,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      backgroundColor: theme.colors.background.muted,
+      marginBottom: 28,
+      paddingVertical: -16,
+      paddingHorizontal: -16,
       borderWidth: 0,
     },
   });

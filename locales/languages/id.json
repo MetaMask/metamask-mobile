@@ -8511,7 +8511,7 @@
   },
   "trending": {
     "title": "Jelajahi",
-    "trending_tokens": "Token yang tren",
+    "trending_tokens": "Tren",
     "stocks": "Saham",
     "price_change": "Perubahan harga",
     "all_networks": "Semua jaringan",
@@ -8668,7 +8668,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "Token yang tren",
+      "trending_tokens": "Tren",
       "trending_perpetuals": "Perpetual yang tren",
       "trending_predictions": "Prediksi yang tren",
       "import_nfts": "Impor NFT",

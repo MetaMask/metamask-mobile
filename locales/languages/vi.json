@@ -8511,7 +8511,7 @@
   },
   "trending": {
     "title": "Khám phá",
-    "trending_tokens": "Token xu hướng",
+    "trending_tokens": "Xu hướng",
     "stocks": "Cổ phiếu",
     "price_change": "Biến động giá",
     "all_networks": "Tất cả mạng",
@@ -8668,7 +8668,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "Token xu hướng",
+      "trending_tokens": "Xu hướng",
       "trending_perpetuals": "Hợp đồng vĩnh cửu đang thịnh hành",
       "trending_predictions": "Dự đoán đang thịnh hành",
       "import_nfts": "Nhập NFT",

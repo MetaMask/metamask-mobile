@@ -8511,7 +8511,7 @@
   },
   "trending": {
     "title": "探索",
-    "trending_tokens": "热门代币",
+    "trending_tokens": "热门",
     "stocks": "股票",
     "price_change": "价格变化",
     "all_networks": "所有网络",
@@ -8668,7 +8668,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "热门代币",
+      "trending_tokens": "热门",
       "trending_perpetuals": "热门永续合约",
       "trending_predictions": "热门预测",
       "import_nfts": "导入 NFT",
