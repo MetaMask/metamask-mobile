@@ -463,6 +463,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
           createQRHardwareScanError({
             errorType: QRHardwareScanErrorType.ScanException,
             purpose,
+            technicalMessage: e instanceof Error ? e.message : String(e),
             isUrFormat,
           }),
         );
