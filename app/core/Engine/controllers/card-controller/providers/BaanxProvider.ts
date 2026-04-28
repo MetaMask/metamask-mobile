@@ -31,10 +31,6 @@ import { mapCountryToLocation } from '../../../../../components/UI/Card/util/map
 import { DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS } from '../../../../../components/UI/Card/util/mapBaanxApiUrl';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
-  cardLocationFromBaanxAccessToken,
-  hasUnknownBaanxOAuthAppId,
-} from '../utils/baanxOAuth2Jwt';
-import {
   CardAccountStatus,
   CardAction,
   CardAlert,
@@ -233,7 +229,7 @@ export class BaanxProvider implements ICardProvider {
       throw new Error('No refresh token available');
     }
 
-    const priorLocation = tokens.location as CardLocation;
+    const location = tokens.location as CardLocation;
     const response = await this.service.request<
       CardExchangeTokenRawResponse & { refresh_token_expires_in?: number }
     >('/v1/auth/oauth2/token', {
@@ -242,11 +238,8 @@ export class BaanxProvider implements ICardProvider {
         grant_type: 'refresh_token',
         refresh_token: tokens.refreshToken,
       },
-      location: priorLocation,
+      location,
     });
-
-    const resolvedLocation =
-      cardLocationFromBaanxAccessToken(response.access_token) ?? priorLocation;
 
     const refreshExpiresSec =
       response.refresh_token_expires_in ??
@@ -257,7 +250,7 @@ export class BaanxProvider implements ICardProvider {
       refreshToken: response.refresh_token,
       accessTokenExpiresAt: Date.now() + response.expires_in * 1000,
       refreshTokenExpiresAt: Date.now() + refreshExpiresSec * 1000,
-      location: resolvedLocation,
+      location,
     };
   }
 
@@ -1127,20 +1120,34 @@ export class BaanxProvider implements ICardProvider {
     }
   }
 
+  private mapBaanxAppIdToLocation(appId: string): CardLocation {
+    if (appId === 'FOX_US') {
+      return 'us';
+    }
+
+    if (appId === 'FOX') {
+      return 'international';
+    }
+
+    return 'international';
+  }
+
   // ---- Private helpers ----
 
   private async handleOAuth2(
     session: CardAuthSession,
     credentials: Extract<CardCredentials, { type: 'oauth2' }>,
   ): Promise<CardAuthResult> {
-    const metaLoc = session._metadata.location;
-    if (typeof metaLoc !== 'string') {
+    const uiSelectedLocation = session._metadata.location;
+
+    if (typeof uiSelectedLocation !== 'string') {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Invalid auth session: missing location in _metadata',
       );
     }
-    const sessionLocation = metaLoc as CardLocation;
+
+    const returnedLocation = this.mapBaanxAppIdToLocation(credentials.appId);
 
     const formBody = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -1159,7 +1166,7 @@ export class BaanxProvider implements ICardProvider {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-          location: sessionLocation,
+          location: returnedLocation,
           timeout: OAUTH2_TOKEN_TIMEOUT_MS,
         },
       );
@@ -1171,24 +1178,7 @@ export class BaanxProvider implements ICardProvider {
       );
     }
 
-    if (hasUnknownBaanxOAuthAppId(tokenResponse.access_token)) {
-      throw new CardProviderError(
-        CardProviderErrorCode.InvalidCredentials,
-        'Invalid or missing app_id in access token',
-      );
-    }
-
-    const location = cardLocationFromBaanxAccessToken(
-      tokenResponse.access_token,
-    );
-    if (!sessionLocation && !location) {
-      throw new CardProviderError(
-        CardProviderErrorCode.InvalidCredentials,
-        'Invalid or missing app_id in access token',
-      );
-    }
-
-    this.service.setLocation(location ?? sessionLocation);
+    this.service.setLocation(returnedLocation);
 
     const refreshExpiresSec =
       tokenResponse.refresh_token_expires_in ??
@@ -1201,7 +1191,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt: tokenResponse.refresh_token
         ? Date.now() + refreshExpiresSec * 1000
         : undefined,
-      location: location ?? sessionLocation,
+      location: returnedLocation,
     };
 
     return { done: true, tokenSet };

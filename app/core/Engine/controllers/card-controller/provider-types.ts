@@ -81,20 +81,13 @@ export interface CardAuthSession {
   _metadata: Record<string, unknown>;
 }
 
-export type CardCredentials =
-  | {
-      type: 'email_password';
-      email: string;
-      password: string;
-      otpCode?: string;
-    }
-  | {
-      type: 'oauth2';
-      code: string;
-      codeVerifier: string;
-      redirectUri: string;
-    }
-  | { type: 'siwe'; signature: string };
+export interface CardCredentials {
+  type: 'oauth2';
+  code: string;
+  codeVerifier: string;
+  redirectUri: string;
+  appId: string;
+}
 
 // -- Capabilities --
 

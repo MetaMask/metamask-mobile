@@ -147,10 +147,10 @@ export function useCardOAuth2Authentication(
         return null;
       }
 
-      const { code } = result.params;
+      const { code, app_id: appId } = result.params;
       const codeVerifier = request.codeVerifier;
 
-      if (!code || !codeVerifier) {
+      if (!code || !codeVerifier || !appId) {
         setError(strings('card.card_authentication.errors.unknown_error'));
         return null;
       }
@@ -160,6 +160,7 @@ export function useCardOAuth2Authentication(
         code,
         codeVerifier,
         redirectUri,
+        appId,
       });
 
       setError(null);
