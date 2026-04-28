@@ -51,7 +51,7 @@ export interface ExploreKeyedMarketsSectionPayload {
   selectSport: (key: string) => void;
 }
 
-const useAllSportsExploreSectionData = (): {
+export const useAllSportsExploreSectionData = (): {
   data: unknown[];
   isLoading: boolean;
   refetch: () => Promise<void>;

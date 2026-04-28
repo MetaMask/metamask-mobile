@@ -16,7 +16,7 @@ import type { ExploreTabId } from '../sections/types';
 import Section, { RefreshConfig } from '../components/Sections/Section';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
-const useSectionStateTracker = (
+export const useSectionStateTracker = (
   sections: { id: SectionId }[],
 ): {
   sectionsWithState: Set<SectionId>;
@@ -129,7 +129,7 @@ export const ExploreTabSectionedScroll: React.FC<
   );
 };
 
-const useExploreTabPanelSections = (
+export const useExploreTabPanelSections = (
   tab: ExploreTabId,
 ): {
   sections: (SectionConfig & { id: SectionId })[];

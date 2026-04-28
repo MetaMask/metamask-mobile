@@ -1,4 +1,13 @@
-import { formatCompactUSD, formatMarketStats } from './utils';
+import type { CaipChainId } from '@metamask/utils';
+import {
+  caipChainIdToHex,
+  formatCompactUSD,
+  formatMarketStats,
+  getCaipChainIdFromAssetId,
+  getNetworkBadgeSource,
+  getPriceChangeFieldKey,
+} from './utils';
+import { TimeOption } from '../TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 
 describe('formatCompactUSD', () => {
   describe('Billions formatting', () => {
@@ -362,5 +371,65 @@ describe('formatMarketStats', () => {
 
       expect(result).toBe('$0.01 cap • $0.01 vol');
     });
+  });
+});
+
+describe('getCaipChainIdFromAssetId', () => {
+  it('extracts the chain prefix from a CAIP-19 asset id', () => {
+    expect(getCaipChainIdFromAssetId('eip155:1/erc20:0xabc')).toBe('eip155:1');
+  });
+
+  it('returns the input untouched when there is no slash separator', () => {
+    expect(getCaipChainIdFromAssetId('eip155:1')).toBe('eip155:1');
+  });
+});
+
+describe('caipChainIdToHex', () => {
+  it('converts an eip155 reference to a hex chain id', () => {
+    expect(caipChainIdToHex('eip155:1' as CaipChainId)).toBe('0x1');
+    expect(caipChainIdToHex('eip155:137' as CaipChainId)).toBe('0x89');
+  });
+
+  it('passes non-eip155 CAIP ids through unchanged', () => {
+    expect(
+      caipChainIdToHex(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
+      ),
+    ).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
+  });
+});
+
+describe('getNetworkBadgeSource', () => {
+  it('returns an image source for a known popular EVM network (mainnet)', () => {
+    const src = getNetworkBadgeSource('eip155:1' as CaipChainId);
+    expect(src).toBeDefined();
+  });
+
+  it('returns undefined for an unknown EVM chain', () => {
+    const src = getNetworkBadgeSource('eip155:99999999' as CaipChainId);
+    expect(src).toBeUndefined();
+  });
+
+  it('does not throw for a non-EVM CAIP chain id', () => {
+    // Whether the badge resolves to a real image depends on customNetworks data;
+    // we just assert the lookup pipeline handles the non-eip155 branch cleanly.
+    expect(() =>
+      getNetworkBadgeSource('solana:mainnet' as CaipChainId),
+    ).not.toThrow();
+  });
+});
+
+describe('getPriceChangeFieldKey', () => {
+  it('maps each TimeOption to its priceChangePct field key', () => {
+    expect(getPriceChangeFieldKey(TimeOption.TwentyFourHours)).toBe('h24');
+    expect(getPriceChangeFieldKey(TimeOption.SixHours)).toBe('h6');
+    expect(getPriceChangeFieldKey(TimeOption.OneHour)).toBe('h1');
+    expect(getPriceChangeFieldKey(TimeOption.FiveMinutes)).toBe('m5');
+  });
+
+  it('defaults to h24 for an unknown TimeOption', () => {
+    expect(getPriceChangeFieldKey('unknown' as unknown as TimeOption)).toBe(
+      'h24',
+    );
   });
 });

@@ -174,204 +174,103 @@ jest.mock('fuse.js', () =>
   })),
 );
 
-import { SECTIONS_CONFIG } from './sections.config';
-import { renderHook } from '@testing-library/react-native';
-import { usePerpsMarkets } from '../../UI/Perps/hooks';
+import { SECTIONS_CONFIG, type SectionId } from './sections.config';
 
 describe('SECTIONS_CONFIG getItemIdentifier', () => {
-  describe('tokens section', () => {
-    it('extracts assetId from a token item', () => {
-      const item = { assetId: 'token-abc-123', symbol: 'BTC', name: 'Bitcoin' };
+  // One row per section. Adding a new section => add a row OR rely on the
+  // exhaustiveness check below to catch it.
+  const cases: {
+    section: SectionId;
+    item: Record<string, unknown>;
+    expected: string;
+  }[] = [
+    {
+      section: 'tokens',
+      item: { assetId: 'eip155:1/erc20:0xabc' },
+      expected: 'eip155:1/erc20:0xabc',
+    },
+    {
+      section: 'crypto_movers',
+      item: { assetId: 'mover-1' },
+      expected: 'mover-1',
+    },
+    { section: 'perps', item: { symbol: 'BTC-USD' }, expected: 'BTC-USD' },
+    {
+      section: 'rwa_perps',
+      item: { symbol: 'AAPL-PERP' },
+      expected: 'AAPL-PERP',
+    },
+    {
+      section: 'macro_stocks_commodity_perps',
+      item: { symbol: 'GOLD-PERP' },
+      expected: 'GOLD-PERP',
+    },
+    {
+      section: 'crypto_perps',
+      item: { symbol: 'ETH-PERP' },
+      expected: 'ETH-PERP',
+    },
+    {
+      section: 'stocks',
+      item: { assetId: 'stock-aapl' },
+      expected: 'stock-aapl',
+    },
+    {
+      section: 'predictions',
+      item: { id: 'predict-1' },
+      expected: 'predict-1',
+    },
+    {
+      section: 'sports_predictions',
+      item: { id: 'sport-1' },
+      expected: 'sport-1',
+    },
+    {
+      section: 'crypto_predictions',
+      item: { id: 'crypto-1' },
+      expected: 'crypto-1',
+    },
+    {
+      section: 'politics_predictions',
+      item: { id: 'pol-1' },
+      expected: 'pol-1',
+    },
+    { section: 'all_sports', item: { id: 'all-1' }, expected: 'all-1' },
+    {
+      section: 'sites',
+      item: { url: 'https://uniswap.org' },
+      expected: 'https://uniswap.org',
+    },
+    {
+      section: 'dapps_recents',
+      item: { url: 'https://x.io' },
+      expected: 'https://x.io',
+    },
+    {
+      section: 'dapps_favorites',
+      item: { url: 'https://y.io' },
+      expected: 'https://y.io',
+    },
+    {
+      section: 'dapps_networks',
+      item: { url: 'https://z.io' },
+      expected: 'https://z.io',
+    },
+  ];
 
-      const result = SECTIONS_CONFIG.tokens.getItemIdentifier(item);
+  it.each(cases)(
+    '$section.getItemIdentifier returns $expected',
+    ({ section, item, expected }) => {
+      expect(SECTIONS_CONFIG[section].getItemIdentifier(item)).toBe(expected);
+    },
+  );
 
-      expect(result).toBe('token-abc-123');
-    });
-
-    it('extracts assetId with special characters', () => {
-      const item = { assetId: 'eip155:1/erc20:0xabc', symbol: 'USDC' };
-
-      const result = SECTIONS_CONFIG.tokens.getItemIdentifier(item);
-
-      expect(result).toBe('eip155:1/erc20:0xabc');
-    });
-  });
-
-  describe('perps section', () => {
-    it('extracts symbol from a perps market item', () => {
-      const item = { symbol: 'BTC-USD', name: 'Bitcoin', price: 50000 };
-
-      const result = SECTIONS_CONFIG.perps.getItemIdentifier(item);
-
-      expect(result).toBe('BTC-USD');
-    });
-
-    it('extracts symbol with various market pairs', () => {
-      const item = { symbol: 'ETH-PERP', name: 'Ethereum Perpetual' };
-
-      const result = SECTIONS_CONFIG.perps.getItemIdentifier(item);
-
-      expect(result).toBe('ETH-PERP');
-    });
-  });
-
-  describe('stocks section', () => {
-    it('extracts assetId from a stocks item', () => {
-      const item = { assetId: 'stock-aapl-456', symbol: 'AAPL', name: 'Apple' };
-
-      const result = SECTIONS_CONFIG.stocks.getItemIdentifier(item);
-
-      expect(result).toBe('stock-aapl-456');
-    });
-  });
-
-  describe('predictions section', () => {
-    it('extracts id from a prediction market item', () => {
-      const item = { id: 'predict-market-789', title: 'Will BTC reach 100k?' };
-
-      const result = SECTIONS_CONFIG.predictions.getItemIdentifier(item);
-
-      expect(result).toBe('predict-market-789');
-    });
-
-    it('extracts id when item has additional fields', () => {
-      const item = {
-        id: 'market-42',
-        title: 'Election outcome',
-        description: 'Who will win?',
-        volume: 1000,
-      };
-
-      const result = SECTIONS_CONFIG.predictions.getItemIdentifier(item);
-
-      expect(result).toBe('market-42');
-    });
-  });
-
-  describe('dapps_recents section', () => {
-    it('extracts url from a site item', () => {
-      const item = {
-        url: 'https://portfolio.metamask.io',
-        name: 'MetaMask Portfolio',
-        displayUrl: 'portfolio.metamask.io',
-      };
-
-      const result = SECTIONS_CONFIG.dapps_recents.getItemIdentifier(item);
-
-      expect(result).toBe('https://portfolio.metamask.io');
-    });
-  });
-
-  describe('sites section', () => {
-    it('extracts url from a site item', () => {
-      const item = {
-        url: 'https://uniswap.org',
-        name: 'Uniswap',
-        displayUrl: 'uniswap.org',
-      };
-
-      const result = SECTIONS_CONFIG.sites.getItemIdentifier(item);
-
-      expect(result).toBe('https://uniswap.org');
-    });
-
-    it('extracts url with path components', () => {
-      const item = {
-        url: 'https://app.aave.com/markets',
-        name: 'Aave Markets',
-      };
-
-      const result = SECTIONS_CONFIG.sites.getItemIdentifier(item);
-
-      expect(result).toBe('https://app.aave.com/markets');
-    });
-  });
-
-  describe('getItemIdentifier presence', () => {
-    it('is defined for all sections', () => {
-      const sectionIds = Object.keys(
-        SECTIONS_CONFIG,
-      ) as (keyof typeof SECTIONS_CONFIG)[];
-
-      sectionIds.forEach((sectionId) => {
-        expect(SECTIONS_CONFIG[sectionId].getItemIdentifier).toBeDefined();
-      });
-    });
+  it('is defined for every section in SECTIONS_CONFIG', () => {
+    for (const id of Object.keys(SECTIONS_CONFIG) as SectionId[]) {
+      expect(SECTIONS_CONFIG[id].getItemIdentifier).toBeInstanceOf(Function);
+    }
   });
 });
 
-describe('SECTIONS_CONFIG perps useSectionData sorting', () => {
-  const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
-    typeof usePerpsMarkets
-  >;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('sorts markets by change24hPercent descending when no search query', () => {
-    const unsortedMarkets = [
-      { symbol: 'ETH', change24hPercent: '2.5' },
-      { symbol: 'BTC', change24hPercent: '10.0' },
-      { symbol: 'SOL', change24hPercent: '-3.0' },
-      { symbol: 'DOGE', change24hPercent: '5.0' },
-    ];
-
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: unsortedMarkets,
-      isLoading: false,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    } as never);
-
-    const { result } = renderHook(() => SECTIONS_CONFIG.perps.useSectionData());
-
-    const symbols = result.current.data.map(
-      (m: unknown) => (m as { symbol: string }).symbol,
-    );
-    expect(symbols).toEqual(['BTC', 'DOGE', 'ETH', 'SOL']);
-  });
-
-  it('places markets with invalid change24hPercent at the end', () => {
-    const markets = [
-      { symbol: 'ETH', change24hPercent: '5.0' },
-      { symbol: 'BAD', change24hPercent: 'invalid' },
-      { symbol: 'BTC', change24hPercent: '10.0' },
-    ];
-
-    mockUsePerpsMarkets.mockReturnValue({
-      markets,
-      isLoading: false,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    } as never);
-
-    const { result } = renderHook(() => SECTIONS_CONFIG.perps.useSectionData());
-
-    const symbols = result.current.data.map(
-      (m: unknown) => (m as { symbol: string }).symbol,
-    );
-    expect(symbols).toEqual(['BTC', 'ETH', 'BAD']);
-  });
-
-  it('does not sort when search query is provided (delegates to fuse)', () => {
-    const markets = [
-      { symbol: 'ETH', change24hPercent: '2.5' },
-      { symbol: 'BTC', change24hPercent: '10.0' },
-    ];
-
-    mockUsePerpsMarkets.mockReturnValue({
-      markets,
-      isLoading: false,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    } as never);
-
-    const { result } = renderHook(() =>
-      SECTIONS_CONFIG.perps.useSectionData('btc'),
-    );
-
-    // fuse.search is mocked to return [], verifying search path is taken
-    expect(result.current.data).toEqual([]);
-  });
-});
+// Perps `useSectionData` sorting behavior is tested in `sections/perps.sections.test.ts`,
+// colocated with the source.

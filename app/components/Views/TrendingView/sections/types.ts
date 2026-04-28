@@ -3,23 +3,31 @@ import type { IconName as DSIconName } from '@metamask/design-system-react-nativ
 import type { IconName as LocalIconName } from '../../../../component-library/components/Icons/Icon/Icon.types';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
-export type SectionId =
-  | 'predictions'
-  | 'sports_predictions'
-  | 'crypto_predictions'
-  | 'politics_predictions'
-  | 'tokens'
-  | 'crypto_movers'
-  | 'perps'
-  | 'rwa_perps'
-  | 'macro_stocks_commodity_perps'
-  | 'crypto_perps'
-  | 'stocks'
-  | 'sites'
-  | 'dapps_recents'
-  | 'dapps_favorites'
-  | 'dapps_networks'
-  | 'all_sports';
+/**
+ * Single source of truth for every section id that ships in the Explore page.
+ * Adding a section: append the literal here and the rest of the type system
+ * (and tests that iterate over this list) catches up automatically.
+ */
+export const ALL_SECTION_IDS = [
+  'predictions',
+  'sports_predictions',
+  'crypto_predictions',
+  'politics_predictions',
+  'tokens',
+  'crypto_movers',
+  'perps',
+  'rwa_perps',
+  'macro_stocks_commodity_perps',
+  'crypto_perps',
+  'stocks',
+  'sites',
+  'dapps_recents',
+  'dapps_favorites',
+  'dapps_networks',
+  'all_sports',
+] as const;
+
+export type SectionId = (typeof ALL_SECTION_IDS)[number];
 
 export type SectionIcon =
   | { source: 'local'; name: LocalIconName }

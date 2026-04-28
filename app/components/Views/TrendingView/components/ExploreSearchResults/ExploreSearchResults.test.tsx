@@ -9,22 +9,9 @@ import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { SectionId } from '../../sections.config';
-
-const SECTION_IDS_ALL: SectionId[] = [
-  'predictions',
-  'sports_predictions',
-  'crypto_predictions',
-  'politics_predictions',
-  'tokens',
-  'crypto_movers',
-  'perps',
-  'rwa_perps',
-  'macro_stocks_commodity_perps',
-  'crypto_perps',
-  'stocks',
-  'sites',
-  'dapps_recents',
-];
+// `ALL_SECTION_IDS` is derived from the same const that drives the `SectionId` union,
+// so this test stays in sync if a section is added or removed.
+import { ALL_SECTION_IDS } from '../../sections/types';
 
 function createExploreSearchMock(args: {
   sectionsOrder: SectionId[];
@@ -33,7 +20,7 @@ function createExploreSearchMock(args: {
 }): ExploreSearchResult {
   const data = {} as Record<SectionId, unknown[]>;
   const isLoading = {} as Record<SectionId, boolean>;
-  SECTION_IDS_ALL.forEach((id) => {
+  ALL_SECTION_IDS.forEach((id) => {
     data[id] = [];
     isLoading[id] = false;
   });
@@ -214,74 +201,9 @@ describe('ExploreSearchResults', () => {
     expect(mockUseExploreSearch).toHaveBeenCalledWith('ethereum');
   });
 
-  describe('Footer', () => {
-    // Note: FlashList's ListFooterComponent doesn't render in test environment,
-    // so we verify the list renders correctly with the search query prop.
-    // The actual footer rendering is tested via the SitesSearchFooter unit tests.
-
-    it('renders list with search query that would trigger footer', () => {
-      // Arrange
-      mockUseExploreSearch.mockReturnValue(
-        createExploreSearchMock({
-          data: {
-            tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-            perps: [],
-            predictions: [],
-            stocks: [],
-            sites: [],
-          },
-          isLoading: {
-            tokens: false,
-            perps: false,
-            predictions: false,
-            stocks: false,
-            sites: false,
-          },
-          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-        }),
-      );
-
-      // Act
-      const { getByTestId, getByText } = render(
-        <ExploreSearchResults searchQuery="bitcoin" />,
-      );
-
-      // Assert - FlashList renders with data and search query is passed to hook
-      expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
-      expect(getByText('Trending tokens')).toBeOnTheScreen();
-      expect(mockUseExploreSearch).toHaveBeenCalledWith('bitcoin');
-    });
-
-    it('renders list with empty search query (no footer expected)', () => {
-      // Arrange
-      mockUseExploreSearch.mockReturnValue(
-        createExploreSearchMock({
-          data: {
-            tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-            perps: [],
-            predictions: [],
-            stocks: [],
-            sites: [],
-          },
-          isLoading: {
-            tokens: false,
-            perps: false,
-            predictions: false,
-            stocks: false,
-            sites: false,
-          },
-          sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
-        }),
-      );
-
-      // Act
-      const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
-
-      // Assert - list renders, empty query means footer won't render
-      expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
-      expect(mockUseExploreSearch).toHaveBeenCalledWith('');
-    });
-  });
+  // The actual footer rendering is covered by `SitesSearchFooter`'s own tests;
+  // this component just forwards the search query to `useExploreSearch`, which
+  // is asserted by 'passes search query to useExploreSearch hook' above.
 
   describe('loading state', () => {
     it('renders skeleton items when section is loading', () => {
