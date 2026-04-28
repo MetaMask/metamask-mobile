@@ -1,10 +1,14 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { extractTestResults } from './e2e-extract-test-results.mjs';
 
 // 1) Find all specs files that include the given E2E tags
-// 2) Compute sharding split (evenly across runners)
+// 2) Compute sharding split using time-based bin-packing when the latest
+//    `qa-stats` artifact from the QA Stats workflow on `main` is available
+//    and exposes an `e2e_test_times` entry. Otherwise fall back to
+//    equal-count alphabetical split.
 // 3) On re-runs, skip passed tests and only run failed/not-executed tests
 // 4) Flaky test detector mechanism in PRs (test retries)
 // 5) Log and run the selected specs for the given shard split
@@ -24,6 +28,18 @@ const env = {
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
 };
 // Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
+
+const QA_STATS_WORKFLOW_FILE = 'qa-stats.yml';
+const QA_STATS_ARTIFACT_NAME = 'qa-stats';
+const QA_STATS_JSON_FILENAME = 'qa-stats.json';
+
+/**
+ * Match timing keys (always POSIX-style in JSON) to spec paths from any OS.
+ * @param {string} filePath
+ */
+function timingLookupKey(filePath) {
+  return filePath.split(path.sep).join('/');
+}
 
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
 if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
@@ -171,7 +187,8 @@ function ceilDiv(a, b) {
 }
 
 /**
- * Split files evenly across runners
+ * Split files evenly across runners by count (alphabetical slicing).
+ * Fallback when no timings file is available.
  * @param {*} files - The files to split
  * @param {*} splitNumber - The number of the split (1-based index)
  * @param {*} totalSplits - The total number of splits
@@ -182,6 +199,221 @@ function computeShardingSplit(files, splitNumber, totalSplits) {
   const startIndex = (splitNumber - 1) * filesPerSplit;
   const endIndex = Math.min(startIndex + filesPerSplit, files.length);
   return files.slice(startIndex, endIndex);
+}
+
+/**
+ * Minimal GitHub REST helper that returns parsed JSON.
+ * @param {string} url
+ * @returns {Promise<any>}
+ */
+async function githubRest(url) {
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'metamask-mobile-ci',
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    const suffix = body ? `: ${body.slice(0, 200)}` : '';
+    throw new Error(`GET ${url} → ${res.status} ${res.statusText}${suffix}`);
+  }
+  return res.json();
+}
+
+/**
+ * Download the `qa-stats` artifact zip from the latest successful QA Stats run
+ * on `main`, extract `qa-stats.json`, and return the `e2e_test_times` map.
+ *
+ * Returns `null` on any failure (no token, no run, no artifact, no entry,
+ * network/zip/parse error). All failures degrade gracefully into the
+ * alphabetical equal-count fallback.
+ *
+ * @returns {Promise<{ [filePath: string]: { ios?: number, android?: number } } | null>}
+ */
+async function fetchE2ETestTimes() {
+  if (!env.GITHUB_TOKEN) {
+    console.log('ℹ️  qa-stats artifact unavailable (no GITHUB_TOKEN) — falling back to alphabetical split');
+    return null;
+  }
+
+  const apiBase = `https://api.github.com/repos/${env.REPOSITORY}`;
+
+  try {
+    const runsUrl = `${apiBase}/actions/workflows/${QA_STATS_WORKFLOW_FILE}/runs?branch=main&status=success&per_page=1`;
+    const runsData = await githubRest(runsUrl);
+    const run = runsData?.workflow_runs?.[0];
+    if (!run?.id) {
+      console.log('ℹ️  qa-stats artifact unavailable (no successful main run found) — falling back to alphabetical split');
+      return null;
+    }
+
+    const artifactsUrl = `${apiBase}/actions/runs/${run.id}/artifacts`;
+    const artifactsData = await githubRest(artifactsUrl);
+    const artifact = (artifactsData?.artifacts || []).find(
+      (a) => a?.name === QA_STATS_ARTIFACT_NAME && !a?.expired,
+    );
+    if (!artifact?.archive_download_url) {
+      console.log(`ℹ️  qa-stats artifact unavailable (not found on run #${run.id}) — falling back to alphabetical split`);
+      return null;
+    }
+
+    console.log(`📥 Fetching qa-stats artifact from latest successful main run #${run.id}`);
+
+    // GitHub redirects to a pre-signed S3/Azure URL. Follow manually so the
+    // Authorization header is not forwarded to the storage backend (which
+    // rejects requests carrying an unexpected Authorization header).
+    const redirectRes = await fetch(artifact.archive_download_url, {
+      headers: {
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'metamask-mobile-ci',
+      },
+      redirect: 'manual',
+    });
+
+    const downloadUrl = redirectRes.headers.get('location');
+    if (!downloadUrl) {
+      throw new Error(
+        `no redirect URL returned for qa-stats artifact (status ${redirectRes.status})`,
+      );
+    }
+
+    const zipRes = await fetch(downloadUrl);
+    if (!zipRes.ok) {
+      throw new Error(`download zip → ${zipRes.status} ${zipRes.statusText}`);
+    }
+
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), `qa-stats-${run.id}-`));
+    const zipPath = path.join(tmpRoot, 'qa-stats.zip');
+    const buffer = Buffer.from(await zipRes.arrayBuffer());
+    fs.writeFileSync(zipPath, buffer);
+
+    const unzipResult = spawnSync('unzip', ['-o', zipPath, '-d', tmpRoot], { stdio: 'pipe' });
+    if (unzipResult.status !== 0) {
+      throw new Error(`unzip exited with code ${unzipResult.status}: ${unzipResult.stderr?.toString() || ''}`);
+    }
+
+    const jsonPath = path.join(tmpRoot, QA_STATS_JSON_FILENAME);
+    if (!fs.existsSync(jsonPath)) {
+      console.log(`ℹ️  qa-stats artifact unavailable (${QA_STATS_JSON_FILENAME} missing in archive) — falling back to alphabetical split`);
+      return null;
+    }
+
+    const parsed = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    const times = parsed?.e2e_test_times;
+    if (!times || typeof times !== 'object' || Object.keys(times).length === 0) {
+      console.log('ℹ️  qa-stats artifact has no e2e_test_times entry yet — falling back to alphabetical split');
+      return null;
+    }
+
+    return times;
+  } catch (e) {
+    console.log(`ℹ️  qa-stats artifact unavailable (${e?.message || String(e)}) — falling back to alphabetical split`);
+    return null;
+  }
+}
+
+/**
+ * @param {number[]} values
+ * @param {number} fallback
+ */
+function computeMedian(values, fallback = 60) {
+  if (values.length === 0) return fallback;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
+}
+
+/**
+ * @param {string[]} files
+ * @param {{ [filePath: string]: { ios?: number, android?: number } }} timings
+ * @param {string} platform
+ * @param {number} splitNumber
+ * @param {number} totalSplits
+ */
+function binPackShards(files, timings, platform, splitNumber, totalSplits) {
+  const platformKey = platform.toLowerCase() === 'ios' ? 'ios' : 'android';
+
+  // Treat only finite, strictly positive numbers as valid durations.
+  // This rejects undefined/null, non-numbers, NaN, Infinity, 0, and negatives,
+  // all of which would otherwise corrupt bin-packing (NaN poisons totalDuration
+  // and the reduce comparison; 0 silently skews the load distribution).
+  const getValidDuration = (file) => {
+    const value = timings[timingLookupKey(file)]?.[platformKey];
+    return typeof value === 'number' && Number.isFinite(value) && value > 0
+      ? value
+      : undefined;
+  };
+
+  const knownDurations = files
+    .map(getValidDuration)
+    .filter((t) => t !== undefined);
+
+  const medianDuration = computeMedian(knownDurations, 60);
+  const unknownFiles = files.filter((f) => getValidDuration(f) === undefined);
+
+  if (unknownFiles.length > 0) {
+    console.log(`ℹ️  ${unknownFiles.length} file(s) without recorded timing — median fallback ${medianDuration.toFixed(1)}s:`);
+    unknownFiles.forEach((f) => console.log(`     - ${f}`));
+  }
+
+  const filesWithDuration = files.map((f) => ({
+    file: f,
+    duration: getValidDuration(f) ?? medianDuration,
+  }));
+
+  filesWithDuration.sort((a, b) => b.duration - a.duration);
+
+  const shards = Array.from({ length: totalSplits }, (_, i) => ({
+    index: i + 1,
+    files: [],
+    totalDuration: 0,
+  }));
+
+  for (const { file, duration } of filesWithDuration) {
+    const lightest = shards.reduce(
+      (min, s) => (s.totalDuration < min.totalDuration ? s : min),
+      shards[0],
+    );
+    lightest.files.push(file);
+    lightest.totalDuration += duration;
+  }
+
+  console.log(`\n📊 Estimated shard durations (${platformKey}, ${totalSplits} shards):`);
+  for (const shard of shards) {
+    const totalSec = Math.round(shard.totalDuration);
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    const marker = shard.index === splitNumber ? ' ← this runner' : '';
+    console.log(`   Shard ${shard.index}: ~${mins}m${String(secs).padStart(2, '0')}s (${shard.files.length} files)${marker}`);
+  }
+
+  const thisShard = shards.find((s) => s.index === splitNumber);
+  return thisShard ? thisShard.files : [];
+}
+
+/**
+ * @param {string[]} files
+ * @param {number} splitNumber
+ * @param {number} totalSplits
+ * @param {string} platform
+ */
+async function selectShardFiles(files, splitNumber, totalSplits, platform) {
+  const timings = await fetchE2ETestTimes();
+
+  if (timings && Object.keys(timings).length > 0) {
+    console.log('⏱️  Time-based sharding (from qa-stats artifact)');
+    return binPackShards(files, timings, platform, splitNumber, totalSplits);
+  }
+
+  console.log('📦 Equal-count sharding (no timings)');
+  return computeShardingSplit(files, splitNumber, totalSplits);
 }
 
 /**
@@ -328,21 +560,24 @@ function applyFlakinessDetection(splitFiles) {
   return expanded;
 }
 
-async function main() {
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
 
-  console.log("🚀 Starting E2E tests...");
+async function main() {
+  console.log('🚀 Starting E2E tests...');
   console.log(`GitHub Actions: attempt ${env.RUN_ATTEMPT}`);
 
   // 1) Find all specs files that include the given E2E tags
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
-  let allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
+  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
-
-  // 2) Compute sharding split (evenly across runners)
-  const splitFiles = computeShardingSplit(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS);
+  // 2) Shard by measured times when timings JSON exists, else by file count
+  const splitFiles = await selectShardFiles(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS, env.PLATFORM);
   let runFiles = [...splitFiles];
+
   if (runFiles.length === 0) {
     console.log(`⚠️  No test files for split ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (only ${allMatches.length} test files found, but ${env.TOTAL_SPLITS} runners configured).`);
     console.log(`    💡 Tip: Reduce shard splits or add more tests to this tag ${env.TEST_SUITE_TAG}`);
@@ -401,11 +636,13 @@ async function main() {
     }
   }
 
-  // 5) Log and run the selected specs for the given shard split
-  console.log(`\n🧪 Running ${runFiles.length} spec files for this given shard split (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`);
-  for (const f of runFiles) {
-    console.log(`  - ${f}`);
-  }
+  // 5) Log and run the selected specs for the given shard split.
+  //    Emit the header and file list as a single write so they cannot be
+  //    interleaved with the spawned yarn/detox stdout (both share the same fd
+  //    when stdout is a pipe in CI, and Node's console.log is async on pipes).
+  const header = `\n🧪 Running ${runFiles.length} spec files for this given shard split (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`;
+  const body = runFiles.map((f) => `  - ${f}`).join('\n');
+  console.log(`${header}\n${body}`);
 
   const args = [...runFiles];
   try {
@@ -416,7 +653,7 @@ async function main() {
       console.log('\n 🤖 Running Android tests for build type: ', env.METAMASK_BUILD_TYPE);
       await runYarn(`test:e2e:android:${env.METAMASK_BUILD_TYPE}:ci`, args);
     }
-    console.log("✅ Test execution completed");
+    console.log('✅ Test execution completed');
   } catch (err) {
     console.error(err.message || String(err));
     process.exit(1);
