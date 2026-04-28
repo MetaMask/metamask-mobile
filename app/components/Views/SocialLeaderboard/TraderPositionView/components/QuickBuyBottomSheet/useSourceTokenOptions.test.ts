@@ -39,6 +39,9 @@ const mockSelectorValues = ({
   tokenBalances = {},
   tokenMarketData = {},
   currencyRates = {},
+  solanaAccount,
+  multichainBalances = {},
+  multichainRates = {},
   allNetworkConfigs = {},
 }: {
   accountAddress?: string;
@@ -46,6 +49,9 @@ const mockSelectorValues = ({
   tokenBalances?: Record<string, unknown>;
   tokenMarketData?: Record<string, unknown>;
   currencyRates?: Record<string, unknown>;
+  solanaAccount?: { id: string; address: string };
+  multichainBalances?: Record<string, unknown>;
+  multichainRates?: Record<string, unknown>;
   allNetworkConfigs?: Record<string, unknown>;
 }) => {
   mockUseSelector
@@ -54,6 +60,9 @@ const mockSelectorValues = ({
     .mockReturnValueOnce(tokenBalances)
     .mockReturnValueOnce(tokenMarketData)
     .mockReturnValueOnce(currencyRates)
+    .mockReturnValueOnce(solanaAccount)
+    .mockReturnValueOnce(multichainBalances)
+    .mockReturnValueOnce(multichainRates)
     .mockReturnValueOnce(allNetworkConfigs);
 };
 
@@ -154,6 +163,152 @@ describe('useSourceTokenOptions', () => {
       currencyExchangeRate: 1,
       tokenFiatAmount: 250,
     });
+  });
+
+  it('includes a Solana SOL candidate sorted by fiat value', () => {
+    const accountAddress = '0x742d35cc6634c0532925a3b844bc454e4438f44e';
+    const checksummedAccountAddress = toChecksumAddress(accountAddress);
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    const solanaScope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const solanaAccount = {
+      id: 'solana-account-id',
+      address: 'SoLanaWalletAddrBase58',
+    };
+
+    mockGetSourceTokenCandidates.mockReturnValue([
+      createCandidate({
+        address: ZERO_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+        name: 'Ethereum',
+      }),
+      createCandidate({
+        address: solAssetId,
+        chainId: solanaScope,
+        decimals: 9,
+        symbol: 'SOL',
+        name: 'Solana',
+      }),
+    ]);
+    mockSelectorValues({
+      accountAddress,
+      accountsByChainId: {
+        '0x1': {
+          [checksummedAccountAddress]: {
+            balance: toHexBalance(1n * 10n ** 18n),
+          },
+        },
+      },
+      currencyRates: {
+        ETH: { usdConversionRate: 2000 },
+      },
+      solanaAccount,
+      multichainBalances: {
+        [solanaAccount.id]: {
+          [solAssetId]: { amount: '12.5', unit: 'SOL' },
+        },
+      },
+      multichainRates: {
+        [solAssetId]: { rate: '200' },
+      },
+      allNetworkConfigs: {
+        '0x1': { nativeCurrency: 'ETH' },
+      },
+    });
+
+    const { result } = renderHook(() => useSourceTokenOptions('0x1'));
+
+    expect(result.current.options.map((token) => token.symbol)).toEqual([
+      'SOL',
+      'ETH',
+    ]);
+    expect(result.current.options[0]).toMatchObject({
+      symbol: 'SOL',
+      balance: '12.5',
+      balanceFiat: '$2500.00',
+      currencyExchangeRate: 200,
+      tokenFiatAmount: 2500,
+    });
+  });
+
+  it('skips Solana candidates when there is no Solana account', () => {
+    const accountAddress = '0x742d35cc6634c0532925a3b844bc454e4438f44e';
+    const checksummedAccountAddress = toChecksumAddress(accountAddress);
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    const solanaScope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+    mockGetSourceTokenCandidates.mockReturnValue([
+      createCandidate({
+        address: ZERO_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+        name: 'Ethereum',
+      }),
+      createCandidate({
+        address: solAssetId,
+        chainId: solanaScope,
+        decimals: 9,
+        symbol: 'SOL',
+        name: 'Solana',
+      }),
+    ]);
+    mockSelectorValues({
+      accountAddress,
+      accountsByChainId: {
+        '0x1': {
+          [checksummedAccountAddress]: {
+            balance: toHexBalance(1n * 10n ** 18n),
+          },
+        },
+      },
+      currencyRates: {
+        ETH: { usdConversionRate: 2000 },
+      },
+      // no solanaAccount provided
+      allNetworkConfigs: {
+        '0x1': { nativeCurrency: 'ETH' },
+      },
+    });
+
+    const { result } = renderHook(() => useSourceTokenOptions('0x1'));
+
+    expect(result.current.options.map((token) => token.symbol)).toEqual([
+      'ETH',
+    ]);
+  });
+
+  it('skips Solana candidates with zero balance', () => {
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    const solanaScope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const solanaAccount = {
+      id: 'solana-account-id',
+      address: 'SoLanaWalletAddrBase58',
+    };
+
+    mockGetSourceTokenCandidates.mockReturnValue([
+      createCandidate({
+        address: solAssetId,
+        chainId: solanaScope,
+        decimals: 9,
+        symbol: 'SOL',
+        name: 'Solana',
+      }),
+    ]);
+    mockSelectorValues({
+      solanaAccount,
+      multichainBalances: {
+        [solanaAccount.id]: {
+          [solAssetId]: { amount: '0', unit: 'SOL' },
+        },
+      },
+      multichainRates: {
+        [solAssetId]: { rate: '200' },
+      },
+    });
+
+    const { result } = renderHook(() => useSourceTokenOptions('0x1'));
+
+    expect(result.current.options).toEqual([]);
   });
 
   it('skips ERC20 candidates when the computed exchange rate is zero', () => {

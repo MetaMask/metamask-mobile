@@ -1,9 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery } from '@metamask/react-data-query';
-import type {
-  Position,
-  FetchPositionByIdOptions,
-} from '@metamask/social-controllers';
+import type { Position } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
 
 export interface UseTraderPositionResult {
@@ -20,11 +17,9 @@ export interface UseTraderPositionResult {
 export const useTraderPosition = (
   positionId: string | undefined,
 ): UseTraderPositionResult => {
-  const fetchOptions: FetchPositionByIdOptions = {
-    positionId: positionId ?? '',
-  };
+  const fetchOptions = { positionId: positionId ?? '' };
 
-  const queryKey: [string, FetchPositionByIdOptions] = [
+  const queryKey: [string, { positionId: string }] = [
     'SocialService:fetchPositionById',
     fetchOptions,
   ];
