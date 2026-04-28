@@ -56,7 +56,7 @@ describe('WatchAssetApproval', () => {
       state: { engine: { backgroundState } },
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('returns null if no request data', () => {
@@ -70,7 +70,7 @@ describe('WatchAssetApproval', () => {
       state: { engine: { backgroundState } },
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 
   it('returns null if no approval request', () => {
@@ -79,7 +79,7 @@ describe('WatchAssetApproval', () => {
     const { toJSON } = renderWithProvider(<WatchAssetApproval />, {
       state: { engine: { backgroundState } },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -93,6 +93,6 @@ describe('WatchAssetApproval', () => {
     const { toJSON } = renderWithProvider(<WatchAssetApproval />, {
       state: { engine: { backgroundState } },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 });

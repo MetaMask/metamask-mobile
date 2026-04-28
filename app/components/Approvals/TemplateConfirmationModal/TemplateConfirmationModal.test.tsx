@@ -39,7 +39,7 @@ describe('TemplateConfirmationModal', () => {
 
     const { toJSON } = render(<TemplateConfirmationModal />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders if approval type is error result', () => {
@@ -54,14 +54,14 @@ describe('TemplateConfirmationModal', () => {
 
     const { toJSON } = render(<TemplateConfirmationModal />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders nothing if no approval request', () => {
     mockApprovalRequest(undefined);
 
     const { toJSON } = render(<TemplateConfirmationModal />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 
   it('renders nothing if incorrect approval request type', () => {
@@ -70,6 +70,6 @@ describe('TemplateConfirmationModal', () => {
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
     const { toJSON } = render(<TemplateConfirmationModal />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 });

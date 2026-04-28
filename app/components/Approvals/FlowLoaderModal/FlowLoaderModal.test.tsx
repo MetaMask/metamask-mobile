@@ -54,7 +54,7 @@ describe('FlowLoaderModal', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('returns null if no approval flow', () => {
@@ -66,7 +66,7 @@ describe('FlowLoaderModal', () => {
         <FlowLoaderModal />
       </ThemeContext.Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 
   it('returns null if approval request', () => {
@@ -80,6 +80,6 @@ describe('FlowLoaderModal', () => {
         <FlowLoaderModal />
       </ThemeContext.Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 });

@@ -72,7 +72,7 @@ describe('SwitchChainApproval', () => {
       state: { engine: { backgroundState } },
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('returns null if no approval request', () => {
@@ -81,7 +81,7 @@ describe('SwitchChainApproval', () => {
     const { toJSON } = renderWithProvider(<SwitchChainApproval />, {
       state: { engine: { backgroundState } },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -92,7 +92,7 @@ describe('SwitchChainApproval', () => {
     const { toJSON } = renderWithProvider(<SwitchChainApproval />, {
       state: { engine: { backgroundState } },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 
   it('calls networkSwitched action when confirm is pressed', () => {

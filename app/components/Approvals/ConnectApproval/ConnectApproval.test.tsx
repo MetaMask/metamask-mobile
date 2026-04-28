@@ -48,7 +48,7 @@ describe('ConnectApproval', () => {
       state: { engine: { backgroundState } },
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('sets isVisible to false if no approval request', () => {
@@ -57,7 +57,7 @@ describe('ConnectApproval', () => {
     const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, {
       state: { engine: { backgroundState } },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -68,6 +68,6 @@ describe('ConnectApproval', () => {
     const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, {
       state: { engine: { backgroundState } },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 });

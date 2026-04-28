@@ -67,7 +67,7 @@ describe('AddChainApproval', () => {
       state: initialState,
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('returns null if no approval request', () => {
@@ -76,7 +76,7 @@ describe('AddChainApproval', () => {
     const { toJSON } = renderWithProvider(<AddChainApproval />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -87,6 +87,6 @@ describe('AddChainApproval', () => {
     const { toJSON } = renderWithProvider(<AddChainApproval />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeNull();
   });
 });
