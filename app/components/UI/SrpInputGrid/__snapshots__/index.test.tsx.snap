@@ -325,7 +325,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
         style={
           [
             {
-              "color": "#4459ff",
+              "color": "#131416",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -672,7 +672,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
         style={
           [
             {
-              "color": "#4459ff",
+              "color": "#131416",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1018,7 +1018,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
         style={
           [
             {
-              "color": "#4459ff",
+              "color": "#131416",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1691,7 +1691,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
         style={
           [
             {
-              "color": "#4459ff",
+              "color": "#131416",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",

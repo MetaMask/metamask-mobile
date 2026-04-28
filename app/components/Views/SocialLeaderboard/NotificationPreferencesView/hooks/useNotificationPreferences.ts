@@ -15,6 +15,7 @@ export type TxAmountThreshold = (typeof TX_AMOUNT_THRESHOLDS)[number];
 
 const DEFAULT_ENABLED = false;
 const DEFAULT_TX_AMOUNT_LIMIT: TxAmountThreshold = 500;
+
 const CLIENT_TYPE = 'mobile' as const;
 const GET_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences' as const;

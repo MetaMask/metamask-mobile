@@ -22,8 +22,8 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   TextColor,
-  FontWeight,
 } from '@metamask/design-system-react-native';
+import { fontStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
@@ -70,19 +70,16 @@ const styles = StyleSheet.create({
   },
   pill: {
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    marginRight: 16,
+    marginRight: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 38,
-  },
-  pillBorder: {
-    borderWidth: 1,
+    minHeight: 40,
   },
   pillText: {
-    fontSize: 14,
-    fontWeight: FontWeight.Medium,
+    ...fontStyles.medium,
+    fontSize: 16,
   },
 });
 
@@ -110,7 +107,7 @@ const ChainPill: React.FC<ChainPillProps> = ({
         styles.pill,
         isSelected
           ? { backgroundColor: colors.icon.default }
-          : [styles.pillBorder, { borderColor: colors.border.muted }],
+          : { backgroundColor: colors.background.muted },
       ]}
     >
       <RNText
@@ -211,12 +208,8 @@ const TopTradersView = () => {
         />
       </Box>
 
-      <Box twClassName="px-4 pt-2 pb-3 mb-2">
-        <Text
-          variant={TextVariant.HeadingLg}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Medium}
-        >
+      <Box twClassName="px-4 pt-2 pb-3">
+        <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
           {strings('social_leaderboard.top_traders_view.title')}
         </Text>
       </Box>
