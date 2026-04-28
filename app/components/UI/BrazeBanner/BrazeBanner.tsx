@@ -70,26 +70,22 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
       });
   }, [deeplink, placementId]);
 
-  if (status === 'empty' || status === 'dismissed') return null;
+  if (status === 'empty' || status === 'dismissed' || status === 'loading')
+    return null;
 
-  return (
+  return status === 'visible' && body ? (
     <Box testID={BRAZE_BANNER_TEST_IDS.CONTAINER} style={tw.style('mx-4')}>
-      {status === 'visible' && body && (
-        <Pressable
-          testID={BRAZE_BANNER_TEST_IDS.PRESSABLE}
-          onPress={handlePress}
-        >
-          <BrazeBannerCard
-            title={title}
-            body={body}
-            imageUrl={imageUrl}
-            ctaLabel={ctaLabel}
-            onDismiss={dismiss}
-          />
-        </Pressable>
-      )}
+      <Pressable testID={BRAZE_BANNER_TEST_IDS.PRESSABLE} onPress={handlePress}>
+        <BrazeBannerCard
+          title={title}
+          body={body}
+          imageUrl={imageUrl}
+          ctaLabel={ctaLabel}
+          onDismiss={dismiss}
+        />
+      </Pressable>
     </Box>
-  );
+  ) : null;
 };
 
 export default BrazeBanner;

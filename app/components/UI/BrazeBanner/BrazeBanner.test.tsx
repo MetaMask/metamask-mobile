@@ -105,13 +105,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
       [key: string]: unknown;
     }) => mockReact.createElement(mockRNView, { testID, ...rest }, children),
-    Skeleton: ({
-      testID,
-    }: {
-      testID?: string;
-      height?: number;
-      twClassName?: string;
-    }) => mockReact.createElement(mockRNView, { testID }),
   };
 });
 
@@ -188,13 +181,12 @@ const fireBannerEvent = (banners: object[]) => {
   });
 };
 
-type BannerState = 'loading' | 'visible' | 'empty';
+type BannerState = 'visible' | 'empty';
 
 /**
  * Asserts the complete set of structural test IDs for a given banner state:
- * - `loading`  → CONTAINER present; PRESSABLE + DISMISS_BUTTON absent
  * - `visible`  → CONTAINER + PRESSABLE + DISMISS_BUTTON present
- * - `empty`    → all absent (component returns null)
+ * - `empty`    → all absent (component returns null; covers loading + empty + dismissed)
  */
 function assertBannerState(
   queryByTestId: (id: string) => unknown,
@@ -203,11 +195,7 @@ function assertBannerState(
   const present = (id: string) => expect(queryByTestId(id)).toBeTruthy();
   const absent = (id: string) => expect(queryByTestId(id)).toBeNull();
 
-  if (state === 'loading') {
-    present(BRAZE_BANNER_TEST_IDS.CONTAINER);
-    absent(BRAZE_BANNER_TEST_IDS.PRESSABLE);
-    absent(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON);
-  } else if (state === 'visible') {
+  if (state === 'visible') {
     present(BRAZE_BANNER_TEST_IDS.CONTAINER);
     present(BRAZE_BANNER_TEST_IDS.PRESSABLE);
     present(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON);
@@ -236,12 +224,12 @@ describe('BrazeBanner', () => {
     jest.useRealTimers();
   });
 
-  it('renders skeleton while waiting for the first banner event', () => {
+  it('renders nothing while waiting for the first banner event', () => {
     const { queryByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    assertBannerState(queryByTestId, 'loading');
+    assertBannerState(queryByTestId, 'empty');
   });
 
   it('shows the banner card and dismiss button when a banner event arrives', async () => {
@@ -266,15 +254,15 @@ describe('BrazeBanner', () => {
     assertBannerState(queryByTestId, 'empty');
   });
 
-  it('stays in loading skeleton when bannerCardsUpdated arrives with no banner for the placement', () => {
+  it('renders nothing when bannerCardsUpdated arrives with no banner for the placement', () => {
     const { queryByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
     fireBannerEvent([]);
 
-    // No match → handleBanner not called → stays loading (timeout handles empty)
-    assertBannerState(queryByTestId, 'loading');
+    // No match → handleBanner not called → returns null (loading now returns null)
+    assertBannerState(queryByTestId, 'empty');
   });
 
   it('renders nothing when incoming banner bannerName matches lastDismissedBrazeBanner', () => {
@@ -285,8 +273,8 @@ describe('BrazeBanner', () => {
 
     fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
 
-    // Dismissed banner is skipped; hook stays in loading so skeleton remains visible
-    assertBannerState(queryByTestId, 'loading');
+    // Dismissed banner is skipped; hook stays in loading which now returns null
+    assertBannerState(queryByTestId, 'empty');
   });
 
   it('renders normally when lastDismissedBrazeBanner does not match incoming banner', () => {
