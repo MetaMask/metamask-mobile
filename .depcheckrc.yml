@@ -137,8 +137,3 @@ ignores:
 
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'
-
-  # Preview packages used for design system PR testing (alias targets for internal cross-deps)
-  - '@metamask-previews/design-system-react-native'
-  - '@metamask-previews/design-system-twrnc-preset'
-  - '@metamask-previews/design-tokens'
