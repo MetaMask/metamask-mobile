@@ -49,9 +49,9 @@ const initialState = {
 
 describe('InfoNetworkModal', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<InfoNetworkModal />, {
+    const { getByTestId } = renderWithProvider(<InfoNetworkModal />, {
       state: initialState,
     });
-    expect(toJSON()).not.toBeNull();
+    getByTestId('modal-mock');
   });
 });

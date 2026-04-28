@@ -46,13 +46,9 @@ describe('ExperienceEnhancerModal', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = render(
-      <SafeAreaProvider>
-        <ExperienceEnhancerModal />
-      </SafeAreaProvider>,
-    );
+    const { getByTestId } = render(<ExperienceEnhancerModal />);
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON);
   });
 
   it('should handle cancel button press correctly', () => {
@@ -61,7 +57,6 @@ describe('ExperienceEnhancerModal', () => {
     const cancelButton = getByTestId(
       ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
-    expect(cancelButton).toBeTruthy();
 
     fireEvent.press(cancelButton);
     expect(dispatchMock).toHaveBeenCalledWith(
@@ -75,7 +70,6 @@ describe('ExperienceEnhancerModal', () => {
     const acceptButton = getByTestId(
       ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
     );
-    expect(acceptButton).toBeTruthy();
 
     fireEvent.press(acceptButton);
     expect(dispatchMock).toHaveBeenCalledWith(
@@ -89,7 +83,6 @@ describe('ExperienceEnhancerModal', () => {
     const linkButton = getByTestId(
       ExperienceEnhancerBottomSheetSelectorsIDs.LINK_BUTTON,
     );
-    expect(linkButton).toBeTruthy();
 
     fireEvent.press(linkButton);
     expect(Linking.openURL).toHaveBeenCalledWith(

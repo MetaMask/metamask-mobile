@@ -5,7 +5,7 @@ import TestForm from './Form';
 
 describe('TestForm', () => {
   it('renders correctly', () => {
-    const { toJSON } = render(
+    const { getByText, getByTestId } = render(
       <TestForm
         title={'random title'}
         textFields={[
@@ -27,6 +27,7 @@ describe('TestForm', () => {
       />,
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByText('random title');
+    getByTestId('random-callback-test-id');
   });
 });

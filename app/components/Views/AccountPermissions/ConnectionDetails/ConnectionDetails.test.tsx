@@ -33,7 +33,7 @@ describe('ConnectionDetails', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <ConnectionDetails
         route={{
           params: {
@@ -42,7 +42,7 @@ describe('ConnectionDetails', () => {
         }}
       />,
     );
-    expect(toJSON()).not.toBeNull();
+    getByText(strings('permissions.connection_details_title'));
   });
 
   it('displays the correct title', () => {

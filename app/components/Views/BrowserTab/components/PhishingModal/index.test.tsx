@@ -3,6 +3,7 @@ import PhishingModal from '.';
 import { useNavigation } from '@react-navigation/native';
 import { render } from '@testing-library/react-native';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
@@ -35,7 +36,7 @@ describe('PhishingModal', () => {
   });
 
   it('renders modal when showPhishingModal is true', () => {
-    const { toJSON } = render(
+    const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <PhishingModal
           blockedUrl="http://phishing.com"
@@ -49,6 +50,6 @@ describe('PhishingModal', () => {
         />
       </ThemeContext.Provider>,
     );
-    expect(toJSON()).not.toBeNull();
+    getByText(strings('phishing.back_to_safety'));
   });
 });

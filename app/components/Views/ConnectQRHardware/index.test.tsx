@@ -216,7 +216,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId(QR_CONTINUE_BUTTON)).toBeTruthy();
+    getByTestId(QR_CONTINUE_BUTTON);
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {

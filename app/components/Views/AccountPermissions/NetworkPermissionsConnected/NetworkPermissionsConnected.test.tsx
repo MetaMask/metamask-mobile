@@ -10,6 +10,7 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.constants';
+import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -90,7 +91,7 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('NetworkPermissionsConnected', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByText, getByTestId } = renderWithProvider(
       <NetworkPermissionsConnected
         onSetPermissionsScreen={jest.fn()}
         onDismissSheet={jest.fn()}
@@ -100,6 +101,9 @@ describe('NetworkPermissionsConnected', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByText('Permitted networks');
+    getByTestId(
+      NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON,
+    );
   });
 });

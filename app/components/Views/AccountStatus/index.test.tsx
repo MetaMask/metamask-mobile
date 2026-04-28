@@ -77,14 +77,14 @@ describe('AccountStatus', () => {
 
     it('renders correctly with type="not_exist"', () => {
       mockRouteParams = { type: 'not_exist' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).not.toBeNull();
+      const { getByText } = renderWithProvider(<AccountStatus />);
+      getByText(strings('account_status.account_not_found'));
     });
 
     it('renders correctly with type="found"', () => {
       mockRouteParams = { type: 'found' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).not.toBeNull();
+      const { getByText } = renderWithProvider(<AccountStatus />);
+      getByText(strings('account_status.account_already_exists'));
     });
 
     it('renders correctly with accountName in route params', () => {
@@ -92,8 +92,8 @@ describe('AccountStatus', () => {
         type: 'found',
         accountName: 'test@example.com',
       };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).not.toBeNull();
+      const { getByText } = renderWithProvider(<AccountStatus />);
+      getByText(strings('account_status.account_already_exists'));
     });
   });
 
@@ -104,14 +104,14 @@ describe('AccountStatus', () => {
 
     it('renders correctly with type="not_exist"', () => {
       mockRouteParams = { type: 'not_exist' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).not.toBeNull();
+      const { getByText } = renderWithProvider(<AccountStatus />);
+      getByText(strings('account_status.account_not_found'));
     });
 
     it('renders correctly with type="found"', () => {
       mockRouteParams = { type: 'found' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).not.toBeNull();
+      const { getByText } = renderWithProvider(<AccountStatus />);
+      getByText(strings('account_status.account_already_exists'));
     });
 
     it('renders correctly with accountName in route params', () => {
@@ -119,8 +119,8 @@ describe('AccountStatus', () => {
         type: 'found',
         accountName: 'test@example.com',
       };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).not.toBeNull();
+      const { getByText } = renderWithProvider(<AccountStatus />);
+      getByText(strings('account_status.account_already_exists'));
     });
   });
 

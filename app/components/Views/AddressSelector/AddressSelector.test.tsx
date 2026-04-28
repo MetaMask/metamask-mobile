@@ -121,8 +121,8 @@ describe('AccountSelector', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    render(AddressSelector);
-    expect(screen.toJSON()).not.toBeNull();
+    const { getAllByTestId } = render(AddressSelector);
+    getAllByTestId('multichain-address-row-network-name');
   });
 
   it('includes only EVM addresses if isEvmOnly', () => {

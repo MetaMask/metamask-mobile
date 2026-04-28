@@ -2,6 +2,7 @@ import React from 'react';
 import { screen, render } from '@testing-library/react-native';
 import AddBookmark from './';
 import { ThemeContext } from '../../../util/theme';
+import { AddBookmarkViewSelectorsIDs } from './AddBookmarkView.testIds';
 
 const mockTheme = {
   colors: {
@@ -26,6 +27,6 @@ describe('AddBookmark', () => {
         />
       </ThemeContext.Provider>,
     );
-    expect(screen.toJSON()).not.toBeNull();
+    screen.getByTestId(AddBookmarkViewSelectorsIDs.CONTAINER);
   });
 });

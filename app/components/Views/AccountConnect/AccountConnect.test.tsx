@@ -314,7 +314,7 @@ describe('AccountConnect', () => {
         Caip25EndowmentPermissionName,
       );
     });
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountConnect
         route={{
           params: {
@@ -337,11 +337,13 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId(
+      PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+    );
   });
 
   it('renders correctly with request including chains and accounts', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountConnect
         route={{
           params: {
@@ -363,11 +365,14 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId(PermissionSummaryBottomSheetSelectorsIDs.CONTAINER);
+    getByTestId(
+      PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+    );
   });
 
   it('renders correctly with request including only chains', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountConnect
         route={{
           params: {
@@ -389,7 +394,10 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId(PermissionSummaryBottomSheetSelectorsIDs.CONTAINER);
+    getByTestId(
+      PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+    );
   });
 
   it('renders correctly when merging existing CAIP-25 permissions', () => {
@@ -413,7 +421,7 @@ describe('AccountConnect', () => {
       'eip155:10': { accounts: [`eip155:10:${mockAddress2}`] },
     });
 
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountConnect
         route={{
           params: {
@@ -431,7 +439,10 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId(PermissionSummaryBottomSheetSelectorsIDs.CONTAINER);
+    getByTestId(
+      PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+    );
   });
 
   describe('AccountConnectMultiSelector handlers', () => {

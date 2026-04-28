@@ -63,13 +63,13 @@ describe('WalletRecovery', () => {
     });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderComponent({
+    renderComponent({
       authConnection: 'google',
       userId: '123',
       socialLoginEmail: 'test@example.com',
     });
 
-    expect(toJSON()).not.toBeNull();
+    screen.getByText(strings('protect_your_wallet.srps_title'));
   });
 
   it('renders SRP section and sets navigation options', () => {

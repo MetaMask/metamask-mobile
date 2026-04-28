@@ -46,7 +46,7 @@ describe('Options', () => {
   });
 
   it('should render options correctly', () => {
-    const { toJSON } = render(<Options {...mockProps} />);
-    expect(toJSON()).not.toBeNull();
+    const { getByText } = render(<Options {...mockProps} />);
+    getByText('New tab');
   });
 });

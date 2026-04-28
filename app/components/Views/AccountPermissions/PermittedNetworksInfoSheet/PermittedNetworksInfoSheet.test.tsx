@@ -33,8 +33,8 @@ describe('PermittedNetworksInfoSheet', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<PermittedNetworksInfoSheet />);
-    expect(toJSON()).not.toBeNull();
+    const { getByText } = renderWithProvider(<PermittedNetworksInfoSheet />);
+    getByText(strings('permissions.permitted_networks'));
   });
 
   it('should display the correct title', () => {

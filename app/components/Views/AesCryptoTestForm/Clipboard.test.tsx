@@ -5,7 +5,7 @@ import ClipboardText from './Clipboard';
 
 describe('ClipboardText', () => {
   it('renders correctly', () => {
-    const { toJSON } = render(
+    const { getByTestId, getByText } = render(
       <ClipboardText
         text={'random text'}
         testID={'random-test-id'}
@@ -13,6 +13,7 @@ describe('ClipboardText', () => {
       />,
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId('random-test-id');
+    getByText('random text');
   });
 });

@@ -116,11 +116,12 @@ describe('AccountConnectMultiSelector', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountConnectMultiSelector {...defaultProps} />,
       { state: { engine: { backgroundState } } },
     );
-    expect(toJSON()).not.toBeNull();
+    getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+    getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
   });
 
   it('displays accounts list', () => {

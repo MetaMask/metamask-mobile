@@ -94,9 +94,9 @@ describe('ErrorBoundary', () => {
       state: initialState,
     });
 
-    expect(getByText('Describe what happened')).toBeTruthy();
-    expect(getByText('Contact support')).toBeTruthy();
-    expect(getByText('Try again')).toBeTruthy();
+    getByText('Describe what happened');
+    getByText('Contact support');
+    getByText('Try again');
   });
 
   it('hides Describe what happened button when dataCollectionForMarketing is false', () => {
@@ -112,8 +112,8 @@ describe('ErrorBoundary', () => {
     );
 
     expect(queryByText('Describe what happened')).toBeNull();
-    expect(getByText('Contact support')).toBeTruthy();
-    expect(getByText('Try again')).toBeTruthy();
+    getByText('Contact support');
+    getByText('Try again');
   });
 
   it('opens modal when describe button is pressed', async () => {
@@ -128,13 +128,11 @@ describe('ErrorBoundary', () => {
     });
 
     await waitFor(() => {
-      expect(
-        getByPlaceholderText(
-          'Sharing details like how we can reproduce the bug will help us fix the problem.',
-        ),
-      ).toBeTruthy();
-      expect(getByText('Cancel')).toBeTruthy();
-      expect(getByText('Submit')).toBeTruthy();
+      getByPlaceholderText(
+        'Sharing details like how we can reproduce the bug will help us fix the problem.',
+      );
+      getByText('Cancel');
+      getByText('Submit');
     });
   });
 
@@ -151,7 +149,7 @@ describe('ErrorBoundary', () => {
     });
 
     await waitFor(() => {
-      expect(getByText('Cancel')).toBeTruthy();
+      getByText('Cancel');
     });
 
     // Close modal
@@ -259,7 +257,7 @@ describe('ErrorBoundary', () => {
       state: initialState,
     });
 
-    expect(getByText('Test error message')).toBeTruthy();
+    getByText('Test error message');
   });
 
   describe('Onboarding Error Handling', () => {
@@ -315,9 +313,9 @@ describe('ErrorBoundary', () => {
         { state: initialState },
       );
 
-      expect(getByText('An error occurred')).toBeTruthy();
-      expect(getByText('Send report')).toBeTruthy();
-      expect(getByText('Try again')).toBeTruthy();
+      getByText('An error occurred');
+      getByText('Send report');
+      getByText('Try again');
     });
 
     it('calls captureExceptionForced and navigates to onboarding when Send report is pressed in onboarding mode', async () => {

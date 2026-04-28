@@ -50,10 +50,10 @@ describe('SuccessErrorSheet', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <SuccessErrorSheet route={mockRoute} />,
     );
-    expect(toJSON()).not.toBeNull();
+    getByText('Test Title');
   });
 
   it('renders correctly with all props', () => {
@@ -61,8 +61,8 @@ describe('SuccessErrorSheet', () => {
       <SuccessErrorSheet route={mockRoute} />,
     );
 
-    expect(getByText('Test Title')).toBeTruthy();
-    expect(getByText('Test Description')).toBeTruthy();
+    getByText('Test Title');
+    getByText('Test Description');
 
     const primaryButton = getByRole('button', { name: 'Primary' });
     const secondaryButton = getByRole('button', { name: 'Secondary' });
@@ -94,8 +94,8 @@ describe('SuccessErrorSheet', () => {
       <SuccessErrorSheet route={mockErrorRoute} />,
     );
 
-    expect(getByText('Test Title')).toBeTruthy();
-    expect(getByText('Test Description')).toBeTruthy();
-    expect(getByText('Custom Button')).toBeTruthy();
+    getByText('Test Title');
+    getByText('Test Description');
+    getByText('Custom Button');
   });
 });

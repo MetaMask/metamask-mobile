@@ -52,10 +52,10 @@ describe('ChangeInSimulationModal', () => {
   });
 
   it('renders without errors', () => {
-    const { toJSON } = renderWithProvider(<ChangeInSimulationModal />, {
+    const { getByText } = renderWithProvider(<ChangeInSimulationModal />, {
       state: mockInitialState,
     });
-    expect(toJSON()).not.toBeNull();
+    getByText('Results have changed');
   });
 
   it('calls onProceed and onReject callbacks', () => {

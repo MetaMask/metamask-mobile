@@ -22,16 +22,14 @@ describe('DataCollectionModal', () => {
   it('renders icon and content', () => {
     const { getByTestId } = render(<DataCollectionModal />);
 
-    expect(
-      getByTestId(DataCollectionBottomSheetSelectorsIDs.ICON_WARNING),
-    ).toBeTruthy(); // Assuming you add testID='icon-warning' to your Icon component
+    getByTestId(DataCollectionBottomSheetSelectorsIDs.ICON_WARNING);
 
     expect(strings).toHaveBeenCalledWith('data_collection_modal.content');
     expect(strings).toHaveBeenCalledWith('data_collection_modal.accept');
   });
 
   it('renders without errors', () => {
-    const { toJSON } = render(<DataCollectionModal />);
-    expect(toJSON()).not.toBeNull();
+    const { getByTestId } = render(<DataCollectionModal />);
+    getByTestId(DataCollectionBottomSheetSelectorsIDs.ICON_WARNING);
   });
 });

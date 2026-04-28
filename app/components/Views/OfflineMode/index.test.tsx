@@ -4,7 +4,7 @@ import OfflineMode from './';
 
 describe('OfflineMode', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<OfflineMode />);
-    expect(toJSON()).not.toBeNull();
+    const { getByText } = renderWithProvider(<OfflineMode />);
+    getByText("You're offline");
   });
 });

@@ -625,14 +625,14 @@ describe('Wallet', () => {
 
   it('should render correctly', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    const wrapper = render(Wallet);
-    expect(wrapper.toJSON()).not.toBeNull();
+    render(Wallet);
+    expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
   it('should render correctly when there are no detected tokens', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    const wrapper = renderWithoutDetectedTokens(Wallet);
-    expect(wrapper.toJSON()).not.toBeNull();
+    renderWithoutDetectedTokens(Wallet);
+    expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
   it('should render TabsList', () => {
@@ -659,8 +659,8 @@ describe('Wallet', () => {
         callback(mockInitialState),
       );
     //@ts-expect-error we are ignoring the navigation params on purpose
-    const wrapper = render(Wallet);
-    expect(wrapper.toJSON()).not.toBeNull();
+    render(Wallet);
+    expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
   it('renders correctly when selectedInternalAccount changes', async () => {
@@ -692,7 +692,7 @@ describe('Wallet', () => {
       },
     );
 
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).not.toBeNull();
   });
 
   describe('AssetDetailsActions', () => {

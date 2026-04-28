@@ -4,9 +4,9 @@ import { render } from '@testing-library/react-native';
 
 describe('NavigationUnitTest', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const { getByText } = render(
       <NavigationUnitTest secondRoute={'TestScreen2'} />,
     );
-    expect(toJSON()).not.toBeNull();
+    getByText('TestScreen3 THIS SHOULD NOT HAVE CHANGED, take a deeper look');
   });
 });

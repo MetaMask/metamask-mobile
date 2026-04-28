@@ -213,7 +213,7 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('browser-url-bar')).toBeTruthy();
+      getByTestId('browser-url-bar');
     });
 
     it('hides content when tab is not active', () => {
@@ -270,7 +270,7 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('browser-url-bar')).toBeTruthy();
+      getByTestId('browser-url-bar');
     });
 
     it('passes showTabs callback to BrowserUrlBar', () => {

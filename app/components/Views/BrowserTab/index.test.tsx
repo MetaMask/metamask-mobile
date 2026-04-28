@@ -158,8 +158,7 @@ describe('BrowserTab', () => {
         expect(screen.getByTestId('browser-webview')).toBeVisible(),
       );
 
-      const backButton = screen.getByTestId('browser-tab-close-button');
-      expect(backButton).toBeTruthy();
+      screen.getByTestId('browser-tab-close-button');
     });
 
     it('goes back when close button is pressed and opened from benefit', async () => {

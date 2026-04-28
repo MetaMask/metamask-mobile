@@ -267,10 +267,10 @@ describe('ActivityView', () => {
     mockRoute.params = {};
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderComponent(mockInitialState);
+  it('renders the activity view', () => {
+    const { getByTestId } = renderComponent(mockInitialState);
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW);
   });
 
   describe('Network Manager Integration', () => {

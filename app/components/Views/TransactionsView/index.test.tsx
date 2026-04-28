@@ -428,8 +428,7 @@ describe('TransactionsView', () => {
 
       const component = renderTransactionsView();
 
-      expect(component).toBeDefined();
-      expect(component.toJSON()).toBeTruthy();
+      expect(component.toJSON()).not.toBeNull();
     });
   });
 
@@ -687,7 +686,6 @@ describe('TransactionsView', () => {
       });
 
       expect(selectNonEvmTransactions).toHaveBeenCalled();
-      expect(component).toBeDefined();
     });
   });
 
@@ -726,7 +724,7 @@ describe('TransactionsView', () => {
         jest.runAllTimers();
       });
 
-      expect(component).toBeDefined();
+      expect(component.toJSON()).not.toBeNull();
     });
 
     it('handles transactions with invalid structures', async () => {

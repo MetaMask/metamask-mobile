@@ -1,11 +1,12 @@
 import ImportPrivateKeySuccess from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
+import { screen } from '@testing-library/react-native';
 
 describe('ImportPrivateKeySuccess', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderScreen(ImportPrivateKeySuccess, {
+    renderScreen(ImportPrivateKeySuccess, {
       name: 'ImportPrivateKeySuccess',
     });
-    expect(toJSON()).not.toBeNull();
+    screen.getByText('Account successfully imported!');
   });
 });

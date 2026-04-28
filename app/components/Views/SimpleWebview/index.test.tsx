@@ -49,9 +49,9 @@ describe('SimpleWebview', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = render(<SimpleWebview />);
+    render(<SimpleWebview />);
 
-    expect(toJSON()).not.toBeNull();
+    expect(getHeaderCompactStandardNavbarOptions).toHaveBeenCalled();
   });
 
   it('sets header options from HeaderCompactStandard and Device.isAndroid() for includesTopInset', () => {

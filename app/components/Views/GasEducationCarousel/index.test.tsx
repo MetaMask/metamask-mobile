@@ -4,11 +4,11 @@ import GasEducationCarousel from '.';
 
 describe('GasEducationCarousel', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <GasEducationCarousel
         navigation={{ getParam: () => false, setOptions: () => null }}
       />,
     );
-    expect(toJSON()).not.toBeNull();
+    getByText('Before you purchase ETH, understand gas fees');
   });
 });

@@ -305,7 +305,7 @@ describe('ResetPassword', () => {
     const component = renderComponent();
     await flushMicrotasks();
 
-    expect(component.toJSON()).not.toBeNull();
+    component.getByText(strings('password_reset.change_password'));
   });
 
   describe('confirm current password view', () => {
@@ -504,12 +504,8 @@ describe('ResetPassword', () => {
         fireEvent.changeText(newPasswordField, 'NewPassword');
       });
 
-      expect(
-        within(newPasswordField).getByDisplayValue('NewPassword'),
-      ).toBeTruthy();
-      expect(
-        within(confirmPasswordField).getByDisplayValue('NewPassword123'),
-      ).toBeTruthy();
+      within(newPasswordField).getByDisplayValue('NewPassword');
+      within(confirmPasswordField).getByDisplayValue('NewPassword123');
     });
 
     it('clears confirm password when new password is emptied', async () => {
@@ -533,7 +529,7 @@ describe('ResetPassword', () => {
         fireEvent.changeText(newPasswordField, '');
       });
 
-      expect(within(confirmPasswordField).getByDisplayValue('')).toBeTruthy();
+      within(confirmPasswordField).getByDisplayValue('');
     });
 
     it('toggles password visibility for new password field', async () => {
@@ -808,7 +804,6 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:passcodeDisabled',
       );
-      expect(component).toBeTruthy();
     });
 
     it('sets biometry type and triggers reauthentication when biometrics available', async () => {
@@ -831,7 +826,6 @@ describe('ResetPassword', () => {
       });
 
       expect(Authentication.getType).toHaveBeenCalled();
-      expect(component).toBeTruthy();
     });
 
     it('auto-reauthenticates with biometric credentials when available', async () => {
@@ -865,7 +859,6 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:biometryChoiceDisabled',
       );
-      expect(component).toBeTruthy();
     });
   });
 

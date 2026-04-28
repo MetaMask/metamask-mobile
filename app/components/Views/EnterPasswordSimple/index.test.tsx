@@ -32,6 +32,6 @@ describe('EnterPasswordSimple', () => {
         </NavigationContainer>
       </ThemeContext.Provider>,
     );
-    expect(screen.toJSON()).not.toBeNull();
+    screen.getByPlaceholderText('Password');
   });
 });

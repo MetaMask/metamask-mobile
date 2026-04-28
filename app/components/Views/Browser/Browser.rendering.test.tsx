@@ -25,6 +25,7 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { parseCaipAccountId } from '@metamask/utils';
+import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as React.ComponentType<
   Record<string, unknown>
@@ -180,7 +181,7 @@ const mockSortMultichainAccountsByLastSelected =
 
 describe('Browser - Rendering and Initialization', () => {
   it('renders Browser component', () => {
-    const { toJSON } = renderWithProvider(
+    renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
         <ThemeContext.Provider value={mockTheme}>
           <NavigationContainer independent>
@@ -205,7 +206,7 @@ describe('Browser - Rendering and Initialization', () => {
       </Provider>,
       { state: { ...mockInitialState } },
     );
-    expect(toJSON()).not.toBeNull();
+    expect(BrowserTab).toHaveBeenCalled();
   });
 
   it('creates a new homepage tab when rendered with no tabs', () => {

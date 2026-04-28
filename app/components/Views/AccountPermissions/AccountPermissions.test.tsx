@@ -332,7 +332,7 @@ describe('AccountPermissions', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <AccountPermissions
         route={{
           params: {
@@ -343,7 +343,7 @@ describe('AccountPermissions', () => {
       { state: mockInitialState() },
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByText('test');
   });
 
   it('should handle manage permissions button press and navigate to permissions summary', () => {

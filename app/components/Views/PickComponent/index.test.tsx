@@ -21,6 +21,7 @@ describe('PickComponent', () => {
         />
       </ThemeContext.Provider>,
     );
-    expect(screen.toJSON()).not.toBeNull();
+    screen.getByText('Text First');
+    screen.getByText('Text Second');
   });
 });

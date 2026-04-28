@@ -34,9 +34,9 @@ describe('AesCryptoTestForm', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = render(<AesCryptoTestForm />);
+    const { getByTestId } = render(<AesCryptoTestForm />);
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId(aesCryptoFormSafeArea);
   });
 
   it('wraps content in SafeAreaView from react-native-safe-area-context', () => {

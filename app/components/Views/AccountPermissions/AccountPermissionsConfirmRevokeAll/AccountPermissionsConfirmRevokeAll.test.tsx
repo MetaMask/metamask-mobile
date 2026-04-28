@@ -38,7 +38,7 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
         route={{
           params: {
@@ -49,7 +49,8 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).not.toBeNull();
+    getByTestId('revoke-all-permissions-cancel-button');
+    getByTestId('confirm_disconnect_networks');
   });
 
   it('handles cancel button press', () => {

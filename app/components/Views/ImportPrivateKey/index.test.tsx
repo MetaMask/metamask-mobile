@@ -91,12 +91,12 @@ describe('ImportPrivateKey', () => {
   });
 
   it('renders without errors', () => {
-    const { toJSON } = renderScreen(
+    const { getByText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
       { state: initialState },
     );
-    expect(toJSON()).not.toBeNull();
+    getByText(strings('import_private_key.title'));
   });
 
   it('displays SRP warning description when user has no social auth connection', () => {
@@ -106,19 +106,11 @@ describe('ImportPrivateKey', () => {
       { state: srpState },
     );
 
-    expect(getByText(strings('import_private_key.title'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.description_srp'), {
-        exact: false,
-      }),
-    ).toBeTruthy();
-    expect(
-      getByPlaceholderText(strings('import_private_key.subtitle')),
-    ).toBeTruthy();
-    expect(getByText(strings('import_private_key.cta_text'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.or_scan_a_qr_code')),
-    ).toBeTruthy();
+    getByText(strings('import_private_key.title'));
+    getByText(strings('import_private_key.description_srp'), { exact: false });
+    getByPlaceholderText(strings('import_private_key.subtitle'));
+    getByText(strings('import_private_key.cta_text'));
+    getByText(strings('import_private_key.or_scan_a_qr_code'));
   });
 
   it('displays Apple/Google auth description when user has social auth connection', () => {
@@ -128,13 +120,9 @@ describe('ImportPrivateKey', () => {
       { state: initialState },
     );
 
-    expect(getByText(strings('import_private_key.title'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.description_one')),
-    ).toBeTruthy();
-    expect(
-      getByPlaceholderText(strings('import_private_key.subtitle')),
-    ).toBeTruthy();
+    getByText(strings('import_private_key.title'));
+    getByText(strings('import_private_key.description_one'));
+    getByPlaceholderText(strings('import_private_key.subtitle'));
   });
 
   it('calls dismiss function when close button is pressed', () => {
