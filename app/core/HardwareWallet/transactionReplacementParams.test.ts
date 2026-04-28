@@ -1,4 +1,7 @@
-import { getReplacementGasFeeParams } from './transactionReplacementParams';
+import {
+  getReplacementGasFeeParams,
+  type ReplacementTxParams,
+} from './transactionReplacementParams';
 import { LedgerReplacementTxTypes } from '../../components/UI/LedgerModals/LedgerTransactionModal';
 
 describe('getReplacementGasFeeParams', () => {
@@ -29,7 +32,7 @@ describe('getReplacementGasFeeParams', () => {
         maxPriorityFeePerGas: '0x123',
         unexpected: 'ignore-me',
       },
-    };
+    } as unknown as ReplacementTxParams;
 
     const result = getReplacementGasFeeParams(replacementParams);
 
