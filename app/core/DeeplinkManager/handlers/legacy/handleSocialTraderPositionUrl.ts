@@ -57,6 +57,7 @@ export const handleSocialTraderPositionUrl = ({
 
     NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
       positionId: navParams.positionId,
+      traderId: '',
       traderName: 'Trader',
       tokenSymbol: 'Token',
     });

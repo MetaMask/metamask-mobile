@@ -29,6 +29,7 @@ describe('handleSocialTraderPositionUrl', () => {
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
+        traderId: '',
         traderName: 'Trader',
         tokenSymbol: 'Token',
       },
@@ -44,6 +45,7 @@ describe('handleSocialTraderPositionUrl', () => {
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         positionId: 'position id/with reserved?chars',
+        traderId: '',
         traderName: 'Trader',
         tokenSymbol: 'Token',
       },

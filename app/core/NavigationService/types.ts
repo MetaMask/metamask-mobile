@@ -226,25 +226,30 @@ import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
 type TraderPositionViewParams =
   | {
+      traderId: string;
+      tokenSymbol: string;
+      /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
+      position: Position;
+      positionId?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
+      traderName?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
+      traderImageUrl?: string;
+    }
+  | {
+      /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
       positionId: string;
-      traderId?: never;
+      traderId: string;
+      tokenSymbol: string;
       // Temporary display placeholders for notification deeplinks:
       // - traderName
       // - tokenSymbol
-      // Remove these once the positionId hydration flow can fetch real
-      // position details.
-      traderName: string;
-      tokenSymbol: string;
+      // Remove these once the positionId hydration flow can fetch all display
+      // fields needed before the canonical position resolves.
+      traderName?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
       traderImageUrl?: string;
       position?: never;
-    }
-  | {
-      positionId?: never;
-      traderId: string;
-      traderName: string;
-      traderImageUrl?: string;
-      tokenSymbol: string;
-      position: Position;
     };
 
 /**
