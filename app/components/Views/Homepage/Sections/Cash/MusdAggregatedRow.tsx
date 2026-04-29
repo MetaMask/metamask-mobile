@@ -23,6 +23,8 @@ import {
   TextColor as CLTextColor,
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import {
@@ -43,13 +45,13 @@ const MusdAggregatedRow = () => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
-  const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
-    useMerklBonusClaim(
-      LINEA_MUSD_ASSET_FOR_MERKL,
-      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
-    );
+  const { claimableReward, hasPendingClaim, isClaiming } = useMerklBonusClaim(
+    LINEA_MUSD_ASSET_FOR_MERKL,
+    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+  );
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const navigation = useNavigation();
 
   const handleClaimBonus = useCallback(() => {
     trackEvent(
@@ -62,8 +64,10 @@ const MusdAggregatedRow = () => {
         })
         .build(),
     );
-    claimRewards();
-  }, [trackEvent, createEventBuilder, claimRewards]);
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
+    });
+  }, [trackEvent, createEventBuilder, navigation]);
 
   const { navigateToCash: handleTokenRowPress } = useCashNavigation();
 

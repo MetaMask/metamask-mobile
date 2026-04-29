@@ -19,6 +19,8 @@ const EVENT_LOCATIONS = {
   PERCENTAGE_ROW: 'percentage_row',
   /** CTA on full page Cash token list */
   MOBILE_TOKEN_LIST_PAGE: 'mobile-token-list-page',
+  /** Money Hub screen (Your bonus card) */
+  MONEY_HUB: 'money_hub',
 };
 
 const MUSD_CTA_TYPES = {

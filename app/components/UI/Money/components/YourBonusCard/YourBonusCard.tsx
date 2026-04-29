@@ -1,0 +1,187 @@
+import React, { useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import TagBase from '../../../../../component-library/base-components/TagBase';
+import {
+  TagSeverity,
+  TagShape,
+} from '../../../../../component-library/base-components/TagBase/TagBase.types';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
+import { strings } from '../../../../../../locales/i18n';
+import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import Routes from '../../../../../constants/navigation/Routes';
+import { LINEA_MUSD_ASSET_FOR_MERKL } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
+import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
+import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import { YourBonusCardTestIds } from './YourBonusCard.testIds';
+
+const YourBonusCard: React.FC = () => {
+  const navigation = useNavigation();
+  const formatFiat = useFiatFormatter();
+
+  const { claimableReward, lifetimeBonusClaimed, hasPendingClaim, isClaiming } =
+    useMerklBonusClaim(
+      LINEA_MUSD_ASSET_FOR_MERKL,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+    );
+
+  const { fiatBalanceAggregated } = useMusdBalance();
+
+  const estimatedAnnualBonus = useMemo(
+    () =>
+      fiatBalanceAggregated
+        ? formatFiat(
+            new BigNumber(fiatBalanceAggregated)
+              .multipliedBy(MUSD_CONVERSION_APY)
+              .dividedBy(100),
+          )
+        : null,
+    [fiatBalanceAggregated, formatFiat],
+  );
+
+  const lifetimeFormatted = useMemo(
+    () =>
+      lifetimeBonusClaimed
+        ? formatFiat(new BigNumber(lifetimeBonusClaimed))
+        : null,
+    [lifetimeBonusClaimed, formatFiat],
+  );
+
+  const hasLifetimeBonus =
+    !!lifetimeBonusClaimed && new BigNumber(lifetimeBonusClaimed).gt(0);
+  const hasClaimable = !!claimableReward;
+  const isClaimDisabled = isClaiming || hasPendingClaim || !hasClaimable;
+
+  const handleClaim = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
+    });
+  }, [navigation]);
+
+  // Hide card when user has no claim history and nothing to claim — there's
+  // nothing meaningful to show until the Merkl rewards data lands.
+  if (lifetimeBonusClaimed === null && !hasClaimable) {
+    return null;
+  }
+
+  let claimButtonLabel: string;
+  if (hasClaimable) {
+    claimButtonLabel = strings('money.your_bonus.claim_amount', {
+      amount: formatFiat(new BigNumber(claimableReward as string)),
+    });
+  } else {
+    claimButtonLabel = strings('money.your_bonus.accruing_next');
+  }
+
+  let lifetimeDisplay: string;
+  if (!lifetimeFormatted) {
+    lifetimeDisplay = '—';
+  } else if (hasLifetimeBonus) {
+    lifetimeDisplay = `+${lifetimeFormatted}`;
+  } else {
+    lifetimeDisplay = lifetimeFormatted;
+  }
+
+  return (
+    <Box twClassName="px-4 py-3" testID={YourBonusCardTestIds.CONTAINER}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="mb-2"
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+            {strings('money.your_bonus.title')}
+          </Text>
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Md}
+            accessibilityLabel={strings('money.your_bonus.info_label')}
+          />
+        </Box>
+        <TagBase
+          shape={TagShape.Rectangle}
+          severity={TagSeverity.Success}
+          textProps={{ variant: ComponentTextVariant.BodySMMedium }}
+        >
+          {strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
+        </TagBase>
+      </Box>
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="py-2"
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+          {strings('money.your_bonus.estimated_annual')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          testID={YourBonusCardTestIds.ESTIMATED_ANNUAL}
+        >
+          {estimatedAnnualBonus ?? '—'}
+        </Text>
+      </Box>
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="py-2"
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+          {strings('money.your_bonus.lifetime_claimed')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={
+            hasLifetimeBonus ? TextColor.SuccessDefault : TextColor.TextDefault
+          }
+          testID={YourBonusCardTestIds.LIFETIME_CLAIMED}
+        >
+          {lifetimeDisplay}
+        </Text>
+      </Box>
+
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        isDisabled={isClaimDisabled}
+        onPress={handleClaim}
+        testID={YourBonusCardTestIds.CLAIM_BUTTON}
+      >
+        {claimButtonLabel}
+      </Button>
+    </Box>
+  );
+};
+
+export default YourBonusCard;

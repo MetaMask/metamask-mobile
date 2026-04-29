@@ -423,6 +423,7 @@ const Routes = {
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
+      CLAIM_BONUS_SHEET: 'MoneyClaimBonusSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

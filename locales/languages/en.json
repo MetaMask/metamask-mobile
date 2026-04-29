@@ -6553,6 +6553,26 @@
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
     },
+    "your_bonus": {
+      "title": "Your bonus",
+      "info_label": "Bonus info",
+      "estimated_annual": "Estimated annual bonus",
+      "lifetime_claimed": "Lifetime bonus claimed",
+      "claim_amount": "Claim {{amount}} bonus",
+      "accruing_next": "Accruing next bonus"
+    },
+    "claim_bonus_sheet": {
+      "title": "Claim bonus",
+      "subtitle": "Bonus will be paid out on Linea.",
+      "claiming_to": "Claiming to",
+      "network": "Network",
+      "network_fee": "Network fee",
+      "network_fee_estimate": "—",
+      "speed": "Speed",
+      "speed_market": "Market",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
     "activity": {
       "title": "Activity",
       "view_all": "View all",

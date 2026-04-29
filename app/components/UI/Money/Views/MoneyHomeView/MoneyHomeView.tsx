@@ -10,6 +10,7 @@ import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
+import YourBonusCard from '../../components/YourBonusCard';
 import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
@@ -168,6 +169,8 @@ const MoneyHomeView = () => {
         />
         <Divider />
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
+        <Divider />
+        <YourBonusCard />
         <Divider />
         {!isMilestone && (
           <>

@@ -105,7 +105,7 @@ describe('MusdAggregatedRow', () => {
     expect(screen.queryByText('3% bonus')).toBeNull();
   });
 
-  it('calls claimRewards when "Claim 3% bonus" is tapped', () => {
+  it('navigates to ClaimBonusSheet when "Claim 3% bonus" is tapped', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '0.02',
       hasPendingClaim: false,
@@ -117,7 +117,10 @@ describe('MusdAggregatedRow', () => {
     renderWithProvider(<MusdAggregatedRow />);
 
     fireEvent.press(screen.getByText('Claim 3% bonus'));
-    expect(mockClaimRewards).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
+    });
+    expect(mockClaimRewards).not.toHaveBeenCalled();
   });
 
   it('has cash-section-musd-row testID', () => {
