@@ -25,14 +25,17 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
-import { formatRewardsTimeOnly } from '../utils/formatUtils';
+import {
+  formatRewardsTimeOnly,
+  formatPercentChange,
+  formatUsd,
+} from '../utils/formatUtils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { getCurrentPrize } from '../components/Campaigns/OndoPrizePool';
-import { formatPercentChange, formatUsd } from '../utils/formatUtils';
 import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { strings } from '../../../../../locales/i18n';
