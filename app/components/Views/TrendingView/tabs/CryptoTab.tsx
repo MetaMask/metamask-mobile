@@ -10,6 +10,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
@@ -85,7 +86,13 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   });
 
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
-    ({ item, index }) => <TokenRowItem token={item} index={index} />,
+    ({ item, index }) => (
+      <TokenRowItem
+        token={item}
+        index={index}
+        tokenDetailsSource={TokenDetailsSource.ExploreCryptoTrending}
+      />
+    ),
     [],
   );
 

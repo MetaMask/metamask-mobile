@@ -12,6 +12,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
@@ -119,7 +120,13 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   );
 
   const renderStockItem: ListRenderItem<TrendingAsset> = useCallback(
-    ({ item, index }) => <TokenRowItem token={item} index={index} />,
+    ({ item, index }) => (
+      <TokenRowItem
+        token={item}
+        index={index}
+        tokenDetailsSource={TokenDetailsSource.ExploreRwasStocks}
+      />
+    ),
     [],
   );
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import {
   DEFAULT_TOKENS_FILTER_CONTEXT,
   SEARCH_TOKENS_FILTER_CONTEXT,
@@ -10,14 +11,21 @@ import {
 interface TokenRowItemProps {
   token: TrendingAsset;
   index: number;
+  /** When omitted, defaults to {@link TokenDetailsSource.Trending} in the row item. */
+  tokenDetailsSource?: TokenDetailsSource;
 }
 
 /** Token row used inside the home tabs. */
-export const TokenRowItem: React.FC<TokenRowItemProps> = ({ token, index }) => (
+export const TokenRowItem: React.FC<TokenRowItemProps> = ({
+  token,
+  index,
+  tokenDetailsSource,
+}) => (
   <TrendingTokenRowItem
     token={token}
     position={index}
     filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
+    tokenDetailsSource={tokenDetailsSource}
   />
 );
 

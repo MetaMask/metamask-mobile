@@ -12,6 +12,7 @@ import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
@@ -94,7 +95,13 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   );
 
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
-    ({ item, index }) => <TokenRowItem token={item} index={index} />,
+    ({ item, index }) => (
+      <TokenRowItem
+        token={item}
+        index={index}
+        tokenDetailsSource={TokenDetailsSource.ExploreNowStocks}
+      />
+    ),
     [],
   );
 

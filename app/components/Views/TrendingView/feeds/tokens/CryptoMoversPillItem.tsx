@@ -28,6 +28,7 @@ import BadgeWrapper, {
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { useTrendingTokenPress } from '../../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { CRYPTO_MOVERS_HOME_FILTER_CONTEXT } from '../search-utils';
 
 const LOGO_SIZE = 24;
@@ -46,6 +47,7 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
     token,
     index,
     filterContext: CRYPTO_MOVERS_HOME_FILTER_CONTEXT,
+    tokenDetailsSource: TokenDetailsSource.ExploreNowMovers,
   });
 
   const networkBadgeImageSource = useMemo(() => {
