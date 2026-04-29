@@ -12,7 +12,7 @@
 
 import { getAdapter } from './registry';
 import type { SnapMappedRequest } from './types';
-import { Json } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, Json } from '@metamask/utils';
 import Engine from '../../Engine';
 
 export {
@@ -95,8 +95,8 @@ export const callMultichainRoutingService = async ({
   requestId,
   mappedRequest,
 }: {
-  connectedAddresses: string[];
-  scope: string;
+  connectedAddresses: CaipAccountId[];
+  scope: CaipChainId;
   requestId: number;
   mappedRequest: SnapMappedRequest;
 }): Promise<unknown> =>
