@@ -117,11 +117,10 @@ const ClaimBonusSheet: React.FC = () => {
 
   const networkImageSource = getNetworkImageSource({ chainId: CLAIM_CHAIN_ID });
   const networkName = lineaNetwork?.name ?? strings('networks.linea_mainnet');
-  const accountAddress = selectedAccount?.address ?? '';
-  const truncatedAddress = accountAddress
-    ? `${accountAddress.slice(0, 6)}…${accountAddress.slice(-4)}`
-    : '';
-  const accountName = selectedAccount?.metadata?.name || truncatedAddress;
+  const address = selectedAccount?.address ?? '';
+  const accountName =
+    selectedAccount?.metadata?.name ||
+    (address ? `${address.slice(0, 6)}…${address.slice(-4)}` : '');
   const tokenAmount = claimableReward
     ? `${claimableReward} ${MUSD_TOKEN.symbol}`
     : `— ${MUSD_TOKEN.symbol}`;

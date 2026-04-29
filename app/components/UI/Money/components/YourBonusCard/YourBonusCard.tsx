@@ -101,14 +101,11 @@ const YourBonusCard: React.FC = () => {
     return null;
   }
 
-  let claimButtonLabel: string;
-  if (hasClaimable) {
-    claimButtonLabel = strings('money.your_bonus.claim_amount', {
-      amount: formatFiat(new BigNumber(claimableReward as string)),
-    });
-  } else {
-    claimButtonLabel = strings('money.your_bonus.accruing_next');
-  }
+  const claimButtonLabel = hasClaimable
+    ? strings('money.your_bonus.claim_amount', {
+        amount: formatFiat(new BigNumber(claimableReward as string)),
+      })
+    : strings('money.your_bonus.accruing_next');
 
   let lifetimeDisplay: string;
   if (!lifetimeFormatted) {

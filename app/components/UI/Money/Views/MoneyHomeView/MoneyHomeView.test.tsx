@@ -96,13 +96,10 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
   BadgeVariant: { Network: 'Network' },
 }));
 
-jest.mock('../../components/YourBonusCard', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <View testID="your-bonus-card" />,
-  };
-});
+jest.mock('../../components/YourBonusCard', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   const { View, Text } = jest.requireActual('react-native');
