@@ -11,6 +11,7 @@ import type { TopTrader } from '../types';
 export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
+  isFetching: boolean;
   error: string | null;
   refresh: () => Promise<void>;
   toggleFollow: (addressOrId: string) => void;
@@ -33,10 +34,11 @@ export const useTopTraders = (
     fetchOptions,
   ];
 
-  const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
-    queryKey,
-    enabled: options?.enabled ?? true,
-  });
+  const { data, isLoading, isFetching, error, refetch } =
+    useQuery<LeaderboardResponse>({
+      queryKey,
+      enabled: options?.enabled ?? true,
+    });
 
   const { isFollowing, toggleFollow } = useFollowToggleMany();
 
@@ -76,6 +78,7 @@ export const useTopTraders = (
   return {
     traders,
     isLoading,
+    isFetching,
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
     refresh,

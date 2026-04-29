@@ -23,6 +23,7 @@ const mockTraders = [
 const mockUseTopTraders = jest.fn((_options?: unknown) => ({
   traders: mockTraders,
   isLoading: false,
+  isFetching: false,
   error: null as string | null,
   refresh: mockRefetch,
   toggleFollow: jest.fn(),
@@ -75,6 +76,7 @@ describe('TopTradersSection', () => {
     mockUseTopTraders.mockReturnValue({
       traders: mockTraders,
       isLoading: false,
+      isFetching: false,
       error: null,
       refresh: mockRefetch,
       toggleFollow: jest.fn(),
@@ -85,6 +87,7 @@ describe('TopTradersSection', () => {
     mockUseTopTraders.mockReturnValue({
       traders: [],
       isLoading: false,
+      isFetching: false,
       error: null,
       refresh: mockRefetch,
       toggleFollow: jest.fn(),
@@ -97,6 +100,7 @@ describe('TopTradersSection', () => {
     mockUseTopTraders.mockReturnValue({
       traders: [],
       isLoading: true,
+      isFetching: true,
       error: null,
       refresh: mockRefetch,
       toggleFollow: jest.fn(),
@@ -143,6 +147,7 @@ describe('TopTradersSection', () => {
     mockUseTopTraders.mockReturnValue({
       traders: [],
       isLoading: false,
+      isFetching: false,
       error: 'Network error',
       refresh: mockRefetch,
       toggleFollow: jest.fn(),
@@ -159,6 +164,7 @@ describe('TopTradersSection', () => {
     mockUseTopTraders.mockReturnValue({
       traders: [],
       isLoading: false,
+      isFetching: false,
       error: 'Network error',
       refresh: mockRefetch,
       toggleFollow: jest.fn(),
@@ -168,6 +174,23 @@ describe('TopTradersSection', () => {
     fireEvent.press(screen.getByText('Retry'));
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders skeletons instead of error state while a retry is in flight', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: true,
+      error: 'Network error',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Retry')).toBeNull();
   });
 
   it('exposes refresh via ref and resolves when called', async () => {

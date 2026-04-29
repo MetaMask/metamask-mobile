@@ -58,10 +58,11 @@ const TopTradersSection = forwardRef<
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
 
-  const { traders, isLoading, error, refresh, toggleFollow } = useTopTraders({
-    limit: HOME_TRADER_LIMIT,
-    enabled: isEnabled,
-  });
+  const { traders, isLoading, isFetching, error, refresh, toggleFollow } =
+    useTopTraders({
+      limit: HOME_TRADER_LIMIT,
+      enabled: isEnabled,
+    });
 
   useImperativeHandle(
     ref,
@@ -108,7 +109,7 @@ const TopTradersSection = forwardRef<
     return null;
   }
 
-  if (error) {
+  if (error && !isFetching) {
     return (
       <View
         ref={sectionViewRef}
@@ -143,7 +144,7 @@ const TopTradersSection = forwardRef<
           contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
           testID="homepage-top-traders-carousel"
         >
-          {isLoading
+          {isLoading || isFetching
             ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
             : traders.map((trader) => (
                 <TopTraderCard
