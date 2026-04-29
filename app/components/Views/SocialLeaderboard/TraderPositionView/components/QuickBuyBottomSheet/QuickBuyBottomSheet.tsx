@@ -1,24 +1,24 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
 import {
-  Box,
   BottomSheet,
-  Text,
-  TextVariant,
-  TextColor,
+  Box,
   BoxAlignItems,
+  Text,
+  TextColor,
+  TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
-import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
-import QuickBuyHeader from './QuickBuyHeader';
+import { useTheme } from '../../../../../../util/theme';
 import QuickBuyAmountInput from './QuickBuyAmountInput';
 import QuickBuyBanners from './QuickBuyBanners';
-import QuickBuyFooter from './QuickBuyFooter';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
+import QuickBuyFooter from './QuickBuyFooter';
+import QuickBuyHeader from './QuickBuyHeader';
+import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 
 export interface QuickBuyBottomSheetProps {
   isVisible: boolean;
@@ -172,7 +172,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
         marketCap={marketCap}
         onClose={handleClose}
       />
-      {isContentReady ? (
+      {isContentReady && true ? (
         <QuickBuyBottomSheetContent position={position} onClose={onClose} />
       ) : (
         <QuickBuyBottomSheetSkeleton />
