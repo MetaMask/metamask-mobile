@@ -12,6 +12,7 @@ import {
   CaipChainId,
   Hex,
   KnownCaipNamespace,
+  parseCaipChainId,
 } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
@@ -745,7 +746,20 @@ class WalletConnect2Session {
     const requestChainId = normalizeCaipChainIdInbound(
       requestEvent.params.chainId,
     ) as CaipChainId;
-    const requestNamespace = requestChainId?.split(':')?.[0];
+    let requestNamespace: string | undefined;
+    try {
+      requestNamespace = parseCaipChainId(requestChainId).namespace;
+    } catch {
+      this._isHandlingRequest = false;
+      return this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestEvent.id,
+          jsonrpc: '2.0',
+          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
+        },
+      });
+    }
 
     // Mark redirect before any routing so all namespaces benefit from it.
     const redirectNamespace =

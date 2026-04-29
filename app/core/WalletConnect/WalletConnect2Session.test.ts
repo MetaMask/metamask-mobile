@@ -442,23 +442,14 @@ describe('WalletConnect2Session', () => {
       },
     };
 
-    jest
-      .spyOn(
-        jest.requireMock('./wc-utils') as typeof import('./wc-utils'),
-        'getChainIdForCaipChainId',
-      )
-      .mockImplementationOnce(() => {
-        throw new Error('Invalid chain');
-      });
-
     await session.handleRequest(requestEvent as any);
 
     expect(mockRespondSessionRequest).toHaveBeenCalledWith({
-      topic: requestEvent.topic,
+      topic: mockSession.topic,
       response: {
-        id: 1,
+        id: '1',
         jsonrpc: '2.0',
-        result: undefined,
+        error: { code: 4902, message: 'Invalid chainId' },
       },
     });
   });
