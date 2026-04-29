@@ -87,7 +87,7 @@ const TraderProfileView = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
-  const { traderId, traderName } = route.params;
+  const { traderId, traderName, rank } = route.params;
 
   const {
     profile,
@@ -206,6 +206,7 @@ const TraderProfileView = () => {
                 profile={profile.profile}
                 followerCount={profile.followerCount}
                 twitterHandle={profile.socialHandles?.twitter}
+                rank={rank}
               />
             )}
 

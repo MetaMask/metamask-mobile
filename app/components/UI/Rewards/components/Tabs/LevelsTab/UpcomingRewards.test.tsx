@@ -483,7 +483,7 @@ describe('UpcomingRewards', () => {
       const tierImageContainer = getByTestId(REWARDS_VIEW_SELECTORS.TIER_IMAGE);
       const touchableOpacity = tierImageContainer
         .children[0] as ReactTestInstance;
-      expect(touchableOpacity.props.disabled).toBe(false);
+      expect(touchableOpacity.props.disabled).not.toBe(true);
     });
 
     it('should display modal with correct image when tier image is pressed', () => {

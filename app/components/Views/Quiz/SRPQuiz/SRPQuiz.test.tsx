@@ -32,10 +32,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
-
 const renderSRPQuiz = (
   routeParams: { keyringId?: string } = {},
   completeQuiz: boolean = true,

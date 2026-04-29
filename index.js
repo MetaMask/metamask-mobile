@@ -11,6 +11,8 @@ import './wdyr';
 // Required for EAS Updates to resolve assets (.riv, .png, etc.) from OTA bundles
 import 'expo-asset';
 
+// Root entry is plain JS; TypeScript import resolver does not resolve expo here.
+// eslint-disable-next-line import-x/no-unresolved -- expo-splash-screen is a runtime dependency (see package.json)
 import { preventAutoHideAsync } from 'expo-splash-screen';
 
 // Keep the native splash visible until we explicitly hide it in FoxLoader

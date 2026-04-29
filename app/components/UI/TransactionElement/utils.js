@@ -55,6 +55,8 @@ const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
 ];
 
 function getTokenTransfer(args) {
@@ -1058,6 +1060,8 @@ export default async function decodeTransaction(args) {
       case strings('transactions.tx_review_perps_withdraw'):
       case strings('transactions.tx_review_predict_deposit'):
       case strings('transactions.tx_review_predict_withdraw'):
+      case strings('transactions.money_account_deposit'):
+      case strings('transactions.money_account_withdraw'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,
