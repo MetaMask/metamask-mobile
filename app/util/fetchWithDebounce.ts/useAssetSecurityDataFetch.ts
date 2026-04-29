@@ -2,12 +2,14 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 import { createBatchFetchWithDebounce } from './fetchWithDebounce';
 
-// ─── Batch fetcher singleton ─────────────────────────────────────────────────
-
-interface TokenSecurityData {
-  securityData: string;
+interface AssetSecurityData {
+  result_type: string;
 }
 
+// ─── Batch fetcher singleton ─────────────────────────────────────────────────
+
+const SECURITY_API_BASE =
+  'https://security-alerts.api.cx.metamask.io/token/v1/scan-bulk';
 const DEFAULT_BATCH_SIZE = 20;
 const DEFAULT_MAX_WAIT_MS = 50;
 
@@ -16,17 +18,23 @@ const fetchAssetSecurityData = createBatchFetchWithDebounce({
   maxWaitMs: DEFAULT_MAX_WAIT_MS,
   fetchFn: async (
     assetIds: { id: CaipAssetType }[],
-  ): Promise<Record<CaipAssetType, TokenSecurityData>> => {
-    // TODO: Implement actual fetch
-    const assets = assetIds.map(({ id }) => ({ id, securityData: 'test' }));
+  ): Promise<Record<CaipAssetType, AssetSecurityData>> => {
+    const ids = assetIds.map(({ id }) => id);
+    const url = `${SECURITY_API_BASE}?assetIds=${ids.join(',')}`;
 
-    return assets.reduce(
-      (acc, asset) => {
-        acc[asset.id] = { securityData: asset.securityData };
-        return acc;
-      },
-      {} as Record<CaipAssetType, TokenSecurityData>,
-    );
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        `Token security fetch failed: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const assets = (await response.json()) as {
+      results: Record<CaipAssetType, AssetSecurityData>;
+    };
+
+    return assets.results;
   },
 });
 
