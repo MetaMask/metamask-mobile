@@ -3,7 +3,6 @@ import { View } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
 import InfoSection from '../../UI/info-row/info-section';
-import InfoRowDivider from '../../UI/info-row-divider';
 import { HeroRow } from '../../rows/transactions/hero-row';
 import AccountRow from '../../rows/transactions/account-row';
 import NetworkRow from '../../rows/transactions/network-row';
@@ -15,7 +14,8 @@ export const MusdClaimInfo = () => (
     <HeroRow />
     <InfoSection>
       <AccountRow label={strings('stake.claiming_to')} />
-      <InfoRowDivider />
+    </InfoSection>
+    <InfoSection>
       <NetworkRow tooltip={strings('earn.claim_bonus_network_tooltip')} />
     </InfoSection>
     <GasFeesDetailsRow disableUpdate />
