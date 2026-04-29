@@ -8648,6 +8648,33 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
+    it('skips migration and does not cache success for unknown abstraction modes', async () => {
+      // Arrange
+      const mockExchangeClient = createMockExchangeClient();
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('futureMode'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - fail closed for unknown modes rather than silently forcing 'u'
+      expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
+      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).not.toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: true,
+      });
+    });
+
     // ─────────────────────────────────────────────────
     // Migration from dexAbstraction → unifiedAccount (EIP-712 path)
     // ─────────────────────────────────────────────────
@@ -8756,6 +8783,8 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalledWith(
         'Perp Account Setup',
         expect.objectContaining({
+          previous_abstraction_mode: 'default',
+          abstraction_mode: 'default',
           status: 'failed',
           error_message: expect.stringContaining('User rejected signing'),
         }),

@@ -108,7 +108,8 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Release-branch bridge for Unified Account: availableToTradeBalance includes
   // collateral HL can use in target mode. The full balance contract will replace
-  // this with an explicit withdrawableBalance field.
+  // this with an explicit withdrawableBalance field. Truncate so users can
+  // withdraw exactly the amount they see.
   const availableBalance = useMemo(() => {
     const balance =
       account?.availableToTradeBalance ?? account?.availableBalance;
