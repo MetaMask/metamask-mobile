@@ -8435,7 +8435,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     // ─────────────────────────────────────────────────
-    // Already on unifiedAccount
+    // Already on a compatible mode (unifiedAccount or portfolioMargin)
     // ─────────────────────────────────────────────────
 
     it('tracks already_enabled and caches success when mode is already unifiedAccount', async () => {
@@ -8472,6 +8472,48 @@ describe('HyperLiquidProvider', () => {
         enabled: true,
       });
       // Does NOT call exchange client for unified account transition
+      expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
+      // Releases in-flight lock
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    it('does NOT migrate portfolioMargin users — tracks already_enabled and skips exchange call', async () => {
+      // portfolioMargin is a superset of unifiedAccount: it already supports
+      // HIP-3 auto-collateral management and is more capital-efficient.
+      // Downgrading these users would be harmful.
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('portfolioMargin'),
+        }),
+      );
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - tracked as already_enabled with the correct mode
+      expect(
+        mockPlatformDependencies.metrics.trackPerpsEvent,
+      ).toHaveBeenCalledWith(
+        'Perp Account Setup',
+        expect.objectContaining({
+          abstraction_mode: 'portfolioMargin',
+          status: 'already_enabled',
+        }),
+      );
+      // Caches success — no retry needed
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: true,
+      });
+      // Does NOT call exchange client — user must NOT be downgraded
       expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
       // Releases in-flight lock
       expect(mockCompleteInFlight).toHaveBeenCalled();
