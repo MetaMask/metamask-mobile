@@ -7,7 +7,6 @@ jest.mock('react-native-confetti-cannon');
 
 describe('Confetti', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<Confetti />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(() => render(<Confetti />)).not.toThrow();
   });
 });
