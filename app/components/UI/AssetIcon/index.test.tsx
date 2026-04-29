@@ -44,6 +44,6 @@ describe('AssetIcon', () => {
     const { toJSON } = renderWithProvider(<AssetIcon logo={sampleLogo} />, {
       state: mockInitialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

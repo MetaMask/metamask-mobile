@@ -100,12 +100,12 @@ describe('parseArgs', () => {
   it('throws when --event has an invalid value', () => {
     expect(() =>
       parseArgs(['--tool', 't', '--type', 'skill', '--event', 'middle']),
-    ).toThrow('--event must be "start" or "end"');
+    ).toThrow('--event must be "start", "end", or "interrupted"');
   });
 
   it('throws when --event is missing entirely', () => {
     expect(() => parseArgs(['--tool', 't', '--type', 'skill'])).toThrow(
-      '--event must be "start" or "end"',
+      '--event must be "start", "end", or "interrupted"',
     );
   });
 

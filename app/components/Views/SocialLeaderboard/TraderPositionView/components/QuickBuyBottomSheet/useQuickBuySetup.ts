@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
+  formatAddressToAssetId,
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
@@ -8,6 +10,7 @@ import type { Position } from '@metamask/social-controllers';
 import { useAssetMetadata } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
 import { chainNameToId } from '../../../utils/chainMapping';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import { selectIsBridgeEnabledSourceFactory } from '../../../../../../core/redux/slices/bridge';
 
 export interface QuickBuySetupResult {
   /** The destination chain ID (hex or CAIP) for this position's chain */
@@ -29,16 +32,17 @@ export interface QuickBuySetupResult {
 export const useQuickBuySetup = (
   position: Position | null,
 ): QuickBuySetupResult => {
+  const isBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
+
   // Destination chain from the position — hex for EVM, CAIP for non-EVM
   const destChainId = useMemo(() => {
     if (!position) return undefined;
     const caipId = chainNameToId(position.chain);
-    return caipId
-      ? isNonEvmChainId(caipId)
-        ? caipId
-        : formatChainIdToHex(caipId)
-      : undefined;
-  }, [position]);
+    if (!caipId) return undefined;
+    if (isNonEvmChainId(caipId)) return caipId;
+    if (!isBridgeEnabledSource(caipId)) return undefined;
+    return formatChainIdToHex(caipId);
+  }, [position, isBridgeEnabledSource]);
 
   const isUnsupportedChain = Boolean(position && !destChainId);
 
@@ -49,14 +53,22 @@ export const useQuickBuySetup = (
     destChainId,
   );
 
-  // Build destination token (the token the user wants to buy)
+  // Build destination token (the token the user wants to buy).
+  //
+  // For non-EVM chains (e.g. Solana) we store the CAIP-19 assetId
+  // (`solana:.../token:<addr>`) in `address`, matching the convention
+  // `getNativeSourceToken` uses for source tokens. The bridge-controller's
+  // returned quotes carry `destAsset.assetId` in this same CAIP form, so
+  // `useQuickBuyQuotes.isActiveQuoteForCurrentTokenPair` can compare the
+  // two without format mismatches.
   const destToken = useMemo<BridgeToken | undefined>(() => {
     if (!position || !destChainId) return undefined;
 
     if (assetMetadata) {
       return {
         address: isNonEvmChainId(destChainId)
-          ? assetMetadata.address
+          ? (formatAddressToAssetId(assetMetadata.address, destChainId) ??
+            assetMetadata.address)
           : position.tokenAddress,
         symbol: position.tokenSymbol,
         name: position.tokenName,

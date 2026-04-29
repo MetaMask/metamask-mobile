@@ -88,13 +88,18 @@ export class ConnectionRegistry {
 
   /**
    * One-time initialization to resume all persisted connections on app cold start.
+   *
+   * Connections are resumed sequentially so a user with N persisted sessions
+   * does not trigger N concurrent relay handshakes at cold start. A single
+   * failure is logged and does not stop subsequent connections from being
+   * processed.
    */
   private async initialize(): Promise<void> {
     await whenStoreReady();
 
     const persisted = await this.store.list().catch(() => []);
 
-    const promises = persisted.map(async (connInfo) => {
+    for (const connInfo of persisted) {
       try {
         const conn = await Connection.create(
           connInfo,
@@ -108,9 +113,7 @@ export class ConnectionRegistry {
       } catch (error) {
         logger.error('Failed to resume connection', connInfo.id, error);
       }
-    });
-
-    await Promise.allSettled(promises);
+    }
 
     await this.trimToCapacity();
 
@@ -424,19 +427,22 @@ export class ConnectionRegistry {
   /**
    * Proactively refreshes all active connections. This is the primary mechanism
    * for preventing stale/zombie connections after the app was put in the background.
+   *
+   * Reconnections are processed sequentially so a user with N active sessions
+   * does not trigger N concurrent relay handshakes on every foreground event.
+   * A single failure is logged and does not stop subsequent connections from
+   * being processed.
    */
   private async reconnectAll(): Promise<void> {
     const connections = Array.from(this.connections.values());
 
-    const promises = connections.map((conn) =>
-      conn.client
-        .reconnect()
-        .then(() => logger.debug('Connection reconnected:', conn.id))
-        .catch((err: Error) =>
-          logger.error('Failed to reconnect connection:', err, conn.id),
-        ),
-    );
-
-    await Promise.allSettled(promises);
+    for (const conn of connections) {
+      try {
+        await conn.client.reconnect();
+        logger.debug('Connection reconnected:', conn.id);
+      } catch (err) {
+        logger.error('Failed to reconnect connection:', err, conn.id);
+      }
+    }
   }
 }

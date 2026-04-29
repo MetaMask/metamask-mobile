@@ -78,10 +78,12 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
+    childMarketIds: market.childMarketIds,
     claimable: false,
   });
   const { data: claimablePositions = [] } = usePredictPositions({
     marketId: market.id,
+    childMarketIds: market.childMarketIds,
     claimable: true,
   });
 
@@ -227,7 +229,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
                 tabs={tabs}
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
-                tabTwStyle="flex-1"
               />
             )}
             {showChips && (

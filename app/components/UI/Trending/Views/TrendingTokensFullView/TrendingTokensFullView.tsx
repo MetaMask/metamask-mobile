@@ -218,14 +218,14 @@ const TrendingTokensFullView = () => {
       testID="24h-button"
       onPress={handle24hPress}
       style={tw.style(
-        'shrink-0 items-center rounded-lg bg-muted p-2',
+        'shrink-0 items-center rounded-xl bg-muted py-2 px-3',
         filters.searchQuery?.trim() && 'opacity-50',
       )}
       activeOpacity={0.2}
       disabled={!!filters.searchQuery?.trim()}
     >
       <View style={tw`flex-row items-center justify-center gap-1`}>
-        <Text style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}>
+        <Text style={tw`min-w-0 shrink text-[14px] font-medium text-default`}>
           {filters.selectedTimeOption}
         </Text>
         <Icon

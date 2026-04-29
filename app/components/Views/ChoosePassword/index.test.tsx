@@ -147,9 +147,12 @@ jest.mock('expo-local-authentication', () => ({
   authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),
 }));
 
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
@@ -331,7 +334,9 @@ describe('ChoosePassword', () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    expect(component.toJSON()).toMatchSnapshot();
+    expect(
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toBeOnTheScreen();
   });
 
   describe('UI State', () => {

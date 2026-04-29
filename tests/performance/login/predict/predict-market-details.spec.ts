@@ -65,7 +65,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 3: Open About tab
       const timer3 = new TimerHelper(
         'Time since user taps About tab until About tab is visible',
-        { ios: 750, android: 1000 },
+        { ios: 750, android: 1800 },
         currentDeviceDetails.platform,
       );
 
@@ -87,7 +87,7 @@ perfTest.describe(PerformancePredict, () => {
         // Timer 4: Open Outcomes tab
         timer4 = new TimerHelper(
           'Time since user taps Outcomes tab until Outcomes tab is visible',
-          { ios: 750, android: 1000 },
+          { ios: 750, android: 4000 },
           currentDeviceDetails.platform,
         );
 

@@ -6,6 +6,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
+import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 
 const EVM_ACCOUNT_TYPES = new Set(['eip155:eoa', 'eip155:erc4337']);
 
@@ -89,6 +90,92 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
+// Spot coins counted toward currently supported funded-state gating.
+// Today the in-app HyperLiquid market surface is USDC-collateralized only,
+// so USDH must not inflate the shared funded-state path that hides Add Funds.
+// Non-stablecoin spot assets (HYPE, PURR, …) also remain excluded.
+const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
+
+export function getSpotBalance(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum: number, balance: { coin?: string; total?: string }) => {
+      if (!balance.coin || !SPOT_COLLATERAL_COINS.has(balance.coin)) {
+        return sum;
+      }
+      const value = parseFloat(balance.total ?? '0');
+      return Number.isFinite(value) ? sum + value : sum;
+    },
+    0,
+  );
+}
+
+export function getSpotHold(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum: number, balance: { coin?: string; hold?: string }) => {
+      if (!balance.coin || !SPOT_COLLATERAL_COINS.has(balance.coin)) {
+        return sum;
+      }
+      const value = parseFloat(balance.hold ?? '0');
+      return Number.isFinite(value) ? sum + value : sum;
+    },
+    0,
+  );
+}
+
+export function addSpotBalanceToAccountState(
+  accountState: AccountState,
+  spotState?: SpotClearinghouseStateResponse | null,
+): AccountState {
+  const spotBalance = getSpotBalance(spotState);
+  const spotHold = getSpotHold(spotState);
+  const freeSpot = Math.max(0, spotBalance - spotHold);
+
+  const currentTotal = parseFloat(accountState.totalBalance);
+  const currentAvailable = parseFloat(accountState.availableBalance);
+
+  // Preserve sentinel totals (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--')
+  // rather than coercing them to NaN.
+  if (!Number.isFinite(currentTotal)) {
+    return accountState;
+  }
+
+  if (spotBalance === 0) {
+    return {
+      ...accountState,
+      availableToTradeBalance: Number.isFinite(currentAvailable)
+        ? currentAvailable.toString()
+        : accountState.availableBalance,
+    };
+  }
+
+  const availableToTrade = Number.isFinite(currentAvailable)
+    ? (currentAvailable + freeSpot).toString()
+    : freeSpot.toString();
+
+  // Subtract spotHold to avoid double-counting on Unified/PM accounts:
+  // marginSummary.accountValue already includes the margin that HL
+  // surfaces via spot.hold. Standard mode has spotHold = 0, no-op.
+  const nextTotal = currentTotal + spotBalance - spotHold;
+
+  return {
+    ...accountState,
+    totalBalance: nextTotal.toString(),
+    availableToTradeBalance: availableToTrade,
+  };
+}
+
 /**
  * Aggregate multiple per-DEX AccountState objects into one by summing numeric fields.
  * ROE is recalculated as (totalUnrealizedPnl / totalMarginUsed) * 100.
@@ -113,10 +200,25 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
     if (index === 0) {
       return { ...state };
     }
+    const accAvailableToTrade = parseFloat(
+      acc.availableToTradeBalance ?? acc.availableBalance,
+    );
+    const stateAvailableToTrade = parseFloat(
+      state.availableToTradeBalance ?? state.availableBalance,
+    );
+    const availableToTradeSum =
+      Number.isFinite(accAvailableToTrade) &&
+      Number.isFinite(stateAvailableToTrade)
+        ? (accAvailableToTrade + stateAvailableToTrade).toString()
+        : undefined;
+
     return {
       availableBalance: (
         parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
       ).toString(),
+      ...(availableToTradeSum !== undefined && {
+        availableToTradeBalance: availableToTradeSum,
+      }),
       totalBalance: (
         parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)
       ).toString(),

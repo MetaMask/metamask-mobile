@@ -52,7 +52,7 @@ describe('PredictAddFundsModal', () => {
       expect.objectContaining({
         onDismiss: expect.any(Function),
       }),
-      expect.any(Object),
+      {},
     );
   });
 
@@ -85,10 +85,7 @@ describe('PredictAddFundsModal', () => {
       '../../components/PredictAddFundsSheet/PredictAddFundsSheet',
     );
 
-    expect(PredictAddFundsSheet).toHaveBeenCalledWith(
-      expect.any(Object),
-      expect.any(Object),
-    );
+    expect(PredictAddFundsSheet).toHaveBeenCalledWith(expect.any(Object), {});
   });
 
   it('calls navigation.goBack when handleDismiss is called and canGoBack returns true', () => {

@@ -35,6 +35,7 @@ import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
+import { SecurityDataType } from '../hooks/usePopularTokens';
 import { RootState } from '../../../../reducers';
 import { fontStyles } from '../../../../styles/common';
 import {
@@ -60,6 +61,8 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { SHOW_TOKEN_WARNINGS } from './TokenSelectorItem.config';
+import { getBridgeTokenSecurityConfig } from '../utils/tokenSecurityUtils';
 
 const createStyles = ({
   theme,
@@ -168,6 +171,17 @@ interface TokenSelectorItemProps {
 const isLoadingBalance = (balance?: string) =>
   balance === TOKEN_BALANCE_LOADING ||
   balance === TOKEN_BALANCE_LOADING_UPPERCASE;
+
+export const getSecurityTag = (securityType: SecurityDataType | undefined) => {
+  if (
+    securityType === SecurityDataType.Warning ||
+    securityType === SecurityDataType.Spam ||
+    securityType === SecurityDataType.Malicious
+  ) {
+    return getBridgeTokenSecurityConfig(securityType);
+  }
+  return null;
+};
 
 const FiatBalanceView = ({
   balance,
@@ -307,6 +321,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
 
+  const securityTag = SHOW_TOKEN_WARNINGS
+    ? getSecurityTag(token.securityData?.type)
+    : null;
+
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -382,6 +400,23 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                       color={IconColor.InfoDefault}
                       style={styles.verifiedIcon}
                     />
+                  )}
+                  {securityTag && (
+                    <TagBase
+                      shape={TagShape.Pill}
+                      severity={securityTag.severity}
+                      startAccessory={
+                        <Icon
+                          name={securityTag.iconName}
+                          size={IconSize.Sm}
+                          color={securityTag.iconColor}
+                        />
+                      }
+                      textProps={{ variant: TextVariant.BodySM }}
+                      style={styles.verifiedIcon}
+                    >
+                      {securityTag.label}
+                    </TagBase>
                   )}
                 </Box>
                 {label && <Tag label={label} />}

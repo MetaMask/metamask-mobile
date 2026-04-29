@@ -1,5 +1,5 @@
 /**
- * Performance Test Tags for Appwright tests.
+ * Performance Test Tags for Playwright tests.
  *
  * These tags are area-specific and tool-agnostic, matching the tags defined in e2e/tags.js.
  * Use these tags to categorize and filter performance tests.
@@ -15,8 +15,8 @@
  *   test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => { ... });
  *
  * Running tests with tags:
- *   npx appwright test --grep "@PerformanceLogin"
- *   npx appwright test --grep "@PerformanceSwaps|@PerformanceOnboarding"
+ *   yarn playwright test --grep "@PerformanceLogin"
+ *   yarn playwright test --grep "@PerformanceSwaps|@PerformanceOnboarding"
  */
 
 export const PerformanceAccountList = '@PerformanceAccountList';

@@ -44,6 +44,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
@@ -285,6 +287,8 @@ const PriceAdvanced = ({
     : dateLabel;
 
   const { styles, theme } = useStyles(styleSheet);
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
 
   const shouldFallbackToLegacy =
     !chartLoading &&
@@ -356,6 +360,11 @@ const PriceAdvanced = ({
                   : displayDiff < 0
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
+              }
+              style={
+                isLightMode && displayDiff > 0
+                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                  : undefined
               }
               allowFontScaling={false}
             >

@@ -1,4 +1,5 @@
 import { CaipChainId, Hex } from '@metamask/utils';
+import { SolScope } from '@metamask/keyring-api';
 import {
   DefaultSwapDestTokens,
   Bip44TokensForDefaultPairs,
@@ -68,14 +69,21 @@ export const getSourceTokenCandidates = (
   const candidates = [...STABLECOIN_CANDIDATES];
   const addedNativeChains = new Set<string>();
 
-  // Add native tokens for all major chains
+  // Add native tokens for all major EVM chains
   for (const chainId of NATIVE_TOKEN_CHAIN_IDS) {
     const nativeToken = getNativeSourceToken(chainId);
     candidates.push(nativeToken);
     addedNativeChains.add(chainId);
   }
 
-  // Add native token for the destination chain if not already included
+  // Add native SOL on Solana mainnet. balance/price resolution is handled
+  // separately in useSourceTokenOptions via the multichain controllers.
+  candidates.push(getNativeSourceToken(SolScope.Mainnet));
+  addedNativeChains.add(SolScope.Mainnet);
+
+  // Add native token for the destination chain if not already included.
+  // Restricted to EVM destinations — non-EVM destination natives that we
+  // want as source candidates (e.g. SOL above) are added explicitly.
   if (
     destChainId &&
     typeof destChainId === 'string' &&

@@ -47,6 +47,7 @@ _public_envs: &public_envs # Servers (production)
   # Temporary flag to enable builds with GitHub Actions, remove it when deprecating bitrise
   BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: 'true'
   MM_CHARTING_LIBRARY_URL: 'https://charting-assets.static.metamask.io/tradingview/advanced-charts/v30.1.0/'
+  MM_PREDICT_BUILDER_CODE: '0x11a22276beb720e66a072cba8b8e74cded60afda510af535b947b81a1b81a883'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -121,6 +122,10 @@ _signing_flask_prod: &signing_flask_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
   aws_secret: 'metamask-mobile-flask-prod-signer-v2'
   android_keystore_path: 'flaskRelease.keystore'
+_signing_dev: &signing_dev
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-dev-signer'
+  aws_secret: 'metamask-mobile-main-dev-signer'
+  android_keystore_path: 'debug.keystore'
 _signing_flask_uat: &signing_flask_uat
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
   aws_secret: 'metamask-mobile-flask-uat-signer'
@@ -128,7 +133,7 @@ _signing_flask_uat: &signing_flask_uat
 
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -138,7 +143,7 @@ _code_fencing_main: &code_fencing_main
 # Beta code fencing features (main + beta feature)
 _code_fencing_beta: &code_fencing_beta
   - beta
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -147,7 +152,7 @@ _code_fencing_beta: &code_fencing_beta
 
 # Experimental code fencing features (main + experimental)
 _code_fencing_experimental: &code_fencing_experimental
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -158,8 +163,7 @@ _code_fencing_experimental: &code_fencing_experimental
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
   - flask
-  - preinstalled-snaps
-  - external-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -219,6 +223,7 @@ builds:
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -242,6 +247,7 @@ builds:
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -265,6 +271,7 @@ builds:
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -280,13 +287,14 @@ builds:
 
   # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
   main-dev:
-    github_environment: build-exp
-    signing: *signing_uat
+    github_environment: build-dev
+    signing: *signing_dev
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -328,6 +336,7 @@ builds:
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'flask'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -351,6 +360,7 @@ builds:
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'flask'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -373,6 +383,7 @@ builds:
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'flask'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -425,6 +436,7 @@ builds:
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'qa'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'

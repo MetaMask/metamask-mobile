@@ -22,7 +22,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ['tests/**/*.{js,ts}', 'appwright/**/*.{js,ts}'],
+      files: ['tests/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
     },
     {
@@ -596,6 +596,13 @@ module.exports = {
         'no-restricted-imports': [
           'error',
           {
+            paths: [
+              {
+                name: 'expo-haptics',
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
+              },
+            ],
             patterns: [
               {
                 group: ['**/controllers/perps', '**/controllers/perps/**'],
@@ -611,6 +618,9 @@ module.exports = {
                 ],
                 message:
                   'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
+                group: ['expo-haptics/*'],
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
               },
             ],
           },

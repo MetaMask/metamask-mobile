@@ -48,6 +48,7 @@ export const useTopTraders = (
     return data.traders.map((entry) => ({
       id: entry.profileId,
       rank: entry.rank,
+      overallRank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
       percentageChange: (entry.roiPercent30d ?? 0) * 100,
