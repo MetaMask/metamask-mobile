@@ -54,7 +54,7 @@ function PillScrollList<T>({
     ));
 
   return (
-    <Box marginBottom={5} twClassName="-mx-4 bg-transparent">
+    <Box twClassName="-mx-4 bg-transparent mt-3 mb-9">
       {isLoading && (
         <Box twClassName="px-4">
           <Skeleton />

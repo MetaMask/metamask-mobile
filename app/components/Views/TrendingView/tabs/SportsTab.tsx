@@ -96,7 +96,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           title={strings('trending.all_sports')}
           testID="section-header-view-all-all_sports"
         />
-        <Box twClassName="mb-6">
+        <Box twClassName="mt-2 mb-9">
           <PillRow
             pills={sportsMarkets.pills}
             activeKey={sportsMarkets.activeKey}

@@ -49,7 +49,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
         backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        paddingHorizontal={3}
+        paddingHorizontal={2}
         paddingVertical={2}
         twClassName="rounded-full"
       >
@@ -65,6 +65,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
         {showChange ? (
           <Text
             variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
             color={changeTextColor}
             numberOfLines={1}
           >

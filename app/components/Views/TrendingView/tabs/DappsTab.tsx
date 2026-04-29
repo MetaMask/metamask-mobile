@@ -56,6 +56,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             renderItem={(site) => <SiteTileRowItem site={site} />}
             keyExtractor={(site) => site.url}
             Skeleton={SiteTileSkeleton}
+            compactSectionTail
             testID="explore-dapps_recents-carousel"
           />
         </Box>
