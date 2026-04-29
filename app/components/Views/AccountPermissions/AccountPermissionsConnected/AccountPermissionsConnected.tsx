@@ -101,7 +101,7 @@ const AccountPermissionsConnected = ({
   );
 
   return (
-    <>
+    <View testID={ConnectedAccountsSelectorsIDs.CONTAINER}>
       <View style={styles.header}>
         <Avatar
           variant={AvatarVariant.Favicon}
@@ -136,7 +136,7 @@ const AccountPermissionsConnected = ({
         testID={ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS}
         width={ButtonWidthTypes.Full}
       />
-    </>
+    </View>
   );
 };
 
