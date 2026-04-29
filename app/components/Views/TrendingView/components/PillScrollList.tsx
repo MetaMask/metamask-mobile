@@ -54,8 +54,12 @@ function PillScrollList<T>({
     ));
 
   return (
-    <Box marginBottom={5} twClassName="bg-transparent">
-      {isLoading && <Skeleton />}
+    <Box marginBottom={5} twClassName="-mx-4 bg-transparent">
+      {isLoading && (
+        <Box twClassName="px-4">
+          <Skeleton />
+        </Box>
+      )}
       {!isLoading && (row1.length > 0 || row2.length > 0) && (
         <ScrollView
           horizontal
@@ -63,7 +67,7 @@ function PillScrollList<T>({
           keyboardShouldPersistTaps="handled"
           testID={listTestId}
           style={tw.style('bg-transparent')}
-          contentContainerStyle={tw.style('flex-col pr-0')}
+          contentContainerStyle={tw.style('flex-col px-4')}
         >
           <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
             {row1.length > 0 ? (
