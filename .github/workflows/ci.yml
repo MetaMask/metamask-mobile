@@ -524,16 +524,11 @@ jobs:
           post-comment: 'true'
           base-ref: ${{ github.event.pull_request.base.ref }}
 
-  # Main E2E tests
-
   build-android-apks:
     name: 'Build Android APKs'
     if: >-
       ${{
         !cancelled() &&
-        needs.get_requirements.outputs.skip_everything != 'true' &&
-        github.event_name != 'merge_group' &&
-        !github.event.pull_request.head.repo.fork &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
@@ -550,7 +545,11 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.get_requirements.outputs.skip_everything != 'true' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && needs.get_requirements.outputs.android_e2e_needed == 'true' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.outputs.android_e2e_needed == 'true'
+      }}
     permissions:
       contents: read
       id-token: write
@@ -570,9 +569,6 @@ jobs:
     if: >-
       ${{
         !cancelled() &&
-        needs.get_requirements.outputs.skip_everything != 'true' &&
-        github.event_name != 'merge_group' &&
-        !github.event.pull_request.head.repo.fork &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
@@ -586,7 +582,11 @@ jobs:
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && needs.get_requirements.outputs.skip_everything != 'true' && github.event_name != 'merge_group' && needs.get_requirements.outputs.ios_e2e_needed == 'true' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.outputs.ios_e2e_needed == 'true'
+      }}
     needs: [get_requirements, build-ios-apps]
     steps:
       - name: iOS build complete
@@ -594,7 +594,11 @@ jobs:
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.get_requirements.outputs.skip_everything != 'true' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && needs.get_requirements.outputs.ios_e2e_needed == 'true' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.outputs.ios_e2e_needed == 'true'
+      }}
     permissions:
       contents: read
       id-token: write
@@ -613,7 +617,11 @@ jobs:
 
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.get_requirements.outputs.skip_everything != 'true' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && needs.get_requirements.outputs.android_e2e_needed == 'true' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.outputs.android_e2e_needed == 'true'
+      }}
     permissions:
       contents: read
       id-token: write
@@ -630,7 +638,11 @@ jobs:
 
   e2e-smoke-tests-ios-flask:
     name: 'iOS Flask E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.get_requirements.outputs.skip_everything != 'true' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && needs.get_requirements.outputs.ios_e2e_needed == 'true' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.outputs.ios_e2e_needed == 'true'
+      }}
     permissions:
       contents: read
       id-token: write
@@ -648,7 +660,12 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ !cancelled() && needs.get_requirements.outputs.skip_everything != 'true' && github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && needs.get_requirements.outputs.ios_e2e_needed == 'true' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        github.event_name == 'pull_request' &&
+        needs.get_requirements.outputs.ios_e2e_needed == 'true'
+      }}
     permissions:
       contents: read
       id-token: write

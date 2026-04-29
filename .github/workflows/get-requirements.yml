@@ -140,6 +140,10 @@ jobs:
             MSG="E2E for both platforms (scheduled or push to main)"
             ANDROID=true; IOS=true
 
+          # Merge queue: E2E builds and tests never run
+          elif [[ "$GITHUB_EVENT_NAME" == "merge_group" ]]; then
+            MSG="Skipping E2E (merge queue)"
+
           # Fork PRs should not run E2E
           elif [[ "$IS_FORK" == "true" ]]; then
             MSG="Skipping E2E (fork PR)"
@@ -159,7 +163,7 @@ jobs:
                   "$IOS_COUNT" -eq 0 &&
                   "$E2E_WORKFLOWS_COUNT" -eq 0 &&
                   $(( ANDROID_COUNT + IGNORABLE_COUNT )) -ge "$ALL_CHANGES_COUNT" ]]; then
-            MSG="Building Android only"
+            MSG="E2E Android only"
             ANDROID=true
             CHANGED="$ALL_CHANGES_FILES"
 
@@ -168,7 +172,7 @@ jobs:
                   "$ANDROID_COUNT" -eq 0 &&
                   "$E2E_WORKFLOWS_COUNT" -eq 0 &&
                   $(( IOS_COUNT + IGNORABLE_COUNT )) -ge "$ALL_CHANGES_COUNT" ]]; then
-            MSG="Building iOS only"
+            MSG="E2E iOS only"
             IOS=true
             CHANGED="$ALL_CHANGES_FILES"
 
@@ -182,8 +186,7 @@ jobs:
           E2E_NEEDED=false
           [[ "$ANDROID" == "true" || "$IOS" == "true" ]] && E2E_NEEDED=true
 
-          # Run smart-e2e-selection for non-fork, non-hard-skip PRs
-          # with no skip-smart-e2e-selection label.
+          # Run smart-e2e-selection for non-fork, non-hard-skip PRs with no skip-smart-e2e-selection label.
           # Non-PR events and all skip signals bypass AI selection.
           RUN_SMART=false
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
