@@ -1,7 +1,7 @@
 import { Platform, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-const EXTRA_ANDROID_BOTTOM_PADDING = 64;
+const EXTRA_ANDROID_BOTTOM_PADDING = 56;
 
 const styleSheet = (_params: { theme: Theme }) =>
   StyleSheet.create({
