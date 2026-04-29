@@ -123,7 +123,19 @@ describe('useFollowToggle', () => {
       );
     });
 
-    it('fires light haptic feedback on every toggle press', async () => {
+    it('fires a medium haptic when following a new trader', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
+    it('fires a light haptic when unfollowing a currently followed trader', async () => {
+      mockUseSelector.mockReturnValue(['trader-1']);
+
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
       await act(async () => {
@@ -153,6 +165,11 @@ describe('useFollowToggle', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
       expect(impactAsync).toHaveBeenCalledTimes(2);
+      expect(impactAsync).toHaveBeenNthCalledWith(
+        1,
+        ImpactFeedbackStyle.Medium,
+      );
+      expect(impactAsync).toHaveBeenNthCalledWith(2, ImpactFeedbackStyle.Light);
 
       await act(async () => {
         resolveCall({ followed: [], unfollowed: [] });

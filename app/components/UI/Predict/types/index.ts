@@ -115,6 +115,7 @@ export type PredictMarket = {
   volume: number;
   game?: PredictMarketGame;
   series?: PredictSeries;
+  childMarketIds?: string[];
 };
 
 export type PredictSeries = {
