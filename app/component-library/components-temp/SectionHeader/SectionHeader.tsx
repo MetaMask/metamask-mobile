@@ -79,6 +79,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
           name={endIconName}
           size={IconSize.Sm}
           color={endIconColor}
+          style={tw.style('ml-1')}
         />
       )}
 
@@ -92,7 +93,6 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         testID={testID}
         onPress={onPress}
         style={containerStyle}
-        activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={typeof title === 'string' ? title : undefined}
       >
