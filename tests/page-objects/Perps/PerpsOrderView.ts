@@ -57,6 +57,12 @@ class PerpsOrderView {
     );
   }
 
+  get keypadDeleteButton(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () => PlaywrightMatchers.getElementById('keypad-delete-button'),
+    });
+  }
+
   // Leverage chip by visible text, e.g., "3x", "10x", "20x"
   leverageOption(leverageX: number, index = 0): DetoxElement {
     return Matchers.getElementByText(`${leverageX}x`, index);
@@ -76,20 +82,31 @@ class PerpsOrderView {
   }
 
   async tapPlaceOrderButton() {
-    const el = asDetoxElement(this.placeOrderButton);
-    await Utilities.waitForReadyState(el, {
-      checkStability: false,
-      timeout: 8000,
-      elemDescription: 'Place order button',
-    });
-    await waitForStableEnabledIOS(el, {
-      timeout: 22000,
-      pollIntervalMs: 120,
-      consecutiveSuccess: 5,
-    });
-    await Gestures.waitAndTap(el, {
-      timeout: 35000,
-      elemDescription: 'Place order button',
+    await encapsulatedAction({
+      detox: async () => {
+        const el = asDetoxElement(this.placeOrderButton);
+        await Utilities.waitForReadyState(el, {
+          checkStability: false,
+          timeout: 8000,
+          elemDescription: 'Place order button',
+        });
+        await waitForStableEnabledIOS(el, {
+          timeout: 22000,
+          pollIntervalMs: 120,
+          consecutiveSuccess: 5,
+        });
+        await Gestures.waitAndTap(el, {
+          timeout: 35000,
+          elemDescription: 'Place order button',
+        });
+      },
+      appium: async () => {
+        const el = await asPlaywrightElement(this.placeOrderButton);
+        await PlaywrightGestures.waitAndTap(el, {
+          checkForEnabled: true,
+          checkForStable: true,
+        });
+      },
     });
   }
 
@@ -161,45 +178,77 @@ class PerpsOrderView {
   }
 
   // Amount handling
-  get amountDisplay(): DetoxElement {
-    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.CONTAINER);
+  get amountDisplay(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsAmountDisplaySelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
-  get amountValue(): DetoxElement {
-    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
+  get amountValue(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+        ),
+    });
   }
 
-  // Required for next test
   async setAmountUSD(amount: string) {
-    // Open keypad by tapping the value by ID (more reliable than tapping the container)
-    await device.disableSynchronization();
-    await Assertions.expectElementToBeVisible(this.amountValue, {
-      description: 'Amount value is visible',
+    await encapsulatedAction({
+      detox: async () => {
+        const el = asDetoxElement(this.amountValue);
+        await device.disableSynchronization();
+        await Assertions.expectElementToBeVisible(el, {
+          description: 'Amount value is visible',
+        });
+        await Gestures.waitAndTap(el, {
+          elemDescription: 'Open amount keypad by tapping amount label',
+          checkEnabled: false,
+          checkVisibility: false,
+        });
+        for (const ch of amount) {
+          const key = Matchers.getElementByText(ch) as DetoxElement;
+          await Gestures.waitAndTap(key, {
+            elemDescription: `Keypad: ${ch}`,
+            checkEnabled: false,
+            checkVisibility: false,
+          });
+        }
+        const doneByText = Matchers.getElementByText('Done') as DetoxElement;
+        await Gestures.waitAndTap(doneByText, {
+          elemDescription: 'Tap Done (by text) to close keypad',
+          checkEnabled: false,
+          checkVisibility: false,
+        });
+        await device.enableSynchronization();
+      },
+      appium: async () => {
+        const el = await asPlaywrightElement(this.amountValue);
+        await el.unwrap().waitForDisplayed({ timeout: 8000 });
+        await PlaywrightGestures.waitAndTap(el);
+        const deleteButton = await asPlaywrightElement(this.keypadDeleteButton);
+        await PlaywrightGestures.waitAndTap(deleteButton);
+        for (const ch of amount) {
+          const key = await PlaywrightMatchers.getElementByText(ch);
+          await PlaywrightGestures.waitAndTap(key, {
+            checkForDisplayed: false,
+            checkForEnabled: false,
+          });
+        }
+        const doneBtn = await PlaywrightMatchers.getElementByText('Done');
+        await PlaywrightGestures.waitAndTap(doneBtn, {
+          checkForDisplayed: false,
+          checkForEnabled: false,
+        });
+      },
     });
-    await Gestures.waitAndTap(this.amountValue, {
-      elemDescription: 'Open amount keypad by tapping amount label',
-      checkEnabled: false,
-      checkVisibility: false,
-    });
-    // Type each character using the native keypad (buttons 0-9 and '.')
-    for (const ch of amount) {
-      const key = Matchers.getElementByText(ch) as DetoxElement;
-      await Gestures.waitAndTap(key, {
-        elemDescription: `Keypad: ${ch}`,
-        checkEnabled: false,
-        checkVisibility: false,
-      });
-    }
-    // Close the keypad using the Done button (with locale fallbacks)
-    const doneByText = Matchers.getElementByText('Done') as DetoxElement;
-
-    await Gestures.waitAndTap(doneByText, {
-      elemDescription: 'Tap Done (by text) to close keypad',
-      checkEnabled: false,
-      checkVisibility: false,
-    });
-
-    await device.enableSynchronization();
   }
 
   // Order type / Limit Price helpers
@@ -344,8 +393,8 @@ class PerpsOrderView {
         if (await PlatformDetector.isIOS()) {
           optionEl = await PlaywrightMatchers.getElementByText(`${leverageX}x`);
         } else {
-          optionEl = await PlaywrightMatchers.getElementByAndroidUIAutomator(
-            `.text("${leverageX}x").instance(1)`,
+          optionEl = await PlaywrightMatchers.getElementByXPath(
+            `//*[@content-desc="${leverageX}x"]`,
           );
         }
 
