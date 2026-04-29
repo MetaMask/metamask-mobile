@@ -596,7 +596,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 - 1-2 tags for specific domain
 - Focused on changed functionality
 
-**Example Tags:** SmokeSwap (for Bridge/Swap changes), SmokeStake (for stake/lending changes), SmokeCard (for card features)
+**Example Tags:** SmokeSwap (for Bridge/Swap changes), SmokeStake (for stake/lending changes), SmokeMoney (for Card and on/off-ramp changes)
 
 ### State-Only Change Pattern
 

@@ -14,7 +14,7 @@ const smokeTags = {
   smokeConfirmations: {
     tag: 'SmokeConfirmations:',
     description:
-      'Tests the transaction and signature confirmation UI system. Covers signature request types: personal_sign messages, Sign-In with Ethereum (SIWE/EIP-4361), and typed data signing (EIP-712 V1/V3/V4). Tests Blockaid security alert integration for detecting malicious signature requests. Validates smart contract interactions including contract deployment, method calls, and token approvals (ERC-20 approve, increaseAllowance, ERC-721/ERC-1155 setApprovalForAll). Tests transaction sending for native tokens (ETH), ERC-20 tokens, and Solana SPL tokens. Covers gas fee customization (EIP-1559 and legacy), transaction simulation previews, and advanced EIP-7702 account abstraction features like batch transactions and gas fee token payments. Also tests per-dApp network selection within confirmations. Swap and bridge flows (SmokeSwap) and stake/lending flows (SmokeStake) require confirmations—when selecting those tags, also select SmokeConfirmations. Solana transaction/signing flows (SmokeNetworkExpansion) also hit confirmations—when selecting SmokeNetworkExpansion for Solana flows, also select SmokeConfirmations. Integrates with SmokeNetworkExpansion for cross-chain transactions.',
+      'Tests the transaction and signature confirmation UI system. Covers signature request types: personal_sign messages, Sign-In with Ethereum (SIWE/EIP-4361), and typed data signing (EIP-712 V1/V3/V4). Tests Blockaid security alert integration for detecting malicious signature requests. Validates smart contract interactions including contract deployment, method calls, and token approvals (ERC-20 approve, increaseAllowance, ERC-721/ERC-1155 setApprovalForAll). Tests transaction sending for native tokens (ETH), ERC-20 tokens, and Solana SPL tokens. Covers gas fee customization (EIP-1559 and legacy), transaction simulation previews, and advanced EIP-7702 account abstraction features like batch transactions and gas fee token payments. Also tests per-dApp network selection within confirmations. Swap and bridge flows (SmokeSwap), stake/lending flows (SmokeStake), and fiat/card flows (SmokeMoney) often require confirmations—when selecting those tags, also select SmokeConfirmations where applicable. Solana transaction/signing flows (SmokeNetworkExpansion) also hit confirmations—when selecting SmokeNetworkExpansion for Solana flows, also select SmokeConfirmations. Integrates with SmokeNetworkExpansion for cross-chain transactions.',
   },
   smokeIdentity: {
     tag: 'SmokeIdentity:',
@@ -44,22 +44,17 @@ const smokeTags = {
   smokeWalletPlatform: {
     tag: 'SmokeWalletPlatform:',
     description:
-      'Tests core wallet platform features and services. Covers the Trending discovery tab: search functionality, browsing content feeds (Predictions, Tokens, Perps, Sites sections), and browser navigation integration. Trending is the connecting point for all subsections—changes to Perps, Predictions, or Tokens views (headers, lists, full views) that are embedded in Trending affect this tag. Tests transaction history: displaying incoming/outgoing ETH transactions, token transfer details, and privacy mode support to hide sensitive balances. Validates wallet lifecycle analytics tracking for new wallet creation and SRP import events. Tests multi-SRP wallet architecture: importing additional Secret Recovery Phrases, adding accounts to different SRPs, exporting SRP from Settings and account action menus, and managing separate account hierarchies per SRP. Covers account deletion flows and EVM provider event handling (accountsChanged, chainChanged) for dApp communication. Integrates with SmokeAccounts for account management, SmokeSwap/SmokeStake for activity display, SmokePerps (Perps section inside Trending), and SmokeIdentity for sync features.',
+      'Tests core wallet platform features and services. Covers the Trending discovery tab: search functionality, browsing content feeds (Predictions, Tokens, Perps, Sites sections), and browser navigation integration. Trending is the connecting point for all subsections—changes to Perps, Predictions, or Tokens views (headers, lists, full views) that are embedded in Trending affect this tag. Tests transaction history: displaying incoming/outgoing ETH transactions, token transfer details, and privacy mode support to hide sensitive balances. Validates wallet lifecycle analytics tracking for new wallet creation and SRP import events. Tests multi-SRP wallet architecture: importing additional Secret Recovery Phrases, adding accounts to different SRPs, exporting SRP from Settings and account action menus, and managing separate account hierarchies per SRP. Covers account deletion flows and EVM provider event handling (accountsChanged, chainChanged) for dApp communication. Integrates with SmokeAccounts for account management, SmokeSwap/SmokeStake/SmokeMoney for activity display, SmokePerps (Perps section inside Trending), and SmokeIdentity for sync features.',
   },
-  smokeCard: {
-    tag: 'SmokeCard:',
+  smokeMoney: {
+    tag: 'SmokeMoney:',
     description:
-      'Tests MetaMask Card integration for crypto-to-fiat spending. Covers the Card home screen display showing card status and balance, the Add Funds button with Deposit and Swap funding options, and Advanced Card Management which opens the external card dashboard in the browser. Tests the Card navbar button for quick navigation to Card home. Validates card-related analytics events: Card Button Viewed, Card Home Clicked, Card Add Funds Clicked, and Card Advanced Management Clicked. The Card feature is controlled by experimental feature flags. When selecting SmokeCard, also select SmokeSwap and SmokeConfirmations (Add Funds uses swaps which require transaction confirmations). Integrates with SmokeSwap for funding via swaps.',
+      'Tests MetaMask Card and fiat on/off-ramp (ramps) flows. Card: home screen, navbar entry, Add Funds (Deposit/Swap paths), Advanced Card Management, and card analytics. Ramps: unified buy, sell/off-ramp, region-aware flows, deep links into buy/sell, limits and unsupported-network handling. Card is gated by experimental flags. When selecting SmokeMoney for Card Add Funds or similar flows that execute swaps, also select SmokeSwap and SmokeConfirmations. When changes touch wallet home or actions entry to buy/sell, also select SmokeWalletPlatform.',
   },
   smokePerps: {
     tag: 'SmokePerps:',
     description:
       'Tests perpetuals (perps) futures trading functionality on Arbitrum One. Covers the Add Funds flow to deposit USDC into the Perps trading account, balance verification after deposits, and balance updates reflecting correctly in the Perps interface. Tests with multi-account setups and existing user states (non-first-time users). Entry point is via the Perps button in the TradeWalletActions menu. Perps is also a section inside the Trending tab (SmokeWalletPlatform); changes to Perps views (headers, lists, full views, e.g. PerpsHomeView, PerpsMarketListView, PerpsWithdrawView) affect Trending. When selecting SmokePerps, also select SmokeWalletPlatform (Trending section) and SmokeConfirmations (Add Funds deposits are on-chain transactions). Integrates with SmokeSwap for the trading category entry.',
-  },
-  smokeRamps: {
-    tag: 'SmokeRamps:',
-    description:
-      'Tests fiat on-ramp (buy crypto) and off-ramp (sell crypto) features. Covers the off-ramp token amount input screen: direct amount entry via keypad, percentage quick-select buttons (25%, 50%, 75%, Max), and amount correction via delete. Tests region-aware on-ramp flows with mocked regional settings (e.g., France) and payment method availability. Validates deep link navigation into buy flows from external sources. On-ramp tests include limits validation and handling of unsupported networks. When changes touch wallet home or actions entry to buy/sell, also select SmokeWalletPlatform. Integrates with SmokeWalletPlatform for wallet actions entry point.',
   },
   smokeMultiChainAPI: {
     tag: 'SmokeMultiChainAPI:',
@@ -121,9 +116,8 @@ const SmokeSwap = (testName) => `${smokeTags.smokeSwap.tag} ${testName}`;
 const SmokeStake = (testName) => `${smokeTags.smokeStake.tag} ${testName}`;
 const SmokeWalletPlatform = (testName) =>
   `${smokeTags.smokeWalletPlatform.tag} ${testName}`;
-const SmokeCard = (testName) => `${smokeTags.smokeCard.tag} ${testName}`;
+const SmokeMoney = (testName) => `${smokeTags.smokeMoney.tag} ${testName}`;
 const SmokePerps = (testName) => `${smokeTags.smokePerps.tag} ${testName}`;
-const SmokeRamps = (testName) => `${smokeTags.smokeRamps.tag} ${testName}`;
 const SmokeMultiChainAPI = (testName) =>
   `${smokeTags.smokeMultiChainAPI.tag} ${testName}`;
 const SmokePredictions = (testName) =>
@@ -168,9 +162,8 @@ export {
   SmokeSwap,
   SmokeStake,
   SmokeWalletPlatform,
-  SmokeCard,
+  SmokeMoney,
   SmokePerps,
-  SmokeRamps,
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,

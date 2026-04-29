@@ -383,8 +383,8 @@ stages:
       # - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_performance_ios: {}
       # - run_tag_smoke_performance_android: {}
-      - run_tag_smoke_card_ios: {}
-      # - run_tag_smoke_card_android: {}
+      - run_tag_smoke_money_ios: {}
+      # - run_tag_smoke_money_android: {}
   # The entire workflow is disabled as Android runs on GHA and iOS was already skipped due to a regression
   # run_smoke_e2e_performance_ios_android_stage:
     # workflows:
@@ -450,8 +450,8 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_card_ios: {}
-      - run_tag_smoke_card_android: {}
+      - run_tag_smoke_money_ios: {}
+      - run_tag_smoke_money_android: {}
   build_regression_e2e_ios_gns_disabled_stage:
     abort_on_fail: true
     workflows:
@@ -1227,18 +1227,18 @@ workflows:
       - TEST_SUITE_TAG: 'SmokeAccounts'
     after_run:
       - android_e2e_test
-  run_tag_smoke_card_ios:
+  run_tag_smoke_money_ios:
     envs:
-      - TEST_SUITE_TAG: 'SmokeCard'
+      - TEST_SUITE_TAG: '.*SmokeMoney.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_card_android:
+  run_tag_smoke_money_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: 'SmokeCard'
+      - TEST_SUITE_TAG: '.*SmokeMoney.*'
     after_run:
       - android_e2e_test
   android_e2e_build:

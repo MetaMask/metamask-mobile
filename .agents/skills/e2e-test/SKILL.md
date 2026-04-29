@@ -66,7 +66,7 @@ Do not read the full reference files until the decision tree or workflow sends y
 5. **Never use `TestHelpers.delay()`** — use `Assertions.*` which has auto-retry
 6. **Use `FixtureBuilder` for state** — do not set state through UI interactions
 7. **Selectors live in `*.testIds.ts`** (co-located) or `tests/selectors/` (legacy)
-8. **Tag correctly** — Use the tag that matches your feature and test type. Options include `SmokeE2E`, `SmokeSwap`, `SmokeStake`, `SmokePredictions`, `SmokePerps`, `SmokeConfirmations`, `RegressionTrade`, `RegressionWallet`, etc. Check **`tests/tags.js`** for the full list and descriptions, and **existing specs in the same feature folder** to see which tag they use.
+8. **Tag correctly** — Use the tag that matches your feature and test type. Options include `SmokeE2E`, `SmokeSwap`, `SmokeStake`, `SmokeMoney`, `SmokePredictions`, `SmokePerps`, `SmokeConfirmations`, `RegressionTrade`, `RegressionWallet`, etc. Check **`tests/tags.js`** for the full list and descriptions, and **existing specs in the same feature folder** to see which tag they use.
 9. **Descriptive test names** — no 'should' prefix (e.g., `'opens market details'`)
 10. **Fix lint/tsc before running** — never run with known errors
 
