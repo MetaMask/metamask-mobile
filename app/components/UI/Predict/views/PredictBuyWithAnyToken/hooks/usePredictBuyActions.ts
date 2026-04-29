@@ -171,9 +171,16 @@ export const usePredictBuyActions = ({
       // Only fire dismiss if the user didn't confirm an order. StackActions.pop()
       // after success/deposit also triggers beforeRemove, which is not a dismissal.
       if (!didInitiateOrderRef.current) {
+        // beforeRemove fires for back button, iOS swipe-back, and Android hardware
+        // back identically. The header back button explicitly sets
+        // predictBuyPreviewDismissedViaBackRef before triggering goBack(), so any
+        // unmarked dismissal is treated as a swipe.
+        const dismissalMethod = predictBuyPreviewDismissedViaBackRef.current
+          ? PredictDismissalMethod.BACK_BUTTON
+          : PredictDismissalMethod.SWIPE;
         Engine.context.PredictController.trackBetslipDismissed({
           analyticsProperties,
-          dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+          dismissalMethod,
           hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
           timeOnScreenMs: Date.now() - mountTimestampRef.current,
           activeAbTests: transactionActiveAbTests,

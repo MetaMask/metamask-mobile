@@ -9607,7 +9607,7 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         expect(trackSpy).toHaveBeenCalledWith(
-          expect.objectContaining({ status: PredictTradeStatus.FAILED }),
+          expect.objectContaining({ status: 'failed' }),
         );
       });
     });
