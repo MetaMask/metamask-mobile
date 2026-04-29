@@ -439,6 +439,7 @@ const createTestCampaign = (
     excludedRegions: [],
     details: null,
     featured: true,
+    showUpcomingDate: false,
     ...overrides,
   };
 };

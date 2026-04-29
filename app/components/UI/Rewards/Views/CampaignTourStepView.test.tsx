@@ -141,6 +141,7 @@ const campaignWithTour: CampaignDto = {
   termsAndConditions: null,
   excludedRegions: [],
   featured: true,
+  showUpcomingDate: false,
   details: {
     howItWorks: {
       title: 'How It Works',

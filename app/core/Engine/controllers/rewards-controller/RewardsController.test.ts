@@ -16984,6 +16984,7 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
+            showUpcomingDate: false,
           },
         ],
         lastFetched: Date.now(),
@@ -17058,6 +17059,7 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
+            showUpcomingDate: false,
           },
           {
             id: campaignId2,
@@ -17071,6 +17073,7 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
+            showUpcomingDate: false,
           },
         ],
         lastFetched: Date.now(),
@@ -18909,6 +18912,7 @@ describe('RewardsController', () => {
         statusLabel: string;
         details: null;
         featured: boolean;
+        showUpcomingDate: boolean;
       }> = {},
     ) => ({
       id: 'campaign-1',
@@ -18921,6 +18925,7 @@ describe('RewardsController', () => {
       statusLabel: 'Active',
       details: null,
       featured: false,
+      showUpcomingDate: false,
       ...overrides,
     });
 

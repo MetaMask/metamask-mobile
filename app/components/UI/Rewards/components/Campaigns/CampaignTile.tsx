@@ -64,6 +64,9 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     campaignStatus !== 'upcoming' &&
     (onPress != null || isCampaignTypeSupported(campaign.type));
 
+  const shouldShowDateLabel =
+    campaignStatus !== 'upcoming' || campaign.showUpcomingDate;
+
   const backgroundImageUrl =
     colorScheme === 'dark'
       ? campaign.image?.darkModeUrl
@@ -149,21 +152,25 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                 {statusLabel}
               </Text>
             )}
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.OverlayInverse}
-              fontWeight={FontWeight.Medium}
-            >
-              •
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.OverlayInverse}
-              fontWeight={FontWeight.Medium}
-              testID="campaign-tile-date-info"
-            >
-              {dateLabel}
-            </Text>
+            {shouldShowDateLabel && (
+              <>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.OverlayInverse}
+                  fontWeight={FontWeight.Medium}
+                >
+                  •
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.OverlayInverse}
+                  fontWeight={FontWeight.Medium}
+                  testID="campaign-tile-date-info"
+                >
+                  {dateLabel}
+                </Text>
+              </>
+            )}
           </Box>
 
           <Text
