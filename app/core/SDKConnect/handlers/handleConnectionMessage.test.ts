@@ -23,7 +23,6 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
 import { mockNetworkState } from '../../../util/test/network';
-import { analytics } from '@metamask/sdk-analytics';
 
 jest.mock('@metamask/sdk-analytics', () => ({
   analytics: {
