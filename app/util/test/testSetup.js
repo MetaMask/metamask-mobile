@@ -154,6 +154,27 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
+// Mock @metamask/react-native-button which accesses removed Text.propTypes at parse time
+jest.mock('@metamask/react-native-button', () => {
+  const { Text, TouchableOpacity, View } = require('react-native');
+  const React = require('react');
+  const Button = (props) => {
+    const { children, style, containerStyle, ...rest } = props;
+    return React.createElement(
+      TouchableOpacity,
+      rest,
+      React.createElement(
+        View,
+        { style: containerStyle },
+        typeof children === 'string'
+          ? React.createElement(Text, { style }, children)
+          : children,
+      ),
+    );
+  };
+  return { __esModule: true, default: Button };
+});
+
 jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {
@@ -419,10 +440,67 @@ jest.mock(
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
+/**
+ * Inline Jest mock for `react-native-worklets` when the package is not installed
+ * (e.g. older RN/reanimated stacks). Mirrors the critical behavior from the
+ * upstream package mock — especially `runOnJS` scheduling via `queueMicrotask`.
+ * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
+ */
+jest.mock(
+  'react-native-worklets',
+  () => {
+    const RuntimeKind = { ReactNative: 0 };
+    const NOOP = () => {};
+    const identity = (value) => value;
+
+    const runOnJS =
+      (fun) =>
+      (...args) =>
+        queueMicrotask(() => (args.length ? fun(...args) : fun()));
+
+    return {
+      __esModule: true,
+      RuntimeKind,
+      isShareableRef: () => true,
+      makeShareable: identity,
+      makeShareableCloneOnUIRecursive: identity,
+      makeShareableCloneRecursive: identity,
+      shareableMappingCache: new Map(),
+      getStaticFeatureFlag: () => false,
+      setDynamicFeatureFlag: NOOP,
+      isSynchronizable: () => false,
+      getRuntimeKind: () => RuntimeKind.ReactNative,
+      createWorkletRuntime: () => NOOP,
+      runOnRuntime: identity,
+      runOnRuntimeAsync: async (_runtime, worklet, ...args) => worklet(...args),
+      scheduleOnRuntime: (callback) => callback(),
+      createSerializable: identity,
+      isSerializableRef: identity,
+      serializableMappingCache: new Map(),
+      createSynchronizable: identity,
+      callMicrotasks: NOOP,
+      executeOnUIRuntimeSync: identity,
+      runOnJS,
+      runOnUI:
+        (worklet) =>
+        (...args) => {
+          worklet(...args);
+        },
+      runOnUIAsync: async (worklet, ...args) => worklet(...args),
+      runOnUISync: (callback) => callback(),
+      scheduleOnRN: (fun, ...args) => runOnJS(fun)(...args),
+      scheduleOnUI: (worklet, ...args) => worklet(...args),
+      isWorkletFunction: () => false,
+      WorkletsModule: {},
+    };
+  },
+  { virtual: true },
+);
+
 jest.mock('react-native-mmkv', () => {
-  const store = new Map();
-  return {
-    createMMKV: () => ({
+  const createInMemoryMMKV = () => {
+    const store = new Map();
+    return {
       getString: jest.fn((key) => store.get(key)),
       set: jest.fn((key, value) => store.set(key, value)),
       getBoolean: jest.fn((key) => store.get(key)),
@@ -432,7 +510,21 @@ jest.mock('react-native-mmkv', () => {
       contains: jest.fn((key) => store.has(key)),
       clearAll: jest.fn(() => store.clear()),
       getAllKeys: jest.fn(() => [...store.keys()]),
-    }),
+      recrypt: jest.fn(),
+      trim: jest.fn(),
+    };
+  };
+
+  class MMKV {
+    constructor() {
+      const api = createInMemoryMMKV();
+      Object.assign(this, api);
+    }
+  }
+
+  return {
+    MMKV,
+    createMMKV: () => createInMemoryMMKV(),
   };
 });
 
@@ -652,7 +744,8 @@ if (!Reanimated.ReanimatedLogLevel) {
 // on circular references (the default implementation does JSON.stringify(value)
 // which throws "Converting circular structure to JSON" or causes RangeError).
 try {
-  const mutables = require('react-native-reanimated/src/mutables');
+  const mutables = require('react-native-reanimated/lib/module/mutables');
+
   const origMakeMutable = mutables.makeMutable;
   if (origMakeMutable) {
     mutables.makeMutable = function patchedMakeMutable(value) {

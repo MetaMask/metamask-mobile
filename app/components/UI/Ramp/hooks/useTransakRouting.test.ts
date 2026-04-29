@@ -16,7 +16,10 @@ const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({
-    selected: { chainId: 'eip155:1' },
+    selected: {
+      chainId: 'eip155:1',
+      assetId: 'eip155:1/erc20:0xasset',
+    },
   })),
 }));
 
@@ -246,6 +249,53 @@ describe('useTransakRouting', () => {
       );
     });
 
+    it('merges baseRouteParams onto BasicInfo when KYC is NOT_SUBMITTED (headless)', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1234567890',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-abc' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-abc' },
+            }),
+            expect.objectContaining({
+              name: 'RampBasicInfo',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                headlessSessionId: 'headless-buy-abc',
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
     it('navigates to webview for non-manual bank transfer when KYC is APPROVED', async () => {
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',
@@ -415,6 +465,40 @@ describe('useTransakRouting', () => {
 
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
       expect(mockNavigate).toHaveBeenCalledWith('RampEnterEmail');
+    });
+
+    it('handles 401 in headless mode by passing amount, currency, and assetId to EnterEmail', async () => {
+      const error = new Error('Unauthorized') as Error & {
+        httpStatus: number;
+      };
+      error.httpStatus = 401;
+      mockGetUserDetails.mockRejectedValue(error);
+      mockLogoutFromProvider.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-reauth' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampEnterEmail',
+        expect.objectContaining({
+          headlessSessionId: 'headless-buy-reauth',
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/erc20:0xasset',
+        }),
+      );
     });
 
     it('handles ADDITIONAL_FORMS_REQUIRED with PURPOSE_OF_USAGE', async () => {
@@ -885,6 +969,40 @@ describe('useTransakRouting', () => {
             expect.objectContaining({
               name: 'RampVerifyIdentity',
               params: expect.objectContaining({ quote: mockQuote }),
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('merges baseRouteParams onto VerifyIdentity so headlessSessionId survives the reset', () => {
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-xyz' },
+        }),
+      );
+
+      act(() => {
+        result.current.navigateToVerifyIdentity({
+          quote: mockQuote as never,
+          amount: 30,
+        });
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: [
+            expect.objectContaining({
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-xyz' },
+            }),
+            expect.objectContaining({
+              name: 'RampVerifyIdentity',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                headlessSessionId: 'headless-buy-xyz',
+              }),
             }),
           ],
         }),
