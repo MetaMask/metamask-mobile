@@ -441,19 +441,6 @@ export const formatComputedAt = (isoString: string | null): string => {
   return `${h}:${m}:${s}`;
 };
 
-/**
- * Formats an ISO 8601 timestamp to `HH:MM am/pm` for display in leaderboard headers.
- * Returns '' for null or unparseable values.
- */
-export const formatComputedAtShort = (isoString: string | null): string => {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return '';
-  const h = date.getHours();
-  const m = date.getMinutes().toString().padStart(2, '0');
-  const period = h >= 12 ? 'pm' : 'am';
-  return `${h}:${m} ${period}`;
-};
 
 // ── CAIP-19 / address helpers ───────────────────────────────────────────
 

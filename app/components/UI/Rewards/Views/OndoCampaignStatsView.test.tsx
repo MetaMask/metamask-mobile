@@ -186,7 +186,7 @@ jest.mock('../utils/formatUtils', () => ({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`,
-  formatComputedAtShort: (s: string | null) => (s ? '12:00 pm' : ''),
+  formatRewardsTimeOnly: () => '12:00 PM',
 }));
 
 // Mock Engine to prevent @metamask/social-controllers resolution chain

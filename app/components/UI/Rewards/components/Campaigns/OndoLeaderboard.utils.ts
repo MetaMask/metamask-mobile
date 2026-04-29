@@ -5,7 +5,6 @@ import type { OndoCampaignTier } from '../../../../../core/Engine/controllers/re
 export {
   formatPercentChange as formatRateOfReturn,
   formatComputedAt,
-  formatComputedAtShort,
 } from '../../utils/formatUtils';
 
 // ── Tier display names ──────────────────────────────────────────────────

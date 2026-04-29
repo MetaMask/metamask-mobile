@@ -34,7 +34,7 @@ import { strings } from '../../../../../locales/i18n';
 import {
   formatPercentChange,
   formatUsd,
-  formatComputedAtShort,
+  formatRewardsTimeOnly,
 } from '../utils/formatUtils';
 import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
@@ -405,7 +405,9 @@ const OndoCampaignStatsView: React.FC = () => {
                 color={TextColor.TextAlternative}
               >
                 {strings('rewards.ondo_campaign_leaderboard.updated_at', {
-                  time: formatComputedAtShort(leaderboardPosition.computedAt),
+                  time: formatRewardsTimeOnly(
+                    new Date(leaderboardPosition.computedAt),
+                  ),
                 })}
               </Text>
             )}

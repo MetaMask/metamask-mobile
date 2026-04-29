@@ -88,9 +88,13 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   };
 });
 
+jest.mock('../utils/formatUtils', () => ({
+  ...jest.requireActual('../utils/formatUtils'),
+  formatRewardsTimeOnly: () => '12:00 PM',
+}));
+
 jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
   formatTierDisplayName: (tier: string) => tier,
-  formatComputedAtShort: (s: string | null) => (s ? '12:00 pm' : ''),
   getTierMinNetDeposit: jest.fn(
     (
       tiers: { name: string; minNetDeposit: number }[] | undefined,

@@ -1,7 +1,6 @@
 import {
   formatRateOfReturn,
   formatComputedAt,
-  formatComputedAtShort,
   formatTierDisplayName,
   getTierMinNetDeposit,
 } from './OndoLeaderboard.utils';
@@ -71,45 +70,6 @@ describe('OndoLeaderboard.utils', () => {
 
     it('returns empty string for an unparseable value', () => {
       expect(formatComputedAt('not-a-date')).toBe('');
-    });
-  });
-
-  describe('formatComputedAtShort', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date('2024-03-20T14:52:00.000Z'));
-    });
-
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
-    it('returns empty string for null', () => {
-      expect(formatComputedAtShort(null)).toBe('');
-    });
-
-    it('returns empty string for empty string', () => {
-      expect(formatComputedAtShort('')).toBe('');
-    });
-
-    it('returns empty string for an unparseable value', () => {
-      expect(formatComputedAtShort('not-a-date')).toBe('');
-    });
-
-    it('returns a non-empty string for a valid ISO timestamp', () => {
-      const result = formatComputedAtShort('2024-03-20T14:52:00.000Z');
-      expect(result).toBeTruthy();
-      expect(typeof result).toBe('string');
-    });
-
-    it('includes am or pm suffix', () => {
-      const result = formatComputedAtShort('2024-03-20T14:52:00.000Z');
-      expect(result).toMatch(/(am|pm)$/);
-    });
-
-    it('format is H:MM am/pm', () => {
-      const result = formatComputedAtShort('2024-03-20T14:52:00.000Z');
-      expect(result).toMatch(/^\d+:\d{2} (am|pm)$/);
     });
   });
 

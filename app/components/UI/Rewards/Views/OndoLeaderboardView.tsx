@@ -24,10 +24,8 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
-import {
-  formatTierDisplayName,
-  formatComputedAtShort,
-} from '../components/Campaigns/OndoLeaderboard.utils';
+import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+import { formatRewardsTimeOnly } from '../utils/formatUtils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
@@ -274,7 +272,7 @@ const OndoLeaderboardView: React.FC = () => {
                   color={TextColor.TextAlternative}
                 >
                   {strings('rewards.ondo_campaign_leaderboard.updated_at', {
-                    time: formatComputedAtShort(computedAt),
+                    time: formatRewardsTimeOnly(new Date(computedAt)),
                   })}
                 </Text>
               )}
