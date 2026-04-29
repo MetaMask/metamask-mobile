@@ -196,9 +196,6 @@ export const TokenListItem = React.memo(
       if (!asset) {
         return true;
       }
-      if (asset.symbol?.toUpperCase() === 'ONDO') {
-        return true;
-      }
       return isStockToken(asset as BridgeToken);
     }, [asset, isStockToken]);
 
@@ -581,7 +578,6 @@ export const TokenListItem = React.memo(
                   <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
                 )}
                 {basicFunctionalityEnabled &&
-                  !privacyMode &&
                   !skipTokenListSecurityBadge &&
                   caipAssetIdForSecurity && (
                     <TokenListSecurityBadge
