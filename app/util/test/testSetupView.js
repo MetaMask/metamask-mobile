@@ -18,6 +18,40 @@ const getRandomValuesCompat = (arr) =>
     ? nodeCrypto.webcrypto.getRandomValues(arr)
     : (nodeCrypto.randomFillSync(arr), arr);
 
+// 0. Mock native-bridge modules that cannot load in Jest
+// --------------------------------------------------------
+
+jest.mock('react-native-mmkv', () => {
+  const createInMemoryMMKV = () => {
+    const store = new Map();
+    return {
+      getString: jest.fn((key) => store.get(key)),
+      set: jest.fn((key, value) => store.set(key, value)),
+      getBoolean: jest.fn((key) => store.get(key)),
+      getNumber: jest.fn((key) => store.get(key)),
+      delete: jest.fn((key) => store.delete(key)),
+      remove: jest.fn((key) => store.delete(key)),
+      contains: jest.fn((key) => store.has(key)),
+      clearAll: jest.fn(() => store.clear()),
+      getAllKeys: jest.fn(() => [...store.keys()]),
+      recrypt: jest.fn(),
+      trim: jest.fn(),
+    };
+  };
+
+  class MMKV {
+    constructor() {
+      const api = createInMemoryMMKV();
+      Object.assign(this, api);
+    }
+  }
+
+  return {
+    MMKV,
+    createMMKV: () => createInMemoryMMKV(),
+  };
+});
+
 // 1. Essential React Native Infrastructure Mocks
 // ------------------------------------------------
 
@@ -50,6 +84,7 @@ jest.mock('react-native', () => {
   };
 
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
+
   return originalModule;
 });
 
