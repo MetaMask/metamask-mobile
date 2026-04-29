@@ -21,7 +21,7 @@ on:
         description: 'Space-separated list of changed file paths. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
         value: ${{ jobs.detect-changes.outputs.changed_files }}
       block_merge_for_e2e_readiness:
-        description: 'Whether "pr-not-ready-for-e2e" label is still applied; blocks merge while true'
+        description: 'Whether merge should be blocked for E2E readiness. True when "pr-not-ready-for-e2e" label is applied AND changes are not ignorable-only (i.e. E2E is actually relevant). Ignorable-only PRs (docs, assets, configs, test files) bypass the block automatically.'
         value: ${{ jobs.detect-changes.outputs.block_merge_for_e2e_readiness }}
       run_smart_e2e_selection:
         description: 'Whether the smart-e2e-selection job should run. False for non-PR events, forks, or hard E2E skips.'
@@ -38,7 +38,7 @@ jobs:
       android_e2e_needed: ${{ steps.set-outputs.outputs.android_final }}
       ios_e2e_needed: ${{ steps.set-outputs.outputs.ios_final }}
       changed_files: ${{ steps.set-outputs.outputs.changed_files }}
-      block_merge_for_e2e_readiness: ${{ steps.check-labels.outputs.BLOCK_MERGE }}
+      block_merge_for_e2e_readiness: ${{ steps.set-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
@@ -80,7 +80,7 @@ jobs:
         run: |
           {
             echo "SKIP_E2E=false"
-            echo "BLOCK_MERGE=false"
+            echo "LABEL_BLOCKS_MERGE=false"
             echo "SKIP_SMART_SELECTION=false"
           } >> "$GITHUB_OUTPUT"
 
@@ -94,9 +94,9 @@ jobs:
           if echo "$LABELS" | grep -qx "pr-not-ready-for-e2e"; then
             {
               echo "SKIP_E2E=true"
-              echo "BLOCK_MERGE=true"
+              echo "LABEL_BLOCKS_MERGE=true"
             } >> "$GITHUB_OUTPUT"
-            echo "-> SKIP_E2E=true and BLOCK_MERGE=true due to 'pr-not-ready-for-e2e' label on PR"
+            echo "-> SKIP_E2E=true and LABEL_BLOCKS_MERGE=true due to 'pr-not-ready-for-e2e' label on PR"
           fi
 
           if echo "$LABELS" | grep -qx "skip-smart-e2e-selection"; then
@@ -120,6 +120,7 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
+          LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
@@ -135,6 +136,7 @@ jobs:
           IOS=false
           CHANGED=""
           MSG=""
+          IGNORABLE_ONLY=false
 
           # Scheduled runs and push to main always test both platforms
           if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$GITHUB_EVENT_NAME" == "push" ]]; then
@@ -158,6 +160,7 @@ jobs:
                   "$IGNORABLE_COUNT" -eq "$ALL_CHANGES_COUNT" &&
                   "$E2E_WORKFLOWS_COUNT" -eq 0 ]]; then
             MSG="Skipping E2E (ignorable-only changes)"
+            IGNORABLE_ONLY=true
 
           # Android-only: all changed files are android/** or ignorable, no iOS, no E2E workflows
           elif [[ "$ANDROID_COUNT" -gt 0 &&
@@ -197,12 +200,23 @@ jobs:
             RUN_SMART=true
           fi
 
+          # Compute final merge-block signal.
+          # The label blocks merge in general, but is bypassed for ignorable-only PRs:
+          # E2E doesn't run on those, so requiring the label to be removed adds friction with no benefit.
+          BLOCK_MERGE=false
+          if [[ "$LABEL_BLOCKS_MERGE" == "true" && "$IGNORABLE_ONLY" != "true" ]]; then
+            BLOCK_MERGE=true
+          elif [[ "$LABEL_BLOCKS_MERGE" == "true" && "$IGNORABLE_ONLY" == "true" ]]; then
+            echo "-> BLOCK_MERGE bypassed — ignorable-only changes, E2E_WORKFLOWS_COUNT=0"
+          fi
+
           echo "$MSG"
           {
             echo "android_final=$ANDROID"
             echo "ios_final=$IOS"
             echo "e2e_needed=$E2E_NEEDED"
             echo "run_smart_e2e_selection=$RUN_SMART"
+            echo "block_merge=$BLOCK_MERGE"
           } >> "$GITHUB_OUTPUT"
 
           {

@@ -9,8 +9,9 @@ flowchart TD
     GR -->|Fork PR| FK[No E2E]
     GR -->|PR label: skip-e2e| HS[No E2E]
     GR -->|PR label: pr-not-ready-for-e2e| L2[No E2E]
-    L2 -->|while label present in PR| Skip2[Merge blocked]
-    GR -->|PR ignorable-only changes| Ignorable[No E2E]
+    L2 -->|ignorable-only changes| NoBlock[No merge block]
+    L2 -->|non-ignorable changes| Skip2[Merge blocked]
+    GR -->|PR ignorable-only changes| Ignorable[No E2E - merge not blocked]
     GR -->|PR has Android-only changes| Android[Android Build + Tests needed]
     GR -->|PR has iOS-only changes| iOS[iOS Build + Test needed]
     GR -->|PR other files changed| Both[Both Build + Tests needed]
@@ -29,7 +30,7 @@ flowchart TD
 To save infra resources while waiting for static analysis findings and potential fixes/iterations:
 
 - Label `pr-not-ready-for-e2e` is applied to the PR automatically when it is created.
-- Block merge until the label is removed.
+- E2E tests are skipped and merge is blocked while the label is present, **unless** all changes are ignorable-only.
 - If E2E tests are needed, they should pass to be able to merge.
 
 ## AI test selection
