@@ -6,7 +6,7 @@
 
 import {
   PROXY_WALLET_ADDRESS,
-  USDC_CONTRACT_ADDRESS,
+  PUSD_CONTRACT_ADDRESS,
   CONDITIONAL_TOKENS_CONTRACT_ADDRESS,
   USER_WALLET_ADDRESS,
 } from './polymarket-constants.ts';
@@ -39,7 +39,7 @@ export const createTransactionSentinelResponse = (
                     '0x0000000000000000000000000000000000000000000000000000000000000005',
                 },
               },
-              [USDC_CONTRACT_ADDRESS.toLowerCase()]: {
+              [PUSD_CONTRACT_ADDRESS.toLowerCase()]: {
                 storage: {
                   '0x6c9d8da808c4176bc7760cdb6a5717fcd40ed188da2cbfe50d45ec0f9980e51f':
                     '0x0000000000000000000000000000000000000000000000000000000928914141a40b6',
@@ -63,7 +63,7 @@ export const createTransactionSentinelResponse = (
                     '0x0000000000000000000000000000000000000000000000000000000000000004',
                 },
               },
-              [USDC_CONTRACT_ADDRESS.toLowerCase()]: {
+              [PUSD_CONTRACT_ADDRESS.toLowerCase()]: {
                 balance: '0x732bcde9f95acaf',
                 nonce: '0x1',
                 storage: {

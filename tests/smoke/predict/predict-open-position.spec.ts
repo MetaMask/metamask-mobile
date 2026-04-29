@@ -17,7 +17,7 @@ import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
-  POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
+  POLYMARKET_UPDATE_PUSD_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import WalletView from '../../page-objects/wallet/WalletView';
 import { predictOpenPositionAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-open-position.analytics';
@@ -108,7 +108,7 @@ describe(SmokePredictions('Predictions'), () => {
 
         await PredictDetailsPage.tapBackButton();
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {
-          description: `USDC balance should display ${positionDetails.newBalance} after opening position`,
+          description: `Predict balance should display ${positionDetails.newBalance} after opening position`,
         });
         await PredictMarketList.tapBackButton();
         await device.enableSynchronization();
@@ -123,7 +123,7 @@ describe(SmokePredictions('Predictions'), () => {
         verify that when the cache expires and a balance refresh request
         is made, it successfully returns the updated balance.
        */
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+        await POLYMARKET_UPDATE_PUSD_BALANCE_MOCKS(mockServer, 'open-position');
 
         await PredictDetailsPage.tapBackButton();
         await TabBarComponent.tapActions();

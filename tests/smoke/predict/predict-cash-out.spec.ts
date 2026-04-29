@@ -15,7 +15,7 @@ import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_CASH_OUT_MOCKS,
   POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS,
-  POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
+  POLYMARKET_UPDATE_PUSD_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -87,7 +87,7 @@ describe(SmokePredictions('Predictions'), () => {
         // condition: a background refetch can pick up the "position removed"
         // response while the Cash Out button is still needed, making it vanish.
         await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'cash-out');
+        await POLYMARKET_UPDATE_PUSD_BALANCE_MOCKS(mockServer, 'cash-out');
 
         await PredictDetailsPage.tapBackButton();
         await device.enableSynchronization();

@@ -13,7 +13,7 @@ import {
   POLYMARKET_POLYGON_RELAY_POLLING_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
-  POLYMARKET_USDC_BALANCE_MOCKS,
+  POLYMARKET_PUSD_BALANCE_MOCKS,
   POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
@@ -40,7 +40,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
       search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
     },
   }); // we need to mock the confirmations redesign Feature flag
-  await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
+  await POLYMARKET_PUSD_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer); // needed to load the withdraw/deposit/claim screen
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings for claim flow
   await POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS(mockServer);

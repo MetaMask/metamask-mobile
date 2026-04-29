@@ -14,7 +14,7 @@ import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS,
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
-  POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
+  POLYMARKET_UPDATE_PUSD_BALANCE_MOCKS,
   POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS,
   POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
@@ -76,7 +76,7 @@ const PredictionMarketFeatureForMarketDetails = async (mockServer: Mockttp) => {
  * Mocks to updates balance, removes claimed positions, and adds them to activity
  */
 const postClaimMocks = async (mockServer: Mockttp) => {
-  await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim');
+  await POLYMARKET_UPDATE_PUSD_BALANCE_MOCKS(mockServer, 'claim');
   await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
   await POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS(mockServer);
 };

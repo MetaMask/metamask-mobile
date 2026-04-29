@@ -8,7 +8,7 @@ export const RELAY_QUOTE_MOCK = {
       id: 'deposit',
       action: 'Confirm transaction in your wallet',
       description:
-        'Depositing funds to the relayer to execute the swap for USDC.e',
+        'Depositing funds to the relayer to execute the swap for pUSD',
       kind: 'transaction',
       items: [
         {
@@ -163,12 +163,13 @@ export const RELAY_QUOTE_MOCK = {
     currencyOut: {
       currency: {
         chainId: 137,
-        address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-        symbol: 'USDC.e',
-        name: 'USDCoin (bridged)',
+        address: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+        symbol: 'pUSD',
+        name: 'Polymarket USD',
         decimals: 6,
         metadata: {
-          logoURI: 'https://ethereum-optimism.github.io/data/USDC/logo.png',
+          logoURI:
+            'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb.png',
           verified: true,
         },
       },
@@ -274,12 +275,13 @@ export const RELAY_QUOTE_MOCK = {
         inputCurrency: {
           currency: {
             chainId: 137,
-            address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
-            symbol: 'USDC',
-            name: 'USD Coin',
+            address: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+            symbol: 'pUSD',
+            name: 'Polymarket USD',
             decimals: 6,
             metadata: {
-              logoURI: 'https://ethereum-optimism.github.io/data/USDC/logo.png',
+              logoURI:
+                'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb.png',
               verified: true,
             },
           },
@@ -291,12 +293,13 @@ export const RELAY_QUOTE_MOCK = {
         outputCurrency: {
           currency: {
             chainId: 137,
-            address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-            symbol: 'USDC.e',
-            name: 'USDCoin (bridged)',
+            address: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+            symbol: 'pUSD',
+            name: 'Polymarket USD',
             decimals: 6,
             metadata: {
-              logoURI: 'https://ethereum-optimism.github.io/data/USDC/logo.png',
+              logoURI:
+                'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb.png',
               verified: true,
             },
           },
