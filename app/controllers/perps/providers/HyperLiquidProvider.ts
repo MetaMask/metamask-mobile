@@ -6876,9 +6876,16 @@ export class HyperLiquidProvider implements PerpsProvider {
         'HyperLiquidProvider: CHECKING ACCOUNT BALANCE',
       );
       const accountState = await this.getAccountState();
-      const availableBalance = parseFloat(accountState.availableBalance);
+      // Release-branch bridge for Unified Account: availableToTradeBalance
+      // includes collateral HL can draw in target mode. The larger balance
+      // contract will replace this with an explicit withdrawableBalance field.
+      const availableBalance = parseFloat(
+        accountState.availableToTradeBalance ?? accountState.availableBalance,
+      );
       this.#deps.debugLogger.log('HyperLiquidProvider: ACCOUNT BALANCE', {
         availableBalance,
+        clearinghouseAvailableBalance: accountState.availableBalance,
+        availableToTradeBalance: accountState.availableToTradeBalance,
         totalBalance: accountState.totalBalance,
         marginUsed: accountState.marginUsed,
         unrealizedPnl: accountState.unrealizedPnl,

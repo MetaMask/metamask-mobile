@@ -106,11 +106,15 @@ const PerpsWithdrawView: React.FC = () => {
   // Get withdrawal tokens from hook
   const { destToken } = useWithdrawTokens();
 
-  // Truncate to 2 decimals so the user can withdraw exactly what they see.
+  // Release-branch bridge for Unified Account: availableToTradeBalance includes
+  // collateral HL can use in target mode. The full balance contract will replace
+  // this with an explicit withdrawableBalance field.
   const availableBalance = useMemo(() => {
-    if (!account?.availableBalance) return 0;
-    return truncateToTwoDecimals(parseCurrencyString(account.availableBalance));
-  }, [account?.availableBalance]);
+    const balance =
+      account?.availableToTradeBalance ?? account?.availableBalance;
+    if (!balance) return 0;
+    return truncateToTwoDecimals(parseCurrencyString(balance));
+  }, [account?.availableBalance, account?.availableToTradeBalance]);
 
   const formattedBalance = useMemo(
     () => formatPerpsFiat(availableBalance),
@@ -152,7 +156,7 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsMeasurement({
     traceName: TraceName.PerpsWithdrawView,
     conditions: [
-      !!account?.availableBalance,
+      !!(account?.availableToTradeBalance ?? account?.availableBalance),
       !!destToken,
       availableBalance !== undefined,
     ],

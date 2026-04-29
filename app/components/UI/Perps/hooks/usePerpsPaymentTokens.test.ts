@@ -129,6 +129,23 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.balance).toBe('1000500000');
       expect(hyperliquidUsdc.balanceFiat).toBe('$1000.50');
     });
+
+    it('prefers availableToTradeBalance for Hyperliquid USDC balance', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccountState,
+          availableBalance: '0',
+          availableToTradeBalance: '2500.25',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsPaymentTokens());
+
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.balance).toBe('2500250000');
+      expect(hyperliquidUsdc.balanceFiat).toBe('$2500.25');
+    });
   });
 
   describe('Network handling', () => {
