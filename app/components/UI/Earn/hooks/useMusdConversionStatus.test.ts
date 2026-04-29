@@ -10,7 +10,7 @@ import { useMusdConversionStatus } from './useMusdConversionStatus';
 import useEarnToasts, { EarnToastOptionsConfig } from './useEarnToasts';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../util/haptics';
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
@@ -125,7 +125,7 @@ describe('useMusdConversionStatus', () => {
     iconName: IconName.Loading,
     hasNoTimeout: true,
     backgroundColor: mockTheme.colors.background.default,
-    hapticsType: NotificationFeedbackType.Warning,
+    hapticsType: NotificationMoment.Warning,
     labelOptions: [{ label: 'In Progress', isBold: true }],
   };
   const mockInProgressFn = jest.fn(() => mockInProgressToast);
@@ -138,7 +138,7 @@ describe('useMusdConversionStatus', () => {
         hasNoTimeout: false,
         iconColor: mockTheme.colors.success.default,
         backgroundColor: mockTheme.colors.background.default,
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
         labelOptions: [{ label: 'Success', isBold: true }],
       },
       failed: {
@@ -147,7 +147,7 @@ describe('useMusdConversionStatus', () => {
         hasNoTimeout: false,
         iconColor: mockTheme.colors.error.default,
         backgroundColor: mockTheme.colors.background.default,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         labelOptions: [{ label: 'Failed', isBold: true }],
       },
     },
@@ -157,7 +157,7 @@ describe('useMusdConversionStatus', () => {
         iconName: IconName.Loading,
         hasNoTimeout: true,
         backgroundColor: mockTheme.colors.background.default,
-        hapticsType: NotificationFeedbackType.Warning,
+        hapticsType: NotificationMoment.Warning,
         labelOptions: [{ label: 'Claiming bonus', isBold: true }],
       },
       success: {
@@ -166,7 +166,7 @@ describe('useMusdConversionStatus', () => {
         hasNoTimeout: false,
         iconColor: mockTheme.colors.success.default,
         backgroundColor: mockTheme.colors.background.default,
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
         labelOptions: [{ label: 'Success', isBold: true }],
       },
       failed: {
@@ -175,7 +175,7 @@ describe('useMusdConversionStatus', () => {
         hasNoTimeout: false,
         iconColor: mockTheme.colors.error.default,
         backgroundColor: mockTheme.colors.background.default,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
       },
     },
@@ -186,7 +186,7 @@ describe('useMusdConversionStatus', () => {
         hasNoTimeout: false,
         iconColor: mockTheme.colors.error.default,
         backgroundColor: mockTheme.colors.background.default,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         labelOptions: [{ label: 'Withdrawal failed', isBold: true }],
       }),
     },

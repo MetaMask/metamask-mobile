@@ -10,7 +10,6 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import {
   Box,
   Text,
@@ -30,7 +29,12 @@ import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
-import { fireSwitchHaptic } from '../../../../util/haptics';
+import {
+  fireSwitchHaptic,
+  ImpactFeedbackStyle,
+  playImpact,
+  ImpactMoment,
+} from '../../../../util/haptics';
 import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferencesView.testIds';
 import {
   useNotificationPreferences,
@@ -238,7 +242,7 @@ const NotificationPreferencesView = () => {
       if (globalOff || value === preferences.txAmountLimit) {
         return Promise.resolve();
       }
-      impactAsync(ImpactFeedbackStyle.Light);
+      playImpact(ImpactMoment.QuickAmountSelection);
       return setTxAmountLimit(value);
     },
     [globalOff, preferences.txAmountLimit, setTxAmountLimit],

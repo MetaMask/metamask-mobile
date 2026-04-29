@@ -106,7 +106,7 @@ describe('PredictFeed', () => {
     });
 
     it('shows a "no results" message that includes the typed query when getMarkets returns empty', async () => {
-      const { getByTestId, findByPlaceholderText, findByText } =
+      const { getByTestId, getByText, findByPlaceholderText } =
         renderPredictFeedView();
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
@@ -114,9 +114,14 @@ describe('PredictFeed', () => {
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'xyznotfound');
 
-      expect(
-        await findByText('No results found for "xyznotfound"'),
-      ).toBeOnTheScreen();
+      await waitFor(
+        () => {
+          expect(
+            getByText('No results found for "xyznotfound"'),
+          ).toBeOnTheScreen();
+        },
+        { timeout: 2000 },
+      );
     });
 
     it('shows complete market data in the search result card after getMarkets resolves', async () => {
