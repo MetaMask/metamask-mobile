@@ -6,7 +6,6 @@ import { setLastDismissedBrazeBanner } from '../../../reducers/banners';
 import { selectLastDismissedBrazeBanner } from '../../../selectors/banner';
 import { SKELETON_TIMEOUT_MS } from './BrazeBanner.constants';
 import {
-  getRawBooleanProp,
   getRawStringOrImageProp,
   getRawStringProp,
 } from './brazeBannerProperties';
@@ -30,9 +29,6 @@ export interface UseBrazeBannerResult {
  * the corresponding feature to work.
  *
  * - `banner_id`    Cross-session dismissal persistence and impression tracking.
- * - `dismissable`  When `true` (boolean), combined with `banner_id`, persists
- * the dismissal to Redux and notifies Braze. Without this flag the dismissal
- * is session-only.
  * - `deeplink`     URL routed through the app's deeplink pipeline on tap.
  * - `title`        Optional bold heading above the body text.
  * - `body`         Main message text (required; banner is ignored without it).
@@ -40,7 +36,6 @@ export interface UseBrazeBannerResult {
  * - `cta_label`    Call-to-action text shown below the body (only when no title).
  */
 const PROP_BANNER_NAME = 'campaign_name';
-const PROP_DISMISSABLE = 'dismissable';
 const PROP_DEEPLINK = 'deeplink';
 const PROP_TITLE = 'title';
 const PROP_BODY = 'body';
@@ -60,8 +55,9 @@ const PROP_VARIANT_NAME = 'variant_name';
  *
  * Dismissal behaviour:
  * - Always in-memory: hides immediately and stays hidden for the session.
- * - Persisted (Redux + Braze notification) only when the campaign sets both
- * `banner_id` and `dismissable: true`.
+ * - Persisted to Redux (and Braze notified) for all campaigns except test sends.
+ * The persisted value is only used to suppress the banner on the next session's
+ * first render, then cleared — so the banner can reappear if Braze serves it again.
  */
 export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   const dispatch = useDispatch();
@@ -187,15 +183,12 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
 
     const bannerName = getRawStringProp(banner, PROP_BANNER_NAME);
     const variantName = getRawStringProp(banner, PROP_VARIANT_NAME);
-    const dismissable = getRawBooleanProp(banner, PROP_DISMISSABLE);
 
     dismissedRef.current = true;
     setStatus('dismissed');
 
-    // Persist the dismissal and notify Braze only when the campaign explicitly
-    // sets both `banner_name` and `dismissable: true`
-    // Test sends are treated as non-dismissable (session-only, no Braze event).
-    if (bannerName !== null && dismissable === true && !banner.isTestSend) {
+    // Persist the dismissal and notify Braze unless this is a test send.
+    if (bannerName !== null && !banner.isTestSend) {
       dispatch(setLastDismissedBrazeBanner(bannerName));
       dismissBrazeBanner({
         [PROP_BANNER_NAME]: bannerName,
