@@ -10,7 +10,7 @@ interface AssetSecurityData {
 
 const SECURITY_API_BASE =
   'https://security-alerts.api.cx.metamask.io/token/v1/scan-bulk';
-const DEFAULT_BATCH_SIZE = 20;
+const DEFAULT_BATCH_SIZE = 100;
 const DEFAULT_MAX_WAIT_MS = 50;
 
 const fetchAssetSecurityData = createBatchFetchWithDebounce({
