@@ -70,6 +70,8 @@ interface CampaignLeaderboardProps {
   /** Campaign ID used for analytics tracking. */
   campaignId?: string;
   isCampaignComplete?: boolean;
+  /** When true, hides the participants + tier toggle header row (used when the view renders its own tier selector). */
+  hideTierHeader?: boolean;
 }
 
 /**
@@ -218,6 +220,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   userPosition,
   campaignId,
   isCampaignComplete = false,
+  hideTierHeader = false,
 }) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -344,7 +347,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   return (
     <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER}>
       {/* Participants + tier subtitle */}
-      {(totalParticipants > 0 || Boolean(selectedTierLabel)) && (
+      {!hideTierHeader && (totalParticipants > 0 || selectedTierLabel) && (
         <Pressable
           onPress={tierNames.length > 1 ? openTierSelector : undefined}
           testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}

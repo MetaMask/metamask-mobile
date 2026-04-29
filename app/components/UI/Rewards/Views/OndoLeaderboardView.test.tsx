@@ -11,9 +11,10 @@ import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits'
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({ params: { campaignId: 'campaign-ondo-123' } }),
 }));
 
@@ -89,6 +90,7 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
 
 jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
   formatTierDisplayName: (tier: string) => tier,
+  formatComputedAtShort: (s: string | null) => (s ? '12:00 pm' : ''),
   getTierMinNetDeposit: jest.fn(
     (
       tiers: { name: string; minNetDeposit: number }[] | undefined,
@@ -98,6 +100,8 @@ jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
       null,
   ),
 }));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../hooks/useGetOndoLeaderboard');
 jest.mock('../hooks/useGetOndoLeaderboardPosition');
@@ -214,6 +218,86 @@ describe('OndoLeaderboardView', () => {
   it('renders the OndoLeaderboard component', () => {
     const { getByTestId } = render(<OndoLeaderboardView />);
     expect(getByTestId('campaign-leaderboard')).toBeDefined();
+  });
+
+  it('passes hideTierHeader=true to OndoLeaderboard', () => {
+    render(<OndoLeaderboardView />);
+    expect(mockOndoLeaderboard).toHaveBeenCalledWith(
+      expect.objectContaining({ hideTierHeader: true }),
+    );
+  });
+
+  it('renders the tier selector row when selectedTier is set', () => {
+    const { getByTestId } = render(<OndoLeaderboardView />);
+    expect(
+      getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.TIER_SELECTOR),
+    ).toBeDefined();
+  });
+
+  it('does not render tier selector when selectedTier is null', () => {
+    mockUseGetOndoLeaderboard.mockReturnValue({
+      ...hookDefaults,
+      selectedTier: null,
+    });
+    const { queryByTestId } = render(<OndoLeaderboardView />);
+    expect(
+      queryByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.TIER_SELECTOR),
+    ).toBeNull();
+  });
+
+  it('shows the last updated timestamp when computedAt is present', () => {
+    const { getByText } = render(<OndoLeaderboardView />);
+    expect(
+      getByText('rewards.ondo_campaign_leaderboard.updated_at'),
+    ).toBeDefined();
+  });
+
+  it('does not show the last updated timestamp when computedAt is null', () => {
+    mockUseGetOndoLeaderboard.mockReturnValue({
+      ...hookDefaults,
+      computedAt: null,
+    });
+    const { queryByText } = render(<OndoLeaderboardView />);
+    expect(
+      queryByText('rewards.ondo_campaign_leaderboard.updated_at'),
+    ).toBeNull();
+  });
+
+  it('opens the tier selector modal when the tier button is pressed with multiple tiers', () => {
+    const { getByTestId } = render(<OndoLeaderboardView />);
+    fireEvent.press(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.TIER_SELECTOR));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        selectedValue: 'STARTER',
+      }),
+    );
+  });
+
+  it('does not open the tier selector modal when only one tier exists', () => {
+    mockUseGetOndoLeaderboard.mockReturnValue({
+      ...hookDefaults,
+      selectedTier: 'STARTER',
+    });
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+      selector({
+        rewards: {
+          referralCode: null,
+          campaigns: [
+            {
+              ...mockCampaign,
+              details: {
+                ...mockCampaign.details,
+                tiers: [{ name: 'STARTER', minNetDeposit: 500 }],
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const { getByTestId } = render(<OndoLeaderboardView />);
+    fireEvent.press(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.TIER_SELECTOR));
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders Your position section with rank and tier when position exists', () => {

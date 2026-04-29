@@ -31,7 +31,11 @@ import {
   getTierMinNetDeposit,
 } from '../components/Campaigns/OndoLeaderboard.utils';
 import { strings } from '../../../../../locales/i18n';
-import { formatPercentChange, formatUsd } from '../utils/formatUtils';
+import {
+  formatPercentChange,
+  formatUsd,
+  formatComputedAtShort,
+} from '../utils/formatUtils';
 import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
   isCampaignIneligible,
@@ -392,6 +396,18 @@ const OndoCampaignStatsView: React.FC = () => {
                   )}
                 </Text>
               </Box>
+            )}
+
+            {/* ── Last updated ── */}
+            {leaderboardPosition?.computedAt && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('rewards.ondo_campaign_leaderboard.updated_at', {
+                  time: formatComputedAtShort(leaderboardPosition.computedAt),
+                })}
+              </Text>
             )}
 
             {/* ── Error banner ── */}

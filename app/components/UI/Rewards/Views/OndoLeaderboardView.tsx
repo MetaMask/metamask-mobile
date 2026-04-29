@@ -1,8 +1,16 @@
-import React, { useMemo } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -10,11 +18,16 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
-import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  formatTierDisplayName,
+  formatComputedAtShort,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
@@ -41,6 +54,7 @@ type OndoLeaderboardRouteParams = {
 
 export const ONDO_LEADERBOARD_VIEW_TEST_IDS = {
   CONTAINER: 'ondo-leaderboard-view-container',
+  TIER_SELECTOR: 'ondo-leaderboard-view-tier-selector',
 } as const;
 
 const OndoLeaderboardView: React.FC = () => {
@@ -55,6 +69,7 @@ const OndoLeaderboardView: React.FC = () => {
     [campaignId],
   );
   const campaign = useSelector(selectCampaign);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   useTrackRewardsPageView({
     page_type: 'ondo_campaign_leaderboard',
@@ -104,6 +119,7 @@ const OndoLeaderboardView: React.FC = () => {
     selectedTier,
     selectedTierData,
     setSelectedTier,
+    computedAt,
     isLoading: isLeaderboardLoading,
     hasError: hasLeaderboardError,
     isLeaderboardNotYetComputed,
@@ -116,6 +132,39 @@ const OndoLeaderboardView: React.FC = () => {
     () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
     [campaign],
   );
+
+  const tierOptions = useMemo(
+    () =>
+      tierNames.map((name) => ({
+        key: name,
+        value: name,
+        label: formatTierDisplayName(name),
+      })),
+    [tierNames],
+  );
+
+  const openTierSelector = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_leaderboard_tier_select',
+        })
+        .build(),
+    );
+    navigation.navigate(Routes.MODAL.REWARDS_SELECT_SHEET, {
+      title: strings('rewards.ondo_campaign_leaderboard.select_tier'),
+      options: tierOptions,
+      selectedValue: selectedTier,
+      onSelect: setSelectedTier,
+    });
+  }, [
+    navigation,
+    tierOptions,
+    selectedTier,
+    setSelectedTier,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const leaderboardUserPosition = useMemo(
     () =>
@@ -166,28 +215,74 @@ const OndoLeaderboardView: React.FC = () => {
         >
           {/* User position */}
           {position && (
-            <>
-              <Box twClassName="p-4">
-                <LeaderboardPositionHeader
-                  rank={rankValue}
-                  tier={tierValue}
-                  isLoading={isPositionLoading}
-                  isPending={!isCampaignComplete && isPending}
-                  isQualified={isQualified}
-                  isIneligible={!isCampaignComplete && isIneligible}
-                  showReturn
-                  returnValue={returnValue}
-                  returnColor={returnColor}
-                  showPrizePool
-                  prizePoolValue={prizePoolValue}
-                  prizePoolLoading={isDepositsLoading && !deposits}
-                />
-              </Box>
-              <Box twClassName="my-1 border-b border-border-muted" />
-            </>
+            <Box twClassName="p-4">
+              <LeaderboardPositionHeader
+                rank={rankValue}
+                tier={tierValue}
+                isLoading={isPositionLoading}
+                isPending={!isCampaignComplete && isPending}
+                isQualified={isQualified}
+                isIneligible={!isCampaignComplete && isIneligible}
+                showReturn
+                returnValue={returnValue}
+                returnColor={returnColor}
+                showPrizePool
+                prizePoolValue={prizePoolValue}
+                prizePoolLoading={isDepositsLoading && !deposits}
+              />
+            </Box>
           )}
+
+          {/* Divider */}
+          <Box twClassName="my-1 border-b border-border-muted" />
+
+          {/* Tier selector + last updated row */}
+          {selectedTier && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="px-4 py-3"
+            >
+              <Pressable
+                onPress={tierNames.length > 1 ? openTierSelector : undefined}
+                testID={ONDO_LEADERBOARD_VIEW_TEST_IDS.TIER_SELECTOR}
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="border border-border-default rounded-full px-3 py-1 gap-1"
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {formatTierDisplayName(selectedTier)}
+                  </Text>
+                  {tierNames.length > 1 && (
+                    <Icon
+                      name={IconName.ArrowDown}
+                      size={IconSize.Xs}
+                      color={IconColor.IconDefault}
+                    />
+                  )}
+                </Box>
+              </Pressable>
+              {computedAt && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('rewards.ondo_campaign_leaderboard.updated_at', {
+                    time: formatComputedAtShort(computedAt),
+                  })}
+                </Text>
+              )}
+            </Box>
+          )}
+
           {/* Full leaderboard */}
-          <Box twClassName="py-4">
+          <Box twClassName="pb-4">
             <OndoLeaderboard
               tierNames={tierNames}
               selectedTier={selectedTier}
@@ -202,6 +297,7 @@ const OndoLeaderboardView: React.FC = () => {
               userPosition={leaderboardUserPosition}
               campaignId={campaignId}
               isCampaignComplete={isCampaignComplete}
+              hideTierHeader
             />
           </Box>
         </ScrollView>

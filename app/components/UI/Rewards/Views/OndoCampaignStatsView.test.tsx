@@ -186,6 +186,7 @@ jest.mock('../utils/formatUtils', () => ({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`,
+  formatComputedAtShort: (s: string | null) => (s ? '12:00 pm' : ''),
 }));
 
 // Mock Engine to prevent @metamask/social-controllers resolution chain
@@ -1038,5 +1039,51 @@ describe('OndoCampaignStatsView', () => {
     expect(
       getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
     ).toBeDefined();
+  });
+});
+
+describe('OndoCampaignStatsView — last updated', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseGetCampaignParticipantStatus.mockReturnValue({
+      status: { optedIn: true, participantCount: 1 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      portfolio: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoLeaderboard.mockReturnValue(leaderboardDefaults);
+    mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+      outcome: null,
+      isLoading: false,
+    });
+    mockRewardsState.campaigns = [createTestCampaign()];
+  });
+
+  it('shows last updated timestamp when position has computedAt', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: makeQualifiedPosition({
+        computedAt: '2024-03-20T12:00:00.000Z',
+      }),
+    });
+    const { getByText } = render(<OndoCampaignStatsView />);
+    expect(
+      getByText(/rewards\.ondo_campaign_leaderboard\.updated_at/),
+    ).toBeDefined();
+  });
+
+  it('does not show last updated timestamp when position is null', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue(positionDefaults);
+    const { queryByText } = render(<OndoCampaignStatsView />);
+    expect(
+      queryByText(/rewards\.ondo_campaign_leaderboard\.updated_at/),
+    ).toBeNull();
   });
 });
