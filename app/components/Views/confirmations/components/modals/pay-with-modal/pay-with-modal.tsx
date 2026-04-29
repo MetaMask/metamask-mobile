@@ -1,8 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
@@ -66,18 +64,9 @@ export function PayWithModal() {
   const isPredictContext = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
   ]);
-  const navigation = useNavigation();
-
-  const handlePredictAddFunds = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      params: { autoDeposit: true },
-    });
-  }, [navigation]);
 
   const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
     isPredictContext,
-    isPredictContext ? handlePredictAddFunds : undefined,
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
 

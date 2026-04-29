@@ -7,6 +7,13 @@ import {
 } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { usePredictBalanceTokenFilter } from './usePredictBalanceTokenFilter';
+import Routes from '../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 let mockIsPredictBalanceSelected = false;
 let mockPredictBalance = 100;
@@ -79,6 +86,7 @@ describe('usePredictBalanceTokenFilter', () => {
     mockTransactionMeta = null;
     mockHasTransactionType.mockReturnValue(false);
     mockUseSelector.mockReturnValue({ image: 'usdce-token-image' });
+    mockNavigate.mockReset();
   });
 
   it('returns original tokens when transaction type does not match and forceEnabled is false', () => {
@@ -180,29 +188,32 @@ describe('usePredictBalanceTokenFilter', () => {
     expect((filteredTokens[0] as HighlightedItem).icon).toBe('');
   });
 
-  it('does not include an actions array when onAddFunds is not provided', () => {
+  it('always includes an Add action button on the Predict balance row', () => {
     mockHasTransactionType.mockReturnValue(true);
     const tokens = [createMockToken()];
 
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect((filteredTokens[0] as HighlightedItem).actions).toBeUndefined();
+    const item = filteredTokens[0] as HighlightedItem;
+    expect(item.actions).toHaveLength(1);
+    expect(item.actions?.[0].buttonLabel).toBeTruthy();
   });
 
-  it('includes an "Add" action button when onAddFunds is provided', () => {
+  it('navigates to ADD_FUNDS_SHEET with autoDeposit when the Add action is pressed', () => {
     mockHasTransactionType.mockReturnValue(true);
-    const mockOnAddFunds = jest.fn();
     const tokens = [createMockToken()];
 
-    const { result } = renderHook(() =>
-      usePredictBalanceTokenFilter(true, mockOnAddFunds),
-    );
+    const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
     const item = filteredTokens[0] as HighlightedItem;
-    expect(item.actions).toHaveLength(1);
-    expect(item.actions?.[0].onPress).toBe(mockOnAddFunds);
+    item.actions?.[0].onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      params: { autoDeposit: true },
+    });
   });
 
   it('calls onSelect when the row action is triggered', () => {
@@ -211,7 +222,7 @@ describe('usePredictBalanceTokenFilter', () => {
     const tokens = [createMockToken()];
 
     const { result } = renderHook(() =>
-      usePredictBalanceTokenFilter(true, undefined, mockOnSelect),
+      usePredictBalanceTokenFilter(true, mockOnSelect),
     );
     const filteredTokens = result.current(tokens);
 

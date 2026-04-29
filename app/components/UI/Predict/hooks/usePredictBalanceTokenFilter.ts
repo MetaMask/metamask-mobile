@@ -1,5 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
@@ -17,12 +18,13 @@ import { PREDICT_BALANCE_CHAIN_ID } from '../constants/transactions';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 
 export function usePredictBalanceTokenFilter(
   forceEnabled = false,
-  onAddFunds?: () => void,
   onSelect?: () => void,
 ): (tokens: AssetType[]) => TokenListItem[] {
+  const navigation = useNavigation();
   const transactionMeta = useTransactionMetadataRequest();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
@@ -34,6 +36,13 @@ export function usePredictBalanceTokenFilter(
       PREDICT_BALANCE_CHAIN_ID,
     ),
   );
+
+  const handleAddFunds = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      params: { autoDeposit: true },
+    });
+  }, [navigation]);
 
   return useCallback(
     (tokens: AssetType[]): TokenListItem[] => {
@@ -57,14 +66,12 @@ export function usePredictBalanceTokenFilter(
         fiat: balanceFormatted,
         isSelected: isPredictBalanceSelected,
         action: onSelect ?? (() => undefined),
-        actions: onAddFunds
-          ? [
-              {
-                buttonLabel: strings('predict.payment.add'),
-                onPress: onAddFunds,
-              },
-            ]
-          : undefined,
+        actions: [
+          {
+            buttonLabel: strings('predict.payment.add'),
+            onPress: handleAddFunds,
+          },
+        ],
       };
 
       const mappedTokens = tokens.map((token) => ({
@@ -84,7 +91,7 @@ export function usePredictBalanceTokenFilter(
       predictBalance,
       formatFiat,
       usdceToken,
-      onAddFunds,
+      handleAddFunds,
       onSelect,
     ],
   );
