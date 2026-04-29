@@ -198,6 +198,7 @@
     "@metamask/key-tree@npm:^10.1.1": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/key-tree@npm:^10.0.2": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/post-message-stream@npm:^10.0.0": "patch:@metamask/post-message-stream@npm%3A10.0.0#~/.yarn/patches/@metamask-post-message-stream-npm-10.0.0-rn-exports.patch",
+    "reactotron-core-client@npm:2.9.7": "patch:reactotron-core-client@npm%3A2.9.7#~/.yarn/patches/reactotron-core-client-npm-2.9.7-a0fd93f2b4.patch",
     "@metamask/snaps-controllers@npm:^18.0.0": "patch:@metamask/snaps-controllers@npm%3A18.0.0#~/.yarn/patches/@metamask-snaps-controllers-npm-18.0.0-rn-post-message-stream.patch",
     "qs": "6.14.1",
     "viem": "2.31.3",

@@ -42148,6 +42148,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"reactotron-core-client@patch:reactotron-core-client@npm%3A2.9.7#~/.yarn/patches/reactotron-core-client-npm-2.9.7-a0fd93f2b4.patch":
+  version: 2.9.7
+  resolution: "reactotron-core-client@patch:reactotron-core-client@npm%3A2.9.7#~/.yarn/patches/reactotron-core-client-npm-2.9.7-a0fd93f2b4.patch::version=2.9.7&hash=1116f8"
+  dependencies:
+    reactotron-core-contract: "npm:0.2.5"
+  checksum: 10/a42948ffb640e9822f7208d9d43e18948d676c0a52d4954ae39edc6743e95d9bbb41037ea1893897348e80349af20872b046e741e12479e9b5ea9ccef6ed077f
+  languageName: node
+  linkType: hard
+
 "reactotron-core-contract@npm:0.2.5":
   version: 0.2.5
   resolution: "reactotron-core-contract@npm:0.2.5"
