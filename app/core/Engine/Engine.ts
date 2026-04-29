@@ -546,7 +546,7 @@ export class Engine {
       AddressBookController: addressBookController,
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
-      ConfigRegistryController: controllersByName.ConfigRegistryController,
+      ConfigRegistryController: messengerClientsByName.ConfigRegistryController,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,

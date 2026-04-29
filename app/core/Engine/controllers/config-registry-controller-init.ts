@@ -12,7 +12,7 @@ import { MessengerClientInitFunction } from '../types';
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const ConfigRegistryControllerInit: MessengerClientInitFunction<
+export const configRegistryControllerInit: MessengerClientInitFunction<
   ConfigRegistryController,
   ConfigRegistryControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

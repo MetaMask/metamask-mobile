@@ -133,10 +133,7 @@ import { getTransakServiceMessenger } from './transak-service-messenger/transak-
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
-import {
-  getConfigRegistryControllerMessenger,
-  getConfigRegistryControllerInitMessenger,
-} from './config-registry-controller-messenger';
+import { getConfigRegistryControllerMessenger } from './config-registry-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
   getMultichainRoutingServiceMessenger,
@@ -186,7 +183,7 @@ export const MESSENGER_FACTORIES = {
   },
   ConfigRegistryController: {
     getMessenger: getConfigRegistryControllerMessenger,
-    getInitMessenger: getConfigRegistryControllerInitMessenger,
+    getInitMessenger: noop,
   },
   ApprovalController: {
     getMessenger: getApprovalControllerMessenger,

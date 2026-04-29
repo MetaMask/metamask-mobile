@@ -6,7 +6,7 @@ import {
   ConfigRegistryController,
   ConfigRegistryControllerMessenger,
 } from '@metamask/config-registry-controller';
-import { ConfigRegistryControllerInit } from './config-registry-controller-init';
+import { configRegistryControllerInit } from './config-registry-controller-init';
 
 jest.mock('@metamask/config-registry-controller');
 
@@ -26,12 +26,12 @@ describe('configRegistryControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { controller } = ConfigRegistryControllerInit(getInitRequestMock());
+    const { controller } = configRegistryControllerInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(ConfigRegistryController);
   });
 
   it('passes the proper arguments to the controller', () => {
-    ConfigRegistryControllerInit(getInitRequestMock());
+    configRegistryControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(ConfigRegistryController);
     expect(controllerMock).toHaveBeenCalledWith({
