@@ -7,6 +7,7 @@ import OndoCampaignDetailsView, {
 import { CAMPAIGN_STATS_SUMMARY_TEST_IDS } from '../components/Campaigns/CampaignStatsSummary';
 import { ONDO_PRIZE_POOL_TEST_IDS } from '../components/Campaigns/OndoPrizePool';
 import { CAMPAIGN_CTA_TEST_IDS } from '../components/Campaigns/CampaignOptInCta';
+import { CAMPAIGN_ENDED_STATS_TEST_IDS } from '../components/Campaigns/CampaignEndedStats';
 import {
   type CampaignDto,
   CampaignType,
@@ -1501,6 +1502,60 @@ describe('OndoCampaignDetailsView', () => {
         Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
         { campaignId: 'campaign-1', campaignName: 'Ended Ondo' },
       );
+    });
+  });
+
+  describe('CampaignEndedStats visibility', () => {
+    const setupCompleteCampaign = () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+    };
+
+    it('shows CampaignEndedStats when campaign is complete and user is confirmed not opted in', () => {
+      setupCompleteCampaign();
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: false, participantCount: 0 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER)).toBeDefined();
+    });
+
+    it('does not show CampaignEndedStats while participant status is still loading', () => {
+      setupCompleteCampaign();
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: null,
+        isLoading: true,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER)).toBeNull();
+    });
+
+    it('does not show CampaignEndedStats when campaign is complete and user is opted in', () => {
+      setupCompleteCampaign();
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER)).toBeNull();
     });
   });
 

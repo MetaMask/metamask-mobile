@@ -285,9 +285,11 @@ const OndoCampaignDetailsView: React.FC = () => {
         isOptedIn && hasPositions && getCampaignStatus(campaign) !== 'complete',
       showLeaderboardSection: true,
       showCampaignEndedStats:
-        getCampaignStatus(campaign) === 'complete' && !isOptedIn,
+        getCampaignStatus(campaign) === 'complete' &&
+        !isOptedIn &&
+        !isParticipantStatusLoading,
     };
-  }, [campaign, isOptedIn, hasPositions]);
+  }, [campaign, isOptedIn, isParticipantStatusLoading, hasPositions]);
 
   const navigateToWinningView = useCallback(() => {
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
