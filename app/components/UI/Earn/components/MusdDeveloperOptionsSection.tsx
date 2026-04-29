@@ -1,9 +1,15 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useTheme } from '../../../../util/theme';
-import { setMusdConversionEducationSeen } from '../../../../actions/user';
-import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
+import {
+  clearMusdConversionAssetDetailCtasSeen,
+  setMusdConversionEducationSeen,
+} from '../../../../actions/user';
+import {
+  selectMusdConversionAssetDetailCtasSeen,
+  selectMusdConversionEducationSeen,
+} from '../../../../reducers/user';
 import { useStyles } from '../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -24,9 +30,20 @@ export const MusdDeveloperOptionsSection = () => {
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
   );
+  const musdConversionAssetDetailCtasSeen = useSelector(
+    selectMusdConversionAssetDetailCtasSeen,
+  );
+  const assetDetailCtasSeenCount = useMemo(
+    () => Object.keys(musdConversionAssetDetailCtasSeen).length,
+    [musdConversionAssetDetailCtasSeen],
+  );
 
   const handleResetEducationSeenState = useCallback(() => {
     dispatch(setMusdConversionEducationSeen(false));
+  }, [dispatch]);
+
+  const handleClearAssetDetailCtasSeen = useCallback(() => {
+    dispatch(clearMusdConversionAssetDetailCtasSeen());
   }, [dispatch]);
 
   return (
@@ -53,6 +70,23 @@ export const MusdDeveloperOptionsSection = () => {
         width={ButtonWidthTypes.Full}
         style={styles.accessory}
       />
+      <>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyMD}
+          style={styles.desc}
+        >
+          {`Asset detail CTAs dismissed: ${String(assetDetailCtasSeenCount)}`}
+        </Text>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          label={'Clear asset detail CTAs seen'}
+          onPress={handleClearAssetDetailCtasSeen}
+          width={ButtonWidthTypes.Full}
+          style={styles.accessory}
+        />
+      </>
     </>
   );
 };
