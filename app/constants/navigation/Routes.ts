@@ -464,13 +464,10 @@ const Routes = {
   ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
-    CARD_MAIN_ROUTES: 'CardMainRoutes',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'CardSpendingLimit',
-    CHANGE_ASSET: 'CardChangeAsset',
-    VERIFYING_REGISTRATION: 'VerifyingRegistration',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
@@ -485,7 +482,6 @@ const Routes = {
       VERIFYING_VERIFF_KYC: 'CardOnboardingVerifyingVeriffKYC',
       PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
-      MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
