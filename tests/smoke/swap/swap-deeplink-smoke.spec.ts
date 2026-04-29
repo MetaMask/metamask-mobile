@@ -126,7 +126,8 @@ describe(
           await loginToApp();
           await device.sendToHome();
           // eslint-disable-next-line no-restricted-syntax
-          // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).          await new Promise((r) => setTimeout(r, 1000));
+          // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          await new Promise((r) => setTimeout(r, 1000));
           await device.launchApp({
             newInstance: false,
             url: SWAP_DEEPLINK_BASE,
