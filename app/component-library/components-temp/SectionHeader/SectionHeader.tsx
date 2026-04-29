@@ -75,6 +75,8 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
       {/* Arrow icon: visual indicator only, no touch handling */}
       {onPress && (
         <ButtonIcon
+          testID="section-header-arrow-icon"
+          disabled
           iconName={endIconName}
           size={ButtonIconSize.Sm}
           iconProps={{
