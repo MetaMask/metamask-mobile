@@ -34,6 +34,8 @@ export interface TeamInfo {
 
 export interface MetricsEntry {
   testName: string;
+  /** Playwright project name; disambiguates the same title across projects. */
+  projectName?: string;
   testFilePath?: string;
   tags?: string[];
   steps: MetricStep[];
