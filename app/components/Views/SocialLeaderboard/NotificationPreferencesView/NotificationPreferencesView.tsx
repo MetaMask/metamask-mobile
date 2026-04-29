@@ -2,12 +2,11 @@ import React, { useCallback } from 'react';
 import {
   Image,
   ScrollView,
-  StyleSheet,
   Switch,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -28,95 +27,24 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferencesView.testIds';
 import {
   useNotificationPreferences,
   useFollowedTraders,
-  TX_AMOUNT_THRESHOLDS,
+  type TxAmountThreshold,
 } from './hooks';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import { TradersFollowedSkeleton } from './components/Skeletons';
+import {
+  PreferencesSkeleton,
+  TradersFollowedSkeleton,
+} from './components/Skeletons';
+import ThresholdRadioList from './components/ThresholdRadioList';
 
 const AVATAR_SIZE = 40;
-
-const radioStyles = StyleSheet.create({
-  circle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-});
-
-// ---------------------------------------------------------------------------
-// Threshold radio row
-// ---------------------------------------------------------------------------
-
-interface ThresholdRowProps {
-  label: string;
-  isChecked: boolean;
-  isDisabled: boolean;
-  onPress: () => void;
-  testID?: string;
-}
-
-const ThresholdRow: React.FC<ThresholdRowProps> = ({
-  label,
-  isChecked,
-  isDisabled,
-  onPress,
-  testID,
-}) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
-
-  const borderColor = isChecked
-    ? colors.primary.default
-    : colors.border.default;
-  const innerColor = colors.primary.default;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={isDisabled}
-      testID={testID}
-      style={tw.style(
-        'flex-row items-center justify-between px-4 py-4',
-        isDisabled && 'opacity-50',
-      )}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: isChecked, disabled: isDisabled }}
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
-      >
-        {label}
-      </Text>
-      {/* Radio circle indicator — View-only, touches handled by the outer TouchableOpacity */}
-      <View
-        style={[
-          radioStyles.circle,
-          { borderColor, backgroundColor: colors.background.default },
-        ]}
-        accessibilityElementsHidden
-      >
-        {isChecked && (
-          <View style={[radioStyles.dot, { backgroundColor: innerColor }]} />
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
 
 // ---------------------------------------------------------------------------
 // Per-trader row
@@ -129,6 +57,7 @@ interface TraderNotificationRowProps {
   isEnabled: boolean;
   isDisabled: boolean;
   onToggle: (traderId: string) => void;
+  onPress: (traderId: string, username: string) => void;
 }
 
 const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
@@ -138,6 +67,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
   isEnabled,
   isDisabled,
   onToggle,
+  onPress,
 }) => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
@@ -150,11 +80,11 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
       twClassName={`px-4 py-3${isDisabled ? ' opacity-50' : ''}`}
       testID={NotificationPreferencesViewSelectorsIDs.TRADER_ROW(traderId)}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={3}
-        twClassName="flex-1 min-w-0 mr-3"
+      <TouchableOpacity
+        onPress={() => onPress(traderId, username)}
+        accessibilityRole="button"
+        style={tw.style('flex-row items-center gap-3 flex-1 min-w-0 mr-3')}
+        testID={NotificationPreferencesViewSelectorsIDs.TRADER_PRESS(traderId)}
       >
         {avatarUri ? (
           <Image
@@ -180,7 +110,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
         >
           {username}
         </Text>
-      </Box>
+      </TouchableOpacity>
 
       <Switch
         value={isEnabled}
@@ -202,38 +132,22 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
 // Main screen
 // ---------------------------------------------------------------------------
 
-const formatThreshold = (
-  amount: number,
-  currency: string | undefined,
-): string => {
-  const code = currency?.toUpperCase() ?? 'USD';
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: code,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${code} ${amount}`;
-  }
-};
-
 /**
  * NotificationPreferencesView — notification settings for the Top Traders feature.
  *
  * Lets the user control:
  * - Global push notification toggle (socialAI.enabled)
  * - Minimum trade size threshold (socialAI.txAmountLimit)
- * - Per-trader notification opt-in (socialAI.traderProfileIds)
+ * - Per-trader mute list (socialAI.mutedTraderProfileIds — opt-out semantics: traders absent from this list receive notifications)
  *
  * The "Traders you follow" section is sourced from
  * `SocialService:fetchFollowing` (via `useFollowedTraders`) so it surfaces
  * every trader the user follows — not just the ones that happen to be in
- * the cached top-leaderboard slice.
+ * the cached top-leaderboard slice. Preferences themselves are persisted
+ * through `AuthenticatedUserStorageService` (via `useNotificationPreferences`).
  */
 const NotificationPreferencesView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -248,17 +162,37 @@ const NotificationPreferencesView = () => {
 
   const {
     preferences,
+    isLoading: isLoadingPreferences,
     setEnabled,
     setTxAmountLimit,
     toggleTraderNotification,
     isTraderNotificationEnabled,
-  } = useNotificationPreferences(followedTraders);
+  } = useNotificationPreferences();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const globalOff = !preferences.enabled;
+  const handleTraderPress = useCallback(
+    (traderId: string, traderName: string) => {
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+        traderId,
+        traderName,
+      });
+    },
+    [navigation],
+  );
+
+  // On a cold (re)entry the GET is in flight, `preferences` falls back to
+  // defaults (`enabled: false`), and binding that straight into the Switch
+  // would render a visibly OFF toggle until the fetch resolves — even when
+  // the user previously had it ON. Render a skeleton instead; interaction
+  // remains disabled until we have authoritative server state.
+  const showPreferencesSkeleton = isLoadingPreferences;
+  // Treat "still loading" identically to "disabled" so the traders section
+  // never renders in a muted/disabled state based on the false default while
+  // the preferences GET is in flight.
+  const globalOff = isLoadingPreferences || !preferences.enabled;
 
   const showFollowedError =
     Boolean(followedError) && followedTraders.length === 0;
@@ -300,56 +234,51 @@ const NotificationPreferencesView = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
       >
-        {/* ── Global toggle ─────────────────────────────────────────── */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 py-4"
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {strings(
-              'social_leaderboard.notification_preferences.allow_push_notifications',
-            )}
-          </Text>
-          <Switch
-            value={preferences.enabled}
-            onValueChange={setEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={brandColors.white}
-            ios_backgroundColor={colors.border.muted}
-            testID={NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE}
-          />
-        </Box>
+        {/* ── Global toggle + thresholds ────────────────────────────── */}
+        {showPreferencesSkeleton ? (
+          <PreferencesSkeleton />
+        ) : (
+          <>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="px-4 py-4"
+            >
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+                {strings(
+                  'social_leaderboard.notification_preferences.allow_push_notifications',
+                )}
+              </Text>
+              <Switch
+                value={preferences.enabled}
+                onValueChange={setEnabled}
+                trackColor={{
+                  true: colors.primary.default,
+                  false: colors.border.muted,
+                }}
+                thumbColor={brandColors.white}
+                ios_backgroundColor={colors.border.muted}
+                testID={NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE}
+              />
+            </Box>
 
-        <View style={tw.style('h-px bg-muted mx-4')} />
+            <View style={tw.style('h-px bg-muted mx-4')} />
 
-        <Box twClassName="px-4 pt-4 pb-2">
-          <Text
-            variant={TextVariant.BodyMd}
-            color={globalOff ? TextColor.TextMuted : TextColor.TextDefault}
-          >
-            {strings(
-              'social_leaderboard.notification_preferences.trades_over_label',
-            )}
-          </Text>
-        </Box>
-
-        {TX_AMOUNT_THRESHOLDS.map((amount) => (
-          <ThresholdRow
-            key={amount}
-            label={formatThreshold(amount, currentCurrency)}
-            isChecked={preferences.txAmountLimit === amount}
-            isDisabled={globalOff}
-            onPress={() => setTxAmountLimit(amount)}
-            testID={NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(
-              amount,
-            )}
-          />
-        ))}
+            <ThresholdRadioList
+              selected={(preferences.txAmountLimit ?? 500) as TxAmountThreshold}
+              onChange={setTxAmountLimit}
+              isDisabled={globalOff}
+              currency={currentCurrency}
+              labelText={strings(
+                'social_leaderboard.notification_preferences.trades_over_label',
+              )}
+              testIDForAmount={
+                NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION
+              }
+            />
+          </>
+        )}
 
         {/* Separator */}
         <View style={tw.style('h-px bg-muted mx-4 mt-2')} />
@@ -418,6 +347,7 @@ const NotificationPreferencesView = () => {
               isEnabled={isTraderNotificationEnabled(trader.id)}
               isDisabled={globalOff}
               onToggle={toggleTraderNotification}
+              onPress={handleTraderPress}
             />
           ))
         )}

@@ -186,6 +186,10 @@ jest.mock('../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
 }));
 
+jest.mock('../hooks/useOndoOutcomeToast', () => ({
+  useOndoOutcomeToast: jest.fn(),
+}));
+
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
@@ -434,10 +438,7 @@ describe('RewardsDashboard', () => {
       );
 
       // Assert - referral button is never disabled
-      const isDisabled =
-        referralButton.props.disabled === true ||
-        referralButton.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(false);
+      expect(referralButton).not.toBeDisabled();
     });
   });
 
@@ -465,10 +466,7 @@ describe('RewardsDashboard', () => {
       );
 
       // Assert
-      const isDisabled =
-        settingsButton.props.disabled === true ||
-        settingsButton.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(true);
+      expect(settingsButton).toBeDisabled();
     });
 
     it('enables settings button when user is opted in', () => {
@@ -479,10 +477,7 @@ describe('RewardsDashboard', () => {
       );
 
       // Assert
-      const isDisabled =
-        settingsButton.props.disabled === true ||
-        settingsButton.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(false);
+      expect(settingsButton).not.toBeDisabled();
     });
   });
 

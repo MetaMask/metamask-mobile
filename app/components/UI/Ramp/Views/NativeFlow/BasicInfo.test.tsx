@@ -58,6 +58,13 @@ jest.mock('../../hooks/useTransakController', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useRampsController', () => ({
+  __esModule: true,
+  default: () => ({
+    selectedToken: { assetId: 'eip155:1/erc20:0xmock' },
+  }),
+}));
+
 jest.mock('../../hooks/useRampsUserRegion', () => ({
   useRampsUserRegion: () => ({
     userRegion: mockUserRegion,

@@ -7,9 +7,9 @@ import {
   FontWeight,
   ButtonBase,
   ButtonBaseSize,
+  BottomSheet,
   BottomSheetHeader,
 } from '@metamask/design-system-react-native';
-import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
 import { AccessRestrictedModalProps } from './AccessRestrictedModal.types';
 import { AccessRestrictedModalSelectorsIDs } from './AccessRestrictedModal.testIds';
@@ -23,7 +23,6 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
 
   return (
     <BottomSheet
-      shouldNavigateBack={false}
       onClose={onClose}
       testID={AccessRestrictedModalSelectorsIDs.BOTTOM_SHEET}
     >

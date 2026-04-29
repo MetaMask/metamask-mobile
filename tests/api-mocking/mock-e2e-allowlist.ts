@@ -20,15 +20,6 @@ export const ALLOWLISTED_HOSTS = [
   'gamma-api.polymarket.com',
   'clob.polymarket.com',
   '*.polymarket.com',
-  'sepolia.infura.io',
-  'mainnet.infura.io',
-  'base-mainnet.infura.io',
-  'arbitrum-mainnet.infura.io',
-  'bsc-mainnet.infura.io',
-  'optimism-mainnet.infura.io',
-  'polygon-mainnet.infura.io',
-  'linea-sepolia.infura.io',
-  'linea-mainnet.infura.io',
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
@@ -43,10 +34,6 @@ export const ALLOWLISTED_URLS = [
   'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/stETH.svg',
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/rETH.svg',
-  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=POL',
-  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=FTM',
-  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=AVAX',
-  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=LINEAETH',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
   'https://mainnet.era.zksync.io/',
   'https://rpc.atlantischain.network/',
@@ -58,6 +45,5 @@ export const ALLOWLISTED_URLS = [
   'https://bridge.dev-api.cx.metamask.io/getTokens?chainId=1',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0xaa36a7',
-  'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
   'https://api.hyperliquid.xyz/exchange',
 ];

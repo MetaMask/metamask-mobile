@@ -1,3 +1,4 @@
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
@@ -36,6 +37,13 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
 
   const toggleFollow = useCallback(
     async (addressOrId: string): Promise<void> => {
+      // Fire haptic on every user-initiated toggle so feedback is consistent
+      // across all Follow entry points (homepage carousel, leaderboard rows,
+      // trader profile). Placed before the inflight guard so a quick repeat
+      // tap still produces a tactile response even when the API call is
+      // debounced.
+      impactAsync(ImpactFeedbackStyle.Light);
+
       if (inflightIdsRef.current.has(addressOrId)) {
         return;
       }

@@ -45,6 +45,12 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Restore .metamask folder (Foundry download cache for install:foundryup)
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
       - name: Setup Android Build Environment
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
@@ -55,16 +61,6 @@ jobs:
           android-api-level: 36
           target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
 
-      - name: Restore .metamask folder
-        id: restore-metamask
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
-        run: yarn install:foundryup
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:

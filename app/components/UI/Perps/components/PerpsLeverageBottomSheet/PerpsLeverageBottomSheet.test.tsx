@@ -4,10 +4,6 @@ import { fireGestureHandler } from 'react-native-gesture-handler/jest-utils';
 import PerpsLeverageBottomSheet from './PerpsLeverageBottomSheet';
 
 // Mock dependencies - only what's absolutely necessary
-jest.mock('react-native-reanimated', () =>
-  jest.requireActual('react-native-reanimated/mock'),
-);
-
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',
