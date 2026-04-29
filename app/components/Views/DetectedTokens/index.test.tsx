@@ -136,8 +136,8 @@ describe('DetectedTokens Component', () => {
     expect(getByText('0 new token found')).toBeOnTheScreen();
     expect(getByText('Import (0)')).toBeOnTheScreen();
     expect(
-      getByTestId(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID).props.disabled,
-    ).toBe(true);
+      getByTestId(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID),
+    ).toBeDisabled();
   });
 
   it('navigates to confirmation on "Hide All" button press', () => {
