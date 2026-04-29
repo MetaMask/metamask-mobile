@@ -179,6 +179,7 @@ const TraderPositionView = () => {
           <QuickBuyBottomSheet
             isVisible={isQuickBuyVisible}
             position={resolvedPosition ?? null}
+            marketCap={marketCap}
             onClose={handleQuickBuyClose}
           />
         </>
