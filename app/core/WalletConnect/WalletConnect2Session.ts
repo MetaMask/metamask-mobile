@@ -81,9 +81,6 @@ class WalletConnect2Session {
   private timeoutRef: NodeJS.Timeout | null = null;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
-  private lastChainId: Hex;
-  private isHandlingChainChange = false;
-  private storeUnsubscribe: (() => void) | null = null;
 
   private _isHandlingRequest = false;
 
@@ -209,8 +206,6 @@ class WalletConnect2Session {
     });
 
     this.checkPendingRequests();
-    this.lastChainId = this.getCurrentChainId();
-    this.storeUnsubscribe = store.subscribe(this.onStoreChange.bind(this));
   }
 
   /**
@@ -235,19 +230,6 @@ class WalletConnect2Session {
     return getHostname(this.selfReportedUrl);
   }
 
-  private onStoreChange() {
-    const newChainId = this.getCurrentChainId();
-    if (newChainId !== this.lastChainId && !this.isHandlingChainChange) {
-      this.lastChainId = newChainId;
-      const decimalChainId = Number.parseInt(newChainId, 16);
-      this.handleChainChange(decimalChainId).catch((error) => {
-        DevLogger.log(
-          'WC2::store.subscribe Error handling chain change:',
-          error,
-        );
-      });
-    }
-  }
   public getCurrentChainId() {
     const perOriginChainId = selectPerOriginChainId(
       store.getState(),
@@ -377,72 +359,6 @@ class WalletConnect2Session {
     }
   }
 
-  /** Handle chain change by updating session namespaces and emitting event */
-  private async handleChainChange(chainIdDecimal: number) {
-    if (this.isHandlingChainChange) return;
-    this.isHandlingChainChange = true;
-
-    try {
-      // Update session namespaces
-      const currentNamespaces = this.normalizeSessionNamespaces(
-        this.session.namespaces,
-      );
-      const newChainId = `eip155:${chainIdDecimal}`;
-      const updatedChains = [
-        ...new Set([...(currentNamespaces?.eip155?.chains || []), newChainId]),
-      ];
-
-      const accounts = [
-        ...new Set(
-          (currentNamespaces?.eip155?.accounts || []).map(
-            (acc) => acc.split(':')[2],
-          ),
-        ),
-      ].map((account) => `${newChainId}:${account}`);
-
-      const updatedAccounts = [
-        ...new Set([
-          ...(currentNamespaces?.eip155?.accounts || []),
-          ...accounts,
-        ]),
-      ];
-
-      const updatedNamespaces = {
-        ...currentNamespaces,
-        eip155: {
-          ...(currentNamespaces?.eip155 || {}),
-          chains: updatedChains,
-          methods: currentNamespaces?.eip155?.methods || [],
-          events: currentNamespaces?.eip155?.events || [],
-          accounts: updatedAccounts,
-        },
-      };
-
-      DevLogger.log(
-        `WC2::handleChainChange updating session with namespaces`,
-        updatedNamespaces,
-      );
-
-      await this.web3Wallet.updateSession({
-        topic: this.session.topic,
-        namespaces: updatedNamespaces,
-      });
-      // await acknowledged();
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Emit chainChanged event
-      await this.emitEvent('chainChanged', chainIdDecimal);
-    } catch (error) {
-      DevLogger.log(
-        `WC2::handleChainChange error while updating session`,
-        error,
-      );
-      throw error;
-    } finally {
-      this.isHandlingChainChange = false;
-    }
-  }
   approveRequest = async ({ id, result }: { id: string; result: unknown }) => {
     const topic = this.topicByRequestId[id];
 
@@ -706,8 +622,8 @@ class WalletConnect2Session {
       await hasPermissionsToSwitchChainRequest(caip2ChainId, channelId);
 
     if (!allowed && !allowSwitchingToNewChain) {
-      throw rpcErrors.invalidParams({
-        message: `Invalid parameters: active chainId is different than the one provided.`,
+      throw providerErrors.unauthorized({
+        message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${caip2ChainId} to continue.`,
       });
     }
 
@@ -926,8 +842,8 @@ class WalletConnect2Session {
 
     if (!isAllowedChainId) {
       DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
-      throw rpcErrors.invalidParams({
-        message: `Invalid parameters: active chainId is different than the one provided.`,
+      throw providerErrors.unauthorized({
+        message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${caip2ChainId} to continue.`,
       });
     }
 
@@ -1024,8 +940,6 @@ class WalletConnect2Session {
   };
 
   removeListeners = async () => {
-    this.storeUnsubscribe?.();
-    this.storeUnsubscribe = null;
     this.backgroundBridge.onDisconnect();
   };
 

@@ -8,7 +8,6 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
 import { selectEvmChainId } from '../../selectors/networkController';
-import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { Platform, Linking } from 'react-native';
 import Routes from '../../../app/constants/navigation/Routes';
 import Device from '../../util/device';
@@ -557,122 +556,6 @@ describe('WalletConnect2Session', () => {
     session.updateSession = originalUpdateSession;
   });
 
-  it('subscribes to chain changes', async () => {
-    // eslint-disable-next-line no-empty-function
-    let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation(
-      (callback: () => void) => {
-        subscriberCallback = callback;
-      },
-    );
-
-    // Mock initial chain ID
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
-    session = new WalletConnect2Session({
-      web3Wallet: mockClient,
-      session: mockSession,
-      channelId: 'test-channel',
-      deeplink: true,
-      navigation: mockNavigation,
-    });
-
-    const handleChainChangeSpy = jest.spyOn(
-      session as any,
-      'handleChainChange',
-    );
-
-    // Change the chain ID
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
-
-    subscriberCallback();
-
-    await new Promise(process.nextTick);
-
-    expect(handleChainChangeSpy).toHaveBeenCalledWith(2);
-
-    subscriberCallback();
-    expect(handleChainChangeSpy).toHaveBeenCalledTimes(1);
-
-    handleChainChangeSpy.mockRestore();
-  });
-
-  it('does not trigger handleChainChange when handler is already running', async () => {
-    // eslint-disable-next-line no-empty-function
-    let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation(
-      (callback: () => void) => {
-        subscriberCallback = callback;
-      },
-    );
-
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
-    session = new WalletConnect2Session({
-      web3Wallet: mockClient,
-      session: mockSession,
-      channelId: 'test-channel',
-      deeplink: true,
-      navigation: mockNavigation,
-    });
-
-    (session as any).isHandlingChainChange = true;
-
-    const handleChainChangeSpy = jest.spyOn(
-      session as any,
-      'handleChainChange',
-    );
-
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
-
-    subscriberCallback();
-
-    await new Promise(process.nextTick);
-
-    expect(handleChainChangeSpy).not.toHaveBeenCalled();
-
-    handleChainChangeSpy.mockRestore();
-  });
-
-  it('logs warning on handleChainChange error', async () => {
-    // eslint-disable-next-line no-empty-function
-    let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation(
-      (callback: () => void) => {
-        subscriberCallback = callback;
-      },
-    );
-
-    const devLoggerSpy = jest.spyOn(DevLogger, 'log').mockImplementation();
-
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
-    session = new WalletConnect2Session({
-      web3Wallet: mockClient,
-      session: mockSession,
-      channelId: 'test-channel',
-      deeplink: true,
-      navigation: mockNavigation,
-    });
-
-    const error = new Error('Chain change failed');
-    jest
-      .spyOn(session as any, 'handleChainChange')
-      .mockRejectedValueOnce(error);
-
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
-
-    subscriberCallback();
-
-    await new Promise(process.nextTick);
-
-    expect(devLoggerSpy).toHaveBeenCalledWith(
-      'WC2::store.subscribe Error handling chain change:',
-      error,
-    );
-
-    devLoggerSpy.mockRestore();
-  });
   describe('redirect', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -1103,7 +986,7 @@ describe('WalletConnect2Session', () => {
           'eip155:1234567890abcdef1234567890abcdef12345678',
         ),
       ).rejects.toThrow(
-        'Invalid parameters: active chainId is different than the one provided.',
+        'Requested chain is not permitted for this WalletConnect session.',
       );
     });
 
