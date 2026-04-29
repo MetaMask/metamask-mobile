@@ -40,6 +40,11 @@ module.exports = {
         },
       },
     ],
+    // NOTE: react-native-reanimated/plugin must be listed LAST.
+    // Required by reanimated v3 to compile `'worklet'` directives; without it,
+    // gesture-handler worklets silently no-op on iOS Fabric and GestureDetector
+    // children (e.g. WebView) render at 0x0 (white screen).
+    'react-native-reanimated/plugin',
   ],
   overrides: [
     {
