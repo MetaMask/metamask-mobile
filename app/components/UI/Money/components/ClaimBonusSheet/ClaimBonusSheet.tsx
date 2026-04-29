@@ -38,9 +38,6 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { MUSD_TOKEN } from '../../../Earn/constants/musd';
-import { LINEA_MUSD_ASSET_FOR_MERKL } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
-import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
-import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { RootState } from '../../../../../reducers';
 import { Hex } from '@metamask/utils';
 import styleSheet from './ClaimBonusSheet.styles';
@@ -49,12 +46,17 @@ import { ClaimBonusSheetTestIds } from './ClaimBonusSheet.testIds';
 const CLAIM_CHAIN_ID = CHAIN_IDS.LINEA_MAINNET as Hex;
 
 export interface ClaimBonusSheetRouteParams {
+  /** Claimable reward, formatted as a numeric mUSD string (e.g. "3.65"). */
+  claimableReward: string | null;
   /**
-   * Analytics location of the surface that opened the sheet. Forwarded to
-   * `useMerklBonusClaim` so claim CTAs from the Wallet Home Cash row vs. the
-   * Money Hub bonus card report distinct origins.
+   * Caller-supplied claim dispatcher. The sheet must invoke the *parent's*
+   * `claimRewards` rather than calling its own `useMerklBonusClaim` instance,
+   * otherwise the post-claim session lock — set via setState inside the
+   * dispatcher — is lost when the sheet unmounts before the tx resolves, and
+   * the parent CTAs would re-enable themselves before the next rewards
+   * refetch lands, allowing duplicate claim attempts.
    */
-  location?: string;
+  onConfirm: () => void;
 }
 
 const RowText: React.FC<{
@@ -90,19 +92,13 @@ const ClaimBonusSheet: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: ClaimBonusSheetRouteParams }, 'params'>>();
-  const location =
-    route.params?.location ??
-    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION;
+  const claimableReward = route.params?.claimableReward ?? null;
+  const onConfirm = route.params?.onConfirm;
   const { styles } = useStyles(styleSheet, {});
 
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const lineaNetwork = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, CLAIM_CHAIN_ID),
-  );
-
-  const { claimableReward, claimRewards } = useMerklBonusClaim(
-    LINEA_MUSD_ASSET_FOR_MERKL,
-    location,
   );
 
   const handleGoBack = useCallback(() => {
@@ -115,9 +111,9 @@ const ClaimBonusSheet: React.FC = () => {
 
   const handleConfirm = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      claimRewards().catch(() => undefined);
+      onConfirm?.();
     });
-  }, [claimRewards]);
+  }, [onConfirm]);
 
   const networkImageSource = getNetworkImageSource({ chainId: CLAIM_CHAIN_ID });
   const networkName = lineaNetwork?.name ?? strings('networks.linea_mainnet');

@@ -68,7 +68,13 @@ const MusdAggregatedRow = () => {
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
         params: {
-          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+          claimableReward,
+          // Run claim through this row's hook instance so the post-claim
+          // session lock is set on the still-mounted parent, not on the
+          // sheet (which unmounts before the tx resolves).
+          onConfirm: () => {
+            claimRewards().catch(() => undefined);
+          },
         },
       });
       return;
@@ -79,6 +85,7 @@ const MusdAggregatedRow = () => {
     navigation,
     isMoneyHomeScreenEnabled,
     claimRewards,
+    claimableReward,
   ]);
 
   const { navigateToCash: handleTokenRowPress } = useCashNavigation();

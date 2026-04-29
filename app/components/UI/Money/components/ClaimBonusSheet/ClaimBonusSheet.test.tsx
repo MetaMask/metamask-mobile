@@ -3,27 +3,22 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ClaimBonusSheet from './ClaimBonusSheet';
 import { ClaimBonusSheetTestIds } from './ClaimBonusSheet.testIds';
-import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockClaimRewards = jest.fn(() => Promise.resolve(undefined));
+const mockOnConfirm = jest.fn();
 
-const mockRouteParams: { location?: string } = {};
+const mockRouteParams: {
+  claimableReward: string | null;
+  onConfirm: () => void;
+} = { claimableReward: '3.65', onConfirm: () => mockOnConfirm() };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useRoute: () => ({ params: mockRouteParams }),
 }));
-
-jest.mock(
-  '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
-  () => ({
-    useMerklBonusClaim: jest.fn(),
-  }),
-);
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -70,22 +65,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
-
-const baseClaimData = {
-  claimableReward: '3.65',
-  lifetimeBonusClaimed: '0.00',
-  hasPendingClaim: false,
-  isClaiming: false,
-  error: null,
-  claimRewards: mockClaimRewards,
-  refetch: jest.fn(),
-};
-
 describe('ClaimBonusSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMerklBonusClaim.mockReturnValue(baseClaimData);
+    mockRouteParams.claimableReward = '3.65';
+    mockRouteParams.onConfirm = () => mockOnConfirm();
   });
 
   it('renders the title, account, network and amount', () => {
@@ -106,27 +90,24 @@ describe('ClaimBonusSheet', () => {
     );
   });
 
-  it('triggers claimRewards on Confirm and closes the sheet', () => {
+  it('invokes the onConfirm route param on Confirm and closes the sheet', () => {
     const { getByTestId } = renderWithProvider(<ClaimBonusSheet />);
     fireEvent.press(getByTestId(ClaimBonusSheetTestIds.CONFIRM_BUTTON));
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockClaimRewards).toHaveBeenCalledTimes(1);
+    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the sheet without claiming when Cancel is pressed', () => {
+  it('closes the sheet without invoking onConfirm when Cancel is pressed', () => {
     const { getByTestId } = renderWithProvider(<ClaimBonusSheet />);
     fireEvent.press(getByTestId(ClaimBonusSheetTestIds.CANCEL_BUTTON));
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockClaimRewards).not.toHaveBeenCalled();
+    expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 
   it('disables Confirm when there is no claimable reward', () => {
-    mockUseMerklBonusClaim.mockReturnValue({
-      ...baseClaimData,
-      claimableReward: null,
-    });
+    mockRouteParams.claimableReward = null;
     const { getByTestId } = renderWithProvider(<ClaimBonusSheet />);
     fireEvent.press(getByTestId(ClaimBonusSheetTestIds.CONFIRM_BUTTON));
-    expect(mockClaimRewards).not.toHaveBeenCalled();
+    expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 });

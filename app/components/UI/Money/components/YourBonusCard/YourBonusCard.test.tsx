@@ -135,7 +135,10 @@ describe('YourBonusCard', () => {
     fireEvent.press(getByTestId(YourBonusCardTestIds.CLAIM_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
-      params: { location: 'money_hub' },
+      params: {
+        claimableReward: '3.65',
+        onConfirm: expect.any(Function),
+      },
     });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

@@ -39,11 +39,16 @@ const YourBonusCard: React.FC = () => {
   const formatFiat = useFiatFormatter();
   const trackClaimBonusClicked = useTrackClaimBonusClicked();
 
-  const { claimableReward, lifetimeBonusClaimed, hasPendingClaim, isClaiming } =
-    useMerklBonusClaim(
-      LINEA_MUSD_ASSET_FOR_MERKL,
-      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
-    );
+  const {
+    claimableReward,
+    lifetimeBonusClaimed,
+    hasPendingClaim,
+    isClaiming,
+    claimRewards,
+  } = useMerklBonusClaim(
+    LINEA_MUSD_ASSET_FOR_MERKL,
+    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+  );
 
   const { fiatBalanceAggregated } = useMusdBalance();
 
@@ -77,10 +82,16 @@ const YourBonusCard: React.FC = () => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
       params: {
-        location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+        claimableReward,
+        // Run claim through this card's hook instance so the post-claim
+        // session lock is set here (still mounted), not on the sheet that
+        // unmounts before the tx resolves.
+        onConfirm: () => {
+          claimRewards().catch(() => undefined);
+        },
       },
     });
-  }, [trackClaimBonusClicked, navigation]);
+  }, [trackClaimBonusClicked, navigation, claimableReward, claimRewards]);
 
   // Hide card when user has no claim history and nothing to claim. Note that
   // useMerklRewards sets lifetimeBonusClaimed to '0.00' for eligible users

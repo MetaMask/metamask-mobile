@@ -120,7 +120,10 @@ describe('MusdAggregatedRow', () => {
     fireEvent.press(screen.getByText('Claim 3% bonus'));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
-      params: { location: 'home_section' },
+      params: {
+        claimableReward: '0.02',
+        onConfirm: expect.any(Function),
+      },
     });
     expect(mockClaimRewards).not.toHaveBeenCalled();
   });
