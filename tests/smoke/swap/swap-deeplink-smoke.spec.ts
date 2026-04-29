@@ -62,7 +62,10 @@ describe(
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          await new Promise((r) => setTimeout(r, 1000));
           await device.launchApp({
+            newInstance: false,
             url: SWAP_DEEPLINK_FULL,
           });
 
@@ -121,7 +124,10 @@ describe(
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          await new Promise((r) => setTimeout(r, 1000));
           await device.launchApp({
+            newInstance: false,
             url: SWAP_DEEPLINK_BASE,
           });
 
@@ -175,7 +181,10 @@ describe(
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          await new Promise((r) => setTimeout(r, 1000));
           await device.launchApp({
+            newInstance: false,
             url: invalidDeeplink,
           });
 
