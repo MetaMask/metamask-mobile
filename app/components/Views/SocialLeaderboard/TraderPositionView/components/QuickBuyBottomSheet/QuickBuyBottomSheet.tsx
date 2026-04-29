@@ -12,7 +12,11 @@ import type { Position } from '@metamask/social-controllers';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 // `react-native-gesture-handler` ScrollView is required for scrolling on
 // Android inside a gesture-handler-managed BottomSheet.
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
+import Animated, {
+  type AnimatedRef,
+  useAnimatedRef,
+} from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
@@ -37,13 +41,22 @@ interface InnerProps {
   onClose: () => void;
 }
 
+// `Animated.createAnimatedComponent` lets us attach `useAnimatedRef` to the
+// gesture-handler ScrollView so worklets running on the UI thread can drive
+// `scrollTo` in lockstep with the Reanimated height animations.
+const AnimatedScrollView = Animated.createAnimatedComponent(
+  GestureHandlerScrollView,
+);
+
+export type QuickBuyScrollAnimatedRef = AnimatedRef<GestureHandlerScrollView>;
+
 interface ContentProps extends InnerProps {
   /**
-   * Invoked by the footer whenever the Pay-with picker or Total breakdown
-   * expands, so the ScrollView can scroll to the bottom and keep the Buy
-   * button visible.
+   * Animated ref to the parent ScrollView. The footer's `useAnimatedReaction`
+   * uses this to call Reanimated's `scrollTo` synchronously while the picker
+   * or Total breakdown grows, so the Buy button stays pinned at the bottom.
    */
-  onContentExpand: () => void;
+  scrollAnimatedRef: QuickBuyScrollAnimatedRef;
 }
 
 /**
@@ -54,7 +67,7 @@ interface ContentProps extends InnerProps {
 const QuickBuyBottomSheetContent: React.FC<ContentProps> = ({
   position,
   onClose,
-  onContentExpand,
+  scrollAnimatedRef,
 }) => {
   const { colors } = useTheme();
   const {
@@ -143,7 +156,7 @@ const QuickBuyBottomSheetContent: React.FC<ContentProps> = ({
             getButtonLabel={getButtonLabel}
             onPresetPress={handlePresetPress}
             onConfirm={handleConfirm}
-            onContentExpand={onContentExpand}
+            scrollAnimatedRef={scrollAnimatedRef}
             colors={colors}
           />
         </>
@@ -157,11 +170,6 @@ const QuickBuyBottomSheetContent: React.FC<ContentProps> = ({
  * so the animation runs on an idle JS thread. The heavy content tree is
  * mounted after the sheet reports its open animation has finished.
  */
-// Total expansion time = height animation duration + a small buffer so we
-// catch the final `onContentSizeChange` after the animation settles. Must
-// stay slightly above the matching value in QuickBuyFooter.
-const FOLLOW_BOTTOM_DURATION_MS = 280;
-
 const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   position,
   marketCap,
@@ -169,15 +177,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
 }) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
-  // While `true`, every content-size change while the height animation is
-  // running snaps the scroll offset to the new bottom. This makes the content
-  // visually grow upward, leaving the Buy button pinned at the bottom of the
-  // sheet during the transition.
-  const isFollowingBottomRef = useRef(false);
-  const followBottomTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const scrollAnimatedRef = useAnimatedRef<GestureHandlerScrollView>();
   const [isContentReady, setIsContentReady] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -187,33 +187,8 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
     });
   }, []);
 
-  useEffect(
-    () => () => {
-      if (followBottomTimeoutRef.current) {
-        clearTimeout(followBottomTimeoutRef.current);
-      }
-    },
-    [],
-  );
-
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
-
-  const handleContentExpand = useCallback(() => {
-    isFollowingBottomRef.current = true;
-    if (followBottomTimeoutRef.current) {
-      clearTimeout(followBottomTimeoutRef.current);
-    }
-    followBottomTimeoutRef.current = setTimeout(() => {
-      isFollowingBottomRef.current = false;
-      followBottomTimeoutRef.current = null;
-    }, FOLLOW_BOTTOM_DURATION_MS);
-  }, []);
-
-  const handleContentSizeChange = useCallback(() => {
-    if (!isFollowingBottomRef.current) return;
-    scrollViewRef.current?.scrollToEnd({ animated: false });
   }, []);
 
   return (
@@ -234,24 +209,29 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
        * `flexShrink: 1` lets this ScrollView size to its content normally,
        * but compress within the cap so its inner content scrolls instead of
        * overflowing the sheet.
+       *
+       * The footer drives `scrollTo` on this animated ref synchronously with
+       * its height animations (UI thread), so the content visually grows
+       * upward and the Buy button stays pinned during the transition without
+       * the JS-thread lag a `scrollToEnd` from `onContentSizeChange` would
+       * incur.
        */}
-      <ScrollView
-        ref={scrollViewRef}
+      <AnimatedScrollView
+        ref={scrollAnimatedRef}
         style={tw.style('shrink')}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        onContentSizeChange={handleContentSizeChange}
       >
         {isContentReady ? (
           <QuickBuyBottomSheetContent
             position={position}
             onClose={onClose}
-            onContentExpand={handleContentExpand}
+            scrollAnimatedRef={scrollAnimatedRef}
           />
         ) : (
           <QuickBuyBottomSheetSkeleton />
         )}
-      </ScrollView>
+      </AnimatedScrollView>
     </BottomSheet>
   );
 };

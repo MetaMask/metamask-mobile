@@ -2,10 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { type LayoutChangeEvent, TouchableOpacity, View } from 'react-native';
 import Animated, {
   Easing,
+  scrollTo,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import type { QuickBuyScrollAnimatedRef } from './QuickBuyBottomSheet';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -72,11 +75,12 @@ interface QuickBuyFooterProps {
   onPresetPress: (preset: string) => void;
   onConfirm: () => Promise<void>;
   /**
-   * Called whenever the Pay-with picker or Total breakdown transitions to
-   * expanded, so the parent ScrollView can scroll to the bottom and keep the
-   * Buy button visible.
+   * Animated ref to the parent ScrollView. Used by `useAnimatedReaction` to
+   * drive `scrollTo` on the UI thread in lockstep with the picker/total
+   * height animations, so the Buy button stays pinned at the bottom of the
+   * sheet while content grows above it.
    */
-  onContentExpand?: () => void;
+  scrollAnimatedRef?: QuickBuyScrollAnimatedRef;
   colors: { icon: { alternative: string } };
 }
 
@@ -102,7 +106,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   getButtonLabel,
   onPresetPress,
   onConfirm,
-  onContentExpand,
+  scrollAnimatedRef,
   colors,
 }) => {
   const tw = useTailwind();
@@ -188,24 +192,26 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
     );
   }, [isTotalExpanded, totalBreakdownHeight]);
 
-  // Notify the parent ScrollView that an expandable section is opening, so it
-  // can pin its scroll offset to the bottom for the duration of the height
-  // animation. Each section has its own effect so that toggling one doesn't
-  // re-arm following caused by the other.
-  // We fire immediately (no delay): the parent scrolls to the new bottom on
-  // every `onContentSizeChange` while following, so the content grows upward
-  // and the Buy button stays in place during the transition.
-  useEffect(() => {
-    if (isSourcePickerOpen) {
-      onContentExpand?.();
-    }
-  }, [isSourcePickerOpen, onContentExpand]);
-
-  useEffect(() => {
-    if (isTotalExpanded) {
-      onContentExpand?.();
-    }
-  }, [isTotalExpanded, onContentExpand]);
+  // Drive the parent ScrollView's offset on the UI thread, in lockstep with
+  // the picker/total height animations. Calling `scrollTo` from inside a
+  // worklet that depends on the height shared values means the scroll snaps
+  // to the new bottom on the same frame the content grows — eliminating the
+  // 1-frame snap that a JS-thread `onContentSizeChange` → `scrollToEnd` round
+  // trip produces. The large `y` value is clamped natively to the current
+  // max content offset, so we always land exactly at the bottom.
+  useAnimatedReaction(
+    () => pickerHeight.value + totalBreakdownHeight.value,
+    (sum, prev) => {
+      // Only follow when content is growing (or on the first run, e.g. when
+      // the breakdown starts open). Shrinking is handled implicitly: native
+      // ScrollViews clamp the offset to the new max, keeping us at the
+      // bottom without an explicit scroll command.
+      if (prev !== null && sum <= prev) return;
+      if (!scrollAnimatedRef) return;
+      scrollTo(scrollAnimatedRef, 0, Number.MAX_SAFE_INTEGER, false);
+    },
+    [scrollAnimatedRef],
+  );
 
   const handleSourcePickerToggle = useCallback(() => {
     setIsSourcePickerOpen((prev) => !prev);
