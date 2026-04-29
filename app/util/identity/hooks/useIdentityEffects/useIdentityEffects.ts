@@ -1,7 +1,11 @@
 import { useEffect } from 'react';
 import { useAccountSyncing } from '../useAccountSyncing';
 import { useContactSyncing } from '../useContactSyncing';
-import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
+import {
+  useAutoSignIn,
+  useAutoSignOut,
+  useAutoProfilePairing,
+} from '../useAuthentication';
 import { useBrazeIdentity } from '../useBrazeIdentity';
 
 /**
@@ -16,6 +20,8 @@ export const useIdentityEffects = () => {
     useContactSyncing();
   const { autoSignIn, shouldAutoSignIn } = useAutoSignIn();
   const { autoSignOut, shouldAutoSignOut } = useAutoSignOut();
+  const { autoProfilePairing, shouldAutoProfilePairing } =
+    useAutoProfilePairing();
 
   useBrazeIdentity();
 
@@ -51,4 +57,10 @@ export const useIdentityEffects = () => {
       autoSignOut();
     }
   }, [shouldAutoSignOut, autoSignOut]);
+
+  useEffect(() => {
+    if (shouldAutoProfilePairing) {
+      autoProfilePairing();
+    }
+  }, [shouldAutoProfilePairing, autoProfilePairing]);
 };

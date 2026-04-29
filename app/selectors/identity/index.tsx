@@ -24,6 +24,19 @@ export const selectIsSignedIn = createSelector(
     authenticationControllerState.isSignedIn,
 );
 
+/**
+ * Selector to determine if profile pairing has completed at least once on this device.
+ *
+ * Monotonic flag — only ever transitions false → true, never reset.
+ * Used by `useAutoProfilePairing` to decide whether the initial pairing call
+ * is still needed after install/upgrade.
+ */
+export const selectHasPairedAtLeastOnce = createSelector(
+  selectAuthenticationControllerState,
+  (authenticationControllerState: AuthenticationState) =>
+    authenticationControllerState.hasPairedAtLeastOnce ?? false,
+);
+
 // User Storage
 export const selectIsBackupAndSyncEnabled = createSelector(
   selectUserStorageControllerState,
