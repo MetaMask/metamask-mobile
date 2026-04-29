@@ -10,7 +10,11 @@ jest.mock('react-native-reanimated', () => {
   const { useRef } = jest.requireActual('react');
   return {
     __esModule: true,
-    default: { View },
+    default: {
+      View,
+      createAnimatedComponent: (c: React.ComponentType) => c,
+    },
+    createAnimatedComponent: (c: React.ComponentType) => c,
     useSharedValue: (v: number) => {
       const ref = useRef({ value: v });
       return ref.current;
