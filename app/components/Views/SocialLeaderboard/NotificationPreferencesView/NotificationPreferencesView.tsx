@@ -10,6 +10,7 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import {
   Box,
   Text,
@@ -29,6 +30,7 @@ import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { fireSwitchHaptic } from '../../../../util/haptics';
 import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferencesView.testIds';
 import {
   useNotificationPreferences,
@@ -194,6 +196,54 @@ const NotificationPreferencesView = () => {
   // the preferences GET is in flight.
   const globalOff = isLoadingPreferences || !preferences.enabled;
 
+  // Master switch is the gating control for the whole feature, so it should
+  // feel weightier than the native iOS UISwitch tick — `override: true`
+  // ensures the Medium impact also fires on iOS. Skipped while preferences
+  // are still loading even though the switch is hidden behind the skeleton,
+  // to keep the haptic and the persisted call symmetric.
+  const handleSetEnabled = useCallback(
+    (value: boolean) => {
+      if (isLoadingPreferences) {
+        return Promise.resolve();
+      }
+      fireSwitchHaptic(ImpactFeedbackStyle.Medium, { override: true });
+      return setEnabled(value);
+    },
+    [isLoadingPreferences, setEnabled],
+  );
+
+  // Per-trader switch is a subordinate toggle; rely on iOS UISwitch's native
+  // tick on iOS, fire a Light impact only on Android where there is none.
+  // The Switch is also rendered with `disabled={globalOff}`, but we guard
+  // here too so the haptic never leaks through if the callback fires while
+  // the row is disabled (mid-interaction state flips, a11y taps, etc.).
+  const handleToggleTrader = useCallback(
+    (traderId: string) => {
+      if (globalOff) {
+        return Promise.resolve();
+      }
+      fireSwitchHaptic(ImpactFeedbackStyle.Light);
+      return toggleTraderNotification(traderId);
+    },
+    [globalOff, toggleTraderNotification],
+  );
+
+  // Threshold rows are TouchableOpacity (no native iOS haptic), so fire on
+  // both platforms — but only when the value actually changes, to avoid a
+  // phantom buzz when the user re-taps the already-selected option. Also
+  // guarded against firing while the section is disabled by the master
+  // toggle, even though the row's TouchableOpacity is itself `disabled`.
+  const handleSetTxAmountLimit = useCallback(
+    (value: TxAmountThreshold) => {
+      if (globalOff || value === preferences.txAmountLimit) {
+        return Promise.resolve();
+      }
+      impactAsync(ImpactFeedbackStyle.Light);
+      return setTxAmountLimit(value);
+    },
+    [globalOff, preferences.txAmountLimit, setTxAmountLimit],
+  );
+
   const showFollowedError =
     Boolean(followedError) && followedTraders.length === 0;
   const showFollowedLoading =
@@ -252,7 +302,7 @@ const NotificationPreferencesView = () => {
               </Text>
               <Switch
                 value={preferences.enabled}
-                onValueChange={setEnabled}
+                onValueChange={handleSetEnabled}
                 trackColor={{
                   true: colors.primary.default,
                   false: colors.border.muted,
@@ -267,7 +317,7 @@ const NotificationPreferencesView = () => {
 
             <ThresholdRadioList
               selected={(preferences.txAmountLimit ?? 500) as TxAmountThreshold}
-              onChange={setTxAmountLimit}
+              onChange={handleSetTxAmountLimit}
               isDisabled={globalOff}
               currency={currentCurrency}
               labelText={strings(
@@ -346,7 +396,7 @@ const NotificationPreferencesView = () => {
               avatarUri={trader.avatarUri}
               isEnabled={isTraderNotificationEnabled(trader.id)}
               isDisabled={globalOff}
-              onToggle={toggleTraderNotification}
+              onToggle={handleToggleTrader}
               onPress={handleTraderPress}
             />
           ))

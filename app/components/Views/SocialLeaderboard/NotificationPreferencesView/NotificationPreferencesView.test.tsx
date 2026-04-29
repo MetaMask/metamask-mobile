@@ -1,5 +1,7 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
@@ -57,6 +59,15 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+  },
+}));
+
 // ---------------------------------------------------------------------------
 // Shared mock primitives
 // ---------------------------------------------------------------------------
@@ -71,6 +82,7 @@ const mockUseNotificationPreferences =
 const mockSelectCurrentCurrency = selectCurrentCurrency as jest.MockedFunction<
   typeof selectCurrentCurrency
 >;
+const mockImpactAsync = impactAsync as jest.MockedFunction<typeof impactAsync>;
 
 const makeTrader = (
   id: string,
@@ -516,6 +528,202 @@ describe('NotificationPreferencesView', () => {
       );
 
       expect(setEnabled).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('haptic feedback', () => {
+    const originalPlatform = Platform.OS;
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('fires a medium impact when toggling the master switch on iOS', () => {
+      Platform.OS = 'ios';
+      renderScreen();
+
+      fireEvent(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+        ),
+        'valueChange',
+        false,
+      );
+
+      expect(mockImpactAsync).toHaveBeenCalledTimes(1);
+      expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
+    it('fires a medium impact when toggling the master switch on Android', () => {
+      Platform.OS = 'android';
+      renderScreen();
+
+      fireEvent(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+        ),
+        'valueChange',
+        false,
+      );
+
+      expect(mockImpactAsync).toHaveBeenCalledTimes(1);
+      expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
+    it('fires a light impact when toggling a per-trader switch on Android', () => {
+      Platform.OS = 'android';
+      renderScreen();
+
+      fireEvent(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
+        ),
+        'valueChange',
+        false,
+      );
+
+      expect(mockImpactAsync).toHaveBeenCalledTimes(1);
+      expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+    });
+
+    it('does not fire a haptic when toggling a per-trader switch on iOS', () => {
+      Platform.OS = 'ios';
+      renderScreen();
+
+      fireEvent(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
+        ),
+        'valueChange',
+        false,
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+    });
+
+    it('fires a light impact when changing the threshold to a new value', () => {
+      Platform.OS = 'ios';
+      renderScreen();
+
+      fireEvent.press(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(100),
+        ),
+      );
+
+      expect(mockImpactAsync).toHaveBeenCalledTimes(1);
+      expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+    });
+
+    it('does not fire a haptic when re-tapping the already-selected threshold', () => {
+      const setTxAmountLimit = jest.fn().mockResolvedValue(undefined);
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({
+          preferences: makePreferences({ txAmountLimit: 500 }),
+          setTxAmountLimit,
+        }),
+      );
+
+      renderScreen();
+
+      fireEvent.press(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(500),
+        ),
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(setTxAmountLimit).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic when pressing the back button', () => {
+      renderScreen();
+
+      fireEvent.press(
+        screen.getByTestId(NotificationPreferencesViewSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic when pressing a trader row to navigate to the profile', () => {
+      renderScreen();
+
+      fireEvent.press(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADER_PRESS('trader-1'),
+        ),
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic when toggling a per-trader switch while the master toggle is off', () => {
+      const toggleTraderNotification = jest.fn().mockResolvedValue(undefined);
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({
+          preferences: makePreferences({ enabled: false }),
+          toggleTraderNotification,
+        }),
+      );
+
+      renderScreen();
+
+      fireEvent(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.TRADER_TOGGLE('trader-1'),
+        ),
+        'valueChange',
+        false,
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(toggleTraderNotification).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic when tapping a threshold while the master toggle is off', () => {
+      const setTxAmountLimit = jest.fn().mockResolvedValue(undefined);
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({
+          preferences: makePreferences({ enabled: false }),
+          setTxAmountLimit,
+        }),
+      );
+
+      renderScreen();
+
+      fireEvent.press(
+        screen.getByTestId(
+          NotificationPreferencesViewSelectorsIDs.THRESHOLD_OPTION(100),
+        ),
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(setTxAmountLimit).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic when the master toggle handler is invoked while preferences are loading', () => {
+      const setEnabled = jest.fn().mockResolvedValue(undefined);
+      mockUseNotificationPreferences.mockReturnValue(
+        makeUseNotificationPreferencesResult({
+          isLoading: true,
+          preferences: makePreferences({ enabled: true }),
+          setEnabled,
+        }),
+      );
+
+      renderScreen();
+
+      // The Switch is hidden behind a skeleton during loading, so this is a
+      // belt-and-suspenders defense: if the handler ever gets invoked from
+      // a stale render or accessibility path, the haptic must stay silent.
+      expect(
+        screen.queryByTestId(
+          NotificationPreferencesViewSelectorsIDs.GLOBAL_TOGGLE,
+        ),
+      ).toBeNull();
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(setEnabled).not.toHaveBeenCalled();
     });
   });
 });

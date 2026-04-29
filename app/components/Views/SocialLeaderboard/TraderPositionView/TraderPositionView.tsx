@@ -9,6 +9,7 @@ import {
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import {
   Box,
   Button,
@@ -83,9 +84,15 @@ const TraderPositionView = () => {
   }, [navigation]);
 
   const handleBuyPress = useCallback(() => {
-    if (resolvedPosition) {
-      setIsQuickBuyVisible(true);
+    if (!resolvedPosition) {
+      return;
     }
+    // Primary CTA opening the buy flow — Medium impact mirrors the weight
+    // used for other elevated commit-style actions (Save, master toggle).
+    // The terminal Success/Error notification haptic is fired later in
+    // useQuickBuyBottomSheet once the transaction resolves.
+    impactAsync(ImpactFeedbackStyle.Medium);
+    setIsQuickBuyVisible(true);
   }, [resolvedPosition]);
 
   const handleQuickBuyClose = useCallback(() => {
