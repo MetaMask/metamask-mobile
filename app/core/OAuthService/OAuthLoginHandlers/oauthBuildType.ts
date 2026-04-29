@@ -2,6 +2,24 @@ import AppConstants from '../../AppConstants';
 import { isQa } from '../../../util/test/utils';
 import { BUILD_TYPE, OAUTH_CONFIG } from './config';
 
+function oauthEnvironmentVariant(
+  isQaChannel: boolean,
+  isDev: boolean,
+  variants: {
+    uat: BUILD_TYPE;
+    dev: BUILD_TYPE;
+    prod: BUILD_TYPE;
+  },
+): BUILD_TYPE {
+  if (isQaChannel) {
+    return variants.uat;
+  }
+  if (isDev) {
+    return variants.dev;
+  }
+  return variants.prod;
+}
+
 /**
  * Maps MetaMask build type + dev/QA flags to OAuth config keys.
  * @param buildType - e.g. main, qa, flask
@@ -21,17 +39,17 @@ export function buildTypeMapping(
     case 'qa':
       return BUILD_TYPE.main_uat;
     case 'main':
-      return isQaChannel
-        ? BUILD_TYPE.main_uat
-        : isDev
-          ? BUILD_TYPE.main_dev
-          : BUILD_TYPE.main_prod;
+      return oauthEnvironmentVariant(isQaChannel, isDev, {
+        uat: BUILD_TYPE.main_uat,
+        dev: BUILD_TYPE.main_dev,
+        prod: BUILD_TYPE.main_prod,
+      });
     case 'flask':
-      return isQaChannel
-        ? BUILD_TYPE.flask_uat
-        : isDev
-          ? BUILD_TYPE.flask_dev
-          : BUILD_TYPE.flask_prod;
+      return oauthEnvironmentVariant(isQaChannel, isDev, {
+        uat: BUILD_TYPE.flask_uat,
+        dev: BUILD_TYPE.flask_dev,
+        prod: BUILD_TYPE.flask_prod,
+      });
     default:
       return BUILD_TYPE.development;
   }
