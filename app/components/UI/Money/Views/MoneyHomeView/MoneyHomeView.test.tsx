@@ -101,6 +101,38 @@ jest.mock('../../components/YourBonusCard', () => ({
   default: () => null,
 }));
 
+const mockUseMusdBalance = jest.fn(() => ({
+  hasMusdBalanceOnAnyChain: false,
+  hasMusdBalanceOnChain: () => false,
+  tokenBalanceByChain: {},
+  fiatBalanceByChain: {},
+  fiatBalanceFormattedByChain: {},
+  tokenBalanceAggregated: '0',
+  fiatBalanceAggregated: undefined,
+  fiatBalanceAggregatedFormatted: '$0.00',
+}));
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: () => mockUseMusdBalance(),
+}));
+
+const mockUseMerklBonusClaim = jest.fn(() => ({
+  claimableReward: null,
+  hasPendingClaim: false,
+  isClaiming: false,
+  claimRewards: jest.fn(),
+  lifetimeBonusClaimed: null,
+}));
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
+  () => ({
+    useMerklBonusClaim: () => mockUseMerklBonusClaim(),
+  }),
+);
+
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+}));
+
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
@@ -112,6 +144,13 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
     ),
   };
 });
+jest.mock(
+  '../../components/MoneyConvertStablecoins/MoneyConvertStablecoins',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
@@ -486,6 +525,49 @@ describe('MoneyHomeView', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+  });
+
+  describe('no-eligible-stablecoins state', () => {
+    let originalTokens: typeof mockConversionTokens;
+
+    beforeEach(() => {
+      originalTokens = mockConversionTokens.slice();
+      mockConversionTokens.length = 0;
+    });
+
+    afterEach(() => {
+      mockConversionTokens.length = 0;
+      mockConversionTokens.push(...originalTokens);
+    });
+
+    it('renders the Your balance section instead of the milestone summary', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId('money-balance-list-container')).toBeOnTheScreen();
+      expect(queryByTestId('money-balance-summary-container')).toBeNull();
+    });
+
+    it('renders the Swap/Buy footer instead of the Add money button', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId('money-footer-swap-button')).toBeOnTheScreen();
+      expect(getByTestId('money-footer-buy-button')).toBeOnTheScreen();
+      expect(queryByTestId('money-footer-add-money-button')).toBeNull();
+    });
+
+    it('navigates to the Bridge view when Swap is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId('money-footer-swap-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BRIDGE_VIEW,
       });
     });
   });

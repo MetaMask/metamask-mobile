@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import BigNumber from 'bignumber.js';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
+import MoneyBalanceList from '../../components/MoneyBalanceList';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
@@ -15,12 +17,17 @@ import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
+import MoneyConvertStablecoins from '../../components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import { hasConvertibleTokensWithBalance } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
+import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
+import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
@@ -28,7 +35,10 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
+import {
+  LINEA_MUSD_ASSET_FOR_MERKL,
+  MUSD_MAINNET_ASSET_FOR_DETAILS,
+} from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
@@ -62,6 +72,17 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const { hasMusdBalanceOnAnyChain } = useMusdBalance();
+  const { lifetimeBonusClaimed } = useMerklBonusClaim(
+    LINEA_MUSD_ASSET_FOR_MERKL,
+    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+  );
+  const { goToBuy } = useRampNavigation();
+
+  const hasEligibleStablecoins = conversionTokens.length > 0;
+  const hasLifetimeBonus =
+    !!lifetimeBonusClaimed && new BigNumber(lifetimeBonusClaimed).gt(0);
+  const isReturningUser = hasMusdBalanceOnAnyChain || hasLifetimeBonus;
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -79,6 +100,14 @@ const MoneyHomeView = () => {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
   }, [navigation]);
+  const handleSwapPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+    });
+  }, [navigation]);
+  const handleBuyPress = useCallback(() => {
+    goToBuy();
+  }, [goToBuy]);
   const handleTransferPress = displayUnderConstructionAlert;
   const handleCardPress = displayUnderConstructionAlert;
   const handleApyInfoPress = displayUnderConstructionAlert;
@@ -135,6 +164,47 @@ const MoneyHomeView = () => {
   // TODO: Remove before launch
   // Useful for testing how zero and non-zero APYs are handled quickly.
   const DEV_APY = __DEV__ ? 4 : vaultApyQuery.data?.apy;
+
+  if (!hasEligibleStablecoins) {
+    return (
+      <Box
+        style={[styles.safeArea, { paddingTop: insets.top }]}
+        twClassName="flex-1 bg-default"
+        testID={MoneyHomeViewTestIds.CONTAINER}
+      >
+        <MoneyHeader
+          onBackPress={handleBackPress}
+          onMenuPress={handleMenuPress}
+        />
+        <ScrollView
+          testID={MoneyHomeViewTestIds.SCROLL_VIEW}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <MoneyBalanceList isReturningUser={isReturningUser} />
+          <Divider />
+          <YourBonusCard />
+          <MoneyConvertStablecoins
+            tokens={[]}
+            onMaxPress={() => undefined}
+            onEditPress={() => undefined}
+            onLearnMorePress={handleLearnMorePress}
+          />
+          <Divider />
+          <MoneyHowItWorks
+            apy={DEV_APY}
+            onHeaderPress={handleHowItWorksHeaderPress}
+            isLoading={vaultApyQuery.isLoading}
+          />
+        </ScrollView>
+        <MoneyFooter
+          variant="swap-buy"
+          onSwapPress={handleSwapPress}
+          onBuyPress={handleBuyPress}
+        />
+      </Box>
+    );
+  }
 
   return (
     <Box

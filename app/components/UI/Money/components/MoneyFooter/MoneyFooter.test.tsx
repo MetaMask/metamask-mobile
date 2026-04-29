@@ -35,4 +35,36 @@ describe('MoneyFooter', () => {
       fireEvent.press(getByTestId(MoneyFooterTestIds.ADD_MONEY_BUTTON));
     }).not.toThrow();
   });
+
+  describe('swap-buy variant', () => {
+    it('renders Swap and Buy buttons instead of Add money', () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoneyFooter variant="swap-buy" />,
+      );
+
+      expect(getByTestId(MoneyFooterTestIds.SWAP_BUTTON)).toBeOnTheScreen();
+      expect(getByTestId(MoneyFooterTestIds.BUY_BUTTON)).toBeOnTheScreen();
+      expect(queryByTestId(MoneyFooterTestIds.ADD_MONEY_BUTTON)).toBeNull();
+    });
+
+    it('calls onSwapPress when Swap button is pressed', () => {
+      const mockSwap = jest.fn();
+      const { getByTestId } = render(
+        <MoneyFooter variant="swap-buy" onSwapPress={mockSwap} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyFooterTestIds.SWAP_BUTTON));
+      expect(mockSwap).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onBuyPress when Buy button is pressed', () => {
+      const mockBuy = jest.fn();
+      const { getByTestId } = render(
+        <MoneyFooter variant="swap-buy" onBuyPress={mockBuy} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyFooterTestIds.BUY_BUTTON));
+      expect(mockBuy).toHaveBeenCalledTimes(1);
+    });
+  });
 });
