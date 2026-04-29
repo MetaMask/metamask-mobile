@@ -270,6 +270,9 @@ describe('useMoneyAccountBalance', () => {
       if (selector === selectNetworkConfigurations) {
         return MOCK_NETWORK_CONFIGURATIONS;
       }
+      if (selector === selectCurrentCurrency) {
+        return 'usd';
+      }
       return undefined;
     });
 
