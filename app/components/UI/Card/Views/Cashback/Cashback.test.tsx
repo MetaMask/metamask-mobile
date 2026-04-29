@@ -443,6 +443,41 @@ describe('Cashback Component', () => {
 
       expect(mockWithdraw).not.toHaveBeenCalled();
     });
+
+    it('shows the generic loading error instead of missing-funding warning when card home data failed to load', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render({
+        cardHomeData: null,
+        cardHomeDataStatus: 'error',
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByText('Failed to load cashback. Please try again.'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CashbackSelectors.DETAILS_CARD),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   describe('withdraw action', () => {

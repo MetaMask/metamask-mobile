@@ -90,8 +90,13 @@ const Cashback: React.FC = () => {
   const hasInsufficientBalance = balanceNum <= 0 || balanceNum <= feeNum;
   const isFundingStatusLoading =
     cardHomeDataStatus === 'idle' || cardHomeDataStatus === 'loading';
+  const hasFundingStatusError = cardHomeDataStatus === 'error';
+  const isFundingStatusLoaded = cardHomeDataStatus === 'success';
   const requiresLineaFunding =
-    !isFundingStatusLoading && !hasApprovedLineaFunding;
+    isFundingStatusLoaded && !hasApprovedLineaFunding;
+  const isFundingStatusUnavailable =
+    isFundingStatusLoading || hasFundingStatusError;
+  const showLoadingError = !!error || hasFundingStatusError;
 
   useEffect(() => {
     if (cashbackWallet) {
@@ -156,7 +161,7 @@ const Cashback: React.FC = () => {
   );
 
   const handleWithdraw = useCallback(() => {
-    if (requiresLineaFunding) return;
+    if (requiresLineaFunding || isFundingStatusUnavailable) return;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -167,7 +172,14 @@ const Cashback: React.FC = () => {
         .build(),
     );
     withdraw(balance);
-  }, [balance, withdraw, trackEvent, createEventBuilder, requiresLineaFunding]);
+  }, [
+    balance,
+    withdraw,
+    trackEvent,
+    createEventBuilder,
+    requiresLineaFunding,
+    isFundingStatusUnavailable,
+  ]);
 
   const handleNavigateToSpendingLimit = useCallback(() => {
     navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
@@ -179,11 +191,21 @@ const Cashback: React.FC = () => {
   const isProcessing = isWithdrawing || monitoringStatus === 'monitoring';
 
   const buttonLabel = useMemo(() => {
-    if (!isWithdrawable || hasInsufficientBalance) {
+    if (
+      !isWithdrawable ||
+      hasInsufficientBalance ||
+      requiresLineaFunding ||
+      isFundingStatusUnavailable
+    ) {
       return strings('card.cashback_screen.withdraw_unavailable');
     }
     return strings('card.cashback_screen.withdraw');
-  }, [isWithdrawable, hasInsufficientBalance]);
+  }, [
+    isWithdrawable,
+    hasInsufficientBalance,
+    requiresLineaFunding,
+    isFundingStatusUnavailable,
+  ]);
 
   const isButtonDisabled =
     isLoading ||
@@ -191,7 +213,7 @@ const Cashback: React.FC = () => {
     isProcessing ||
     isEstimating ||
     hasInsufficientBalance ||
-    isFundingStatusLoading ||
+    isFundingStatusUnavailable ||
     requiresLineaFunding;
 
   return (
@@ -227,7 +249,7 @@ const Cashback: React.FC = () => {
           </Text>
         </Box>
 
-        {error ? (
+        {showLoadingError ? (
           <Box twClassName="rounded-xl bg-background-muted p-4 items-center">
             <Text
               variant={TextVariant.BodyMd}
