@@ -29,7 +29,7 @@ export default defineConfig({
       use: {
         platform: Platform.ANDROID,
         device: {
-          provider: 'browserstack',
+          provider: ProviderName.BROWSERSTACK,
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
         },
@@ -47,7 +47,7 @@ export default defineConfig({
       use: {
         platform: Platform.ANDROID,
         device: {
-          provider: 'browserstack',
+          provider: ProviderName.BROWSERSTACK,
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
         },
