@@ -15,7 +15,8 @@ import styleSheet from './BadgeBase.styles';
 /**
  * @deprecated Please update your code to use `BadgeCount`, `BadgeIcon`, `BadgeNetwork` or `BadgeStatus` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BadgeCount/README.md | MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#badgecount-component | Migration Guide}
  */
 const BadgeBase: React.FC<BadgeBaseProps> = ({ children, style, ...props }) => {
   const { styles } = useStyles(styleSheet, {

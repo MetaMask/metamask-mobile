@@ -6,6 +6,8 @@ import WebsiteIcon from '../WebsiteIcon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
   Box,
   Icon,
   IconName,
@@ -23,10 +25,6 @@ import {
   UrlAutocompleteCategory,
   PredictionsSearchResult,
 } from './types';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { addCurrencySymbol } from '../../../util/number';
@@ -124,10 +122,19 @@ export const Result: React.FC<ResultProps> = memo(
         case UrlAutocompleteCategory.Tokens:
           return (
             <BadgeWrapper
-              badgeElement={
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={NetworkBadgeSource(result.chainId)}
+              badge={
+                <BadgeNetwork
+                  name={result.symbol}
+                  src={
+                    (() => {
+                      const networkImageSource = NetworkBadgeSource(
+                        result.chainId,
+                      );
+                      return typeof networkImageSource === 'string'
+                        ? { uri: networkImageSource }
+                        : networkImageSource;
+                    })()
+                  }
                 />
               }
             >
