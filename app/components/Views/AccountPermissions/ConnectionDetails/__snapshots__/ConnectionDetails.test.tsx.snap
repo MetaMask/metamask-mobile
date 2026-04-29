@@ -92,13 +92,35 @@ exports[`ConnectionDetails renders correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <View
       accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -109,6 +131,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "opacity": 1,
           "overflow": "hidden",
           "paddingHorizontal": 16,
         }
@@ -128,7 +151,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
       >
         Got it
       </Text>
-    </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

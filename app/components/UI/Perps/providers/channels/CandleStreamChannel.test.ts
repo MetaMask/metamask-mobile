@@ -60,6 +60,9 @@ describe('CandleStreamChannel', () => {
 
   // Flush the debounce delay used by connect() → deferConnect() (#28141)
   const flushConnectDebounce = () => jest.advanceTimersByTime(500);
+  // Flush the deferred WS teardown delay.
+  const flushTeardownDelay = () =>
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.CandleTeardownDelayMs);
 
   describe('Cache Management', () => {
     it('should generate correct cache key', () => {
@@ -325,6 +328,9 @@ describe('CandleStreamChannel', () => {
       expect(mockUnsubscribe).not.toHaveBeenCalled();
 
       unsubscribe2();
+      // Teardown is deferred to coalesce rapid market switches — flush the
+      // delay before asserting the WS actually closed.
+      flushTeardownDelay();
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
@@ -351,6 +357,7 @@ describe('CandleStreamChannel', () => {
       flushConnectDebounce();
 
       btcUnsubscribe();
+      flushTeardownDelay();
 
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
       expect(mockEthUnsubscribe).not.toHaveBeenCalled();
@@ -437,6 +444,10 @@ describe('CandleStreamChannel', () => {
       capturedCallback?.(mockCandleData);
 
       unsubscribe();
+      // Let the deferred teardown fire so the next subscribe reopens the WS
+      // rather than reusing the pending one (this test exercises the
+      // reconnect-with-cached-data path).
+      flushTeardownDelay();
 
       channel.subscribe({
         symbol: 'BTC',
@@ -468,6 +479,7 @@ describe('CandleStreamChannel', () => {
       flushConnectDebounce();
 
       unsubscribe();
+      flushTeardownDelay();
 
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
@@ -1304,6 +1316,190 @@ describe('CandleStreamChannel', () => {
           interval: CandlePeriod.FourHours,
         }),
       );
+    });
+  });
+
+  describe('mergeCandleData', () => {
+    // mergeCandleData is a private static helper invoked from the controller
+    // subscribe callback. We access it directly to exercise the merge
+    // invariants in isolation — this is the most regression-prone bit of the
+    // cache-merge fix for the "candles before the visible range disappear"
+    // bug when switching intervals (OneWeek → OneDay revisit).
+    const mergeCandleData = (
+      CandleStreamChannel as unknown as {
+        mergeCandleData: (
+          existing: CandleData | undefined,
+          incoming: CandleData,
+        ) => CandleData;
+      }
+    ).mergeCandleData;
+
+    // Hardcoded to mirror the documented invariant in CandleStreamChannel.
+    // If the constant changes, this test should be updated alongside it.
+    const MAX_CACHED_CANDLES = 1000;
+
+    const makeCandle = (
+      time: number,
+      overrides: Partial<CandleData['candles'][number]> = {},
+    ): CandleData['candles'][number] => ({
+      time,
+      open: '50000',
+      high: '51000',
+      low: '49000',
+      close: '50500',
+      volume: '100',
+      ...overrides,
+    });
+
+    const makeCandleData = (
+      overrides: Partial<CandleData> = {},
+    ): CandleData => ({
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [],
+      ...overrides,
+    });
+
+    it('returns incoming unchanged when existing is undefined', () => {
+      const incoming = makeCandleData({
+        candles: [makeCandle(1700000000000)],
+      });
+
+      const result = mergeCandleData(undefined, incoming);
+
+      expect(result).toBe(incoming);
+    });
+
+    it('returns incoming unchanged when existing has no candles', () => {
+      const existing = makeCandleData({ candles: [] });
+      const incoming = makeCandleData({
+        candles: [makeCandle(1700000000000)],
+      });
+
+      const result = mergeCandleData(existing, incoming);
+
+      expect(result).toBe(incoming);
+    });
+
+    it('prefers incoming candle on overlapping timestamp', () => {
+      const overlappingTime = 1700000000000;
+      const existing = makeCandleData({
+        candles: [makeCandle(overlappingTime, { close: '50500' })],
+      });
+      const incoming = makeCandleData({
+        candles: [makeCandle(overlappingTime, { close: '99999' })],
+      });
+
+      const result = mergeCandleData(existing, incoming);
+
+      expect(result.candles).toHaveLength(1);
+      expect(result.candles[0].close).toBe('99999');
+    });
+
+    it('preserves older cached candles outside the incoming range', () => {
+      // Simulates the OneWeek → OneDay revisit bug: cached week-long history
+      // must survive a lighter day-long refetch instead of being replaced.
+      const existing = makeCandleData({
+        candles: [
+          makeCandle(1699000000000),
+          makeCandle(1699500000000),
+          makeCandle(1700000000000),
+        ],
+      });
+      const incoming = makeCandleData({
+        candles: [makeCandle(1700000000000), makeCandle(1700100000000)],
+      });
+
+      const result = mergeCandleData(existing, incoming);
+
+      expect(result.candles.map((candle) => candle.time)).toEqual([
+        1699000000000, 1699500000000, 1700000000000, 1700100000000,
+      ]);
+    });
+
+    it('returns merged candles sorted ascending by time', () => {
+      const existing = makeCandleData({
+        candles: [makeCandle(1700000000000), makeCandle(1699000000000)],
+      });
+      const incoming = makeCandleData({
+        candles: [makeCandle(1700200000000), makeCandle(1700100000000)],
+      });
+
+      const result = mergeCandleData(existing, incoming);
+
+      const times = result.candles.map((candle) => candle.time);
+      const sortedTimes = [...times].sort((a, b) => a - b);
+      expect(times).toEqual(sortedTimes);
+    });
+
+    it('caps merged result at MAX_CACHED_CANDLES keeping the newest window', () => {
+      // 600 existing + 600 incoming with no overlap → 1200 unique candles.
+      const existingCandles = Array.from({ length: 600 }, (_, index) =>
+        makeCandle(1_000_000 + index),
+      );
+      const incomingCandles = Array.from({ length: 600 }, (_, index) =>
+        makeCandle(2_000_000 + index),
+      );
+      const existing = makeCandleData({ candles: existingCandles });
+      const incoming = makeCandleData({ candles: incomingCandles });
+
+      const result = mergeCandleData(existing, incoming);
+
+      expect(result.candles).toHaveLength(MAX_CACHED_CANDLES);
+      // Newest window is preserved: slice(-1000) over the ascending merged
+      // list drops the oldest 200 existing candles and keeps everything else.
+      expect(result.candles[0].time).toBe(1_000_000 + 200);
+      expect(result.candles[result.candles.length - 1].time).toBe(
+        2_000_000 + 599,
+      );
+    });
+
+    it('returns incoming when existing.symbol differs from incoming.symbol', () => {
+      const existing = makeCandleData({
+        symbol: 'ETH',
+        candles: [makeCandle(1699000000000)],
+      });
+      const incoming = makeCandleData({
+        symbol: 'BTC',
+        candles: [makeCandle(1700000000000)],
+      });
+
+      const result = mergeCandleData(existing, incoming);
+
+      expect(result).toBe(incoming);
+    });
+
+    it('returns incoming when existing.interval differs from incoming.interval', () => {
+      const existing = makeCandleData({
+        interval: CandlePeriod.FiveMinutes,
+        candles: [makeCandle(1699000000000)],
+      });
+      const incoming = makeCandleData({
+        interval: CandlePeriod.OneHour,
+        candles: [makeCandle(1700000000000)],
+      });
+
+      const result = mergeCandleData(existing, incoming);
+
+      expect(result).toBe(incoming);
+    });
+
+    it('preserves incoming symbol and interval on the merged result', () => {
+      const existing = makeCandleData({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [makeCandle(1699000000000)],
+      });
+      const incoming = makeCandleData({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [makeCandle(1700000000000)],
+      });
+
+      const result = mergeCandleData(existing, incoming);
+
+      expect(result.symbol).toBe('BTC');
+      expect(result.interval).toBe(CandlePeriod.OneHour);
     });
   });
 });

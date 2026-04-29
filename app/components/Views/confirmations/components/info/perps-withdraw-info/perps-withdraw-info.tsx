@@ -25,6 +25,8 @@ export function PerpsWithdrawInfo() {
     <CustomAmountInfo
       currency={PERPS_CURRENCY}
       disablePay={!canSelectWithdrawToken}
+      hasMax
+      hasExtraBottomPadding
     >
       <PerpsWithdrawBalance />
     </CustomAmountInfo>

@@ -57,9 +57,6 @@ const MusdAggregatedRow = () => {
         .addProperties({
           location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
           action_type: 'claim_bonus',
-          button_text: strings('earn.musd_conversion.claim_percentage_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
           network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
           asset_symbol: LINEA_MUSD_ASSET_FOR_MERKL.symbol,
         })

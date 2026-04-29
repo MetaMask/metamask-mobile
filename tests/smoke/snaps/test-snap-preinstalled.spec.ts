@@ -1,14 +1,14 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
-import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import TestHelpers from '../../helpers';
 import { DappVariants } from '../../framework/Constants';
 import { getDappUrlForFixture } from '../../framework/fixtures/FixtureUtils';
+import { testSnapPreinstalledAnalyticsExpectations } from '../../helpers/analytics/expectations/test-snap-preinstalled.analytics';
 
 jest.setTimeout(150_000);
 
@@ -16,7 +16,7 @@ const localhostOrigin = getDappUrlForFixture(0);
 
 const eventToTrack = 'Test Event';
 
-describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
+describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
   it.todo('displays the Snap settings page');
 
   /**
@@ -54,8 +54,9 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
           .build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        analyticsExpectations: testSnapPreinstalledAnalyticsExpectations,
       },
-      async ({ mockServer }) => {
+      async () => {
         await loginToApp();
         await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
@@ -69,15 +70,6 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
 
         await TestSnaps.tapButton('trackEventButton');
         await TestHelpers.delay(1000);
-
-        const events = await getEventsPayloads(mockServer, [eventToTrack]);
-
-        await Assertions.checkIfObjectsMatch(events[0], {
-          event: eventToTrack,
-          properties: {
-            test_property: 'test value',
-          },
-        });
       },
     );
   });

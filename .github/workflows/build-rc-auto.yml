@@ -164,46 +164,15 @@ jobs:
           E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
           E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
 
-      - name: Upload test plan JSON to GitHub Pages
+      - name: Upload test plan JSON artifact
         if: always()
-        continue-on-error: true
-        run: |
-          VERSION="${{ needs.validate-and-find-pr.outputs.semver }}"
-          JSON_FILE="release-test-plan.json"
-
-          # Check if JSON file was generated
-          if [ ! -f "$JSON_FILE" ]; then
-            echo "No test plan JSON file found, skipping upload"
-            exit 0
-          fi
-
-          # Save JSON to temp
-          cp "$JSON_FILE" "/tmp/test-plan-${VERSION}.json"
-
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Fetch gh-pages branch or create it
-          git fetch origin gh-pages:gh-pages 2>/dev/null || echo "gh-pages doesn't exist yet"
-
-          # Switch to gh-pages
-          if git checkout gh-pages 2>/dev/null; then
-            echo "Switched to existing gh-pages branch"
-          else
-            git checkout --orphan gh-pages
-            git rm -rf . 2>/dev/null || true
-            git clean -fd 2>/dev/null || true
-          fi
-
-          # Create test-plans directory and copy JSON
-          mkdir -p test-plans
-          cp "/tmp/test-plan-${VERSION}.json" "test-plans/"
-
-          # Commit and push
-          git add test-plans/
-          git commit -m "Add test plan JSON for RC ${VERSION}" || echo "No changes to commit"
-          git push origin gh-pages
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-plan-${{ needs.validate-and-find-pr.outputs.semver }}
+          path: release-test-plan.json
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 90
 
   slack-notification:
     name: Slack RC Notification

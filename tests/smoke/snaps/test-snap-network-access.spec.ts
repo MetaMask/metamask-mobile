@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -18,7 +18,7 @@ jest.setTimeout(150_000);
 const FETCH_TEST_URL =
   'https://metamask.github.io/snaps/test-snaps/3.4.2/test-data.json';
 
-describe(FlaskBuildTests('Network Access Snap Tests'), () => {
+describe(SmokeSnaps('Network Access Snap Tests'), () => {
   it('can use fetch and WebSockets', async () => {
     await withFixtures(
       {

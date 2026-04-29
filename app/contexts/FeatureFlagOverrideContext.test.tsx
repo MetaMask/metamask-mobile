@@ -1,5 +1,11 @@
 import React from 'react';
-import { renderHook, act, render, screen } from '@testing-library/react-native';
+import {
+  renderHook,
+  act,
+  render,
+  screen,
+  fireEvent,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { Text } from 'react-native';
 import {
@@ -646,7 +652,7 @@ describe('FeatureFlagOverrideContext', () => {
       expect(screen.getByText('Override count: 0')).toBeTruthy();
 
       act(() => {
-        screen.getByText('Add Override').props.onPress();
+        fireEvent.press(screen.getByText('Add Override'));
       });
 
       // Verify Engine method was called

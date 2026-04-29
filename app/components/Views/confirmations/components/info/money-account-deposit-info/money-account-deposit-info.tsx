@@ -8,5 +8,10 @@ export const MONEY_ACCOUNT_CURRENCY = 'usd';
 export function MoneyAccountDepositInfo() {
   useNavbar(strings('confirm.title.money_account_deposit'));
 
-  return <CustomAmountInfo currency={MONEY_ACCOUNT_CURRENCY} />;
+  return (
+    <CustomAmountInfo
+      currency={MONEY_ACCOUNT_CURRENCY}
+      supportAccountSelection
+    />
+  );
 }

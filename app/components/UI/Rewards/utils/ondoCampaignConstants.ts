@@ -1,7 +1,4 @@
-import type {
-  CampaignDto,
-  CampaignLeaderboardPositionDto,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 
 /**
@@ -39,22 +36,4 @@ export function isCampaignIneligible(
   const daysAvailable =
     Math.floor((endDate - startOfTodayUTC) / (1000 * 60 * 60 * 24)) + 1;
   return daysAvailable < ONDO_GM_REQUIRED_QUALIFIED_DAYS;
-}
-
-/**
- * Whether the user is an Ondo campaign winner (top ranks with qualification met)
- * after the campaign has ended. During an active campaign, top ranks are provisional
- * only — this returns false until campaign status is `complete`.
- */
-export function isOndoCampaignWinner(
-  campaign: CampaignDto | null | undefined,
-  position: CampaignLeaderboardPositionDto | null,
-): boolean {
-  if (!campaign || getCampaignStatus(campaign) !== 'complete') {
-    return false;
-  }
-  if (!position) {
-    return false;
-  }
-  return position.rank <= 5 && position.qualified === true;
 }

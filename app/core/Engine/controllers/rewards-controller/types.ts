@@ -157,6 +157,12 @@ export interface CampaignDto {
    * @example true
    */
   featured: boolean;
+
+  /**
+   * Whether to display the upcoming start date on the campaign tile
+   * @example true
+   */
+  showUpcomingDate: boolean;
 }
 
 /**
@@ -239,6 +245,7 @@ export type CampaignDtoState = {
   image: ThemeImageState | null;
   details: CampaignDetailsState | null;
   featured: boolean;
+  showUpcomingDate: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -558,6 +565,16 @@ export type OndoGmPortfolioSummaryState = {
 export type OndoGmCampaignDepositsDto = {
   totalUsdDeposited: string;
 };
+
+export type OndoGmCampaignParticipantOutcomeStatus = 'pending' | 'finalized';
+
+export interface OndoGmCampaignParticipantOutcomeDto {
+  subscriptionId: string;
+  outcomeStatus: OndoGmCampaignParticipantOutcomeStatus;
+  winnerVerificationCode?: string | null;
+  tierRank?: number;
+  tier?: string;
+}
 
 /**
  * Cached portfolio payload (explicit shape for Json / StateConstraint compatibility).
