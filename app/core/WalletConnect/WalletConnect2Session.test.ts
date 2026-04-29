@@ -442,8 +442,14 @@ describe('WalletConnect2Session', () => {
       },
     };
 
-    const { checkWCPermissions } = jest.requireMock('./wc-utils');
-    checkWCPermissions.mockResolvedValueOnce(false);
+    jest
+      .spyOn(
+        jest.requireMock('./wc-utils') as typeof import('./wc-utils'),
+        'getChainIdForCaipChainId',
+      )
+      .mockImplementationOnce(() => {
+        throw new Error('Invalid chain');
+      });
 
     await session.handleRequest(requestEvent as any);
 
