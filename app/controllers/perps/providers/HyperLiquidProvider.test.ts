@@ -216,6 +216,7 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
     ],
   ]),
   perpDexs: jest.fn().mockResolvedValue([null]),
+  userAbstraction: jest.fn().mockResolvedValue('default'),
   allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
   frontendOpenOrders: jest.fn().mockResolvedValue([]),
   referral: jest.fn().mockResolvedValue({
@@ -301,7 +302,10 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
   sendAsset: jest.fn().mockResolvedValue({
     status: 'ok',
   }),
-  agentEnableDexAbstraction: jest.fn().mockResolvedValue({
+  agentSetAbstraction: jest.fn().mockResolvedValue({
+    status: 'ok',
+  }),
+  userSetAbstraction: jest.fn().mockResolvedValue({
     status: 'ok',
   }),
   ...overrides,
@@ -320,7 +324,7 @@ const mockMessenger = createMockMessenger();
  * @param options.hip3Enabled
  * @param options.allowlistMarkets
  * @param options.blocklistMarkets
- * @param options.useDexAbstraction
+ * @param options.useUnifiedAccount
  */
 const createTestProvider = (
   options: {
@@ -328,7 +332,7 @@ const createTestProvider = (
     hip3Enabled?: boolean;
     allowlistMarkets?: string[];
     blocklistMarkets?: string[];
-    useDexAbstraction?: boolean;
+    useUnifiedAccount?: boolean;
     initialAssetMapping?: [string, number][];
   } = {},
 ): HyperLiquidProvider =>
@@ -1282,7 +1286,7 @@ describe('HyperLiquidProvider', () => {
       const hip3Provider = createTestProvider({
         hip3Enabled: true,
         allowlistMarkets: ['xyz:*'],
-        useDexAbstraction: true,
+        useUnifiedAccount: true,
       });
       const mockOrder = jest.fn().mockResolvedValue({
         status: 'ok',
@@ -7963,353 +7967,6 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    describe('ensureDexAbstractionEnabled', () => {
-      interface ProviderWithDexAbstraction {
-        ensureDexAbstractionEnabled(): Promise<void>;
-        useDexAbstraction: boolean;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      let testableProvider: ProviderWithDexAbstraction;
-
-      beforeEach(() => {
-        testableProvider = provider as unknown as ProviderWithDexAbstraction;
-        testableProvider.useDexAbstraction = true;
-      });
-
-      it('returns early when feature is disabled', async () => {
-        // Arrange
-        testableProvider.useDexAbstraction = false;
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert
-        expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
-        expect(
-          mockWalletService.getUserAddressWithDefault,
-        ).not.toHaveBeenCalled();
-      });
-
-      it('returns early when DEX abstraction is already enabled', async () => {
-        // Arrange
-        mockClientService.getInfoClient = jest.fn().mockReturnValue(
-          createMockInfoClient({
-            userDexAbstraction: jest.fn().mockResolvedValue(true),
-          }),
-        );
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert
-        expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
-      });
-
-      it('enables DEX abstraction when not yet enabled', async () => {
-        // Arrange
-        const mockExchangeClient = createMockExchangeClient();
-        mockClientService.getInfoClient = jest.fn().mockReturnValue(
-          createMockInfoClient({
-            userDexAbstraction: jest.fn().mockResolvedValue(false),
-          }),
-        );
-        mockClientService.getExchangeClient = jest
-          .fn()
-          .mockReturnValue(mockExchangeClient);
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert
-        expect(
-          mockExchangeClient.agentEnableDexAbstraction,
-        ).toHaveBeenCalledTimes(1);
-      });
-
-      it('enables DEX abstraction when status is null', async () => {
-        // Arrange
-        const mockExchangeClient = createMockExchangeClient();
-        mockClientService.getInfoClient = jest.fn().mockReturnValue(
-          createMockInfoClient({
-            userDexAbstraction: jest.fn().mockResolvedValue(null),
-          }),
-        );
-        mockClientService.getExchangeClient = jest
-          .fn()
-          .mockReturnValue(mockExchangeClient);
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert
-        expect(
-          mockExchangeClient.agentEnableDexAbstraction,
-        ).toHaveBeenCalledTimes(1);
-      });
-
-      it('logs error but does not throw when enable fails', async () => {
-        // Arrange
-        const mockError = new Error('Enable failed');
-        const mockExchangeClient = createMockExchangeClient();
-        mockExchangeClient.agentEnableDexAbstraction = jest
-          .fn()
-          .mockRejectedValue(mockError);
-        mockClientService.getInfoClient = jest.fn().mockReturnValue(
-          createMockInfoClient({
-            userDexAbstraction: jest.fn().mockResolvedValue(false),
-          }),
-        );
-        mockClientService.getExchangeClient = jest
-          .fn()
-          .mockReturnValue(mockExchangeClient);
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert
-        expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
-          mockError,
-          expect.objectContaining({
-            context: expect.objectContaining({
-              name: 'HyperLiquidProvider',
-              data: expect.objectContaining({
-                method: 'ensureDexAbstractionEnabled',
-              }),
-            }),
-          }),
-        );
-      });
-
-      it('propagates error when user address fetch fails', async () => {
-        // Arrange
-        const mockError = new Error('Address fetch failed');
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockRejectedValue(mockError);
-
-        // Act & Assert - error propagates since getUserAddressWithDefault is called
-        // before the try-catch block that handles signing errors
-        await expect(
-          testableProvider.ensureDexAbstractionEnabled(),
-        ).rejects.toThrow('Address fetch failed');
-      });
-
-      // ===== Global Cache Tests (PR #25334) =====
-
-      it('returns early when global cache indicates already attempted', async () => {
-        // Arrange - simulate cached state
-        (
-          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
-        ).get.mockReturnValue({
-          attempted: true,
-          enabled: true,
-          timestamp: Date.now(),
-        });
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert - should not call API when cached
-        expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
-        expect(
-          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-            .get,
-        ).toHaveBeenCalledWith('mainnet', '0xUserAddress');
-      });
-
-      it('waits for in-flight operation instead of duplicating request', async () => {
-        // Arrange - ensure global cache returns undefined (not cached)
-        (
-          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
-        ).get.mockReturnValue(undefined);
-
-        // Simulate in-flight operation from another provider
-        let resolveInFlight: () => void = () => undefined;
-        const inFlightPromise = new Promise<void>((resolve) => {
-          resolveInFlight = resolve;
-        });
-        (
-          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
-        ).isInFlight.mockReturnValue(inFlightPromise);
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act - start the method (won't complete until in-flight resolves)
-        const enablePromise = testableProvider.ensureDexAbstractionEnabled();
-
-        // Resolve the in-flight operation
-        resolveInFlight();
-        await enablePromise;
-
-        // Verify it called isInFlight to check for concurrent operations
-        expect(
-          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-            .isInFlight,
-        ).toHaveBeenCalledWith('dexAbstraction', 'mainnet', '0xUserAddress');
-
-        // Assert - should not have made its own API calls
-        expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
-        expect(
-          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-            .setInFlight,
-        ).not.toHaveBeenCalled();
-      });
-
-      it('sets in-flight lock and caches success on successful enable', async () => {
-        // Arrange
-        const mockCompleteInFlight = jest.fn();
-        (
-          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
-        ).setInFlight.mockReturnValue(mockCompleteInFlight);
-        mockClientService.getInfoClient = jest.fn().mockReturnValue(
-          createMockInfoClient({
-            userDexAbstraction: jest.fn().mockResolvedValue(false),
-          }),
-        );
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert
-        expect(
-          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-            .setInFlight,
-        ).toHaveBeenCalledWith('dexAbstraction', 'mainnet', '0xUserAddress');
-        expect(
-          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-            .set,
-        ).toHaveBeenCalledWith('mainnet', '0xUserAddress', {
-          attempted: true,
-          enabled: true,
-        });
-        expect(mockCompleteInFlight).toHaveBeenCalled();
-      });
-
-      it('caches failure to prevent repeated signing requests', async () => {
-        // Arrange
-        const mockCompleteInFlight = jest.fn();
-        (
-          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
-        ).setInFlight.mockReturnValue(mockCompleteInFlight);
-        const mockError = new Error('User rejected signing');
-        const mockExchangeClient = createMockExchangeClient();
-        mockExchangeClient.agentEnableDexAbstraction = jest
-          .fn()
-          .mockRejectedValue(mockError);
-        mockClientService.getInfoClient = jest.fn().mockReturnValue(
-          createMockInfoClient({
-            userDexAbstraction: jest.fn().mockResolvedValue(false),
-          }),
-        );
-        mockClientService.getExchangeClient = jest
-          .fn()
-          .mockReturnValue(mockExchangeClient);
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert - failure should be cached to prevent QR popup spam
-        expect(
-          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-            .set,
-        ).toHaveBeenCalledWith('mainnet', '0xUserAddress', {
-          attempted: true,
-          enabled: false,
-        });
-        expect(mockCompleteInFlight).toHaveBeenCalled();
-      });
-
-      it('caches enabled status when already enabled on-chain', async () => {
-        // Arrange
-        const mockCompleteInFlight = jest.fn();
-        (
-          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
-        ).setInFlight.mockReturnValue(mockCompleteInFlight);
-        mockClientService.getInfoClient = jest.fn().mockReturnValue(
-          createMockInfoClient({
-            userDexAbstraction: jest.fn().mockResolvedValue(true), // Already enabled
-          }),
-        );
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert - should cache the enabled status
-        expect(
-          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-            .set,
-        ).toHaveBeenCalledWith('mainnet', '0xUserAddress', {
-          attempted: true,
-          enabled: true,
-        });
-        expect(mockCompleteInFlight).toHaveBeenCalled();
-        // Should NOT call exchange client since already enabled
-        expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
-      });
-
-      it('skips cache and Sentry when KEYRING_LOCKED error is thrown', async () => {
-        // Arrange
-        const mockCompleteInFlight = jest.fn();
-        (
-          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
-        ).setInFlight.mockReturnValue(mockCompleteInFlight);
-        const mockExchangeClient = createMockExchangeClient();
-        mockExchangeClient.agentEnableDexAbstraction = jest
-          .fn()
-          .mockRejectedValue(new Error('KEYRING_LOCKED'));
-        mockClientService.getInfoClient = jest.fn().mockReturnValue(
-          createMockInfoClient({
-            userDexAbstraction: jest.fn().mockResolvedValue(false),
-          }),
-        );
-        mockClientService.getExchangeClient = jest
-          .fn()
-          .mockReturnValue(mockExchangeClient);
-        mockWalletService.getUserAddressWithDefault = jest
-          .fn()
-          .mockResolvedValue('0xUserAddress');
-
-        // Act - should resolve without throwing
-        await testableProvider.ensureDexAbstractionEnabled();
-
-        // Assert - cache should NOT be set (so it retries when unlocked)
-        expect(
-          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-            .set,
-        ).not.toHaveBeenCalled();
-        // Assert - Sentry logger.error should NOT be called
-        expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
-        // Assert - in-flight lock should be released
-        expect(mockCompleteInFlight).toHaveBeenCalled();
-      });
-    });
-
     describe('ensureReadyForTrading', () => {
       interface ProviderWithTradingSetup {
         ensureReadyForTrading(): Promise<void>;
@@ -8652,6 +8309,489 @@ describe('HyperLiquidProvider', () => {
         // With buffer (1.003) = 4212.6
         expect(result).toBeCloseTo(4212.6, 1);
       });
+    });
+  });
+
+  describe('ensureUnifiedAccountEnabled', () => {
+    // These tests verify the unified account migration behaviour that runs
+    // inside #ensureReady() → #ensureUnifiedAccountEnabled(). Because the
+    // method is native-private (#), we trigger it via the public
+    // getMarketDataWithPrices() entry point, which calls #ensureReady() on
+    // every fresh provider instance.
+
+    // The user address used by mockWalletService.getUserAddressWithDefault
+    const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+    // ─────────────────────────────────────────────────
+    // Early-exit paths
+    // ─────────────────────────────────────────────────
+
+    it('does not call userAbstraction when useUnifiedAccount is false', async () => {
+      // Arrange - provider created with the feature disabled
+      const disabledProvider = createTestProvider({ useUnifiedAccount: false });
+      const mockInfoClient = createMockInfoClient({
+        userAbstraction: jest.fn().mockResolvedValue('default'),
+      });
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+
+      // Act
+      await disabledProvider.getMarketDataWithPrices();
+
+      // Assert - userAbstraction never queried (feature is off)
+      expect(mockInfoClient.userAbstraction).not.toHaveBeenCalled();
+    });
+
+    it('does not call userAbstraction when global cache indicates already attempted', async () => {
+      // Arrange - cache says setup was already tried (success or failure)
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).get.mockReturnValue({
+        attempted: true,
+        enabled: true,
+        timestamp: Date.now(),
+      });
+      const mockInfoClient = createMockInfoClient({
+        userAbstraction: jest.fn().mockResolvedValue('default'),
+      });
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - skipped because of cache
+      expect(mockInfoClient.userAbstraction).not.toHaveBeenCalled();
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .get,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS);
+    });
+
+    it('waits for in-flight operation and does not call userAbstraction itself', async () => {
+      // Arrange - another provider instance is already mid-setup
+      let resolveInFlight: () => void = () => undefined;
+      const inFlightPromise = new Promise<void>((resolve) => {
+        resolveInFlight = resolve;
+      });
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).isInFlight.mockReturnValue(inFlightPromise);
+
+      const mockInfoClient = createMockInfoClient({
+        userAbstraction: jest.fn().mockResolvedValue('default'),
+      });
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+
+      // Act - kick off the call then resolve the simulated in-flight
+      const marketDataPromise = provider.getMarketDataWithPrices();
+      resolveInFlight();
+      await marketDataPromise;
+
+      // Assert - checked for in-flight with correct key, did not proceed
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .isInFlight,
+      ).toHaveBeenCalledWith('unifiedAccount', 'mainnet', USER_ADDRESS);
+      expect(mockInfoClient.userAbstraction).not.toHaveBeenCalled();
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setInFlight,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('returns early when re-check cache (inside lock) shows another provider completed', async () => {
+      // Arrange - first get() → undefined, second get() (inside try) → cached
+      (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>).get
+        .mockReturnValueOnce(undefined) // outer check
+        .mockReturnValueOnce({
+          attempted: true,
+          enabled: true,
+          timestamp: Date.now(),
+        }); // inner re-check after lock acquired
+
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+
+      const mockInfoClient = createMockInfoClient({
+        userAbstraction: jest.fn().mockResolvedValue('default'),
+      });
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - lock was acquired and released, but no API call made
+      expect(mockInfoClient.userAbstraction).not.toHaveBeenCalled();
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    // ─────────────────────────────────────────────────
+    // Already on unifiedAccount
+    // ─────────────────────────────────────────────────
+
+    it('tracks already_enabled and caches success when mode is already unifiedAccount', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+        }),
+      );
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - tracks the already_enabled event
+      expect(
+        mockPlatformDependencies.metrics.trackPerpsEvent,
+      ).toHaveBeenCalledWith(
+        'Perp Account Setup',
+        expect.objectContaining({
+          abstraction_mode: 'unifiedAccount',
+          status: 'already_enabled',
+        }),
+      );
+      // Caches success
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: true,
+      });
+      // Does NOT call exchange client for unified account transition
+      expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
+      // Releases in-flight lock
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    // ─────────────────────────────────────────────────
+    // Migration from default / disabled → unifiedAccount (silent agent path)
+    // ─────────────────────────────────────────────────
+
+    it('calls agentSetAbstraction silently when mode is default', async () => {
+      // Arrange
+      const mockExchangeClient = createMockExchangeClient();
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - uses silent agent-key path (no user prompt)
+      expect(mockExchangeClient.agentSetAbstraction).toHaveBeenCalledWith({
+        abstraction: 'u',
+      });
+      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+    });
+
+    it('calls agentSetAbstraction silently when mode is disabled', async () => {
+      // Arrange
+      const mockExchangeClient = createMockExchangeClient();
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('disabled'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert
+      expect(mockExchangeClient.agentSetAbstraction).toHaveBeenCalledWith({
+        abstraction: 'u',
+      });
+      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+    });
+
+    it('tracks migration_required then success for default → unifiedAccount', async () => {
+      // Arrange
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(createMockExchangeClient());
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - two analytics events emitted in order
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+
+      // First event: migration_required with current mode
+      expect(trackCalls[0]).toEqual([
+        'Perp Account Setup',
+        expect.objectContaining({
+          abstraction_mode: 'default',
+          status: 'migration_required',
+        }),
+      ]);
+      // Second event: success with before/after modes
+      expect(trackCalls[1]).toEqual([
+        'Perp Account Setup',
+        expect.objectContaining({
+          previous_abstraction_mode: 'default',
+          abstraction_mode: 'unifiedAccount',
+          status: 'success',
+        }),
+      ]);
+      // Cache reflects success
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: true,
+      });
+    });
+
+    // ─────────────────────────────────────────────────
+    // Migration from dexAbstraction → unifiedAccount (EIP-712 path)
+    // ─────────────────────────────────────────────────
+
+    it('calls userSetAbstraction (EIP-712) when mode is dexAbstraction', async () => {
+      // Arrange
+      const mockExchangeClient = createMockExchangeClient();
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - EIP-712 user-signed path (agent key is not allowed for this transition)
+      expect(mockExchangeClient.userSetAbstraction).toHaveBeenCalledWith({
+        user: USER_ADDRESS,
+        abstraction: 'unifiedAccount',
+      });
+      expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
+    });
+
+    it('tracks migration_required then success for dexAbstraction → unifiedAccount', async () => {
+      // Arrange
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(createMockExchangeClient());
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert analytics
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+
+      expect(trackCalls[0]).toEqual([
+        'Perp Account Setup',
+        expect.objectContaining({
+          abstraction_mode: 'dexAbstraction',
+          status: 'migration_required',
+        }),
+      ]);
+      expect(trackCalls[1]).toEqual([
+        'Perp Account Setup',
+        expect.objectContaining({
+          previous_abstraction_mode: 'dexAbstraction',
+          abstraction_mode: 'unifiedAccount',
+          status: 'success',
+        }),
+      ]);
+      // Cache reflects success
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: true,
+      });
+    });
+
+    // ─────────────────────────────────────────────────
+    // Failure paths
+    // ─────────────────────────────────────────────────
+
+    it('caches failure and tracks failed event when exchange call throws', async () => {
+      // Arrange
+      const mockError = new Error('User rejected signing');
+      const mockExchangeClient = createMockExchangeClient();
+      mockExchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(mockError);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act - getMarketDataWithPrices should succeed even though UA setup fails
+      await provider.getMarketDataWithPrices();
+
+      // Assert - failure cached to prevent repeated prompts
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: false,
+      });
+      // Analytics failure event emitted
+      expect(
+        mockPlatformDependencies.metrics.trackPerpsEvent,
+      ).toHaveBeenCalledWith(
+        'Perp Account Setup',
+        expect.objectContaining({
+          status: 'failed',
+          error_message: expect.stringContaining('User rejected signing'),
+        }),
+      );
+      // Sentry logger called with correct context
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('User rejected signing'),
+        }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            name: 'HyperLiquidProvider',
+            data: expect.objectContaining({
+              method: 'ensureUnifiedAccountEnabled',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('does NOT cache or log to Sentry when KEYRING_LOCKED is thrown', async () => {
+      // Arrange
+      const mockExchangeClient = createMockExchangeClient();
+      mockExchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(new Error('KEYRING_LOCKED'));
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act - should resolve without throwing
+      await provider.getMarketDataWithPrices();
+
+      // Assert - cache NOT set (so it retries when keyring is unlocked)
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).not.toHaveBeenCalled();
+      // Sentry NOT called
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+      // In-flight lock still released
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    // ─────────────────────────────────────────────────
+    // Network key (mainnet vs testnet)
+    // ─────────────────────────────────────────────────
+
+    it('uses testnet network key when client is in testnet mode', async () => {
+      // Arrange - testnet provider with cache already hit (so we only check the key)
+      mockClientService.isTestnetMode = jest.fn().mockReturnValue(true);
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).get.mockReturnValue({
+        attempted: true,
+        enabled: true,
+        timestamp: Date.now(),
+      });
+
+      const mockInfoClient = createMockInfoClient({
+        userAbstraction: jest.fn().mockResolvedValue('default'),
+      });
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - cache keyed by 'testnet'
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .get,
+      ).toHaveBeenCalledWith('testnet', USER_ADDRESS);
+    });
+
+    // ─────────────────────────────────────────────────
+    // In-flight lock management
+    // ─────────────────────────────────────────────────
+
+    it('sets in-flight lock with unifiedAccount key and releases it on success', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(createMockExchangeClient());
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert - lock key uses 'unifiedAccount'
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setInFlight,
+      ).toHaveBeenCalledWith('unifiedAccount', 'mainnet', USER_ADDRESS);
+      expect(mockCompleteInFlight).toHaveBeenCalled();
     });
   });
 
