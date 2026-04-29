@@ -148,7 +148,7 @@ const ExplorePageV1: React.FC<TabProps> = ({
   const quickActionsEmptySections = useMemo(() => {
     const empty = new Set<SectionId>();
     if (!showTrendingTokens) {
-      empty.add('trending');
+      empty.add('tokens');
     }
     if (!isPerpsEnabled) {
       empty.add('perps');

@@ -16,12 +16,7 @@ import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
-export type SectionId =
-  | 'trending'
-  | 'perps'
-  | 'stocks'
-  | 'predictions'
-  | 'sites';
+export type SectionId = 'tokens' | 'perps' | 'stocks' | 'predictions' | 'sites';
 
 interface QuickActionSection {
   id: SectionId;
@@ -44,7 +39,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const sectionsArray = useMemo<QuickActionSection[]>(
     () => [
       {
-        id: 'trending',
+        id: 'tokens',
         title: strings('trending.trending_tokens'),
         viewAllAction: (nav) => {
           nav.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
@@ -103,6 +98,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
             <TouchableOpacity
               key={section.id}
               onPress={() => section.viewAllAction(navigation)}
+              // Use `tokens` suffix for E2E / View All naming (`section-header-view-all-tokens`), not `trending`
               testID={`quick-action-${section.id}`}
               style={tw.style(
                 'flex-row items-center justify-center rounded-xl bg-background-section py-2 pl-4 pr-3',
