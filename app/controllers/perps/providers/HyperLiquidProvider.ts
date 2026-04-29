@@ -645,14 +645,20 @@ export class HyperLiquidProvider implements PerpsProvider {
         user: userAddress,
       });
 
-      if (currentMode === 'unifiedAccount') {
+      if (
+        currentMode === 'unifiedAccount' ||
+        currentMode === 'portfolioMargin'
+      ) {
+        // portfolioMargin is a superset of unifiedAccount — it already supports
+        // auto-collateral management for HIP-3 orders and is more capital-efficient.
+        // Downgrading portfolio margin users to unifiedAccount would be harmful,
+        // so we treat both modes as already-enabled and skip migration.
         this.#deps.debugLogger.log(
-          'HyperLiquidProvider: Unified Account already enabled on-chain',
-          { user: userAddress, network },
+          'HyperLiquidProvider: Account already in a compatible mode, skipping migration',
+          { user: userAddress, network, mode: currentMode },
         );
         this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
-          [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]:
-            PERPS_EVENT_VALUE.ABSTRACTION_MODE.UNIFIED_ACCOUNT,
+          [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: currentMode,
           [PERPS_EVENT_PROPERTY.STATUS]:
             PERPS_EVENT_VALUE.STATUS.ALREADY_ENABLED,
         });
