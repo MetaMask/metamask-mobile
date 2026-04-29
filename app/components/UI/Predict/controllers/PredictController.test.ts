@@ -7713,6 +7713,95 @@ describe('PredictController', () => {
       });
     });
 
+    it('includes predict_token_symbol in analytics properties when paymentTokenSymbol is provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+          paymentTokenSymbol: 'WBTC',
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              predict_token_symbol: 'WBTC',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('omits predict_token_symbol from analytics properties when not provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+        });
+
+        const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
+        expect(eventArg.properties).not.toHaveProperty('predict_token_symbol');
+      });
+    });
+
+    it('includes active_ab_tests in analytics properties when provided and non-empty', async () => {
+      const abTests = [{ key: 'predict-pwat-experiment', value: 'treatment' }];
+
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'initiated',
+          analyticsProperties: { marketId: 'test' },
+          activeAbTests: abTests,
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              active_ab_tests: abTests,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('omits active_ab_tests from analytics properties when empty array provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'initiated',
+          analyticsProperties: { marketId: 'test' },
+          activeAbTests: [],
+        });
+
+        const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
+        expect(eventArg.properties).not.toHaveProperty('active_ab_tests');
+      });
+    });
+
+    it('calls analytics.trackEvent for trackBetslipDismissed', () => {
+      withController(({ controller }) => {
+        controller.trackBetslipDismissed({
+          analyticsProperties: { marketId: 'test' },
+          dismissalMethod: 'back_button',
+          hadEnteredAmount: false,
+          timeOnScreenMs: 1000,
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not call analytics.trackEvent for trackBetslipDismissed when analyticsProperties is missing', () => {
+      withController(({ controller }) => {
+        controller.trackBetslipDismissed({
+          analyticsProperties: undefined,
+          dismissalMethod: 'swipe',
+          hadEnteredAmount: false,
+          timeOnScreenMs: 500,
+        });
+
+        expect(analytics.trackEvent).not.toHaveBeenCalled();
+      });
+    });
+
     it('calls analytics.trackEvent for trackMarketDetailsOpened', () => {
       withController(({ controller }) => {
         controller.trackMarketDetailsOpened({
@@ -8824,6 +8913,159 @@ describe('PredictController', () => {
           address: accountAddress,
           transactionId: 'tx-1',
         });
+      });
+    });
+
+    it('forwards activeAbTests to placeOrder when depositAndOrder is confirmed', () => {
+      withController(({ controller, messenger }) => {
+        const preview = createMockOrderPreview();
+        const abTests = [
+          { key: 'predict-pwat-experiment', value: 'treatment' },
+        ];
+        const placeOrderSpy = jest
+          .spyOn(controller, 'placeOrder')
+          .mockResolvedValue({
+            success: true,
+            response: { id: 'order-1', spentAmount: '1', receivedAmount: '2' },
+          } as any);
+
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          transactionId: 'tx-1',
+        });
+        (
+          controller as unknown as {
+            pendingOrderPreviews: Record<
+              string,
+              {
+                preview: OrderPreview;
+                signerAddress: string;
+                analyticsProperties?: { marketId?: string };
+                activeAbTests?: { key: string; value: string }[];
+              }
+            >;
+          }
+        ).pendingOrderPreviews['tx-1'] = {
+          preview,
+          signerAddress: accountAddress,
+          analyticsProperties: { marketId: 'market-ab' },
+          activeAbTests: abTests,
+        };
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.confirmed,
+            }),
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(placeOrderSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ activeAbTests: abTests }),
+        );
+      });
+    });
+
+    it('fires swap_failed analytics event when depositAndOrder transaction fails', () => {
+      withController(({ controller, messenger }) => {
+        const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
+
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          transactionId: 'tx-1',
+        });
+        jest
+          .spyOn(controller, 'initPayWithAnyToken')
+          .mockResolvedValue(undefined as never);
+
+        (
+          controller as unknown as {
+            pendingOrderPreviews: Record<
+              string,
+              {
+                preview: OrderPreview;
+                signerAddress: string;
+                analyticsProperties?: { marketId?: string };
+              }
+            >;
+          }
+        ).pendingOrderPreviews['tx-1'] = {
+          preview: createMockOrderPreview(),
+          signerAddress: accountAddress,
+          analyticsProperties: { marketId: 'market-fail' },
+        };
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.failed,
+            }),
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Swap reverted' },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(trackSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'swap_failed' }),
+        );
+      });
+    });
+
+    it('fires swap_failed analytics event when depositAndOrder transaction is rejected', () => {
+      withController(({ controller, messenger }) => {
+        const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
+
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          transactionId: 'tx-rej',
+        });
+
+        (
+          controller as unknown as {
+            pendingOrderPreviews: Record<
+              string,
+              {
+                preview: OrderPreview;
+                signerAddress: string;
+                analyticsProperties?: { marketId?: string };
+              }
+            >;
+          }
+        ).pendingOrderPreviews['tx-rej'] = {
+          preview: createMockOrderPreview(),
+          signerAddress: accountAddress,
+          analyticsProperties: { marketId: 'market-rej' },
+        };
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.rejected,
+            }),
+            id: 'tx-rej',
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(trackSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            status: 'swap_failed',
+            failureReason: 'user_rejected',
+          }),
+        );
       });
     });
 
