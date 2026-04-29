@@ -5,13 +5,8 @@ import {
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '.';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 // Helper function to create mock state with assetsUnifyState flag
 function mockStateWith(assetsUnifyState: AssetsUnifyStateFeatureFlag) {
@@ -30,7 +25,7 @@ function mockStateWith(assetsUnifyState: AssetsUnifyStateFeatureFlag) {
 }
 
 describe('isAssetsUnifyStateFeatureEnabled', () => {
-  it('returns true when enabled with matching version', () => {
+  it('returns true when enabled', () => {
     const flag: AssetsUnifyStateFeatureFlag = {
       enabled: true,
       featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
@@ -63,7 +58,7 @@ describe('isAssetsUnifyStateFeatureEnabled', () => {
 });
 
 describe('selectIsAssetsUnifyStateEnabled', () => {
-  it('returns true when assetsUnifyState flag is enabled with matching version', () => {
+  it('returns true when assetsUnifyState flag is enabled', () => {
     const mockedState = mockStateWith({
       enabled: true,
       featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
@@ -75,7 +70,7 @@ describe('selectIsAssetsUnifyStateEnabled', () => {
   it('returns false when assetsUnifyState flag is disabled', () => {
     const mockedState = mockStateWith({
       enabled: false,
-      featureVersion: null,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
     });
 
     expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(false);
