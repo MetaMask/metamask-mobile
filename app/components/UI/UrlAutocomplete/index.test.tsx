@@ -91,26 +91,40 @@ const mockPredictionsData = {
 };
 
 const mockUseExploreSearchReturn = {
-  data: {
-    sites: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
-    tokens: [mockTokenData],
-    perps: [mockPerpsData],
-    predictions: [mockPredictionsData],
-  },
-  isLoading: { sites: false, tokens: false, perps: false, predictions: false },
-  sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+  sections: [
+    {
+      feedId: 'tokens' as const,
+      title: 'Trending tokens',
+      items: [mockTokenData],
+      isLoading: false,
+    },
+    {
+      feedId: 'perps' as const,
+      title: 'Perps',
+      items: [mockPerpsData],
+      isLoading: false,
+    },
+    {
+      feedId: 'predictions' as const,
+      title: 'Predict',
+      items: [mockPredictionsData],
+      isLoading: false,
+    },
+    {
+      feedId: 'sites' as const,
+      title: 'Sites',
+      items: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
+      isLoading: false,
+    },
+  ],
 };
 
-jest.mock('../../Views/TrendingView/hooks/useExploreSearch', () => ({
+jest.mock('../../Views/TrendingView/search/useExploreSearch', () => ({
   useExploreSearch: jest.fn(() => mockUseExploreSearchReturn),
 }));
-jest.mock('../Perps/providers/PerpsConnectionProvider', () => ({
-  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
-jest.mock('../Perps/providers/PerpsStreamManager', () => ({
-  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
+jest.mock('../../Views/TrendingView/feeds/perps/PerpsSectionProvider', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
 }));
 jest.mock('../../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn(() => true),

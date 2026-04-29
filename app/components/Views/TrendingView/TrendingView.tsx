@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -18,59 +18,34 @@ import { TabViewProps } from '../../../component-library/components-temp/Tabs/Ta
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
-import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import { RefreshConfig } from './components/Sections/Section';
+import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
+import { useExploreRefresh } from './hooks/useExploreRefresh';
+import NowTab from './tabs/NowTab';
+import MacroTab from './tabs/MacroTab';
+import RwasTab from './tabs/RwasTab';
+import CryptoTab from './tabs/CryptoTab';
+import SportsTab from './tabs/SportsTab';
+import DappsTab from './tabs/DappsTab';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
-import { ExploreTabPanel } from './tabs/ExploreTabPanels';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
-  const { colors } = useTheme();
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshConfig, setRefreshConfig] = useState<RefreshConfig>({
-    trigger: 0,
-    silentRefresh: true,
-  });
+  const tabProps = useExploreRefresh();
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
-  // REMOVED FOR NOW (https://consensys.slack.com/archives/C07NF2K42LE/p1766152712027759?thread_ts=1766135783.241539&cid=C07NF2K42LE)
-  // Trigger refresh only when navigating to an already-mounted screen
-  // useEffect(() => {
-  //   const params = route.params as { refresh?: boolean } | undefined;
-
-  //   // Skip refresh on first mount
-  //   if (isFirstMount.current) {
-  //     isFirstMount.current = false;
-  //     return;
-  //   }
-
-  //   if (params?.refresh === true) {
-  //     // Silent refresh - don't show skeletons
-  //     setRefreshConfig((prev) => ({
-  //       trigger: prev.trigger + 1,
-  //       silentRefresh: false,
-  //     }));
-  //   }
-  // }, [route.params]);
-
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
-    // Enable AppState listener to detect app backgrounding
     sessionManager.enableAppStateListener();
-
-    // Start session
     sessionManager.startSession('trending_feed');
 
     return () => {
-      // End session and disable listener on unmount
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
@@ -87,7 +62,6 @@ export const ExploreFeed: React.FC = () => {
 
   const handleBrowserPress = useCallback(() => {
     if (browserTabsCount > 0) {
-      // If tabs exist, show the tabs view directly
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
         params: {
@@ -97,7 +71,6 @@ export const ExploreFeed: React.FC = () => {
         },
       });
     } else {
-      // If no tabs exist, open a new tab with portfolio URL
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
         params: {
@@ -112,34 +85,6 @@ export const ExploreFeed: React.FC = () => {
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
-
-  // Clean up timeout when component unmounts or refreshing changes
-  useEffect(() => {
-    if (refreshing) {
-      const timeoutId = setTimeout(() => {
-        setRefreshing(false);
-      }, 1000);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [refreshing]);
-
-  const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    // Pull-to-refresh - show skeletons
-    setRefreshConfig((prev) => ({
-      trigger: prev.trigger + 1,
-      silentRefresh: true,
-    }));
-  }, []);
-
-  const exploreTabPanelProps = {
-    refreshConfig,
-    refreshing,
-    onRefresh: handleRefresh,
-    colors,
-    tw,
-  };
 
   return (
     <SafeAreaView
@@ -179,7 +124,7 @@ export const ExploreFeed: React.FC = () => {
               twClassName="flex-1"
               {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
             >
-              <ExploreTabPanel tab="now" {...exploreTabPanelProps} />
+              <NowTab {...tabProps} />
             </Box>
             <Box
               key="macro"
@@ -188,14 +133,14 @@ export const ExploreFeed: React.FC = () => {
                 tabLabel: strings('trending.tabs.macro'),
               } as TabViewProps)}
             >
-              <ExploreTabPanel tab="macro" {...exploreTabPanelProps} />
+              <MacroTab {...tabProps} />
             </Box>
             <Box
               key="rwas"
               twClassName="flex-1"
               {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
             >
-              <ExploreTabPanel tab="rwas" {...exploreTabPanelProps} />
+              <RwasTab {...tabProps} />
             </Box>
             <Box
               key="crypto"
@@ -204,7 +149,7 @@ export const ExploreFeed: React.FC = () => {
                 tabLabel: strings('trending.tabs.crypto'),
               } as TabViewProps)}
             >
-              <ExploreTabPanel tab="crypto" {...exploreTabPanelProps} />
+              <CryptoTab {...tabProps} />
             </Box>
             <Box
               key="sports"
@@ -213,7 +158,7 @@ export const ExploreFeed: React.FC = () => {
                 tabLabel: strings('trending.tabs.sports'),
               } as TabViewProps)}
             >
-              <ExploreTabPanel tab="sports" {...exploreTabPanelProps} />
+              <SportsTab {...tabProps} />
             </Box>
             <Box
               key="dapps"
@@ -222,7 +167,7 @@ export const ExploreFeed: React.FC = () => {
                 tabLabel: strings('trending.tabs.dapps'),
               } as TabViewProps)}
             >
-              <ExploreTabPanel tab="dapps" {...exploreTabPanelProps} />
+              <DappsTab {...tabProps} />
             </Box>
           </TabsList>
         ) : (

@@ -39,7 +39,7 @@ import {
 import {
   MAX_RECENTS,
   EMPTY_STATE_CATEGORIES,
-  BROWSER_SEARCH_SECTIONS_ORDER,
+  BROWSER_SEARCH_FEEDS_ORDER,
   HISTORY_FUSE_OPTIONS,
 } from './UrlAutocomplete.constants';
 import { Result } from './Result';
@@ -48,14 +48,15 @@ import {
   useSwapBridgeNavigation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { BridgeToken } from '../Bridge/types';
-import { useExploreSearch } from '../../Views/TrendingView/hooks/useExploreSearch';
-import { type SectionId } from '../../Views/TrendingView/sections.config';
+import {
+  useExploreSearch,
+  type SearchFeedId,
+} from '../../Views/TrendingView/search/useExploreSearch';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket } from '../Predict/types';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
-import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
+import PerpsSectionProvider from '../../Views/TrendingView/feeds/perps/PerpsSectionProvider';
 import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import SitesSearchFooter from '../Sites/components/SitesSearchFooter/SitesSearchFooter';
@@ -81,33 +82,23 @@ const getTrendingTokenImageUrl = (assetId: string): string =>
   `https://token.api.cx.metamask.io/assets/${assetId}/logo.png`;
 
 interface ResultsWithCategory {
-  category: UrlAutocompleteCategory | SectionId;
+  category: UrlAutocompleteCategory;
   data: AutocompleteSearchResult[];
   isLoading?: boolean;
 }
 
-/**
- * Helper to map SectionId to UrlAutocompleteCategory for display
- */
-const sectionIdToCategory = (sectionId: SectionId): UrlAutocompleteCategory => {
-  switch (sectionId) {
+/** Map a search feed id to the autocomplete category used in the UI. */
+const feedIdToCategory = (feedId: SearchFeedId): UrlAutocompleteCategory => {
+  switch (feedId) {
     case 'sites':
       return UrlAutocompleteCategory.Sites;
     case 'tokens':
-    case 'crypto_movers':
+    case 'stocks':
       return UrlAutocompleteCategory.Tokens;
     case 'perps':
-    case 'rwa_perps':
-    case 'macro_stocks_commodity_perps':
-    case 'crypto_perps':
       return UrlAutocompleteCategory.Perps;
     case 'predictions':
-    case 'sports_predictions':
-    case 'crypto_predictions':
-    case 'politics_predictions':
       return UrlAutocompleteCategory.Predictions;
-    default:
-      return UrlAutocompleteCategory.Sites;
   }
 };
 
@@ -206,14 +197,15 @@ const SearchContent: React.FC<SearchContentProps> = ({
     selectBasicFunctionalityEnabled,
   );
 
-  // Use omni-search hook with browser-specific section order (Sites first)
-  const {
-    data: omniSearchData,
-    isLoading: omniSearchLoading,
-    sectionsOrder,
-  } = useExploreSearch(searchQuery, {
-    sectionsOrder: BROWSER_SEARCH_SECTIONS_ORDER,
-  });
+  // Use omni-search hook; reorder sections so Sites comes first for the browser.
+  const { sections: rawSections } = useExploreSearch(searchQuery);
+  const orderedSections = useMemo(() => {
+    const byId = new Map(rawSections.map((s) => [s.feedId, s]));
+    return BROWSER_SEARCH_FEEDS_ORDER.flatMap((id) => {
+      const section = byId.get(id);
+      return section ? [section] : [];
+    });
+  }, [rawSections]);
 
   // Create Fuse instance for filtering Recents and Favorites
   const fuseInstance = useMemo(() => {
@@ -261,18 +253,14 @@ const SearchContent: React.FC<SearchContentProps> = ({
       return results;
     }
 
-    // Process API-dependent sections in order
-    sectionsOrder.forEach((sectionId) => {
-      const sectionData = omniSearchData[sectionId] ?? [];
-      const sectionIsLoading = omniSearchLoading[sectionId] ?? false;
-      const category = sectionIdToCategory(sectionId);
+    // Process API-dependent feeds in browser-preferred order
+    orderedSections.forEach((section) => {
+      const { feedId, items, isLoading: sectionIsLoading } = section;
+      const category = feedIdToCategory(feedId);
 
-      if (sectionId === 'sites') {
-        // Add Sites section (API-dependent)
-        if (sectionData.length > 0 || sectionIsLoading) {
-          const transformedSites = (
-            sectionData as { name: string; url: string }[]
-          )
+      if (feedId === 'sites') {
+        if (items.length > 0 || sectionIsLoading) {
+          const transformedSites = (items as { name: string; url: string }[])
             .filter((site) => site?.name && site?.url)
             .map(
               (site): FuseSearchResult => ({
@@ -288,49 +276,42 @@ const SearchContent: React.FC<SearchContentProps> = ({
             isLoading: sectionIsLoading,
           });
         }
-      } else {
-        // Skip if empty and not loading
-        if (sectionData.length === 0 && !sectionIsLoading) return;
-
-        // Transform data based on section type
-        let transformedData: AutocompleteSearchResult[] = [];
-
-        switch (sectionId) {
-          case 'tokens':
-          case 'crypto_movers':
-            transformedData = (sectionData as TrendingAsset[])
-              .filter((asset) => asset?.assetId)
-              .map(transformTokenResult);
-            break;
-          case 'perps':
-          case 'rwa_perps':
-          case 'macro_stocks_commodity_perps':
-          case 'crypto_perps':
-            transformedData = (sectionData as PerpsMarketData[])
-              .filter((market) => market?.symbol)
-              .map(transformPerpsResult);
-            break;
-          case 'predictions':
-            transformedData = (sectionData as PredictMarket[])
-              .filter((market) => market?.id)
-              .map(transformPredictionsResult);
-            break;
-        }
-
-        results.push({
-          category,
-          data: transformedData,
-          isLoading: sectionIsLoading,
-        });
+        return;
       }
+
+      if (items.length === 0 && !sectionIsLoading) return;
+
+      let transformedData: AutocompleteSearchResult[] = [];
+      switch (feedId) {
+        case 'tokens':
+        case 'stocks':
+          transformedData = (items as TrendingAsset[])
+            .filter((asset) => asset?.assetId)
+            .map(transformTokenResult);
+          break;
+        case 'perps':
+          transformedData = (items as PerpsMarketData[])
+            .filter((market) => market?.symbol)
+            .map(transformPerpsResult);
+          break;
+        case 'predictions':
+          transformedData = (items as PredictMarket[])
+            .filter((market) => market?.id)
+            .map(transformPredictionsResult);
+          break;
+      }
+
+      results.push({
+        category,
+        data: transformedData,
+        isLoading: sectionIsLoading,
+      });
     });
 
     return results;
   }, [
     searchQuery,
-    omniSearchData,
-    omniSearchLoading,
-    sectionsOrder,
+    orderedSections,
     isBasicFunctionalityEnabled,
     filteredLocalResults,
   ]);
@@ -632,19 +613,17 @@ const UrlAutocomplete = forwardRef<
         keyboardVerticalOffset={100}
       >
         {isSearchMode ? (
-          // Search mode: wrap with PerpsConnectionProvider (context only) and PerpsStreamProvider for omni-search
-          <PerpsConnectionProvider suppressErrorView>
-            <PerpsStreamProvider>
-              <SearchContent
-                searchQuery={searchQuery}
-                browserHistory={browserHistory}
-                bookmarks={bookmarks}
-                onSelect={onSelect}
-                hide={hide}
-                styles={styles}
-              />
-            </PerpsStreamProvider>
-          </PerpsConnectionProvider>
+          // Search mode: wrap with perps providers for omni-search
+          <PerpsSectionProvider>
+            <SearchContent
+              searchQuery={searchQuery}
+              browserHistory={browserHistory}
+              bookmarks={bookmarks}
+              onSelect={onSelect}
+              hide={hide}
+              styles={styles}
+            />
+          </PerpsSectionProvider>
         ) : (
           // Empty state: show Recents and Favorites
           <>
