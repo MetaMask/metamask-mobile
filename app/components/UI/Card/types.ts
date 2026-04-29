@@ -45,8 +45,7 @@ export type CardUserPhase =
   | 'ACCOUNT'
   | 'PHONE_NUMBER'
   | 'PERSONAL_INFORMATION'
-  | 'PHYSICAL_ADDRESS'
-  | 'MAILING_ADDRESS';
+  | 'PHYSICAL_ADDRESS';
 
 export type CardVerificationState =
   | 'VERIFIED'
