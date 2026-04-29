@@ -11,14 +11,10 @@ import React, {
   useRef,
 } from 'react';
 import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import {
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent,
-} from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
   runOnJS,
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
@@ -91,27 +87,23 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
       postCallback.current?.();
     }, [navigation, onDismiss, shouldGoBack]);
 
-    const gestureHandler = useAnimatedGestureHandler<
-      PanGestureHandlerGestureEvent,
-      { startY: number }
-    >({
-      onStart: (_, ctx) => {
-        ctx.startY = currentYOffset.value;
-      },
-      onActive: (event, ctx) => {
-        const { translationY } = event;
-        currentYOffset.value = ctx.startY + translationY;
-        if (currentYOffset.value >= sheetHeight.value) {
-          currentYOffset.value = sheetHeight.value;
-        }
-        if (currentYOffset.value <= visibleYOffset.value) {
-          currentYOffset.value = visibleYOffset.value;
-        }
-      },
-      onEnd: (event, ctx) => {
+    const startY = useSharedValue(0);
+    const panGesture = Gesture.Pan()
+      .enabled(isInteractable)
+      .onStart(() => {
+        startY.value = currentYOffset.value;
+      })
+      .onUpdate((event) => {
+        const nextY = startY.value + event.translationY;
+        currentYOffset.value = Math.min(
+          Math.max(nextY, visibleYOffset.value),
+          sheetHeight.value,
+        );
+      })
+      .onEnd((event) => {
         const { translationY, velocityY } = event;
         let finalOffset: number;
-        const latestOffset = ctx.startY + translationY;
+        const latestOffset = startY.value + translationY;
         const hasReachedDismissOffset =
           latestOffset > sheetHeight.value * DISMISS_DISTANCE_THRESHOLD;
         const hasReachedSwipeThreshold =
@@ -120,11 +112,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
 
         if (hasReachedSwipeThreshold) {
           // Quick swipe takes priority
-          if (isDismissing) {
-            finalOffset = sheetHeight.value;
-          } else {
-            finalOffset = visibleYOffset.value;
-          }
+          finalOffset = isDismissing ? sheetHeight.value : visibleYOffset.value;
         } else if (hasReachedDismissOffset) {
           finalOffset = sheetHeight.value;
         } else {
@@ -138,8 +126,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
           { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
           () => isDismissed && runOnJS(onHidden)(),
         );
-      },
-    });
+      });
 
     // Animate in on initial render.
     const show = useCallback(() => {
@@ -218,14 +205,11 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
         >
           <Animated.View style={combinedOverlayStyle} />
         </TouchableOpacity>
-        <PanGestureHandler
-          enabled={isInteractable}
-          onGestureEvent={gestureHandler}
-        >
-          <Animated.View style={[combinedModalStyle, style]}>
-            {children}
-          </Animated.View>
-        </PanGestureHandler>
+        <Animated.View style={[combinedModalStyle, style]}>
+          <GestureDetector gesture={panGesture}>
+            <View style={styles.absoluteFill}>{children}</View>
+          </GestureDetector>
+        </Animated.View>
       </View>
     );
   },

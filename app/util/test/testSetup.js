@@ -685,13 +685,6 @@ try {
   // Reanimated internals may change — fall through silently
 }
 
-// useAnimatedGestureHandler was removed in react-native-reanimated v4 but is
-// still imported by legacy source code (e.g. ReusableModal). Patch the module
-// so tests that render those components don't crash.
-if (typeof Reanimated.useAnimatedGestureHandler !== 'function') {
-  Reanimated.useAnimatedGestureHandler = jest.fn(() => ({}));
-}
-
 global.__DEV__ = false;
 
 // Custom snapshot serializer to handle Reanimated shared value proxies.

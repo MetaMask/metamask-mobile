@@ -1,0 +1,237 @@
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.cjs b/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
+index c3da838d11712780441b8efa5f0f46265dfcfaff..be9b8a4a375305c0bc753c815765314d9cc93abb 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
+@@ -64,51 +64,38 @@ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen =
+         });
+         // Ref values do not affect deps.
+     }, [onCloseCB]);
+-    const gestureHandler = (0, react_native_reanimated_1.useAnimatedGestureHandler)({
+-        onStart: (_, ctx) => {
+-            // Starts tracking vertical position of gesture
+-            ctx.startY = currentYOffset.value;
+-        },
+-        onActive: (event, ctx) => {
++    // PATCH: useAnimatedGestureHandler was removed in react-native-reanimated v3+.
++    // Migrated to the modern Gesture.Pan() + GestureDetector API.
++    const gestureStartY = (0, react_native_reanimated_1.useSharedValue)(0);
++    const panGesture = react_native_gesture_handler_1.Gesture.Pan()
++        .enabled(isInteractable)
++        .onStart(() => {
++            gestureStartY.value = currentYOffset.value;
++        })
++        .onUpdate((event) => {
+             const { translationY } = event;
+-            currentYOffset.value = ctx.startY + translationY;
+-            // If gesture Y value goes above the bottom of Dialog Y value(bottom of dialog),
+-            // which means the gesture is currently below the bottom of the dialog,
+-            // sets it to bottom of Dialog Y value
++            currentYOffset.value = gestureStartY.value + translationY;
+             if (currentYOffset.value >= bottomOfDialogYValue.value) {
+                 currentYOffset.value = bottomOfDialogYValue.value;
+             }
+-            // If gesture Y value goes below the top of Dialog Y value(top of dialog),
+-            // which means the gesture is currently above the top of the dialog,
+-            // sets it to top of Dialog Y value
+             if (currentYOffset.value <= topOfDialogYValue.value) {
+                 currentYOffset.value = topOfDialogYValue.value;
+             }
+-        },
+-        onEnd: (event, ctx) => {
++        })
++        .onEnd((event) => {
+             const { translationY, velocityY } = event;
+-            // finalYOffset is used to animate the Y position of the Dialog after the gesture event
+             let finalYOffset;
+-            // Measuring dismissing swipe action
+-            const latestOffset = ctx.startY + translationY;
+-            // Check if the swipe distance reach the dismiss offset threshold,
+-            // which is currently 60% of sheet height
++            const latestOffset = gestureStartY.value + translationY;
+             const hasReachedDismissOffset = latestOffset >
+                 bottomOfDialogYValue.value *
+                     BottomSheetDialog_constants_1.DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
+-            // Check if the gesture's vertical speed has reached the threshold to determine a swipe action
+             const hasReachedSwipeThreshold = Math.abs(velocityY) >
+                 BottomSheetDialog_constants_1.DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION;
+             const isQuickDismissing = velocityY > 0;
+-            // If user is swiping
+             if (hasReachedSwipeThreshold) {
+-                // Quick swipe takes priority
+-                if (isQuickDismissing) {
+-                    finalYOffset = bottomOfDialogYValue.value;
+-                }
+-                else {
+-                    finalYOffset = topOfDialogYValue.value;
+-                }
++                finalYOffset = isQuickDismissing
++                    ? bottomOfDialogYValue.value
++                    : topOfDialogYValue.value;
+             }
+             else if (hasReachedDismissOffset) {
+                 finalYOffset = bottomOfDialogYValue.value;
+@@ -121,13 +108,11 @@ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen =
+                 (0, react_native_reanimated_1.runOnJS)(onCloseDialog)();
+             }
+             else {
+-                // Only animate dialog to a certain Y position instead
+                 currentYOffset.value = (0, react_native_reanimated_1.withTiming)(finalYOffset, {
+                     duration: BottomSheetDialog_constants_1.DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
+                 });
+             }
+-        },
+-    });
++        });
+     // Animate in sheet on initial render.
+     const onOpenDialog = (callback) => {
+         // Starts setting the Y position of the dialog to the bottom of the dialog
+@@ -193,14 +178,16 @@ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen =
+         onCloseDialog,
+     }));
+     return (<react_native_1.KeyboardAvoidingView style={tw.style('absolute bottom-0 inset-x-0')} behavior={react_native_1.Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={react_native_1.Platform.OS === 'ios' ? -screenBottomPadding : frameY} enabled={keyboardAvoidingViewEnabled} {...props}>
+-        <react_native_gesture_handler_1.PanGestureHandler {...panGestureHandlerProps} enabled={isInteractable} onGestureEvent={gestureHandler}>
+-          <react_native_reanimated_1.default.View onLayout={updateSheetHeight} style={combinedSheetStyle}>
+-            {isInteractable && (<react_native_1.View style={tw.style('self-stretch items-center p-1')}>
+-                <react_native_1.View style={tw.style('h-1 w-10 rounded-sm bg-border-muted')}/>
+-              </react_native_1.View>)}
+-            {children}
+-          </react_native_reanimated_1.default.View>
+-        </react_native_gesture_handler_1.PanGestureHandler>
++        <react_native_reanimated_1.default.View onLayout={updateSheetHeight} style={combinedSheetStyle}>
++          <react_native_gesture_handler_1.GestureDetector gesture={panGesture}>
++            <react_native_1.View style={{ flex: 1 }}>
++              {isInteractable && (<react_native_1.View style={tw.style('self-stretch items-center p-1')}>
++                  <react_native_1.View style={tw.style('h-1 w-10 rounded-sm bg-border-muted')}/>
++                </react_native_1.View>)}
++              {children}
++            </react_native_1.View>
++          </react_native_gesture_handler_1.GestureDetector>
++        </react_native_reanimated_1.default.View>
+       </react_native_1.KeyboardAvoidingView>);
+ });
+ //# sourceMappingURL=BottomSheetDialog.cjs.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.mjs b/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
+index 4c0592889bce0b8082f6a024e5d2505ba0d5750a..f10f7d0577d83556c1374a4bd17bb292ab040185 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
+@@ -11,8 +11,8 @@ const { debounce } = $lodash;
+ import $React, { forwardRef, useCallback, useEffect, useMemo, useRef, useImperativeHandle } from "react";
+ const React = $importDefault($React);
+ import { View, Platform, KeyboardAvoidingView } from "react-native/index.js";
+-import { PanGestureHandler } from "react-native-gesture-handler";
+-import Animated, { runOnJS, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
++import { Gesture, GestureDetector } from "react-native-gesture-handler";
++import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+ import { useSafeAreaFrame, useSafeAreaInsets } from "react-native-safe-area-context";
+ // Internal dependencies.
+ import { DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION, DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD, DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION } from "./BottomSheetDialog.constants.mjs";
+@@ -46,51 +46,38 @@ export const BottomSheetDialog = forwardRef(({ children, isFullscreen = false, i
+         });
+         // Ref values do not affect deps.
+     }, [onCloseCB]);
+-    const gestureHandler = useAnimatedGestureHandler({
+-        onStart: (_, ctx) => {
+-            // Starts tracking vertical position of gesture
+-            ctx.startY = currentYOffset.value;
+-        },
+-        onActive: (event, ctx) => {
++    // PATCH: useAnimatedGestureHandler was removed in react-native-reanimated v3+.
++    // Migrated to the modern Gesture.Pan() + GestureDetector API.
++    const gestureStartY = useSharedValue(0);
++    const panGesture = Gesture.Pan()
++        .enabled(isInteractable)
++        .onStart(() => {
++            gestureStartY.value = currentYOffset.value;
++        })
++        .onUpdate((event) => {
+             const { translationY } = event;
+-            currentYOffset.value = ctx.startY + translationY;
+-            // If gesture Y value goes above the bottom of Dialog Y value(bottom of dialog),
+-            // which means the gesture is currently below the bottom of the dialog,
+-            // sets it to bottom of Dialog Y value
++            currentYOffset.value = gestureStartY.value + translationY;
+             if (currentYOffset.value >= bottomOfDialogYValue.value) {
+                 currentYOffset.value = bottomOfDialogYValue.value;
+             }
+-            // If gesture Y value goes below the top of Dialog Y value(top of dialog),
+-            // which means the gesture is currently above the top of the dialog,
+-            // sets it to top of Dialog Y value
+             if (currentYOffset.value <= topOfDialogYValue.value) {
+                 currentYOffset.value = topOfDialogYValue.value;
+             }
+-        },
+-        onEnd: (event, ctx) => {
++        })
++        .onEnd((event) => {
+             const { translationY, velocityY } = event;
+-            // finalYOffset is used to animate the Y position of the Dialog after the gesture event
+             let finalYOffset;
+-            // Measuring dismissing swipe action
+-            const latestOffset = ctx.startY + translationY;
+-            // Check if the swipe distance reach the dismiss offset threshold,
+-            // which is currently 60% of sheet height
++            const latestOffset = gestureStartY.value + translationY;
+             const hasReachedDismissOffset = latestOffset >
+                 bottomOfDialogYValue.value *
+                     DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
+-            // Check if the gesture's vertical speed has reached the threshold to determine a swipe action
+             const hasReachedSwipeThreshold = Math.abs(velocityY) >
+                 DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION;
+             const isQuickDismissing = velocityY > 0;
+-            // If user is swiping
+             if (hasReachedSwipeThreshold) {
+-                // Quick swipe takes priority
+-                if (isQuickDismissing) {
+-                    finalYOffset = bottomOfDialogYValue.value;
+-                }
+-                else {
+-                    finalYOffset = topOfDialogYValue.value;
+-                }
++                finalYOffset = isQuickDismissing
++                    ? bottomOfDialogYValue.value
++                    : topOfDialogYValue.value;
+             }
+             else if (hasReachedDismissOffset) {
+                 finalYOffset = bottomOfDialogYValue.value;
+@@ -103,13 +90,11 @@ export const BottomSheetDialog = forwardRef(({ children, isFullscreen = false, i
+                 runOnJS(onCloseDialog)();
+             }
+             else {
+-                // Only animate dialog to a certain Y position instead
+                 currentYOffset.value = withTiming(finalYOffset, {
+                     duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
+                 });
+             }
+-        },
+-    });
++        });
+     // Animate in sheet on initial render.
+     const onOpenDialog = (callback) => {
+         // Starts setting the Y position of the dialog to the bottom of the dialog
+@@ -175,14 +160,16 @@ export const BottomSheetDialog = forwardRef(({ children, isFullscreen = false, i
+         onCloseDialog,
+     }));
+     return (<KeyboardAvoidingView style={tw.style('absolute bottom-0 inset-x-0')} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? -screenBottomPadding : frameY} enabled={keyboardAvoidingViewEnabled} {...props}>
+-        <PanGestureHandler {...panGestureHandlerProps} enabled={isInteractable} onGestureEvent={gestureHandler}>
+-          <Animated.View onLayout={updateSheetHeight} style={combinedSheetStyle}>
+-            {isInteractable && (<View style={tw.style('self-stretch items-center p-1')}>
+-                <View style={tw.style('h-1 w-10 rounded-sm bg-border-muted')}/>
+-              </View>)}
+-            {children}
+-          </Animated.View>
+-        </PanGestureHandler>
++        <Animated.View onLayout={updateSheetHeight} style={combinedSheetStyle}>
++          <GestureDetector gesture={panGesture}>
++            <View style={{ flex: 1 }}>
++              {isInteractable && (<View style={tw.style('self-stretch items-center p-1')}>
++                  <View style={tw.style('h-1 w-10 rounded-sm bg-border-muted')}/>
++                </View>)}
++              {children}
++            </View>
++          </GestureDetector>
++        </Animated.View>
+       </KeyboardAvoidingView>);
+ });
+ //# sourceMappingURL=BottomSheetDialog.mjs.map
+\ No newline at end of file
