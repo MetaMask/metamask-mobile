@@ -14,6 +14,7 @@ import AssetOverviewContent, {
 } from './AssetOverviewContent';
 import { TokenI } from '../../Tokens/types';
 import { TimePeriod } from '../../../hooks/useTokenHistoricalPrices';
+import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights/MarketInsights.testIds';
 import { remoteFeatureFlagMarketInsightsEnabled } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import {
@@ -171,7 +172,7 @@ describeForPlatforms(
       ).toBeNull();
     });
 
-    it('does not show entry card when market insights feature flag is off', () => {
+    it('does not show entry card when market insights feature flag is off', async () => {
       setupMarketInsightsEngineMock(MOCK_PERPS_MARKET_INSIGHTS_REPORT);
 
       renderAssetOverviewMarketInsightsStack(
@@ -185,6 +186,15 @@ describeForPlatforms(
         { state: buildTokenDetailsMarketInsightsState(false) },
       );
 
+      expect(
+        await screen.findByTestId(TokenOverviewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD_SKELETON),
+        ).toBeNull();
+      });
       expect(
         screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
       ).toBeNull();

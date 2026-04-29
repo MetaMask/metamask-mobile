@@ -125,6 +125,49 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
       },
+      // Notifications: stubbed so notification view + settings flows can call
+      // controller methods (enable / disable / toggleFeatureAnnouncements /
+      // markMetamaskNotificationsAsRead / fetchAndUpdateMetamaskNotifications
+      // / enableAccounts / disableAccounts) without touching the real services.
+      NotificationServicesController: {
+        state: {
+          isNotificationServicesEnabled: true,
+          isFeatureAnnouncementsEnabled: true,
+          metamaskNotificationsList: [],
+          metamaskNotificationsReadList: [],
+        },
+        enableMetamaskNotifications: jest.fn().mockResolvedValue(undefined),
+        disableMetamaskNotifications: jest.fn().mockResolvedValue(undefined),
+        enableNotificationServices: jest.fn().mockResolvedValue(undefined),
+        disableNotificationServices: jest.fn().mockResolvedValue(undefined),
+        enablePushNotifications: jest.fn().mockResolvedValue(undefined),
+        disablePushNotifications: jest.fn().mockResolvedValue(undefined),
+        setFeatureAnnouncementsEnabled: jest.fn().mockResolvedValue(undefined),
+        toggleFeatureAnnouncements: jest.fn().mockResolvedValue(undefined),
+        markMetamaskNotificationsAsRead: jest.fn().mockResolvedValue(undefined),
+        fetchAndUpdateMetamaskNotifications: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        enableAccounts: jest.fn().mockResolvedValue(undefined),
+        disableAccounts: jest.fn().mockResolvedValue(undefined),
+        createOnChainTriggers: jest.fn().mockResolvedValue(undefined),
+        checkAccountsPresence: jest
+          .fn()
+          .mockResolvedValue({} as Record<string, boolean>),
+      },
+      NotificationServicesPushController: {
+        state: { isPushEnabled: true, fcmToken: 'mock-fcm-token' },
+        enablePushNotifications: jest.fn().mockResolvedValue(undefined),
+        disablePushNotifications: jest.fn().mockResolvedValue(undefined),
+        updateTriggerPushNotifications: jest.fn().mockResolvedValue(undefined),
+      },
+      RemoteFeatureFlagController: {
+        state: {
+          remoteFeatureFlags: {
+            assetsNotificationsEnabled: true,
+          },
+        },
+      },
       AiDigestController: {
         fetchMarketInsights: jest.fn().mockResolvedValue(null),
         fetchMarketOverview: jest.fn().mockResolvedValue(undefined),

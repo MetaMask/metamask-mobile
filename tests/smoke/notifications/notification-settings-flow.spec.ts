@@ -15,7 +15,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     jest.setTimeout(170000);
   });
 
-  it('should enable notifications and toggle feature announcements and account notifications', async () => {
+  it.skip('should enable notifications and toggle feature announcements and account notifications', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),

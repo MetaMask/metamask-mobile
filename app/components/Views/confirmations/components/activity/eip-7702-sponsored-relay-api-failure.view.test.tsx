@@ -19,6 +19,7 @@ import {
   setupSentinelNetworksRelayEnabledMock,
 } from '../../../../../../tests/component-view/api-mocking/sentinel-networks';
 import { TransactionDetailsStatusRow } from './transaction-details-status-row/transaction-details-status-row';
+import { STATUS_ICON_TOOLTIP_OPEN_BUTTON_TEST_ID } from '../status-icon/status-icon.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 const STAKING_TX_ID = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
@@ -62,7 +63,7 @@ describeForPlatforms(
         expect(getByText(strings('transaction.failed'))).toBeOnTheScreen(),
       );
 
-      fireEvent.press(getByTestId('status-tooltip-open-btn'));
+      fireEvent.press(getByTestId(STATUS_ICON_TOOLTIP_OPEN_BUTTON_TEST_ID));
 
       expect(getByText('Relay submission failed')).toBeOnTheScreen();
     });

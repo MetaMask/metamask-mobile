@@ -67,15 +67,6 @@ function seedEngineKeyringWithTypedSignSigner(): void {
   ];
 }
 
-function BlockaidAlertOnlyHarness() {
-  const alerts = useBlockaidAlerts();
-  return (
-    <AlertsContextProvider alerts={alerts}>
-      <AlertBanner />
-    </AlertsContextProvider>
-  );
-}
-
 function TypedSignMaliciousBlockaidFlowHarness() {
   const alerts = useBlockaidAlerts();
   return (
@@ -95,7 +86,11 @@ function TypedSignMaliciousBlockaidFlowHarness() {
 describeForPlatforms(
   'Alert system (typed sign — benign security response)',
   () => {
-    it('does not show redesigned security banner when validation is Benign', () => {
+    beforeEach(() => {
+      seedEngineKeyringWithTypedSignSigner();
+    });
+
+    it('lets user confirm without security banner or confirm-alert modal when validation is Benign', async () => {
       const state = merge({}, typedSignV1ConfirmationState, {
         securityAlerts: {
           alerts: {
@@ -111,11 +106,31 @@ describeForPlatforms(
         },
       });
 
-      const { queryByTestId } = renderComponentViewScreen(
-        BlockaidAlertOnlyHarness,
+      const { findByTestId, queryByTestId } = renderComponentViewScreen(
+        TypedSignMaliciousBlockaidFlowHarness,
         { name: 'TypedSignBenignBlockaid' },
         { state },
       );
+
+      const confirmButton = await findByTestId(
+        ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+      );
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
+          ),
+        ).toBeNull();
+      });
+
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL),
+        ).toBeNull();
+      });
 
       expect(
         queryByTestId(
