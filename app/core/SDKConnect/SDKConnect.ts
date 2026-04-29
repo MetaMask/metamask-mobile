@@ -1,5 +1,4 @@
 import { NativeEventSubscription } from 'react-native';
-import { analytics } from '@metamask/sdk-analytics';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 
@@ -360,8 +359,6 @@ export class SDKConnect {
     const navigation = NavigationService.navigation;
     const instance = SDKConnect.getInstance();
 
-    analytics.setGlobalProperty('platform', 'mobile');
-    analytics.enable();
     await init({ navigation, context, instance });
     await instance.postInit();
   }

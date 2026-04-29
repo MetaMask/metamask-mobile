@@ -4,6 +4,12 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import SocialLoginErrorSheet from './SocialLoginErrorSheet';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import {
+  AccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { Authentication } from '../../../core';
 import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';
@@ -41,12 +47,6 @@ jest.mock('../../../core', () => ({
   },
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
-}));
-
 const mockError = new Error('Test social login error');
 
 describe('SocialLoginErrorSheet', () => {
@@ -54,6 +54,18 @@ describe('SocialLoginErrorSheet', () => {
     engine: {
       backgroundState: {
         ...backgroundState,
+      },
+    },
+  };
+
+  const stateWithGoogleOAuth = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        SeedlessOnboardingController: {
+          ...backgroundState.SeedlessOnboardingController,
+          authConnection: AuthConnection.Google,
+        },
       },
     },
   };
@@ -82,14 +94,26 @@ describe('SocialLoginErrorSheet', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('tracks event with correct flow_type property', () => {
+    it('tracks screen viewed event with account_type from getSocialAccountType when OAuth provider is unknown', () => {
       renderWithProvider(<SocialLoginErrorSheet error={mockError} />, {
         state: initialState,
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith({
-        flow_type: 'social_login',
-        error_name: 'Error',
+        account_type: AccountType.Metamask,
+        error_type: 'Error',
+        error_message: 'Test social login error',
+      });
+    });
+
+    it('tracks screen viewed event with metamask_google when Google OAuth is in seedless state', () => {
+      renderWithProvider(<SocialLoginErrorSheet error={mockError} />, {
+        state: stateWithGoogleOAuth,
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        account_type: AccountType.MetamaskGoogle,
+        error_type: 'Error',
         error_message: 'Test social login error',
       });
     });
@@ -109,9 +133,12 @@ describe('SocialLoginErrorSheet', () => {
       fireEvent.press(getByText('Try again'));
 
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalled();
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+        );
         expect(mockAddProperties).toHaveBeenCalledWith({
-          flow_type: 'social_login',
+          cta_type: WalletCreationErrorCtaType.Retry,
+          account_type: AccountType.Metamask,
         });
         expect(mockTrackEvent).toHaveBeenCalled();
       });
@@ -129,9 +156,12 @@ describe('SocialLoginErrorSheet', () => {
 
       fireEvent.press(getByText('MetaMask Support'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+      );
       expect(mockAddProperties).toHaveBeenCalledWith({
-        flow_type: 'social_login',
+        cta_type: WalletCreationErrorCtaType.ContactSupport,
+        account_type: AccountType.Metamask,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });

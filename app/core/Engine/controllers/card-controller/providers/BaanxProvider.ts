@@ -58,7 +58,6 @@ import {
   OnboardingStepResult,
   RegistrationSettings,
   RegistrationStatus,
-  WalletOperations,
   FundingAssetStatus,
   CardProviderError,
   CardProviderErrorCode,
@@ -66,6 +65,7 @@ import {
   CashbackWithdrawEstimationResponse,
   CashbackWithdrawParams,
   CashbackWithdrawResponse,
+  type DelegationChallengeResponse,
   emptyCardHomeData,
 } from '../provider-types';
 
@@ -90,6 +90,10 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
     context: { name: 'BaanxProvider', data: { method, ...extra } },
   };
 }
+
+const ERC20_BALANCE_OF_ABI = [
+  'function balanceOf(address account) view returns (uint256)',
+];
 
 function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
   if (error instanceof CardApiError) {
@@ -231,33 +235,25 @@ export class BaanxProvider implements ICardProvider {
     supportsPinView: true,
     supportsCashback: true,
   };
-
-  /**
-   * Applies Baanx-specific location overrides:
-   * - US users always get PIN view (regardless of base flag).
-   * - US users do not have cashback (only available outside the US).
-   */
-  resolveCapabilities(location: string): CardProviderCapabilities {
-    const isUS = location === 'us';
-    return {
-      ...this.capabilities,
-      supportsPinView: isUS || this.capabilities.supportsPinView,
-      supportsCashback: !isUS && this.capabilities.supportsCashback,
-    };
-  }
-
   private readonly service: BaanxService;
-  private readonly cardFeatureFlag: CardFeatureFlag | null;
+  private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
 
   constructor({
     service,
     cardFeatureFlag,
+    getCardFeatureFlag,
   }: {
     service: BaanxService;
     cardFeatureFlag?: CardFeatureFlag;
+    getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
   }) {
     this.service = service;
-    this.cardFeatureFlag = cardFeatureFlag ?? null;
+    this.getCardFeatureFlag = () =>
+      getCardFeatureFlag?.() ?? cardFeatureFlag ?? null;
+  }
+
+  private get cardFeatureFlag(): CardFeatureFlag | null {
+    return this.getCardFeatureFlag();
   }
 
   // -- Auth --
@@ -584,21 +580,63 @@ export class BaanxProvider implements ICardProvider {
     };
   }
 
+  async fetchDelegationChallenge(
+    params: { network: string; address: string; faucet?: boolean },
+    tokens: CardAuthTokens,
+  ): Promise<DelegationChallengeResponse> {
+    const query = new URLSearchParams({
+      network: params.network,
+      address: params.address,
+      ...(params.faucet ? { faucet: 'true' } : {}),
+    }).toString();
+
+    const response = await this.service.get<{
+      token: string;
+      expiresAt: string;
+      nonce: string;
+    }>(`/v1/delegation/token?${query}`, tokens);
+
+    return {
+      delegationToken: response.token,
+      nonce: response.nonce,
+      expiresAt: response.expiresAt,
+    };
+  }
+
   // -- Funding Approval --
 
   async approveFunding(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
-    _wallet: WalletOperations,
   ): Promise<void> {
+    if (
+      params.txHash === undefined ||
+      params.sigHash === undefined ||
+      params.sigMessage === undefined ||
+      params.token === undefined
+    ) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'approveFunding requires txHash, sigHash, sigMessage, and delegation token',
+      );
+    }
+
+    const isSolana = params.network === 'solana';
+    const endpoint = isSolana
+      ? '/v1/delegation/solana/post-approval'
+      : '/v1/delegation/evm/post-approval';
+
     await this.service.post(
-      '/v1/delegation/evm/post-approval',
+      endpoint,
       {
-        walletAddress: params.address,
-        amount: params.amount,
-        currency: params.currency,
+        address: params.address,
         network: params.network,
-        faucet: params.faucet ?? false,
+        currency: params.currency.toLowerCase(),
+        amount: params.amount,
+        txHash: params.txHash,
+        sigHash: params.sigHash,
+        sigMessage: params.sigMessage,
+        token: params.token,
       },
       tokens,
     );
@@ -755,7 +793,7 @@ export class BaanxProvider implements ICardProvider {
   async getOnChainAssets(address: string): Promise<CardHomeData> {
     const fallback: CardHomeData = {
       ...emptyCardHomeData(),
-      actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
+      actions: [{ type: 'add_funds', enabled: true }],
     };
 
     try {
@@ -802,10 +840,7 @@ export class BaanxProvider implements ICardProvider {
         card: null,
         account: null,
         alerts: [],
-        actions: [
-          { type: 'add_funds', enabled: true },
-          { type: 'change_asset' },
-        ],
+        actions: [{ type: 'add_funds', enabled: true }],
         delegationSettings: null,
       };
     } catch (error) {
@@ -826,6 +861,7 @@ export class BaanxProvider implements ICardProvider {
       address: string;
       globalAllowance: ethers.BigNumber;
       usAllowance: ethers.BigNumber;
+      walletBalance: ethers.BigNumber;
     }[]
   > {
     const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
@@ -856,12 +892,35 @@ export class BaanxProvider implements ICardProvider {
         spenders,
       );
 
+    const walletBalances = await Promise.all(
+      tokenAddresses.map(async (tokenAddr) => {
+        try {
+          const erc20 = new ethers.Contract(
+            tokenAddr,
+            ERC20_BALANCE_OF_ABI,
+            provider,
+          );
+          return (await erc20.balanceOf(owner)) as ethers.BigNumber;
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            getErrorContext('fetchOnChainAllowances/balanceOf', {
+              tokenAddr,
+              owner,
+            }),
+          );
+          return ethers.BigNumber.from(0);
+        }
+      }),
+    );
+
     return tokenAddresses.map((addr, i) => {
       const [globalTuple, usTuple] = results[i];
       return {
         address: addr,
         globalAllowance: ethers.BigNumber.from(globalTuple[1]),
         usAllowance: ethers.BigNumber.from(usTuple[1]),
+        walletBalance: walletBalances[i] ?? ethers.BigNumber.from(0),
       };
     });
   }
@@ -871,6 +930,7 @@ export class BaanxProvider implements ICardProvider {
       address: string;
       globalAllowance: ethers.BigNumber;
       usAllowance: ethers.BigNumber;
+      walletBalance: ethers.BigNumber;
     }[],
     supportedTokens: (SupportedToken & { address: string })[],
     chainId: string,
@@ -886,9 +946,14 @@ export class BaanxProvider implements ICardProvider {
         const allowance = raw.usAllowance.isZero()
           ? raw.globalAllowance
           : raw.usAllowance;
+        const decimals = tokenInfo.decimals ?? 6;
         const allowanceFloat = parseFloat(
-          ethers.utils.formatUnits(allowance, tokenInfo.decimals ?? 6),
+          ethers.utils.formatUnits(allowance, decimals),
         );
+        const balanceFloat = parseFloat(
+          ethers.utils.formatUnits(raw.walletBalance, decimals),
+        );
+        const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
         return {
           symbol: tokenInfo.symbol ?? '',
@@ -897,7 +962,7 @@ export class BaanxProvider implements ICardProvider {
           walletAddress: ownerAddress,
           decimals: tokenInfo.decimals ?? 0,
           chainId,
-          spendableBalance: '0',
+          spendableBalance: availableBalance.toString(),
           spendingCap: allowance.toString(),
           priority: 0,
           status: mapAllowanceToFundingStatus(allowanceFloat),
@@ -1438,7 +1503,7 @@ export class BaanxProvider implements ICardProvider {
     }
 
     if (card.status === CardStatus.ACTIVE && asset) {
-      return [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }];
+      return [{ type: 'add_funds', enabled: true }];
     }
 
     return [];

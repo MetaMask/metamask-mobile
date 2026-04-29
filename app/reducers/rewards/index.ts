@@ -133,7 +133,7 @@ export interface RewardsState {
   campaignsError: boolean;
   campaignsHasLoaded: boolean;
 
-  // Campaign participant status (keyed by campaignId)
+  // Campaign participant status (keyed by `${subscriptionId}:${campaignId}`)
   campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
 
   // Version guard state
@@ -164,6 +164,22 @@ export interface RewardsState {
   ondoCampaignDeposits: OndoGmCampaignDepositsDto | null;
   ondoCampaignDepositsLoading: boolean;
   ondoCampaignDepositsError: boolean;
+
+  // Pending deeplink navigation intent, stored in Redux so it survives the
+  // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
+  pendingDeeplink: PendingDeeplink | null;
+
+  // Dismissed outcome toasts (keyed by `${campaignId}:${subscriptionId}:${variant}`)
+  dismissedCampaignOutcomeToasts: Record<string, boolean>;
+}
+
+/**
+ * Typed deeplink navigation parameters for the Rewards feature.
+ * Stored in Redux so the intent is available when RewardsNavigator mounts.
+ */
+export interface PendingDeeplink {
+  page?: 'campaigns' | 'musd' | 'benefits';
+  campaign?: 'ondo' | 'season1';
 }
 
 export const initialState: RewardsState = {
@@ -261,6 +277,10 @@ export const initialState: RewardsState = {
   ondoCampaignDeposits: null,
   ondoCampaignDepositsLoading: false,
   ondoCampaignDepositsError: false,
+
+  pendingDeeplink: null,
+
+  dismissedCampaignOutcomeToasts: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -423,6 +443,7 @@ const rewardsSlice = createSlice({
             state.hideCurrentAccountNotOptedInBanner,
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
           bulkLink: state.bulkLink,
+          dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
           versionGuardMinimumMobileVersion:
             state.versionGuardMinimumMobileVersion,
           versionGuardLoading: state.versionGuardLoading,
@@ -539,12 +560,13 @@ const rewardsSlice = createSlice({
     setCampaignParticipantStatus: (
       state,
       action: PayloadAction<{
+        subscriptionId: string;
         campaignId: string;
         status: CampaignParticipantStatusDto;
       }>,
     ) => {
-      state.campaignParticipantStatuses[action.payload.campaignId] =
-        action.payload.status;
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      state.campaignParticipantStatuses[key] = action.payload.status;
     },
 
     // Version guard reducers
@@ -738,6 +760,24 @@ const rewardsSlice = createSlice({
       state.bulkLink.wasInterrupted = false;
       // Note: We don't reset counts here - the saga will recalculate based on current opt-in status
     },
+    setPendingDeeplink: (
+      state,
+      action: PayloadAction<PendingDeeplink | null>,
+    ) => {
+      state.pendingDeeplink = action.payload;
+    },
+
+    dismissCampaignOutcomeToast: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        subscriptionId: string;
+        variant: 'winner_verify' | 'participant_no_winner';
+      }>,
+    ) => {
+      const key = `${action.payload.campaignId}:${action.payload.subscriptionId}:${action.payload.variant}`;
+      state.dismissedCampaignOutcomeToasts[key] = true;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -791,6 +831,9 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
                 action.payload.rewards.hideCurrentAccountNotOptedInBanner,
+
+              dismissedCampaignOutcomeToasts:
+                action.payload.rewards.dismissedCampaignOutcomeToasts ?? {},
 
               // Bulk link state - preserve interrupted status for resume capability
               bulkLink: {
@@ -874,6 +917,8 @@ export const {
   bulkLinkSubscriptionChanged,
   bulkLinkReset,
   bulkLinkResumed,
+  setPendingDeeplink,
+  dismissCampaignOutcomeToast,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

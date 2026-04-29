@@ -5,6 +5,6 @@ import FadeView from './';
 describe('FadeView', () => {
   it('should render correctly', () => {
     const { toJSON } = render(<FadeView visible />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

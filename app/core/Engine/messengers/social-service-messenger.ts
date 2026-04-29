@@ -15,7 +15,7 @@ import type { RootMessenger } from '../types';
 export function getSocialServiceMessenger(
   rootMessenger: RootMessenger,
 ): SocialServiceMessenger {
-  return new Messenger<
+  const serviceMessenger = new Messenger<
     'SocialService',
     MessengerActions<SocialServiceMessenger>,
     MessengerEvents<SocialServiceMessenger>,
@@ -24,4 +24,9 @@ export function getSocialServiceMessenger(
     namespace: 'SocialService',
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    messenger: serviceMessenger,
+    actions: ['AuthenticationController:getBearerToken'],
+  });
+  return serviceMessenger;
 }

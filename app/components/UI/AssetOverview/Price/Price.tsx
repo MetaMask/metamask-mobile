@@ -26,6 +26,8 @@ export type PriceProps = PriceSharedProps & {
   asset: TokenI;
   prices: TokenPrice[];
   timePeriod: TimePeriod;
+  chartNavigationButtons?: TimePeriod[];
+  setTimePeriod?: (period: TimePeriod) => void;
 };
 
 const Price = (props: PriceProps) => {
@@ -37,6 +39,8 @@ const Price = (props: PriceProps) => {
     prices,
     timePeriod,
     isLoading,
+    chartNavigationButtons,
+    setTimePeriod,
     currentPrice,
     currentCurrency,
     ...rest
@@ -46,9 +50,14 @@ const Price = (props: PriceProps) => {
     return (
       <PriceAdvanced
         asset={asset}
+        prices={prices}
+        timePeriod={timePeriod}
+        chartNavigationButtons={chartNavigationButtons}
+        setTimePeriod={setTimePeriod}
         isLoading={isLoading}
         currentPrice={currentPrice}
         currentCurrency={currentCurrency}
+        {...rest}
       />
     );
   }
@@ -56,6 +65,8 @@ const Price = (props: PriceProps) => {
     <PriceLegacy
       prices={prices}
       timePeriod={timePeriod}
+      chartNavigationButtons={chartNavigationButtons}
+      onTimePeriodChange={setTimePeriod}
       isLoading={isLoading}
       currentPrice={currentPrice}
       currentCurrency={currentCurrency}

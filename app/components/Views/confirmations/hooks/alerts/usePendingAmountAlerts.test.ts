@@ -41,6 +41,10 @@ jest.mock('./useAccountNoFundsAlert', () => ({
   ],
 }));
 
+jest.mock('./useInsufficientMoneyAccountBalanceAlert', () => ({
+  useInsufficientMoneyAccountBalanceAlert: () => [],
+}));
+
 describe('usePendingAmountAlerts', () => {
   it('returns alerts', () => {
     const { result } = renderHook(() =>

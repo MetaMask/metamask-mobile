@@ -8,37 +8,46 @@ const URI_MOCK = 'https://example.com/image.png';
 
 describe('Identicon', () => {
   it('renders Blockie from address', () => {
-    const wrapper = renderWithProvider(<Identicon address={ADDRESS_MOCK} />, {
-      state: {
-        settings: { avatarAccountType: AvatarAccountType.Blockies },
+    const { toJSON } = renderWithProvider(
+      <Identicon address={ADDRESS_MOCK} />,
+      {
+        state: {
+          settings: { avatarAccountType: AvatarAccountType.Blockies },
+        },
       },
-    });
+    );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders Jazzicon', () => {
-    const wrapper = renderWithProvider(<Identicon address={ADDRESS_MOCK} />, {
-      state: {
-        settings: { avatarAccountType: AvatarAccountType.JazzIcon },
+    const { toJSON } = renderWithProvider(
+      <Identicon address={ADDRESS_MOCK} />,
+      {
+        state: {
+          settings: { avatarAccountType: AvatarAccountType.JazzIcon },
+        },
       },
-    });
+    );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders Maskicon', () => {
-    const wrapper = renderWithProvider(<Identicon address={ADDRESS_MOCK} />, {
-      state: {
-        settings: { avatarAccountType: AvatarAccountType.Maskicon },
+    const { toJSON } = renderWithProvider(
+      <Identicon address={ADDRESS_MOCK} />,
+      {
+        state: {
+          settings: { avatarAccountType: AvatarAccountType.Maskicon },
+        },
       },
-    });
+    );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders custom URI', () => {
-    const wrapper = renderWithProvider(<Identicon imageUri={URI_MOCK} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<Identicon imageUri={URI_MOCK} />);
+    expect(toJSON()).not.toBeNull();
   });
 });

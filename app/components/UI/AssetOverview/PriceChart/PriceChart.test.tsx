@@ -3,6 +3,10 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PriceChart from './PriceChart';
 import { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { PriceChartProvider } from './PriceChart.context';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 // Mock the strings function
 jest.mock('../../../../../locales/i18n', () => ({
@@ -18,6 +22,13 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
+/** Minimum points for a non-empty legacy chart (see CHART_DATA_THRESHOLD). */
+const fiveTokenPrices = (): TokenPrice[] =>
+  Array.from({ length: 5 }, (_, i) => [
+    String(1736761237983 + i * 1000),
+    100 + i,
+  ]) as TokenPrice[];
+
 describe('PriceChart', () => {
   const mockOnChartIndexChange = jest.fn();
 
@@ -30,9 +41,20 @@ describe('PriceChart', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
   describe('NoDataOverlay', () => {
+    it('tracks CHART_EMPTY_DISPLAYED when the empty overlay is shown', () => {
+      const trackEvent = jest.fn();
+      jest
+        .mocked(useAnalytics)
+        .mockReturnValue(createMockUseAnalyticsHook({ trackEvent }));
+      render(<PriceChart {...defaultProps} prices={[]} />);
+
+      expect(trackEvent).toHaveBeenCalled();
+    });
+
     it('shows full overlay with icon and description when there are no data points', () => {
       const { getByText, getByTestId } = render(
         <PriceChart {...defaultProps} prices={[]} />,
@@ -46,65 +68,45 @@ describe('PriceChart', () => {
         getByText('We could not fetch any data for this token'),
       ).toBeOnTheScreen();
 
-      // Should render no data overlay with icon
+      // Should render no data overlay (without icon in new design)
       expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
-      expect(getByTestId('price-chart-no-data-icon')).toBeOnTheScreen();
     });
 
-    it('shows simplified message when there is only 1 data point', () => {
+    it('shows same overlay when there is only 1 data point', () => {
       const singleDataPoint: TokenPrice[] = [['1736761237983', 100]];
 
-      const { getByText, queryByText, getByTestId } = render(
+      const { getByText, getByTestId } = render(
         <PriceChart {...defaultProps} prices={singleDataPoint} />,
       );
 
-      // Should show insufficient data overlay
+      // Should show insufficient data overlay with same design as empty data
       expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
 
-      // Should show insufficient data message
+      // Should show same title and description as empty state
+      expect(getByText('No chart data')).toBeOnTheScreen();
       expect(
-        getByText('Data is not available for this time period'),
+        getByText('We could not fetch any data for this token'),
       ).toBeOnTheScreen();
-
-      // Should NOT show full description
-      expect(
-        queryByText('We could not fetch any data for this token'),
-      ).not.toBeOnTheScreen();
-
-      // Should NOT show title as a Title component
-      expect(queryByText('No chart data')).not.toBeOnTheScreen();
     });
 
-    it('does not show overlay when there are 2 data points', () => {
-      const validDataPoints: TokenPrice[] = [
-        ['1736761237983', 100],
-        ['1736761237986', 105],
-      ];
-
-      const { queryByText } = render(
-        <PriceChart {...defaultProps} prices={validDataPoints} />,
-      );
-
-      // Should NOT show any overlay messages
-      expect(queryByText('No chart data')).not.toBeOnTheScreen();
-      expect(
-        queryByText('We could not fetch any data for this token'),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByText('Data is not available for this time period'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not show overlay when there are multiple data points', () => {
-      const multipleDataPoints: TokenPrice[] = [
+    it('shows overlay when there are fewer than 5 data points', () => {
+      const fourPoints: TokenPrice[] = [
         ['1736761237983', 100],
         ['1736761237986', 105],
         ['1736761237989', 110],
         ['1736761237992', 108],
       ];
 
+      const { getByTestId } = render(
+        <PriceChart {...defaultProps} prices={fourPoints} />,
+      );
+
+      expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
+    });
+
+    it('does not show overlay when there are at least 5 data points', () => {
       const { queryByText } = render(
-        <PriceChart {...defaultProps} prices={multipleDataPoints} />,
+        <PriceChart {...defaultProps} prices={fiveTokenPrices()} />,
       );
 
       // Should NOT show any overlay messages
@@ -143,10 +145,7 @@ describe('PriceChart', () => {
 
   describe('Chart rendering', () => {
     it('renders chart with positive price difference', () => {
-      const prices: TokenPrice[] = [
-        ['1736761237983', 100],
-        ['1736761237986', 105],
-      ];
+      const prices = fiveTokenPrices();
 
       const { getByTestId } = render(
         <PriceChart {...defaultProps} prices={prices} priceDiff={5} />,
@@ -157,10 +156,10 @@ describe('PriceChart', () => {
     });
 
     it('renders chart with negative price difference', () => {
-      const prices: TokenPrice[] = [
-        ['1736761237983', 105],
-        ['1736761237986', 100],
-      ];
+      const prices: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
+        String(1736761237983 + i * 1000),
+        105 - i,
+      ]) as TokenPrice[];
 
       const { getByTestId } = render(
         <PriceChart {...defaultProps} prices={prices} priceDiff={-5} />,
@@ -171,10 +170,10 @@ describe('PriceChart', () => {
     });
 
     it('renders chart with zero price difference using alternative color', () => {
-      const prices: TokenPrice[] = [
-        ['1736761237983', 100],
-        ['1736761237986', 100],
-      ];
+      const prices: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
+        String(1736761237983 + i * 1000),
+        100,
+      ]) as TokenPrice[];
 
       const { getByTestId } = render(
         <PriceChart {...defaultProps} prices={prices} priceDiff={0} />,
@@ -186,12 +185,10 @@ describe('PriceChart', () => {
 
   describe('Stablecoin range prices', () => {
     it('renders chart with stablecoin-range prices including flat values', () => {
-      const stablecoinPrices: TokenPrice[] = [
-        ['1736761237983', 1.0],
-        ['1736761237986', 1.0],
-        ['1736761237989', 1.0],
-        ['1736761237992', 1.0],
-      ];
+      const stablecoinPrices: TokenPrice[] = Array.from(
+        { length: 5 },
+        (_, i) => [String(1736761237983 + i * 1000), 1.0],
+      ) as TokenPrice[];
 
       const { getByTestId } = render(
         <PriceChart
@@ -207,10 +204,7 @@ describe('PriceChart', () => {
 
   describe('EndDot', () => {
     it('renders end dot at the last data point', () => {
-      const prices: TokenPrice[] = [
-        ['1736761237983', 100],
-        ['1736761237986', 105],
-      ];
+      const prices = fiveTokenPrices();
 
       const result = render(
         <PriceChart {...defaultProps} prices={prices} priceDiff={5} />,
@@ -272,12 +266,7 @@ describe('PriceChart', () => {
     };
 
     it('calls onChartIndexChange for each gesture in a grant, move, release cycle', () => {
-      const prices: TokenPrice[] = [
-        ['1736761237983', 100],
-        ['1736761237986', 105],
-        ['1736761237989', 110],
-        ['1736761237992', 108],
-      ];
+      const prices = fiveTokenPrices();
 
       const { getByTestId } = render(
         <PriceChartProvider>

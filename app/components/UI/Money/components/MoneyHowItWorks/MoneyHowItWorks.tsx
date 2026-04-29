@@ -9,20 +9,25 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyHowItWorksTestIds } from './MoneyHowItWorks.testIds';
+import { isPositiveNumber } from '../../utils/number';
 
 interface MoneyHowItWorksProps {
   /** APY expressed as a percentage (e.g. 3 for 3%). */
-  apy: number;
+  apy: number | undefined;
+  isLoading?: boolean;
   onHeaderPress?: () => void;
 }
 
-const MoneyHowItWorks = ({ apy, onHeaderPress }: MoneyHowItWorksProps) => (
+const MoneyHowItWorks = ({
+  apy,
+  isLoading = false,
+  onHeaderPress,
+}: MoneyHowItWorksProps) => (
   <Box twClassName="px-4 py-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
     <MoneySectionHeader
       title={strings('money.how_it_works.title')}
       onPress={onHeaderPress}
     />
-
     <Box twClassName="mt-3">
       <Text
         variant={TextVariant.BodyMd}
@@ -30,14 +35,17 @@ const MoneyHowItWorks = ({ apy, onHeaderPress }: MoneyHowItWorksProps) => (
         testID={MoneyHowItWorksTestIds.DESCRIPTION}
       >
         {strings('money.how_it_works.description_prefix')}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
-          testID={MoneyHowItWorksTestIds.APY}
-        >
-          {strings('money.apy_label', { percentage: String(apy) })}
-        </Text>
+        {!isLoading && isPositiveNumber(apy) && (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+            testID={MoneyHowItWorksTestIds.APY}
+          >
+            {' '}
+            {strings('money.apy_label', { percentage: apy })}
+          </Text>
+        )}
         {strings('money.how_it_works.description_suffix')}
       </Text>
     </Box>
