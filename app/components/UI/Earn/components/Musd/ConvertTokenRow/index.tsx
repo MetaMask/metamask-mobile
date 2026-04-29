@@ -18,8 +18,7 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconSize,
-} from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/spinner';
+ Spinner } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';

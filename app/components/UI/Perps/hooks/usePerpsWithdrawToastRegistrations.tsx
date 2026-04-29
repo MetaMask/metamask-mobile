@@ -2,8 +2,7 @@ import {
   Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
-} from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/spinner';
+ Spinner } from '@metamask/design-system-react-native';
 import {
   TransactionMeta,
   TransactionStatus,
