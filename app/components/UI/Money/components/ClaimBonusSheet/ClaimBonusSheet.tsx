@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import { View, type ViewStyle } from 'react-native';
 import {
   useNavigation,
   useRoute,
@@ -56,6 +56,34 @@ export interface ClaimBonusSheetRouteParams {
    */
   location?: string;
 }
+
+const RowText: React.FC<{
+  children: React.ReactNode;
+  testID?: string;
+}> = ({ children, testID }) => (
+  <Text
+    variant={TextVariant.BodyMd}
+    fontWeight={FontWeight.Medium}
+    color={TextColor.TextDefault}
+    testID={testID}
+  >
+    {children}
+  </Text>
+);
+
+const LabelWithInfo: React.FC<{
+  label: string;
+  style: ViewStyle;
+}> = ({ label, style }) => (
+  <View style={style}>
+    <RowText>{label}</RowText>
+    <Icon
+      name={IconName.Question}
+      size={IconSize.Sm}
+      color={IconColor.IconAlternative}
+    />
+  </View>
+);
 
 const ClaimBonusSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -163,40 +191,21 @@ const ClaimBonusSheet: React.FC = () => {
         <View style={styles.cardGroup}>
           <View style={styles.card}>
             <View style={styles.row}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
+              <RowText>
                 {strings('money.claim_bonus_sheet.claiming_to')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                testID={ClaimBonusSheetTestIds.ACCOUNT_VALUE}
-              >
+              </RowText>
+              <RowText testID={ClaimBonusSheetTestIds.ACCOUNT_VALUE}>
                 {accountName}
-              </Text>
+              </RowText>
             </View>
           </View>
 
           <View style={styles.card}>
             <View style={styles.row}>
-              <View style={styles.rowLabel}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('money.claim_bonus_sheet.network')}
-                </Text>
-                <Icon
-                  name={IconName.Question}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </View>
+              <LabelWithInfo
+                label={strings('money.claim_bonus_sheet.network')}
+                style={styles.rowLabel}
+              />
               <View style={styles.rowValue}>
                 <Badge
                   variant={BadgeVariant.Network}
@@ -204,58 +213,28 @@ const ClaimBonusSheet: React.FC = () => {
                   isScaled={false}
                   imageSource={networkImageSource}
                 />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  testID={ClaimBonusSheetTestIds.NETWORK_VALUE}
-                >
+                <RowText testID={ClaimBonusSheetTestIds.NETWORK_VALUE}>
                   {networkName}
-                </Text>
+                </RowText>
               </View>
             </View>
           </View>
 
           <View style={styles.card}>
             <View style={styles.row}>
-              <View style={styles.rowLabel}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('money.claim_bonus_sheet.network_fee')}
-                </Text>
-                <Icon
-                  name={IconName.Question}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </View>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                testID={ClaimBonusSheetTestIds.NETWORK_FEE_VALUE}
-              >
+              <LabelWithInfo
+                label={strings('money.claim_bonus_sheet.network_fee')}
+                style={styles.rowLabel}
+              />
+              <RowText testID={ClaimBonusSheetTestIds.NETWORK_FEE_VALUE}>
                 {strings('money.claim_bonus_sheet.network_fee_estimate')}
-              </Text>
+              </RowText>
             </View>
             <View style={styles.row}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {strings('money.claim_bonus_sheet.speed')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
+              <RowText>{strings('money.claim_bonus_sheet.speed')}</RowText>
+              <RowText>
                 {strings('money.claim_bonus_sheet.speed_market')}
-              </Text>
+              </RowText>
             </View>
           </View>
         </View>

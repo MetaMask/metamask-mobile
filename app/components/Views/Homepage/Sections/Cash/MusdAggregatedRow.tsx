@@ -36,10 +36,9 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { useCashNavigation } from './useCashNavigation';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
+import { useTrackClaimBonusClicked } from '../../../../UI/Earn/components/MerklRewards/hooks/useTrackClaimBonusClicked';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
@@ -52,22 +51,15 @@ const MusdAggregatedRow = () => {
       MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
     );
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackClaimBonusClicked = useTrackClaimBonusClicked();
   const navigation = useNavigation();
   const isMoneyHomeScreenEnabled = useSelector(
     selectMoneyHomeScreenEnabledFlag,
   );
 
   const handleClaimBonus = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
-        .addProperties({
-          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
-          action_type: 'claim_bonus',
-          network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
-          asset_symbol: LINEA_MUSD_ASSET_FOR_MERKL.symbol,
-        })
-        .build(),
+    trackClaimBonusClicked(
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
     );
     // Money modal stack is only mounted in MainNavigator when the Money Home
     // flag is on. Without it, fall back to dispatching the claim directly so
@@ -83,8 +75,7 @@ const MusdAggregatedRow = () => {
     }
     claimRewards();
   }, [
-    trackEvent,
-    createEventBuilder,
+    trackClaimBonusClicked,
     navigation,
     isMoneyHomeScreenEnabled,
     claimRewards,
