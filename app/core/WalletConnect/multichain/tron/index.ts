@@ -45,7 +45,9 @@ const TRON_EVENTS: readonly string[] = [];
 const TRON_PREFIX = 'tron:';
 const DEFAULT_TRON_CHAIN_ID = 'tron:0x2b6653dc';
 
-const normalizeTronChainIdInbound = (caipChainId: string): string => {
+export const normalizeCaipChainIdInboundForWalletConnectTron = (
+  caipChainId: string,
+): string => {
   if (!caipChainId.startsWith(TRON_PREFIX)) {
     return caipChainId;
   }
@@ -56,7 +58,9 @@ const normalizeTronChainIdInbound = (caipChainId: string): string => {
   return caipChainId;
 };
 
-const normalizeTronChainIdOutbound = (caipChainId: string): string => {
+export const normalizeCaipChainIdOutboundForWalletConnectTron = (
+  caipChainId: string,
+): string => {
   if (!caipChainId.startsWith(TRON_PREFIX)) {
     return caipChainId;
   }
@@ -67,12 +71,14 @@ const normalizeTronChainIdOutbound = (caipChainId: string): string => {
   return caipChainId;
 };
 
-const getCompatibleTronCaipChainIds = (caipChainId: string): string[] =>
+export const getCompatibleTronCaipChainIdsForWalletConnect = (
+  caipChainId: string,
+): string[] =>
   Array.from(
     new Set([
       caipChainId,
-      normalizeTronChainIdInbound(caipChainId),
-      normalizeTronChainIdOutbound(caipChainId),
+      normalizeCaipChainIdInboundForWalletConnectTron(caipChainId),
+      normalizeCaipChainIdOutboundForWalletConnectTron(caipChainId),
     ]),
   );
 
@@ -120,7 +126,7 @@ export const buildTronScopedPermissionsNamespace = ({
 }): TronNamespaceSlice | undefined => {
   const tronChains = permittedChains
     .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`))
-    .flatMap((chain) => getCompatibleTronCaipChainIds(chain));
+    .flatMap((chain) => getCompatibleTronCaipChainIdsForWalletConnect(chain));
   const uniqueTronChains = Array.from(new Set(tronChains));
 
   let permittedTronAccountStrings: string[] = [];
@@ -144,7 +150,7 @@ export const buildTronScopedPermissionsNamespace = ({
               return [account];
             }
             const chainId = `${parsedAccount.chain.namespace}:${parsedAccount.chain.reference}`;
-            return getCompatibleTronCaipChainIds(chainId).map(
+            return getCompatibleTronCaipChainIdsForWalletConnect(chainId).map(
               (compatibleChainId) =>
                 `${compatibleChainId}:${parsedAccount.address}`,
             );
@@ -181,7 +187,9 @@ export const buildTronScopedPermissionsNamespace = ({
   }
 
   if (tronAccounts.length > 0) {
-    const tronChainIds = getCompatibleTronCaipChainIds(TrxScope.Mainnet);
+    const tronChainIds = getCompatibleTronCaipChainIdsForWalletConnect(
+      TrxScope.Mainnet,
+    );
     return {
       chains: tronChainIds,
       methods: [...TRON_METHODS],

@@ -20,7 +20,12 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
 import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
-import { buildTronScopedPermissionsNamespace } from './multichain/tron';
+import {
+  buildTronScopedPermissionsNamespace,
+  getCompatibleTronCaipChainIdsForWalletConnect as getCompatibleTronCaipChainIdsForWalletConnectFromMultichain,
+  normalizeCaipChainIdInboundForWalletConnectTron,
+  normalizeCaipChainIdOutboundForWalletConnectTron,
+} from './multichain/tron';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -251,51 +256,19 @@ export const normalizeCaipChainIdOutbound = (caipChainId: string): string =>
 export function normalizeCaipChainIdInboundForWalletConnect(
   caipChainId: string,
 ): string {
-  const namespace = caipChainId.split(':')[0];
-
-  if (namespace === KnownCaipNamespace.Tron) {
-    const chainRef = caipChainId.slice('tron:'.length);
-    if (chainRef.startsWith('0x')) {
-      const decimalRef = parseInt(chainRef, 16);
-      return `tron:${decimalRef}`;
-    }
-  }
-
-  return caipChainId;
+  return normalizeCaipChainIdInboundForWalletConnectTron(caipChainId);
 }
 
 export function normalizeCaipChainIdOutboundForWalletConnect(
   caipChainId: string,
 ): string {
-  const namespace = caipChainId.split(':')[0];
-
-  if (namespace === KnownCaipNamespace.Tron) {
-    const chainRef = caipChainId.slice('tron:'.length);
-    if (!chainRef.startsWith('0x')) {
-      const hexRef = parseInt(chainRef, 10).toString(16);
-      return `tron:0x${hexRef}`;
-    }
-  }
-
-  return caipChainId;
+  return normalizeCaipChainIdOutboundForWalletConnectTron(caipChainId);
 }
 
 export const getCompatibleTronCaipChainIdsForWalletConnect = (
   caipChainId: string,
-): string[] => {
-  if (!caipChainId.startsWith(`${KnownCaipNamespace.Tron}:`)) {
-    return [caipChainId];
-  }
-
-  const inboundNormalized =
-    normalizeCaipChainIdInboundForWalletConnect(caipChainId);
-  const outboundNormalized =
-    normalizeCaipChainIdOutboundForWalletConnect(caipChainId);
-
-  return Array.from(
-    new Set([caipChainId, inboundNormalized, outboundNormalized]),
-  );
-};
+): string[] =>
+  getCompatibleTronCaipChainIdsForWalletConnectFromMultichain(caipChainId);
 
 export const getScopedPermissions = async ({
   channelId,
