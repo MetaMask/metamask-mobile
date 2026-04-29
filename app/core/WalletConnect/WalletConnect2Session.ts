@@ -317,12 +317,17 @@ class WalletConnect2Session {
   isHandlingRequest = () => this._isHandlingRequest;
 
   emitEvent = async (eventName: string, data: unknown) => {
+    const numericChainId =
+      typeof data === 'number' ? data : Number.parseInt(String(data), 10);
+    const fallbackEvmHex = Number.isFinite(numericChainId)
+      ? `0x${numericChainId.toString(16)}`
+      : String(data);
     const chainIdForEvent =
       eventName === 'chainChanged'
         ? getChainChangedEmissionForWalletConnect({
             namespaces: this.session.namespaces,
-            fallbackEvmDecimal: Number(data),
-            fallbackEvmHex: String(data),
+            fallbackEvmDecimal: numericChainId,
+            fallbackEvmHex,
           }).chainId
         : `eip155:${data}`;
 
@@ -337,14 +342,6 @@ class WalletConnect2Session {
     return Object.values(this.session.namespaces).flatMap(
       (ns) => ns?.chains?.map((chain) => chain as CaipChainId) ?? [],
     );
-  }
-
-  private getPermittedAccountsWithFallback(sessionTopic: string): string[] {
-    const approvedAccounts = getPermittedAccounts(sessionTopic);
-    if (approvedAccounts.length > 0) {
-      return approvedAccounts;
-    }
-    return getPermittedAccounts(this.channelId);
   }
 
   private async getScopedPermissionsWithFallback(sessionTopic: string) {
@@ -514,14 +511,18 @@ class WalletConnect2Session {
       // adapter slice was produced (e.g. wallet has no Tron account), do
       // not emit a chainChanged with an EVM fallback. Non-EVM dapps don't
       // recognise EVM hex chain ids and WalletKit may reject the emit.
-      const expectedAdapterNamespaces = proposalReferencedAdapterNamespaces({
+      const requiredAdapterNamespaces = proposalReferencedAdapterNamespaces({
         requiredNamespaces: this.session.requiredNamespaces,
-        optionalNamespaces: this.session.optionalNamespaces,
+        optionalNamespaces: {},
       });
-      const missingAdapterNamespaces = expectedAdapterNamespaces.filter(
+      const missingRequiredAdapterNamespaces = requiredAdapterNamespaces.filter(
         (ns) => !mergedNamespaces[ns]?.chains?.length,
       );
-      if (missingAdapterNamespaces.length > 0) {
+      if (missingRequiredAdapterNamespaces.length > 0) {
+        DevLogger.log(
+          `WC2::updateSession missing required non-EVM adapter namespaces`,
+          missingRequiredAdapterNamespaces,
+        );
         return;
       }
 
