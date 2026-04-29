@@ -53,8 +53,8 @@ const STALE_TIME_MS = 1000 * 60 * 60; // 60 minutes
  */
 export const useAssetSecurityDataFetch = (
   assetId: CaipAssetType,
-): UseQueryResult<TokenSecurityData, Error> =>
-  useQuery<TokenSecurityData, Error>({
+): UseQueryResult<AssetSecurityData, Error> =>
+  useQuery<AssetSecurityData, Error>({
     queryKey: ['assetSecurityData', assetId],
     queryFn: () => fetchAssetSecurityData({ id: assetId }),
     staleTime: STALE_TIME_MS,
