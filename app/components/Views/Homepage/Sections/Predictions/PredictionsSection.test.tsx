@@ -45,6 +45,14 @@ jest.mock('../../../../UI/Predict/hooks/useUnrealizedPnL', () => ({
   })),
 }));
 
+jest.mock('../../../../UI/Predict/hooks/usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
+    livePositions: positions,
+    isConnected: false,
+    lastUpdateTime: null,
+  })),
+}));
+
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
@@ -95,6 +103,9 @@ const mockUsePredictMarketsForHomepage =
   jest.requireMock('./hooks').usePredictMarketsForHomepage;
 const mockUsePredictPositionsForHomepage =
   jest.requireMock('./hooks').usePredictPositionsForHomepage;
+const mockUsePredictLivePositions = jest.requireMock(
+  '../../../../UI/Predict/hooks/usePredictLivePositions',
+).usePredictLivePositions as jest.Mock;
 const mockSelectPrivacyMode = jest.requireMock(
   '../../../../../selectors/preferencesController',
 ).selectPrivacyMode as jest.Mock;
@@ -223,6 +234,11 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       }),
     );
+    mockUsePredictLivePositions.mockImplementation((positions: unknown[]) => ({
+      livePositions: positions,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
     mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
@@ -312,6 +328,35 @@ describe('PredictionsSection', () => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
         expect(screen.getByText('Test Position 2')).toBeOnTheScreen();
       });
+    });
+
+    it('renders live values for active positions', async () => {
+      mockUsePredictLivePositions.mockImplementation(
+        (positions: unknown[]) => ({
+          livePositions: [
+            {
+              ...(positions as typeof mockActivePositions)[0],
+              currentValue: 99,
+              percentPnl: 890,
+            },
+            (positions as typeof mockActivePositions)[1],
+          ],
+          isConnected: true,
+          lastUpdateTime: 1704067200000,
+        }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
+      });
+
+      expect(screen.getByText('$99')).toBeOnTheScreen();
+      expect(screen.getByText('890%')).toBeOnTheScreen();
+      expect(screen.queryByText('$12')).not.toBeOnTheScreen();
     });
 
     it('shows position skeletons when loading positions', () => {

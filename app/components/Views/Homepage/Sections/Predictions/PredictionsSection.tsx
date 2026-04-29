@@ -38,6 +38,7 @@ import type { PredictNavigationParamList } from '../../../../UI/Predict/types/na
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
 import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
+import { usePredictLivePositions } from '../../../../UI/Predict/hooks/usePredictLivePositions';
 import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
 import { predictQueries } from '../../../../UI/Predict/queries';
 import { getEvmAccountFromSelectedAccountGroup } from '../../../../UI/Predict/utils/accounts';
@@ -202,55 +203,61 @@ const HomepagePredictPositions = ({
   onClaim,
   onPositionPress,
   showHeader = true,
-}: HomepagePredictPositionsProps) => (
-  <Box gap={3}>
-    {showHeader && (
-      <Box gap={1}>
-        <SectionHeader
-          title={title}
-          onPress={onViewAll}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
-        />
-        {predictHomepageUnrealizedPnl.show && (
-          <HomepageSectionUnrealizedPnlRow
-            isLoading={predictHomepageUnrealizedPnl.isLoading}
-            valueText={predictHomepageUnrealizedPnl.valueText}
-            tone={predictHomepageUnrealizedPnl.tone}
-            label={strings('predict.unrealized_pnl_label')}
-            testID="homepage-predict-unrealized-pnl"
+}: HomepagePredictPositionsProps) => {
+  const { livePositions } = usePredictLivePositions(positions);
+
+  return (
+    <Box gap={3}>
+      {showHeader && (
+        <Box gap={1}>
+          <SectionHeader
+            title={title}
+            onPress={onViewAll}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'predictions',
+            )}
           />
-        )}
-      </Box>
-    )}
-    <Box>
-      {isLoadingPositions ? (
-        <>
-          <PredictPositionRowSkeleton />
-          <PredictPositionRowSkeleton />
-        </>
-      ) : (
-        positions.map((position) => (
-          <PredictPositionRow
-            key={`${position.outcomeId}:${position.outcomeIndex}`}
-            position={position}
-            onPress={onPositionPress}
-            privacyMode={Boolean(privacyMode)}
-          />
-        ))
-      )}
-      {!isLoadingPositions &&
-        !isLoadingClaimable &&
-        totalClaimableValue > 0 && (
-          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-            <PredictClaimButton
-              amount={privacyMode ? undefined : totalClaimableValue}
-              onPress={onClaim}
+          {predictHomepageUnrealizedPnl.show && (
+            <HomepageSectionUnrealizedPnlRow
+              isLoading={predictHomepageUnrealizedPnl.isLoading}
+              valueText={predictHomepageUnrealizedPnl.valueText}
+              tone={predictHomepageUnrealizedPnl.tone}
+              label={strings('predict.unrealized_pnl_label')}
+              testID="homepage-predict-unrealized-pnl"
             />
-          </Box>
+          )}
+        </Box>
+      )}
+      <Box>
+        {isLoadingPositions ? (
+          <>
+            <PredictPositionRowSkeleton />
+            <PredictPositionRowSkeleton />
+          </>
+        ) : (
+          livePositions.map((position) => (
+            <PredictPositionRow
+              key={`${position.outcomeId}:${position.outcomeIndex}`}
+              position={position}
+              onPress={onPositionPress}
+              privacyMode={Boolean(privacyMode)}
+            />
+          ))
         )}
+        {!isLoadingPositions &&
+          !isLoadingClaimable &&
+          totalClaimableValue > 0 && (
+            <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+              <PredictClaimButton
+                amount={privacyMode ? undefined : totalClaimableValue}
+                onPress={onClaim}
+              />
+            </Box>
+          )}
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 const usePredictNavigationHandlers = (): {
   handleViewAllPredictions: () => void;
