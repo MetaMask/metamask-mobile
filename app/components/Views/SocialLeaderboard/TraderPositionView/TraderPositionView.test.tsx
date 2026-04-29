@@ -12,9 +12,10 @@ const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
 
 interface MockRouteParams {
+  positionId?: string;
   traderId: string;
-  traderName: string;
-  tokenSymbol: string;
+  traderName?: string;
+  tokenSymbol?: string;
   position?: Position;
 }
 
@@ -195,11 +196,11 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
-  it('calls goBack when the close button is pressed', () => {
+  it('calls goBack when the back button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
-      screen.getByTestId(TraderPositionViewSelectorsIDs.CLOSE_BUTTON),
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);

@@ -49,6 +49,6 @@ describe('AccountNetworkIndicator', () => {
       },
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

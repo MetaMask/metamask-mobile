@@ -152,7 +152,7 @@ jest.mock('../../../../hooks/useFormatters', () => ({
 }));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: jest.fn((value: number) => value),
+  useDebouncedValue: jest.fn((value: unknown) => value),
 }));
 
 jest.mock('../../hooks/useBlinkingCursor', () => ({
@@ -358,7 +358,7 @@ describe('BuildQuote', () => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
-    mockUseDebouncedValue.mockImplementation((value: number) => value);
+    mockUseDebouncedValue.mockImplementation((value: unknown) => value);
     mockUseRampsQuotes.mockImplementation((options) =>
       defaultQuotesHookResult(options),
     );
@@ -620,11 +620,7 @@ describe('BuildQuote', () => {
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
 
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
-      expect(
-        continueButton.props.isDisabled ??
-          continueButton.props.disabled ??
-          continueButton.props.accessibilityState?.disabled,
-      ).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('shows an above-max inline error and skips quote fetching', () => {
@@ -647,11 +643,76 @@ describe('BuildQuote', () => {
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
 
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton).toBeDisabled();
+    });
+
+    it('debounces the visible limit error while keeping quote validation immediate', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 120,
+        maxAmount: 1000,
+      });
+      let debouncedLimitError: string | null = null;
+      mockUseDebouncedValue.mockImplementation((value: unknown) =>
+        typeof value === 'number' ? value : debouncedLimitError,
+      );
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { queryByText, getByTestId, rerender } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      expect(queryByText('Minimum purchase is $120.00')).not.toBeOnTheScreen();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
       expect(
         continueButton.props.isDisabled ??
           continueButton.props.disabled ??
           continueButton.props.accessibilityState?.disabled,
       ).toBe(true);
+
+      debouncedLimitError = 'Minimum purchase is $120.00';
+      rerender(<BuildQuote />);
+
+      expect(queryByText('Minimum purchase is $120.00')).toBeOnTheScreen();
+    });
+
+    it('clears the visible limit error immediately once the amount is no longer invalid', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 10,
+        maxAmount: 80,
+      });
+      const debouncedLimitError: string | null = 'Maximum purchase is $80.00';
+      mockUseDebouncedValue.mockImplementation((value: unknown) =>
+        typeof value === 'number' ? value : debouncedLimitError,
+      );
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { getByText, queryByText, getByTestId } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      expect(getByText('Maximum purchase is $80.00')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('keypad-trigger-empty'));
+
+      expect(queryByText('Maximum purchase is $80.00')).not.toBeOnTheScreen();
     });
 
     it('fetches quotes normally when the amount is within provider limits', () => {
@@ -687,7 +748,9 @@ describe('BuildQuote', () => {
         maxAmount: 200,
       });
       let debouncedAmount = 100;
-      mockUseDebouncedValue.mockImplementation(() => debouncedAmount);
+      mockUseDebouncedValue.mockImplementation((value: unknown) =>
+        typeof value === 'number' ? debouncedAmount : value,
+      );
       mockUseRampsController.mockReturnValue(
         buildRampsControllerResult({
           providers: [providerWithLimits, NATIVE_PROVIDER],
@@ -922,11 +985,7 @@ describe('BuildQuote', () => {
       });
 
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
-      expect(
-        continueButton.props.isDisabled ??
-          continueButton.props.disabled ??
-          continueButton.props.accessibilityState?.disabled,
-      ).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('renders provider limit error as plain text without info icon', () => {
@@ -1762,6 +1821,158 @@ describe('BuildQuote', () => {
         const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
         expect(continueButton.props.accessibilityState?.busy).toBe(true);
       });
+    });
+  });
+
+  describe('selectedQuote matching', () => {
+    const noQuotesErrorPattern =
+      /We encountered a problem fetching quotes from/i;
+
+    it('shows Powered by text when quote provider matches selected provider', () => {
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+    });
+
+    it('shows no-quotes error when quote provider does not match selected provider', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [{ ...WIDGET_PROVIDER_QUOTE, provider: 'other-provider' }],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText(noQuotesErrorPattern)).toBeOnTheScreen();
+    });
+
+    it('shows no-quotes error when quotes response has no entries', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: { success: [] },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText(noQuotesErrorPattern)).toBeOnTheScreen();
+    });
+
+    it('does not show error when quotes are still loading', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: null,
+        loading: true,
+        error: null,
+      });
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+    });
+
+    it('continue button is disabled when no matching quote', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [{ ...WIDGET_PROVIDER_QUOTE, provider: 'other-provider' }],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('continue button is enabled when quote matches', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).not.toBe(true);
+    });
+
+    it('matches quote when API returns prefixed provider ID', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [
+            { ...WIDGET_PROVIDER_QUOTE, provider: '/providers/moonpay' },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+    });
+
+    it('matches quote when selected provider has prefixed ID and quote has short ID', () => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [
+          { ...WIDGET_PROVIDER, id: '/providers/moonpay' },
+          NATIVE_PROVIDER,
+        ],
+        selectedProvider: { ...WIDGET_PROVIDER, id: '/providers/moonpay' },
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+    });
+
+    it('finds matching quote even if it is not the first in the array', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [
+            { ...WIDGET_PROVIDER_QUOTE, provider: 'other-provider' },
+            WIDGET_PROVIDER_QUOTE,
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
   });
 

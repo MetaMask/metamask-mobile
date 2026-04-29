@@ -32,16 +32,17 @@ import {
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
-import { selectCanSignTransactions } from '../../../../selectors/accountsController';
-import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
-import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 import {
   getMultichainAssetsRatesControllerConversionRates,
   getTokenRatesControllerMarketData,
   getCurrencyRateControllerCurrencyRates,
   getCurrencyRateControllerCurrentCurrency,
 } from '../../../../selectors/assets/assets-migration';
+import { selectCanSignTransactions } from '../../../../selectors/accountsController';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
+import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
+import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -114,6 +115,19 @@ export const initialState: BridgeState = {
 
 const name = 'bridge';
 
+const normalizeBridgeToken = <T extends BridgeToken | undefined>(
+  token: T,
+): T => {
+  if (!token) {
+    return token;
+  }
+
+  const normalizedAddress = normalizeTokenAddress(token.address, token.chainId);
+  return normalizedAddress === token.address
+    ? token
+    : ({ ...token, address: normalizedAddress } as T);
+};
+
 export const setSourceTokenExchangeRate = createAsyncThunk(
   'bridge/setSourceTokenExchangeRate',
   getTokenExchangeRate,
@@ -162,12 +176,13 @@ const slice = createSlice({
       ...initialState,
     }),
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
-      state.sourceToken = action.payload;
+      state.sourceToken = normalizeBridgeToken(action.payload);
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
-      state.destToken = action.payload;
+      const destToken = normalizeBridgeToken(action.payload);
+      state.destToken = destToken;
       // Update selectedDestChainId to match the destination token's chain ID
-      state.selectedDestChainId = action.payload.chainId;
+      state.selectedDestChainId = destToken.chainId;
     },
     /**
      * Sets whether the destination token was manually selected by the user.
