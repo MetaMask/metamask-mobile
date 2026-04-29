@@ -142,6 +142,8 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
+  SWAP_INITIATED: 'swap_initiated',
+  SWAP_SUCCESS: 'swap_success',
   SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',

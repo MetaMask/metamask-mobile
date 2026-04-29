@@ -1049,7 +1049,7 @@ export class PredictController extends BaseController<
       }
 
       this.trackPredictOrderEvent({
-        status: PredictTradeStatus.SUBMITTED,
+        status: PredictTradeStatus.SWAP_INITIATED,
         amountUsd: params.preview?.maxAmountSpent,
         analyticsProperties: params.analyticsProperties,
         sharePrice: params.preview?.sharePrice,
@@ -2149,6 +2149,16 @@ export class PredictController extends BaseController<
         return;
       }
 
+      // Track swap/deposit success — the token swap confirmed, order placement begins
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SWAP_SUCCESS,
+        analyticsProperties: pendingOrder.analyticsProperties,
+        paymentTokenAddress:
+          this.state.activeBuyOrders[address]?.paymentTokenAddress,
+        orderType: pendingOrder.preview?.orderType,
+        activeAbTests: pendingOrder.activeAbTests,
+      });
+
       const {
         preview,
         signerAddress,
@@ -2182,17 +2192,6 @@ export class PredictController extends BaseController<
       const marketId = pendingOrder?.analyticsProperties?.marketId;
       const outcomeTokenId = pendingOrder?.preview?.outcomeTokenId;
 
-      // Track deposit failure analytics with payment token
-      this.trackPredictOrderEvent({
-        status: PredictTradeStatus.FAILED,
-        analyticsProperties: pendingOrder?.analyticsProperties,
-        failureReason:
-          transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED,
-        paymentTokenAddress:
-          this.state.activeBuyOrders[address]?.paymentTokenAddress,
-        orderType: pendingOrder?.preview?.orderType,
-      });
-
       const isBackgroundOrder =
         transactionId !== undefined &&
         transactionId !== this.state.activeBuyOrders[address]?.transactionId;
@@ -2209,7 +2208,7 @@ export class PredictController extends BaseController<
         const errorMessage =
           transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
-        // Track swap_failed — deposit/swap failed before order placement
+        // PWAT active order: swap/deposit step failed before order placement
         this.trackPredictOrderEvent({
           status: PredictTradeStatus.SWAP_FAILED,
           analyticsProperties: pendingOrder?.analyticsProperties,
@@ -2235,6 +2234,18 @@ export class PredictController extends BaseController<
               operation: 'initPayWithAnyToken',
             }),
           );
+        });
+      } else {
+        // Background deposit with no active PWAT order — track as a generic failure
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          analyticsProperties: pendingOrder?.analyticsProperties,
+          failureReason:
+            transactionMeta.error?.message ??
+            PREDICT_ERROR_CODES.DEPOSIT_FAILED,
+          paymentTokenAddress:
+            this.state.activeBuyOrders[address]?.paymentTokenAddress,
+          orderType: pendingOrder?.preview?.orderType,
         });
       }
 

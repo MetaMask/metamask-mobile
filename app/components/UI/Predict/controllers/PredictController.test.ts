@@ -9524,7 +9524,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('fires FAILED analytics event with paymentTokenAddress when depositAndOrder fails', () => {
+    it('fires SWAP_FAILED analytics event with paymentTokenAddress from active order when depositAndOrder fails', () => {
       withController(({ controller, messenger }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.DEPOSITING,
@@ -9569,18 +9569,45 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         const calls = (analytics.trackEvent as jest.Mock).mock.calls;
-        const failedCall = calls.find(
+        const swapFailedCall = calls.find(
           (call: unknown[]) =>
             (call[0] as { properties: { status: string } }).properties
-              .status === 'failed',
+              .status === 'swap_failed',
         );
 
-        expect(failedCall).toBeDefined();
+        expect(swapFailedCall).toBeDefined();
         expect(
-          (failedCall[0] as { properties: Record<string, unknown> }).properties,
+          (swapFailedCall[0] as { properties: Record<string, unknown> })
+            .properties,
         ).toMatchObject({
           predict_token_address: '0xpaytoken',
         });
+      });
+    });
+
+    it('fires FAILED analytics event when depositAndOrder fails with no active buy order', () => {
+      withController(({ controller, messenger }) => {
+        const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Deposit reverted' },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(trackSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ status: PredictTradeStatus.FAILED }),
+        );
       });
     });
 
