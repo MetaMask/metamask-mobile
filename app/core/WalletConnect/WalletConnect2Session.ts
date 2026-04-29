@@ -322,18 +322,20 @@ class WalletConnect2Session {
     const fallbackEvmHex = Number.isFinite(numericChainId)
       ? `0x${numericChainId.toString(16)}`
       : String(data);
-    const chainIdForEvent =
+    const chainChangedEmission =
       eventName === 'chainChanged'
         ? getChainChangedEmissionForWalletConnect({
             namespaces: this.session.namespaces,
             fallbackEvmDecimal: numericChainId,
             fallbackEvmHex,
-          }).chainId
-        : `eip155:${data}`;
+          })
+        : undefined;
+    const chainIdForEvent = chainChangedEmission?.chainId ?? `eip155:${data}`;
+    const eventDataForEvent = chainChangedEmission?.data ?? data;
 
     await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
-      event: { name: eventName, data },
+      event: { name: eventName, data: eventDataForEvent },
       chainId: chainIdForEvent,
     });
   };
@@ -746,8 +748,12 @@ class WalletConnect2Session {
     const requestNamespace = requestChainId?.split(':')?.[0];
 
     // Mark redirect before any routing so all namespaces benefit from it.
+    const redirectNamespace =
+      requestNamespace === KnownCaipNamespace.Wallet
+        ? KnownCaipNamespace.Eip155
+        : requestNamespace;
     const redirectMethods =
-      (requestNamespace && REDIRECT_METHODS_BY_NAMESPACE[requestNamespace]) ??
+      (redirectNamespace && REDIRECT_METHODS_BY_NAMESPACE[redirectNamespace]) ??
       [];
     if (redirectMethods.includes(method)) {
       this.requestsToRedirect[requestEvent.id] = true;
