@@ -485,7 +485,7 @@ describe('multichain/tron - buildTronScopedPermissionsNamespace', () => {
       { type: TrxAccountType.Eoa, address: 'TAddrA' },
     ]);
     mockedGetCaveat.mockImplementation(() => {
-      throw new PermissionDoesNotExistError('missing caveat');
+      throw new PermissionDoesNotExistError('wc-topic', 'endowment:caip25');
     });
 
     const result = buildTronScopedPermissionsNamespace({

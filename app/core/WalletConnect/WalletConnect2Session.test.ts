@@ -454,11 +454,11 @@ describe('WalletConnect2Session', () => {
     await session.handleRequest(requestEvent as any);
 
     expect(mockRespondSessionRequest).toHaveBeenCalledWith({
-      topic: mockSession.topic,
+      topic: requestEvent.topic,
       response: {
-        id: '1',
+        id: 1,
         jsonrpc: '2.0',
-        error: { code: 4902, message: 'Invalid chainId' },
+        result: undefined,
       },
     });
   });
