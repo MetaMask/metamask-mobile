@@ -22,6 +22,7 @@ import type { TransactionActiveAbTestEntry } from '../../../../../../util/transa
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
 import {
   predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
   predictBuyPreviewSessionRef,
 } from '../../PredictBuyPreview/PredictBuyPreview';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
@@ -102,6 +103,7 @@ export const usePredictBuyActions = ({
     predictBuyPreviewSessionRef.mountTimestamp = mountTimestampRef.current;
     predictBuyPreviewSessionRef.hadEnteredAmount = false;
     predictBuyPreviewDismissedViaBackRef.current = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
 
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
@@ -166,15 +168,17 @@ export const usePredictBuyActions = ({
     }
 
     return navigation.addListener('beforeRemove', () => {
-      // Fire dismiss event for stack-mode back / hardware-back / swipe-back.
-      // Sheet-mode dismissals are handled by PredictPreviewSheetContext.onBuyDismiss.
-      Engine.context.PredictController.trackBetslipDismissed({
-        analyticsProperties,
-        dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
-        hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
-        timeOnScreenMs: Date.now() - mountTimestampRef.current,
-        activeAbTests: transactionActiveAbTests,
-      });
+      // Only fire dismiss if the user didn't confirm an order. StackActions.pop()
+      // after success/deposit also triggers beforeRemove, which is not a dismissal.
+      if (!didInitiateOrderRef.current) {
+        Engine.context.PredictController.trackBetslipDismissed({
+          analyticsProperties,
+          dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+          hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+          timeOnScreenMs: Date.now() - mountTimestampRef.current,
+          activeAbTests: transactionActiveAbTests,
+        });
+      }
       onRejectRef.current(undefined, true);
       clearActiveOrderTransactionIdRef.current();
     });
@@ -206,6 +210,7 @@ export const usePredictBuyActions = ({
 
   const handleConfirm = useCallback(async () => {
     didInitiateOrderRef.current = true;
+    predictBuyPreviewOrderInitiatedRef.current = true;
     setIsConfirming(true);
 
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {

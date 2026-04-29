@@ -36,6 +36,7 @@ import PredictPreviewSheet, {
 import Engine from '../../../../core/Engine';
 import PredictBuyPreview, {
   predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
   predictBuyPreviewSessionRef,
 } from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken';
@@ -267,9 +268,13 @@ export const PredictPreviewSheetProvider: React.FC<
     }
 
     // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
-    // The back-button handler in PredictBuyPreview sets the flag to true and
-    // fires the event itself; here we only handle the remaining paths.
-    if (!predictBuyPreviewDismissedViaBackRef.current && buyParams) {
+    // Skip if: the back-button handler already fired it, or the sheet is
+    // closing because the user confirmed an order (not a dismissal).
+    if (
+      !predictBuyPreviewDismissedViaBackRef.current &&
+      !predictBuyPreviewOrderInitiatedRef.current &&
+      buyParams
+    ) {
       const dismissAnalyticsProperties = parseAnalyticsProperties(
         buyParams.market,
         buyParams.outcomeToken,
@@ -284,6 +289,7 @@ export const PredictPreviewSheetProvider: React.FC<
       });
     }
     predictBuyPreviewDismissedViaBackRef.current = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
 
     setBuyParams(null);
     clearOrderError();

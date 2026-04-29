@@ -1055,6 +1055,10 @@ export class PredictController extends BaseController<
           params.preview.side === Side.BUY
             ? this.state.selectedPaymentToken?.address
             : undefined,
+        paymentTokenSymbol:
+          params.preview.side === Side.BUY
+            ? this.state.selectedPaymentToken?.symbol
+            : undefined,
         activeAbTests: params.activeAbTests,
       });
 

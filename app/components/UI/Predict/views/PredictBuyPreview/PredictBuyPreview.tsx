@@ -92,6 +92,15 @@ export const predictBuyPreviewSessionRef = {
   hadEnteredAmount: false,
 };
 
+/**
+ * Set to true when the user confirms an order (handleConfirm). Used by
+ * PredictPreviewSheetContext.onBuyDismiss and the beforeRemove listener to
+ * suppress the Betslip Dismissed event when the sheet/screen closes after a
+ * successful or in-progress order rather than a user-initiated dismissal.
+ * Reset to false on each mount.
+ */
+export const predictBuyPreviewOrderInitiatedRef = { current: false };
+
 const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
