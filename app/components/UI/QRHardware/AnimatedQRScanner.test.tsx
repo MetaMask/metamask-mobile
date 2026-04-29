@@ -1260,8 +1260,8 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       await waitFor(() => {
         const calls = mockAddProperties.mock.calls;
-        const lastCall = calls[calls.length - 1][0];
-        expect(lastCall.error_category).toBe('ur_decode_error');
+        const lastCall = calls[calls.length - 1]?.[0];
+        expect(lastCall?.error_category).toBe('ur_decode_error');
         expect(lastCall).not.toHaveProperty('received_ur_type');
       });
     });
