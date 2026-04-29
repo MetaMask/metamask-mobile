@@ -402,12 +402,12 @@ describe('TraderPositionView', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
-    expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('1W'));
+    fireEvent.press(screen.getByText('1H'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
+      expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
     });
 
     dateNowSpy.mockRestore();
