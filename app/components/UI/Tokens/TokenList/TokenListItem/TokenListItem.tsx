@@ -192,10 +192,27 @@ export const TokenListItem = React.memo(
       selectTokenListSecurityBadgesEnabled,
     );
 
+    const skipTokenListSecurityBadge = useMemo(() => {
+      if (!asset) {
+        return true;
+      }
+      return isStockToken(asset as BridgeToken);
+    }, [asset, isStockToken]);
+
+    const shouldResolveCaipForSecurityBadge =
+      basicFunctionalityEnabled &&
+      isTokenListSecurityBadgesEnabled &&
+      !skipTokenListSecurityBadge;
+
     const [caipAssetIdForSecurity, setCaipAssetIdForSecurity] =
       useState<CaipAssetType | null>(null);
 
     useEffect(() => {
+      if (!shouldResolveCaipForSecurityBadge) {
+        setCaipAssetIdForSecurity(null);
+        return;
+      }
+
       let cancelled = false;
       getCaipAssetIdForToken(asset)
         .then((id) => {
@@ -211,14 +228,7 @@ export const TokenListItem = React.memo(
       return () => {
         cancelled = true;
       };
-    }, [asset]);
-
-    const skipTokenListSecurityBadge = useMemo(() => {
-      if (!asset) {
-        return true;
-      }
-      return isStockToken(asset as BridgeToken);
-    }, [asset, isStockToken]);
+    }, [asset, shouldResolveCaipForSecurityBadge]);
 
     const chainId = asset?.chainId as Hex;
 
@@ -598,9 +608,7 @@ export const TokenListItem = React.memo(
                 {label && (
                   <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
                 )}
-                {basicFunctionalityEnabled &&
-                  isTokenListSecurityBadgesEnabled &&
-                  !skipTokenListSecurityBadge &&
+                {shouldResolveCaipForSecurityBadge &&
                   caipAssetIdForSecurity && (
                     <TokenListSecurityBadge
                       caipAssetId={caipAssetIdForSecurity}
