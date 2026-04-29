@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { TouchableOpacityProps, StyleProp, ViewStyle } from 'react-native';
+import { PressableProps, StyleProp, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { IconName } from '../../components/Icons/Icon';
@@ -7,7 +7,7 @@ import { IconName } from '../../components/Icons/Icon';
 /**
  * MainActionButton component props.
  */
-export interface MainActionButtonProps extends TouchableOpacityProps {
+export interface MainActionButtonProps extends PressableProps {
   /**
    * Optional style applied to the outermost Animated.View container.
    * Use this to control layout (e.g. flex: 1) without adding a wrapper node.
