@@ -442,7 +442,7 @@ describe('TraderNotificationsBottomSheet', () => {
       });
 
       expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('fires a medium impact when pressing save even if the value did not change', () => {
@@ -463,7 +463,7 @@ describe('TraderNotificationsBottomSheet', () => {
       });
 
       expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
       expect(mockToggleTraderNotification).not.toHaveBeenCalled();
     });
 

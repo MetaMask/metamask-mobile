@@ -87,11 +87,9 @@ const TraderPositionView = () => {
     if (!resolvedPosition) {
       return;
     }
-    // Primary CTA opening the buy flow — TabChange catalog moment (Medium)
-    // mirrors other elevated commit-style actions. The terminal Success/Error
-    // notification haptic is fired later in useQuickBuyBottomSheet once the
-    // transaction resolves.
-    playImpact(ImpactMoment.TabChange);
+    // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
+    // Success/error notification haptics fire later in useQuickBuyBottomSheet.
+    playImpact(ImpactMoment.PrimaryCTA);
     setIsQuickBuyVisible(true);
   }, [resolvedPosition]);
 

@@ -25,6 +25,7 @@ Centralized haptic feedback module for MetaMask Mobile.
 | Page navigation      | `playImpact('pageNavigation')`      | `impactAsync(Medium)`        | Medium | Browser swipe back/forward commit | Distinct from tab bar `tabChange`               |
 | Slider grip          | `playImpact('sliderGrip')`          | `impactAsync(Medium)`        | Medium | Slider thumb press / release      | Distinct from tick / threshold crossings        |
 | Tab change           | `playImpact('tabChange')`           | `impactAsync(Medium)`        | Medium | Tab transition                    |                                                 |
+| Primary CTA          | `playImpact('primaryCta')`          | `impactAsync(Medium)`        | Medium | Buy / sheet Save / primary commit | Distinct from tab bar; tune independently       |
 | Pull refresh engage  | `playImpact('pullToRefreshEngage')` | `impactAsync(Light)`         | Light  | Pull stretch past early threshold | Lighter than commit; pairs with `pullToRefresh` |
 | Pull to refresh      | `playImpact('pullToRefresh')`       | `impactAsync(Medium)`        | Medium | Pull-to-refresh reload commit     |                                                 |
 | Chart crosshair      | `playImpact('chartCrosshair')`      | `impactAsync(Light)`         | Light  | OHLC data change                  |                                                 |

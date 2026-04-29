@@ -93,7 +93,7 @@ const TraderNotificationsBottomSheet = forwardRef<
     // Save is a deliberate primary-action commit, so always fire the haptic
     // — including when the value didn't change — to acknowledge the press.
     const handleSave = useCallback(() => {
-      playImpact(ImpactMoment.TabChange);
+      playImpact(ImpactMoment.PrimaryCTA);
       if (localEnabled !== isTraderNotificationEnabled(traderId)) {
         toggleTraderNotification(traderId);
       }

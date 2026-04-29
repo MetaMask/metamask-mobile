@@ -82,6 +82,13 @@ export const ImpactMoment = {
   TabChange: 'tabChange',
 
   /**
+   * Primary surface commit (Buy opening a flow, bottom-sheet Save, etc.) —
+   * Medium impact. Same underlying weight as `TabChange` by default, but a
+   * separate catalog entry so tab-bar tuning never changes unrelated CTAs.
+   */
+  PrimaryCTA: 'primaryCta',
+
+  /**
    * Pull-to-refresh stretch engaged — Light impact (early pull feedback).
    * Distinct from `PullToRefresh` (Medium), which fires when the reload commits.
    */

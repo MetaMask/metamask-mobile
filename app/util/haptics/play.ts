@@ -4,13 +4,13 @@
  * Vendor calls are centralized in `vendorPlayback.ts`; this file wires Redux
  * gate options and `withGatedPlayback`. App code imports from `app/util/haptics`.
  */
-import { type HapticGateOptions } from './gates';
-import { withGatedPlayback } from './gatedExecution';
 import {
   NotificationMoment,
   type HapticImpactMoment,
   type HapticNotificationMoment,
 } from './catalog';
+import { type HapticGateOptions } from './gates';
+import { withGatedPlayback } from './gatedExecution';
 import {
   vendorImpact,
   vendorNotifyError,
@@ -27,7 +27,7 @@ import Logger from '../Logger';
  * Reads Redux state to build gate options.
  * Safe to call outside React — uses the singleton store.
  */
-function getGateOptions(): HapticGateOptions {
+export function getHapticGateOptions(): HapticGateOptions {
   try {
     const state = ReduxService.store.getState();
     return {
@@ -41,19 +41,19 @@ function getGateOptions(): HapticGateOptions {
 }
 
 export async function playSuccessNotification(): Promise<void> {
-  await withGatedPlayback(getGateOptions(), vendorNotifySuccess);
+  await withGatedPlayback(getHapticGateOptions(), vendorNotifySuccess);
 }
 
 export async function playErrorNotification(): Promise<void> {
-  await withGatedPlayback(getGateOptions(), vendorNotifyError);
+  await withGatedPlayback(getHapticGateOptions(), vendorNotifyError);
 }
 
 export async function playWarningNotification(): Promise<void> {
-  await withGatedPlayback(getGateOptions(), vendorNotifyWarning);
+  await withGatedPlayback(getHapticGateOptions(), vendorNotifyWarning);
 }
 
 export async function playImpact(moment: HapticImpactMoment): Promise<void> {
-  await withGatedPlayback(getGateOptions(), () => vendorImpact(moment));
+  await withGatedPlayback(getHapticGateOptions(), () => vendorImpact(moment));
 }
 
 /**
@@ -81,5 +81,5 @@ export async function playNotification(
 }
 
 export async function playSelection(): Promise<void> {
-  await withGatedPlayback(getGateOptions(), vendorSelection);
+  await withGatedPlayback(getHapticGateOptions(), vendorSelection);
 }

@@ -43,6 +43,7 @@ const CATALOG_IMPACT_MOMENTS_ORDERED: readonly HapticImpactMoment[] = [
   ImpactMoment.PageNavigation,
   ImpactMoment.SliderGrip,
   ImpactMoment.TabChange,
+  ImpactMoment.PrimaryCTA,
   ImpactMoment.PullToRefreshEngage,
   ImpactMoment.PullToRefresh,
   ImpactMoment.ChartCrosshair,
@@ -62,6 +63,8 @@ const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
     'app_settings.developer_options.haptics.impacts.slider_grip',
   [ImpactMoment.TabChange]:
     'app_settings.developer_options.haptics.impacts.tab_change',
+  [ImpactMoment.PrimaryCTA]:
+    'app_settings.developer_options.haptics.impacts.primary_cta',
   [ImpactMoment.PullToRefreshEngage]:
     'app_settings.developer_options.haptics.impacts.pull_to_refresh_engage',
   [ImpactMoment.PullToRefresh]:

@@ -317,7 +317,7 @@ describe('TraderPositionView', () => {
     );
 
     expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('does not fire a haptic when the buy button is pressed without a resolved position', () => {

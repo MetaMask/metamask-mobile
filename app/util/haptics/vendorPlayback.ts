@@ -21,6 +21,7 @@ export const IMPACT_STYLE_MAP: Record<HapticImpactMoment, ImpactFeedbackStyle> =
     [ImpactMoment.PageNavigation]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.SliderGrip]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.TabChange]: ImpactFeedbackStyle.Medium,
+    [ImpactMoment.PrimaryCTA]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.PullToRefreshEngage]: ImpactFeedbackStyle.Light,
     [ImpactMoment.PullToRefresh]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.ChartCrosshair]: ImpactFeedbackStyle.Light,

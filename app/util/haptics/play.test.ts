@@ -104,6 +104,11 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
     });
 
+    it('playImpact(PrimaryCTA) calls impactAsync with Medium', async () => {
+      await playImpact(ImpactMoment.PrimaryCTA);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
     it('playImpact(PullToRefreshEngage) calls impactAsync with Light', async () => {
       await playImpact(ImpactMoment.PullToRefreshEngage);
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
