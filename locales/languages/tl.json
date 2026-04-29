@@ -8663,7 +8663,7 @@
   },
   "trending": {
     "title": "Tuklasin",
-    "trending_tokens": "Mga trending na token",
+    "trending_tokens": "Trending",
     "stocks": "Stocks",
     "price_change": "Pagbabago ng presyo",
     "all_networks": "Lahat ng network",
@@ -8820,7 +8820,7 @@
       },
       "defi": "DeFi",
       "nfts": "Mga NFT",
-      "trending_tokens": "Mga trending na token",
+      "trending_tokens": "Trending",
       "trending_perpetuals": "Mga trending na perpetual",
       "trending_predictions": "Mga trending na prediksyon",
       "import_nfts": "Mag-import ng mga NFT",

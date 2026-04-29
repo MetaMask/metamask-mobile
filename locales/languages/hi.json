@@ -8663,7 +8663,7 @@
   },
   "trending": {
     "title": "एक्सप्लोर करें",
-    "trending_tokens": "ट्रेंडिंग टोकन",
+    "trending_tokens": "ट्रेंडिंग",
     "stocks": "स्टॉक्स",
     "price_change": "प्राइस में बदलाव",
     "all_networks": "सभी नेटवर्क",
@@ -8820,7 +8820,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "ट्रेंडिंग टोकन",
+      "trending_tokens": "ट्रेंडिंग",
       "trending_perpetuals": "ट्रेंडिंग परपेचुअल्स",
       "trending_predictions": "ट्रेंडिंग प्रेडिक्शन्स",
       "import_nfts": "NFTs इंपोर्ट करें",

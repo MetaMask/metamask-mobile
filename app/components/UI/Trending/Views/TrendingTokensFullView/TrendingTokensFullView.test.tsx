@@ -248,7 +248,7 @@ describe('TrendingTokensFullView', () => {
   it('renders header with title and buttons', () => {
     const { getByText, getByTestId } = renderTrendingFullView();
 
-    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(getByText('Trending')).toBeOnTheScreen();
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 

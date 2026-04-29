@@ -8663,7 +8663,7 @@
   },
   "trending": {
     "title": "閲覧",
-    "trending_tokens": "流行のトークン",
+    "trending_tokens": "トレンド",
     "stocks": "株式",
     "price_change": "価格変動",
     "all_networks": "すべてのネットワーク",
@@ -8820,7 +8820,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "流行のトークン",
+      "trending_tokens": "トレンド",
       "trending_perpetuals": "人気のパーペチュアル",
       "trending_predictions": "人気の予測",
       "import_nfts": "NFTをインポート",

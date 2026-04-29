@@ -8663,7 +8663,7 @@
   },
   "trending": {
     "title": "둘러보기",
-    "trending_tokens": "인기 토큰",
+    "trending_tokens": "트렌드",
     "stocks": "주식",
     "price_change": "가격 변동",
     "all_networks": "모든 네트워크",
@@ -8820,7 +8820,7 @@
       },
       "defi": "디파이",
       "nfts": "NFT",
-      "trending_tokens": "인기 토큰",
+      "trending_tokens": "트렌드",
       "trending_perpetuals": "인기 무기한 선물",
       "trending_predictions": "인기 예측",
       "import_nfts": "NFT 가져오기",

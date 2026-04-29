@@ -108,7 +108,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       const header = getByTestId(
         TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
       );
-      expect(header).toHaveTextContent('Trending tokens');
+      expect(header).toHaveTextContent(strings('trending.trending_tokens'));
     });
   });
 
@@ -159,7 +159,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       const header = getByTestId(
         TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
       );
-      expect(header).toHaveTextContent('Trending tokens');
+      expect(header).toHaveTextContent(strings('trending.trending_tokens'));
     });
 
     await assertTrendingTokenRowsVisibility({
@@ -185,7 +185,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user can search for a trending token from the explore feed', async () => {
-    const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
+    const { findByPlaceholderText, findByTestId, getByTestId } =
+      renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
@@ -198,8 +199,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     );
     await actButtonPress(searchButton);
 
-    const searchInput = await findByTestId(
-      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT,
+    const searchInput = await findByPlaceholderText(
+      strings('trending.search_placeholder'),
     );
     expect(searchInput).toBeOnTheScreen();
 
