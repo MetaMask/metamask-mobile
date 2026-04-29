@@ -715,12 +715,7 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.get_requirements.outputs.android_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
-      }}
+    if: ${{ needs.build-android-apks.result == 'success' }}
     permissions:
       contents: read
       id-token: write
@@ -753,24 +748,15 @@ jobs:
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.get_requirements.outputs.ios_e2e_needed == 'true'
-      }}
-    needs: [get_requirements, build-ios-apps]
+    if: ${{ needs.build-ios-apps.result == 'success' }}
+    needs: [build-ios-apps]
     steps:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
-      }}
+    if: ${{ needs.ios-tests-ready.result == 'success' }}
     permissions:
       contents: read
       id-token: write
@@ -788,13 +774,7 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: >-
-      ${{
-        !cancelled() &&
-        github.event_name == 'pull_request' &&
-        needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
-      }}
+    if: ${{ needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
     permissions:
       contents: read
       id-token: write
