@@ -1,8 +1,10 @@
+import { BigNumber } from 'bignumber.js';
 import { useEffect, useMemo } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
@@ -39,6 +41,7 @@ export const usePredictBuyConditions = ({
   const { isPredictBalanceSelected, resetSelectedPaymentToken } =
     usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
+  const { availableTokens } = useTransactionPayAvailableTokens();
 
   const shouldWaitForPayFees = !isPredictBalanceSelected && currentValue > 0;
 
@@ -70,6 +73,42 @@ export const usePredictBuyConditions = ({
   );
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
+
+  const isCurrentTokenInsufficient = useMemo(
+    () => isInsufficientBalance || hasBlockingPayAlerts,
+    [isInsufficientBalance, hasBlockingPayAlerts],
+  );
+
+  const hasAlternativeBalance = useMemo(() => {
+    if (currentValue <= 0) return false;
+
+    const hasAlternativeERC20 = availableTokens.some(
+      (token) =>
+        !token.isSelected &&
+        !token.disabled &&
+        new BigNumber(token.fiat?.balance ?? 0).gte(currentValue),
+    );
+
+    if (isPredictBalanceSelected) {
+      return hasAlternativeERC20;
+    }
+
+    // Apply the same fee adjustment to predictBalance that maxBetAmount uses for
+    // the selected ERC20, so we only suggest Predict balance as an alternative
+    // when it can actually cover the bet after fees.
+    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
+    const predictMaxBetAmount = Math.max(
+      0,
+      Math.floor((predictBalance / (1 + feeRate)) * 100) / 100,
+    );
+    return predictMaxBetAmount >= currentValue || hasAlternativeERC20;
+  }, [
+    availableTokens,
+    currentValue,
+    isPredictBalanceSelected,
+    predictBalance,
+    preview?.fees?.totalFeePercentage,
+  ]);
 
   const isPayFeesLoading = useMemo(
     () => shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading),
@@ -123,6 +162,8 @@ export const usePredictBuyConditions = ({
   return {
     isBelowMinimum,
     isInsufficientBalance,
+    isCurrentTokenInsufficient,
+    hasAlternativeBalance,
     maxBetAmount,
     isRateLimited,
     canPlaceBet,

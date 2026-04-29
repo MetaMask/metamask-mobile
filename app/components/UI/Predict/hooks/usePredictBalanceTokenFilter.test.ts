@@ -1,11 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { AssetType } from '../../../Views/confirmations/types/token';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import {
-  PREDICT_BALANCE_CHAIN_ID,
-  PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
-} from '../constants/transactions';
+  AssetType,
+  HighlightedItem,
+  isHighlightedItemInAssetList,
+} from '../../../Views/confirmations/types/token';
+import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { usePredictBalanceTokenFilter } from './usePredictBalanceTokenFilter';
 
 let mockIsPredictBalanceSelected = false;
@@ -91,7 +91,7 @@ describe('usePredictBalanceTokenFilter', () => {
     expect(filteredTokens).toEqual(tokens);
   });
 
-  it('prepends Predict balance token when transaction type matches', () => {
+  it('prepends Predict balance HighlightedItem when transaction type matches', () => {
     const tokens = [createMockToken()];
     mockHasTransactionType.mockReturnValue(true);
 
@@ -99,10 +99,10 @@ describe('usePredictBalanceTokenFilter', () => {
     const filteredTokens = result.current(tokens);
 
     expect(filteredTokens).toHaveLength(2);
-    expect(filteredTokens[0].address).toBe(PREDICT_BALANCE_PLACEHOLDER_ADDRESS);
+    expect(isHighlightedItemInAssetList(filteredTokens[0])).toBe(true);
   });
 
-  it('prepends Predict balance token when forceEnabled is true', () => {
+  it('prepends Predict balance HighlightedItem when forceEnabled is true', () => {
     const tokens = [createMockToken()];
     mockHasTransactionType.mockReturnValue(false);
 
@@ -110,10 +110,10 @@ describe('usePredictBalanceTokenFilter', () => {
     const filteredTokens = result.current(tokens);
 
     expect(filteredTokens).toHaveLength(2);
-    expect(filteredTokens[0].address).toBe(PREDICT_BALANCE_PLACEHOLDER_ADDRESS);
+    expect(isHighlightedItemInAssetList(filteredTokens[0])).toBe(true);
   });
 
-  it('sets Predict balance token as selected when isPredictBalanceSelected is true', () => {
+  it('sets the Predict balance row as selected when isPredictBalanceSelected is true', () => {
     mockIsPredictBalanceSelected = true;
     mockHasTransactionType.mockReturnValue(true);
     const tokens = [createMockToken()];
@@ -121,7 +121,7 @@ describe('usePredictBalanceTokenFilter', () => {
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect(filteredTokens[0].isSelected).toBe(true);
+    expect((filteredTokens[0] as HighlightedItem).isSelected).toBe(true);
   });
 
   it('deselects existing tokens when Predict balance is selected', () => {
@@ -132,7 +132,7 @@ describe('usePredictBalanceTokenFilter', () => {
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect(filteredTokens[1].isSelected).toBe(false);
+    expect((filteredTokens[1] as AssetType).isSelected).toBe(false);
   });
 
   it('preserves existing token isSelected when Predict balance is not selected', () => {
@@ -143,10 +143,10 @@ describe('usePredictBalanceTokenFilter', () => {
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect(filteredTokens[1].isSelected).toBe(true);
+    expect((filteredTokens[1] as AssetType).isSelected).toBe(true);
   });
 
-  it('formats Predict balance using fiat formatter', () => {
+  it('formats the Predict balance as a fiat string in the HighlightedItem', () => {
     mockPredictBalance = 42.5;
     mockHasTransactionType.mockReturnValue(true);
     const tokens = [createMockToken()];
@@ -154,41 +154,22 @@ describe('usePredictBalanceTokenFilter', () => {
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect(filteredTokens[0].balanceInSelectedCurrency).toBe('$42.50');
+    expect((filteredTokens[0] as HighlightedItem).fiat).toBe('$42.50');
   });
 
-  it('uses PREDICT_BALANCE_PLACEHOLDER_ADDRESS for synthetic token', () => {
+  it('shows name_description as USDC.e on the Predict balance row', () => {
     mockHasTransactionType.mockReturnValue(true);
     const tokens = [createMockToken()];
 
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect(filteredTokens[0].address).toBe(PREDICT_BALANCE_PLACEHOLDER_ADDRESS);
-    expect(filteredTokens[0].tokenId).toBe(PREDICT_BALANCE_PLACEHOLDER_ADDRESS);
+    expect((filteredTokens[0] as HighlightedItem).name_description).toBe(
+      'USDC.e',
+    );
   });
 
-  it('uses PREDICT_BALANCE_CHAIN_ID for synthetic token', () => {
-    mockHasTransactionType.mockReturnValue(true);
-    const tokens = [createMockToken()];
-
-    const { result } = renderHook(() => usePredictBalanceTokenFilter());
-    const filteredTokens = result.current(tokens);
-
-    expect(filteredTokens[0].chainId).toBe(PREDICT_BALANCE_CHAIN_ID);
-  });
-
-  it('sets symbol to USDC.e on the Predict balance token', () => {
-    mockHasTransactionType.mockReturnValue(true);
-    const tokens = [createMockToken()];
-
-    const { result } = renderHook(() => usePredictBalanceTokenFilter());
-    const filteredTokens = result.current(tokens);
-
-    expect(filteredTokens[0].symbol).toBe('USDC.e');
-  });
-
-  it('uses empty string for image when usdceToken is null', () => {
+  it('uses empty string for icon when usdceToken is null', () => {
     mockHasTransactionType.mockReturnValue(true);
     mockUseSelector.mockReturnValue(null);
     const tokens = [createMockToken()];
@@ -196,17 +177,47 @@ describe('usePredictBalanceTokenFilter', () => {
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect(filteredTokens[0].image).toBe('');
-    expect(filteredTokens[0].logo).toBe('');
+    expect((filteredTokens[0] as HighlightedItem).icon).toBe('');
   });
 
-  it('adds the polygon network badge to the synthetic token', () => {
+  it('does not include an actions array when onAddFunds is not provided', () => {
     mockHasTransactionType.mockReturnValue(true);
     const tokens = [createMockToken()];
 
     const { result } = renderHook(() => usePredictBalanceTokenFilter());
     const filteredTokens = result.current(tokens);
 
-    expect(filteredTokens[0].networkBadgeSource).toBe('polygon-network-badge');
+    expect((filteredTokens[0] as HighlightedItem).actions).toBeUndefined();
+  });
+
+  it('includes an "Add" action button when onAddFunds is provided', () => {
+    mockHasTransactionType.mockReturnValue(true);
+    const mockOnAddFunds = jest.fn();
+    const tokens = [createMockToken()];
+
+    const { result } = renderHook(() =>
+      usePredictBalanceTokenFilter(true, mockOnAddFunds),
+    );
+    const filteredTokens = result.current(tokens);
+
+    const item = filteredTokens[0] as HighlightedItem;
+    expect(item.actions).toHaveLength(1);
+    expect(item.actions?.[0].onPress).toBe(mockOnAddFunds);
+  });
+
+  it('calls onSelect when the row action is triggered', () => {
+    mockHasTransactionType.mockReturnValue(true);
+    const mockOnSelect = jest.fn();
+    const tokens = [createMockToken()];
+
+    const { result } = renderHook(() =>
+      usePredictBalanceTokenFilter(true, undefined, mockOnSelect),
+    );
+    const filteredTokens = result.current(tokens);
+
+    const item = filteredTokens[0] as HighlightedItem;
+    item.action();
+
+    expect(mockOnSelect).toHaveBeenCalledTimes(1);
   });
 });

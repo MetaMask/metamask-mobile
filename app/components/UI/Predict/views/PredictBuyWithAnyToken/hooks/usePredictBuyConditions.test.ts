@@ -20,6 +20,11 @@ let mockSelectedPaymentToken: {
   chainId?: string;
 } | null = null;
 let mockIsDepositPending = false;
+let mockAvailableTokens: {
+  isSelected?: boolean;
+  disabled?: boolean;
+  fiat?: { balance?: number };
+}[] = [];
 
 let mockPredictBalance = 0;
 const mockResetSelectedPaymentToken = jest.fn();
@@ -69,6 +74,16 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens',
+  () => ({
+    useTransactionPayAvailableTokens: () => ({
+      availableTokens: mockAvailableTokens,
+      hasTokens: mockAvailableTokens.length > 0,
+    }),
+  }),
+);
+
 const defaultParams = {
   currentValue: 10,
   depositFee: 0,
@@ -99,6 +114,7 @@ describe('usePredictBuyConditions', () => {
     mockIsPredictBalanceSelected = true;
     mockSelectedPaymentToken = null;
     mockIsDepositPending = false;
+    mockAvailableTokens = [];
 
     mockPredictBalance = 0;
   });
@@ -466,6 +482,168 @@ describe('usePredictBuyConditions', () => {
       );
 
       expect(result.current.isBalancePulsing).toBe(false);
+    });
+  });
+
+  describe('isCurrentTokenInsufficient', () => {
+    it('is false when neither isInsufficientBalance nor hasBlockingPayAlerts', () => {
+      mockAvailableBalance = 100;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          hasBlockingPayAlerts: false,
+        }),
+      );
+
+      expect(result.current.isCurrentTokenInsufficient).toBe(false);
+    });
+
+    it('is true when Predict balance is insufficient (isInsufficientBalance)', () => {
+      mockAvailableBalance = 5;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          hasBlockingPayAlerts: false,
+        }),
+      );
+
+      expect(result.current.isCurrentTokenInsufficient).toBe(true);
+    });
+
+    it('is true when external token has blocking pay alerts', () => {
+      mockIsPredictBalanceSelected = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          hasBlockingPayAlerts: true,
+        }),
+      );
+
+      expect(result.current.isCurrentTokenInsufficient).toBe(true);
+    });
+  });
+
+  describe('hasAlternativeBalance', () => {
+    it('is false when currentValue is 0', () => {
+      mockAvailableTokens = [
+        { isSelected: false, disabled: false, fiat: { balance: 50 } },
+      ];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 0 }),
+      );
+
+      expect(result.current.hasAlternativeBalance).toBe(false);
+    });
+
+    it('is true when Predict balance selected and an ERC20 token covers the bet', () => {
+      mockIsPredictBalanceSelected = true;
+      mockAvailableTokens = [
+        { isSelected: false, disabled: false, fiat: { balance: 50 } },
+      ];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      expect(result.current.hasAlternativeBalance).toBe(true);
+    });
+
+    it('is false when Predict balance selected and no ERC20 token has sufficient USD balance', () => {
+      mockIsPredictBalanceSelected = true;
+      mockAvailableTokens = [
+        { isSelected: false, disabled: false, fiat: { balance: 5 } },
+      ];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      expect(result.current.hasAlternativeBalance).toBe(false);
+    });
+
+    it('is true when external token selected and fee-adjusted Predict balance covers the bet', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPredictBalance = 50;
+      mockAvailableTokens = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      expect(result.current.hasAlternativeBalance).toBe(true);
+    });
+
+    it('is true when external token selected and fee-adjusted Predict balance covers the bet with fees applied', () => {
+      mockIsPredictBalanceSelected = false;
+      // predictBalance = 10.5, feeRate = 5%, predictMaxBetAmount = floor(10.5 / 1.05 * 100) / 100 = 10
+      mockPredictBalance = 10.5;
+      mockAvailableTokens = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          preview: {
+            rateLimited: false,
+            fees: { totalFeePercentage: 5 },
+          } as OrderPreview,
+        }),
+      );
+
+      expect(result.current.hasAlternativeBalance).toBe(true);
+    });
+
+    it('is false when external token selected and fee-adjusted Predict balance is insufficient', () => {
+      mockIsPredictBalanceSelected = false;
+      // predictBalance = 10, feeRate = 5%, predictMaxBetAmount = floor(10 / 1.05 * 100) / 100 = 9.52
+      mockPredictBalance = 10;
+      mockAvailableTokens = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          preview: {
+            rateLimited: false,
+            fees: { totalFeePercentage: 5 },
+          } as OrderPreview,
+        }),
+      );
+
+      expect(result.current.hasAlternativeBalance).toBe(false);
+    });
+
+    it('is false when external token selected and neither Predict balance nor ERC20 covers the bet', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPredictBalance = 5;
+      mockAvailableTokens = [
+        { isSelected: false, disabled: false, fiat: { balance: 3 } },
+      ];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      expect(result.current.hasAlternativeBalance).toBe(false);
+    });
+
+    it('skips disabled tokens when evaluating alternatives', () => {
+      mockIsPredictBalanceSelected = true;
+      mockAvailableTokens = [
+        { isSelected: false, disabled: true, fiat: { balance: 50 } },
+      ];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      expect(result.current.hasAlternativeBalance).toBe(false);
     });
   });
 
