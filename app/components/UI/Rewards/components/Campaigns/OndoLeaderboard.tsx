@@ -343,40 +343,41 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   return (
     <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER}>
       {/* Participants + tier subtitle */}
-      {!hideTierHeader && (totalParticipants > 0 || selectedTierLabel) && (
-        <Pressable
-          onPress={tierNames.length > 1 ? openTierSelector : undefined}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 mb-2 px-4"
+      {!hideTierHeader &&
+        (totalParticipants > 0 || Boolean(selectedTierLabel)) && (
+          <Pressable
+            onPress={tierNames.length > 1 ? openTierSelector : undefined}
+            testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
           >
-            {totalParticipants > 0 && (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.SuccessDefault}
-              >
-                {strings(
-                  'rewards.ondo_campaign_leaderboard.total_participants',
-                  {
-                    count: totalParticipants.toLocaleString(),
-                  },
-                )}
-              </Text>
-            )}
-            {Boolean(selectedTierLabel) && (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {selectedTierLabel}
-              </Text>
-            )}
-          </Box>
-        </Pressable>
-      )}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2 mb-2 px-4"
+            >
+              {totalParticipants > 0 && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  {strings(
+                    'rewards.ondo_campaign_leaderboard.total_participants',
+                    {
+                      count: totalParticipants.toLocaleString(),
+                    },
+                  )}
+                </Text>
+              )}
+              {Boolean(selectedTierLabel) && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {selectedTierLabel}
+                </Text>
+              )}
+            </Box>
+          </Pressable>
+        )}
 
       {/* Leaderboard list */}
       {visibleEntries.length > 0 ? (
