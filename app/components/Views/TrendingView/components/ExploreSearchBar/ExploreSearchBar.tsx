@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
@@ -42,25 +42,11 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
-  const isInteractiveMode = props.type === 'interactive';
   const isButtonMode = props.type === 'button';
   const placeholder =
     props.placeholder || isBasicFunctionalityEnabled
       ? strings('trending.search_placeholder')
       : strings('trending.search_sites');
-
-  const handleCancel = () => {
-    if (isInteractiveMode) {
-      props.onSearchChange('');
-      props.onCancel();
-    }
-  };
-
-  const handleClear = useCallback(() => {
-    if (props.type === 'interactive') {
-      props.onSearchChange('');
-    }
-  }, [props]);
 
   // Button mode: tappable faux search bar (no text input).
   const searchBarStatic = (
@@ -104,12 +90,17 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               placeholder={placeholder}
               autoFocus={props.type === 'interactive'}
               autoCapitalize="none"
-              onPressClearButton={handleClear}
+              onPressClearButton={() => {
+                props.onSearchChange('');
+              }}
               clearButtonProps={{ testID: 'explore-search-clear-button' }}
             />
           </Box>
           <TouchableOpacity
-            onPress={handleCancel}
+            onPress={() => {
+              props.onSearchChange('');
+              props.onCancel();
+            }}
             testID="explore-search-cancel-button"
           >
             <Text

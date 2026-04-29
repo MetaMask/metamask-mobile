@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { TextInput } from 'react-native';
 import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
@@ -194,7 +193,7 @@ describe('ExploreSearchBar', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
-      const { UNSAFE_getByType } = render(
+      const { getByPlaceholderText } = render(
         <ExploreSearchBar
           type="interactive"
           searchQuery=""
@@ -203,7 +202,9 @@ describe('ExploreSearchBar', () => {
         />,
       );
 
-      const input = UNSAFE_getByType(TextInput);
+      const input = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
 
       expect(input.props.autoFocus).toBe(true);
     });
