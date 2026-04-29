@@ -19,7 +19,6 @@ import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selec
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import MoneyAccountHomeRow from '../../../../UI/Money/components/MoneyAccountHomeRow';
 import MusdAggregatedRow from './MusdAggregatedRow';
 import { useCashNavigation } from './useCashNavigation';
@@ -48,10 +47,6 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
-    // TODO: Consider separating the mUSD conversion and Money components to avoid calling hooks unnecessarily.
-    // Right now, useMoneyAccountBalance is called even if the Money Home feature is disabled.
-    const { totalFiatRaw } = useMoneyAccountBalance();
-    const hasMoneyBalance = totalFiatRaw !== undefined && totalFiatRaw !== '0';
     const { navigateToCash } = useCashNavigation();
 
     const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
@@ -95,10 +90,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
           <SectionHeader title={title} onPress={navigateToCash} />
           {isMoneyHomeEnabled ? (
             <SectionRow>
-              <MoneyAccountHomeRow
-                key={`money-cash-${refreshVersion}`}
-                variant={hasMoneyBalance ? 'funded' : 'empty'}
-              />
+              <MoneyAccountHomeRow key={`money-cash-${refreshVersion}`} />
             </SectionRow>
           ) : !hasMusdBalanceOnAnyChain ? (
             <SectionRow>

@@ -71,11 +71,15 @@ describe('MoneyAccountHomeRow', () => {
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
   });
 
-  describe('empty variant', () => {
-    it('renders the empty container testID', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="empty" />,
+  describe('when balance is empty', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({ totalFiatRaw: undefined }),
       );
+    });
+
+    it('renders the empty container testID', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       expect(
         getByTestId(MoneyAccountHomeRowTestIds.EMPTY_CONTAINER),
@@ -83,9 +87,7 @@ describe('MoneyAccountHomeRow', () => {
     });
 
     it('renders the "Get started" button', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="empty" />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       expect(
         getByTestId(MoneyAccountHomeRowTestIds.GET_STARTED_BUTTON),
@@ -93,9 +95,7 @@ describe('MoneyAccountHomeRow', () => {
     });
 
     it('renders the APY tag with "Earn" prefix', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="empty" />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       expect(getByTestId(MoneyAccountHomeRowTestIds.APY_TAG)).toHaveTextContent(
         strings('homepage.sections.cash_empty_state.earn_apy', {
@@ -105,9 +105,7 @@ describe('MoneyAccountHomeRow', () => {
     });
 
     it('navigates to Money home when "Get started" is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="empty" />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       fireEvent.press(
         getByTestId(MoneyAccountHomeRowTestIds.GET_STARTED_BUTTON),
@@ -115,13 +113,23 @@ describe('MoneyAccountHomeRow', () => {
 
       expect(mockNavigateToCash).toHaveBeenCalledTimes(1);
     });
+
+    it('renders the empty container when totalFiatRaw is the string zero', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({ totalFiatRaw: '0', totalFiatFormatted: '$0.00' }),
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
+
+      expect(
+        getByTestId(MoneyAccountHomeRowTestIds.EMPTY_CONTAINER),
+      ).toBeOnTheScreen();
+    });
   });
 
-  describe('funded variant', () => {
+  describe('when balance is funded', () => {
     it('renders the funded container testID', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="funded" />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       expect(
         getByTestId(MoneyAccountHomeRowTestIds.FUNDED_CONTAINER),
@@ -129,9 +137,7 @@ describe('MoneyAccountHomeRow', () => {
     });
 
     it('renders the "Add" button', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="funded" />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       expect(
         getByTestId(MoneyAccountHomeRowTestIds.ADD_BUTTON),
@@ -139,9 +145,7 @@ describe('MoneyAccountHomeRow', () => {
     });
 
     it('renders the balance from useMoneyAccountBalance', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="funded" />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       expect(getByTestId(MoneyAccountHomeRowTestIds.BALANCE)).toHaveTextContent(
         '$1,000.00',
@@ -149,9 +153,7 @@ describe('MoneyAccountHomeRow', () => {
     });
 
     it('renders the APY tag without "Earn" prefix', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="funded" />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       expect(getByTestId(MoneyAccountHomeRowTestIds.APY_TAG)).toHaveTextContent(
         strings('homepage.sections.cash_filled_state.apy', { percentage: 4 }),
@@ -159,9 +161,7 @@ describe('MoneyAccountHomeRow', () => {
     });
 
     it('opens the Add money sheet when "Add" is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="funded" />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyAccountHomeRow />);
 
       fireEvent.press(getByTestId(MoneyAccountHomeRowTestIds.ADD_BUTTON));
 
@@ -178,7 +178,7 @@ describe('MoneyAccountHomeRow', () => {
       );
 
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="funded" />,
+        <MoneyAccountHomeRow />,
       );
 
       expect(
@@ -200,7 +200,7 @@ describe('MoneyAccountHomeRow', () => {
       );
 
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="funded" />,
+        <MoneyAccountHomeRow />,
       );
 
       expect(
@@ -213,7 +213,7 @@ describe('MoneyAccountHomeRow', () => {
 
     it('renders balance and APY values when data has loaded', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyAccountHomeRow variant="funded" />,
+        <MoneyAccountHomeRow />,
       );
 
       expect(getByTestId(MoneyAccountHomeRowTestIds.BALANCE)).toBeOnTheScreen();

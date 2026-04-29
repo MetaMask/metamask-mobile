@@ -22,22 +22,19 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useCashNavigation } from '../../../../Views/Homepage/Sections/Cash/useCashNavigation';
 import { MoneyAccountHomeRowTestIds } from './MoneyAccountHomeRow.testIds';
 
-interface MoneyAccountHomeRowProps {
-  variant: 'empty' | 'funded';
-}
-
-const MoneyAccountHomeRow = ({ variant }: MoneyAccountHomeRowProps) => {
+const MoneyAccountHomeRow = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { navigateToCash } = useCashNavigation();
   const {
+    totalFiatRaw,
     totalFiatFormatted,
     apyPercent,
     isAggregatedBalanceLoading,
     vaultApyQuery,
   } = useMoneyAccountBalance();
 
-  const isEmpty = variant === 'empty';
+  const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
 
   // TODO: Double check if this is necessary
   const apyLabel = isEmpty
