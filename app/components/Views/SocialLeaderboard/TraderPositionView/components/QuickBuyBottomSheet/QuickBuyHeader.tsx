@@ -30,7 +30,9 @@ const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
     gap={4}
     twClassName="h-20 px-4"
   >
-    <PositionTokenAvatar position={position} showChainBadge />
+    <Box twClassName="pb-1">
+      <PositionTokenAvatar position={position} showChainBadge />
+    </Box>
     <Box twClassName="flex-1">
       <Text
         variant={TextVariant.HeadingSm}
