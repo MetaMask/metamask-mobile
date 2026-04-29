@@ -359,10 +359,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   useEffect(() => {
     if (scanError && onQRHardwareScanErrorRef.current) {
       const errorCallback = onQRHardwareScanErrorRef.current;
+      scanErrorActiveRef.current = false;
       setScanError(null);
       errorCallback(scanError);
     }
-  }, [scanError]);
+  }, [onQRHardwareScanError, scanError]);
 
   const onError = useCallback(
     async (error: Error) => {

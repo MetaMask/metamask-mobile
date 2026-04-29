@@ -558,6 +558,82 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       );
     });
 
+    it('resumes scanning after forwarding an existing inline error to an external callback', async () => {
+      const validDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 1),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => true),
+        resultError: jest.fn(),
+        resultUR: jest.fn(() => ({
+          type: SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
+          cbor: Buffer.from([]),
+        })),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => validDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      const { getByText, queryByText, rerender } = render(
+        <AnimatedQRScannerModal {...defaultProps} />,
+      );
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            'hardware_wallet.qr_scan_errors.non_ur_qr_scanned.pair.title',
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      rerender(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockOnQRHardwareScanError).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Scanned QR code is not in UR format',
+          }),
+        );
+        expect(
+          queryByText(
+            'hardware_wallet.qr_scan_errors.non_ur_qr_scanned.pair.title',
+          ),
+        ).toBeNull();
+      });
+
+      await act(async () => {
+        await onCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
+      });
+
+      await waitFor(() => {
+        expect(mockOnScanSuccess).toHaveBeenCalledWith({
+          type: SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
+          cbor: Buffer.from([]),
+        });
+      });
+    });
+
     it('invokes QR hardware scan error callback once for repeated error frames', async () => {
       render(
         <AnimatedQRScannerModal
