@@ -842,6 +842,22 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
     },
   });
 
+  // Token API single-token metadata for Polymarket USD (pUSD). Predict deposit/withdraw
+  // confirmation views fetch this since #29450; must be mocked for live-request validation.
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/token\.api\.cx\.metamask\.io\/token\/137\?.*address=0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb/i,
+    responseCode: 200,
+    response: {
+      address: '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb',
+      symbol: 'pUSD',
+      decimals: 6,
+      name: 'Polymarket USD',
+      iconUrl:
+        'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb.png',
+    },
+  });
+
   // The app makes balance calls through the proxy, not direct Infura calls
   // Our existing proxy mock below will handle these calls
 
