@@ -125,27 +125,9 @@ jobs:
       - name: Upload artifacts to BrowserStack and resolve URLs
         id: resolve
         run: |
-          upload_to_bs() {
-            local file_path="$1"
-            local custom_id="$2"
-
-            RESPONSE=$(curl -s -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-              -F "file=@${file_path}" \
-              -F "custom_id=${custom_id}")
-
-            APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
-
-            if [[ -z "$APP_URL" || "$APP_URL" == "null" ]]; then
-              echo "::error::BrowserStack upload failed for ${file_path}: $RESPONSE"
-              return 1
-            fi
-
-            echo "$APP_URL"
-          }
-
           # Helper: resolve a single URL from manual input or build artifact.
           # Outputs the URL to GITHUB_OUTPUT, or empty string if unavailable.
+          # Upload failures are logged but do not abort other resolutions.
           resolve_url() {
             local output_key="$1"
             local manual_url="$2"
@@ -156,23 +138,41 @@ jobs:
             if [[ -n "$manual_url" ]]; then
               echo "${output_key}=${manual_url}" >> "$GITHUB_OUTPUT"
               echo "Using manual URL for ${output_key}: ${manual_url}"
-            elif [[ -d "$artifact_dir" ]]; then
-              local file
-              file=$(find "$artifact_dir" -name "*.${extension}" | head -1)
-              if [[ -n "$file" ]]; then
-                echo "Uploading ${file} to BrowserStack..."
-                local url
-                url=$(upload_to_bs "$file" "$custom_id")
-                echo "${output_key}=${url}" >> "$GITHUB_OUTPUT"
-                echo "${output_key}: ${url}"
-              else
-                echo "::warning::No .${extension} found in ${artifact_dir} — ${output_key} will be empty"
-                echo "${output_key}=" >> "$GITHUB_OUTPUT"
-              fi
-            else
+              return 0
+            fi
+
+            if [[ ! -d "$artifact_dir" ]]; then
               echo "No build artifact for ${output_key} and no manual URL — test will be skipped"
               echo "${output_key}=" >> "$GITHUB_OUTPUT"
+              return 0
             fi
+
+            local file
+            file=$(find "$artifact_dir" -name "*.${extension}" | head -1)
+            if [[ -z "$file" ]]; then
+              echo "::warning::No .${extension} found in ${artifact_dir} — ${output_key} will be empty"
+              echo "${output_key}=" >> "$GITHUB_OUTPUT"
+              return 0
+            fi
+
+            echo "Uploading ${file} to BrowserStack..."
+            local response
+            response=$(curl -s -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+              -F "file=@${file}" \
+              -F "custom_id=${custom_id}")
+
+            local app_url
+            app_url=$(echo "$response" | jq -r '.app_url')
+
+            if [[ -z "$app_url" || "$app_url" == "null" ]]; then
+              echo "::error::BrowserStack upload failed for ${output_key} (${file}): ${response}"
+              echo "${output_key}=" >> "$GITHUB_OUTPUT"
+              return 0
+            fi
+
+            echo "${output_key}=${app_url}" >> "$GITHUB_OUTPUT"
+            echo "${output_key}: ${app_url}"
           }
 
           resolve_url "android-login-url" \
