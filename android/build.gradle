@@ -41,6 +41,16 @@ buildscript {
 	}
 }
 
+// Force all subprojects to use the root NDK version so library build.gradle files that
+// hardcode an older ndkVersion (e.g. @metamask/native-utils) don't trigger a failed download.
+subprojects { subproject ->
+	subproject.afterEvaluate {
+		if (subproject.extensions.findByName('android') != null) {
+			subproject.android.ndkVersion = rootProject.ext.ndkVersion
+		}
+	}
+}
+
 // Braze Android SDK 41.x transitively pulls Kotlin 2.1-era stdlib and kotlinx-serialization
 // artifacts whose metadata the project's Kotlin 1.9.x compiler cannot read.
 // We force compatible versions on:
