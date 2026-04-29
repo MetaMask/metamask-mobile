@@ -34,6 +34,7 @@ import {
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useCashNavigation } from './useCashNavigation';
+import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
@@ -45,13 +46,17 @@ const MusdAggregatedRow = () => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
-  const { claimableReward, hasPendingClaim, isClaiming } = useMerklBonusClaim(
-    LINEA_MUSD_ASSET_FOR_MERKL,
-    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
-  );
+  const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
+    useMerklBonusClaim(
+      LINEA_MUSD_ASSET_FOR_MERKL,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+    );
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
 
   const handleClaimBonus = useCallback(() => {
     trackEvent(
@@ -64,13 +69,26 @@ const MusdAggregatedRow = () => {
         })
         .build(),
     );
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
-      params: {
-        location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
-      },
-    });
-  }, [trackEvent, createEventBuilder, navigation]);
+    // Money modal stack is only mounted in MainNavigator when the Money Home
+    // flag is on. Without it, fall back to dispatching the claim directly so
+    // the CTA still works for users on the legacy mUSD-conversion flag.
+    if (isMoneyHomeScreenEnabled) {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
+        params: {
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+        },
+      });
+      return;
+    }
+    claimRewards();
+  }, [
+    trackEvent,
+    createEventBuilder,
+    navigation,
+    isMoneyHomeScreenEnabled,
+    claimRewards,
+  ]);
 
   const { navigateToCash: handleTokenRowPress } = useCashNavigation();
 
