@@ -14,6 +14,11 @@ describe('createHapticsJestMock', () => {
     expect(mock.playImpact).toBe(customPlayImpact);
   });
 
+  it('exposes fireSwitchHaptic as a jest mock', () => {
+    const mock = createHapticsJestMock();
+    expect(jest.isMockFunction(mock.fireSwitchHaptic)).toBe(true);
+  });
+
   it('exposes useHaptics returning the same play stubs', () => {
     const mock = createHapticsJestMock();
     const fromHook = mock.useHaptics();

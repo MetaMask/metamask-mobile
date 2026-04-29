@@ -1,6 +1,7 @@
 import { ImpactMoment, NotificationMoment } from '../catalog';
 
 export interface HapticsJestModuleMock {
+  fireSwitchHaptic: jest.Mock;
   playImpact: jest.Mock;
   playNotification: jest.Mock;
   playSelection: jest.Mock;
@@ -20,14 +21,15 @@ export interface HapticsJestModuleMock {
  * Use `createHapticsJestMock()` directly only in that manual mock or in unit tests
  * for `createHapticsJestMock` itself.
  *
- * Reuses real `ImpactMoment` / `NotificationMoment` from the catalog; only `play*`
- * and `useHaptics` are stubbed.
+ * Reuses real `ImpactMoment` / `NotificationMoment` from the catalog; only `play*`,
+ * `fireSwitchHaptic`, and `useHaptics` are stubbed.
  *
  * @param overrides - Replace fields (e.g. `{ useHaptics: jest.fn() }` for custom hook tests).
  */
 export function createHapticsJestMock(
   overrides: Partial<HapticsJestModuleMock> = {},
 ): HapticsJestModuleMock {
+  const fireSwitchHaptic = jest.fn();
   const playImpact = jest.fn().mockResolvedValue(undefined);
   const playNotification = jest.fn().mockResolvedValue(undefined);
   const playSelection = jest.fn().mockResolvedValue(undefined);
@@ -44,6 +46,7 @@ export function createHapticsJestMock(
   }));
 
   return {
+    fireSwitchHaptic,
     playImpact,
     playNotification,
     playSelection,

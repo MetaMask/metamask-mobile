@@ -6,6 +6,7 @@ import { createHapticsJestMock } from '../testing/createHapticsJestMock';
 
 const m = createHapticsJestMock();
 
+export const fireSwitchHaptic = m.fireSwitchHaptic;
 export const playSuccessNotification = m.playSuccessNotification;
 export const playErrorNotification = m.playErrorNotification;
 export const playWarningNotification = m.playWarningNotification;
