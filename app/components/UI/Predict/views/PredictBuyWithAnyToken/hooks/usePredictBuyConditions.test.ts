@@ -8,11 +8,13 @@ let mockActiveOrder: { state?: string } | null = null;
 let mockPayTotals: Record<string, unknown> | null = null;
 let mockIsPayTotalsLoading = false;
 let mockIsPayQuoteLoading = false;
+// undefined = never fetched; null = explicitly cleared; [] = fetched, no routes
 let mockQuotes:
   | {
       request?: { sourceTokenAddress?: string; sourceChainId?: string };
     }[]
-  | null = null;
+  | null
+  | undefined;
 let mockRequiredTokens: { address: string; chainId: string }[] | null = null;
 let mockIsPredictBalanceSelected = true;
 let mockSelectedPaymentToken: {
@@ -71,6 +73,7 @@ jest.mock(
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
     useTransactionPayQuotes: () => mockQuotes,
     useTransactionPayRequiredTokens: () => mockRequiredTokens,
+    useTransactionPaySourceAmounts: () => [],
   }),
 );
 
@@ -109,7 +112,10 @@ describe('usePredictBuyConditions', () => {
     mockPayTotals = null;
     mockIsPayTotalsLoading = false;
     mockIsPayQuoteLoading = false;
-    mockQuotes = null;
+    // Start with a settled quote state (simulates having completed at least
+    // one quote cycle) so tests that don't focus on the settling guard work
+    // with straightforward assertions.
+    mockQuotes = [];
     mockRequiredTokens = null;
     mockIsPredictBalanceSelected = true;
     mockSelectedPaymentToken = null;
@@ -514,13 +520,82 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isCurrentTokenInsufficient).toBe(true);
     });
 
-    it('is true when external token has blocking pay alerts', () => {
+    it('is true when external token has blocking pay alerts and fees are not loading', () => {
       mockIsPredictBalanceSelected = false;
+      mockIsPayTotalsLoading = false;
+      mockIsPayQuoteLoading = false;
+      mockQuotes = []; // quote cycle has completed
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
           ...defaultParams,
           hasBlockingPayAlerts: true,
+        }),
+      );
+
+      expect(result.current.isCurrentTokenInsufficient).toBe(true);
+    });
+
+    it('is false when pay fees are still loading even if blocking alerts are present', () => {
+      mockIsPredictBalanceSelected = false;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 1,
+          hasBlockingPayAlerts: true,
+        }),
+      );
+
+      // While quotes are fetching, transient alerts must not surface the CTA
+      expect(result.current.isCurrentTokenInsufficient).toBe(false);
+    });
+
+    it('is false when pay quote is loading even if blocking alerts are present', () => {
+      mockIsPredictBalanceSelected = false;
+      mockIsPayQuoteLoading = true;
+      mockQuotes = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 1,
+          hasBlockingPayAlerts: true,
+        }),
+      );
+
+      expect(result.current.isCurrentTokenInsufficient).toBe(false);
+    });
+
+    it('is false for ERC20 when no quote cycle has completed yet (quotes undefined)', () => {
+      mockIsPredictBalanceSelected = false;
+      mockIsPayTotalsLoading = false;
+      mockIsPayQuoteLoading = false;
+      mockQuotes = undefined; // controller hasn't run a quote fetch yet
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 1,
+          hasBlockingPayAlerts: true,
+        }),
+      );
+
+      // Should not flash "Change Payment Method" before the first quote cycle
+      expect(result.current.isCurrentTokenInsufficient).toBe(false);
+    });
+
+    it('is true for Predict balance even when quotes are undefined (quote cycle guard is ERC20-only)', () => {
+      mockIsPredictBalanceSelected = true;
+      mockAvailableBalance = 5;
+      mockQuotes = undefined;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
         }),
       );
 

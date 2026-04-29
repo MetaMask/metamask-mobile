@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
+  useTransactionPayQuotes,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
 import { MINIMUM_BET } from '../../../constants/transactions';
@@ -37,6 +38,10 @@ export const usePredictBuyConditions = ({
     usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
+  // quotes === undefined means the controller hasn't yet completed a quote
+  // cycle for this transaction; quotes === [] means a cycle ran but found no
+  // routes; quotes === [...] means valid routes exist.
+  const quotes = useTransactionPayQuotes();
   const { isDepositPending } = usePredictDeposit();
   const { isPredictBalanceSelected, resetSelectedPaymentToken } =
     usePredictPaymentToken();
@@ -74,9 +79,40 @@ export const usePredictBuyConditions = ({
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
+  // Compute pay-fees loading state early so isCurrentTokenInsufficient can be
+  // gated on it — blocking alerts during quote-fetch must not trigger the
+  // "Change Payment Method" / "Add Funds" CTA prematurely.
+  const isPayFeesLoading = useMemo(
+    () => shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading),
+    [shouldWaitForPayFees, isPayTotalsLoading, isPayQuoteLoading],
+  );
+
+  // Whether the TransactionPay controller has completed at least one quote
+  // cycle. `quotes` starts as `undefined` and becomes an array (empty or not)
+  // only after the first fetch resolves. Using this as a secondary gate
+  // prevents the "Change Payment Method" CTA from flashing during the brief
+  // window between `updateSourceAmounts` (synchronous) and `updateQuotes`
+  // setting `isLoading = true` (asynchronous), which is NOT covered by
+  // `isPayFeesLoading` alone.
+  const hasQuoteCycleCompleted = quotes !== undefined && quotes !== null;
+
+  // Only surface token-insufficiency after the pay system has settled.
+  // Two guards:
+  //  1. isPayFeesLoading — covers the active quote-fetch period
+  //  2. hasQuoteCycleCompleted — covers the gap before the first fetch starts
+  //     (sourceAmounts updated synchronously, isLoading not yet true)
   const isCurrentTokenInsufficient = useMemo(
-    () => isInsufficientBalance || hasBlockingPayAlerts,
-    [isInsufficientBalance, hasBlockingPayAlerts],
+    () =>
+      !isPayFeesLoading &&
+      (!isPredictBalanceSelected ? hasQuoteCycleCompleted : true) &&
+      (isInsufficientBalance || hasBlockingPayAlerts),
+    [
+      isPayFeesLoading,
+      isPredictBalanceSelected,
+      hasQuoteCycleCompleted,
+      isInsufficientBalance,
+      hasBlockingPayAlerts,
+    ],
   );
 
   const hasAlternativeBalance = useMemo(() => {
@@ -109,11 +145,6 @@ export const usePredictBuyConditions = ({
     predictBalance,
     preview?.fees?.totalFeePercentage,
   ]);
-
-  const isPayFeesLoading = useMemo(
-    () => shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading),
-    [shouldWaitForPayFees, isPayTotalsLoading, isPayQuoteLoading],
-  );
 
   const canPlaceBet = useMemo(
     () =>
