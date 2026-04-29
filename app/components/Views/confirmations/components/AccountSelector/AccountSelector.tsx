@@ -20,6 +20,8 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
+  BottomSheet,
+  BottomSheetRef,
   Skeleton,
   Text,
   TextColor,
@@ -27,9 +29,6 @@ import {
 } from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
@@ -203,13 +202,11 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         onRequestClose={handleModalRequestClose}
         testID={ACCOUNT_SELECTOR_TEST_IDS.MODAL}
       >
-        {/* PayWithModal uses the same BottomSheet; pageSheet Modal stacked extra iOS chrome. */}
         <View style={styles.modalRoot}>
           <BottomSheet
             testID={ACCOUNT_SELECTOR_TEST_IDS.BOTTOM_SHEET}
             ref={bottomSheetRef}
             isFullscreen
-            shouldNavigateBack={false}
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >

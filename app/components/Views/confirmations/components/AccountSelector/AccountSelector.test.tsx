@@ -22,7 +22,9 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const { Text: RNText } = jest.requireActual('react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ReactActual = require('react');
+  const { Text: RNText, View: RNView } = jest.requireActual('react-native');
   const MockText = ({
     children,
     ...props
@@ -39,7 +41,34 @@ jest.mock('@metamask/design-system-react-native', () => {
     width?: number;
     twClassName?: string;
   }) => <RNText testID="skeleton">{`${props.height}x${props.width}`}</RNText>;
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        testID,
+      }: {
+        children: React.ReactNode;
+        onClose?: (hasPendingAction?: boolean) => void;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (cb?: () => void) => void;
+        onOpenBottomSheet: (cb?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => {
+          onClose?.(false);
+          cb?.();
+        },
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return <RNView testID={testID}>{children}</RNView>;
+    },
+  );
   return {
+    BottomSheet: MockBottomSheet,
     Text: MockText,
     Skeleton: MockSkeleton,
     TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
@@ -69,45 +98,6 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     IconSize: { Sm: 'Sm', Md: 'Md' },
   };
 });
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const React = require('react');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { View } = require('react-native');
-    return {
-      __esModule: true,
-      default: React.forwardRef(
-        (
-          {
-            children,
-            onClose,
-            testID,
-          }: {
-            children: React.ReactNode;
-            onClose?: (hasPendingAction?: boolean) => void;
-            testID?: string;
-          },
-          ref: React.Ref<{
-            onCloseBottomSheet: (cb?: () => void) => void;
-            onOpenBottomSheet: (cb?: () => void) => void;
-          }>,
-        ) => {
-          React.useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: (cb?: () => void) => {
-              onClose?.(false);
-              cb?.();
-            },
-            onOpenBottomSheet: jest.fn(),
-          }));
-          return <View testID={testID}>{children}</View>;
-        },
-      ),
-    };
-  },
-);
 
 jest.mock(
   '../../../../../component-library/components-temp/HeaderCompactStandard',
