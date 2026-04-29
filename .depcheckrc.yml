@@ -134,6 +134,8 @@ ignores:
   - '@types/react-test-renderer'
   # runtime for dependecies using Nitro Modules (@metamask/native-utils)
   - 'react-native-nitro-modules'
+  # Jest `jest.mock('react-native-worklets', …, { virtual: true })` in testSetup only; not a root dependency
+  - 'react-native-worklets'
 
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'

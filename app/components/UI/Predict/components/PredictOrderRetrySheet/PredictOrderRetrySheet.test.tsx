@@ -235,9 +235,8 @@ describe('PredictOrderRetrySheet', () => {
       );
 
       expect(
-        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON).props
-          .disabled,
-      ).toBe(true);
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      ).toBeDisabled();
     });
 
     it('calls closeSheet when close button pressed', () => {

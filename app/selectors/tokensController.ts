@@ -17,6 +17,10 @@ import {
   getTokensControllerAllTokens,
 } from './assets/assets-migration';
 
+/**
+ * @deprecated
+ * This selector accesses deprecated AssetsController state directly.
+ */
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
 
@@ -74,7 +78,10 @@ export const selectIgnoreTokens = createSelector(
   ) => allIgnoredTokens?.[chainId]?.[selectedAddress as Hex],
 );
 
-// TODO AssetsController - Accessing deprecated state
+/**
+ * @deprecated
+ * This selector accesses deprecated AssetsController state directly.
+ */
 export const selectDetectedTokens = createSelector(
   selectTokensControllerState,
   selectEvmChainId,
@@ -125,7 +132,10 @@ export const selectAllTokensFlat = createSelector(
   },
 );
 
-// TODO AssetsController - Accessing deprecated state
+/**
+ * @deprecated
+ * This selector accesses deprecated AssetsController state directly.
+ */
 export const selectAllDetectedTokensForSelectedAddress = createSelector(
   selectTokensControllerState,
   selectSelectedInternalAccountAddress,

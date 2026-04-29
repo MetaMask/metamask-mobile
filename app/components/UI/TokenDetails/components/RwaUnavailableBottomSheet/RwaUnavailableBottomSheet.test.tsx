@@ -16,6 +16,86 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+// Mock BottomSheet so onCloseBottomSheet immediately invokes its callback and onClose
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const {
+    View,
+    Text: RNText,
+    TouchableOpacity,
+  } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  let storedOnClose: (() => void) | undefined;
+
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+          onClose,
+        }: { children: React.ReactNode; onClose?: () => void },
+        ref: React.Ref<unknown>,
+      ) => {
+        storedOnClose = onClose;
+        ReactActual.useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: jest.fn(),
+          onCloseBottomSheet: (cb?: () => void) => {
+            cb?.();
+            onClose?.();
+          },
+        }));
+        return ReactActual.createElement(View, {}, children);
+      },
+    ),
+    BottomSheetHeader: ({
+      children,
+      onClose: headerOnClose,
+    }: {
+      children: React.ReactNode;
+      onClose?: () => void;
+    }) =>
+      ReactActual.createElement(
+        View,
+        {},
+        ReactActual.createElement(RNText, {}, children),
+      ),
+    BottomSheetFooter: ({
+      primaryButtonProps,
+    }: {
+      primaryButtonProps?: {
+        children: string;
+        onPress?: () => void;
+      };
+      style?: unknown;
+    }) =>
+      primaryButtonProps
+        ? ReactActual.createElement(
+            TouchableOpacity,
+            { onPress: primaryButtonProps.onPress },
+            ReactActual.createElement(RNText, {}, primaryButtonProps.children),
+          )
+        : null,
+    Box: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactActual.createElement(View, props, children),
+    Text: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactActual.createElement(RNText, props, children),
+    TextVariant: actual.TextVariant ?? {},
+    BoxAlignItems: actual.BoxAlignItems ?? {},
+    BoxJustifyContent: actual.BoxJustifyContent ?? {},
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
     ({
