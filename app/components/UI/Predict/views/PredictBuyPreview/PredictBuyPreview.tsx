@@ -111,6 +111,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   useEffect(() => {
     predictBuyPreviewSessionRef.mountTimestamp = mountTimestampRef.current;
     predictBuyPreviewSessionRef.hadEnteredAmount = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
     return () => {
       predictBuyPreviewSessionRef.hadEnteredAmount = false;
     };
@@ -278,6 +279,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const onPlaceBet = useCallback(async () => {
     if (!preview || isBelowMinimum) return;
 
+    predictBuyPreviewOrderInitiatedRef.current = true;
     await placeOrder({
       analyticsProperties,
       preview,

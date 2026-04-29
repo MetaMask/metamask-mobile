@@ -2141,10 +2141,12 @@ export class PredictController extends BaseController<
         preview,
         signerAddress,
         analyticsProperties: pendingAnalytics,
+        activeAbTests: pendingActiveAbTests,
       } = pendingOrder;
 
       this.placeOrder({
         analyticsProperties: pendingAnalytics,
+        activeAbTests: pendingActiveAbTests,
         preview,
         address: signerAddress,
         transactionId,
