@@ -54,7 +54,7 @@ function HorizontalCarousel<T>({
               <Box
                 borderColor={BoxBorderColor.BorderDefault}
                 twClassName={`rounded-2xl overflow-hidden ${
-                  !isLastItem ? 'pr-4' : ''
+                  !isLastItem ? 'pr-3' : ''
                 }`}
               >
                 {isLoading ? (
