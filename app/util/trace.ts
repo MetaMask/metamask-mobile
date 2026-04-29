@@ -62,6 +62,10 @@ export enum TraceName {
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
+  /** Token overview advanced chart: skeleton cleared after initial load / asset or currency change. */
+  TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
+  /** Token overview advanced chart: skeleton cleared after time range selector change only. */
+  TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
@@ -268,6 +272,10 @@ export enum TraceOperation {
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  /** Token overview OHLCV WebView: initial load or asset/currency change */
+  TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
+  /** Token overview OHLCV WebView: time range change only */
+  TokenOverviewAdvancedChartTimeRange = 'token_overview.advanced_chart_time_range',
 }
 
 const ID_DEFAULT = 'default';
@@ -543,9 +551,23 @@ export async function flushBufferedTraces() {
 let cachedConsent: boolean | null = null;
 
 /**
- * Check if user has given consent for metrics
+ * Check if user has given consent for metrics (for Sentry init).
+ * Uses AnalyticsController via {@link analytics.isEnabled} first (same as Settings → Participate),
+ * then legacy METRICS_OPT_IN storage.
  */
 export async function hasMetricsConsent(): Promise<boolean> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const { analytics } = require('./analytics/analytics');
+    const enabled = analytics.isEnabled();
+    if (typeof enabled === 'boolean') {
+      cachedConsent = enabled;
+      return enabled;
+    }
+  } catch {
+    // fall through to legacy storage
+  }
+
   const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
   const hasConsent = metricsOptIn === AGREED;
   cachedConsent = hasConsent;
@@ -558,6 +580,23 @@ export async function hasMetricsConsent(): Promise<boolean> {
  */
 function getCachedConsent(): boolean | null {
   return cachedConsent;
+}
+
+/**
+ * Live MetaMetrics participation for debugging (Settings → Participate). Prefer this over METRICS_OPT_IN alone.
+ */
+export function getCachedMetricsConsent(): boolean | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const { analytics } = require('./analytics/analytics');
+    const enabled = analytics.isEnabled();
+    if (typeof enabled === 'boolean') {
+      return enabled;
+    }
+  } catch {
+    // fall through
+  }
+  return getCachedConsent();
 }
 
 /**

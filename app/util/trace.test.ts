@@ -89,7 +89,6 @@ describe('Trace', () => {
     );
 
     flushBufferedTraces();
-    // Reset consent state to false by default
     updateCachedConsent(false);
   });
 

@@ -56,6 +56,12 @@ import type {
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import PriceLegacy from './Price.legacy';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
 
@@ -66,6 +72,36 @@ const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1M': 'asset_overview.chart_time_period.1m',
   '1Y': 'asset_overview.chart_time_period.1y',
 };
+
+/** Maps {@link ohlcvSeriesKey} transitions to Sentry trace name/op (dashboards filter by name or op). */
+function getAdvancedChartVisibilityTraceRequest(
+  previousSeriesKey: string | null,
+  nextSeriesKey: string,
+): { name: TraceName; op: TraceOperation } {
+  if (previousSeriesKey === null) {
+    return {
+      name: TraceName.TokenOverviewAdvancedChartInitialVisible,
+      op: TraceOperation.TokenOverviewAdvancedChart,
+    };
+  }
+  const prev = previousSeriesKey.split('|');
+  const next = nextSeriesKey.split('|');
+  if (prev.length >= 4 && next.length >= 4) {
+    const sameAsset = prev[0] === next[0];
+    const sameCurrency = prev[prev.length - 1] === next[next.length - 1];
+    const rangeChanged = prev[1] !== next[1] || prev[2] !== next[2];
+    if (sameAsset && sameCurrency && rangeChanged) {
+      return {
+        name: TraceName.TokenOverviewAdvancedChartTimeRangeVisible,
+        op: TraceOperation.TokenOverviewAdvancedChartTimeRange,
+      };
+    }
+  }
+  return {
+    name: TraceName.TokenOverviewAdvancedChartInitialVisible,
+    op: TraceOperation.TokenOverviewAdvancedChart,
+  };
+}
 
 export interface PriceAdvancedProps {
   asset: TokenI;
@@ -206,6 +242,43 @@ const PriceAdvanced = ({
     [assetId, config.timePeriod, config.interval, currentCurrency],
   );
 
+  const visibilityTraceStartedRef = useRef<string | null>(null);
+  /** Matches pending manual trace so {@link endTrace} uses the same `TraceName` as {@link trace}. */
+  const activeVisibilityTraceRef = useRef<{
+    seriesKey: string;
+    traceName: TraceName;
+  } | null>(null);
+
+  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    const open = activeVisibilityTraceRef.current;
+    if (open?.seriesKey !== ohlcvSeriesKey) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: ohlcvSeriesKey,
+    });
+    activeVisibilityTraceRef.current = null;
+  }, [ohlcvSeriesKey]);
+
+  const handleAdvancedChartError = useCallback(
+    (error: string) => {
+      const open = activeVisibilityTraceRef.current;
+      if (open?.seriesKey !== ohlcvSeriesKey) {
+        return;
+      }
+      endTrace({
+        name: open.traceName,
+        id: ohlcvSeriesKey,
+        data: {
+          errorMessage: error.slice(0, 200),
+        },
+      });
+      activeVisibilityTraceRef.current = null;
+    },
+    [ohlcvSeriesKey],
+  );
+
   const {
     ohlcvData,
     isLoading: chartLoading,
@@ -294,6 +367,26 @@ const PriceAdvanced = ({
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
 
+  useEffect(() => {
+    if (!shouldFallbackToLegacy) {
+      return;
+    }
+    const pendingId = visibilityTraceStartedRef.current;
+    if (pendingId === null) {
+      return;
+    }
+    const open = activeVisibilityTraceRef.current;
+    if (open?.seriesKey === pendingId) {
+      endTrace({
+        name: open.traceName,
+        id: pendingId,
+        data: { fallbackToLegacy: true },
+      });
+      activeVisibilityTraceRef.current = null;
+    }
+    visibilityTraceStartedRef.current = null;
+  }, [shouldFallbackToLegacy]);
+
   if (shouldFallbackToLegacy) {
     return (
       <PriceLegacy
@@ -308,6 +401,36 @@ const PriceAdvanced = ({
         isLoading={isLoading}
       />
     );
+  }
+
+  if (visibilityTraceStartedRef.current !== ohlcvSeriesKey) {
+    const previousSeriesId = visibilityTraceStartedRef.current;
+    if (previousSeriesId !== null && previousSeriesId !== ohlcvSeriesKey) {
+      const supersededOpen = activeVisibilityTraceRef.current;
+      if (supersededOpen?.seriesKey === previousSeriesId) {
+        endTrace({
+          name: supersededOpen.traceName,
+          id: previousSeriesId,
+          data: { superseded: true },
+        });
+        activeVisibilityTraceRef.current = null;
+      }
+    }
+    const { name: visibilityTraceName, op: visibilityTraceOp } =
+      getAdvancedChartVisibilityTraceRequest(previousSeriesId, ohlcvSeriesKey);
+
+    visibilityTraceStartedRef.current = ohlcvSeriesKey;
+    activeVisibilityTraceRef.current = {
+      seriesKey: ohlcvSeriesKey,
+      traceName: visibilityTraceName,
+    };
+
+    trace({
+      name: visibilityTraceName,
+      op: visibilityTraceOp,
+      id: ohlcvSeriesKey,
+      ...(assetId.length > 0 ? { data: { assetId } } : {}),
+    });
   }
 
   return (
@@ -415,6 +538,8 @@ const PriceAdvanced = ({
             onCrosshairMove={handleCrosshairMove}
             onChartInteracted={handleChartInteracted}
             onChartTradingViewClicked={handleChartTradingViewClicked}
+            onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+            onError={handleAdvancedChartError}
           />
         </View>
       </Box>
