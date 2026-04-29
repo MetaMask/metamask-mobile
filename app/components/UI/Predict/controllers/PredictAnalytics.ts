@@ -145,7 +145,7 @@ export class PredictAnalytics {
         [PredictEventProperties.ORDER_TYPE]: orderType,
       }),
       ...(paymentTokenAddress && {
-        [PredictEventProperties.PREDICT_TOKEN_ADDRESS]: paymentTokenAddress,
+        [PredictEventProperties.PAYMENT_TOKEN_ADDRESS]: paymentTokenAddress,
       }),
       ...(paymentTokenSymbol && {
         [PredictEventProperties.PAYMENT_TOKEN_SYMBOL]: paymentTokenSymbol,

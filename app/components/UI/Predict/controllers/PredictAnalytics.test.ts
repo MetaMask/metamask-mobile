@@ -153,7 +153,7 @@ describe('PredictAnalytics', () => {
       });
     });
 
-    it('includes predict_token_address in properties when paymentTokenAddress is provided', async () => {
+    it('includes payment_token_address in properties when paymentTokenAddress is provided', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUBMITTED,
         analyticsProperties: { marketId: 'test' },
@@ -163,11 +163,11 @@ describe('PredictAnalytics', () => {
       const event = getTrackedEvent();
 
       expect(event.properties).toMatchObject({
-        predict_token_address: '0xtoken',
+        payment_token_address: '0xtoken',
       });
     });
 
-    it('omits predict_token_address from properties when paymentTokenAddress is not provided', async () => {
+    it('omits payment_token_address from properties when paymentTokenAddress is not provided', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUBMITTED,
         analyticsProperties: { marketId: 'test' },
@@ -175,7 +175,7 @@ describe('PredictAnalytics', () => {
 
       const event = getTrackedEvent();
 
-      expect(event.properties).not.toHaveProperty('predict_token_address');
+      expect(event.properties).not.toHaveProperty('payment_token_address');
     });
 
     it('includes pnl in sensitiveProperties when pnl is provided', async () => {
@@ -194,7 +194,7 @@ describe('PredictAnalytics', () => {
       });
     });
 
-    it('includes predict_token_symbol when paymentTokenSymbol is provided', async () => {
+    it('includes payment_token_symbol when paymentTokenSymbol is provided', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUBMITTED,
         analyticsProperties: { marketId: 'test' },
@@ -204,11 +204,11 @@ describe('PredictAnalytics', () => {
       const event = getTrackedEvent();
 
       expect(event.properties).toMatchObject({
-        predict_token_symbol: 'WBTC',
+        payment_token_symbol: 'WBTC',
       });
     });
 
-    it('omits predict_token_symbol when paymentTokenSymbol is not provided', async () => {
+    it('omits payment_token_symbol when paymentTokenSymbol is not provided', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUBMITTED,
         analyticsProperties: { marketId: 'test' },
@@ -216,7 +216,7 @@ describe('PredictAnalytics', () => {
 
       const event = getTrackedEvent();
 
-      expect(event.properties).not.toHaveProperty('predict_token_symbol');
+      expect(event.properties).not.toHaveProperty('payment_token_symbol');
     });
 
     it('includes active_ab_tests when activeAbTests is non-empty', async () => {

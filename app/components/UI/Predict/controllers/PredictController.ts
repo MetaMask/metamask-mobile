@@ -144,6 +144,7 @@ export type PredictControllerState = {
       state: ActiveOrderState;
       error?: string;
       paymentTokenAddress?: string;
+      paymentTokenSymbol?: string;
     };
   };
 
@@ -1033,6 +1034,8 @@ export class PredictController extends BaseController<
             transactionId;
           state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
             state.selectedPaymentToken?.address;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol =
+            state.selectedPaymentToken?.symbol;
         }
       });
 
@@ -1061,7 +1064,7 @@ export class PredictController extends BaseController<
             : undefined,
         paymentTokenSymbol:
           params.preview.side === Side.BUY
-            ? this.state.selectedPaymentToken?.symbol
+            ? this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenSymbol
             : undefined,
         activeAbTests: params.activeAbTests,
       });
@@ -1087,6 +1090,9 @@ export class PredictController extends BaseController<
           state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
             state.activeBuyOrders[activeOrderAddress].paymentTokenAddress ??
             state.selectedPaymentToken?.address;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol =
+            state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol ??
+            state.selectedPaymentToken?.symbol;
         }
       });
     }
@@ -1094,6 +1100,11 @@ export class PredictController extends BaseController<
     const paymentTokenAddress = isBuyWithAnyToken
       ? (this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenAddress ??
         this.state.selectedPaymentToken?.address)
+      : undefined;
+
+    const paymentTokenSymbol = isBuyWithAnyToken
+      ? (this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenSymbol ??
+        this.state.selectedPaymentToken?.symbol)
       : undefined;
 
     const startTime = performance.now();
@@ -1140,7 +1151,7 @@ export class PredictController extends BaseController<
         sharePrice,
         orderType: preview.orderType,
         paymentTokenAddress,
-        paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+        paymentTokenSymbol,
         activeAbTests: params.activeAbTests,
       });
 
@@ -1222,7 +1233,7 @@ export class PredictController extends BaseController<
         sharePrice: realSharePrice,
         orderType: preview.orderType,
         paymentTokenAddress,
-        paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+        paymentTokenSymbol,
         activeAbTests: params.activeAbTests,
       });
 
@@ -1245,7 +1256,7 @@ export class PredictController extends BaseController<
         failureReason: errorMessage,
         orderType: preview.orderType,
         paymentTokenAddress,
-        paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+        paymentTokenSymbol,
         activeAbTests: params.activeAbTests,
       });
 
@@ -2155,7 +2166,8 @@ export class PredictController extends BaseController<
         analyticsProperties: pendingOrder.analyticsProperties,
         paymentTokenAddress:
           this.state.activeBuyOrders[address]?.paymentTokenAddress,
-        paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+        paymentTokenSymbol:
+          this.state.activeBuyOrders[address]?.paymentTokenSymbol,
         orderType: pendingOrder.preview?.orderType,
         activeAbTests: pendingOrder.activeAbTests,
       });
@@ -2197,6 +2209,10 @@ export class PredictController extends BaseController<
         transactionId !== undefined &&
         transactionId !== this.state.activeBuyOrders[address]?.transactionId;
 
+      const failedActiveOrder = this.state.activeBuyOrders[address];
+      const failedPaymentTokenAddress = failedActiveOrder?.paymentTokenAddress;
+      const failedPaymentTokenSymbol = failedActiveOrder?.paymentTokenSymbol;
+
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
       }
@@ -2205,7 +2221,7 @@ export class PredictController extends BaseController<
         this.provider.clearOptimisticPosition(address, outcomeTokenId);
       }
 
-      if (this.state.activeBuyOrders[address]) {
+      if (failedActiveOrder) {
         const errorMessage =
           transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
@@ -2213,9 +2229,8 @@ export class PredictController extends BaseController<
         this.trackPredictOrderEvent({
           status: PredictTradeStatus.SWAP_FAILED,
           analyticsProperties: pendingOrder?.analyticsProperties,
-          paymentTokenAddress:
-            this.state.activeBuyOrders[address]?.paymentTokenAddress,
-          paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
           failureReason: errorMessage,
           activeAbTests: pendingOrder?.activeAbTests,
         });
@@ -2244,8 +2259,8 @@ export class PredictController extends BaseController<
           failureReason:
             transactionMeta.error?.message ??
             PREDICT_ERROR_CODES.DEPOSIT_FAILED,
-          paymentTokenAddress:
-            this.state.activeBuyOrders[address]?.paymentTokenAddress,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
           orderType: pendingOrder?.preview?.orderType,
           activeAbTests: pendingOrder?.activeAbTests,
         });
@@ -2278,7 +2293,8 @@ export class PredictController extends BaseController<
           analyticsProperties: rejectedPendingOrder?.analyticsProperties,
           paymentTokenAddress:
             this.state.activeBuyOrders[address]?.paymentTokenAddress,
-          paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+          paymentTokenSymbol:
+            this.state.activeBuyOrders[address]?.paymentTokenSymbol,
           failureReason: 'user_rejected',
           activeAbTests: rejectedPendingOrder?.activeAbTests,
         });

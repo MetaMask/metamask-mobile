@@ -7683,7 +7683,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('includes predict_token_address in analytics properties when paymentTokenAddress is provided', async () => {
+    it('includes payment_token_address in analytics properties when paymentTokenAddress is provided', async () => {
       await withController(async ({ controller }) => {
         await controller.trackPredictOrderEvent({
           status: 'submitted',
@@ -7694,14 +7694,14 @@ describe('PredictController', () => {
         expect(analytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
-              predict_token_address: '0xtoken',
+              payment_token_address: '0xtoken',
             }),
           }),
         );
       });
     });
 
-    it('omits predict_token_address from analytics properties when not provided', async () => {
+    it('omits payment_token_address from analytics properties when not provided', async () => {
       await withController(async ({ controller }) => {
         await controller.trackPredictOrderEvent({
           status: 'submitted',
@@ -7709,11 +7709,11 @@ describe('PredictController', () => {
         });
 
         const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
-        expect(eventArg.properties).not.toHaveProperty('predict_token_address');
+        expect(eventArg.properties).not.toHaveProperty('payment_token_address');
       });
     });
 
-    it('includes predict_token_symbol in analytics properties when paymentTokenSymbol is provided', async () => {
+    it('includes payment_token_symbol in analytics properties when paymentTokenSymbol is provided', async () => {
       await withController(async ({ controller }) => {
         await controller.trackPredictOrderEvent({
           status: 'submitted',
@@ -7724,14 +7724,14 @@ describe('PredictController', () => {
         expect(analytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
-              predict_token_symbol: 'WBTC',
+              payment_token_symbol: 'WBTC',
             }),
           }),
         );
       });
     });
 
-    it('omits predict_token_symbol from analytics properties when not provided', async () => {
+    it('omits payment_token_symbol from analytics properties when not provided', async () => {
       await withController(async ({ controller }) => {
         await controller.trackPredictOrderEvent({
           status: 'submitted',
@@ -7739,7 +7739,7 @@ describe('PredictController', () => {
         });
 
         const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
-        expect(eventArg.properties).not.toHaveProperty('predict_token_symbol');
+        expect(eventArg.properties).not.toHaveProperty('payment_token_symbol');
       });
     });
 
@@ -7988,7 +7988,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('fires SUBMITTED event with predict_token_address when placeOrder transitions to DEPOSITING', async () => {
+    it('fires SUBMITTED event with payment_token_address when placeOrder transitions to DEPOSITING', async () => {
       await withController(
         async ({ controller }) => {
           controller.setSelectedPaymentToken({
@@ -8018,7 +8018,7 @@ describe('PredictController', () => {
             expect.objectContaining({
               properties: expect.objectContaining({
                 status: 'submitted',
-                predict_token_address: '0xtoken',
+                payment_token_address: '0xtoken',
               }),
             }),
           );
@@ -8033,7 +8033,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not include predict_token_address in SUBMITTED event for balance flow', async () => {
+    it('does not include payment_token_address in SUBMITTED event for balance flow', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -8067,7 +8067,7 @@ describe('PredictController', () => {
           expect(
             (submittedCall[0] as { properties: Record<string, unknown> })
               .properties,
-          ).not.toHaveProperty('predict_token_address');
+          ).not.toHaveProperty('payment_token_address');
         },
         {
           mocks: {
@@ -8155,7 +8155,7 @@ describe('PredictController', () => {
             (succeededCall[0] as { properties: Record<string, unknown> })
               .properties,
           ).toMatchObject({
-            predict_token_address: '0xtoken',
+            payment_token_address: '0xtoken',
           });
         },
         {
@@ -8205,7 +8205,7 @@ describe('PredictController', () => {
             (failedCall[0] as { properties: Record<string, unknown> })
               .properties,
           ).toMatchObject({
-            predict_token_address: '0xtoken',
+            payment_token_address: '0xtoken',
           });
         },
         {
@@ -8252,7 +8252,7 @@ describe('PredictController', () => {
           expect(
             (succeededCall[0] as { properties: Record<string, unknown> })
               .properties,
-          ).not.toHaveProperty('predict_token_address');
+          ).not.toHaveProperty('payment_token_address');
         },
         {
           mocks: {
@@ -9580,7 +9580,7 @@ describe('PredictController', () => {
           (swapFailedCall[0] as { properties: Record<string, unknown> })
             .properties,
         ).toMatchObject({
-          predict_token_address: '0xpaytoken',
+          payment_token_address: '0xpaytoken',
         });
       });
     });
