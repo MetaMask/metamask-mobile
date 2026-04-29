@@ -120,13 +120,14 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
-          SKIP_SMART_SELECTION: ${{ steps.check-labels.outputs.SKIP_SMART_SELECTION == 'true' }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
           E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_relevant_workflows_count }}
           ANDROID_COUNT: ${{ steps.filter.outputs.android_count }}
           IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
+          ANDROID_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.android_or_ignorable_count }}
+          IOS_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.ios_or_ignorable_count }}
         run: |
           set -euo pipefail
 
@@ -158,20 +159,20 @@ jobs:
                   "$E2E_WORKFLOWS_COUNT" -eq 0 ]]; then
             MSG="Skipping E2E (ignorable-only changes)"
 
-          # Android-only: only android + ignorable files changed, no iOS, no E2E workflows
+          # Android-only: all changed files are android/** or ignorable, no iOS, no E2E workflows
           elif [[ "$ANDROID_COUNT" -gt 0 &&
                   "$IOS_COUNT" -eq 0 &&
                   "$E2E_WORKFLOWS_COUNT" -eq 0 &&
-                  $(( ANDROID_COUNT + IGNORABLE_COUNT )) -ge "$ALL_CHANGES_COUNT" ]]; then
+                  "$ANDROID_OR_IGNORABLE_COUNT" -ge "$ALL_CHANGES_COUNT" ]]; then
             MSG="E2E Android only"
             ANDROID=true
             CHANGED="$ALL_CHANGES_FILES"
 
-          # iOS-only: symmetric
+          # iOS-only: all changed files are ios/** or ignorable, no Android, no E2E workflows
           elif [[ "$IOS_COUNT" -gt 0 &&
                   "$ANDROID_COUNT" -eq 0 &&
                   "$E2E_WORKFLOWS_COUNT" -eq 0 &&
-                  $(( IOS_COUNT + IGNORABLE_COUNT )) -ge "$ALL_CHANGES_COUNT" ]]; then
+                  "$IOS_OR_IGNORABLE_COUNT" -ge "$ALL_CHANGES_COUNT" ]]; then
             MSG="E2E iOS only"
             IOS=true
             CHANGED="$ALL_CHANGES_FILES"

@@ -66,5 +66,24 @@ android:
 ios:
   - 'ios/**'
 
+# Combined filters for platform-only detection — avoids double-counting files that
+# match both a platform filter (ios/**, android/**) and an ignorable pattern (e.g. **/*.md).
+# dorny/paths-filter counts each file once per filter, so these give the correct union count.
+android_or_ignorable:
+  - 'android/**'
+  - *documentation_files
+  - *asset_files
+  - *low_level_test_files
+  - *config_files
+  - *ci_files
+
+ios_or_ignorable:
+  - 'ios/**'
+  - *documentation_files
+  - *asset_files
+  - *low_level_test_files
+  - *config_files
+  - *ci_files
+
 all_changes:
   - '**'
