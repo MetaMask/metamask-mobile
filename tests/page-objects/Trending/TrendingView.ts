@@ -23,7 +23,19 @@ class TrendingView {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
+  /**
+   * Native target for typing — DS `TextFieldSearch` applies `testID` on the `TextField`
+   * pressable (`textfieldsearch`), not on the outer `Box` (`explore-view-search-input`).
+   * iOS: that id is used directly. Android: `replaceText` must hit `EditText`, so we match
+   * `android.widget.EditText` under the same ancestor (see LoginView passwordInput).
+   */
   get searchInput(): DetoxElement {
+    return Matchers.getEditTextWithAncestorTestId(
+      TrendingViewSelectorsIDs.SEARCH_TEXT_FIELD,
+    );
+  }
+
+  get searchInputContainer(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
   }
 
@@ -65,11 +77,6 @@ class TrendingView {
       `${TrendingViewSelectorsIDs.SITE_ROW_ITEM_PREFIX}${name}`,
       0,
     );
-  }
-
-  /** Crypto movers section uses `SectionPill` with `section-pill-${assetId}`. */
-  getCryptoMoversPill(assetId: string): DetoxElement {
-    return Matchers.getElementByID(`section-pill-${assetId}`, 0);
   }
 
   getSectionHeader(title: string): DetoxElement {
@@ -147,13 +154,62 @@ class TrendingView {
    */
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
-      'Crypto movers': 'crypto_movers',
+      Trending: 'tokens',
+      'Trending tokens': 'tokens',
       Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
       Perps: 'perps',
     };
     return sectionIdMap[sectionTitle] || sectionTitle.toLowerCase();
+  }
+
+  /**
+   * Get QuickAction button element for a section
+   */
+  getQuickActionButton(sectionTitle: string): DetoxElement {
+    const sectionId = this.getSectionId(sectionTitle);
+    return Matchers.getElementByID(`quick-action-${sectionId}`);
+  }
+
+  /**
+   * Scroll horizontally to make QuickAction button visible
+   */
+  private async scrollToQuickAction(
+    targetElement: DetoxElement,
+    description: string,
+  ): Promise<void> {
+    await Gestures.scrollToElement(
+      targetElement,
+      Matchers.getIdentifier(
+        TrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,
+      ),
+      {
+        direction: 'right',
+        scrollAmount: 200,
+        elemDescription: description,
+        startPositionX: 0.5,
+        startPositionY: 0,
+      },
+    );
+  }
+
+  /**
+   * Tap on QuickAction button (buttons below search bar)
+   */
+  async tapQuickAction(sectionTitle: string): Promise<void> {
+    const quickActionButton = this.getQuickActionButton(sectionTitle);
+
+    // Scroll horizontally if needed to make the button visible
+    await this.scrollToQuickAction(
+      quickActionButton,
+      `Scroll to ${sectionTitle} QuickAction button`,
+    );
+
+    await Gestures.tap(quickActionButton, {
+      elemDescription: `Tap QuickAction button for ${sectionTitle}`,
+      checkStability: true, // Wait for element to stop moving after horizontal scroll
+    });
   }
 
   async tapViewAll(sectionTitle: string): Promise<void> {
@@ -163,7 +219,7 @@ class TrendingView {
     );
 
     // Predictions is at the top of the feed; scroll up to find it.
-    // All other sections (crypto movers, perps, stocks) are below.
+    // All other sections (tokens, perps, stocks, sites) are below.
     const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
 
     // Use generic scroll method
@@ -296,22 +352,6 @@ class TrendingView {
 
   async tapTokenRow(assetId: string): Promise<void> {
     await this.tapItemRow(() => this.getTokenRow(assetId), assetId, 'token');
-  }
-
-  async verifyCryptoMoversPillVisible(assetId: string): Promise<void> {
-    await this.verifyItemVisible(
-      () => this.getCryptoMoversPill(assetId),
-      assetId,
-      'crypto movers pill',
-    );
-  }
-
-  async tapCryptoMoversPill(assetId: string): Promise<void> {
-    await this.tapItemRow(
-      () => this.getCryptoMoversPill(assetId),
-      assetId,
-      'crypto movers pill',
-    );
   }
 
   async verifyPerpVisible(symbol: string): Promise<void> {

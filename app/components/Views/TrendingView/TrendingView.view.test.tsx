@@ -1,6 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
+import { strings } from '../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   setupTrendingApiFetchMock,
@@ -132,7 +133,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       const header = getByTestId(
         TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
       );
-      expect(header).toHaveTextContent('Trending tokens');
+      expect(header).toHaveTextContent(strings('trending.trending_tokens'));
     });
   });
 
@@ -196,7 +197,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       const header = getByTestId(
         TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
       );
-      expect(header).toHaveTextContent('Trending tokens');
+      expect(header).toHaveTextContent(strings('trending.trending_tokens'));
     });
 
     await assertTrendingTokenRowsVisibility({
@@ -234,7 +235,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user can search for a trending token from the explore feed', async () => {
-    const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
+    const { findByPlaceholderText, findByTestId, getByTestId } =
+      renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
@@ -247,8 +249,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     );
     await actButtonPress(searchButton);
 
-    const searchInput = await findByTestId(
-      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT,
+    const searchInput = await findByPlaceholderText(
+      strings('trending.search_placeholder'),
     );
     expect(searchInput).toBeOnTheScreen();
 
@@ -351,7 +353,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
   });
 
   it('user can search on trending tokens full view', async () => {
-    const { findByTestId, getByTestId, getAllByText, queryByTestId } =
+    const { findByPlaceholderText, getAllByText, queryByTestId, getByTestId } =
       renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -383,8 +385,8 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
     );
     await actButtonPress(searchToggle);
 
-    const searchInput = await findByTestId(
-      TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER_SEARCH_BAR,
+    const searchInput = await findByPlaceholderText(
+      strings('trending.search_placeholder'),
     );
     expect(searchInput).toBeOnTheScreen();
 

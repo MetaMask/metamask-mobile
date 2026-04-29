@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playSuccessNotification,
+  playErrorNotification,
+} from '../../../../../../util/haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
@@ -39,7 +43,7 @@ import {
   parsePriceImpact,
   exceedsPriceImpactErrorThreshold,
 } from '../../../../../UI/Bridge/utils/getPriceImpactViewData';
-import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useRecipientInitialization } from '../../../../../UI/Bridge/hooks/useRecipientInitialization';
@@ -150,12 +154,14 @@ export function useQuickBuyBottomSheet(
   >(undefined);
   const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
 
-  // Auto-select the first option (highest fiat balance) when options load
+  // Auto-select default source token using smart priority rules (see selectDefaultSourceToken)
   useEffect(() => {
     if (sourceTokenOptions.length > 0 && !selectedSourceToken) {
-      setSelectedSourceToken(sourceTokenOptions[0]);
+      setSelectedSourceToken(
+        selectDefaultSourceToken(sourceTokenOptions, destChainId),
+      );
     }
-  }, [sourceTokenOptions, selectedSourceToken]);
+  }, [sourceTokenOptions, selectedSourceToken, destChainId]);
 
   const sourceToken = selectedSourceToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
@@ -299,7 +305,7 @@ export function useQuickBuyBottomSheet(
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
 
-  const { submitBridgeTx } = useSubmitBridgeTx();
+  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
@@ -340,26 +346,23 @@ export function useQuickBuyBottomSheet(
 
     try {
       dispatch(setIsSubmittingTx(true));
-      await submitBridgeTx({ quoteResponse: activeQuote });
+      await Engine.context.BridgeStatusController.submitTx(
+        walletAddress,
+        { ...activeQuote, approval: activeQuote.approval ?? undefined },
+        stxEnabled,
+      );
       setTxPhase('success');
-      notificationAsync(NotificationFeedbackType.Success);
+      await playSuccessNotification();
       await new Promise((resolve) => setTimeout(resolve, 800));
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
-      notificationAsync(NotificationFeedbackType.Error);
+      await playErrorNotification();
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
-  }, [
-    activeQuote,
-    walletAddress,
-    submitBridgeTx,
-    dispatch,
-    onClose,
-    navigation,
-  ]);
+  }, [activeQuote, walletAddress, stxEnabled, dispatch, onClose, navigation]);
 
   const sourceBalanceFiat = useMemo(() => {
     if (

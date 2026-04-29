@@ -1,5 +1,5 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
-import { Hex, toCaipAssetType } from '@metamask/utils';
+import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
@@ -64,10 +64,9 @@ import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { useSelector } from 'react-redux';
-import AccountSelector from '../../AccountSelector';
-import { updateEditableParams } from '../../../../../../util/transaction-controller';
-import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import PayAccountSelector from '../../PayAccountSelector';
+import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -88,6 +87,16 @@ export interface CustomAmountInfoProps {
    * When true, the confirm/continue button is disabled regardless of alert state.
    */
   disableConfirm?: boolean;
+  /**
+   * When true, the account selector is shown.
+   */
+  supportAccountSelection?: boolean;
+  /**
+   * Adds bottom space to the bottom block (rows + keyboard/confirm button).
+   * Used by Perps Withdraw on Android, where this screen has one extra
+   * balance line and otherwise clips behind the system gesture bar.
+   */
+  hasExtraBottomPadding?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -97,10 +106,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disableConfirm,
     disablePay,
     hasMax,
+    hasExtraBottomPadding,
     onAmountSubmit,
     hidePayTokenAmount,
     preferredToken,
     footerText,
+    supportAccountSelection,
   }) => {
     useClearConfirmationOnBackSwipe();
 
@@ -121,34 +132,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
-
-    const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountWithdraw,
-    ]);
+    const accountOverride = useTransactionAccountOverride();
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-
-    const [selectedAddress, setSelectedAddress] = useState<string | undefined>(
-      undefined,
-    );
-
-    const handleAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          setSelectedAddress(address);
-          Engine.context.TransactionPayController.setTransactionConfig(
-            transactionId,
-            (config) => {
-              config.accountOverride = address as Hex;
-            },
-          );
-        }
-      },
-      [transactionId],
-    );
-
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -187,7 +175,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             fp.amountFiat = amountFiat;
           },
         });
-      } else {
+      } else if (!isMoneyAccountDeposit) {
         updateTokenAmount();
       }
 
@@ -196,6 +184,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit?.();
     }, [
       amountFiat,
+      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
@@ -205,6 +194,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
     }, []);
+
+    const isAccountSelectionNeeded =
+      supportAccountSelection && !accountOverride;
 
     return (
       <Box style={styles.container}>
@@ -217,29 +209,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             disabled={!hasTokens}
           />
           {!hidePayTokenAmount && disablePay !== true && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+            <PayTokenAmount
+              amountHuman={amountHuman}
+              disabled={!hasTokens || isAccountSelectionNeeded}
+            />
           )}
           {!hidePayTokenAmount && children}
         </Box>
-        <Box gap={16}>
+        <Box
+          gap={16}
+          testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
+          style={hasExtraBottomPadding && styles.extraBottomPadding}
+        >
           <AlertMessage alertMessage={alertMessage} />
-          {!hidePayTokenAmount && (
-            <>
-              {isMoneyAccountDeposit && (
-                <AccountSelector
-                  label={strings('confirm.label.from')}
-                  selectedAddress={selectedAddress}
-                  onAccountSelected={handleAccountSelected}
-                />
-              )}
-              {isMoneyAccountWithdraw && (
-                <AccountSelector
-                  selectedAddress={selectedAddress}
-                  onAccountSelected={handleAccountSelected}
-                />
-              )}
-            </>
-          )}
+          {supportAccountSelection && <PayAccountSelector />}
           {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
           {isResultReady && (
             <Box>
@@ -283,7 +266,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm}
+              disableConfirm={disableConfirm || isAccountSelectionNeeded}
             />
           )}
         </Box>

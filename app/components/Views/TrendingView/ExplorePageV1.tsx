@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -30,6 +30,7 @@ import { SiteRowItem } from './feeds/sites/SiteRowItem';
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesFeed } from './feeds/sites/useSitesFeed';
 import CardList from './components/CardList';
+import QuickActions, { type SectionId } from './components/QuickActions';
 import ExploreScroll from './components/ExploreScroll';
 import HorizontalCarousel from './components/HorizontalCarousel';
 import SectionHeader from './components/SectionHeader';
@@ -144,6 +145,32 @@ const ExplorePageV1: React.FC<TabProps> = ({
   const showStocks = stocks.isLoading || stocks.data.length > 0;
   const showSites = sites.isLoading || sites.data.length > 0;
 
+  const quickActionsEmptySections = useMemo(() => {
+    const empty = new Set<SectionId>();
+    if (!showTrendingTokens) {
+      empty.add('trending');
+    }
+    if (!isPerpsEnabled) {
+      empty.add('perps');
+    }
+    if (!showStocks) {
+      empty.add('stocks');
+    }
+    if (!showPredictions) {
+      empty.add('predictions');
+    }
+    if (!showSites) {
+      empty.add('sites');
+    }
+    return empty;
+  }, [
+    showTrendingTokens,
+    isPerpsEnabled,
+    showStocks,
+    showPredictions,
+    showSites,
+  ]);
+
   return (
     <Box twClassName="flex-1" testID="explore-page-v1">
       <ExploreScroll
@@ -151,6 +178,8 @@ const ExplorePageV1: React.FC<TabProps> = ({
         onRefresh={onRefresh}
         testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
       >
+        <QuickActions emptySections={quickActionsEmptySections} />
+
         {showPredictions && (
           <Box>
             <SectionHeader

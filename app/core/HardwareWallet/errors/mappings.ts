@@ -250,6 +250,7 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   TransportError: ErrorCode.BluetoothConnectionFailed,
   LockedDeviceError: ErrorCode.AuthenticationDeviceLocked,
   LedgerTimeoutError: ErrorCode.DeviceUnresponsive,
+  LedgerOperationAbortedError: ErrorCode.DeviceUnresponsive,
   TransportOpenUserCancelled: ErrorCode.UserCancelled,
   BluetoothRequired: ErrorCode.BluetoothDisabled,
   PairingFailed: ErrorCode.BluetoothConnectionFailed,

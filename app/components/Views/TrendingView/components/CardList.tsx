@@ -2,22 +2,16 @@ import React, { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import Card from '../../../../component-library/components/Cards/Card';
-import { useAppThemeFromContext } from '../../../../util/theme';
-import type { Theme } from '../../../../util/theme/models';
 
 const DEFAULT_MAX_ITEMS = 3;
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
-    cardContainer: {
-      borderRadius: 12,
-      marginBottom: 20,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      backgroundColor: theme.colors.background.muted,
-      borderWidth: 0,
-    },
-  });
+const styles = StyleSheet.create({
+  cardContainer: {
+    padding: 0,
+    marginBottom: 28,
+    borderWidth: 0,
+  },
+});
 
 export interface CardListProps<T> {
   data: T[];
@@ -47,8 +41,6 @@ function CardList<T>({
   listTestId,
   skeletonCount = DEFAULT_MAX_ITEMS,
 }: CardListProps<T>) {
-  const theme = useAppThemeFromContext();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const displayData = useMemo(() => data.slice(0, max), [data, max]);
 
   return (

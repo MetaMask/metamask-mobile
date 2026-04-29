@@ -10,7 +10,7 @@ export const TrendingViewSelectorsIDs = {
   ALL_NETWORKS_BUTTON: 'all-networks-button',
   CLOSE_BUTTON: 'close-button',
   TRENDING_TOKENS_HEADER_SEARCH_TOGGLE: 'trending-tokens-header-search-toggle',
-  TRENDING_TOKENS_HEADER_SEARCH_BAR: 'trending-tokens-header-search-bar',
+  QUICK_ACTIONS_SCROLL_VIEW: 'quick-actions-scroll-view',
 } as const;
 
 export type TrendingViewSelectorsIDsType = typeof TrendingViewSelectorsIDs;

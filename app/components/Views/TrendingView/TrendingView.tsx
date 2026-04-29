@@ -101,7 +101,7 @@ export const ExploreFeed: React.FC = () => {
       />
 
       <Box twClassName="gap-4 flex-1">
-        <Box twClassName="flex-row items-center gap-2 px-4">
+        <Box twClassName="mt-3 flex-row items-center gap-2 px-4">
           <Box twClassName="flex-1">
             <ExploreSearchBar type="button" onPress={handleSearchPress} />
           </Box>
@@ -111,8 +111,8 @@ export const ExploreFeed: React.FC = () => {
             testID="trending-view-browser-button"
           >
             {browserTabsCount > 0 ? (
-              <Box twClassName="rounded-md items-center justify-center h-8 w-8 border-2 border-text-default">
-                <Text variant={TextVariant.BodyLg}>{browserTabsCount}</Text>
+              <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
+                <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
               </Box>
             ) : (
               <Icon name={IconName.Explore} size={IconSize.Xl} />

@@ -5,6 +5,7 @@ export const TrendingViewSelectorsIDs = {
   SEARCH_BUTTON: 'explore-view-search-button',
   BROWSER_BUTTON: 'trending-view-browser-button',
   SEARCH_INPUT: 'explore-view-search-input',
+  SEARCH_TEXT_FIELD: 'textfieldsearch',
   SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
   PERPS_ROW_ITEM_PREFIX: 'perps-market-tile-card-',
@@ -12,26 +13,30 @@ export const TrendingViewSelectorsIDs = {
   SITE_ROW_ITEM_PREFIX: 'site-row-item-',
   SEARCH_FOOTER_SEARCH_LINK: 'trending-search-footer-search-link',
   SCROLL_VIEW: AppTrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW,
+  QUICK_ACTIONS_SCROLL_VIEW:
+    AppTrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,
   SEARCH_RESULTS_LIST: 'trending-search-results-list',
   VIEW_ALL_BUTTON_PREFIX: 'section-header-view-all-',
 } as const;
 
 export const TrendingViewSelectorsText = {
-  // Section titles - must match the actual localized strings from sections.config.tsx
+  // Section titles — must match `strings('trending.*')` in QuickActions.tsx (see en.json)
   SECTION_PREDICTIONS: 'Predictions',
-  /** Now tab — `crypto_movers` section (`trending.crypto_movers`). */
-  SECTION_CRYPTO_MOVERS: 'Crypto movers',
+  SECTION_TOKENS: 'Trending',
   SECTION_STOCKS: 'Stocks',
   SECTION_PERPS: 'Perps',
+  SECTION_SITES: 'Sites',
 } as const;
 
 // Map section to its full view back button Test ID
 export const SECTION_BACK_BUTTONS: Record<string, string> = {
-  [TrendingViewSelectorsText.SECTION_CRYPTO_MOVERS]:
+  [TrendingViewSelectorsText.SECTION_TOKENS]:
     'trending-tokens-header-back-button',
   [TrendingViewSelectorsText.SECTION_STOCKS]: 'rwa-tokens-header-back-button',
   [TrendingViewSelectorsText.SECTION_PERPS]:
     'perps-market-list-close-button-back-button',
+  [TrendingViewSelectorsText.SECTION_SITES]:
+    'sites-full-view-header-back-button',
   [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button',
 };
 
@@ -44,7 +49,8 @@ export const DETAILS_BACK_BUTTONS: Record<string, string> = {
 
 // Map section to its full view header Test ID
 export const SECTION_FULL_VIEW_HEADERS: Record<string, string> = {
-  [TrendingViewSelectorsText.SECTION_CRYPTO_MOVERS]: 'trending-tokens-header',
+  [TrendingViewSelectorsText.SECTION_SITES]: 'sites-full-view-header',
+  [TrendingViewSelectorsText.SECTION_TOKENS]: 'trending-tokens-header',
   [TrendingViewSelectorsText.SECTION_STOCKS]: 'rwa-tokens-header',
   [TrendingViewSelectorsText.SECTION_PERPS]: 'perps-market-list-close-button',
   [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button', // PredictFeed uses back-button as main identifier

@@ -4,16 +4,17 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
   Icon,
-  IconColor,
   IconName,
   IconSize,
-  Text,
-  TextColor,
-  TextVariant,
+  IconColor,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
@@ -107,7 +108,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         justifyContent={BoxJustifyContent.Between}
         twClassName="py-2 bg-default"
       >
-        <Text variant={TextVariant.HeadingSm} twClassName="text-alternative">
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-alternative"
+        >
           {item.title}
         </Text>
         {item.hasMore && (
