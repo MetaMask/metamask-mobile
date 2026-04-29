@@ -8,6 +8,10 @@ import { predictQueries } from '../queries';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 jest.mock('./useLiveMarketPrices');
+const mockUseIsFocused = jest.fn(() => true);
+jest.mock('@react-navigation/native', () => ({
+  useIsFocused: () => mockUseIsFocused(),
+}));
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -87,6 +91,7 @@ describe('usePredictLivePositions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseIsFocused.mockReturnValue(true);
     mockUseLiveMarketPrices.mockReturnValue({
       prices: new Map(),
       isConnected: false,
@@ -143,6 +148,17 @@ describe('usePredictLivePositions', () => {
       renderLivePositionsHook(positions);
 
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith([], {
+        enabled: false,
+      });
+    });
+
+    it('disables subscription when the screen is not focused', () => {
+      mockUseIsFocused.mockReturnValue(false);
+      const positions = [createMockPosition()];
+
+      renderLivePositionsHook(positions);
+
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(['token-1'], {
         enabled: false,
       });
     });
@@ -491,6 +507,37 @@ describe('usePredictLivePositions', () => {
         [activePosition],
         {
           enabled: false,
+          cacheAddress: MOCK_ADDRESS,
+        },
+        cachedPositions,
+      );
+
+      await waitFor(() => {
+        expect(getCachedPositions(queryClient)).toBe(cachedPositions);
+      });
+    });
+
+    it('disables cache sync when the screen is not focused', async () => {
+      mockUseIsFocused.mockReturnValue(false);
+      const activePosition = createMockPosition({
+        currentValue: 100,
+        cashPnl: 0,
+        percentPnl: 0,
+      });
+      const priceUpdate = createMockPriceUpdate({
+        tokenId: activePosition.outcomeTokenId,
+        bestBid: 0.6,
+      });
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: new Map([[activePosition.outcomeTokenId, priceUpdate]]),
+        isConnected: true,
+        lastUpdateTime: Date.now(),
+      });
+
+      const cachedPositions = [activePosition];
+      const { queryClient } = renderLivePositionsHook(
+        [activePosition],
+        {
           cacheAddress: MOCK_ADDRESS,
         },
         cachedPositions,

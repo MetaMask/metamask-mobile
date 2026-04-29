@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useIsFocused } from '@react-navigation/native';
 import { PredictPosition } from '../types';
 import { predictQueries } from '../queries';
 import { useLiveMarketPrices } from './useLiveMarketPrices';
@@ -50,6 +51,7 @@ export const usePredictLivePositions = (
 ): UseLivePositionsResult => {
   const { enabled = true, cacheAddress } = options;
   const queryClient = useQueryClient();
+  const isScreenFocused = useIsFocused();
 
   const tokenIds = useMemo(
     () =>
@@ -61,7 +63,7 @@ export const usePredictLivePositions = (
 
   const { prices, isConnected, lastUpdateTime } = useLiveMarketPrices(
     tokenIds,
-    { enabled: enabled && tokenIds.length > 0 },
+    { enabled: enabled && isScreenFocused && tokenIds.length > 0 },
   );
 
   const livePositions = useMemo(() => {
@@ -145,7 +147,12 @@ export const usePredictLivePositions = (
   }, [livePositions, positions]);
 
   useEffect(() => {
-    if (!enabled || !cacheAddress || livePositionUpdates.size === 0) {
+    if (
+      !enabled ||
+      !isScreenFocused ||
+      !cacheAddress ||
+      livePositionUpdates.size === 0
+    ) {
       return;
     }
 
@@ -185,7 +192,13 @@ export const usePredictLivePositions = (
         return hasChanges ? nextPositions : cachedPositions;
       },
     );
-  }, [cacheAddress, enabled, livePositionUpdates, queryClient]);
+  }, [
+    cacheAddress,
+    enabled,
+    isScreenFocused,
+    livePositionUpdates,
+    queryClient,
+  ]);
 
   return {
     livePositions,

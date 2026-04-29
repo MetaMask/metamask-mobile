@@ -46,8 +46,7 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { selectPredictWonPositions } from '../../selectors/predictController';
-import { PredictPosition } from '../../types';
+import { PredictPosition, PredictPositionStatus } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
   formatPercentage,
@@ -95,12 +94,18 @@ const PredictPositionsHeader = forwardRef<
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
-  const wonPositions = useSelector(
-    selectPredictWonPositions({ address: selectedAddress }),
-  );
-
   const { data: activePositions } = usePredictPositions({ claimable: false });
+  const { data: claimablePositions = [] } = usePredictPositions({
+    claimable: true,
+  });
   const hasPositions = (activePositions?.length ?? 0) > 0;
+  const wonPositions = useMemo(
+    () =>
+      claimablePositions.filter(
+        (position) => position.status === PredictPositionStatus.WON,
+      ),
+    [claimablePositions],
+  );
 
   const {
     data: pnlData,

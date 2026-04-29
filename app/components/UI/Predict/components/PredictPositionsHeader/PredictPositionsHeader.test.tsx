@@ -94,9 +94,15 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
 }));
 
 const mockRefetchClaimablePositions = jest.fn();
+let mockActivePositions: PredictPosition[] = [];
+let mockClaimablePositions: PredictPosition[] = [];
 jest.mock('../../hooks/usePredictPositions', () => ({
-  usePredictPositions: () => ({
-    data: [{ id: 'position-1' }],
+  usePredictPositions: ({
+    claimable,
+  }: {
+    claimable?: boolean;
+  } = {}) => ({
+    data: claimable ? mockClaimablePositions : mockActivePositions,
     isLoading: false,
     error: null,
     refetch: mockRefetchClaimablePositions,
@@ -127,36 +133,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-function createTestState(
-  _availableBalance?: number,
-  claimableAmount?: number,
-  privacyMode = false,
-) {
+function createTestState(_availableBalance?: number, privacyMode = false) {
   const testAddress = '0x1234567890123456789012345678901234567890';
   const testAccountId = 'test-account-id';
-
-  const claimablePositions = claimableAmount
-    ? ([
-        {
-          id: 'position-1',
-          status: PredictPositionStatus.WON,
-          cashPnl: claimableAmount,
-          currentValue: claimableAmount,
-          marketId: 'market-1',
-          title: 'Test Market',
-          outcome: 'Yes',
-        },
-      ] as unknown as PredictPosition[])
-    : [];
 
   return {
     engine: {
       backgroundState: {
-        PredictController: {
-          claimablePositions: {
-            [testAddress]: claimablePositions,
-          },
-        },
         AccountsController: {
           internalAccounts: {
             selectedAccount: testAccountId,
@@ -190,6 +173,8 @@ describe('MarketsWonCard', () => {
     jest.clearAllMocks();
     mockBalanceResult.data = 100.5;
     mockBalanceResult.isLoading = false;
+    mockActivePositions = [{ id: 'position-1' } as PredictPosition];
+    mockClaimablePositions = [];
 
     mockUseUnrealizedPnL.mockReturnValue({
       data: {
@@ -230,7 +215,18 @@ describe('MarketsWonCard', () => {
     });
 
     it('hides monetary values when privacy mode is enabled', () => {
-      const state = createTestState(100.5, 24.66, true);
+      mockClaimablePositions = [
+        {
+          id: 'position-1',
+          status: PredictPositionStatus.WON,
+          cashPnl: 24.66,
+          currentValue: 24.66,
+          marketId: 'market-1',
+          title: 'Test Market',
+          outcome: 'Yes',
+        } as PredictPosition,
+      ];
+      const state = createTestState(100.5, true);
 
       renderWithProvider(<MarketsWonCard />, { state });
 
@@ -238,7 +234,7 @@ describe('MarketsWonCard', () => {
       expect(screen.queryByText('+$8.63 (+3.9%)')).toBeNull();
       expect(screen.queryByText('Claim $24.66')).toBeNull();
       expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
-      expect(screen.getByText('•••••••••')).toBeOnTheScreen();
+      expect(screen.getAllByText('•••••••••').length).toBeGreaterThan(0);
     });
   });
 
