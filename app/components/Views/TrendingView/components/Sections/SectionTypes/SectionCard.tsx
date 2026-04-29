@@ -1,23 +1,17 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../util/theme/models';
-import { useAppThemeFromContext } from '../../../../../../util/theme';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import { SectionId, SECTIONS_CONFIG } from '../../../sections.config';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
-    cardContainer: {
-      borderRadius: 12,
-      marginBottom: 20,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      backgroundColor: theme.colors.background.muted,
-      borderWidth: 0,
-    },
-  });
+const styles = StyleSheet.create({
+  cardContainer: {
+    padding: 0,
+    marginBottom: 28,
+    borderWidth: 0,
+  },
+});
 interface SectionCardProps {
   sectionId: SectionId;
   data: unknown[];
@@ -30,8 +24,6 @@ const SectionCard: React.FC<SectionCardProps> = ({
   isLoading,
 }) => {
   const navigation = useNavigation();
-  const theme = useAppThemeFromContext();
-  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const section = SECTIONS_CONFIG[sectionId];
 
