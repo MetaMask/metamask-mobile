@@ -2,7 +2,17 @@
 import React from 'react';
 
 // External dependencies.
-import { BoxProps } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+
+// TODO: @MetaMask/design-system-engineers
+// Use the concrete Box component props here instead of BoxProps.
+// In MetaMask Mobile, extending BoxProps in forwarding wrappers can fail TS checks
+// because consumer code may resolve older @types/react-native callback types while
+// MMDS Box resolves React Native bundled types. Deriving props from the component
+// keeps wrapper props aligned with the actual JSX contract until the library-level
+// typing story is unified.
+// https://github.com/MetaMask/metamask-design-system/issues/1115
+type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 // Internal dependencies.
 import { TabsBarProps } from '../TabsBar/TabsBar.types';
@@ -33,7 +43,7 @@ export interface TabViewProps {
 /**
  * TabsList component props
  */
-export interface TabsListProps extends BoxProps {
+export interface TabsListProps extends BoxComponentProps {
   /**
    * Array of tab items or React children with tabLabel prop
    * Supports both single child and array of children

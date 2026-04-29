@@ -115,7 +115,7 @@ take_screenshot_android() {
 
 # ── Take screenshot ─────────────────────────────────────────────────
 FILENAME="${TIMESTAMP}_${LABEL}.png"
-FILEPATH="$DIR/$FILENAME"
+FILEPATH="$(cd "$DIR" && pwd)/$FILENAME"
 
 DETECTED_PLATFORM=$(detect_platform)
 
