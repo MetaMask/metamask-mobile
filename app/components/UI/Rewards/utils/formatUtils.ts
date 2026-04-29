@@ -441,7 +441,6 @@ export const formatComputedAt = (isoString: string | null): string => {
   return `${h}:${m}:${s}`;
 };
 
-
 // ── CAIP-19 / address helpers ───────────────────────────────────────────
 
 /**
