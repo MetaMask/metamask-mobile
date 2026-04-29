@@ -1,4 +1,4 @@
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { playImpact, ImpactMoment } from '../../util/haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
@@ -42,14 +42,10 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         followingProfileIds.includes(addressOrId);
       const nextValue = !currentlyFollowing;
 
-      // Directional haptic: a weightier "Medium" thump rewards the
-      // constructive Follow action, while Unfollow stays on a neutral
-      // "Light" tick. Fired before the inflight guard so a quick repeat
-      // tap still produces a tactile response even when the API call is
-      // debounced.
-      impactAsync(
-        nextValue ? ImpactFeedbackStyle.Medium : ImpactFeedbackStyle.Light,
-      );
+      // Follow-toggle catalog moment (Light impact). Fired before the
+      // inflight guard so a quick repeat tap still produces tactile feedback
+      // even when the API call is debounced.
+      playImpact(ImpactMoment.FollowToggle);
 
       if (inflightIdsRef.current.has(addressOrId)) {
         return;
