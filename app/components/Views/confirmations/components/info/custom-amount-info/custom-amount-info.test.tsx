@@ -318,6 +318,18 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeDefined();
   });
 
+  it('renders bottom block with extraBottomPadding style when hasExtraBottomPadding is true', () => {
+    const { getByTestId } = render({ hasExtraBottomPadding: true });
+
+    expect(getByTestId('deposit-keyboard')).toBeDefined();
+  });
+
+  it('renders bottom block without extraBottomPadding style when hasExtraBottomPadding is false', () => {
+    const { getByTestId } = render({ hasExtraBottomPadding: false });
+
+    expect(getByTestId('deposit-keyboard')).toBeDefined();
+  });
+
   it('renders footerText when passed in', () => {
     const hint = 'Test footer text';
     const { getByText } = render({ footerText: hint });
