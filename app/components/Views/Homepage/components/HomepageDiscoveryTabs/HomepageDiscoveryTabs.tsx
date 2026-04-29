@@ -308,11 +308,7 @@ const HomepageDiscoveryTabs = forwardRef<
               </PerpsConnectionProvider>
             </DiscoveryTabView>
 
-            <DiscoveryTabView
-              tabLabel="Predictions"
-              tabIcon={IconName.Predict}
-              keepMounted={false}
-            >
+            <DiscoveryTabView tabLabel="Predictions" tabIcon={IconName.Predict}>
               <PredictPreviewSheetProvider>
                 <PredictFeed hideHeader onHeaderHiddenChange={animateIcons} />
               </PredictPreviewSheetProvider>
