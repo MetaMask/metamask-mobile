@@ -170,16 +170,18 @@ const YourBonusCard: React.FC = () => {
         </Text>
       </Box>
 
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        isDisabled={isClaimDisabled}
-        onPress={handleClaim}
-        testID={YourBonusCardTestIds.CLAIM_BUTTON}
-      >
-        {claimButtonLabel}
-      </Button>
+      <Box twClassName="mt-4">
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isDisabled={isClaimDisabled}
+          onPress={handleClaim}
+          testID={YourBonusCardTestIds.CLAIM_BUTTON}
+        >
+          {claimButtonLabel}
+        </Button>
+      </Box>
     </Box>
   );
 };
