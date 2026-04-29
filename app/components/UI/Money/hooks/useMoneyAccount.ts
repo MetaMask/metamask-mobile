@@ -36,74 +36,64 @@ export function useMoneyAccountDeposit() {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { navigateToConfirmation } = useConfirmNavigation();
 
-  const initiateDeposit = useCallback(
-    // TODO: remove the account parameter and instead of directly building approve and deposit transactions
-    // we need to implemend a hook from `addTransactionBatch` from which we can get the user inputed amount
-    // and then use that to build the approve and deposit transactions. This is because user inputs the amount
-    // in the MM pay UI and we need to use that amount.
-    async (amount: bigint) => {
-      if (!vaultConfig) {
-        throw new Error(`${LOG_TAG} Missing vault config`);
-      }
-      if (!primaryMoneyAccount?.address) {
-        throw new Error(`${LOG_TAG} Missing money account address`);
-      }
+  const initiateDeposit = useCallback(async () => {
+    if (!vaultConfig) {
+      throw new Error(`${LOG_TAG} Missing vault config`);
+    }
+    if (!primaryMoneyAccount?.address) {
+      throw new Error(`${LOG_TAG} Missing money account address`);
+    }
 
-      const {
-        chainId,
-        boringVault,
-        tellerAddress,
-        accountantAddress,
-        lensAddress,
-      } = vaultConfig;
+    const {
+      chainId,
+      boringVault,
+      tellerAddress,
+      accountantAddress,
+      lensAddress,
+    } = vaultConfig;
 
-      const chainIdHex = chainId as Hex;
-      const provider = getProviderByChainId(chainIdHex);
-      if (!provider) {
-        throw new Error(
-          `${LOG_TAG} No provider available for chain ${chainId}`,
-        );
-      }
+    const chainIdHex = chainId as Hex;
+    const provider = getProviderByChainId(chainIdHex);
+    if (!provider) {
+      throw new Error(`${LOG_TAG} No provider available for chain ${chainId}`);
+    }
 
-      const networkClientId = resolveNetworkClientId(chainIdHex);
+    const networkClientId = resolveNetworkClientId(chainIdHex);
 
-      // TODO: as mentioned above this should move into hook from `addTransactionBatch`.
-      const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-        amount,
-        chainId: chainIdHex,
-        boringVault,
-        tellerAddress,
-        accountantAddress,
-        lensAddress,
-        provider,
+    const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+      amount: BigInt(0),
+      chainId: chainIdHex,
+      boringVault,
+      tellerAddress,
+      accountantAddress,
+      lensAddress,
+      provider,
+    });
+
+    // Navigate early for better UX; recover on failure below.
+    navigateToConfirmation({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.ROOT,
+    });
+
+    try {
+      // We only set the transaction from the money account perspective.
+      // MM Pay selects the user's account and moves funds to the money account,
+      // so `from` must be the money account and `networkClientId` its chain.
+      await addTransactionBatch({
+        from: primaryMoneyAccount.address as Hex,
+        networkClientId,
+        origin: ORIGIN_METAMASK,
+        disableHook: true,
+        disableSequential: true,
+        transactions: [approveTx, depositTx],
       });
-
-      // Navigate early for better UX; recover on failure below.
-      navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
-        stack: Routes.MONEY.ROOT,
-      });
-
-      try {
-        // We only set the transaction from the money account perspective.
-        // MM Pay selects the user's account and moves funds to the money account,
-        // so `from` must be the money account and `networkClientId` its chain.
-        await addTransactionBatch({
-          from: primaryMoneyAccount.address as Hex,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          disableHook: true,
-          disableSequential: true,
-          transactions: [approveTx, depositTx],
-        });
-      } catch (error) {
-        Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
-        // Rethrow so the caller can roll back navigation / surface a toast.
-        throw error;
-      }
-    },
-    [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
-  );
+    } catch (error) {
+      Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
+      // Rethrow so the caller can roll back navigation / surface a toast.
+      throw error;
+    }
+  }, [navigateToConfirmation, primaryMoneyAccount, vaultConfig]);
 
   return { initiateDeposit };
 }

@@ -129,16 +129,21 @@ export async function buildMoneyAccountDepositBatch({
   // TODO: remove when mUSD is deployed - temporarily hardcoded USDC
   const musdAddress = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
 
-  const expectedShares = await getExpectedDepositShares({
-    lensAddress,
-    boringVault,
-    accountantAddress,
-    musdAddress,
-    amount,
-    provider,
-  });
+  // Skip the RPC call for zero-amount placeholder batches (e.g. initial deposit submission).
+  const minimumMint =
+    amount === 0n
+      ? 0n
+      : applySlippage(
+          await getExpectedDepositShares({
+            lensAddress,
+            boringVault,
+            accountantAddress,
+            musdAddress,
+            amount,
+            provider,
+          }),
+        );
 
-  const minimumMint = applySlippage(expectedShares);
   const approveData = buildApproveData(boringVault, amount);
   const depositData = buildDepositData(musdAddress, amount, minimumMint);
 
