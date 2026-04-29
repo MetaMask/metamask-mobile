@@ -171,9 +171,11 @@ describe('CampaignTile', () => {
       });
       const campaign = createTestCampaign({ showUpcomingDate: true });
 
-      const { queryByTestId } = render(<CampaignTile campaign={campaign} />);
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
 
-      expect(queryByTestId('campaign-tile-date-info')).toBeNull();
+      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
+        'Starts June 1',
+      );
     });
 
     it('renders date label for complete campaign', () => {
