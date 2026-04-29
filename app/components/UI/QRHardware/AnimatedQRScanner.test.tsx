@@ -1178,6 +1178,286 @@ describe('AnimatedQRScannerModal - Metrics', () => {
     });
   });
 
+  describe('buildQrHardwareWalletErrorAnalyticsProperties', () => {
+    it('includes received_ur_type when error_category is wrong_ur_type', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 1),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => true),
+        resultError: jest.fn(),
+        resultUR: jest.fn(() => ({
+          type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
+          cbor: Buffer.from([]),
+        })),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([
+          { value: 'ur:crypto-account/mock-part', type: 'qr' },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_category: 'wrong_ur_type',
+            received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
+          }),
+        );
+      });
+    });
+
+    it('omits received_ur_type when error_category is not wrong_ur_type', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 0.5),
+        isError: jest.fn(() => true),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(() => 'Decode failed'),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([
+          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+        ]);
+      });
+
+      await waitFor(() => {
+        const calls = mockAddProperties.mock.calls;
+        const lastCall = calls[calls.length - 1][0];
+        expect(lastCall.error_category).toBe('ur_decode_error');
+        expect(lastCall).not.toHaveProperty('received_ur_type');
+      });
+    });
+  });
+
+  describe('Scan Exception Edge Cases', () => {
+    it('handles non-Error thrown values in scan exception', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(() => {
+          throw 'string error';
+        }),
+        getProgress: jest.fn(() => 0),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([
+          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error: 'string error',
+            error_category: 'scan_exception',
+            is_ur_format: true,
+          }),
+        );
+      });
+    });
+
+    it('handles Error thrown values in scan exception', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(() => {
+          throw new Error('custom error message');
+        }),
+        getProgress: jest.fn(() => 0),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([
+          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error: 'custom error message',
+            error_category: 'scan_exception',
+          }),
+        );
+      });
+    });
+  });
+
+  describe('onModalHideComplete', () => {
+    it('calls onModalHideComplete when modal is hidden', async () => {
+      const mockOnModalHideComplete = jest.fn();
+      const propsHidden = {
+        ...defaultProps,
+        visible: false,
+        onModalHideComplete: mockOnModalHideComplete,
+      };
+      const propsVisible = {
+        ...defaultProps,
+        visible: true,
+        onModalHideComplete: mockOnModalHideComplete,
+      };
+
+      const { rerender } = render(<AnimatedQRScannerModal {...propsHidden} />);
+
+      rerender(<AnimatedQRScannerModal {...propsVisible} />);
+
+      await waitFor(
+        () => {
+          expect(mockPauseQRCode).toHaveBeenCalledWith(true);
+        },
+        { timeout: 2000 },
+      );
+
+      mockPauseQRCode.mockClear();
+      rerender(<AnimatedQRScannerModal {...propsHidden} />);
+
+      await waitFor(
+        () => {
+          expect(mockOnModalHideComplete).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 2000 },
+      );
+    });
+
+    it('does not call onModalHideComplete when not provided', async () => {
+      const propsHidden = { ...defaultProps, visible: false };
+      const propsVisible = { ...defaultProps, visible: true };
+
+      const { rerender } = render(<AnimatedQRScannerModal {...propsHidden} />);
+
+      rerender(<AnimatedQRScannerModal {...propsVisible} />);
+
+      await waitFor(
+        () => {
+          expect(mockPauseQRCode).toHaveBeenCalledWith(true);
+        },
+        { timeout: 2000 },
+      );
+
+      mockPauseQRCode.mockClear();
+      rerender(<AnimatedQRScannerModal {...propsHidden} />);
+
+      await waitFor(
+        () => {
+          expect(mockPauseQRCode).toHaveBeenCalledWith(false);
+        },
+        { timeout: 2000 },
+      );
+    });
+  });
+
+  describe('showScannerError without onQRHardwareScanError callback', () => {
+    it('renders inline error UI when onQRHardwareScanError is not provided', async () => {
+      const { getByText, queryByTestId } = render(
+        <AnimatedQRScannerModal {...defaultProps} />,
+      );
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            'hardware_wallet.qr_scan_errors.non_ur_qr_scanned.pair.title',
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          queryByTestId('qr-scanner-error-learn-more-button'),
+        ).toBeTruthy();
+        expect(queryByTestId('qr-scanner-error-try-again-button')).toBeTruthy();
+      });
+    });
+  });
+
   describe('Modal Lifecycle', () => {
     it('calls pauseQRCode with true when modal is shown', async () => {
       const propsHidden = { ...defaultProps, visible: false };

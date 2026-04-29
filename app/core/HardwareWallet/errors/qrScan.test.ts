@@ -11,7 +11,6 @@ import { RecoveryAction } from './types';
 import {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
-  isQRHardwareScanError,
   QRHardwareScanError,
   QRHardwareScanErrorType,
 } from './qrScan';
@@ -29,6 +28,65 @@ const createScanError = (
     isUrFormat: false,
     ...overrides,
   });
+
+describe('QRHardwareScanError', () => {
+  it('stores metadata from options on the instance', () => {
+    const error = createScanError({
+      errorType: QRHardwareScanErrorType.NonURQrScanned,
+      receivedUrType: 'some-type',
+    });
+
+    expect(error).toBeInstanceOf(QRHardwareScanError);
+    expect(error).toBeInstanceOf(HardwareWalletError);
+    expect(error.metadata.qrHardwareScanErrorType).toBe(
+      QRHardwareScanErrorType.NonURQrScanned,
+    );
+    expect(error.metadata.walletType).toBe(HardwareWalletType.Qr);
+    expect(error.metadata.isUrFormat).toBe(false);
+    expect(error.metadata.receivedUrType).toBe('some-type');
+  });
+
+  it('preserves the message passed to the constructor', () => {
+    const error = createScanError({
+      technicalMessage: 'custom technical message',
+    });
+
+    expect(error.message).toBe('custom technical message');
+  });
+
+  it('stores userMessage from i18n strings', () => {
+    const error = createScanError({
+      errorType: QRHardwareScanErrorType.URDecodeError,
+      isUrFormat: true,
+    });
+
+    expect(error.userMessage).toBe(
+      'hardware_wallet.qr_scan_errors.ur_decode_error.body',
+    );
+  });
+
+  it('stores severity, code, and category', () => {
+    const error = createScanError();
+
+    expect(error.code).toBe(ErrorCode.Unknown);
+    expect(error.severity).toBe(Severity.Warning);
+    expect(error.category).toBe(Category.Unknown);
+  });
+
+  it('stores recovery action in metadata', () => {
+    const error = createScanError();
+
+    expect(error.metadata.recoveryAction).toBe(RecoveryAction.RETRY);
+  });
+
+  it('stores qrScanPurpose in metadata', () => {
+    const error = createScanError({
+      purpose: QrScanRequestType.SIGN,
+    });
+
+    expect(error.metadata.qrScanPurpose).toBe(QrScanRequestType.SIGN);
+  });
+});
 
 describe('createQRHardwareScanError', () => {
   it('creates retryable hardware wallet errors with QR scan metadata', () => {
@@ -120,93 +178,6 @@ describe('createQRHardwareScanError', () => {
     expect(error.userMessage).toBe(
       'hardware_wallet.qr_scan_errors.ur_decode_error.body',
     );
-  });
-});
-
-describe('isQRHardwareScanError', () => {
-  it('returns true for hardware wallet errors with QR scan metadata', () => {
-    const error = createScanError();
-
-    const result = isQRHardwareScanError(error);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns true for a directly constructed QRHardwareScanError', () => {
-    const error = new QRHardwareScanError('Scan issue', {
-      code: ErrorCode.Unknown,
-      severity: Severity.Warning,
-      category: Category.Unknown,
-      userMessage: 'User message',
-      metadata: {
-        walletType: HardwareWalletType.Qr,
-        recoveryAction: RecoveryAction.RETRY,
-        qrHardwareScanErrorType: QRHardwareScanErrorType.NonURQrScanned,
-        qrScanPurpose: QrScanRequestType.PAIR,
-        isUrFormat: false,
-      },
-    });
-
-    const result = isQRHardwareScanError(error);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false for non-hardware-wallet errors', () => {
-    const error = new Error('Scan failed');
-
-    const result = isQRHardwareScanError(error);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false for hardware wallet errors without QR metadata', () => {
-    const error = new HardwareWalletError('Device disconnected', {
-      code: ErrorCode.DeviceDisconnected,
-      severity: Severity.Err,
-      category: Category.Connection,
-      userMessage: 'Device disconnected',
-    });
-
-    const result = isQRHardwareScanError(error);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false for hardware wallet errors with a non-QR wallet type', () => {
-    const error = new HardwareWalletError('Scan failed', {
-      code: ErrorCode.Unknown,
-      severity: Severity.Warning,
-      category: Category.Unknown,
-      userMessage: 'Scan failed',
-      metadata: {
-        walletType: HardwareWalletType.Ledger,
-        qrHardwareScanErrorType: QRHardwareScanErrorType.NonURQrScanned,
-        qrScanPurpose: QrScanRequestType.PAIR,
-      },
-    });
-
-    const result = isQRHardwareScanError(error);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when QR scan metadata is incomplete', () => {
-    const error = new HardwareWalletError('Scan failed', {
-      code: ErrorCode.Unknown,
-      severity: Severity.Warning,
-      category: Category.Unknown,
-      userMessage: 'Scan failed',
-      metadata: {
-        walletType: HardwareWalletType.Qr,
-        qrHardwareScanErrorType: QRHardwareScanErrorType.NonURQrScanned,
-        qrScanPurpose: QrScanRequestType.PAIR,
-      },
-    });
-
-    const result = isQRHardwareScanError(error);
-
-    expect(result).toBe(false);
   });
 });
 

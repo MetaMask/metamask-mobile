@@ -3,7 +3,6 @@ import { strings } from '../../../../locales/i18n';
 import {
   Category,
   ErrorCode,
-  HardwareWalletError,
   HardwareWalletType,
   Severity,
 } from '@metamask/hw-wallet-sdk';
@@ -23,35 +22,6 @@ export {
 };
 
 export { QRHardwareScanError } from './qrHardwareScanError';
-
-function isQRHardwareScanErrorMetadata(
-  metadata: unknown,
-): metadata is QRHardwareScanErrorMetadata {
-  if (!metadata || typeof metadata !== 'object') {
-    return false;
-  }
-
-  const data = metadata as Record<string, unknown>;
-
-  const hasValidReceivedUrType =
-    !('receivedUrType' in data) ||
-    data.receivedUrType === undefined ||
-    typeof data.receivedUrType === 'string';
-
-  const qrScanErrorTypes = Object.values(QRHardwareScanErrorType) as string[];
-  const qrScanRequestTypes = Object.values(QrScanRequestType) as string[];
-
-  return (
-    data.walletType === HardwareWalletType.Qr &&
-    data.recoveryAction === RecoveryAction.RETRY &&
-    typeof data.qrHardwareScanErrorType === 'string' &&
-    qrScanErrorTypes.includes(data.qrHardwareScanErrorType) &&
-    typeof data.qrScanPurpose === 'string' &&
-    qrScanRequestTypes.includes(data.qrScanPurpose) &&
-    typeof data.isUrFormat === 'boolean' &&
-    hasValidReceivedUrType
-  );
-}
 
 interface CreateQRHardwareScanErrorParams {
   errorType: QRHardwareScanErrorType;
