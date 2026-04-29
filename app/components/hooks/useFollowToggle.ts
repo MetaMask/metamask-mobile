@@ -37,22 +37,24 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
 
   const toggleFollow = useCallback(
     async (addressOrId: string): Promise<void> => {
-      // Fire haptic on every user-initiated toggle so feedback is consistent
-      // across all Follow entry points (homepage carousel, leaderboard rows,
-      // trader profile). Placed before the inflight guard so a quick repeat
+      const currentlyFollowing =
+        optimisticFollowState[addressOrId] ??
+        followingProfileIds.includes(addressOrId);
+      const nextValue = !currentlyFollowing;
+
+      // Directional haptic: a weightier "Medium" thump rewards the
+      // constructive Follow action, while Unfollow stays on a neutral
+      // "Light" tick. Fired before the inflight guard so a quick repeat
       // tap still produces a tactile response even when the API call is
       // debounced.
-      impactAsync(ImpactFeedbackStyle.Light);
+      impactAsync(
+        nextValue ? ImpactFeedbackStyle.Medium : ImpactFeedbackStyle.Light,
+      );
 
       if (inflightIdsRef.current.has(addressOrId)) {
         return;
       }
       inflightIdsRef.current.add(addressOrId);
-
-      const currentlyFollowing =
-        optimisticFollowState[addressOrId] ??
-        followingProfileIds.includes(addressOrId);
-      const nextValue = !currentlyFollowing;
 
       setOptimisticFollowState((prev) => ({
         ...prev,

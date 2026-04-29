@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
@@ -80,6 +81,17 @@ jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn().mockResolvedValue({}),
 }));
+
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+  },
+}));
+
+const mockImpactAsync = impactAsync as jest.MockedFunction<typeof impactAsync>;
 
 // New hooks added for deep-link self-sufficiency. Existing tests pass `position`
 // via route params, so these are effectively no-ops in the existing flow.
@@ -296,6 +308,33 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('fires a medium impact haptic when the buy button is pressed', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    );
+
+    expect(mockImpactAsync).toHaveBeenCalledTimes(1);
+    expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+  });
+
+  it('does not fire a haptic when the buy button is pressed without a resolved position', () => {
+    mockRouteParams.position = undefined;
+    (mockRouteParams as { positionId?: string }).positionId = 'unresolved-id';
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const buyButton = screen.queryByTestId(
+      TraderPositionViewSelectorsIDs.BUY_BUTTON,
+    );
+    if (buyButton) {
+      fireEvent.press(buyButton);
+    }
+
+    expect(mockImpactAsync).not.toHaveBeenCalled();
+  });
+
   it('builds the token image URL when the position chain is supported', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -402,12 +441,12 @@ describe('TraderPositionView', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
-    expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('1W'));
+    fireEvent.press(screen.getByText('1H'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
+      expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
     });
 
     dateNowSpy.mockRestore();
