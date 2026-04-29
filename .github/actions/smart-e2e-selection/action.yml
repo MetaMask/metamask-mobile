@@ -46,7 +46,7 @@ runs:
   steps:
     - name: Check skip-smart-e2e-selection label
       id: check-skip-label
-      if: inputs.pr-number != ''
+      if: inputs.event-name == 'pull_request' && inputs.pr-number != ''
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
