@@ -1,20 +1,37 @@
+import React from 'react';
 import { renderScreen } from '../../..//util/test/renderWithProvider';
 import { UpdateNeeded } from './';
 import { fireEvent } from '@testing-library/react-native';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
-import { Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
 
-const mockCanOpenURL = jest.fn(() => Promise.resolve(true));
-const mockOpenURL = jest.fn(() => Promise.resolve());
-const mockAddEventListener = jest.fn();
-const mockRemoveEventListener = jest.fn();
+// Mock ReusableModal so that dismissModal immediately invokes its callback,
+// allowing tests to verify Linking.canOpenURL is called on button press.
+jest.mock('../ReusableModal', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { forwardRef, useImperativeHandle } = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: forwardRef(
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<unknown>,
+      ) => {
+        useImperativeHandle(ref, () => ({
+          dismissModal: (cb?: () => void) => cb?.(),
+        }));
+        return <View>{children}</View>;
+      },
+    ),
+  };
+});
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: mockOpenURL,
-  canOpenURL: mockCanOpenURL,
-  addEventListener: mockAddEventListener,
-  removeEventListener: mockRemoveEventListener,
-}));
+beforeEach(() => {
+  Linking.canOpenURL = jest.fn().mockResolvedValue(true);
+  Linking.openURL = jest.fn().mockResolvedValue(undefined);
+});
 
 describe('UpdateNeeded', () => {
   it('should render snapshot correctly', () => {
@@ -54,8 +71,8 @@ describe('UpdateNeeded', () => {
     );
     const primaryButton = getByText('Update to latest version');
     fireEvent.press(primaryButton);
-    expect(mockCanOpenURL).toHaveBeenCalled();
-    expect(mockCanOpenURL).toHaveBeenCalledWith(MM_APP_STORE_LINK);
+    expect(Linking.canOpenURL).toHaveBeenCalled();
+    expect(Linking.canOpenURL).toHaveBeenCalledWith(MM_APP_STORE_LINK);
   });
   it('should open Google Play Store on primary button press', () => {
     Platform.OS = 'android';
@@ -66,7 +83,7 @@ describe('UpdateNeeded', () => {
     );
     const primaryButton = getByText('Update to latest version');
     fireEvent.press(primaryButton);
-    expect(mockCanOpenURL).toHaveBeenCalled();
-    expect(mockCanOpenURL).toHaveBeenCalledWith(MM_PLAY_STORE_LINK);
+    expect(Linking.canOpenURL).toHaveBeenCalled();
+    expect(Linking.canOpenURL).toHaveBeenCalledWith(MM_PLAY_STORE_LINK);
   });
 });

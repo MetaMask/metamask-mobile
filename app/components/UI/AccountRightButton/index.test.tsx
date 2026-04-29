@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import {
@@ -152,7 +153,7 @@ describe('AccountRightButton', () => {
       { state: mockInitialState },
     );
     // Simulate button press
-    getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON).props.onPress();
+    fireEvent.press(getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON));
     expect(onPressMock).toHaveBeenCalled();
   });
 
@@ -237,7 +238,7 @@ describe('AccountRightButton', () => {
       { state: mockInitialState },
     );
 
-    getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON).props.onPress();
+    fireEvent.press(getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'RootModalFlow',
@@ -281,7 +282,7 @@ describe('AccountRightButton', () => {
       { state: mockInitialStateNonEvm },
     );
 
-    getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON).props.onPress();
+    fireEvent.press(getByTestId(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'RootModalFlow',

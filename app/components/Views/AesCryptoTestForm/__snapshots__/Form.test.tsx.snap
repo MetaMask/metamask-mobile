@@ -1,7 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TestForm renders correctly 1`] = `
-<View>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
+>
   <Text
     accessibilityRole="text"
     style={
@@ -26,13 +35,35 @@ exports[`TestForm renders correctly 1`] = `
       testID="random-test-id"
     />
   </View>
-  <TouchableOpacity
+  <View
     accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
     accessible={true}
-    activeOpacity={1}
-    onPress={[Function]}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -42,6 +73,7 @@ exports[`TestForm renders correctly 1`] = `
         "flexDirection": "row",
         "height": 40,
         "justifyContent": "center",
+        "opacity": 1,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }
@@ -62,6 +94,6 @@ exports[`TestForm renders correctly 1`] = `
     >
       random button label
     </Text>
-  </TouchableOpacity>
-</View>
+  </View>
+</RNCSafeAreaView>
 `;

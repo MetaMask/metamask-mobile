@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import AccountApproval from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -41,12 +42,7 @@ jest.mock('../../../util/phishingDetection', () => ({
     mockGetPhishingTestResultAsync(origin),
 }));
 
-const mockOpenURL = jest.fn();
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: (url: string) => mockOpenURL(url),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-}));
+// Linking.openURL is already globally mocked in testSetup.js
 
 const mockRemoveChannel = jest.fn();
 jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
@@ -240,7 +236,9 @@ describe('AccountApproval', () => {
     mockTrackEvent.mockClear();
     fireEvent.press(learnMore);
 
-    expect(mockOpenURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      CONNECTING_TO_A_DECEPTIVE_SITE,
+    );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: MetaMetricsEvents.EXTERNAL_LINK_CLICKED,

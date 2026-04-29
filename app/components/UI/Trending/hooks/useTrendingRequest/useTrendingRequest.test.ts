@@ -86,11 +86,10 @@ describe('useTrendingRequest', () => {
 
     await waitFor(() => {
       expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+      expect(result.current.results).toEqual(mockResults);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(null);
     });
-
-    expect(result.current.results).toEqual(mockResults);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe(null);
 
     spyGetTrendingTokens.mockRestore();
     unmount();
@@ -147,10 +146,9 @@ describe('useTrendingRequest', () => {
 
     await waitFor(() => {
       expect(result.current.error).toEqual(mockError);
+      expect(result.current.results).toEqual([]);
+      expect(result.current.isLoading).toBe(false);
     });
-
-    expect(result.current.results).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
 
     spyGetTrendingTokens.mockRestore();
     unmount();
@@ -194,10 +192,9 @@ describe('useTrendingRequest', () => {
 
     await waitFor(() => {
       expect(result.current.error).toBe(null);
+      expect(result.current.results).toEqual(mockResults);
+      expect(result.current.isLoading).toBe(false);
     });
-
-    expect(result.current.results).toEqual(mockResults);
-    expect(result.current.isLoading).toBe(false);
 
     spyGetTrendingTokens.mockRestore();
     unmount();
@@ -231,7 +228,7 @@ describe('useTrendingRequest', () => {
       );
 
       await waitFor(() => {
-        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+        expect(result.current.results).toEqual(mockResults);
       });
 
       expect(spyGetTrendingTokens).toHaveBeenCalledWith(
@@ -239,11 +236,6 @@ describe('useTrendingRequest', () => {
           chainIds: ['eip155:1', 'eip155:137'],
         }),
       );
-
-      // The `waitFor` above only confirms the mock was invoked. Under load
-      // (full suite run) the resolved-promise setState has not yet committed
-      // by the time we check `result.current.results` synchronously — flaky.
-      // Wait on the actual state transition instead.
       await waitFor(() => {
         expect(result.current.results).toEqual(mockResults);
         expect(result.current.isLoading).toBe(false);
@@ -343,9 +335,8 @@ describe('useTrendingRequest', () => {
       if (resolveFirstRequest) {
         resolveFirstRequest(mockResults1);
       }
+      expect(result.current.results).toEqual(mockResults2);
     });
-
-    expect(result.current.results).toEqual(mockResults2);
 
     spyGetTrendingTokens.mockRestore();
     unmount();
