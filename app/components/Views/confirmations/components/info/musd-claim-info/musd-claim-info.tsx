@@ -16,11 +16,14 @@ import { selectSelectedInternalAccount } from '../../../../../../selectors/accou
 
 const ClaimingToRow = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const address = selectedAccount?.address ?? '';
+  const truncated = address
+    ? `${address.slice(0, 6)}…${address.slice(-4)}`
+    : '';
+  const display = selectedAccount?.metadata?.name || truncated;
   return (
     <InfoRow label={strings('stake.claiming_to')}>
-      <Text variant={TextVariant.BodyMD}>
-        {selectedAccount?.metadata?.name ?? ''}
-      </Text>
+      <Text variant={TextVariant.BodyMD}>{display}</Text>
     </InfoRow>
   );
 };
