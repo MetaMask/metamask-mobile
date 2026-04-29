@@ -705,6 +705,22 @@ describe('PredictBuyWithAnyToken', () => {
       expect(mockHandleRetryWithBestPrice).not.toHaveBeenCalled();
     });
 
+    it('shows Retry label (not Change Payment Method) when banner and isChangePaymentMode coexist', () => {
+      mockIsCurrentTokenInsufficient = true;
+      mockHasAlternativeBalance = true;
+      mockBuyErrorBanner = {
+        variant: 'price_changed',
+        title: 'Price changed',
+        description: 'Best price updated',
+      };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
+        /mode-retry/,
+      );
+    });
+
     it('calls handleRetryWithBestPrice when isBannerActive and isChangePaymentMode are both true (Retry takes priority)', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = true;
@@ -720,6 +736,22 @@ describe('PredictBuyWithAnyToken', () => {
       expect(mockHandleRetryWithBestPrice).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.CONFIRMATION_PAY_WITH_MODAL,
+      );
+    });
+
+    it('shows Retry label (not Add Funds) when banner and isAddFundsMode coexist', () => {
+      mockIsCurrentTokenInsufficient = true;
+      mockHasAlternativeBalance = false;
+      mockBuyErrorBanner = {
+        variant: 'order_failed',
+        title: 'Order failed',
+        description: 'Please retry',
+      };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
+        /mode-retry/,
       );
     });
 

@@ -69,13 +69,10 @@ export function PayWithModal() {
   const navigation = useNavigation();
 
   const handlePredictAddFunds = useCallback(() => {
-    navigation.navigate(
-      Routes.PREDICT.MODALS.ROOT as never,
-      {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-        params: { autoDeposit: true },
-      } as never,
-    );
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      params: { autoDeposit: true },
+    });
   }, [navigation]);
 
   const predictBalanceTokenFilter = usePredictBalanceTokenFilter(

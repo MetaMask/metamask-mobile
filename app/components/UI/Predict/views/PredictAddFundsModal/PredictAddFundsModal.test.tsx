@@ -176,7 +176,7 @@ describe('PredictAddFundsModal', () => {
       focusListeners[0]();
       focusListeners[0]();
 
-      expect(mockGoBack).toHaveBeenCalledTimes(2);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 });

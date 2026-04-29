@@ -223,13 +223,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handleAddFunds = useCallback(() => {
     if (isSheetMode) {
-      navigation.navigate(
-        Routes.PREDICT.MODALS.ROOT as never,
-        {
-          screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-          params: { autoDeposit: true },
-        } as never,
-      );
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+        params: { autoDeposit: true },
+      });
     } else {
       deposit();
     }
@@ -439,14 +436,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           isLoading={isPlacingOrder || (isBannerActive && isRetrying)}
           onPress={handleBuyButtonPress}
           disabled={
-            isChangePaymentMode || isAddFundsMode
+            !isBannerActive && (isChangePaymentMode || isAddFundsMode)
               ? false
               : isBannerActive
                 ? isRetrying || !preview
                 : !canPlaceBet
           }
           showReducedOpacity={
-            isChangePaymentMode || isAddFundsMode
+            !isBannerActive && (isChangePaymentMode || isAddFundsMode)
               ? false
               : isBannerActive
                 ? !preview
@@ -456,8 +453,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
           isSheetMode={isSheetMode}
           isRetry={isSheetMode && isBannerActive}
-          isChangePaymentMode={isChangePaymentMode}
-          isAddFundsMode={isAddFundsMode}
+          isChangePaymentMode={!isBannerActive && isChangePaymentMode}
+          isAddFundsMode={!isBannerActive && isAddFundsMode}
           testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         />
       </PredictBuyBottomContent>

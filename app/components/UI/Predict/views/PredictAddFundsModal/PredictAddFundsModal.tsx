@@ -43,6 +43,7 @@ const PredictAddFundsModal: React.FC = () => {
 
     const unsubscribeFocus = navigation.addListener('focus', () => {
       if (hasBlurredRef.current && navigation.canGoBack()) {
+        hasBlurredRef.current = false;
         navigation.goBack();
       }
     });
