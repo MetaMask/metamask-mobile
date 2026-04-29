@@ -219,6 +219,9 @@ describe('useQuickBuyQuotes', () => {
       srcTokenAmount: '1000000000000000',
       gasIncluded: false,
       gasIncluded7702: false,
+      // Forces the bridge API to return quotes regardless of wallet balance,
+      // so the sheet can preview totals when the user is short on funds.
+      insufficientBal: true,
     });
   });
 
