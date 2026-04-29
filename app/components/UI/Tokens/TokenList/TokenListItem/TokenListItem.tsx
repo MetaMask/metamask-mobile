@@ -95,6 +95,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
+import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
+import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -180,6 +182,25 @@ export const TokenListItem = React.memo(
     );
 
     const { isStockToken } = useRWAToken();
+
+    const basicFunctionalityEnabled = useSelector(
+      (state: RootState) => state.settings.basicFunctionalityEnabled,
+    );
+
+    const caipAssetIdForSecurity = useMemo(
+      () => getCaipAssetIdForToken(asset),
+      [asset],
+    );
+
+    const skipTokenListSecurityBadge = useMemo(() => {
+      if (!asset) {
+        return true;
+      }
+      if (asset.symbol?.toUpperCase() === 'ONDO') {
+        return true;
+      }
+      return isStockToken(asset as BridgeToken);
+    }, [asset, isStockToken]);
 
     const chainId = asset?.chainId as Hex;
 
@@ -559,6 +580,14 @@ export const TokenListItem = React.memo(
                 {label && (
                   <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
                 )}
+                {basicFunctionalityEnabled &&
+                  !privacyMode &&
+                  !skipTokenListSecurityBadge &&
+                  caipAssetIdForSecurity && (
+                    <TokenListSecurityBadge
+                      caipAssetId={caipAssetIdForSecurity}
+                    />
+                  )}
               </View>
 
               {renderEarnCta()}
