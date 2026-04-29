@@ -117,7 +117,7 @@ describe('ErrorBoundary', () => {
     });
 
     await waitFor(() => {
-      getByText('Cancel');
+      expect(getByText('Cancel')).toBeOnTheScreen();
     });
 
     // Close modal

@@ -497,8 +497,12 @@ describe('ResetPassword', () => {
         fireEvent.changeText(newPasswordField, 'NewPassword');
       });
 
-      within(newPasswordField).getByDisplayValue('NewPassword');
-      within(confirmPasswordField).getByDisplayValue('NewPassword123');
+      expect(
+        within(newPasswordField).getByDisplayValue('NewPassword'),
+      ).toBeOnTheScreen();
+      expect(
+        within(confirmPasswordField).getByDisplayValue('NewPassword123'),
+      ).toBeOnTheScreen();
     });
 
     it('clears confirm password when new password is emptied', async () => {
@@ -522,7 +526,9 @@ describe('ResetPassword', () => {
         fireEvent.changeText(newPasswordField, '');
       });
 
-      within(confirmPasswordField).getByDisplayValue('');
+      expect(
+        within(confirmPasswordField).getByDisplayValue(''),
+      ).toBeOnTheScreen();
     });
 
     it('toggles password visibility for new password field', async () => {

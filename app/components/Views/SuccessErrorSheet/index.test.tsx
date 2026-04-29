@@ -54,8 +54,8 @@ describe('SuccessErrorSheet', () => {
       <SuccessErrorSheet route={mockRoute} />,
     );
 
-    getByText('Test Title');
-    getByText('Test Description');
+    expect(getByText('Test Title')).toBeOnTheScreen();
+    expect(getByText('Test Description')).toBeOnTheScreen();
 
     const primaryButton = getByRole('button', { name: 'Primary' });
     const secondaryButton = getByRole('button', { name: 'Secondary' });
@@ -87,8 +87,8 @@ describe('SuccessErrorSheet', () => {
       <SuccessErrorSheet route={mockErrorRoute} />,
     );
 
-    getByText('Test Title');
-    getByText('Test Description');
-    getByText('Custom Button');
+    expect(getByText('Test Title')).toBeOnTheScreen();
+    expect(getByText('Test Description')).toBeOnTheScreen();
+    expect(getByText('Custom Button')).toBeOnTheScreen();
   });
 });
