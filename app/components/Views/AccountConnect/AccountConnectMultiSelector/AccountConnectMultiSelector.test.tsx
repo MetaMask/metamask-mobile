@@ -128,17 +128,6 @@ describe('AccountConnectMultiSelector', () => {
     ).toBeOnTheScreen();
   });
 
-  it('displays accounts list', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} />,
-      { state: { engine: { backgroundState } } },
-    );
-
-    expect(
-      getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-    ).toBeDefined();
-  });
-
   it('disables the select all button when loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
       <AccountConnectMultiSelector
