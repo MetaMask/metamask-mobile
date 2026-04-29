@@ -190,10 +190,6 @@ export class HyperLiquidSubscriptionService {
     HyperLiquidAbstractionMode
   >();
 
-  // Timestamp of the last successful userAbstraction fetch per user, regardless
-  // of whether it came from the initial spot bootstrap or a WS-driven refresh.
-  readonly #abstractionModeLastFetchedAtByUser = new Map<string, number>();
-
   // Timestamp of the last successful WS-driven userAbstraction refresh per
   // user. This throttle intentionally does not count the initial bootstrap
   // fetch so the first spot tick after app launch can still detect an HL-web
@@ -1123,10 +1119,6 @@ export class HyperLiquidSubscriptionService {
         // Set timestamp only on success; a hanging/failed fetch must not
         // ratchet the throttle window forward (which would silence every
         // subsequent spot WS tick for the full throttle duration).
-        this.#abstractionModeLastFetchedAtByUser.set(
-          normalizedUser,
-          Date.now(),
-        );
         this.#abstractionModeLastWsRefreshAtByUser.set(
           normalizedUser,
           Date.now(),
@@ -1257,7 +1249,6 @@ export class HyperLiquidSubscriptionService {
       // for this user; modes for other users are isolated in the keyed cache.
       if (abstractionResult.status === 'fulfilled') {
         this.#abstractionModeByUser.set(userAddress, abstractionResult.value);
-        this.#abstractionModeLastFetchedAtByUser.set(userAddress, Date.now());
       }
 
       if (result.status === 'rejected') {
@@ -2359,7 +2350,6 @@ export class HyperLiquidSubscriptionService {
       this.#cachedSpotState = null;
       this.#cachedSpotStateUserAddress = null;
       this.#abstractionModeByUser.clear();
-      this.#abstractionModeLastFetchedAtByUser.clear();
       this.#abstractionModeLastWsRefreshAtByUser.clear();
       // Drop in-flight refresh handles so stale hanging userAbstraction
       // requests from the prior connection can't be awaited by future calls.
@@ -4143,7 +4133,6 @@ export class HyperLiquidSubscriptionService {
     this.#cachedSpotState = null;
     this.#cachedSpotStateUserAddress = null;
     this.#abstractionModeByUser.clear();
-    this.#abstractionModeLastFetchedAtByUser.clear();
     this.#abstractionModeLastWsRefreshAtByUser.clear();
     this.#abstractionModeInflightByUser.clear();
     this.#spotStateGeneration += 1;
