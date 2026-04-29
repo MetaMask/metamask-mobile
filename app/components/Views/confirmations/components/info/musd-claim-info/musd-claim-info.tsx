@@ -14,6 +14,12 @@ import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 
+// InfoRow's default 8px paddingBottom is meant to space sibling rows; in a
+// single-row section it stacks with the section's own paddingBottom and
+// creates visibly more bottom than top padding. Zero it out so the row sits
+// vertically centered within its card.
+const SINGLE_ROW_OVERRIDE = { paddingBottom: 0 };
+
 const ClaimingToRow = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const address = selectedAccount?.address ?? '';
@@ -22,7 +28,7 @@ const ClaimingToRow = () => {
     : '';
   const display = selectedAccount?.metadata?.name || truncated;
   return (
-    <InfoRow label={strings('stake.claiming_to')}>
+    <InfoRow label={strings('stake.claiming_to')} style={SINGLE_ROW_OVERRIDE}>
       <Text variant={TextVariant.BodyMD}>{display}</Text>
     </InfoRow>
   );
@@ -35,7 +41,10 @@ export const MusdClaimInfo = () => (
       <ClaimingToRow />
     </InfoSection>
     <InfoSection>
-      <NetworkRow tooltip={strings('earn.claim_bonus_network_tooltip')} />
+      <NetworkRow
+        tooltip={strings('earn.claim_bonus_network_tooltip')}
+        style={SINGLE_ROW_OVERRIDE}
+      />
     </InfoSection>
     <GasFeesDetailsRow disableUpdate />
   </View>
