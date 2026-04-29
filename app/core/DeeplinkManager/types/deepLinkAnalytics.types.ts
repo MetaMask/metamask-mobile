@@ -51,6 +51,7 @@ export enum DeepLinkRoute {
   PREDICT = 'predict',
   SHIELD = 'shield',
   TRENDING = 'trending',
+  SOCIAL_TRADER_POSITION = 'social-trader-position',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   NFT = 'nft',

@@ -1,10 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AesCryptoTestForm renders correctly 1`] = `
-<View
+<RNCSafeAreaView
   edges={
     {
       "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
     }
   }
   style={
@@ -58,6 +61,64 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 32,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 32,
+              },
+              undefined,
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -194,7 +255,15 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         }
         testID="account-address"
       />
-      <View
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -241,13 +310,35 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="salt-bytes-count-input"
           />
         </View>
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -257,6 +348,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -278,9 +370,17 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Generate
           </Text>
-        </TouchableOpacity>
-      </View>
-      <View
+        </View>
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -352,13 +452,35 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="salt-input-for-encryption-key"
           />
         </View>
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -368,6 +490,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -389,9 +512,17 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Generate
           </Text>
-        </TouchableOpacity>
-      </View>
-      <View
+        </View>
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -463,13 +594,35 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="data-input-for-encryption-with-key"
           />
         </View>
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -479,6 +632,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -500,9 +654,17 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Encrypt
           </Text>
-        </TouchableOpacity>
-      </View>
-      <View
+        </View>
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -549,13 +711,35 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="encryption-key-input-for-decryption-with-key"
           />
         </View>
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -565,6 +749,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -586,9 +771,17 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Decrypt
           </Text>
-        </TouchableOpacity>
-      </View>
-      <View
+        </View>
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -660,13 +853,35 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="password-input-for-encryption"
           />
         </View>
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -676,6 +891,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -697,9 +913,17 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Encrypt
           </Text>
-        </TouchableOpacity>
-      </View>
-      <View
+        </View>
+      </RNCSafeAreaView>
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "additive",
+          }
+        }
         style={
           {
             "paddingVertical": 10,
@@ -746,13 +970,35 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             testID="password-input-for-decryption"
           />
         </View>
-        <TouchableOpacity
+        <View
           accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
           accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             {
               "alignItems": "center",
@@ -762,6 +1008,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
+              "opacity": 1,
               "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
@@ -783,9 +1030,9 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           >
             Decrypt
           </Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </RNCSafeAreaView>
     </View>
   </RCTScrollView>
-</View>
+</RNCSafeAreaView>
 `;
