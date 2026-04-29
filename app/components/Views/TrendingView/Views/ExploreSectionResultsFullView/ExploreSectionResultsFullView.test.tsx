@@ -66,7 +66,7 @@ const mockCreateEventBuilder =
 // Replace the search row dispatcher with a stub that exposes the item id so
 // taps on a specific row are testable.
 jest.mock('../../search/SearchFeedRow', () => {
-  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
   const TapView = jest.requireActual('../../search/TapView').default;
   return {
     __esModule: true,
