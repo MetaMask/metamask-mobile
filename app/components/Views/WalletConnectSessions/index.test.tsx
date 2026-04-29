@@ -42,28 +42,28 @@ describe('WalletConnectSessions', () => {
   });
 
   it('does not render when not ready', () => {
-    const { toJSON } = renderScreen(WalletConnectSessions, {
+    const { queryByTestId } = renderScreen(WalletConnectSessions, {
       name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(queryByTestId(ExperimentalSelectorsIDs.CONTAINER)).toBeNull();
   });
 
   it('renders empty component with no active sessions', async () => {
     mockGetSessions.mockReturnValue([]);
 
-    const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, {
+    const { getByTestId, getByText } = renderScreen(WalletConnectSessions, {
       name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
     });
 
-    // Wait for the component to be ready and render the empty state
     await waitFor(() => {
-      const emptyMessage = getByTestId(ExperimentalSelectorsIDs.CONTAINER);
-      expect(emptyMessage).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId(ExperimentalSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+      expect(
+        getByText(strings('walletconnect_sessions.no_active_sessions')),
+      ).toBeOnTheScreen();
     });
   });
 
-  it('should render active sessions', async () => {
+  it('renders active sessions', async () => {
     const sessions = [
       {
         topic: 'topic1',
@@ -81,14 +81,16 @@ describe('WalletConnectSessions', () => {
 
     mockGetSessions.mockReturnValue(sessions);
 
-    const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, {
+    const { getByTestId, getByText } = renderScreen(WalletConnectSessions, {
       name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
     });
 
     await waitFor(() => {
-      const viewID = getByTestId(ExperimentalSelectorsIDs.CONTAINER);
-      expect(viewID).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId(ExperimentalSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+      expect(getByText('Session 1')).toBeOnTheScreen();
+      expect(getByText('https://example.com')).toBeOnTheScreen();
+      expect(getByText('Session 2')).toBeOnTheScreen();
+      expect(getByText('https://example.org')).toBeOnTheScreen();
     });
   });
 

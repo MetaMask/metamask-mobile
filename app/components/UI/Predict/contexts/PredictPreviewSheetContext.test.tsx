@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import {
+  isPredictSheetProviderMounted,
   PredictPreviewSheetProvider,
   usePredictPreviewSheet,
 } from './PredictPreviewSheetContext';
@@ -39,6 +40,16 @@ jest.mock('../selectors/featureFlags', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn((selector: (state: unknown) => unknown) => selector({})),
+}));
+
+const mockClearOrderError = jest.fn();
+let mockActiveOrder: { error?: string; state?: string } | null = null;
+
+jest.mock('../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: jest.fn(() => ({
+    activeOrder: mockActiveOrder,
+    clearOrderError: mockClearOrderError,
+  })),
 }));
 
 jest.mock('../components/PredictPreviewSheet/PredictPreviewSheet', () => {
@@ -173,6 +184,7 @@ describe('PredictPreviewSheetContext', () => {
     jest.clearAllMocks();
     mockBottomSheetEnabled = true;
     mockPayWithAnyTokenEnabled = false;
+    mockActiveOrder = null;
     mockSelectPredictBottomSheetEnabledFlag.mockImplementation(
       () => mockBottomSheetEnabled,
     );
@@ -415,5 +427,150 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
     expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();
+  });
+
+  describe('background error auto-reopen', () => {
+    it('reopens the buy sheet when activeOrder.error appears after dismiss', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+    });
+
+    it('does not auto-reopen when bottomSheetEnabled is OFF', () => {
+      mockBottomSheetEnabled = false;
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      // navigation flow when flag is OFF - openBuySheet still records lastBuyParamsRef
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not auto-reopen when user dismisses while error is showing', () => {
+      mockActiveOrder = { error: 'order/failed' };
+
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not auto-reopen if no buy was previously opened', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('isPredictSheetProviderMounted', () => {
+    it('returns false when provider is not mounted', () => {
+      expect(isPredictSheetProviderMounted()).toBe(false);
+    });
+
+    it('returns true while provider is mounted and false after unmount', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(isPredictSheetProviderMounted()).toBe(true);
+
+      unmount();
+
+      expect(isPredictSheetProviderMounted()).toBe(false);
+    });
+  });
+
+  describe('clearOrderError on dismiss', () => {
+    it('calls clearOrderError when buy sheet is dismissed', () => {
+      render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      expect(mockClearOrderError).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call clearOrderError when sell sheet is dismissed', () => {
+      render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-sell'));
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      expect(mockClearOrderError).not.toHaveBeenCalled();
+    });
   });
 });

@@ -37,6 +37,7 @@ import { useTransactionConfirm } from '../../../hooks/transactions/useTransactio
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
