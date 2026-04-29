@@ -4701,6 +4701,7 @@ const mockCampaign: CampaignDto = {
   excludedRegions: [],
   details: null,
   featured: false,
+  showUpcomingDate: false,
 };
 
 describe('setCampaigns', () => {

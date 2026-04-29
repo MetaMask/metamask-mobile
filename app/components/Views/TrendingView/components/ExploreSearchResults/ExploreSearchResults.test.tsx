@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import ExploreSearchResults from './ExploreSearchResults';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { useSelector } from 'react-redux';
@@ -113,7 +114,7 @@ describe('ExploreSearchResults', () => {
     );
 
     expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
-    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
     expect(getByText('Perps')).toBeOnTheScreen();
     expect(getByText('Predictions')).toBeOnTheScreen();
   });
@@ -141,7 +142,7 @@ describe('ExploreSearchResults', () => {
       <ExploreSearchResults searchQuery="btc" />,
     );
 
-    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
     expect(queryByText('Perps')).toBeNull();
     expect(queryByText('Predictions')).toBeNull();
   });
@@ -202,7 +203,7 @@ describe('ExploreSearchResults', () => {
 
       // Assert - FlashList renders with data and search query is passed to hook
       expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
-      expect(getByText('Trending tokens')).toBeOnTheScreen();
+      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
       expect(mockUseExploreSearch).toHaveBeenCalledWith('bitcoin');
     });
 
@@ -262,7 +263,7 @@ describe('ExploreSearchResults', () => {
       );
 
       // Assert - shows header for loading section
-      expect(getByText('Trending tokens')).toBeOnTheScreen();
+      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
     });
 
     it('hides section when not loading and has no data', () => {
@@ -291,7 +292,7 @@ describe('ExploreSearchResults', () => {
       );
 
       // Assert - no section headers when empty and not loading
-      expect(queryByText('Trending tokens')).toBeNull();
+      expect(queryByText(strings('trending.trending_tokens'))).toBeNull();
       expect(queryByText('Perps')).toBeNull();
       expect(queryByText('Predictions')).toBeNull();
     });
@@ -330,7 +331,7 @@ describe('ExploreSearchResults', () => {
       );
 
       // Assert - all sections hidden when basic functionality disabled
-      expect(queryByText('Trending tokens')).toBeNull();
+      expect(queryByText(strings('trending.trending_tokens'))).toBeNull();
       expect(queryByText('Perps')).toBeNull();
     });
   });
@@ -365,7 +366,7 @@ describe('ExploreSearchResults', () => {
 
       // Act & Assert - should not throw
       const { getByText } = render(<ExploreSearchResults searchQuery="btc" />);
-      expect(getByText('Trending tokens')).toBeOnTheScreen();
+      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
     });
   });
 
@@ -462,7 +463,7 @@ describe('ExploreSearchResults', () => {
         Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW,
         {
           sectionId: 'tokens',
-          title: 'Trending tokens',
+          title: strings('trending.trending_tokens'),
           searchQuery: 'bitcoin',
           data: [
             { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
