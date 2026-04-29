@@ -42,15 +42,21 @@ includeBuild('../node_modules/@react-native') {}
 include ':react-native-gesture-handler'
 project(':react-native-gesture-handler').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gesture-handler/android')
 
-// Use the prebuilt React Native AARs published to Maven Central
-// (com.facebook.react:react-android and com.facebook.react:hermes-android).
-// We previously included the local react-native source as a composite build to build
-// React Native from source while pulling Hermes from Maven, but that approach required
-// a yarn patch (react-native-patch-d76d50a92f.patch) that targeted RN 0.76.9. After
-// upgrading to RN 0.81.5 the patch no longer applies, so the build attempted to
-// compile Hermes from source on CI and failed with `CMake Error: Unable to find ICU`.
-// Switching to the fully prebuilt artifacts avoids the ICU/CMake dependency and matches
-// the default React Native build flow.
+// Build React Native from source but use prebuilt Hermes from Maven Central.
+// This speeds up build significantly by avoiding Hermes engine compilation.
+// The react-native package is patched via .yarn/patches/react-native-npm-0.81.5-d8232ef145.patch
+// to use com.facebook.react:hermes-android:0.81.5 instead of building hermes-engine from source.
+// When upgrading React Native, regenerate this patch with:
+//   yarn patch react-native@npm:<new-version>
+//   <apply the same three edits>
+//   yarn patch-commit -s <temp-dir>
+includeBuild('../node_modules/react-native') {
+    dependencySubstitution {
+        substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
+        substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
+        // Note: hermes-android/hermes-engine substitutions intentionally omitted - resolved from Maven
+    }
+}
 
 apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle")
 useExpoModules()
