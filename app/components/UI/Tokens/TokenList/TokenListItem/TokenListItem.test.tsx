@@ -1400,8 +1400,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      const wrapper = getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID);
-      // Must be a plain View: no onPress, no accessible prop
+      const wrapper = getByTestId(SECONDARY_BALANCE_TEST_ID);
+      // Must be a plain Text: no onPress, no accessible prop
       expect(wrapper.props.onPress).toBeUndefined();
       expect(wrapper.props.disabled).toBeUndefined();
     });

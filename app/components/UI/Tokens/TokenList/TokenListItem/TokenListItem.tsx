@@ -731,10 +731,9 @@ export const TokenListItem = React.memo(
                 >
                   {'-'}
                 </Text>
-              ) : (
+              ) : secondaryBalanceDisplay.onPress ? (
                 <TouchableOpacity
                   accessible={false}
-                  disabled={!secondaryBalanceDisplay.onPress}
                   onPress={secondaryBalanceDisplay.onPress}
                   testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
                 >
@@ -748,6 +747,16 @@ export const TokenListItem = React.memo(
                     {secondaryBalanceDisplay.text || '-'}
                   </SensitiveText>
                 </TouchableOpacity>
+              ) : (
+                <SensitiveText
+                  variant={CLTextVariant.BodySMMedium}
+                  color={secondaryBalanceDisplay.color}
+                  isHidden={false}
+                  length={SensitiveTextLength.Short}
+                  testID={SECONDARY_BALANCE_TEST_ID}
+                >
+                  {secondaryBalanceDisplay.text || '-'}
+                </SensitiveText>
               )}
             </View>
 
