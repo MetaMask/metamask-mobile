@@ -136,7 +136,17 @@ jobs:
           IOS=false
           CHANGED=""
           MSG=""
+
+          # Compute ignorable-only signal up-front so it's available for the merge-block
+          # bypass below regardless of which platform-decision branch fires.
+          # The label-driven SHOULD_SKIP_E2E branch would otherwise short-circuit and leave
+          # this flag unset for the very PRs that should bypass the merge block.
           IGNORABLE_ONLY=false
+          if [[ "$ALL_CHANGES_COUNT" -gt 0 &&
+                "$IGNORABLE_COUNT" -eq "$ALL_CHANGES_COUNT" &&
+                "$E2E_WORKFLOWS_COUNT" -eq 0 ]]; then
+            IGNORABLE_ONLY=true
+          fi
 
           # Scheduled runs and push to main always test both platforms
           if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$GITHUB_EVENT_NAME" == "push" ]]; then
@@ -156,11 +166,8 @@ jobs:
             MSG="Skipping E2E (skip signal)"
 
           # All changed files are ignorable AND no E2E-relevant workflow touched
-          elif [[ "$ALL_CHANGES_COUNT" -gt 0 &&
-                  "$IGNORABLE_COUNT" -eq "$ALL_CHANGES_COUNT" &&
-                  "$E2E_WORKFLOWS_COUNT" -eq 0 ]]; then
+          elif [[ "$IGNORABLE_ONLY" == "true" ]]; then
             MSG="Skipping E2E (ignorable-only changes)"
-            IGNORABLE_ONLY=true
 
           # Android-only: all changed files are android/** or ignorable, no iOS, no E2E workflows
           elif [[ "$ANDROID_COUNT" -gt 0 &&
