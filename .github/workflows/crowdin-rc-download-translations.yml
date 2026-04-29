@@ -67,6 +67,7 @@ jobs:
           export_only_approved: true
 
           crowdin_branch_name: ${{ matrix.branch }}
+          pull_request_base_branch_name: ${{ matrix.branch }}
           localization_branch_name: l10n_crowdin_translations_${{ matrix.branch }}
           pull_request_title: 'chore: New Crowdin Translations for ${{ matrix.branch }}'
           skip_ref_checkout: true
