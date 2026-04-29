@@ -5,7 +5,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -56,12 +56,16 @@ import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
-import { predictBuyPreviewSessionRef } from '../PredictBuyPreview/PredictBuyPreview';
+import {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewSessionRef,
+} from '../PredictBuyPreview/PredictBuyPreview';
 
 const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
@@ -288,6 +292,12 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           outcome={outcome}
           outcomeToken={outcomeToken}
           preview={preview}
+          onBack={() => {
+            // Mark this dismissal as a back-button press so the beforeRemove
+            // listener in usePredictBuyActions reports BACK_BUTTON instead of SWIPE.
+            predictBuyPreviewDismissedViaBackRef.current = true;
+            navigation.goBack();
+          }}
         />
       )}
       {isSheetMode ? (

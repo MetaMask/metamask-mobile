@@ -7988,7 +7988,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('fires SUBMITTED event with payment_token_address when placeOrder transitions to DEPOSITING', async () => {
+    it('fires SWAP_INITIATED event with payment_token_address when placeOrder transitions to DEPOSITING', async () => {
       await withController(
         async ({ controller }) => {
           controller.setSelectedPaymentToken({
@@ -8017,8 +8017,9 @@ describe('PredictController', () => {
           expect(analytics.trackEvent).toHaveBeenCalledWith(
             expect.objectContaining({
               properties: expect.objectContaining({
-                status: 'submitted',
+                status: 'swap_initiated',
                 payment_token_address: '0xtoken',
+                payment_token_symbol: 'MATIC',
               }),
             }),
           );
