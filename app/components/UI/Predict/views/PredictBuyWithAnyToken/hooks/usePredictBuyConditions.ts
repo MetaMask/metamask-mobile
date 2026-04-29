@@ -1,9 +1,8 @@
 import { BigNumber } from 'bignumber.js';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
-  useTransactionPayQuotes,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
 import { MINIMUM_BET } from '../../../constants/transactions';
@@ -38,17 +37,25 @@ export const usePredictBuyConditions = ({
     usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
-  // quotes === undefined means the controller hasn't yet completed a quote
-  // cycle for this transaction; quotes === [] means a cycle ran but found no
-  // routes; quotes === [...] means valid routes exist.
-  const quotes = useTransactionPayQuotes();
   const { isDepositPending } = usePredictDeposit();
-  const { isPredictBalanceSelected, resetSelectedPaymentToken } =
-    usePredictPaymentToken();
+  const {
+    isPredictBalanceSelected,
+    selectedPaymentToken,
+    resetSelectedPaymentToken,
+  } = usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
   const { availableTokens } = useTransactionPayAvailableTokens();
 
   const shouldWaitForPayFees = !isPredictBalanceSelected && currentValue > 0;
+
+  // Tracks the token address we last entered a settling cycle for, so we only
+  // reset `isPaySystemSettling` when the actual token identity changes.
+  const settlingTokenRef = useRef<string | null>(null);
+  // Becomes true once `isPayFeesLoading` has been observed as true for the
+  // current settling cycle, ensuring we only exit settling after loading has
+  // both started AND completed — not during the brief pre-loading gap.
+  const hasSeenLoadingRef = useRef(false);
+  const [isPaySystemSettling, setIsPaySystemSettling] = useState(false);
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -79,37 +86,63 @@ export const usePredictBuyConditions = ({
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
-  // Compute pay-fees loading state early so isCurrentTokenInsufficient can be
-  // gated on it — blocking alerts during quote-fetch must not trigger the
-  // "Change Payment Method" / "Add Funds" CTA prematurely.
+  // Active loading: quotes are being fetched for the current ERC20 token.
   const isPayFeesLoading = useMemo(
     () => shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading),
     [shouldWaitForPayFees, isPayTotalsLoading, isPayQuoteLoading],
   );
 
-  // Whether the TransactionPay controller has completed at least one quote
-  // cycle for this transaction. `quotes` starts as `undefined` (no key in
-  // transactionData) and becomes an array only after the first fetch resolves.
-  // This gates the CTA for ERC20 tokens so it doesn't flash during the brief
-  // window between `updateSourceAmounts` running synchronously and
-  // `updateQuotes` setting `isLoading = true` asynchronously — a gap that
-  // `isPayFeesLoading` alone cannot cover.
-  const hasQuoteCycleCompleted = quotes !== undefined;
+  // Enter settling whenever the selected ERC20 token identity changes.
+  // This covers the gap between the synchronous payToken update and the
+  // asynchronous isLoading = true dispatch — a window where stale quotes from
+  // the previous token would otherwise cause premature CTA state changes.
+  useEffect(() => {
+    if (!isPredictBalanceSelected && selectedPaymentToken) {
+      const key = selectedPaymentToken.address;
+      if (settlingTokenRef.current !== key) {
+        settlingTokenRef.current = key;
+        hasSeenLoadingRef.current = false;
+        setIsPaySystemSettling(true);
+      }
+    } else {
+      settlingTokenRef.current = null;
+      hasSeenLoadingRef.current = false;
+      setIsPaySystemSettling(false);
+    }
+  }, [isPredictBalanceSelected, selectedPaymentToken]);
 
-  // Only surface token-insufficiency after the pay system has settled.
-  // Two guards:
-  //  1. !isPayFeesLoading       — active quote-fetch period
-  //  2. hasQuoteCycleCompleted  — pre-fetch gap (ERC20 only; Predict balance
-  //                               doesn't go through the quote pipeline)
+  // Mark that loading has become active for the current settling cycle.
+  useEffect(() => {
+    if (isPaySystemSettling && isPayFeesLoading) {
+      hasSeenLoadingRef.current = true;
+    }
+  }, [isPaySystemSettling, isPayFeesLoading]);
+
+  // Exit settling only after loading has started AND completed, or when quote
+  // fetching is not expected (e.g. currentValue is 0, shouldWaitForPayFees
+  // becomes false). This prevents exiting during the pre-loading gap where
+  // isPayFeesLoading is momentarily false before the controller dispatches
+  // isLoading = true.
+  useEffect(() => {
+    if (
+      isPaySystemSettling &&
+      !isPayFeesLoading &&
+      (hasSeenLoadingRef.current || !shouldWaitForPayFees)
+    ) {
+      setIsPaySystemSettling(false);
+    }
+  }, [isPaySystemSettling, isPayFeesLoading, shouldWaitForPayFees]);
+
+  // Only surface token-insufficiency once the pay system has fully settled:
+  // both the active-loading guard and the cross-token settling guard must pass.
   const isCurrentTokenInsufficient = useMemo(
     () =>
+      !isPaySystemSettling &&
       !isPayFeesLoading &&
-      (isPredictBalanceSelected || hasQuoteCycleCompleted) &&
       (isInsufficientBalance || hasBlockingPayAlerts),
     [
+      isPaySystemSettling,
       isPayFeesLoading,
-      isPredictBalanceSelected,
-      hasQuoteCycleCompleted,
       isInsufficientBalance,
       hasBlockingPayAlerts,
     ],
@@ -148,6 +181,7 @@ export const usePredictBuyConditions = ({
 
   const canPlaceBet = useMemo(
     () =>
+      !isPaySystemSettling &&
       !isConfirming &&
       !isBelowMinimum &&
       !isInsufficientBalance &&
@@ -157,6 +191,7 @@ export const usePredictBuyConditions = ({
       !isPayFeesLoading &&
       !hasBlockingPayAlerts,
     [
+      isPaySystemSettling,
       isConfirming,
       isBelowMinimum,
       isInsufficientBalance,
@@ -201,5 +236,6 @@ export const usePredictBuyConditions = ({
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
     isBalancePulsing,
+    isPaySystemSettling,
   };
 };

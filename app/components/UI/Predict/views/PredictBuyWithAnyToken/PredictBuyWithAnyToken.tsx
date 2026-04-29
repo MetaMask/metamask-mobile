@@ -177,6 +177,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isCurrentTokenInsufficient,
     hasAlternativeBalance,
     maxBetAmount,
+    isPaySystemSettling,
   } = usePredictBuyConditions({
     currentValue,
     preview,

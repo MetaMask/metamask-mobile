@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import { usePredictBuyConditions } from './usePredictBuyConditions';
 import { ActiveOrderState, OrderPreview } from '../../../types';
 
@@ -8,17 +8,10 @@ let mockActiveOrder: { state?: string } | null = null;
 let mockPayTotals: Record<string, unknown> | null = null;
 let mockIsPayTotalsLoading = false;
 let mockIsPayQuoteLoading = false;
-// undefined = never fetched; null = explicitly cleared; [] = fetched, no routes
-let mockQuotes:
-  | {
-      request?: { sourceTokenAddress?: string; sourceChainId?: string };
-    }[]
-  | null
-  | undefined;
 let mockRequiredTokens: { address: string; chainId: string }[] | null = null;
 let mockIsPredictBalanceSelected = true;
 let mockSelectedPaymentToken: {
-  address?: string;
+  address: string;
   chainId?: string;
 } | null = null;
 let mockIsDepositPending = false;
@@ -71,7 +64,6 @@ jest.mock(
     useTransactionPayTotals: () => mockPayTotals,
     useIsTransactionPayLoading: () => mockIsPayTotalsLoading,
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
-    useTransactionPayQuotes: () => mockQuotes,
     useTransactionPayRequiredTokens: () => mockRequiredTokens,
   }),
 );
@@ -111,16 +103,11 @@ describe('usePredictBuyConditions', () => {
     mockPayTotals = null;
     mockIsPayTotalsLoading = false;
     mockIsPayQuoteLoading = false;
-    // Start with a settled quote state (simulates having completed at least
-    // one quote cycle) so tests that don't focus on the settling guard work
-    // with straightforward assertions.
-    mockQuotes = [];
     mockRequiredTokens = null;
     mockIsPredictBalanceSelected = true;
     mockSelectedPaymentToken = null;
     mockIsDepositPending = false;
     mockAvailableTokens = [];
-
     mockPredictBalance = 0;
   });
 
@@ -515,26 +502,9 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isCurrentTokenInsufficient).toBe(true);
     });
 
-    it('is true when external token has blocking pay alerts and fees are not loading', () => {
-      mockIsPredictBalanceSelected = false;
-      mockIsPayTotalsLoading = false;
-      mockIsPayQuoteLoading = false;
-      mockQuotes = []; // quote cycle has completed
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          hasBlockingPayAlerts: true,
-        }),
-      );
-
-      expect(result.current.isCurrentTokenInsufficient).toBe(true);
-    });
-
     it('is false when pay fees are still loading even if blocking alerts are present', () => {
       mockIsPredictBalanceSelected = false;
       mockIsPayTotalsLoading = true;
-      mockQuotes = [];
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
@@ -551,7 +521,6 @@ describe('usePredictBuyConditions', () => {
     it('is false when pay quote is loading even if blocking alerts are present', () => {
       mockIsPredictBalanceSelected = false;
       mockIsPayQuoteLoading = true;
-      mockQuotes = [];
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
@@ -564,11 +533,13 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isCurrentTokenInsufficient).toBe(false);
     });
 
-    it('is false for ERC20 when no quote cycle has completed yet (quotes undefined)', () => {
+    it('is false for ERC20 while the pay system is still settling (pre-loading gap)', () => {
+      // Simulate a token just selected with no loading yet — the settling guard
+      // keeps the CTA hidden during the window before isLoading = true fires.
       mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
       mockIsPayTotalsLoading = false;
       mockIsPayQuoteLoading = false;
-      mockQuotes = undefined; // controller hasn't run a quote fetch yet
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
@@ -578,14 +549,14 @@ describe('usePredictBuyConditions', () => {
         }),
       );
 
-      // Should not flash "Change Payment Method" before the first quote cycle
       expect(result.current.isCurrentTokenInsufficient).toBe(false);
     });
 
-    it('is true for Predict balance even when quotes are undefined (quote cycle guard is ERC20-only)', () => {
+    it('is true for Predict balance even when settling guard is not engaged', () => {
+      // Predict balance never goes through the quote pipeline, so settling
+      // is always false when isPredictBalanceSelected = true.
       mockIsPredictBalanceSelected = true;
       mockAvailableBalance = 5;
-      mockQuotes = undefined;
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
@@ -714,6 +685,124 @@ describe('usePredictBuyConditions', () => {
       );
 
       expect(result.current.hasAlternativeBalance).toBe(false);
+    });
+  });
+
+  describe('isPaySystemSettling', () => {
+    it('is false when Predict balance is selected', () => {
+      mockIsPredictBalanceSelected = true;
+      mockSelectedPaymentToken = null;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(false);
+    });
+
+    it('is true immediately after an ERC20 token is selected (pre-loading gap)', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayTotalsLoading = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+    });
+
+    it('remains true while pay fees are loading', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayTotalsLoading = true;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+    });
+
+    it('becomes false after loading has started and completed', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayTotalsLoading = true;
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      // Settling entered, loading active
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      // Loading completes
+      act(() => {
+        mockIsPayTotalsLoading = false;
+      });
+      rerender();
+
+      expect(result.current.isPaySystemSettling).toBe(false);
+    });
+
+    it('resets to true when a different ERC20 token is selected mid-session', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      mockIsPayTotalsLoading = true;
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      // Complete the first loading cycle
+      act(() => {
+        mockIsPayTotalsLoading = false;
+      });
+      rerender();
+      expect(result.current.isPaySystemSettling).toBe(false);
+
+      // User switches to DAI
+      act(() => {
+        mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+        mockIsPayTotalsLoading = false; // gap: loading not yet active
+      });
+      rerender();
+
+      // Should re-enter settling for the new token
+      expect(result.current.isPaySystemSettling).toBe(true);
+    });
+
+    it('keeps canPlaceBet false while settling, even if all other conditions are met', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayTotalsLoading = false;
+      mockAvailableBalance = 100;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
+    });
+
+    it('exits settling when amount drops to 0 (no quotes needed)', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayTotalsLoading = false;
+
+      const { result, rerender } = renderHook(
+        ({ currentValue }: { currentValue: number }) =>
+          usePredictBuyConditions({ ...defaultParams, currentValue }),
+        { initialProps: { currentValue: 1 } },
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      // Amount drops to 0 → shouldWaitForPayFees = false → exit settling
+      rerender({ currentValue: 0 });
+
+      expect(result.current.isPaySystemSettling).toBe(false);
     });
   });
 
