@@ -719,7 +719,9 @@ export class HyperLiquidSubscriptionService {
   }
 
   #hashAccountState(account: AccountState): string {
-    return `${account.availableBalance}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
+    return `${account.availableBalance}:${account.availableToTradeBalance ?? ''}:${
+      account.totalBalance
+    }:${account.marginUsed}:${account.unrealizedPnl}`;
   }
 
   // Cache hashes to avoid recomputation

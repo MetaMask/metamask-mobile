@@ -3859,6 +3859,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const accountState = mockCallback.mock.calls.at(-1)[0];
       expect(accountState.totalBalance).toBe('100.76531791');
       expect(accountState.availableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('100.76531791');
       expect(accountState.subAccountBreakdown).toEqual({
         main: { availableBalance: '0', totalBalance: '0' },
         xyz: { availableBalance: '0', totalBalance: '0' },
