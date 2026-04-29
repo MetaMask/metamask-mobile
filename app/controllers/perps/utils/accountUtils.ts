@@ -90,10 +90,16 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
-// Spot coins counted toward currently supported funded-state gating.
-// Today the in-app HyperLiquid market surface is USDC-collateralized only,
-// so USDH must not inflate the shared funded-state path that hides Add Funds.
-// Non-stablecoin spot assets (HYPE, PURR, …) also remain excluded.
+export type AddSpotBalanceOptions = {
+  /**
+   * Whether the user's abstraction mode folds spot balances into perps
+   * collateral. Standard / DEX abstraction keep spot separate.
+   */
+  foldIntoCollateral?: boolean;
+};
+
+// The release-branch balance bridge is USDC-only. Non-USDC spot assets must
+// not inflate the balances shown or validated by withdraw/payment flows.
 const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
 
 export function getSpotBalance(
@@ -137,7 +143,9 @@ export function getSpotHold(
 export function addSpotBalanceToAccountState(
   accountState: AccountState,
   spotState?: SpotClearinghouseStateResponse | null,
+  options?: AddSpotBalanceOptions,
 ): AccountState {
+  const foldIntoCollateral = options?.foldIntoCollateral ?? true;
   const spotBalance = getSpotBalance(spotState);
   const spotHold = getSpotHold(spotState);
   const freeSpot = Math.max(0, spotBalance - spotHold);
@@ -160,9 +168,12 @@ export function addSpotBalanceToAccountState(
     };
   }
 
-  const availableToTrade = Number.isFinite(currentAvailable)
-    ? (currentAvailable + freeSpot).toString()
-    : freeSpot.toString();
+  let availableToTrade = accountState.availableBalance;
+  if (foldIntoCollateral) {
+    availableToTrade = Number.isFinite(currentAvailable)
+      ? (currentAvailable + freeSpot).toString()
+      : freeSpot.toString();
+  }
 
   // Subtract spotHold to avoid double-counting on Unified/PM accounts:
   // marginSummary.accountValue already includes the margin that HL
