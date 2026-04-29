@@ -254,17 +254,25 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
   });
 
-  it.each([
-    ['action row Add', MoneyActionButtonRowTestIds.ADD_BUTTON],
-    ['footer Add money', MoneyFooterTestIds.ADD_MONEY_BUTTON],
-  ])('opens the Add money sheet from the %s button', (_label, testId) => {
+  it('opens the Add money sheet when the action row Add button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-    fireEvent.press(getByTestId(testId));
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
+  });
+
+  it('renders the Convert to mUSD footer when stablecoins are eligible', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyHomeView />,
+    );
+
+    expect(
+      getByTestId(MoneyFooterTestIds.CONVERT_TO_MUSD_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyFooterTestIds.ADD_MONEY_BUTTON)).toBeNull();
   });
 
   describe('milestone state (1-9 transactions)', () => {

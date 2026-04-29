@@ -35,4 +35,27 @@ describe('MoneyFooter', () => {
       fireEvent.press(getByTestId(MoneyFooterTestIds.ADD_MONEY_BUTTON));
     }).not.toThrow();
   });
+
+  describe('convert-musd variant', () => {
+    it('renders the Convert to mUSD button instead of Add money', () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoneyFooter variant="convert-musd" />,
+      );
+
+      expect(
+        getByTestId(MoneyFooterTestIds.CONVERT_TO_MUSD_BUTTON),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyFooterTestIds.ADD_MONEY_BUTTON)).toBeNull();
+    });
+
+    it('calls onConvertPress when Convert to mUSD is pressed', () => {
+      const mockConvert = jest.fn();
+      const { getByTestId } = render(
+        <MoneyFooter variant="convert-musd" onConvertPress={mockConvert} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyFooterTestIds.CONVERT_TO_MUSD_BUTTON));
+      expect(mockConvert).toHaveBeenCalledTimes(1);
+    });
+  });
 });

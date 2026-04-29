@@ -6577,7 +6577,8 @@
       "learn_more": "Learn more"
     },
     "footer": {
-      "add_money": "Add money"
+      "add_money": "Add money",
+      "convert_to_musd": "Convert to mUSD"
     },
     "add_money_sheet": {
       "title": "Add money",

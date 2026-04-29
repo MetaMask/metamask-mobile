@@ -61,6 +61,7 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const hasEligibleStablecoins = conversionTokens.length > 0;
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -78,6 +79,8 @@ const MoneyHomeView = () => {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
   }, [navigation]);
+  // TODO(MUSD-722): route to the Single Convert screen when it ships.
+  const handleConvertPress = displayUnderConstructionAlert;
   const handleTransferPress = displayUnderConstructionAlert;
   const handleCardPress = displayUnderConstructionAlert;
   const handleApyInfoPress = displayUnderConstructionAlert;
@@ -233,7 +236,11 @@ const MoneyHomeView = () => {
           />
         )}
       </ScrollView>
-      <MoneyFooter onAddMoneyPress={handleAddPress} />
+      <MoneyFooter
+        variant={hasEligibleStablecoins ? 'convert-musd' : 'add-money'}
+        onAddMoneyPress={handleAddPress}
+        onConvertPress={handleConvertPress}
+      />
     </Box>
   );
 };
