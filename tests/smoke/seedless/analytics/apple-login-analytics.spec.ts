@@ -3,14 +3,14 @@ import { Mockttp } from 'mockttp';
 
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { SmokeSeedlessOnboarding } from '../../../tags';
+import { SmokeSeedlessAnalytics } from '../../../tags';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../../module-mocking/oauth';
 import { appleLoginNewUserAnalyticsExpectations } from '../../../helpers/analytics/expectations/apple-login-new-user.analytics';
 import { completeAppleNewUserOnboarding } from '../utils';
 
 describe(
-  SmokeSeedlessOnboarding('Analytics - Apple Social Login New User'),
+  SmokeSeedlessAnalytics('Analytics - Apple Social Login New User'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(300000);

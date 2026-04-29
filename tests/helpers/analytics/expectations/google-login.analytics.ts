@@ -6,7 +6,6 @@ import { onboardingEvents } from '../helpers';
  */
 const googleLoginNewUserFlowEventNames = [
   onboardingEvents.METRICS_OPT_IN,
-  onboardingEvents.WALLET_SETUP_STARTED,
   onboardingEvents.SOCIAL_LOGIN_COMPLETED,
   onboardingEvents.WALLET_CREATION_ATTEMPTED,
   onboardingEvents.WALLET_CREATED,
@@ -26,12 +25,6 @@ export const googleLoginNewUserAnalyticsExpectations: AnalyticsExpectations = {
       containProperties: {
         updated_after_onboarding: false,
         location: 'onboarding_social_login',
-        account_type: 'metamask_google',
-      },
-    },
-    {
-      name: onboardingEvents.WALLET_SETUP_STARTED,
-      containProperties: {
         account_type: 'metamask_google',
       },
     },

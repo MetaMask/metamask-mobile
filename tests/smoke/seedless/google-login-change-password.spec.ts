@@ -13,7 +13,6 @@ import ToastModal from '../../page-objects/wallet/ToastModal';
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { SmokeSeedlessOnboarding } from '../../tags';
 import { loginWithPassword, FIXTURE_PASSWORD } from './utils';
-import { googleLoginChangePasswordAnalyticsExpectations } from '../../helpers/analytics/expectations/google-login-change-password.analytics';
 
 const NEW_PASSWORD = 'NewPass456!@#';
 
@@ -32,7 +31,6 @@ describe(SmokeSeedlessOnboarding('Change Password'), () => {
           oAuthMockttpService.configureGoogleNewUser();
           await oAuthMockttpService.setup(mockServer);
         },
-        analyticsExpectations: googleLoginChangePasswordAnalyticsExpectations,
       },
       async () => {
         await loginWithPassword(FIXTURE_PASSWORD);
