@@ -24,6 +24,7 @@ export const IMPACT_STYLE_MAP: Record<HapticImpactMoment, ImpactFeedbackStyle> =
     [ImpactMoment.PullToRefreshEngage]: ImpactFeedbackStyle.Light,
     [ImpactMoment.PullToRefresh]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.ChartCrosshair]: ImpactFeedbackStyle.Light,
+    [ImpactMoment.FollowToggle]: ImpactFeedbackStyle.Light,
   };
 
 export async function vendorNotifySuccess(): Promise<void> {

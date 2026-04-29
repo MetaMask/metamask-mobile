@@ -92,6 +92,9 @@ export const ImpactMoment = {
 
   /** Chart crosshair / OHLC data point change — Light impact. */
   ChartCrosshair: 'chartCrosshair',
+
+  /** Social follow / unfollow toggle — Light impact. */
+  FollowToggle: 'followToggle',
 } as const;
 
 export type HapticImpactMoment =

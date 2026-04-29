@@ -108,7 +108,7 @@ describe('PredictQuickAmounts', () => {
     const buttons = screen.getAllByRole('button');
     expect(buttons).toHaveLength(4);
     buttons.forEach((button) => {
-      expect(button).toHaveProp('disabled', true);
+      expect(button).toBeDisabled();
     });
   });
 });

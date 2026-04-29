@@ -46,6 +46,7 @@ const CATALOG_IMPACT_MOMENTS_ORDERED: readonly HapticImpactMoment[] = [
   ImpactMoment.PullToRefreshEngage,
   ImpactMoment.PullToRefresh,
   ImpactMoment.ChartCrosshair,
+  ImpactMoment.FollowToggle,
 ];
 
 const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
@@ -67,6 +68,8 @@ const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
     'app_settings.developer_options.haptics.impacts.pull_to_refresh',
   [ImpactMoment.ChartCrosshair]:
     'app_settings.developer_options.haptics.impacts.chart_crosshair',
+  [ImpactMoment.FollowToggle]:
+    'app_settings.developer_options.haptics.impacts.follow_toggle',
 };
 
 const RAW_IMPACT_STYLE_ORDER: readonly ImpactFeedbackStyle[] = [

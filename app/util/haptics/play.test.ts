@@ -119,6 +119,11 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
+    it('playImpact(FollowToggle) calls impactAsync with Light', async () => {
+      await playImpact(ImpactMoment.FollowToggle);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+    });
+
     it('playSelection calls selectionAsync', async () => {
       await playSelection();
       expect(selectionAsync).toHaveBeenCalled();
