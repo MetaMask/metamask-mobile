@@ -1,4 +1,4 @@
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 
 jest.mock('../../../../lib/Money/feature-flags', () => ({
   isMoneyAccountEnabled: jest.fn(),
@@ -38,33 +38,31 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getKeyringControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };
 
-  requestMock.getMessengerClient.mockImplementation(
-    // @ts-expect-error: Partial implementation.
-    (controllerName: string) => {
-      if (controllerName === 'SnapKeyringBuilder') {
-        return jest.fn();
-      }
+  // @ts-expect-error: Partial implementation.
+  requestMock.getController.mockImplementation((controllerName: string) => {
+    if (controllerName === 'SnapKeyringBuilder') {
+      return jest.fn();
+    }
 
-      if (controllerName === 'PreferencesController') {
-        return jest.fn();
-      }
+    if (controllerName === 'PreferencesController') {
+      return jest.fn();
+    }
 
-      if (controllerName === 'KeyringController') {
-        return { withKeyringUnsafe: mockWithKeyringUnsafe };
-      }
+    if (controllerName === 'KeyringController') {
+      return { withKeyringUnsafe: mockWithKeyringUnsafe };
+    }
 
-      if (controllerName === 'RemoteFeatureFlagController') {
-        return { state: { remoteFeatureFlags: {} } };
-      }
+    if (controllerName === 'RemoteFeatureFlagController') {
+      return { state: { remoteFeatureFlags: {} } };
+    }
 
-      throw new Error(`Controller "${controllerName}" not found.`);
-    },
-  );
+    throw new Error(`Controller "${controllerName}" not found.`);
+  });
 
   return requestMock;
 }
