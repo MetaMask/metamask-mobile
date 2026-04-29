@@ -1,10 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
-import {
-  useQuickBuyBottomSheet,
-  selectDefaultSourceToken,
-} from './useQuickBuyBottomSheet';
+import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
+import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
@@ -664,19 +662,15 @@ describe('useQuickBuyBottomSheet', () => {
     const native = (chainId: string, fiat = 1000): BridgeToken =>
       createSourceToken({
         address: '0x0000000000000000000000000000000000000000',
-        chainId,
+        chainId: chainId as `0x${string}`,
         symbol: 'ETH',
         tokenFiatAmount: fiat,
       });
 
-    const erc20 = (
-      chainId: string,
-      symbol: string,
-      fiat = 1000,
-    ): BridgeToken =>
+    const erc20 = (chainId: string, symbol: string, fiat = 1000): BridgeToken =>
       createSourceToken({
         address: `0xToken${symbol}`,
-        chainId,
+        chainId: chainId as `0x${string}`,
         symbol,
         tokenFiatAmount: fiat,
       });
