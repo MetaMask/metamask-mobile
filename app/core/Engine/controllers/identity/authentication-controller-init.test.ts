@@ -8,8 +8,12 @@ import {
   AuthenticationControllerMessenger,
 } from '@metamask/profile-sync-controller/auth';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { getVersion } from 'react-native-device-info';
 
 jest.mock('@metamask/profile-sync-controller/auth');
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.42.0'),
+}));
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<AuthenticationControllerMessenger>
@@ -43,7 +47,18 @@ describe('AuthenticationControllerInit', () => {
       metametrics: {
         agent: 'mobile',
         getMetaMetricsId: expect.any(Function),
+        getAppVersion: expect.any(Function),
       },
     });
+  });
+
+  it('wires getAppVersion to react-native-device-info getVersion()', () => {
+    authenticationControllerInit(getInitRequestMock());
+
+    const controllerMock = jest.mocked(AuthenticationController);
+    const constructorArgs = controllerMock.mock.calls[0][0];
+
+    expect(constructorArgs.metametrics.getAppVersion?.()).toBe('7.42.0');
+    expect(jest.mocked(getVersion)).toHaveBeenCalled();
   });
 });
