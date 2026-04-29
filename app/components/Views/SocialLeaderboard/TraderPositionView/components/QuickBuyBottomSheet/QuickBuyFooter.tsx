@@ -20,6 +20,9 @@ import {
   BoxJustifyContent,
   AvatarToken,
   AvatarTokenSize,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeNetwork,
   Icon as IconDS,
   IconSize as IconSizeDS,
 } from '@metamask/design-system-react-native';
@@ -31,15 +34,12 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import type { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import SourceTokenPicker from './SourceTokenPicker';
+import { getBridgeTokenImageSource } from './getBridgeTokenImageSource';
 import { strings } from '../../../../../../../locales/i18n';
 
 const USD_PRESETS = ['1', '20', '50', '100'];
@@ -203,14 +203,15 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
                   gap={2}
                 >
                   <BadgeWrapper
-                    badgePosition={BadgePosition.BottomRight}
-                    badgeElement={
+                    position={BadgeWrapperPosition.BottomRight}
+                    badge={
                       sourceChainId ? (
                         <BadgeNetwork
                           name={sourceToken?.symbol ?? ''}
-                          imageSource={getNetworkImageSource({
+                          src={getNetworkImageSource({
                             chainId: sourceChainId,
                           })}
+                          twClassName="scale-75"
                         />
                       ) : null
                     }
@@ -218,8 +219,8 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
                     <AvatarToken
                       name={sourceToken?.symbol ?? ''}
                       src={
-                        sourceToken?.image
-                          ? { uri: sourceToken.image }
+                        sourceToken
+                          ? getBridgeTokenImageSource(sourceToken)
                           : undefined
                       }
                       size={AvatarTokenSize.Xs}
