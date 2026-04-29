@@ -972,6 +972,11 @@ export class PredictController extends BaseController<
     this.analytics.trackShareAction(args);
   }
 
+  /**
+   * Track Predict Betslip Dismissed analytics event
+   *
+   * @public
+   */
   public trackBetslipDismissed(
     args: Parameters<PredictAnalytics['trackBetslipDismissed']>[0],
   ): void {
