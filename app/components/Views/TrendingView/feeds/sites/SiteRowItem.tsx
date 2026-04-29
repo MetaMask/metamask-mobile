@@ -1,10 +1,23 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
-import SiteRowItemWrapper from '../../../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
-import type { SiteData } from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import SiteRowItemBase, {
+  type SiteData,
+} from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import Routes from '../../../../../constants/navigation/Routes';
 import { removeBookmark } from '../../../../../actions/bookmarks';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
+const openSiteInBrowser = (navigation: AppNavigationProp, site: SiteData) => {
+  navigation.navigate(Routes.BROWSER.HOME, {
+    screen: Routes.BROWSER.VIEW,
+    params: {
+      newTabUrl: site.url,
+      timestamp: Date.now(),
+      fromTrending: true,
+    },
+  });
+};
 
 interface SiteRowItemProps {
   site: SiteData;
@@ -13,7 +26,12 @@ interface SiteRowItemProps {
 /** Generic site row (sites + dapps_favorites without remove action). */
 export const SiteRowItem: React.FC<SiteRowItemProps> = ({ site }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  return <SiteRowItemWrapper site={site} navigation={navigation} />;
+  return (
+    <SiteRowItemBase
+      site={site}
+      onPress={() => openSiteInBrowser(navigation, site)}
+    />
+  );
 };
 
 /** Favorite-site row with the "remove from favorites" affordance. */
@@ -21,9 +39,9 @@ export const FavoriteSiteRowItem: React.FC<SiteRowItemProps> = ({ site }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   return (
-    <SiteRowItemWrapper
+    <SiteRowItemBase
       site={site}
-      navigation={navigation}
+      onPress={() => openSiteInBrowser(navigation, site)}
       onRemoveFavorite={() =>
         dispatch(removeBookmark({ url: site.url, name: site.name }))
       }
