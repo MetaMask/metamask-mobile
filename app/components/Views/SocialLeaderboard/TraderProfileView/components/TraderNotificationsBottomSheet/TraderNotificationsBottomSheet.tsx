@@ -2,7 +2,6 @@ import React, { forwardRef, useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import {
   Box,
   Text,
@@ -23,7 +22,12 @@ import HeaderCompactStandard from '../../../../../../component-library/component
 import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { fireSwitchHaptic } from '../../../../../../util/haptics';
+import {
+  fireSwitchHaptic,
+  ImpactFeedbackStyle,
+  playImpact,
+  ImpactMoment,
+} from '../../../../../../util/haptics';
 import type { SocialAIPreference } from '../../../NotificationPreferencesView/hooks';
 import AllowPushNotificationsRow from '../../../NotificationPreferencesView/components/AllowPushNotificationsRow';
 import { TraderNotificationsBottomSheetSelectorsIDs } from './TraderNotificationsBottomSheet.testIds';
@@ -89,7 +93,7 @@ const TraderNotificationsBottomSheet = forwardRef<
     // Save is a deliberate primary-action commit, so always fire the haptic
     // — including when the value didn't change — to acknowledge the press.
     const handleSave = useCallback(() => {
-      impactAsync(ImpactFeedbackStyle.Medium);
+      playImpact(ImpactMoment.PrimaryCTA);
       if (localEnabled !== isTraderNotificationEnabled(traderId)) {
         toggleTraderNotification(traderId);
       }

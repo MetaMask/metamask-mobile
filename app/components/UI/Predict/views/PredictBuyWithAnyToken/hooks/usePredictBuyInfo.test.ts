@@ -13,7 +13,8 @@ let mockPayTotals: {
 let mockActiveOrder: { error?: string } | null = null;
 let mockAvailableBalance = 1000;
 let mockIsBalanceLoading = false;
-let mockInsufficientPayTokenBalanceAlert: { message: string } | null = null;
+let mockInsufficientPayAlerts: { message: string; isBlocking: boolean }[] = [];
+let mockNoQuotesAlerts: { message: string; isBlocking: boolean }[] = [];
 
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -44,9 +45,14 @@ jest.mock('./usePredictBuyAvailableBalance', () => ({
 jest.mock(
   '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
   () => ({
-    useInsufficientPayTokenBalanceAlert: () => [
-      mockInsufficientPayTokenBalanceAlert,
-    ],
+    useInsufficientPayTokenBalanceAlert: () => mockInsufficientPayAlerts,
+  }),
+);
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+  () => ({
+    useNoPayTokenQuotesAlert: () => mockNoQuotesAlerts,
   }),
 );
 
@@ -111,7 +117,8 @@ describe('usePredictBuyInfo', () => {
     mockActiveOrder = null;
     mockAvailableBalance = 1000;
     mockIsBalanceLoading = false;
-    mockInsufficientPayTokenBalanceAlert = null;
+    mockInsufficientPayAlerts = [];
+    mockNoQuotesAlerts = [];
   });
 
   describe('depositFee', () => {
@@ -176,9 +183,9 @@ describe('usePredictBuyInfo', () => {
           targetNetwork: { usd: 1.0 },
         },
       };
-      mockInsufficientPayTokenBalanceAlert = {
-        message: 'Insufficient payment token balance',
-      };
+      mockInsufficientPayAlerts = [
+        { message: 'Insufficient payment token balance', isBlocking: true },
+      ];
 
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
 

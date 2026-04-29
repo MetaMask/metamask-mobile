@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getAiDigestControllerMessenger } from '../messengers/ai-digest-controller-messenger';
 import { MessengerClientInitRequest } from '../types';
@@ -21,7 +21,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getAiDigestControllerMessenger(baseMessenger),
   };
 }

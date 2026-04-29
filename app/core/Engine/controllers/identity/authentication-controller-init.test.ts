@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getAuthenticationControllerMessenger } from '../../messengers/identity/authentication-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
@@ -19,7 +19,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getAuthenticationControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

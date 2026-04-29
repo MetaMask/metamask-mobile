@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getComplianceControllerMessenger } from '../../messengers/compliance/compliance-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
@@ -21,7 +21,7 @@ function getInitRequestMock(
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getComplianceControllerMessenger(baseMessenger),
     persistedState,
   };

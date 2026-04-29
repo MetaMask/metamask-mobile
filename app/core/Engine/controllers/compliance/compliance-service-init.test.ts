@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getComplianceServiceMessenger } from '../../messengers/compliance/compliance-service-messenger';
 import { complianceServiceInit } from './compliance-service-init';
@@ -27,7 +27,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getComplianceServiceMessenger(baseMessenger),
   };
 }
