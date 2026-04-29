@@ -63,6 +63,7 @@ const TAB_GRADIENT_COLORS: Record<number, [string, string, string]> = {
 interface DiscoveryTabViewProps {
   tabLabel: string;
   tabIcon?: IconName;
+  keepMounted?: boolean;
   children?: React.ReactNode;
 }
 
@@ -307,7 +308,11 @@ const HomepageDiscoveryTabs = forwardRef<
               </PerpsConnectionProvider>
             </DiscoveryTabView>
 
-            <DiscoveryTabView tabLabel="Predictions" tabIcon={IconName.Predict}>
+            <DiscoveryTabView
+              tabLabel="Predictions"
+              tabIcon={IconName.Predict}
+              keepMounted={false}
+            >
               <PredictPreviewSheetProvider>
                 <PredictFeed hideHeader onHeaderHiddenChange={animateIcons} />
               </PredictPreviewSheetProvider>

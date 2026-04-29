@@ -49,6 +49,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const [scrollEnabled, setScrollEnabled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
 
+  const hasIcons = tabs.some((tab) => tab.iconName);
+
   // Height collapse animation state
   const [tabRowHeight, setTabRowHeight] = useState(0);
   const animatedHeight =
@@ -126,18 +128,24 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
       const isFirstTime = !isInitialized;
 
+      const targetWidth = hasIcons
+        ? activeTabLayout.width * 0.75
+        : activeTabLayout.width;
+      const targetX =
+        activeTabLayout.x + (hasIcons ? activeTabLayout.width * 0.125 : 0);
+
       if (isFirstTime) {
         // First time - set position immediately
-        underlineAnimated.setValue(activeTabLayout.x);
-        setUnderlineWidth(activeTabLayout.width);
+        underlineAnimated.setValue(targetX);
+        setUnderlineWidth(targetWidth);
         setIsInitialized(true);
       } else {
         // Snap width instantly (no layout animation = native thread safe),
         // then slide position on the native thread via translateX.
-        setUnderlineWidth(activeTabLayout.width);
+        setUnderlineWidth(targetWidth);
 
         const animation = Animated.timing(underlineAnimated, {
-          toValue: activeTabLayout.x,
+          toValue: targetX,
           duration: 200,
           useNativeDriver: true,
         });
@@ -158,7 +166,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         });
       }
     },
-    [scrollEnabled, underlineAnimated, tabs.length, isInitialized],
+    [scrollEnabled, underlineAnimated, tabs.length, isInitialized, hasIcons],
   );
 
   // Animate when activeIndex changes and layouts are ready
@@ -282,8 +290,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
       onTabPress(index);
     }
   };
-
-  const hasIcons = tabs.some((tab) => tab.iconName);
 
   return (
     <Box

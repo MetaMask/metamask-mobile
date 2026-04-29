@@ -18,6 +18,7 @@ export interface TabItem {
   isDisabled?: boolean;
   testID?: string;
   iconName?: IconName;
+  keepMounted?: boolean;
 }
 
 /**

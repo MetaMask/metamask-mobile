@@ -42,6 +42,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               tabIcon?: IconName;
               isDisabled?: boolean;
               testID?: string;
+              keepMounted?: boolean;
             };
             const tabLabel = props.tabLabel || `Tab ${index + 1}`;
             const isDisabled = props.isDisabled || false;
@@ -54,6 +55,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               isDisabled,
               isLoaded: false,
               testID: props.testID,
+              keepMounted: props.keepMounted ?? true,
             };
           }),
       [children],
@@ -260,6 +262,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               const isLoaded = loadedTabs.has(index);
 
               if (!isLoaded) return null;
+              if (!isActive && !tab.keepMounted) return null;
 
               return (
                 <Box

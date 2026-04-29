@@ -630,9 +630,13 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 
 interface PredictFeedProps {
   hideHeader?: boolean;
+  onHeaderHiddenChange?: (hidden: boolean) => void;
 }
 
-const PredictFeed: React.FC<PredictFeedProps> = ({ hideHeader = false }) => {
+const PredictFeed: React.FC<PredictFeedProps> = ({
+  hideHeader = false,
+  onHeaderHiddenChange,
+}) => {
   const {
     tabs,
     activeIndex,
@@ -712,6 +716,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({ hideHeader = false }) => {
     headerRef,
     tabBarRef,
     setActiveIndex,
+    onHeaderHiddenChange,
   });
 
   const handleTabPress = useCallback(
