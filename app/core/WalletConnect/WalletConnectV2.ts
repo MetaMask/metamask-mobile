@@ -659,7 +659,10 @@ export class WC2Manager {
 
     try {
       // Create a modified CAIP-25 caveat value that includes the current chain
-      const caveatValue = getDefaultCaip25CaveatValue();
+      const caveatValue = {
+        ...getDefaultCaip25CaveatValue(),
+        isMultichainOrigin: true,
+      };
 
       // Important: Use hostname as the origin for permission request to ensure consistency
       DevLogger.log(

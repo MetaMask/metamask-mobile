@@ -1,5 +1,10 @@
 import { rpcErrors } from '@metamask/rpc-errors';
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  parseCaipAccountId,
+} from '@metamask/utils';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -317,6 +322,11 @@ export const getScopedPermissions = async ({
   const namespaces: Record<string, NamespaceConfig> = {};
   // EIP155 namespace
   const approvedAccounts = getPermittedAccounts(channelId);
+  if (!Array.isArray(approvedAccounts)) {
+    throw rpcErrors.internal({
+      message: `WalletConnect permissions are in an unexpected format: approved accounts must be an array.`,
+    });
+  }
   const permittedChains = await getPermittedChains(channelId);
   const evmChains = permittedChains.filter((chain) =>
     chain.startsWith(`${KnownCaipNamespace.Eip155}:`),
@@ -329,9 +339,7 @@ export const getScopedPermissions = async ({
     methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Eip155],
     events: ['chainChanged', 'accountsChanged'],
     accounts: evmChains.flatMap((chain) =>
-      Array.isArray(approvedAccounts)
-        ? approvedAccounts.map((account) => `${chain}:${account}`)
-        : [],
+      approvedAccounts.map((account) => `${chain}:${account}`),
     ),
   };
 
@@ -352,14 +360,20 @@ export const getScopedPermissions = async ({
       )
         .filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`))
         .flatMap((account) => {
-          const [namespace, chainRef, ...addressParts] = account.split(':');
-          if (namespace !== KnownCaipNamespace.Tron || !chainRef) {
+          try {
+            const parsedAccount = parseCaipAccountId(account);
+            if (parsedAccount.chain.namespace !== KnownCaipNamespace.Tron) {
+              return [account];
+            }
+
+            const chainId = `${parsedAccount.chain.namespace}:${parsedAccount.chain.reference}`;
+            return getCompatibleTronCaipChainIdsForWalletConnect(chainId).map(
+              (compatibleChainId) =>
+                `${compatibleChainId}:${parsedAccount.address}`,
+            );
+          } catch {
             return [account];
           }
-          const address = addressParts.join(':');
-          return getCompatibleTronCaipChainIdsForWalletConnect(
-            `${namespace}:${chainRef}`,
-          ).map((chainId) => `${chainId}:${address}`);
         })
     : [];
 
