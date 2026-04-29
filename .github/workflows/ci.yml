@@ -715,7 +715,7 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ needs.build-android-apks.result == 'success' }}
+    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' }}
     permissions:
       contents: read
       id-token: write
@@ -756,7 +756,7 @@ jobs:
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ needs.ios-tests-ready.result == 'success' }}
+    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' }}
     permissions:
       contents: read
       id-token: write
