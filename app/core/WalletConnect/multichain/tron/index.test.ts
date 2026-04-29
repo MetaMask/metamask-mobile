@@ -1,10 +1,12 @@
 import { TrxAccountType } from '@metamask/keyring-api';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../../../Engine';
 import { addPermittedAccounts } from '../../../Permissions';
 
 import {
   buildTronNamespace,
+  buildTronScopedPermissionsNamespace,
   mapTronRequestForSnap,
   normalizeTronSnapResponse,
   proposalReferencesTron,
@@ -18,6 +20,9 @@ jest.mock('../../../Engine', () => ({
     context: {
       AccountsController: {
         listAccounts: jest.fn().mockReturnValue([]),
+      },
+      PermissionController: {
+        getCaveat: jest.fn(),
       },
     },
   },
@@ -33,11 +38,14 @@ jest.mock('../../../SDKConnect/utils/DevLogger', () => ({
 
 const mockedListAccounts = Engine.context.AccountsController
   .listAccounts as jest.Mock;
+const mockedGetCaveat = Engine.context.PermissionController
+  .getCaveat as jest.Mock;
 const mockedAddPermittedAccounts = addPermittedAccounts as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockedListAccounts.mockReturnValue([]);
+  mockedGetCaveat.mockReturnValue(undefined);
 });
 
 describe('multichain/tron - mapTronRequestForSnap', () => {
@@ -468,6 +476,25 @@ describe('multichain/tron - buildTronNamespace', () => {
       'tron:728126428:TAddrA',
       'tron:0x94a9059e:TAddrA',
     ]);
+  });
+});
+
+describe('multichain/tron - buildTronScopedPermissionsNamespace', () => {
+  it('continues building namespace when getCaveat throws PermissionDoesNotExistError', () => {
+    mockedListAccounts.mockReturnValue([
+      { type: TrxAccountType.Eoa, address: 'TAddrA' },
+    ]);
+    mockedGetCaveat.mockImplementation(() => {
+      throw new PermissionDoesNotExistError('missing caveat');
+    });
+
+    const result = buildTronScopedPermissionsNamespace({
+      channelId: 'wc-topic',
+      permittedChains: ['tron:728126428'],
+    });
+
+    expect(result?.chains).toStrictEqual(['tron:728126428', 'tron:0x2b6653dc']);
+    expect(result?.accounts).toContain('tron:728126428:TAddrA');
   });
 });
 
