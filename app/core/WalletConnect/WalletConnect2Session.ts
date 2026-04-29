@@ -11,7 +11,6 @@ import {
   CaipAccountId,
   CaipChainId,
   Hex,
-  Json,
   KnownCaipNamespace,
 } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -50,6 +49,7 @@ import {
 } from './wc-utils';
 import {
   buildAdapterNamespaces,
+  callMultichainRoutingService,
   mapRequestForSnap,
   normalizeSnapResponse,
   proposalReferencedAdapterNamespaces,
@@ -911,24 +911,12 @@ class WalletConnect2Session {
       `WC2::routeToSnap scope=${scope} method=${method} mappedMethod=${mappedRequest.method} connectedAddresses=${connectedAddresses.length}`,
     );
     try {
-      const result = await Engine.controllerMessenger.call(
-        'MultichainRoutingService:handleRequest',
-        {
-          connectedAddresses,
-          origin: 'metamask',
-          scope,
-          request: {
-            jsonrpc: '2.0' as const,
-            id: requestEvent.id,
-            method: mappedRequest.method,
-            ...(mappedRequest.params
-              ? {
-                  params: mappedRequest.params as Record<string, Json> | Json[],
-                }
-              : {}),
-          },
-        },
-      );
+      const result = await callMultichainRoutingService({
+        connectedAddresses,
+        scope,
+        requestId: requestEvent.id,
+        mappedRequest,
+      });
       const walletConnectResult = normalizeSnapResponse({
         scope,
         method,
