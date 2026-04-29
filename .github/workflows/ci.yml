@@ -718,7 +718,8 @@ jobs:
     if: >-
       ${{
         !cancelled() &&
-        needs.get_requirements.outputs.android_e2e_needed == 'true'
+        needs.get_requirements.outputs.android_e2e_needed == 'true' &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -767,7 +768,8 @@ jobs:
     if: >-
       ${{
         !cancelled() &&
-        needs.get_requirements.outputs.ios_e2e_needed == 'true'
+        needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -790,12 +792,13 @@ jobs:
       ${{
         !cancelled() &&
         github.event_name == 'pull_request' &&
-        needs.get_requirements.outputs.ios_e2e_needed == 'true'
+        needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
       id-token: write
-    needs: [get_requirements, ios-tests-ready]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
