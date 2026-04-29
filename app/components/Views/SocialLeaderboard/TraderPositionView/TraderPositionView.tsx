@@ -78,7 +78,7 @@ const TraderPositionView = () => {
     timePeriods,
   } = positionData;
 
-  const handleClose = useCallback(() => {
+  const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
@@ -108,8 +108,8 @@ const TraderPositionView = () => {
     >
       <TraderPositionHeader
         traderName={traderName}
-        onClose={handleClose}
-        closeButtonTestID={TraderPositionViewSelectorsIDs.CLOSE_BUTTON}
+        onBack={handleBack}
+        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
       />
 
       {isInitialLoading ? (

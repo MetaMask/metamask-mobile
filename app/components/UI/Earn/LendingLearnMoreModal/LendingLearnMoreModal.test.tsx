@@ -185,17 +185,18 @@ describe('LendingLearnMoreModal', () => {
       { state: mockInitialState },
     );
 
-    await waitFor(async () => {
+    await waitFor(() => {
       const chartContainer = getByTestId(
         INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
       );
+      expect(chartContainer).toBeOnTheScreen();
+
       const areaChart = chartContainer.find(
         (child) => child.type === AreaChart,
       );
+      expect(areaChart).toBeDefined();
 
       fireLayoutEvent(areaChart);
-
-      expect(chartContainer).toBeOnTheScreen();
     });
   });
 
