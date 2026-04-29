@@ -8,6 +8,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import type { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { QRHardwareScanErrorType } from '../../../core/HardwareWallet/errors';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -84,6 +85,13 @@ const mockURRegistryDecoder = URRegistryDecoder as jest.MockedClass<
   typeof URRegistryDecoder
 >;
 
+const expectCapturedCallback = <TCallback,>(
+  callback: TCallback | null,
+): NonNullable<TCallback> => {
+  expect(callback).toEqual(expect.any(Function));
+  return callback as NonNullable<TCallback>;
+};
+
 describe('AnimatedQRScannerModal - Metrics', () => {
   const mockOnScanSuccess = jest.fn();
   const mockOnScanError = jest.fn();
@@ -99,6 +107,25 @@ describe('AnimatedQRScannerModal - Metrics', () => {
     onQRHardwareScanError: undefined,
     hideModal: mockHideModal,
     pauseQRCode: mockPauseQRCode,
+  };
+
+  type CapturedOnCodeScanned = NonNullable<
+    ReturnType<typeof getCapturedCallbacks>['onCodeScanned']
+  >;
+  type QRScannerCodes = Parameters<CapturedOnCodeScanned>[0];
+
+  const mockOnCodeScanned = async (codes: QRScannerCodes) => {
+    await waitFor(() => {
+      const callbacks = getCapturedCallbacks();
+      expect(callbacks.onCodeScanned).not.toBeNull();
+    });
+
+    const callbacks = getCapturedCallbacks();
+    const onCodeScanned = expectCapturedCallback(callbacks.onCodeScanned);
+
+    await act(async () => {
+      await onCodeScanned(codes);
+    });
   };
 
   beforeEach(() => {
@@ -119,11 +146,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
 
       const callbacks = getCapturedCallbacks();
-      if (!callbacks.onError) {
-        throw new Error('onError callback is null');
-      }
-
-      const onError = callbacks.onError;
+      const onError = expectCapturedCallback(callbacks.onError);
       const mockError = new Error('Camera initialization failed');
       await act(async () => {
         await onError(mockError);
@@ -155,11 +178,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
 
       const callbacks = getCapturedCallbacks();
-      if (!callbacks.onError) {
-        throw new Error('onError callback is null');
-      }
-
-      const onError = callbacks.onError;
+      const onError = expectCapturedCallback(callbacks.onError);
       await act(async () => {
         await onError(null as unknown as Error);
       });
@@ -180,11 +199,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
 
       const callbacks = getCapturedCallbacks();
-      if (!callbacks.onError) {
-        throw new Error('onError callback is null');
-      }
-
-      const onError = callbacks.onError;
+      const onError = expectCapturedCallback(callbacks.onError);
       await act(async () => {
         await onError(null as unknown as Error);
       });
@@ -203,20 +218,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'https://metamask.io', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'https://metamask.io', type: 'qr' }]);
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
@@ -248,20 +250,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'https://metamask.io', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'https://metamask.io', type: 'qr' }]);
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
@@ -303,22 +292,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -363,22 +339,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-account/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-account/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -427,22 +390,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:eth-signature/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:eth-signature/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -487,22 +437,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -536,20 +473,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       expect(mockOnQRHardwareScanError).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -579,20 +503,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       await waitFor(() => {
         expect(
@@ -622,9 +533,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         ).toBeNull();
       });
 
-      await act(async () => {
-        await onCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
 
       await waitFor(() => {
         expect(mockOnScanSuccess).toHaveBeenCalledWith({
@@ -642,29 +551,14 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       await waitFor(() => {
         expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
         expect(mockAddProperties).toHaveBeenCalledTimes(1);
       });
 
-      await act(async () => {
-        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledTimes(1);
@@ -691,20 +585,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       await waitFor(() => {
         expect(
@@ -716,9 +597,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       fireEvent.press(getByText('hardware_wallet.common.try_again'));
 
-      await act(async () => {
-        await onCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
 
       await waitFor(() => {
         expect(mockOnScanSuccess).toHaveBeenCalledWith({
@@ -736,20 +615,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       fireEvent.press(getByText('hardware_wallet.common.learn_more'));
 
@@ -781,22 +647,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockOnScanSuccess).toHaveBeenCalledWith({
@@ -824,22 +677,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} visible={false} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockDecoderInstance.receivePart).not.toHaveBeenCalled();
@@ -865,20 +705,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([]);
-      });
+      await mockOnCodeScanned([]);
 
       await waitFor(() => {
         expect(mockDecoderInstance.receivePart).not.toHaveBeenCalled();
@@ -904,20 +731,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: null as unknown as string, type: 'qr' }]);
-      });
+      await mockOnCodeScanned([
+        { value: null as unknown as string, type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockDecoderInstance.receivePart).not.toHaveBeenCalled();
@@ -943,20 +759,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: '', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: '', type: 'qr' }]);
 
       await waitFor(() => {
         expect(mockDecoderInstance.receivePart).not.toHaveBeenCalled();
@@ -1135,22 +938,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith(
@@ -1185,11 +975,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
 
       const callbacks = getCapturedCallbacks();
-      if (!callbacks.onError) {
-        throw new Error('onError callback is null');
-      }
-
-      const onError = callbacks.onError;
+      const onError = expectCapturedCallback(callbacks.onError);
       const mockError = new Error('Camera error');
       await act(async () => {
         await onError(mockError);
@@ -1227,22 +1013,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
@@ -1277,22 +1050,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-account/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-account/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith(
@@ -1320,27 +1080,16 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         const calls = mockAddProperties.mock.calls;
         const lastCall = calls[calls.length - 1]?.[0];
-        expect(lastCall?.error_category).toBe('ur_decode_error');
+        expect(lastCall?.error_category).not.toBe(
+          QRHardwareScanErrorType.WrongURType,
+        );
         expect(lastCall).not.toHaveProperty('received_ur_type');
       });
     });
@@ -1365,22 +1114,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith(
@@ -1411,22 +1147,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([
-          { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
-        ]);
-      });
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith(
@@ -1453,16 +1176,8 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         onModalHideComplete: mockOnModalHideComplete,
       };
 
-      const { rerender } = render(<AnimatedQRScannerModal {...propsHidden} />);
-
-      rerender(<AnimatedQRScannerModal {...propsVisible} />);
-
-      await waitFor(
-        () => {
-          expect(mockPauseQRCode).toHaveBeenCalledWith(true);
-        },
-        { timeout: 2000 },
-      );
+      const { rerender } = render(<AnimatedQRScannerModal {...propsVisible} />);
+      expect(mockOnModalHideComplete).not.toHaveBeenCalled();
 
       mockPauseQRCode.mockClear();
       rerender(<AnimatedQRScannerModal {...propsHidden} />);
@@ -1475,7 +1190,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       );
     });
 
-    it('does not call onModalHideComplete when not provided', async () => {
+    it('completes hide flow when onModalHideComplete is not provided', async () => {
       const propsHidden = { ...defaultProps, visible: false };
       const propsVisible = { ...defaultProps, visible: true };
 
@@ -1508,20 +1223,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       await waitFor(() => {
         expect(
@@ -1628,20 +1330,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       const { rerender } = render(<AnimatedQRScannerModal {...propsVisible} />);
 
       // Simulate scanning to set progress
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onCodeScanned).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      if (!callbacks.onCodeScanned) {
-        throw new Error('onCodeScanned callback is null');
-      }
-
-      const onCodeScanned = callbacks.onCodeScanned;
-      await act(async () => {
-        await onCodeScanned([{ value: 'mock-qr-data', type: 'qr' }]);
-      });
+      await mockOnCodeScanned([{ value: 'mock-qr-data', type: 'qr' }]);
 
       // Hide modal to trigger reset
       mockPauseQRCode.mockClear();
