@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import CampaignEndedStats, {
   CAMPAIGN_ENDED_STATS_TEST_IDS,
 } from './CampaignEndedStats';
@@ -260,7 +260,7 @@ describe('CampaignEndedStats', () => {
     );
 
     expect(getByTestId('rewards-error-banner')).toBeTruthy();
-    getByTestId('rewards-error-banner-retry').props.onPress();
+    fireEvent.press(getByTestId('rewards-error-banner-retry'));
     expect(onRetryLeaderboard).toHaveBeenCalledTimes(1);
     expect(onRetryDeposits).toHaveBeenCalledTimes(1);
   });

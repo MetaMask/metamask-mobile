@@ -1531,7 +1531,9 @@ describe('OndoCampaignDetailsView', () => {
         refetch: jest.fn(),
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER)).toBeDefined();
+      expect(
+        getByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER),
+      ).toBeDefined();
     });
 
     it('does not show CampaignEndedStats while participant status is still loading', () => {
