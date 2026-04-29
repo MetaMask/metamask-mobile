@@ -2,7 +2,9 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
+  PredictDismissalMethodValue,
   PredictEventProperties,
   PredictShareStatusValue,
   PredictTradeStatusValue,
@@ -25,6 +27,16 @@ export interface TrackPredictOrderEventArgs {
   pnl?: number;
   orderType?: PredictOrderType;
   paymentTokenAddress?: string;
+  paymentTokenSymbol?: string;
+  activeAbTests?: TransactionActiveAbTestEntry[];
+}
+
+export interface TrackBetslipDismissedArgs {
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  dismissalMethod: PredictDismissalMethodValue;
+  hadEnteredAmount: boolean;
+  timeOnScreenMs: number;
+  activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export interface MarketDetailsOpenedArgs {
@@ -75,6 +87,8 @@ export class PredictAnalytics {
     pnl,
     orderType,
     paymentTokenAddress,
+    paymentTokenSymbol,
+    activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -133,6 +147,13 @@ export class PredictAnalytics {
       ...(paymentTokenAddress && {
         [PredictEventProperties.PREDICT_TOKEN_ADDRESS]: paymentTokenAddress,
       }),
+      ...(paymentTokenSymbol && {
+        [PredictEventProperties.PREDICT_TOKEN_SYMBOL]: paymentTokenSymbol,
+      }),
+      ...(activeAbTests &&
+        activeAbTests.length > 0 && {
+          [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
+        }),
     };
 
     const sensitiveProperties = {
@@ -156,6 +177,45 @@ export class PredictAnalytics {
       )
         .addProperties(regularProperties)
         .addSensitiveProperties(sensitiveProperties)
+        .build(),
+    );
+  }
+
+  public trackBetslipDismissed({
+    analyticsProperties,
+    dismissalMethod,
+    hadEnteredAmount,
+    timeOnScreenMs,
+    activeAbTests,
+  }: TrackBetslipDismissedArgs): void {
+    if (!analyticsProperties) {
+      return;
+    }
+
+    const regularProperties = {
+      [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+      [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
+      [PredictEventProperties.MARKET_CATEGORY]:
+        analyticsProperties.marketCategory,
+      [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      [PredictEventProperties.DISMISSAL_METHOD]: dismissalMethod,
+      [PredictEventProperties.HAD_ENTERED_AMOUNT]: hadEnteredAmount,
+      [PredictEventProperties.TIME_ON_SCREEN_MS]: timeOnScreenMs,
+      ...(activeAbTests &&
+        activeAbTests.length > 0 && {
+          [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
+        }),
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_BETSLIP_DISMISSED', {
+      regularProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_BETSLIP_DISMISSED,
+      )
+        .addProperties(regularProperties)
         .build(),
     );
   }

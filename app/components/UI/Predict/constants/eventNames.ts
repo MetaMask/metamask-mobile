@@ -59,6 +59,15 @@ export const PredictEventProperties = {
 
   // Payment token (buy-with-any-token flow only)
   PREDICT_TOKEN_ADDRESS: 'predict_token_address',
+  PREDICT_TOKEN_SYMBOL: 'predict_token_symbol',
+
+  // Betslip dismissal
+  DISMISSAL_METHOD: 'dismissal_method',
+  HAD_ENTERED_AMOUNT: 'had_entered_amount',
+  TIME_ON_SCREEN_MS: 'time_on_screen_ms',
+
+  // A/B test attribution
+  ACTIVE_AB_TESTS: 'active_ab_tests',
 
   // Market slug and game properties (for live sports markets)
   MARKET_SLUG: 'market_slug',
@@ -133,12 +142,25 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
+  SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
 } as const;
 
 export type PredictTradeStatusValue =
   (typeof PredictTradeStatus)[keyof typeof PredictTradeStatus];
+
+/**
+ * Dismissal method values for the Predict Betslip Dismissed event
+ */
+export const PredictDismissalMethod = {
+  BACK_BUTTON: 'back_button',
+  SWIPE: 'swipe',
+  HARDWARE_BACK: 'hardware_back',
+} as const;
+
+export type PredictDismissalMethodValue =
+  (typeof PredictDismissalMethod)[keyof typeof PredictDismissalMethod];
 
 // Legacy export for backward compatibility during transition
 export const PredictEventType = PredictTradeStatus;

@@ -48,7 +48,10 @@ import {
   PredictBuyPreviewProps,
   PredictNavigationParamList,
 } from '../../types/navigation';
-import { PredictTradeStatus } from '../../constants/eventNames';
+import {
+  PredictDismissalMethod,
+  PredictTradeStatus,
+} from '../../constants/eventNames';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
@@ -71,10 +74,39 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 
+/**
+ * Module-level ref so PredictPreviewSheetContext can distinguish a programmatic
+ * back-button dismiss from a swipe/hardware-back dismiss when onBuyDismiss fires.
+ * Set to true in the back-button handler, reset to false by the sheet context
+ * after consuming it.
+ */
+export const predictBuyPreviewDismissedViaBackRef = { current: false };
+
+/**
+ * Tracks the mount timestamp and whether the user has entered an amount so
+ * PredictPreviewSheetContext can compute time_on_screen_ms and had_entered_amount
+ * for swipe/hardware-back dismissals without needing internal component state.
+ */
+export const predictBuyPreviewSessionRef = {
+  mountTimestamp: 0,
+  hadEnteredAmount: false,
+};
+
 const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
+  const mountTimestampRef = useRef(Date.now());
+
+  // Keep the module-level session ref in sync for swipe/hardware-back dismiss tracking
+  useEffect(() => {
+    predictBuyPreviewSessionRef.mountTimestamp = mountTimestampRef.current;
+    predictBuyPreviewSessionRef.hadEnteredAmount = false;
+    return () => {
+      predictBuyPreviewSessionRef.hadEnteredAmount = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
@@ -155,6 +187,10 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
 
   // Track when user changes input to show skeleton only during user input changes
   useEffect(() => {
+    if (currentValue > 0) {
+      predictBuyPreviewSessionRef.hadEnteredAmount = true;
+    }
+
     if (!isCalculating) {
       setIsUserInputChange(false);
       if (currentValue === 0) {
@@ -186,6 +222,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       sharePrice: outcomeToken?.price,
+      activeAbTests: transactionActiveAbTests,
     });
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -260,7 +297,21 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     >
       <TouchableOpacity
         testID="back-button"
-        onPress={() => (isSheetMode ? onClose?.() : goBack())}
+        onPress={() => {
+          predictBuyPreviewDismissedViaBackRef.current = true;
+          Engine.context.PredictController.trackBetslipDismissed({
+            analyticsProperties,
+            dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+            hadEnteredAmount: currentValue > 0,
+            timeOnScreenMs: Date.now() - mountTimestampRef.current,
+            activeAbTests: transactionActiveAbTests,
+          });
+          if (isSheetMode) {
+            onClose?.();
+          } else {
+            goBack();
+          }
+        }}
       >
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>

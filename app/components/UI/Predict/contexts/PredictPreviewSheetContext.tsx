@@ -33,11 +33,17 @@ import { formatCents, getCashoutInfoText } from '../utils/format';
 import PredictPreviewSheet, {
   type PredictPreviewSheetRef,
 } from '../components/PredictPreviewSheet/PredictPreviewSheet';
-import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
+import Engine from '../../../../core/Engine';
+import PredictBuyPreview, {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewSessionRef,
+} from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
+import { PredictDismissalMethod } from '../constants/eventNames';
+import { parseAnalyticsProperties } from '../utils/analytics';
 
 let _providerMounted = false;
 
@@ -259,9 +265,29 @@ export const PredictPreviewSheetProvider: React.FC<
     if (activeOrder?.error) {
       dismissedWithErrorRef.current = true;
     }
+
+    // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
+    // The back-button handler in PredictBuyPreview sets the flag to true and
+    // fires the event itself; here we only handle the remaining paths.
+    if (!predictBuyPreviewDismissedViaBackRef.current && buyParams) {
+      const dismissAnalyticsProperties = parseAnalyticsProperties(
+        buyParams.market,
+        buyParams.outcomeToken,
+        buyParams.entryPoint,
+      );
+      Engine.context.PredictController.trackBetslipDismissed({
+        analyticsProperties: dismissAnalyticsProperties,
+        dismissalMethod: PredictDismissalMethod.SWIPE,
+        hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+        timeOnScreenMs: Date.now() - predictBuyPreviewSessionRef.mountTimestamp,
+        activeAbTests: buyParams.transactionActiveAbTests,
+      });
+    }
+    predictBuyPreviewDismissedViaBackRef.current = false;
+
     setBuyParams(null);
     clearOrderError();
-  }, [clearOrderError, activeOrder?.error]);
+  }, [clearOrderError, activeOrder?.error, buyParams]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(

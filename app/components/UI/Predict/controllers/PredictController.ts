@@ -376,6 +376,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
   'trackActivityViewed',
+  'trackBetslipDismissed',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
@@ -404,6 +405,7 @@ export class PredictController extends BaseController<
       preview: OrderPreview;
       signerAddress: string;
       analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+      activeAbTests?: PlaceOrderParams['activeAbTests'];
     };
   } = {};
 
@@ -968,6 +970,12 @@ export class PredictController extends BaseController<
     this.analytics.trackShareAction(args);
   }
 
+  public trackBetslipDismissed(
+    args: Parameters<PredictAnalytics['trackBetslipDismissed']>[0],
+  ): void {
+    this.analytics.trackBetslipDismissed(args);
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.provider;
@@ -1013,6 +1021,7 @@ export class PredictController extends BaseController<
           preview: params.preview,
           signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
+          activeAbTests: params.activeAbTests,
         };
       }
       this.update((state) => {
@@ -1046,6 +1055,7 @@ export class PredictController extends BaseController<
           params.preview.side === Side.BUY
             ? this.state.selectedPaymentToken?.address
             : undefined,
+        activeAbTests: params.activeAbTests,
       });
 
       this.messenger.publish('PredictController:transactionStatusChanged', {
@@ -1113,6 +1123,9 @@ export class PredictController extends BaseController<
         analyticsProperties,
         sharePrice,
         orderType: preview.orderType,
+        paymentTokenAddress: this.state.selectedPaymentToken?.address,
+        paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+        activeAbTests: params.activeAbTests,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1192,6 +1205,9 @@ export class PredictController extends BaseController<
         completionDuration,
         sharePrice: realSharePrice,
         orderType: preview.orderType,
+        paymentTokenAddress: this.state.selectedPaymentToken?.address,
+        paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+        activeAbTests: params.activeAbTests,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1212,6 +1228,9 @@ export class PredictController extends BaseController<
         completionDuration,
         failureReason: errorMessage,
         orderType: preview.orderType,
+        paymentTokenAddress: this.state.selectedPaymentToken?.address,
+        paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+        activeAbTests: params.activeAbTests,
       });
 
       // Update error state for Sentry integration
@@ -2161,6 +2180,16 @@ export class PredictController extends BaseController<
         const errorMessage =
           transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
+        // Track swap_failed — deposit/swap failed before order placement
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.SWAP_FAILED,
+          analyticsProperties: pendingOrder?.analyticsProperties,
+          paymentTokenAddress: this.state.selectedPaymentToken?.address,
+          paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+          failureReason: errorMessage,
+          activeAbTests: pendingOrder?.activeAbTests,
+        });
+
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
             state.activeBuyOrders[address].state =
@@ -2191,11 +2220,25 @@ export class PredictController extends BaseController<
 
     if (type === 'depositAndOrder' && status === 'rejected') {
       const transactionId = transactionMeta.id;
+      const rejectedPendingOrder = transactionId
+        ? this.pendingOrderPreviews[transactionId]
+        : null;
+
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
       }
 
       if (this.state.activeBuyOrders[address]) {
+        // Track swap_failed — user rejected the deposit/swap approval
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.SWAP_FAILED,
+          analyticsProperties: rejectedPendingOrder?.analyticsProperties,
+          paymentTokenAddress: this.state.selectedPaymentToken?.address,
+          paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
+          failureReason: 'user_rejected',
+          activeAbTests: rejectedPendingOrder?.activeAbTests,
+        });
+
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
             state.activeBuyOrders[address].state = ActiveOrderState.PREVIEW;
