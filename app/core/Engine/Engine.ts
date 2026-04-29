@@ -188,6 +188,7 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { configRegistryApiServiceInit } from './controllers/config-registry-api-service-init.ts';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -380,6 +381,7 @@ export class Engine {
         AddressBookController: addressBookControllerInit,
         ConnectivityController: connectivityControllerInit,
         ConfigRegistryController: configRegistryControllerInit,
+        ConfigRegistryApiService: configRegistryApiServiceInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
@@ -547,6 +549,7 @@ export class Engine {
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
       ConfigRegistryController: messengerClientsByName.ConfigRegistryController,
+      ConfigRegistryApiService: messengerClientsByName.ConfigRegistryApiService,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,

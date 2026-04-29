@@ -103,6 +103,7 @@ import {
   ConfigRegistryControllerActions,
   ConfigRegistryApiServiceActions,
   ConfigRegistryApiServiceEvents,
+  ConfigRegistryApiService,
 } from '@metamask/config-registry-controller';
 import {
   KeyringController,
@@ -735,6 +736,7 @@ export type MessengerClients = {
   AssetsContractController: AssetsContractController;
   ConnectivityController: ConnectivityController;
   ConfigRegistryController: ConfigRegistryController;
+  ConfigRegistryApiService: ConfigRegistryApiService;
   ApprovalController: ApprovalController;
   AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
@@ -940,6 +942,7 @@ export type MessengerClientsToInitialize =
   | 'AssetsController'
   | 'ConnectivityController'
   | 'ConfigRegistryController'
+  | 'ConfigRegistryApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'

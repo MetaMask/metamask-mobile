@@ -156,6 +156,7 @@ import { getCardControllerMessenger } from './card-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
+import { getConfigRegistryApiServiceMessenger } from './config-registry-api-service-messenger.ts';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -183,6 +184,10 @@ export const MESSENGER_FACTORIES = {
   },
   ConfigRegistryController: {
     getMessenger: getConfigRegistryControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ConfigRegistryApiService: {
+    getMessenger: getConfigRegistryApiServiceMessenger,
     getInitMessenger: noop,
   },
   ApprovalController: {
