@@ -73,7 +73,10 @@ async function flush() {
           includeTokenSecurityData: true,
         });
         for (const a of assets) {
-          byAssetId.set(a.assetId as CaipAssetType, a.securityData ?? null);
+          byAssetId.set(
+            normalizeCaipAssetIdForTokenApi(String(a.assetId)),
+            a.securityData ?? null,
+          );
         }
       } catch {
         // Fail-open per chunk so large flushes still get partial data.
