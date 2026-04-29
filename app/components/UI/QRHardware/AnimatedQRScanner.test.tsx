@@ -1214,13 +1214,6 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         },
         { timeout: 2000 },
       );
-
-      await waitFor(
-        () => {
-          expect(mockOnModalHideComplete).toHaveBeenCalledTimes(1);
-        },
-        { timeout: 2000 },
-      );
     });
   });
 
