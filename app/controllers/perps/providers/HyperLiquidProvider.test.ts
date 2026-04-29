@@ -2221,6 +2221,45 @@ describe('HyperLiquidProvider', () => {
       expect(accountState.totalBalance).toBe('0');
     });
 
+    it('folds USDC spot balance into availableToTradeBalance in Unified Account mode', async () => {
+      const hip3Provider = createTestProvider({
+        hip3Enabled: true,
+        allowlistMarkets: ['xyz:*'],
+      });
+      const mockInfoClient = createMockInfoClient({
+        perpDexs: jest
+          .fn()
+          .mockResolvedValue([null, { name: 'xyz', url: 'https://xyz.com' }]),
+        clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '0',
+            accountValue: '0',
+          },
+          withdrawable: '0',
+          assetPositions: [],
+          crossMarginSummary: {
+            accountValue: '0',
+            totalMarginUsed: '0',
+          },
+        }),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '10', total: '100' }],
+        }),
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+      });
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+      const accountState = await hip3Provider.getAccountState();
+
+      expect(accountState.availableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('90');
+      expect(accountState.totalBalance).toBe('90');
+    });
+
     it.each(['default', 'disabled'] as const)(
       'does not fold USDC spot balance in %s account mode',
       async (abstractionMode) => {

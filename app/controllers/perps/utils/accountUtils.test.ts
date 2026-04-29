@@ -193,6 +193,7 @@ describe('spot balance helpers', () => {
     // Only USDC contributes — non-stablecoin spot assets are not convertible
     // to perps collateral and must not inflate totalBalance.
     expect(result.totalBalance).toBe('125.5');
+    expect(result.availableToTradeBalance).toBe('25.5');
     expect(accountState.totalBalance).toBe('100');
   });
 
