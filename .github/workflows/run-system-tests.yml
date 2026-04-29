@@ -40,13 +40,21 @@ concurrency:
   group: system-tests-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Phase 1 — Build apps via build.yml (same pipeline as nightly)
+  # Builds are skipped when ANY manual BrowserStack URL is provided — the
+  # user wants a quick test run with pre-built artifacts, not a 30 min build.
+  # ─────────────────────────────────────────────────────────────────────────
+
   build-with-srp:
     name: Build with-SRP (login tests)
     if: >-
       github.event_name == 'schedule'
         || (github.event_name == 'workflow_dispatch'
             && !inputs.browserstack_app_url_android
-            && !inputs.browserstack_app_url_ios)
+            && !inputs.browserstack_app_url_ios
+            && !inputs.browserstack_clean_app_url_android
+            && !inputs.browserstack_clean_app_url_ios)
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc-with-srp
@@ -60,6 +68,8 @@ jobs:
     if: >-
       github.event_name == 'schedule'
         || (github.event_name == 'workflow_dispatch'
+            && !inputs.browserstack_app_url_android
+            && !inputs.browserstack_app_url_ios
             && !inputs.browserstack_clean_app_url_android
             && !inputs.browserstack_clean_app_url_ios)
     uses: ./.github/workflows/build.yml
@@ -134,96 +144,65 @@ jobs:
             echo "$APP_URL"
           }
 
-          # --- Android with-SRP (login tests) ---
-          MANUAL_URL="${{ inputs.browserstack_app_url_android }}"
-          if [[ -n "$MANUAL_URL" ]]; then
-            echo "android-login-url=$MANUAL_URL" >> "$GITHUB_OUTPUT"
-            echo "Using manual Android login URL: $MANUAL_URL"
-          elif [[ -d "artifacts/android-with-srp" ]]; then
-            APK_FILE=$(find artifacts/android-with-srp -name '*.apk' | head -1)
-            if [[ -n "$APK_FILE" ]]; then
-              echo "Uploading Android with-SRP APK to BrowserStack..."
-              URL=$(upload_to_bs "$APK_FILE" "system-test-android-login-${{ github.run_id }}")
-              echo "android-login-url=$URL" >> "$GITHUB_OUTPUT"
-              echo "Android login URL: $URL"
-            else
-              echo "::error::No APK found in android-with-srp artifacts"
-              exit 1
-            fi
-          else
-            echo "::error::No Android login build available (no manual URL and build was skipped)"
-            exit 1
-          fi
+          # Helper: resolve a single URL from manual input or build artifact.
+          # Outputs the URL to GITHUB_OUTPUT, or empty string if unavailable.
+          resolve_url() {
+            local output_key="$1"
+            local manual_url="$2"
+            local artifact_dir="$3"
+            local extension="$4"
+            local custom_id="$5"
 
-          # --- iOS with-SRP (login tests) ---
-          MANUAL_URL="${{ inputs.browserstack_app_url_ios }}"
-          if [[ -n "$MANUAL_URL" ]]; then
-            echo "ios-login-url=$MANUAL_URL" >> "$GITHUB_OUTPUT"
-            echo "Using manual iOS login URL: $MANUAL_URL"
-          elif [[ -d "artifacts/ios-with-srp" ]]; then
-            IPA_FILE=$(find artifacts/ios-with-srp -name '*.ipa' | head -1)
-            if [[ -n "$IPA_FILE" ]]; then
-              echo "Uploading iOS with-SRP IPA to BrowserStack..."
-              URL=$(upload_to_bs "$IPA_FILE" "system-test-ios-login-${{ github.run_id }}")
-              echo "ios-login-url=$URL" >> "$GITHUB_OUTPUT"
-              echo "iOS login URL: $URL"
+            if [[ -n "$manual_url" ]]; then
+              echo "${output_key}=${manual_url}" >> "$GITHUB_OUTPUT"
+              echo "Using manual URL for ${output_key}: ${manual_url}"
+            elif [[ -d "$artifact_dir" ]]; then
+              local file
+              file=$(find "$artifact_dir" -name "*.${extension}" | head -1)
+              if [[ -n "$file" ]]; then
+                echo "Uploading ${file} to BrowserStack..."
+                local url
+                url=$(upload_to_bs "$file" "$custom_id")
+                echo "${output_key}=${url}" >> "$GITHUB_OUTPUT"
+                echo "${output_key}: ${url}"
+              else
+                echo "::warning::No .${extension} found in ${artifact_dir} — ${output_key} will be empty"
+                echo "${output_key}=" >> "$GITHUB_OUTPUT"
+              fi
             else
-              echo "::error::No IPA found in ios-with-srp artifacts"
-              exit 1
+              echo "No build artifact for ${output_key} and no manual URL — test will be skipped"
+              echo "${output_key}=" >> "$GITHUB_OUTPUT"
             fi
-          else
-            echo "::error::No iOS login build available (no manual URL and build was skipped)"
-            exit 1
-          fi
+          }
 
-          # --- Android clean (onboarding tests) ---
-          MANUAL_URL="${{ inputs.browserstack_clean_app_url_android }}"
-          if [[ -n "$MANUAL_URL" ]]; then
-            echo "android-onboarding-url=$MANUAL_URL" >> "$GITHUB_OUTPUT"
-            echo "Using manual Android onboarding URL: $MANUAL_URL"
-          elif [[ -d "artifacts/android-clean" ]]; then
-            APK_FILE=$(find artifacts/android-clean -name '*.apk' | head -1)
-            if [[ -n "$APK_FILE" ]]; then
-              echo "Uploading Android clean APK to BrowserStack..."
-              URL=$(upload_to_bs "$APK_FILE" "system-test-android-onboarding-${{ github.run_id }}")
-              echo "android-onboarding-url=$URL" >> "$GITHUB_OUTPUT"
-              echo "Android onboarding URL: $URL"
-            else
-              echo "::error::No APK found in android-clean artifacts"
-              exit 1
-            fi
-          else
-            echo "::error::No Android onboarding build available (no manual URL and build was skipped)"
-            exit 1
-          fi
+          resolve_url "android-login-url" \
+            "${{ inputs.browserstack_app_url_android }}" \
+            "artifacts/android-with-srp" "apk" \
+            "system-test-android-login-${{ github.run_id }}"
 
-          # --- iOS clean (onboarding tests) ---
-          MANUAL_URL="${{ inputs.browserstack_clean_app_url_ios }}"
-          if [[ -n "$MANUAL_URL" ]]; then
-            echo "ios-onboarding-url=$MANUAL_URL" >> "$GITHUB_OUTPUT"
-            echo "Using manual iOS onboarding URL: $MANUAL_URL"
-          elif [[ -d "artifacts/ios-clean" ]]; then
-            IPA_FILE=$(find artifacts/ios-clean -name '*.ipa' | head -1)
-            if [[ -n "$IPA_FILE" ]]; then
-              echo "Uploading iOS clean IPA to BrowserStack..."
-              URL=$(upload_to_bs "$IPA_FILE" "system-test-ios-onboarding-${{ github.run_id }}")
-              echo "ios-onboarding-url=$URL" >> "$GITHUB_OUTPUT"
-              echo "iOS onboarding URL: $URL"
-            else
-              echo "::error::No IPA found in ios-clean artifacts"
-              exit 1
-            fi
-          else
-            echo "::error::No iOS onboarding build available (no manual URL and build was skipped)"
-            exit 1
-          fi
+          resolve_url "ios-login-url" \
+            "${{ inputs.browserstack_app_url_ios }}" \
+            "artifacts/ios-with-srp" "ipa" \
+            "system-test-ios-login-${{ github.run_id }}"
 
-          echo "All BrowserStack URLs resolved successfully"
+          resolve_url "android-onboarding-url" \
+            "${{ inputs.browserstack_clean_app_url_android }}" \
+            "artifacts/android-clean" "apk" \
+            "system-test-android-onboarding-${{ github.run_id }}"
+
+          resolve_url "ios-onboarding-url" \
+            "${{ inputs.browserstack_clean_app_url_ios }}" \
+            "artifacts/ios-clean" "ipa" \
+            "system-test-ios-onboarding-${{ github.run_id }}"
+
+          echo "URL resolution complete"
 
   run-android-login-tests:
     name: Android Login Tests
     needs: [upload-to-browserstack]
-    if: always() && !cancelled() && needs.upload-to-browserstack.result == 'success'
+    if: >-
+      always() && !cancelled()
+        && needs.upload-to-browserstack.outputs.android-login-url != ''
     runs-on: ubuntu-latest
     env:
       BROWSERSTACK_ANDROID_APP_URL: ${{ needs.upload-to-browserstack.outputs.android-login-url }}
@@ -319,7 +298,9 @@ jobs:
   run-android-onboarding-tests:
     name: Android Onboarding Tests
     needs: [upload-to-browserstack]
-    if: always() && !cancelled() && needs.upload-to-browserstack.result == 'success'
+    if: >-
+      always() && !cancelled()
+        && needs.upload-to-browserstack.outputs.android-onboarding-url != ''
     runs-on: ubuntu-latest
     env:
       BROWSERSTACK_ANDROID_CLEAN_APP_URL: ${{ needs.upload-to-browserstack.outputs.android-onboarding-url }}
@@ -415,7 +396,9 @@ jobs:
   run-ios-login-tests:
     name: iOS Login Tests
     needs: [upload-to-browserstack]
-    if: always() && !cancelled() && needs.upload-to-browserstack.result == 'success'
+    if: >-
+      always() && !cancelled()
+        && needs.upload-to-browserstack.outputs.ios-login-url != ''
     runs-on: ubuntu-latest
     env:
       BROWSERSTACK_IOS_APP_URL: ${{ needs.upload-to-browserstack.outputs.ios-login-url }}
@@ -511,7 +494,9 @@ jobs:
   run-ios-onboarding-tests:
     name: iOS Onboarding Tests
     needs: [upload-to-browserstack]
-    if: always() && !cancelled() && needs.upload-to-browserstack.result == 'success'
+    if: >-
+      always() && !cancelled()
+        && needs.upload-to-browserstack.outputs.ios-onboarding-url != ''
     runs-on: ubuntu-latest
     env:
       BROWSERSTACK_IOS_CLEAN_APP_URL: ${{ needs.upload-to-browserstack.outputs.ios-onboarding-url }}
@@ -623,11 +608,6 @@ jobs:
 
       - name: Generate summary
         run: |
-          echo "## Nightly System Test Results" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Project | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---------|--------|" >> "$GITHUB_STEP_SUMMARY"
-
           STATUS_ANDROID_LOGIN="${{ needs.run-android-login-tests.result }}"
           STATUS_ANDROID_ONBOARDING="${{ needs.run-android-onboarding-tests.result }}"
           STATUS_IOS_LOGIN="${{ needs.run-ios-login-tests.result }}"
@@ -643,15 +623,20 @@ jobs:
             esac
           }
 
-          echo "| Android Login | $(format_status "$STATUS_ANDROID_LOGIN") |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Android Onboarding | $(format_status "$STATUS_ANDROID_ONBOARDING") |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| iOS Login | $(format_status "$STATUS_IOS_LOGIN") |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| iOS Onboarding | $(format_status "$STATUS_IOS_ONBOARDING") |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Trigger:** ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Branch:** ${{ github.ref_name }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Nightly System Test Results"
+            echo ""
+            echo "| Project | Status |"
+            echo "|---------|--------|"
+            echo "| Android Login | $(format_status "$STATUS_ANDROID_LOGIN") |"
+            echo "| Android Onboarding | $(format_status "$STATUS_ANDROID_ONBOARDING") |"
+            echo "| iOS Login | $(format_status "$STATUS_IOS_LOGIN") |"
+            echo "| iOS Onboarding | $(format_status "$STATUS_IOS_ONBOARDING") |"
+            echo ""
+            echo "**Trigger:** ${{ github.event_name }}"
+            echo "**Branch:** ${{ github.ref_name }}"
+            echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           # Fail the report job if any test job failed
           if [[ "$STATUS_ANDROID_LOGIN" == "failure" || "$STATUS_ANDROID_ONBOARDING" == "failure" || "$STATUS_IOS_LOGIN" == "failure" || "$STATUS_IOS_ONBOARDING" == "failure" ]]; then
