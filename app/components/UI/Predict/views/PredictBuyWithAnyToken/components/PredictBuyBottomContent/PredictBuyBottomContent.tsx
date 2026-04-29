@@ -13,11 +13,14 @@ import { strings } from '../../../../../../../../locales/i18n';
 
 interface PredictBuyBottomContentProps {
   isInputFocused: boolean;
+
+  hideBorder?: boolean;
   children: React.ReactNode;
 }
 
 const PredictBuyBottomContent = ({
   isInputFocused,
+  hideBorder = false,
   children,
 }: PredictBuyBottomContentProps) => {
   const tw = useTailwind();
@@ -29,11 +32,11 @@ const PredictBuyBottomContent = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName="border-t border-muted px-4 pb-0"
+      twClassName={`px-4 pb-0${hideBorder ? '' : ' border-t border-muted'}`}
     >
       <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
         <Box twClassName="w-full">{children}</Box>
-        <Box twClassName="text-center items-center flex-row gap-1 justify-center px-1">
+        <Box twClassName="text-center items-center justify-center px-1">
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.consent_sheet.disclaimer')}{' '}
             <Text

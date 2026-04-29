@@ -36,6 +36,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
+import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 
 /**
  * Creates a channel to listen to app state changes.
@@ -271,7 +272,7 @@ export function* handleDeeplinkSaga() {
   }
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /**
  * Handles updating the Snaps registry when the user has booted the app and is onboarded
  */
@@ -348,7 +349,8 @@ export function* rootSaga() {
   // persisted state has been rehydrated and app services are available.
   yield fork(backfillSocialLoginMarketingConsentSaga);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  yield fork(promptIosGoogleWarningSheetSaga);
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF
 }

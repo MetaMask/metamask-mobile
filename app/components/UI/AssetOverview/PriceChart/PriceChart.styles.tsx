@@ -20,8 +20,22 @@ const styleSheet = (params: {
       alignSelf: 'stretch',
       overflow: 'visible',
     },
+    /** Touch + overlay host; `AreaChart` stays full-size while overlays are absolutely positioned. */
+    chartAreaWrapper: {
+      flex: 1,
+      position: 'relative',
+    },
     chartArea: {
       flex: 1,
+    },
+    /** Same pattern as AdvancedChart: overlay does not participate in flex layout with AreaChart. */
+    loadingOverlayContainer: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    noDataOverlayContainer: {
+      ...StyleSheet.absoluteFillObject,
     },
     chartLoading: {
       width: '100%',

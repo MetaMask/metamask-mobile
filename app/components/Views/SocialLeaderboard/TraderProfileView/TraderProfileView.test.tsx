@@ -1,15 +1,15 @@
+import type {
+  Position,
+  TraderProfileResponse,
+} from '@metamask/social-controllers';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
+import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
-import Routes from '../../../../constants/navigation/Routes';
-import type { UseTraderProfileResult } from './hooks/useTraderProfile';
-import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
-import type {
-  TraderProfileResponse,
-  Position,
-} from '@metamask/social-controllers';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -19,6 +19,112 @@ const mockRefresh = jest.fn();
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardEnabled: () => true,
+  }),
+);
+
+let mockNotificationPreferences = {
+  enabled: false,
+  txAmountLimit: 500 as const,
+  mutedTraderProfileIds: [] as string[],
+};
+const mockSetEnabled = jest.fn();
+const mockSetTxAmountLimit = jest.fn();
+const mockToggleTraderNotification = jest.fn();
+const mockIsTraderNotificationEnabled = jest.fn().mockReturnValue(true);
+
+jest.mock('../NotificationPreferencesView/hooks', () => ({
+  ...jest.requireActual('../NotificationPreferencesView/hooks'),
+  useNotificationPreferences: () => ({
+    preferences: mockNotificationPreferences,
+    isLoading: false,
+    error: null,
+    setEnabled: mockSetEnabled,
+    setTxAmountLimit: mockSetTxAmountLimit,
+    toggleTraderNotification: mockToggleTraderNotification,
+    isTraderNotificationEnabled: mockIsTraderNotificationEnabled,
+  }),
+}));
+
+jest.mock('../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: () => 'USD',
+}));
+
+jest.mock(
+  '../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.forwardRef(
+      (
+        props: {
+          children?: React.ReactNode;
+          onClose?: () => void;
+          testID?: string;
+        },
+        ref: React.Ref<{
+          onCloseBottomSheet: (callback?: () => void) => void;
+          onOpenBottomSheet: (callback?: () => void) => void;
+        }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (cb?: () => void) => {
+            props.onClose?.();
+            cb?.();
+          },
+          onOpenBottomSheet: (cb?: () => void) => {
+            cb?.();
+          },
+        }));
+        return ReactActual.createElement(
+          View,
+          { testID: props.testID ?? 'bottom-sheet' },
+          props.children,
+        );
+      },
+    );
+  },
+);
+
+jest.mock(
+  '../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.forwardRef(
+      (
+        props: {
+          children?: React.ReactNode;
+          onClose?: () => void;
+          testID?: string;
+        },
+        ref: React.Ref<{
+          onCloseBottomSheet: (callback?: () => void) => void;
+          onOpenBottomSheet: (callback?: () => void) => void;
+        }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (cb?: () => void) => {
+            props.onClose?.();
+            cb?.();
+          },
+          onOpenBottomSheet: (cb?: () => void) => {
+            cb?.();
+          },
+        }));
+        return ReactActual.createElement(
+          View,
+          { testID: props.testID ?? 'bottom-sheet' },
+          props.children,
+        );
+      },
+    );
+  },
+);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -57,6 +163,7 @@ const fixtureProfile: TraderProfileResponse = {
 
 const fixtureOpenPositions: Position[] = [
   {
+    positionId: 'starkbot-base',
     tokenSymbol: 'STARKBOT',
     tokenName: 'Starkbot',
     tokenAddress: '0x123',
@@ -114,6 +221,12 @@ describe('TraderProfileView', () => {
       isLoadingClosed: false,
       error: null,
     };
+    mockNotificationPreferences = {
+      enabled: false,
+      txAmountLimit: 500 as const,
+      mutedTraderProfileIds: [],
+    };
+    mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 
   it('renders the container', () => {
@@ -179,6 +292,7 @@ describe('TraderProfileView', () => {
       {
         traderId: 'trader-1',
         traderName: 'dutchiono',
+        traderImageUrl: 'https://example.com/avatar.png',
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
       },
@@ -222,14 +336,44 @@ describe('TraderProfileView', () => {
     expect(screen.queryByText('No positions yet')).not.toBeOnTheScreen();
   });
 
-  it('notification button press is a no-op', () => {
-    renderWithProvider(<TraderProfileView />);
-    fireEvent.press(
-      screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
-    );
-    expect(
-      screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+  describe('notification bell routing', () => {
+    it('opens the setup sheet when global notifications are off', () => {
+      mockNotificationPreferences = {
+        enabled: false,
+        txAmountLimit: 500 as const,
+        mutedTraderProfileIds: [],
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(
+          'top-traders-notifications-setup-bottom-sheet-container',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the per-trader sheet when global notifications are on', () => {
+      mockNotificationPreferences = {
+        enabled: true,
+        txAmountLimit: 500 as const,
+        mutedTraderProfileIds: [],
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId('trader-notifications-bottom-sheet-container'),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('renders skeleton when profile is null even if not loading', () => {

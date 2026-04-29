@@ -44,6 +44,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
@@ -129,7 +131,11 @@ const PriceAdvanced = ({
 
   const handleChartTradingViewClicked = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_TRADINGVIEW_CLICKED).build(),
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+        .addProperties({
+          interaction_type: 'tradingview_clicked',
+        })
+        .build(),
     );
   }, [createEventBuilder, trackEvent]);
 
@@ -140,8 +146,9 @@ const PriceAdvanced = ({
       setCrosshairData(null);
     }
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_TYPE_CHANGED)
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
         .addProperties({
+          interaction_type: 'chart_type_changed',
           chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
         })
         .build(),
@@ -154,9 +161,12 @@ const PriceAdvanced = ({
       if (range === timeRange) {
         return;
       }
+      // Clear crosshair data when changing timeframes to reset price/percentage display
+      setCrosshairData(null);
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CHART_TIMEFRAME_CHANGED)
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
+            interaction_type: 'timeframe_changed',
             chart_timeframe: range,
           })
           .build(),
@@ -174,9 +184,16 @@ const PriceAdvanced = ({
       asset.address,
       asset.chainId as Hex,
     );
-    return (
-      formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
-    );
+
+    try {
+      return (
+        formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
+      );
+    } catch {
+      // formatAddressToAssetId can throw for chains not supported by XChain Swaps/Bridge
+      // (e.g., Linea Sepolia, custom networks). Fall back to empty string
+      return '';
+    }
   }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
 
@@ -270,6 +287,8 @@ const PriceAdvanced = ({
     : dateLabel;
 
   const { styles, theme } = useStyles(styleSheet);
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
 
   const shouldFallbackToLegacy =
     !chartLoading &&
@@ -342,6 +361,11 @@ const PriceAdvanced = ({
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
+              style={
+                isLightMode && displayDiff > 0
+                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                  : undefined
+              }
               allowFontScaling={false}
             >
               {displayDiff > 0 ? '+' : ''}
@@ -364,7 +388,7 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName="mt-3">
+      <Box twClassName="mt-3 w-full">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}

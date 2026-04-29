@@ -717,7 +717,11 @@ const ImportSRPView = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => {
+const ConnectQRHardwareFlow = ({
+  route,
+}: {
+  route: { params?: { hideMarketingContent?: boolean } };
+}) => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
@@ -726,7 +730,11 @@ const ConnectQRHardwareFlow = () => {
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+      <Stack.Screen
+        name="ConnectQRHardware"
+        component={ConnectQRHardware}
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 };
@@ -930,7 +938,12 @@ const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: true,
+      }}
+    >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainAccountPrivateKeyList}
@@ -1100,7 +1113,20 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainPrivateKeyList}
         options={{
-          presentation: 'transparentModal',
+          animationEnabled: true,
+          cardStyle: { backgroundColor: colors.background.default },
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
         }}
       />
       <Stack.Screen

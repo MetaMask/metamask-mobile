@@ -103,6 +103,26 @@ describe('PredictBuyAmountSection', () => {
       expect(screen.getByText(/\$500/)).toBeOnTheScreen();
     });
 
+    it('hides available balance when hideAvailableBalance is true', () => {
+      renderWithProvider(
+        <PredictBuyAmountSection
+          currentValueUSDString="$100"
+          keypadRef={mockKeypadRef}
+          isInputFocused={false}
+          isBalanceLoading={false}
+          isBalancePulsing={false}
+          availableBalanceDisplay="$500"
+          toWin={100}
+          isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
+          hideAvailableBalance
+        />,
+      );
+
+      expect(screen.queryByText(/Available/)).toBeNull();
+      expect(screen.queryByText(/\$500/)).toBeNull();
+    });
+
     it('displays available balance with correct format', () => {
       renderWithProvider(
         <PredictBuyAmountSection

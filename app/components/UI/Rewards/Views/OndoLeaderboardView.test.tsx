@@ -6,6 +6,8 @@ import OndoLeaderboardView, {
 import { useSelector } from 'react-redux';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 
 const mockGoBack = jest.fn();
@@ -99,6 +101,8 @@ jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
 
 jest.mock('../hooks/useGetOndoLeaderboard');
 jest.mock('../hooks/useGetOndoLeaderboardPosition');
+jest.mock('../hooks/useGetOndoPortfolioPosition');
+jest.mock('../hooks/useGetOndoCampaignDeposits');
 jest.mock('../hooks/useGetCampaignParticipantStatus');
 
 const mockUseGetOndoLeaderboard = useGetOndoLeaderboard as jest.MockedFunction<
@@ -107,6 +111,14 @@ const mockUseGetOndoLeaderboard = useGetOndoLeaderboard as jest.MockedFunction<
 const mockUseGetOndoLeaderboardPosition =
   useGetOndoLeaderboardPosition as jest.MockedFunction<
     typeof useGetOndoLeaderboardPosition
+  >;
+const mockUseGetOndoPortfolioPosition =
+  useGetOndoPortfolioPosition as jest.MockedFunction<
+    typeof useGetOndoPortfolioPosition
+  >;
+const mockUseGetOndoCampaignDeposits =
+  useGetOndoCampaignDeposits as jest.MockedFunction<
+    typeof useGetOndoCampaignDeposits
   >;
 const mockUseGetCampaignParticipantStatus =
   useGetCampaignParticipantStatus as jest.MockedFunction<
@@ -180,6 +192,19 @@ describe('OndoLeaderboardView', () => {
     });
     mockUseGetOndoLeaderboard.mockReturnValue(hookDefaults);
     mockUseGetOndoLeaderboardPosition.mockReturnValue(positionDefaults);
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      portfolio: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoCampaignDeposits.mockReturnValue({
+      deposits: null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
   });
 
   it('renders with the correct container testID', () => {
@@ -210,8 +235,10 @@ describe('OndoLeaderboardView', () => {
       },
     });
     const { getByText } = render(<OndoLeaderboardView />);
-    expect(getByText('Rank')).toBeDefined();
-    expect(getByText('Tier')).toBeDefined();
+    expect(
+      getByText('rewards.ondo_campaign_stats.label_your_rank'),
+    ).toBeDefined();
+    expect(getByText('rewards.ondo_campaign_stats.label_tier')).toBeDefined();
   });
 
   it('calls useGetOndoLeaderboard with the campaign ID from route params', () => {
@@ -331,5 +358,62 @@ describe('OndoLeaderboardView', () => {
       'campaign-ondo-123',
       expect.objectContaining({ defaultTier: 'MID' }),
     );
+  });
+
+  describe('isCampaignComplete behavior', () => {
+    const completeCampaign = {
+      ...mockCampaign,
+      startDate: '2024-01-01T00:00:00Z',
+      endDate: '2024-01-02T00:00:00Z',
+    };
+
+    const pendingPosition = {
+      rank: 8,
+      projectedTier: 'STARTER',
+      qualified: false,
+      qualifiedDays: 3,
+      totalInTier: 100,
+      rateOfReturn: 0.05,
+      currentUsdValue: 5000,
+      totalUsdDeposited: 4000,
+      netDeposit: 3500,
+      neighbors: [],
+      computedAt: '2024-01-01T00:00:00Z',
+    };
+
+    it('does not show Pending tag when campaign is complete and position is not qualified', () => {
+      mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+        selector({
+          rewards: { referralCode: null, campaigns: [completeCampaign] },
+        }),
+      );
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        ...positionDefaults,
+        position: pendingPosition,
+      });
+      const { queryByText } = render(<OndoLeaderboardView />);
+      expect(
+        queryByText('rewards.ondo_campaign_leaderboard.pending'),
+      ).toBeNull();
+    });
+
+    it('passes isCampaignComplete=true to OndoLeaderboard when campaign is complete', () => {
+      mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+        selector({
+          rewards: { referralCode: null, campaigns: [completeCampaign] },
+        }),
+      );
+      render(<OndoLeaderboardView />);
+      expect(mockOndoLeaderboard).toHaveBeenCalledWith(
+        expect.objectContaining({ isCampaignComplete: true }),
+      );
+    });
+
+    it('passes isCampaignComplete=false to OndoLeaderboard when campaign is active', () => {
+      render(<OndoLeaderboardView />);
+      expect(mockOndoLeaderboard).toHaveBeenCalledWith(
+        expect.objectContaining({ isCampaignComplete: false }),
+      );
+    });
   });
 });

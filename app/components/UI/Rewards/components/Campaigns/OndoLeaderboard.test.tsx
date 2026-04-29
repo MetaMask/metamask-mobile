@@ -308,15 +308,15 @@ describe('OndoLeaderboard', () => {
         getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
       ).toBeDefined();
 
-      expect(getByText('01.')).toBeDefined();
+      expect(getByText('01')).toBeDefined();
       expect(getByText('AAA111')).toBeDefined();
       expect(getByText('+20.00%')).toBeDefined();
 
-      expect(getByText('02.')).toBeDefined();
+      expect(getByText('02')).toBeDefined();
       expect(getByText('BBB222')).toBeDefined();
       expect(getByText('+15.00%')).toBeDefined();
 
-      expect(getByText('03.')).toBeDefined();
+      expect(getByText('03')).toBeDefined();
       expect(getByText('CCC333')).toBeDefined();
       expect(getByText('-5.00%')).toBeDefined();
     });
@@ -673,6 +673,29 @@ describe('OndoLeaderboard', () => {
           {...defaultProps}
           entries={entries}
           currentUserReferralCode="MYCODE"
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toBeNull();
+    });
+
+    it('does not render Pending tag when isCampaignComplete is true, even if entry is not qualified and is current user', () => {
+      const entries = [
+        createMockEntry({
+          rank: 1,
+          referralCode: 'MYCODE',
+          qualified: false,
+          qualifiedDays: 3,
+        }),
+      ];
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={entries}
+          currentUserReferralCode="MYCODE"
+          isCampaignComplete
         />,
       );
 

@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { Dimensions, Pressable } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -9,39 +8,15 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
-import { IconSize } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
+import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-
-const CandlestickIcon = ({
-  color,
-  size,
-}: {
-  color: string;
-  size: IconSize;
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 14 16" fill="none">
-    <Path d="M4 0H2V2H0V14H2V16H4V14H6V2H4V0ZM4 12H2V4H4V12Z" fill={color} />
-    <Path
-      d="M14 4H12V0H10V4H8V11H10V16H12V11H14V4ZM12 9H10V6H12V9Z"
-      fill={color}
-    />
-  </Svg>
-);
-
-const LineChartIcon = ({ color, size }: { color: string; size: IconSize }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 16.5L9 10L13 16L21 6.5"
-      stroke={color}
-      strokeWidth={2.04}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
 
 export type TimeRange = '1H' | '1D' | '1W' | '1M' | '1Y';
 
@@ -71,8 +46,8 @@ const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 const SEGMENT_BUTTON_BASE =
   'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1 rounded-xl';
 
-/** Matches row of segment controls + chart type toggle; Item needs explicit width to render. */
-const TIME_RANGE_SKELETON_HEIGHT = 44;
+/** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
+const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
 /** Root `Box` uses `px-4` (16px each side). */
 const HORIZONTAL_INSET_PX = 32;
 
@@ -105,25 +80,37 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
     [],
   );
 
+  const showChartLoadingSkeleton = isChartLoading;
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="w-full px-4"
+      style={{ minHeight: TIME_RANGE_SKELETON_HEIGHT }}
     >
-      {isChartLoading ? (
-        <SkeletonPlaceholder
-          backgroundColor={colors.background.section}
-          highlightColor={colors.background.subsection}
+      {showChartLoadingSkeleton ? (
+        <Box
+          style={{ height: TIME_RANGE_SKELETON_HEIGHT }}
+          twClassName="w-full flex-1 overflow-hidden rounded-lg"
         >
-          <SkeletonPlaceholder.Item
-            width={skeletonBarWidth}
-            height={TIME_RANGE_SKELETON_HEIGHT}
-            borderRadius={8}
-          />
-        </SkeletonPlaceholder>
+          <SkeletonPlaceholder
+            backgroundColor={colors.background.section}
+            highlightColor={colors.background.subsection}
+          >
+            <SkeletonPlaceholder.Item
+              width={skeletonBarWidth}
+              height={TIME_RANGE_SKELETON_HEIGHT}
+              borderRadius={8}
+            />
+          </SkeletonPlaceholder>
+        </Box>
       ) : (
-        <>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="w-full flex-1 rounded-lg"
+        >
           {ranges.map((range) => {
             const isSelected = selected === range;
             return (
@@ -164,19 +151,21 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               }
             >
               {chartType === ChartType.Candles ? (
-                <LineChartIcon
-                  color={colors.text.alternative}
-                  size={IconSize.Md}
+                <Icon
+                  name={IconName.TrendUp}
+                  size={IconSize.Lg}
+                  color={IconColor.IconAlternative}
                 />
               ) : (
-                <CandlestickIcon
-                  color={colors.text.alternative}
-                  size={IconSize.Sm}
+                <Icon
+                  name={IconName.Candlestick}
+                  size={IconSize.Lg}
+                  color={IconColor.IconAlternative}
                 />
               )}
             </Pressable>
           ) : null}
-        </>
+        </Box>
       )}
     </Box>
   );

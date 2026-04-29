@@ -46,7 +46,7 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
   let partialMessengerClientsByName: Partial<MessengerClientsByName> = {};
 
   // Used by other messenger clients to get dependent messenger clients
-  const getController = <Name extends MessengerClientName>(
+  const getMessengerClient = <Name extends MessengerClientName>(
     name: Name,
   ): MessengerClientsByName[Name] =>
     getMessengerClientOrThrow({
@@ -80,7 +80,7 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
 
     const finalInitRequest: BaseMessengerClientInitRequest = {
       controllerMessenger,
-      getController,
+      getMessengerClient,
       initMessenger,
       ...initRequest,
     };

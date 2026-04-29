@@ -4,17 +4,21 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
 import type { Position } from '@metamask/social-controllers';
 
-jest.mock('../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
-  getAssetImageUrl: jest.fn().mockReturnValue('https://example.com/token.png'),
+jest.mock('../../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
-jest.mock('../../utils/chainMapping', () => ({
-  chainNameToId: jest.fn((chain: string) =>
-    chain === 'unknown' ? undefined : 'eip155:1',
-  ),
-}));
+jest.mock('../../utils/formatters', () => {
+  const actual = jest.requireActual('../../utils/formatters');
+  return {
+    ...actual,
+    formatTradeDate: jest.fn().mockReturnValue('Apr 15, 2026 at 2:00 PM'),
+  };
+});
 
 const basePosition: Position = {
+  positionId: 'starkbot-base',
   tokenSymbol: 'STARKBOT',
   tokenName: 'Starkbot',
   tokenAddress: '0x123',
@@ -31,6 +35,16 @@ const basePosition: Position = {
   pnlPercent: 182,
 };
 
+const closedPosition: Position = {
+  ...basePosition,
+  positionAmount: 0,
+  soldUsd: 1500,
+  realizedPnl: 300,
+  boughtUsd: 1200,
+  currentValueUSD: 0,
+  pnlPercent: null,
+};
+
 describe('PositionRow', () => {
   it('renders the row testID', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
@@ -44,10 +58,10 @@ describe('PositionRow', () => {
     expect(screen.getAllByText('STARKBOT')[0]).toBeOnTheScreen();
   });
 
-  it('renders formatted token amount', () => {
+  it('renders formatted token amount abbreviated for large values', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
 
-    expect(screen.getByText('1,500,000,000 STARKBOT')).toBeOnTheScreen();
+    expect(screen.getByText('1.50B STARKBOT')).toBeOnTheScreen();
   });
 
   it('renders current value formatted as USD', () => {
@@ -161,5 +175,59 @@ describe('PositionRow', () => {
     renderWithProvider(<PositionRow position={position} />);
 
     expect(screen.getByTestId('position-row-PEPE')).toBeOnTheScreen();
+  });
+
+  describe('closed position', () => {
+    it('renders soldUsd as the value', () => {
+      renderWithProvider(<PositionRow position={closedPosition} />);
+
+      expect(screen.getByText('$1,500.00')).toBeOnTheScreen();
+    });
+
+    it('renders formatted closed date as subtitle instead of token amount', () => {
+      renderWithProvider(<PositionRow position={closedPosition} />);
+
+      expect(screen.getByText('Apr 15, 2026 at 2:00 PM')).toBeOnTheScreen();
+    });
+
+    it('renders realized PnL percent', () => {
+      renderWithProvider(<PositionRow position={closedPosition} />);
+
+      // realizedPnl (300) / boughtUsd (1200) * 100 = 25%
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
+    });
+
+    it('renders dash for PnL when boughtUsd is zero', () => {
+      const position = { ...closedPosition, boughtUsd: 0 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('\u2014')).toBeOnTheScreen();
+    });
+
+    it('renders soldUsd as value even when currentValueUSD is zero', () => {
+      const position = { ...closedPosition, currentValueUSD: 0 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('$1,500.00')).toBeOnTheScreen();
+    });
+
+    it('renders negative realized PnL percent', () => {
+      const position = { ...closedPosition, realizedPnl: -300 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      // -300 / 1200 * 100 = -25%
+      expect(screen.getByText('-25%')).toBeOnTheScreen();
+    });
+
+    it('uses realized PnL percent even when pnlPercent is 0', () => {
+      const position = { ...closedPosition, pnlPercent: 0 };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
+    });
   });
 });

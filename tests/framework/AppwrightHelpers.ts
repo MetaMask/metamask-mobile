@@ -10,10 +10,19 @@ export default class AppwrightHelpers {
   private static readonly POLL_INTERVAL_MS = 1_000;
   private static readonly APP_PACKAGE = 'io.metamask';
 
+  /**
+   * @deprecated Use PlaywrightHelpers.switchToNativeContext() instead
+   * @param deviceInstance - The device object
+   */
   static async switchToNativeContext(deviceInstance: Device): Promise<void> {
     return await this.switchContext(deviceInstance, 'NATIVE_APP');
   }
 
+  /**
+   * @deprecated Use PlaywrightHelpers.switchToWebViewContext() instead
+   * @param deviceInstance - The device object
+   * @param dappUrl - The URL of the dapp
+   */
   static async switchToWebViewContext(
     deviceInstance: Device,
     dappUrl: string,
@@ -21,6 +30,11 @@ export default class AppwrightHelpers {
     return await this.switchContext(deviceInstance, 'WEBVIEW', dappUrl);
   }
 
+  /**
+   * @deprecated
+   * @param deviceInstance - The device object
+   * @param context - The context to switch to
+   */
   private static async switchContext(
     deviceInstance: Device,
     context: 'NATIVE_APP' | 'WEBVIEW',
@@ -37,6 +51,10 @@ export default class AppwrightHelpers {
     await this.switchToWebView(webDriverClient, dappUrl);
   }
 
+  /**
+   * @deprecated
+   * @param webDriverClient - The web driver client
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static async switchToNative(webDriverClient: any): Promise<void> {
     const contexts = await webDriverClient.getContexts();
@@ -55,6 +73,11 @@ export default class AppwrightHelpers {
     await webDriverClient.switchContext(nativeId);
   }
 
+  /**
+   * @deprecated
+   * @param webDriverClient - The web driver client
+   * @param dappUrl - The URL of the dapp
+   */
   private static async switchToWebView(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     webDriverClient: any,
@@ -87,6 +110,10 @@ export default class AppwrightHelpers {
     console.log('No suitable webview context found within timeout');
   }
 
+  /**
+   * @deprecated
+   * @param webDriverClient - The web driver client
+   */
   private static async getAvailableWebviews(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     webDriverClient: any,
@@ -102,6 +129,10 @@ export default class AppwrightHelpers {
     return this.filterWebviewContexts(contexts);
   }
 
+  /**
+   * @deprecated
+   * @param webDriverClient - The web driver client
+   */
   private static async getDetailedContexts(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     webDriverClient: any,
@@ -119,6 +150,10 @@ export default class AppwrightHelpers {
     }
   }
 
+  /**
+   * @deprecated
+   * @param ctx - The context
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static normalizeContext(ctx: any): ContextInfo {
     const id = String(ctx?.webviewName ?? ctx?.id ?? '');
@@ -134,6 +169,10 @@ export default class AppwrightHelpers {
     return { id, url };
   }
 
+  /**
+   * @deprecated
+   * @param contexts - The contexts
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static filterWebviewContexts(contexts: any[]): ContextInfo[] {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -149,6 +188,11 @@ export default class AppwrightHelpers {
     });
   }
 
+  /**
+   * @deprecated
+   * @param webviews - The webviews
+   * @param dappUrl - The URL of the dapp
+   */
   private static selectBestWebview(
     webviews: ContextInfo[],
     dappUrl?: string,
@@ -185,6 +229,11 @@ export default class AppwrightHelpers {
     return filtered[filtered.length - 1];
   }
 
+  /**
+   * @deprecated
+   * @param webDriverClient - The web driver client
+   * @param contextId - The context ID
+   */
   private static async attemptContextSwitch(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     webDriverClient: any,
@@ -210,6 +259,10 @@ export default class AppwrightHelpers {
     }
   }
 
+  /**
+   * @deprecated
+   * @param err - The error
+   */
   private static getErrorMessage(err: unknown): string {
     if (err instanceof Error) {
       return err.message;
@@ -220,6 +273,12 @@ export default class AppwrightHelpers {
     return JSON.stringify(err);
   }
 
+  /**
+   * @deprecated
+   * @param deviceInstance - The device object
+   * @param actionFn - The action function
+   * @param dappUrl - The URL of the dapp
+   */
   static async withWebAction(
     deviceInstance: Device,
     actionFn: () => Promise<void>,
@@ -229,6 +288,11 @@ export default class AppwrightHelpers {
     await actionFn();
   }
 
+  /**
+   * @deprecated
+   * @param deviceInstance - The device object
+   * @param actionFn - The action function
+   */
   static async withNativeAction(
     deviceInstance: Device,
     actionFn: () => Promise<void>,
