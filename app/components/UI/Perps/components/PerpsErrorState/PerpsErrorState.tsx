@@ -1,11 +1,11 @@
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
@@ -108,14 +108,13 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
         )}
         {errorContent.primaryAction?.onPress && (
           <Button
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
+            label={errorContent.primaryAction.label}
             onPress={errorContent.primaryAction.onPress}
             style={styles.button}
-            isFullWidth
-          >
-            {errorContent.primaryAction.label}
-          </Button>
+            width={ButtonWidthTypes.Full}
+          />
         )}
       </View>
     </View>

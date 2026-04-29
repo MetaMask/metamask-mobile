@@ -55,17 +55,17 @@ describe('EarnDepositTokenListItem', () => {
     color: TextColor.Alternative,
   };
 
-  it('renders primary and secondary text', () => {
+  it('render matches snapshot', () => {
     const props: EarnTokenListItemProps = {
       ...baseProps,
       secondaryText,
     };
 
-    const { getByText } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <EarnDepositTokenListItem {...props} />,
     );
 
-    expect(getByText('Dai Stablecoin')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders primary text and secondary text', () => {
@@ -78,8 +78,8 @@ describe('EarnDepositTokenListItem', () => {
       <EarnDepositTokenListItem {...props} />,
     );
 
-    expect(getByText('Dai Stablecoin')).toBeOnTheScreen();
-    expect(getByText('10,100.00 USDC')).toBeOnTheScreen();
+    expect(getByText('Dai Stablecoin')).toBeDefined();
+    expect(getByText('10,100.00 USDC')).toBeDefined();
   });
 
   it('renders only primary text', () => {
@@ -87,6 +87,6 @@ describe('EarnDepositTokenListItem', () => {
       <EarnDepositTokenListItem {...baseProps} />,
     );
 
-    expect(getByText('Dai Stablecoin')).toBeOnTheScreen();
+    expect(getByText('Dai Stablecoin')).toBeDefined();
   });
 });

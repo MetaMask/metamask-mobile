@@ -21,12 +21,11 @@ describe('EarnMaintenanceBanner', () => {
     });
 
   it('renders banner and maintenance message', () => {
-    const { getByText } = renderBanner();
+    const { toJSON } = renderBanner();
 
+    expect(toJSON()).toMatchSnapshot();
     expect(
-      getByText(
-        strings('earn.service_interruption_banner.maintenance_message'),
-      ),
-    ).toBeOnTheScreen();
+      strings('earn.service_interruption_banner.maintenance_message'),
+    ).toBeDefined();
   });
 });

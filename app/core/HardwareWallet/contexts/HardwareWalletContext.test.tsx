@@ -27,7 +27,6 @@ const createMockContextValue = (
   deviceSelection: defaultDeviceSelection,
   ensureDeviceReady: asyncFalse,
   setTargetWalletType: noop,
-  setPendingOperationAddress: noop,
   showHardwareWalletError: noop,
   showAwaitingConfirmation: noop,
   hideAwaitingConfirmation: noop,

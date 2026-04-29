@@ -74,10 +74,9 @@ import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
-import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -412,7 +411,7 @@ const ExploreHome = () => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -618,15 +617,13 @@ const SettingsFlow = () => {
         options={{ headerShown: false }}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
       }
-      {CAN_INSTALL_THIRD_PARTY_SNAPS && (
-        <Stack.Screen
-          name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-          component={SnapsSettingsStack}
-          options={{ headerShown: false }}
-        />
-      )}
+      <Stack.Screen
+        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+        component={SnapsSettingsStack}
+        options={{ headerShown: false }}
+      />
       {
         ///: END:ONLY_INCLUDE_IF
       }

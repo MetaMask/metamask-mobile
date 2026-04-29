@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
 import {
   RequestedPermissions,

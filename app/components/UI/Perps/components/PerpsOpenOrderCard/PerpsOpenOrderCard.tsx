@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
   TextColor,
@@ -352,17 +352,16 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       {expanded && (
         <View style={styles.footer}>
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
+            label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
             isDisabled={isLocallyCancellingRef.current || disabled}
-            isLoading={isLocallyCancellingRef.current || disabled}
+            loading={isLocallyCancellingRef.current || disabled}
             style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
-          >
-            {strings('perps.order.cancel_order')}
-          </Button>
+          />
         </View>
       )}
 

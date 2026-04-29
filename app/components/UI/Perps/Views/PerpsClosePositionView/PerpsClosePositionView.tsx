@@ -14,11 +14,11 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
@@ -687,37 +687,33 @@ const PerpsClosePositionView: React.FC = () => {
           {Summary}
           <View style={styles.percentageButtonsContainer}>
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label="25%"
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
-            >
-              25%
-            </Button>
+            />
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label="50%"
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
-            >
-              50%
-            </Button>
+            />
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
-            >
-              {strings('perps.deposit.max_button')}
-            </Button>
+            />
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label={strings('perps.deposit.done_button')}
               onPress={handleDonePress}
               style={styles.percentageButton}
-            >
-              {strings('perps.deposit.done_button')}
-            </Button>
+            />
           </View>
 
           <Keypad
@@ -736,9 +732,14 @@ const PerpsClosePositionView: React.FC = () => {
         {!isInputFocused && Summary}
         {!isInputFocused && (
           <Button
-            variant={ButtonVariant.Primary}
+            label={
+              isClosing
+                ? strings('perps.close_position.closing')
+                : strings('perps.close_position.button')
+            }
+            variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
             onPress={handleConfirm}
             isDisabled={
               isClosing ||
@@ -747,15 +748,11 @@ const PerpsClosePositionView: React.FC = () => {
               (orderType === 'market' && closePercentage === 0) ||
               !validationResult.isValid
             }
-            isLoading={isClosing}
+            loading={isClosing}
             testID={
               PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
             }
-          >
-            {isClosing
-              ? strings('perps.close_position.closing')
-              : strings('perps.close_position.button')}
-          </Button>
+          />
         )}
       </View>
 

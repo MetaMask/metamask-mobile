@@ -26,8 +26,6 @@ import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
-import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
-import { isPredictSheetProviderMounted } from '../contexts/PredictPreviewSheetContext';
 
 const showPendingToast = ({
   showToast,
@@ -141,7 +139,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
-  const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const selectedAddress =
     getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
@@ -367,12 +364,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
-          // When the BottomSheet flow is on AND the provider is mounted,
-          // the provider auto-reopens the buy sheet with an inline error
-          // banner so we suppress the toast to avoid duplicate UI.
-          if (bottomSheetEnabled && isPredictSheetProviderMounted()) {
-            return;
-          }
           showErrorToast({
             showToast,
             title: strings('predict.order.prediction_failed'),
@@ -385,7 +376,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       }
     },
     [
-      bottomSheetEnabled,
       claim,
       deposit,
       navigation,

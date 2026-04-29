@@ -122,7 +122,7 @@ const renderWithProviders = (component: React.ReactElement) => {
 };
 
 describe('EarnScreenStack', () => {
-  it('renders without crashing', () => {
+  it('renders correctly', () => {
     const { toJSON } = renderWithProviders(<EarnScreenStack />);
     expect(toJSON()).toBeTruthy();
   });
@@ -151,7 +151,7 @@ describe('EarnScreenStack', () => {
 });
 
 describe('EarnModalStack', () => {
-  it('renders without crashing', () => {
+  it('renders correctly', () => {
     const { toJSON } = renderWithProviders(<EarnModalStack />);
     expect(toJSON()).toBeTruthy();
   });

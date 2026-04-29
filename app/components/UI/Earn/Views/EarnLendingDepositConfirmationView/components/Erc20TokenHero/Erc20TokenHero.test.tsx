@@ -18,15 +18,13 @@ describe('Erc20TokenHero', () => {
   };
 
   it('renders USDC token correctly', () => {
-    const { getByTestId, getByText } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <Erc20TokenHero {...defaultProps} />,
       {
         state: mockInitialState,
       },
     );
 
-    expect(getByTestId('earn-token-selector-USDC-0x1')).toBeOnTheScreen();
-    expect(getByText('1 USDC')).toBeOnTheScreen();
-    expect(getByText('$1')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
