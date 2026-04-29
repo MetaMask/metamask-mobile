@@ -13,9 +13,8 @@ import {
   selectIsSubmittingTx,
   selectSourceAmount,
   selectSourceToken,
-  selectDestToken,
+  selectDestTokenWarning,
 } from '../../../../../core/redux/slices/bridge';
-import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
@@ -35,7 +34,6 @@ import {
   exceedsPriceImpactErrorThreshold,
   parsePriceImpact,
 } from '../../utils/getPriceImpactViewData';
-import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -62,7 +60,7 @@ export const SwapsConfirmButton = ({
   });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const destToken = useSelector(selectDestToken);
+  const tokenWarning = useSelector(selectDestTokenWarning);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -161,27 +159,17 @@ export const SwapsConfirmButton = ({
     !walletAddress;
 
   const handleContinue = async () => {
-    const securityData = destToken?.securityData;
-    if (isNegativeSecurityType(securityData?.type)) {
+    if (tokenWarning) {
       const params: TokenWarningModalParams = {
-        warningType: securityData.type,
-        features: securityData.metadata?.features ?? [],
+        warningType:
+          tokenWarning.type as TokenWarningModalParams['warningType'],
+        description: tokenWarning.description,
         mode: TokenWarningModalMode.Execution,
         location,
       };
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params,
-      });
-      return;
-    }
-
-    if (hasMissingPriceData(activeQuote)) {
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
-        params: {
-          location,
-        },
       });
       return;
     }

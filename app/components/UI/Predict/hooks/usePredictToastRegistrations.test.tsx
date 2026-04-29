@@ -100,17 +100,6 @@ jest.mock('../../../../selectors/networkController', () => ({
   selectTickerByChainId: jest.fn(() => undefined),
 }));
 
-let mockBottomSheetEnabled = false;
-let mockProviderMounted = false;
-
-jest.mock('../selectors/featureFlags', () => ({
-  selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
-}));
-
-jest.mock('../contexts/PredictPreviewSheetContext', () => ({
-  isPredictSheetProviderMounted: jest.fn(() => mockProviderMounted),
-}));
-
 describe('usePredictToastRegistrations', () => {
   const showToast = jest.fn();
 
@@ -124,8 +113,6 @@ describe('usePredictToastRegistrations', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockBottomSheetEnabled = false;
-    mockProviderMounted = false;
     mockWithdrawTransaction = { amount: 123.45 };
 
     mockDeposit.mockResolvedValue(undefined);
@@ -916,57 +903,6 @@ describe('usePredictToastRegistrations', () => {
           linkButtonOptions: expect.anything(),
         }),
       );
-    });
-
-    it('suppresses the error toast when bottom sheet flag is ON and provider is mounted', () => {
-      mockBottomSheetEnabled = true;
-      mockProviderMounted = true;
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'order',
-          status: 'failed',
-          senderAddress: selectedAddress,
-        },
-        showToast,
-      );
-
-      expect(showToast).not.toHaveBeenCalled();
-    });
-
-    it('still shows the error toast when flag is ON but provider is not mounted', () => {
-      mockBottomSheetEnabled = true;
-      mockProviderMounted = false;
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'order',
-          status: 'failed',
-          senderAddress: selectedAddress,
-        },
-        showToast,
-      );
-
-      expect(showToast).toHaveBeenCalled();
-    });
-
-    it('still shows the error toast when flag is OFF even with provider mounted', () => {
-      mockBottomSheetEnabled = false;
-      mockProviderMounted = true;
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'order',
-          status: 'failed',
-          senderAddress: selectedAddress,
-        },
-        showToast,
-      );
-
-      expect(showToast).toHaveBeenCalled();
     });
   });
 });

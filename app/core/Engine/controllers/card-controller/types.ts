@@ -13,10 +13,7 @@ import type {
   KeyringControllerUnlockEvent,
   KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
-import type {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
+import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
 import type { TransactionControllerAddTransactionAction } from '@metamask/transaction-controller';
 import type { CardHomeData } from './provider-types';
@@ -74,7 +71,6 @@ type CardControllerAllowedActions =
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
-  | RemoteFeatureFlagControllerStateChangeEvent
   | KeyringControllerUnlockEvent;
 
 export type CardControllerMessenger = Messenger<

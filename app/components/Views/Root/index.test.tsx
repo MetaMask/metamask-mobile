@@ -26,6 +26,12 @@ jest.mock('expo-sensors', () => ({
 }));
 
 describe('Root', () => {
+  it('should render correctly', () => {
+    const { toJSON } = render(<Root foxCode="" />);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('should initialize SecureKeychain', async () => {
     render(<Root foxCode="" />);
 

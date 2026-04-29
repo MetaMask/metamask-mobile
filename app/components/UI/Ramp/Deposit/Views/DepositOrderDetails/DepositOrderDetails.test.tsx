@@ -41,7 +41,6 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../../../reducers/fiatOrders', () => ({
   getOrderById: jest.fn(),
   updateFiatOrder: jest.fn().mockReturnValue({ type: 'FIAT_UPDATE_ORDER' }),
-  getDetectedGeolocation: jest.fn(),
 }));
 
 function mockGetUpdatedOrder(order: FiatOrder) {

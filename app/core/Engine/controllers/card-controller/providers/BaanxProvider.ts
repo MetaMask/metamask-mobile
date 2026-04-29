@@ -58,6 +58,7 @@ import {
   OnboardingStepResult,
   RegistrationSettings,
   RegistrationStatus,
+  WalletOperations,
   FundingAssetStatus,
   CardProviderError,
   CardProviderErrorCode,
@@ -65,7 +66,6 @@ import {
   CashbackWithdrawEstimationResponse,
   CashbackWithdrawParams,
   CashbackWithdrawResponse,
-  type DelegationChallengeResponse,
   emptyCardHomeData,
 } from '../provider-types';
 
@@ -236,24 +236,17 @@ export class BaanxProvider implements ICardProvider {
     supportsCashback: true,
   };
   private readonly service: BaanxService;
-  private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
+  private readonly cardFeatureFlag: CardFeatureFlag | null;
 
   constructor({
     service,
     cardFeatureFlag,
-    getCardFeatureFlag,
   }: {
     service: BaanxService;
     cardFeatureFlag?: CardFeatureFlag;
-    getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
   }) {
     this.service = service;
-    this.getCardFeatureFlag = () =>
-      getCardFeatureFlag?.() ?? cardFeatureFlag ?? null;
-  }
-
-  private get cardFeatureFlag(): CardFeatureFlag | null {
-    return this.getCardFeatureFlag();
+    this.cardFeatureFlag = cardFeatureFlag ?? null;
   }
 
   // -- Auth --
@@ -580,63 +573,21 @@ export class BaanxProvider implements ICardProvider {
     };
   }
 
-  async fetchDelegationChallenge(
-    params: { network: string; address: string; faucet?: boolean },
-    tokens: CardAuthTokens,
-  ): Promise<DelegationChallengeResponse> {
-    const query = new URLSearchParams({
-      network: params.network,
-      address: params.address,
-      ...(params.faucet ? { faucet: 'true' } : {}),
-    }).toString();
-
-    const response = await this.service.get<{
-      token: string;
-      expiresAt: string;
-      nonce: string;
-    }>(`/v1/delegation/token?${query}`, tokens);
-
-    return {
-      delegationToken: response.token,
-      nonce: response.nonce,
-      expiresAt: response.expiresAt,
-    };
-  }
-
   // -- Funding Approval --
 
   async approveFunding(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
+    _wallet: WalletOperations,
   ): Promise<void> {
-    if (
-      params.txHash === undefined ||
-      params.sigHash === undefined ||
-      params.sigMessage === undefined ||
-      params.token === undefined
-    ) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'approveFunding requires txHash, sigHash, sigMessage, and delegation token',
-      );
-    }
-
-    const isSolana = params.network === 'solana';
-    const endpoint = isSolana
-      ? '/v1/delegation/solana/post-approval'
-      : '/v1/delegation/evm/post-approval';
-
     await this.service.post(
-      endpoint,
+      '/v1/delegation/evm/post-approval',
       {
-        address: params.address,
-        network: params.network,
-        currency: params.currency.toLowerCase(),
+        walletAddress: params.address,
         amount: params.amount,
-        txHash: params.txHash,
-        sigHash: params.sigHash,
-        sigMessage: params.sigMessage,
-        token: params.token,
+        currency: params.currency,
+        network: params.network,
+        faucet: params.faucet ?? false,
       },
       tokens,
     );

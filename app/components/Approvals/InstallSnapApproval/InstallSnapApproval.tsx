@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest, {
@@ -8,9 +8,13 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { SnapInstallState } from './InstallSnapApproval.types';
 import {
   InstallSnapConnectionRequest,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   InstallSnapError,
   InstallSnapPermissionsRequest,
   InstallSnapSuccess,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 } from './components';
 import { useSelector } from 'react-redux';
 import { selectSnapsMetadata, getPermissions } from '../../../selectors/snaps';
@@ -29,9 +33,13 @@ const InstallSnapApproval = () => {
   const [installState, setInstallState] = useState<
     SnapInstallState | undefined
   >(undefined);
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const [installError, setInstallError] = useState<Error | undefined>(
     undefined,
   );
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   const {
     approvalRequest,
     onConfirm: rawOnConfirm,
@@ -106,6 +114,9 @@ const InstallSnapApproval = () => {
 
   if (!approvalRequest) return null;
 
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+
   const onPermissionsConfirm = async () => {
     try {
       await onConfirm(undefined, {
@@ -119,7 +130,7 @@ const InstallSnapApproval = () => {
     }
   };
   ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 
   if (!approvalRequest || installState === undefined) return null;
 
@@ -150,6 +161,8 @@ const InstallSnapApproval = () => {
             onCancel={onReject}
           />
         );
+      ///: END:ONLY_INCLUDE_IF
+      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
       case SnapInstallState.AcceptPermissions:
         return (
           <InstallSnapPermissionsRequest
@@ -171,7 +184,7 @@ const InstallSnapApproval = () => {
           />
         );
       ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       default:
         return null;
     }

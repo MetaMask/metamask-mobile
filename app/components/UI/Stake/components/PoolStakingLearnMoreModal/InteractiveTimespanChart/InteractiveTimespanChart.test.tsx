@@ -86,44 +86,48 @@ const renderGraph = (
 };
 
 describe('InteractiveTimespanChart', () => {
-  it('renders chart container', () => {
-    const { getByTestId } = renderGraph('object');
+  it('render matches snapshot', () => {
+    const { toJSON } = renderGraph('object');
 
-    expect(
-      getByTestId(INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('supports dataPoints as number[]', () => {
-    const { getByText } = renderGraph('number');
+    const { toJSON, getByText } = renderGraph('number');
+
+    expect(toJSON()).toMatchSnapshot();
 
     // Timespan buttons rendering
-    buttons.forEach(({ label }) => expect(getByText(label)).toBeOnTheScreen());
+    buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
 
     // GraphTooltip
-    expect(getByText(DEFAULT_PROPS.NUMBER_ARRAY.title)).toBeOnTheScreen();
-    expect(getByText(DEFAULT_PROPS.NUMBER_ARRAY.subtitle)).toBeOnTheScreen();
+    expect(getByText(DEFAULT_PROPS.NUMBER_ARRAY.title)).toBeDefined();
+    expect(getByText(DEFAULT_PROPS.NUMBER_ARRAY.subtitle)).toBeDefined();
   });
 
   it('supports dataPoints as object[]', () => {
-    const { getByText } = renderGraph('object');
+    const { toJSON, getByText } = renderGraph('object');
+
+    expect(toJSON()).toMatchSnapshot();
 
     // Timespan buttons rendering
-    buttons.forEach(({ label }) => expect(getByText(label)).toBeOnTheScreen());
+    buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
 
     // GraphTooltip
-    expect(getByText(DEFAULT_PROPS.OBJECT_ARRAY.title)).toBeOnTheScreen();
-    expect(getByText(DEFAULT_PROPS.OBJECT_ARRAY.subtitle)).toBeOnTheScreen();
+    expect(getByText(DEFAULT_PROPS.OBJECT_ARRAY.title)).toBeDefined();
+    expect(getByText(DEFAULT_PROPS.OBJECT_ARRAY.subtitle)).toBeDefined();
   });
 
   it('renders no title or subtitle when defaultTitle, defaultSubtitle, titleAccessor, and subtitleAccessor are not defined', () => {
-    const { getByText, queryByText } = renderGraph('object', {
+    const { toJSON, getByText, queryByText } = renderGraph('object', {
       defaultTitle: '',
       defaultSubtitle: '',
     });
 
+    expect(toJSON()).toMatchSnapshot();
+
     // Timespan buttons rendering
-    buttons.forEach(({ label }) => expect(getByText(label)).toBeOnTheScreen());
+    buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
 
     // GraphTooltip
     expect(queryByText(DEFAULT_PROPS.OBJECT_ARRAY.title)).toBeNull();
@@ -131,29 +135,33 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('renders only the title when subtitle props are not defined', () => {
-    const { getByText, queryByText } = renderGraph('object', {
+    const { toJSON, getByText, queryByText } = renderGraph('object', {
       defaultSubtitle: '',
     });
 
+    expect(toJSON()).toMatchSnapshot();
+
     // Timespan buttons rendering
-    buttons.forEach(({ label }) => expect(getByText(label)).toBeOnTheScreen());
+    buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
 
     // GraphTooltip
-    expect(getByText(DEFAULT_PROPS.OBJECT_ARRAY.title)).toBeOnTheScreen();
+    expect(getByText(DEFAULT_PROPS.OBJECT_ARRAY.title)).toBeDefined();
     expect(queryByText(DEFAULT_PROPS.OBJECT_ARRAY.subtitle)).toBeNull();
   });
 
   it('renders only the subtitle when title props are not defined', () => {
-    const { getByText, queryByText } = renderGraph('object', {
+    const { toJSON, getByText, queryByText } = renderGraph('object', {
       defaultTitle: '',
     });
 
+    expect(toJSON()).toMatchSnapshot();
+
     // Timespan buttons rendering
-    buttons.forEach(({ label }) => expect(getByText(label)).toBeOnTheScreen());
+    buttons.forEach(({ label }) => expect(getByText(label)).toBeDefined());
 
     // GraphTooltip
     expect(queryByText(DEFAULT_PROPS.OBJECT_ARRAY.title)).toBeNull();
-    expect(getByText(DEFAULT_PROPS.OBJECT_ARRAY.subtitle)).toBeOnTheScreen();
+    expect(getByText(DEFAULT_PROPS.OBJECT_ARRAY.subtitle)).toBeDefined();
   });
 
   it('supports customizing color', async () => {

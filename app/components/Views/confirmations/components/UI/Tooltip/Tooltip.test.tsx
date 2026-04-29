@@ -5,8 +5,8 @@ import { fireEvent, render } from '@testing-library/react-native';
 import Tooltip from './Tooltip';
 
 describe('Tooltip', () => {
-  it('renders the open button', () => {
-    const { getByTestId } = render(
+  it('should match snapshot', async () => {
+    const container = render(
       <Tooltip
         title="Tooltip title"
         content={
@@ -14,10 +14,9 @@ describe('Tooltip', () => {
             <Text>Tooltip content to be displayed here!</Text>
           </View>
         }
-        tooltipTestId="tooltipTestId"
       />,
     );
-    expect(getByTestId('tooltipTestId-open-btn')).toBeOnTheScreen();
+    expect(container).toMatchSnapshot();
   });
 
   it('should display content when info icon is clicked', async () => {
@@ -35,9 +34,7 @@ describe('Tooltip', () => {
       />,
     );
     fireEvent.press(getByTestId('tooltipTestId-open-btn'));
-    expect(
-      getByText('Tooltip content to be displayed here!'),
-    ).toBeOnTheScreen();
+    expect(getByText('Tooltip content to be displayed here!')).toBeDefined();
     expect(mockOnPress).toHaveBeenCalled();
   });
 });

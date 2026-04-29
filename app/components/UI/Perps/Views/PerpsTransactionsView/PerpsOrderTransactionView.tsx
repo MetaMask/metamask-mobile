@@ -9,11 +9,11 @@ import Text, {
 
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
@@ -192,14 +192,13 @@ const PerpsOrderTransactionView: React.FC = () => {
           {/* Block explorer button */}
           <Button
             testID={PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON}
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
+            label={strings('perps.transactions.view_on_explorer')}
             onPress={handleViewOnBlockExplorer}
             style={styles.blockExplorerButton}
-          >
-            {strings('perps.transactions.view_on_explorer')}
-          </Button>
+          />
         </View>
       </ScrollView>
     </ScreenView>

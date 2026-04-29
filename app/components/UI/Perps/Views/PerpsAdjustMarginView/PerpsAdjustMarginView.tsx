@@ -7,11 +7,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
   ButtonSize,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { type Position, PERPS_CONSTANTS } from '@metamask/perps-controller';
 import styleSheet from './PerpsAdjustMarginView.styles';
@@ -447,56 +447,51 @@ const PerpsAdjustMarginView: React.FC = () => {
         <View style={styles.footer}>
           <Button
             testID={PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON}
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
+            label={buttonLabel}
             onPress={handleConfirm}
             isDisabled={
               marginAmount <= 0 ||
               isAdjusting ||
               (!isAddMode && marginAmount > flooredMaxAmount)
             }
-            isLoading={isAdjusting}
-          >
-            {buttonLabel}
-          </Button>
+            loading={isAdjusting}
+          />
         </View>
       ) : (
         <View style={styles.keypadFooter}>
           <View style={styles.percentageButtonsContainer}>
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label="25%"
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
-            >
-              25%
-            </Button>
+            />
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label="50%"
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
-            >
-              50%
-            </Button>
+            />
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
-            >
-              {strings('perps.deposit.max_button')}
-            </Button>
+            />
             <Button
               testID={PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON}
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label={strings('perps.deposit.done_button')}
               onPress={handleDonePress}
               style={styles.percentageButton}
-            >
-              {strings('perps.deposit.done_button')}
-            </Button>
+            />
           </View>
 
           <Keypad
