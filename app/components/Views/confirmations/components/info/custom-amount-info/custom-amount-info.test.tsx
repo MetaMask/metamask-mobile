@@ -32,7 +32,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { fireEvent } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
+import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
@@ -318,16 +320,54 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeDefined();
   });
 
-  it('renders bottom block with extraBottomPadding style when hasExtraBottomPadding is true', () => {
-    const { getByTestId } = render({ hasExtraBottomPadding: true });
+  describe('hasExtraBottomPadding', () => {
+    const originalPlatformOS = Platform.OS;
 
-    expect(getByTestId('deposit-keyboard')).toBeDefined();
-  });
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatformOS,
+        writable: true,
+      });
+    });
 
-  it('renders bottom block without extraBottomPadding style when hasExtraBottomPadding is false', () => {
-    const { getByTestId } = render({ hasExtraBottomPadding: false });
+    it('applies 56dp paddingBottom to the bottom block on Android when hasExtraBottomPadding is true', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
 
-    expect(getByTestId('deposit-keyboard')).toBeDefined();
+      const { getByTestId } = render({ hasExtraBottomPadding: true });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
+        paddingBottom: 56,
+      });
+    });
+
+    it('does not apply paddingBottom to the bottom block when hasExtraBottomPadding is false (Android)', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const { getByTestId } = render({ hasExtraBottomPadding: false });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
+        { paddingBottom: 56 },
+      );
+    });
+
+    it('does not apply paddingBottom to the bottom block on iOS even when hasExtraBottomPadding is true', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'ios',
+        writable: true,
+      });
+
+      const { getByTestId } = render({ hasExtraBottomPadding: true });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
+        { paddingBottom: 56 },
+      );
+    });
   });
 
   it('renders footerText when passed in', () => {

@@ -66,6 +66,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -217,6 +218,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         </Box>
         <Box
           gap={16}
+          testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           style={hasExtraBottomPadding && styles.extraBottomPadding}
         >
           <AlertMessage alertMessage={alertMessage} />
