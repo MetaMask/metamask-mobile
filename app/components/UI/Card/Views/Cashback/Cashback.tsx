@@ -25,6 +25,15 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
 import { CashbackSelectors } from './Cashback.testIds';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import {
+  selectCardHasApprovedLineaFunding,
+  selectCardHomeDataStatus,
+  selectCardLineaUsdcToken,
+} from '../../../../../selectors/cardController';
+import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
+import { CardMessageBoxType } from '../../types';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const CURRENCY_DISPLAY_MAP: Record<string, string> = {
   musd: 'mUSD',
@@ -44,11 +53,16 @@ const formatAmount = (value: string | number): string => {
 };
 
 const Cashback: React.FC = () => {
-  const { goBack } = useNavigation();
+  const navigation = useNavigation();
   const tw = useTailwind();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasApprovedLineaFunding = useSelector(
+    selectCardHasApprovedLineaFunding,
+  );
+  const lineaUsdcToken = useSelector(selectCardLineaUsdcToken);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
 
   const {
     cashbackWallet,
@@ -74,6 +88,10 @@ const Cashback: React.FC = () => {
   const feeNum = parseFloat(feeRaw);
   const expectedToReceiveNum = Math.max(0, balanceNum - feeNum);
   const hasInsufficientBalance = balanceNum <= 0 || balanceNum <= feeNum;
+  const isFundingStatusLoading =
+    cardHomeDataStatus === 'idle' || cardHomeDataStatus === 'loading';
+  const requiresLineaFunding =
+    !isFundingStatusLoading && !hasApprovedLineaFunding;
 
   useEffect(() => {
     if (cashbackWallet) {
@@ -94,9 +112,9 @@ const Cashback: React.FC = () => {
         iconColor: theme.colors.success.default,
         hasNoTimeout: false,
       });
-      goBack();
+      navigation.goBack();
     }
-  }, [monitoringStatus, toastRef, theme, goBack]);
+  }, [monitoringStatus, toastRef, theme, navigation]);
 
   useEffect(() => {
     if (monitoringStatus === 'failed' || monitoringError) {
@@ -138,6 +156,8 @@ const Cashback: React.FC = () => {
   );
 
   const handleWithdraw = useCallback(() => {
+    if (requiresLineaFunding) return;
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -147,7 +167,14 @@ const Cashback: React.FC = () => {
         .build(),
     );
     withdraw(balance);
-  }, [balance, withdraw, trackEvent, createEventBuilder]);
+  }, [balance, withdraw, trackEvent, createEventBuilder, requiresLineaFunding]);
+
+  const handleNavigateToSpendingLimit = useCallback(() => {
+    navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+      flow: 'enable',
+      ...(lineaUsdcToken ? { selectedToken: lineaUsdcToken } : {}),
+    });
+  }, [navigation, lineaUsdcToken]);
 
   const isProcessing = isWithdrawing || monitoringStatus === 'monitoring';
 
@@ -163,7 +190,9 @@ const Cashback: React.FC = () => {
     !isWithdrawable ||
     isProcessing ||
     isEstimating ||
-    hasInsufficientBalance;
+    hasInsufficientBalance ||
+    isFundingStatusLoading ||
+    requiresLineaFunding;
 
   return (
     <SafeAreaView
@@ -172,6 +201,15 @@ const Cashback: React.FC = () => {
       testID={CashbackSelectors.CONTAINER}
     >
       <Box twClassName="flex-1 px-4">
+        {requiresLineaFunding ? (
+          <Box twClassName="pt-4" testID={CashbackSelectors.FUNDING_WARNING}>
+            <CardMessageBox
+              messageType={CardMessageBoxType.CashbackFundingRequired}
+              onConfirm={handleNavigateToSpendingLimit}
+            />
+          </Box>
+        ) : null}
+
         <Box twClassName="py-4" testID={CashbackSelectors.BALANCE_TITLE}>
           {isLoading ? (
             <Skeleton height={32} width={160} style={tw.style('rounded-lg')} />

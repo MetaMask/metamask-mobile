@@ -7927,7 +7927,12 @@
       "withdrawal_success": "Withdrawal completed successfully",
       "withdrawal_failed": "Withdrawal failed. Please try again.",
       "no_cashback": "No cashback available",
-      "loading_error": "Failed to load cashback. Please try again."
+      "loading_error": "Failed to load cashback. Please try again.",
+      "funding_required": {
+        "title": "Set up Linea funding",
+        "description": "You need at least one approved funding source on Linea before redeeming cashback.",
+        "confirm_button_label": "Set up funding"
+      }
     },
     "change_asset": {
       "title": "Change token and network",

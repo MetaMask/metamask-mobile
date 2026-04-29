@@ -3,6 +3,7 @@ const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
+const mockNavigate = jest.fn();
 
 const mockEventBuilder = {
   addProperties: jest.fn().mockReturnThis(),
@@ -43,6 +44,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -71,6 +73,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Withdrawal failed. Please try again.',
       'card.cashback_screen.loading_error':
         'Failed to load cashback. Please try again.',
+      'card.cashback_screen.funding_required.title': 'Set up Linea funding',
+      'card.cashback_screen.funding_required.description':
+        'You need at least one approved funding source on Linea before redeeming cashback.',
+      'card.cashback_screen.funding_required.confirm_button_label':
+        'Set up funding',
     };
     return translations[key] ?? key;
   },
@@ -116,6 +123,8 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import Cashback from './Cashback';
 import { CashbackSelectors } from './Cashback.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
+import { FundingAssetStatus } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const mockToastRef = {
   current: {
@@ -124,13 +133,37 @@ const mockToastRef = {
   },
 };
 
+const mockLineaUsdcFundingAsset = {
+  symbol: 'USDC',
+  name: 'USD Coin',
+  address: '0xusdc000000000000000000000000000000000001',
+  walletAddress: '0xwallet000000000000000000000000000000000002',
+  decimals: 6,
+  chainId: 'eip155:59144',
+  spendableBalance: '10',
+  spendingCap: '100',
+  priority: 1,
+  status: FundingAssetStatus.Active,
+};
+
+const mockCardHomeData = {
+  primaryFundingAsset: mockLineaUsdcFundingAsset,
+  fundingAssets: [mockLineaUsdcFundingAsset],
+  availableFundingAssets: [mockLineaUsdcFundingAsset],
+  card: null,
+  account: null,
+  alerts: [],
+  actions: [],
+  delegationSettings: null,
+};
+
 const CashbackWithToast = () => (
   <ToastContext.Provider value={{ toastRef: mockToastRef }}>
     <Cashback />
   </ToastContext.Provider>
 );
 
-function render() {
+function render(cardControllerOverrides = {}) {
   return renderScreen(
     CashbackWithToast,
     {
@@ -142,6 +175,16 @@ function render() {
           backgroundState: {
             PreferencesController: {
               isIpfsGatewayEnabled: true,
+            },
+            CardController: {
+              selectedCountry: null,
+              activeProviderId: 'baanx',
+              isAuthenticated: true,
+              cardholderAccounts: [],
+              providerData: {},
+              cardHomeData: mockCardHomeData,
+              cardHomeDataStatus: 'success',
+              ...cardControllerOverrides,
             },
           },
         },
@@ -333,6 +376,72 @@ describe('Cashback Component', () => {
       render();
 
       expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Linea funding requirement', () => {
+    it('shows a warning when the user has no approved Linea funding', () => {
+      render({
+        cardHomeData: {
+          ...mockCardHomeData,
+          fundingAssets: [],
+        },
+      });
+
+      expect(
+        screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Set up Linea funding')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'You need at least one approved funding source on Linea before redeeming cashback.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to Spending Limit with USDC on Linea pre-selected', () => {
+      render({
+        cardHomeData: {
+          ...mockCardHomeData,
+          fundingAssets: [],
+        },
+      });
+
+      fireEvent.press(screen.getByText('Set up funding'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'enable',
+        selectedToken: expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+        }),
+      });
+    });
+
+    it('blocks withdrawal when approved Linea funding is missing', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render({
+        cardHomeData: {
+          ...mockCardHomeData,
+          fundingAssets: [],
+        },
+      });
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).not.toHaveBeenCalled();
     });
   });
 

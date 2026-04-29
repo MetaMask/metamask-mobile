@@ -38,6 +38,7 @@ export enum CardMessageBoxType {
   KYCPending = 'kyc_pending',
   CardProvisioning = 'card_provisioning',
   AuthPrompt = 'auth_prompt',
+  CashbackFundingRequired = 'cashback_funding_required',
 }
 
 export type CardUserPhase =
