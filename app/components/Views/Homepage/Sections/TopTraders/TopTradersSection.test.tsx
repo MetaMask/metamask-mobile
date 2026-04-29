@@ -193,6 +193,35 @@ describe('TopTradersSection', () => {
     expect(screen.queryByText('Retry')).toBeNull();
   });
 
+  it('keeps cached traders visible when a background refetch fails', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: 'Network error',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(screen.getByTestId('top-trader-card-trader-1')).toBeOnTheScreen();
+    expect(screen.queryByText('Retry')).toBeNull();
+  });
+
+  it('does not render ViewMoreCard while a background refetch is in flight', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: true,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(screen.queryByTestId('top-traders-view-more-card')).toBeNull();
+  });
+
   it('exposes refresh via ref and resolves when called', async () => {
     const ref = createRef<SectionRefreshHandle>();
     renderWithProvider(<TopTradersSection ref={ref} {...defaultProps} />);

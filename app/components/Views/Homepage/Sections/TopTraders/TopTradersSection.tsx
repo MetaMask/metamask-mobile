@@ -90,6 +90,14 @@ const TopTradersSection = forwardRef<
     enabled: isEnabled,
   });
 
+  const isInFlight = isLoading || isFetching;
+  const hasTraders = traders.length > 0;
+  const hasError = Boolean(error);
+  const showError = hasError && !isFetching && !hasTraders;
+  const showSkeletons = isInFlight;
+  const showViewMore = !isInFlight && hasTraders;
+  const isEmpty = !isInFlight && !hasError && !hasTraders;
+
   const handleViewAll = useCallback(() => {
     navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW);
   }, [navigation]);
@@ -105,11 +113,11 @@ const TopTradersSection = forwardRef<
     [navigation],
   );
 
-  if (!isEnabled || (!isLoading && !error && traders.length === 0)) {
+  if (!isEnabled || isEmpty) {
     return null;
   }
 
-  if (error && !isFetching) {
+  if (showError) {
     return (
       <View
         ref={sectionViewRef}
@@ -144,7 +152,7 @@ const TopTradersSection = forwardRef<
           contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
           testID="homepage-top-traders-carousel"
         >
-          {isLoading || isFetching
+          {showSkeletons
             ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
             : traders.map((trader) => (
                 <TopTraderCard
@@ -154,7 +162,7 @@ const TopTradersSection = forwardRef<
                   onTraderPress={handleTraderPress}
                 />
               ))}
-          {!isLoading && traders.length > 0 && (
+          {showViewMore && (
             <ViewMoreCard
               onPress={handleViewAll}
               twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-[${TOP_TRADER_CARD_HEIGHT}px]`}
