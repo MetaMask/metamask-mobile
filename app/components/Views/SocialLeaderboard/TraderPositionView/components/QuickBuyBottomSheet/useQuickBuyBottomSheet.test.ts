@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
+import ToastService from '../../../../../../core/ToastService/ToastService';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
@@ -30,8 +31,20 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
+jest.mock('../../../../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: jest.fn(),
+    closeToast: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      success: { default: 'mock-success-color' },
+    },
+  }),
 }));
 
 jest.mock('./useQuickBuySetup', () => ({
@@ -671,7 +684,12 @@ describe('useQuickBuyBottomSheet', () => {
   });
 
   describe('handleConfirm', () => {
-    it('submits via BridgeStatusController.submitTx with normalised approval and stxEnabled', async () => {
+    beforeEach(() => {
+      (ToastService.showToast as jest.Mock).mockClear();
+      (ToastService.closeToast as jest.Mock).mockClear();
+    });
+
+    it('submits via BridgeStatusController.submitTx, closes the sheet immediately, and shows toasts', async () => {
       const activeQuote = {
         ...createActiveQuote(),
         approval: null,
@@ -698,6 +716,7 @@ describe('useQuickBuyBottomSheet', () => {
         await result.current.handleConfirm();
       });
 
+      // submitTx receives the correct args
       expect(
         Engine.context.BridgeStatusController.submitTx,
       ).toHaveBeenCalledWith(
@@ -705,6 +724,16 @@ describe('useQuickBuyBottomSheet', () => {
         expect.objectContaining({ approval: undefined }),
         true,
       );
+
+      // Sheet closes immediately (not after tx resolves)
+      expect(onClose).toHaveBeenCalledTimes(1);
+
+      // Loading toast shown first, then success toast after submitTx resolves
+      expect(ToastService.showToast).toHaveBeenCalledTimes(2);
+      const [loadingCall, successCall] = (ToastService.showToast as jest.Mock)
+        .mock.calls;
+      expect(loadingCall[0]).toMatchObject({ hasNoTimeout: true });
+      expect(successCall[0]).toMatchObject({ hasNoTimeout: false });
     });
 
     it('does not call submitTx when there is no active quote', async () => {
