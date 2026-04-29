@@ -37,6 +37,7 @@ import { useTransactionConfirm } from '../../../hooks/transactions/useTransactio
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
@@ -61,9 +62,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
     canSelectWithdrawToken: false,
   })),
 }));
-jest.mock('../../../../../../util/transaction-controller', () => ({
-  updateEditableParams: jest.fn(),
-}));
+jest.mock('../../../../../../util/transaction-controller', () => ({}));
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -71,21 +70,28 @@ jest.mock('../../../../../../core/Engine', () => ({
     },
   },
 }));
+jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../AccountSelector', () => {
-  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       onAccountSelected,
+      selectedAddress,
+      label,
     }: {
       onAccountSelected: (address: string) => void;
       selectedAddress?: string;
+      label?: string;
     }) => (
       <TouchableOpacity
         testID="account-selector"
         onPress={() => onAccountSelected('0xTestRecipient')}
       >
-        <Text>Select account</Text>
+        <Text testID="account-selector-label">{label ?? 'To'}</Text>
+        <Text testID="account-selector-address">
+          {selectedAddress ?? 'No selection'}
+        </Text>
       </TouchableOpacity>
     ),
   };
@@ -208,9 +214,14 @@ describe('CustomAmountInfo', () => {
 
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
+  const useTransactionAccountOverrideMock = jest.mocked(
+    useTransactionAccountOverride,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -408,23 +419,83 @@ describe('CustomAmountInfo', () => {
     expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('does not render AccountSelector for non-moneyAccountWithdraw transactions', () => {
-    const { queryByTestId } = render();
+  it('calls updateTokenAmount when Done is pressed for non-moneyAccountDeposit transactions', async () => {
+    const updateTokenAmountMock = jest.fn();
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: true,
+      isInputChanged: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
+    });
 
-    expect(queryByTestId('account-selector')).toBeNull();
+    const { getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
   });
 
-  it('renders AccountSelector for moneyAccountWithdraw transactions', () => {
+  it('does not call updateTokenAmount when Done is pressed for moneyAccountDeposit transactions', async () => {
+    const updateTokenAmountMock = jest.fn();
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: true,
+      isInputChanged: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByText } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateTokenAmountMock).not.toHaveBeenCalled();
+  });
+
+  it('renders PayAccountSelector when supportAccountSelection is true', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({
+      supportAccountSelection: true,
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(getByTestId('account-selector')).toBeOnTheScreen();
+  });
+
+  it('does not render PayAccountSelector when supportAccountSelection is false', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountWithdraw,
       txParams: { from: '0x123' },
     } as never);
 
-    const { getByTestId } = render({
+    const { queryByTestId } = render({
+      supportAccountSelection: false,
       transactionType: TransactionType.moneyAccountWithdraw,
     });
 
-    expect(getByTestId('account-selector')).toBeOnTheScreen();
+    expect(queryByTestId('account-selector')).toBeNull();
   });
 
   it('calls setTransactionConfig with accountOverride when withdraw account is selected', async () => {
@@ -439,6 +510,7 @@ describe('CustomAmountInfo', () => {
     } as never);
 
     const { getByTestId } = render({
+      supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountWithdraw,
     });
 
@@ -499,13 +571,14 @@ describe('CustomAmountInfo', () => {
     ).toBeNull();
   });
 
-  it('renders AccountSelector for moneyAccountDeposit transactions', () => {
+  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
 
     const { getByTestId } = render({
+      supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
@@ -519,6 +592,7 @@ describe('CustomAmountInfo', () => {
     } as never);
 
     const { getByTestId } = render({
+      supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
@@ -537,6 +611,7 @@ describe('CustomAmountInfo', () => {
     } as never);
 
     const { getByTestId } = render({
+      supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountDeposit,
     });
 

@@ -54,6 +54,64 @@ exports[`BrowserTab render Browser 1`] = `
         accessible={true}
         collapsable={false}
         focusable={true}
+        jestAnimatedProps={
+          {
+            "value": {},
+          }
+        }
+        jestAnimatedStyle={
+          {
+            "value": {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          }
+        }
+        jestInlineStyle={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 8,
+              "height": 32,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 32,
+            },
+            undefined,
+            {
+              "initial": {
+                "updater": [Function],
+                "value": {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              },
+              "jestAnimatedValues": {
+                "current": {
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              "viewDescriptors": {
+                "add": [Function],
+                "remove": [Function],
+                "shareableViewDescriptors": "SharedValue(<circular>)",
+              },
+            },
+          ]
+        }
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -212,22 +270,45 @@ exports[`BrowserTab render Browser 1`] = `
               />
             </View>
           </View>
-          <TouchableOpacity
-            onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "height": 50,
-                  "justifyContent": "center",
-                  "paddingBottom": 12,
-                  "paddingTop": 12,
-                },
-                {
-                  "paddingLeft": 8,
-                  "paddingRight": 8,
-                },
-              ]
+              {
+                "alignItems": "center",
+                "height": 50,
+                "justifyContent": "center",
+                "opacity": 1,
+                "paddingBottom": 12,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+                "paddingTop": 12,
+              }
             }
             testID="browser-tabs-button"
           >
@@ -264,7 +345,7 @@ exports[`BrowserTab render Browser 1`] = `
                 0
               </Text>
             </View>
-          </TouchableOpacity>
+          </View>
           <View
             style={
               {
@@ -273,8 +354,34 @@ exports[`BrowserTab render Browser 1`] = `
               }
             }
           >
-            <TouchableOpacity
-              onPress={[Function]}
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -283,6 +390,7 @@ exports[`BrowserTab render Browser 1`] = `
                   "marginLeft": 0,
                   "marginRight": 16,
                   "marginTop": 12,
+                  "opacity": 1,
                 }
               }
               testID="navbar-account-button"
@@ -322,7 +430,7 @@ exports[`BrowserTab render Browser 1`] = `
                   testID="network-avatar-image"
                 />
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -411,6 +519,73 @@ exports[`BrowserTab render Browser 1`] = `
         }
       >
         <View
+          collapsable={false}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "display": "flex",
+                "opacity": 0,
+                "transform": [
+                  {
+                    "translateY": -80,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 9997,
+              },
+              {
+                "height": 80,
+              },
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "display": "flex",
+                    "opacity": 0,
+                    "transform": [
+                      {
+                        "translateY": -80,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "display": "flex",
+                      "opacity": 0,
+                      "transform": [
+                        {
+                          "translateY": -80,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           pointerEvents="none"
           style={
             [
@@ -678,6 +853,64 @@ exports[`BrowserTab render Browser 1`] = `
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "width": 40,
+              },
+              undefined,
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -746,6 +979,64 @@ exports[`BrowserTab render Browser 1`] = `
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "width": 40,
+              },
+              undefined,
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -814,6 +1105,64 @@ exports[`BrowserTab render Browser 1`] = `
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 40,
+              },
+              undefined,
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -896,6 +1245,64 @@ exports[`BrowserTab render Browser 1`] = `
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "width": 40,
+              },
+              undefined,
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -964,6 +1371,64 @@ exports[`BrowserTab render Browser 1`] = `
           accessible={true}
           collapsable={false}
           focusable={true}
+          jestAnimatedProps={
+            {
+              "value": {},
+            }
+          }
+          jestAnimatedStyle={
+            {
+              "value": {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+            }
+          }
+          jestInlineStyle={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 40,
+              },
+              undefined,
+              {
+                "initial": {
+                  "updater": [Function],
+                  "value": {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                },
+                "jestAnimatedValues": {
+                  "current": {
+                    "value": {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  },
+                },
+                "viewDescriptors": {
+                  "add": [Function],
+                  "remove": [Function],
+                  "shareableViewDescriptors": "SharedValue(<circular>)",
+                },
+              },
+            ]
+          }
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}

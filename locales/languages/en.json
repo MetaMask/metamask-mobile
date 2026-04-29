@@ -1021,13 +1021,27 @@
       }
     },
     "notification_preferences": {
-      "title": "Top Traders",
+      "title": "Top traders",
       "allow_push_notifications": "Allow push notifications",
       "trades_over_label": "Get notified of trades over:",
       "traders_you_follow": "Traders you follow",
       "traders_you_follow_desc": "Choose who you get notifications about",
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
+    },
+    "trader_notifications": {
+      "title": "Notifications from {{traderName}}",
+      "allow_push_notifications": "Allow push notifications",
+      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
+      "manage_traders": "Manage traders you follow",
+      "save": "Save"
+    },
+    "trader_notifications_setup": {
+      "description": "Get real-time alerts on trades from the traders you follow",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "save": "Save",
+      "title": "Top Traders"
     },
     "follow": "Follow",
     "following": "Following",
@@ -1055,7 +1069,11 @@
       "bought": "{{name}} bought",
       "sold": "{{name}} sold",
       "no_trades": "No trades for this interval",
-      "closed_position": "Closed position"
+      "closed_position": "Closed position",
+      "fallback_title": "Position not available",
+      "fallback_subtitle": "We couldn't load this position right now.",
+      "fallback_back_to_profile": "Back to profile",
+      "fallback_back_to_leaderboard": "Back to leaderboard"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -3422,9 +3440,11 @@
         "quote_tag_most_reliable": "Most reliable",
         "quote_unknown_provider": "Unknown provider",
         "start_headless_buy": "Start headless buy",
+        "replace_and_start_headless_buy": "Replace & start headless buy",
         "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
         "start_headless_buy_pending": "Headless session active — open BuildQuote",
         "cancel_headless_buy": "Cancel headless session",
+        "active_session_hint": "Active session: {{sessionId}} — starting another quote will cancel it.",
         "event_log_title": "Event log",
         "event_log_empty": "No events yet — start a headless session and watch this space.",
         "event_log_started": "started session {{sessionId}} (asset={{assetId}}, amount={{amount}}, payment={{paymentMethodId}}{{providerSuffix}})",
@@ -3432,6 +3452,12 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "consumer-cancelled session {{sessionId}}"
+      },
+      "headless_host": {
+        "title": "Headless buy",
+        "loading": "Preparing the buy flow…",
+        "no_session": "Headless session is no longer active.",
+        "cancel": "Cancel"
       }
     },
     "request_feature": "Request a feature",
@@ -4307,6 +4333,8 @@
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Smart contract interaction",
+    "money_account_deposit": "Deposit to Money Account",
+    "money_account_withdraw": "Transfer from Money Account",
     "swaps_transaction": "Swaps transaction",
     "bridge_transaction": "Bridge",
     "approve": "Approve",
@@ -8561,6 +8589,8 @@
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
+      "money_account_deposit": "Deposit to Money Account",
+      "money_account_withdraw": "Transfer from Money Account",
       "default": "Transaction details"
     },
     "label": {
