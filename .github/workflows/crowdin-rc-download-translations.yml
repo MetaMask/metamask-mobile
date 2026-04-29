@@ -48,7 +48,7 @@ jobs:
       matrix:
         # If run on `main`, we download translations for all RCs
         # If run on a non-default branch, we just download translations for that individual branch
-        branch: ${{ github.ref_name == 'main' && fromJson(needs.find-rc-branches.outputs.branches) || [github.ref_name] }}
+        branch: ${{ github.ref_name == 'main' && fromJson(needs.find-rc-branches.outputs.branches) || fromJson(format('[{0}]', github.ref_name)) }}
 
     steps:
       - name: Checkout
