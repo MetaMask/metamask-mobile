@@ -71,6 +71,12 @@ interface QuickBuyFooterProps {
   getButtonLabel: () => string;
   onPresetPress: (preset: string) => void;
   onConfirm: () => Promise<void>;
+  /**
+   * Called whenever the Pay-with picker or Total breakdown transitions to
+   * expanded, so the parent ScrollView can scroll to the bottom and keep the
+   * Buy button visible.
+   */
+  onContentExpand?: () => void;
   colors: { icon: { alternative: string } };
 }
 
@@ -96,6 +102,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   getButtonLabel,
   onPresetPress,
   onConfirm,
+  onContentExpand,
   colors,
 }) => {
   const tw = useTailwind();
@@ -136,6 +143,69 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
       },
     );
   }, [isSourcePickerOpen, pickerHeight]);
+
+  // Animate the Total fee-breakdown the same way. `isTotalExpanded` can start
+  // `true` (when price impact is unsafe) so we use an `initialized` ref to
+  // commit the first measurement without an animation; subsequent toggles run
+  // through `withTiming` so the parent BottomSheet grows smoothly.
+  const totalBreakdownHeight = useSharedValue(0);
+  const measuredTotalBreakdownHeight = useRef(0);
+  const totalBreakdownInitialized = useRef(false);
+
+  const animatedTotalBreakdownStyle = useAnimatedStyle(() => ({
+    height: totalBreakdownHeight.value,
+  }));
+
+  const handleTotalBreakdownLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height <= 0 || height === measuredTotalBreakdownHeight.current)
+        return;
+      measuredTotalBreakdownHeight.current = height;
+      if (!totalBreakdownInitialized.current) {
+        totalBreakdownInitialized.current = true;
+        totalBreakdownHeight.value = isTotalExpanded ? height : 0;
+        return;
+      }
+      if (isTotalExpanded) {
+        totalBreakdownHeight.value = withTiming(height, {
+          duration: PAY_WITH_ANIMATION_DURATION_MS,
+          easing: PAY_WITH_ANIMATION_EASING,
+        });
+      }
+    },
+    [isTotalExpanded, totalBreakdownHeight],
+  );
+
+  useEffect(() => {
+    if (!totalBreakdownInitialized.current) return;
+    totalBreakdownHeight.value = withTiming(
+      isTotalExpanded ? measuredTotalBreakdownHeight.current : 0,
+      {
+        duration: PAY_WITH_ANIMATION_DURATION_MS,
+        easing: PAY_WITH_ANIMATION_EASING,
+      },
+    );
+  }, [isTotalExpanded, totalBreakdownHeight]);
+
+  // Notify the parent ScrollView that an expandable section is opening, so it
+  // can pin its scroll offset to the bottom for the duration of the height
+  // animation. Each section has its own effect so that toggling one doesn't
+  // re-arm following caused by the other.
+  // We fire immediately (no delay): the parent scrolls to the new bottom on
+  // every `onContentSizeChange` while following, so the content grows upward
+  // and the Buy button stays in place during the transition.
+  useEffect(() => {
+    if (isSourcePickerOpen) {
+      onContentExpand?.();
+    }
+  }, [isSourcePickerOpen, onContentExpand]);
+
+  useEffect(() => {
+    if (isTotalExpanded) {
+      onContentExpand?.();
+    }
+  }, [isTotalExpanded, onContentExpand]);
 
   const handleSourcePickerToggle = useCallback(() => {
     setIsSourcePickerOpen((prev) => !prev);
@@ -269,145 +339,156 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
           </Box>
 
           {/* Total row (tap to expand fee breakdown) */}
-          <TouchableOpacity
-            onPress={() => setIsTotalExpanded((prev) => !prev)}
-            testID="quick-buy-total-row"
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
+          <Box>
+            <TouchableOpacity
+              onPress={() => setIsTotalExpanded((prev) => !prev)}
+              testID="quick-buy-total-row"
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                gap={2}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.total')}
-                </Text>
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={colors.icon.alternative}
-                />
-              </Box>
-              {isTotalLoading ? (
-                <Skeleton
-                  width={56}
-                  height={20}
-                  style={tw.style('rounded-md')}
-                  testID="skeleton-view"
-                />
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {totalAmountUsd}
-                </Text>
-              )}
-            </Box>
-          </TouchableOpacity>
-
-          {/* Expanded fee breakdown (subsection of Total) */}
-          {isTotalExpanded && (
-            <Box twClassName="pl-4" gap={3}>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.network_fee')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {formattedNetworkFee}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.slippage')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {formattedSlippage}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.minimum_received')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {formattedMinimumReceived}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.price_impact')}
-                </Text>
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  gap={1}
-                  testID="quick-buy-price-impact"
+                  gap={2}
                 >
-                  {priceImpactViewData.icon && (
-                    <IconDS
-                      name={priceImpactViewData.icon.name}
-                      size={IconSizeDS.Sm}
-                      color={priceImpactViewData.icon.color}
-                    />
-                  )}
                   <Text
                     variant={TextVariant.BodyMd}
-                    color={
-                      priceImpactViewData.icon
-                        ? priceImpactViewData.textColor
-                        : TextColor.TextDefault
-                    }
+                    color={TextColor.TextAlternative}
                   >
-                    {formattedPriceImpact}
+                    {strings('social_leaderboard.quick_buy.total')}
                   </Text>
+                  <Icon
+                    name={
+                      isTotalExpanded ? IconName.ArrowUp : IconName.ArrowDown
+                    }
+                    size={IconSize.Sm}
+                    color={colors.icon.alternative}
+                  />
                 </Box>
+                {isTotalLoading ? (
+                  <Skeleton
+                    width={56}
+                    height={20}
+                    style={tw.style('rounded-md')}
+                    testID="skeleton-view"
+                  />
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {totalAmountUsd}
+                  </Text>
+                )}
               </Box>
-            </Box>
-          )}
+            </TouchableOpacity>
+
+            {/* Expanded fee breakdown (subsection of Total) */}
+            <Animated.View
+              style={[tw.style('overflow-hidden'), animatedTotalBreakdownStyle]}
+            >
+              <View
+                onLayout={handleTotalBreakdownLayout}
+                style={tw.style('absolute inset-x-0 top-0 pt-4 pl-4')}
+              >
+                <Box gap={3}>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('social_leaderboard.quick_buy.network_fee')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {formattedNetworkFee}
+                    </Text>
+                  </Box>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('social_leaderboard.quick_buy.slippage')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {formattedSlippage}
+                    </Text>
+                  </Box>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('social_leaderboard.quick_buy.minimum_received')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {formattedMinimumReceived}
+                    </Text>
+                  </Box>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('social_leaderboard.quick_buy.price_impact')}
+                    </Text>
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={1}
+                      testID="quick-buy-price-impact"
+                    >
+                      {priceImpactViewData.icon && (
+                        <IconDS
+                          name={priceImpactViewData.icon.name}
+                          size={IconSizeDS.Sm}
+                          color={priceImpactViewData.icon.color}
+                        />
+                      )}
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={
+                          priceImpactViewData.icon
+                            ? priceImpactViewData.textColor
+                            : TextColor.TextDefault
+                        }
+                      >
+                        {formattedPriceImpact}
+                      </Text>
+                    </Box>
+                  </Box>
+                </Box>
+              </View>
+            </Animated.View>
+          </Box>
         </Box>
 
         {/* Buy button */}
