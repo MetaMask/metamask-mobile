@@ -1023,13 +1023,27 @@
       }
     },
     "notification_preferences": {
-      "title": "Top Traders",
+      "title": "Top traders",
       "allow_push_notifications": "Allow push notifications",
       "trades_over_label": "Get notified of trades over:",
       "traders_you_follow": "Traders you follow",
       "traders_you_follow_desc": "Choose who you get notifications about",
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
+    },
+    "trader_notifications": {
+      "title": "Notifications from {{traderName}}",
+      "allow_push_notifications": "Allow push notifications",
+      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
+      "manage_traders": "Manage traders you follow",
+      "save": "Save"
+    },
+    "trader_notifications_setup": {
+      "description": "Get real-time alerts on trades from the traders you follow",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "save": "Save",
+      "title": "Top Traders"
     },
     "follow": "Follow",
     "following": "Following",
@@ -1046,7 +1060,8 @@
       "open": "Open",
       "closed": "Closed",
       "no_positions": "No positions yet",
-      "error_loading_profile": "Couldn't load profile"
+      "error_loading_profile": "Couldn't load profile",
+      "twitter_link": "View on X (Twitter)"
     },
     "trader_position": {
       "market_cap": "Market cap",
@@ -1056,13 +1071,21 @@
       "bought": "{{name}} bought",
       "sold": "{{name}} sold",
       "no_trades": "No trades for this interval",
-      "closed_position": "Closed position"
+      "closed_position": "Closed position",
+      "fallback_title": "Position not available",
+      "fallback_subtitle": "We couldn't load this position right now.",
+      "fallback_back_to_profile": "Back to profile",
+      "fallback_back_to_leaderboard": "Back to leaderboard"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
       "total": "Total",
+      "network_fee": "Network fee",
+      "slippage": "Slippage",
+      "minimum_received": "Minimum received",
+      "price_impact": "Price impact",
       "est_points": "Est. points",
       "no_quotes": "No quotes available for this token",
       "loading": "Loading...",
@@ -2450,7 +2473,10 @@
       "market_busy_body_buy": "The market is moving fast, so we couldn't buy at {{price}}. Try again at the best available price?",
       "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
       "order_failed_title": "Order failed",
-      "order_failed_body": "There wasn't enough liquidity at this price. Want to try again?",
+      "order_failed_body": "Your order couldn't be filled. Try again?",
+      "price_changed_title": "Price changed",
+      "price_changed_body": "Couldn't buy at {{price}}. Try at market price?",
+      "retry": "Retry",
       "try_again": "Try again",
       "view": "View",
       "yes_buy": "Yes, buy",
@@ -3416,9 +3442,11 @@
         "quote_tag_most_reliable": "Most reliable",
         "quote_unknown_provider": "Unknown provider",
         "start_headless_buy": "Start headless buy",
+        "replace_and_start_headless_buy": "Replace & start headless buy",
         "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
         "start_headless_buy_pending": "Headless session active — open BuildQuote",
         "cancel_headless_buy": "Cancel headless session",
+        "active_session_hint": "Active session: {{sessionId}} — starting another quote will cancel it.",
         "event_log_title": "Event log",
         "event_log_empty": "No events yet — start a headless session and watch this space.",
         "event_log_started": "started session {{sessionId}} (asset={{assetId}}, amount={{amount}}, payment={{paymentMethodId}}{{providerSuffix}})",
@@ -3426,6 +3454,12 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "consumer-cancelled session {{sessionId}}"
+      },
+      "headless_host": {
+        "title": "Headless buy",
+        "loading": "Preparing the buy flow…",
+        "no_session": "Headless session is no longer active.",
+        "cancel": "Cancel"
       }
     },
     "request_feature": "Request a feature",
@@ -4301,6 +4335,8 @@
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Smart contract interaction",
+    "money_account_deposit": "Deposit to Money Account",
+    "money_account_withdraw": "Transfer from Money Account",
     "swaps_transaction": "Swaps transaction",
     "bridge_transaction": "Bridge",
     "approve": "Approve",
@@ -6510,6 +6546,15 @@
     "footer": {
       "add_money": "Add money"
     },
+    "add_money_sheet": {
+      "title": "Add money",
+      "convert_crypto": "Convert crypto",
+      "deposit_funds": "Deposit funds",
+      "move_musd": "Move your {{amount}} mUSD",
+      "move_musd_no_amount": "Move your mUSD",
+      "receive_external": "Receive from external wallet",
+      "coming_soon": "Coming soon"
+    },
     "activity": {
       "title": "Activity",
       "view_all": "View all",
@@ -6846,6 +6891,7 @@
       "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
+      "payment_method": "Payment method",
       "receive_as": "Receive",
       "from": "From",
       "to": "To",
@@ -7824,8 +7870,6 @@
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
-        "manage_card": "Manage card",
-        "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
@@ -8543,6 +8587,8 @@
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
+      "money_account_deposit": "Deposit to Money Account",
+      "money_account_withdraw": "Transfer from Money Account",
       "default": "Transaction details"
     },
     "label": {

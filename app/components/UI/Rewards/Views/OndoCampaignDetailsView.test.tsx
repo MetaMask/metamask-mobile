@@ -1,8 +1,7 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
-  resetOndoCampaignDetailsSessionAutoNavigationForTests,
 } from './OndoCampaignDetailsView';
 import { CAMPAIGN_STATS_SUMMARY_TEST_IDS } from '../components/Campaigns/CampaignStatsSummary';
 import { ONDO_PRIZE_POOL_TEST_IDS } from '../components/Campaigns/OndoPrizePool';
@@ -22,30 +21,20 @@ import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-
-/** Mutable route params so tests can cover deeplink-style navigation without `campaignId`. */
 const mockRouteState: { params: { campaignId?: string } } = {
   params: { campaignId: 'campaign-1' },
 };
 
-jest.mock('@react-navigation/native', () => {
-  const ReactActual = jest.requireActual('react');
-  return {
-    useNavigation: () => ({
-      goBack: mockGoBack,
-      navigate: mockNavigate,
-      addListener: jest.fn(() => jest.fn()),
-      isFocused: () => true,
-    }),
-    useRoute: () => mockRouteState,
-    useFocusEffect: (effect: () => void | (() => void)) => {
-      ReactActual.useEffect(() => {
-        const cleanup = effect();
-        return typeof cleanup === 'function' ? cleanup : undefined;
-      }, [effect]);
-    },
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+    addListener: jest.fn(() => jest.fn()),
+    isFocused: () => true,
+  }),
+  useRoute: () => mockRouteState,
+  useFocusEffect: jest.fn((cb) => cb()),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -506,7 +495,6 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaign_details.competition_closed_description':
         'Entries are now closed',
       'rewards.ondo_campaign_portfolio.view_activity': 'View activity',
-      'rewards.ondo_campaign_stats.title': 'Your stats',
     };
     return translations[key] || key;
   },
@@ -548,8 +536,6 @@ const hookDefaults = {
 
 describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
-    resetOndoCampaignDetailsSessionAutoNavigationForTests();
-    mockRouteState.params = { campaignId: 'campaign-1' };
     jest.clearAllMocks();
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockCampaignStatsSummary.mockReset();
@@ -1502,6 +1488,62 @@ describe('OndoCampaignDetailsView', () => {
       expect(mockUseGetOndoCampaignDeposits).toHaveBeenCalledWith(
         'resolved-from-type',
       );
+    });
+  });
+
+  describe('positions section visibility', () => {
+    it('hides the positions section when campaign is complete, even if opted in with positions', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-campaign-portfolio')).toBeNull();
+    });
+
+    it('shows the positions section when campaign is active, opted in with positions', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-campaign-portfolio')).toBeDefined();
     });
   });
 

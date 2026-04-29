@@ -35,7 +35,7 @@ const mockNavigation = {
   goForward: jest.fn(),
   canGoBack: true,
   canGoForward: true,
-  addListener: jest.fn(),
+  addListener: jest.fn(() => jest.fn()),
   navigate: jest.fn(),
 };
 
@@ -176,6 +176,29 @@ describe('BrowserTab', () => {
       fireEvent.press(screen.getByTestId('browser-tab-close-button'));
 
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
+    });
+
+    it('navigates to Card Home when close button is pressed and opened from card', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} fromCard />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-tab-close-button'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.HOME,
+        },
+      });
       expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
         Routes.TRENDING_VIEW,
         expect.anything(),
