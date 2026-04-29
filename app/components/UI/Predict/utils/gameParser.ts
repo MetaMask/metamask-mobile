@@ -10,11 +10,11 @@ import {
   PolymarketApiTeam,
 } from '../providers/polymarket/types';
 
-type SlugTeamOrder = 'away-home' | 'home-away';
+type LeagueTeamOrder = 'away-home' | 'home-away';
 
 interface LeagueSlugConfig {
   pattern: RegExp;
-  teamOrder: SlugTeamOrder;
+  teamOrder: LeagueTeamOrder;
   tagSlug?: string; // if different than league slug
 }
 
@@ -282,7 +282,7 @@ export function parseGameSlugTeams(
   if (!match) {
     return null;
   }
-  const isHomeFirst = config.teamOrder === 'home-away';
+  const isHomeFirst = getLeagueTeamOrder(league) === 'home-away';
   return {
     awayAbbreviation: isHomeFirst ? match[2] : match[1],
     homeAbbreviation: isHomeFirst ? match[1] : match[2],
@@ -353,7 +353,18 @@ export function mapApiTeamToPredictTeam(
   };
 }
 
-export function parseScore(scoreString?: string): PredictGameScore | null {
+function getLeagueTeamOrder(league?: PredictSportsLeague): LeagueTeamOrder {
+  if (!league) {
+    return 'away-home';
+  }
+
+  return LEAGUE_SLUG_CONFIGS[league].teamOrder;
+}
+
+export function parseScore(
+  scoreString?: string,
+  league?: PredictSportsLeague,
+): PredictGameScore | null {
   if (!scoreString || scoreString === '0-0') {
     return null;
   }
@@ -363,14 +374,20 @@ export function parseScore(scoreString?: string): PredictGameScore | null {
     return null;
   }
 
-  const away = parseInt(parts[0], 10);
-  const home = parseInt(parts[1], 10);
+  const firstScore = parseInt(parts[0].trim(), 10);
+  const secondScore = parseInt(parts[1].trim(), 10);
 
-  if (isNaN(away) || isNaN(home)) {
+  if (isNaN(firstScore) || isNaN(secondScore)) {
     return null;
   }
 
-  return { away, home, raw: scoreString };
+  const isHomeFirst = getLeagueTeamOrder(league) === 'home-away';
+
+  return {
+    away: isHomeFirst ? secondScore : firstScore,
+    home: isHomeFirst ? firstScore : secondScore,
+    raw: scoreString,
+  };
 }
 
 export function buildGameData(
@@ -403,7 +420,7 @@ export function buildGameData(
     league,
     elapsed: event.elapsed || null,
     period: event.period || null,
-    score: parseScore(event.score),
+    score: parseScore(event.score, league),
     homeTeam,
     awayTeam,
   };

@@ -8698,7 +8698,7 @@
   },
   "trending": {
     "title": "Explore",
-    "trending_tokens": "Trending tokens",
+    "trending_tokens": "Trending",
     "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",
@@ -8855,7 +8855,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "Trending tokens",
+      "trending_tokens": "Trending",
       "trending_perpetuals": "Trending perpetuals",
       "trending_predictions": "Trending predictions",
       "import_nfts": "Import NFTs",
