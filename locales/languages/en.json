@@ -8128,6 +8128,11 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "notifications_nudge": {
+      "title": "Don't miss out",
+      "description": "Enable notifications to stay informed on campaigns.",
+      "turn_on_button": "Turn on"
+    },
     "version_guard": {
       "title": "Update required",
       "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",

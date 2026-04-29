@@ -72,10 +72,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       { translateY: translateYProgress.value - TAB_BAR_HEIGHT - customOffset },
     ],
   }));
-  const baseStyle: StyleProp<ViewStyle> = useMemo(
-    () => [styles.base, animatedStyle],
-    [styles.base, animatedStyle],
-  );
+  const baseStyle: StyleProp<ViewStyle> = useMemo(() => {
+    const align =
+      toastOptions?.contentAlignItems !== undefined
+        ? { alignItems: toastOptions.contentAlignItems }
+        : null;
+    return [styles.base, align, animatedStyle];
+  }, [styles.base, animatedStyle, toastOptions?.contentAlignItems]);
 
   const resetState = () => setToastOptions(undefined);
 
@@ -270,13 +273,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     const isStartAccessoryValid =
       startAccessory != null && React.isValidElement(startAccessory);
 
+    const labelsContainerStyle: StyleProp<ViewStyle> = [
+      styles.labelsContainer,
+      options.contentAlignItems === 'flex-start' && {
+        justifyContent: 'flex-start',
+      },
+    ];
+
     return (
       <>
         {isStartAccessoryValid ? startAccessory : renderAvatar()}
-        <View
-          style={styles.labelsContainer}
-          testID={ToastSelectorsIDs.CONTAINER}
-        >
+        <View style={labelsContainerStyle} testID={ToastSelectorsIDs.CONTAINER}>
           {renderLabel(labelOptions)}
           {renderDescription(descriptionOptions)}
           {renderActionButton(linkButtonOptions)}
@@ -291,7 +298,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   }
 
   return (
-    <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
+    <Animated.View
+      testID={ToastSelectorsIDs.ROW}
+      onLayout={onAnimatedViewLayout}
+      style={baseStyle}
+    >
       {renderToastContent(toastOptions)}
     </Animated.View>
   );

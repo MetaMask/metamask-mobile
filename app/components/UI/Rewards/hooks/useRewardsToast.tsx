@@ -1,9 +1,10 @@
-import { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
   ToastDescriptionOptions,
   ToastLabelOptions,
+  ToastLinkButtonOptions,
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
@@ -14,6 +15,9 @@ import {
   NotificationMoment,
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
+import { strings } from '../../../../../locales/i18n';
+import RewardsNotificationIcon from '../../../../images/rewards/notification.svg';
+import { Box } from '@metamask/design-system-react-native';
 
 export type RewardsToastOptions = ToastOptions & {
   hapticsType: HapticNotificationMoment;
@@ -23,6 +27,9 @@ export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
   error: (title: string, subtitle?: string) => RewardsToastOptions;
   entriesClosed: (title: string, subtitle?: string) => RewardsToastOptions;
+  enableNotificationsNudge: (
+    linkButtonOptions: ToastLinkButtonOptions,
+  ) => RewardsToastOptions;
 }
 
 const getRewardsToastLabels = (title: string): ToastLabelOptions => {
@@ -114,6 +121,38 @@ const useRewardsToast = (): {
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: () => {
+            toastRef?.current?.closeToast();
+          },
+        },
+      }),
+      enableNotificationsNudge: (
+        linkButtonOptions: ToastLinkButtonOptions,
+      ) => ({
+        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        contentAlignItems: 'flex-start',
+        hapticsType: NotificationMoment.Warning,
+        startAccessory: (
+          <Box twClassName="py-2 px-1 mr-2">
+            <RewardsNotificationIcon
+              name="notification"
+              width={24}
+              height={24}
+            />
+          </Box>
+        ),
+        labelOptions: getRewardsToastLabels(
+          strings('rewards.notifications_nudge.title'),
+        ),
+        descriptionOptions: getRewardsToastDescriptionLabels(
+          strings('rewards.notifications_nudge.description'),
+        ),
+        linkButtonOptions,
         closeButtonOptions: {
           variant: ButtonIconVariant.Icon,
           iconName: IconName.Close,

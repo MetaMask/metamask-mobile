@@ -82,6 +82,10 @@ describe('useLinkAccountAddress', () => {
       iconName: 'confirmation',
       hapticsType: 'success',
     }),
+    enableNotificationsNudge: jest.fn().mockReturnValue({
+      variant: 'plain',
+      hapticsType: 'warning',
+    }),
   };
 
   const mockAccount: InternalAccount = {

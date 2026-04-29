@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -34,6 +35,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
@@ -68,6 +70,13 @@ import {
 } from '../components/Campaigns/OndoLeaderboard.utils';
 import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import useRewardsToast from '../hooks/useRewardsToast';
+import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications/constants';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsEnabled,
+} from '../../../../selectors/notifications';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -81,15 +90,18 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 
 const sessionUpcomingRedirectCampaignIds = new Set<string>();
 const sessionWinningViewAutoNavCampaignIds = new Set<string>();
+let sessionNotificationsNudgeShown = false;
 
 export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
   sessionUpcomingRedirectCampaignIds.clear();
   sessionWinningViewAutoNavCampaignIds.clear();
+  sessionNotificationsNudgeShown = false;
 }
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { toastRef } = useContext(ToastContext);
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   // campaignId may be absent when arriving via a deeplink (no ID in the URL).
@@ -97,6 +109,17 @@ const OndoCampaignDetailsView: React.FC = () => {
   const routeCampaignId = route.params?.campaignId;
 
   const referralCode = useSelector(selectReferralCode);
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+  const isMetaMaskPushNotificationsEnabled = useSelector(
+    selectIsMetaMaskPushNotificationsEnabled,
+  );
+
+  const { enableNotifications, loading: isEnablingNotifications } =
+    useEnableNotifications({ nudgeEnablePush: true });
+  const { showToast, RewardsToastOptions } = useRewardsToast();
+  const notificationsEnableInFlightRef = useRef(false);
 
   // Fetch campaigns early so the type-based lookup is available before other
   // hooks that need the resolved campaign ID.
@@ -212,6 +235,51 @@ const OndoCampaignDetailsView: React.FC = () => {
         });
       }
     }, [campaign, participantOutcome, effectiveCampaignId, navigation]),
+  );
+
+  const handleTurnOnNotifications = useCallback(async () => {
+    if (isEnablingNotifications || notificationsEnableInFlightRef.current) {
+      return;
+    }
+    notificationsEnableInFlightRef.current = true;
+    try {
+      await enableNotifications();
+      toastRef?.current?.closeToast();
+    } catch {
+      // Intentionally empty — same pattern as Perps notification bottom sheet.
+    } finally {
+      notificationsEnableInFlightRef.current = false;
+    }
+  }, [enableNotifications, isEnablingNotifications, toastRef]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isNotificationsFeatureEnabled()) {
+        return;
+      }
+      if (
+        isMetamaskNotificationsEnabled &&
+        isMetaMaskPushNotificationsEnabled
+      ) {
+        return;
+      }
+      if (sessionNotificationsNudgeShown) {
+        return;
+      }
+      sessionNotificationsNudgeShown = true;
+      showToast(
+        RewardsToastOptions.enableNotificationsNudge({
+          label: strings('rewards.notifications_nudge.turn_on_button'),
+          onPress: handleTurnOnNotifications,
+        }),
+      );
+    }, [
+      RewardsToastOptions,
+      handleTurnOnNotifications,
+      isMetaMaskPushNotificationsEnabled,
+      isMetamaskNotificationsEnabled,
+      showToast,
+    ]),
   );
 
   const {

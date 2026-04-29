@@ -1,10 +1,12 @@
 // Third party dependencies.
 import React, { createRef } from 'react';
+import { StyleSheet } from 'react-native';
 import { render, screen, act } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Toast from './Toast';
 import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
+import { ToastSelectorsIDs } from './ToastModal.testIds';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
@@ -162,5 +164,109 @@ describe('Toast', () => {
 
     expect(screen.queryByText('In Progress')).toBeNull();
     expect(screen.getByText('Success')).toBeOnTheScreen();
+  });
+
+  describe('contentAlignItems', () => {
+    type PlainToastOptions = Extract<
+      ToastOptions,
+      { variant: ToastVariants.Plain }
+    >;
+
+    const createPlainToast = (
+      overrides: Partial<Omit<PlainToastOptions, 'variant'>> = {},
+    ): ToastOptions => {
+      const options: PlainToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Aligned label' }],
+        hasNoTimeout: true,
+        ...overrides,
+      };
+
+      return options;
+    };
+
+    it('sets labels container justifyContent to flex-start when contentAlignItems is flex-start', async () => {
+      const toastOptions = createPlainToast({
+        contentAlignItems: 'flex-start',
+      });
+
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(toastOptions);
+        jest.runAllTimers();
+      });
+
+      const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+      const flat = StyleSheet.flatten(labelsContainer.props.style);
+
+      expect(flat.justifyContent).toBe('flex-start');
+    });
+
+    it('omits flex-start justify override on labels container when contentAlignItems is omitted', async () => {
+      const toastOptions = createPlainToast();
+
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(toastOptions);
+        jest.runAllTimers();
+      });
+
+      const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+      const flat = StyleSheet.flatten(labelsContainer.props.style);
+
+      expect(flat.justifyContent).toBe('center');
+    });
+
+    it('sets outer row alignItems to flex-start when contentAlignItems is flex-start', async () => {
+      const toastOptions = createPlainToast({
+        contentAlignItems: 'flex-start',
+      });
+
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(toastOptions);
+        jest.runAllTimers();
+      });
+
+      const row = screen.getByTestId(ToastSelectorsIDs.ROW);
+      const flat = StyleSheet.flatten(row.props.style);
+
+      expect(flat.alignItems).toBe('flex-start');
+    });
+
+    it('sets outer row alignItems to center when contentAlignItems is center', async () => {
+      const toastOptions = createPlainToast({ contentAlignItems: 'center' });
+
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(toastOptions);
+        jest.runAllTimers();
+      });
+
+      const row = screen.getByTestId(ToastSelectorsIDs.ROW);
+      const flat = StyleSheet.flatten(row.props.style);
+
+      expect(flat.alignItems).toBe('center');
+    });
+
+    it('keeps outer row alignItems center when contentAlignItems is omitted', async () => {
+      const toastOptions = createPlainToast();
+
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(toastOptions);
+        jest.runAllTimers();
+      });
+
+      const row = screen.getByTestId(ToastSelectorsIDs.ROW);
+      const flat = StyleSheet.flatten(row.props.style);
+
+      expect(flat.alignItems).toBe('center');
+    });
   });
 });

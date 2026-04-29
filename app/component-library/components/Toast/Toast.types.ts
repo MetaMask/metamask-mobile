@@ -53,6 +53,11 @@ interface BaseToastVariants {
   closeButtonOptions?: ToastCloseButtonOptions;
   startAccessory?: ReactElement;
   customBottomOffset?: number;
+  /**
+   * Cross-axis alignment for the toast row (icon, labels, close).
+   * Defaults to center when omitted (legacy behavior).
+   */
+  contentAlignItems?: 'center' | 'flex-start';
 }
 
 export type ToastCloseButtonOptions =

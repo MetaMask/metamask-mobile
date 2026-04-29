@@ -5,6 +5,8 @@ export const ToastSelectorsText = {
 };
 
 export const ToastSelectorsIDs = {
+  /** Outer toast row (`Animated.View`); `contentAlignItems` maps to `alignItems` here. */
+  ROW: 'toast-row',
   CONTAINER: 'toast',
   NOTIFICATION_TITLE: 'notification-title',
 };

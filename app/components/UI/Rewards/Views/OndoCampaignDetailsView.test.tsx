@@ -1,8 +1,10 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
+  resetOndoCampaignDetailsSessionAutoNavigationForTests,
 } from './OndoCampaignDetailsView';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { CAMPAIGN_STATS_SUMMARY_TEST_IDS } from '../components/Campaigns/CampaignStatsSummary';
 import { ONDO_PRIZE_POOL_TEST_IDS } from '../components/Campaigns/OndoPrizePool';
 import { CAMPAIGN_CTA_TEST_IDS } from '../components/Campaigns/CampaignOptInCta';
@@ -19,6 +21,13 @@ import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPositio
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import Routes from '../../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
+import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsEnabled,
+} from '../../../../selectors/notifications';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications/constants';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -172,17 +181,41 @@ jest.mock('../components/Campaigns/CampaignStatsSummary', () => {
   };
 });
 
-jest.mock('../hooks/useRewardsToast', () => ({
-  __esModule: true,
-  default: () => ({
+// eslint-disable-next-line no-var
+var mockRewardsToastTestApi: {
+  showToast: jest.Mock;
+  enableNotificationsNudge: jest.Mock;
+};
+
+jest.mock('../hooks/useRewardsToast', () => {
+  const { ToastVariants } = jest.requireActual(
+    '../../../../component-library/components/Toast/Toast.types',
+  );
+  mockRewardsToastTestApi = {
     showToast: jest.fn(),
-    RewardsToastOptions: {
-      success: jest.fn(),
-      error: jest.fn(),
-      entriesClosed: jest.fn(() => ({ variant: 'icon' })),
-    },
-  }),
-}));
+    enableNotificationsNudge: jest.fn(
+      (opts: { label: string; onPress: () => void }) => ({
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        contentAlignItems: 'flex-start',
+        linkButtonOptions: opts,
+      }),
+    ),
+  };
+  return {
+    __esModule: true,
+    default: () => ({
+      showToast: mockRewardsToastTestApi.showToast,
+      RewardsToastOptions: {
+        success: jest.fn(),
+        error: jest.fn(),
+        entriesClosed: jest.fn(() => ({ variant: 'icon' })),
+        enableNotificationsNudge:
+          mockRewardsToastTestApi.enableNotificationsNudge,
+      },
+    }),
+  };
+});
 
 jest.mock('../hooks/useCampaignGeoRestriction', () => ({
   __esModule: true,
@@ -316,8 +349,28 @@ jest.mock('../components/Campaigns/OndoPrizePool', () => {
 });
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => null),
+  useSelector: jest.fn(),
 }));
+
+jest.mock('../../../../util/notifications/constants', () => ({
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
+// eslint-disable-next-line no-var
+var mockEnableNotificationsLoading = false;
+// eslint-disable-next-line no-var
+var mockOndoEnableNotifications: jest.Mock;
+jest.mock('../../../../util/notifications/hooks/useNotifications', () => {
+  mockOndoEnableNotifications = jest.fn().mockResolvedValue(undefined);
+  return {
+    useEnableNotifications: jest.fn(() => ({
+      enableNotifications: mockOndoEnableNotifications,
+      get loading() {
+        return mockEnableNotificationsLoading;
+      },
+    })),
+  };
+});
 
 const mockIsTokenTradingOpen = jest.fn(() => true);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
@@ -512,6 +565,7 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaign_details.competition_closed_description':
         'Entries are now closed',
       'rewards.ondo_campaign_portfolio.view_activity': 'View activity',
+      'rewards.notifications_nudge.turn_on_button': 'Turn on',
     };
     return translations[key] || key;
   },
@@ -555,6 +609,24 @@ const hookDefaults = {
 describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetOndoCampaignDetailsSessionAutoNavigationForTests();
+    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      if (selector === selectReferralCode) {
+        return null;
+      }
+      if (selector === selectIsMetamaskNotificationsEnabled) {
+        return true;
+      }
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+        return true;
+      }
+      return null;
+    });
+    mockRewardsToastTestApi.showToast.mockClear();
+    mockRewardsToastTestApi.enableNotificationsNudge.mockClear();
+    mockOndoEnableNotifications.mockClear();
+    mockEnableNotificationsLoading = false;
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockCampaignStatsSummary.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
@@ -620,6 +692,278 @@ describe('OndoCampaignDetailsView', () => {
     const { getAllByText } = render(<OndoCampaignDetailsView />);
     // Name appears in both the header title and the CampaignStatus mock
     expect(getAllByText('My Special Campaign').length).toBeGreaterThan(0);
+  });
+
+  describe('notifications nudge toast', () => {
+    it('shows toast when MetaMask notifications are disabled', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return false;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      render(<OndoCampaignDetailsView />);
+      expect(mockRewardsToastTestApi.showToast).toHaveBeenCalledTimes(1);
+      expect(
+        mockRewardsToastTestApi.enableNotificationsNudge,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          label: 'Turn on',
+          onPress: expect.any(Function),
+        }),
+      );
+    });
+
+    it('shows toast when push notifications are disabled in app state', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return true;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return false;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      render(<OndoCampaignDetailsView />);
+      expect(mockRewardsToastTestApi.showToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show toast when notifications and push are both enabled', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      render(<OndoCampaignDetailsView />);
+      expect(mockRewardsToastTestApi.showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not show toast when notifications feature is disabled', () => {
+      (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(false);
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return false;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      render(<OndoCampaignDetailsView />);
+      expect(mockRewardsToastTestApi.showToast).not.toHaveBeenCalled();
+    });
+
+    it('shows toast at most once per session when focus runs again', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return false;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      const { rerender } = render(<OndoCampaignDetailsView />);
+      expect(mockRewardsToastTestApi.showToast).toHaveBeenCalledTimes(1);
+      rerender(<OndoCampaignDetailsView />);
+      expect(mockRewardsToastTestApi.showToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes Plain variant and flex-start alignment to showToast for nudge', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return false;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      render(<OndoCampaignDetailsView />);
+
+      expect(mockRewardsToastTestApi.showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Plain',
+          hasNoTimeout: true,
+          contentAlignItems: 'flex-start',
+        }),
+      );
+    });
+
+    it('invokes enableNotifications and closes toast when Turn on is pressed', async () => {
+      const mockCloseToast = jest.fn();
+      const toastRef = {
+        current: { closeToast: mockCloseToast, showToast: jest.fn() },
+      };
+
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return false;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+
+      render(
+        <ToastContext.Provider value={{ toastRef }}>
+          <OndoCampaignDetailsView />
+        </ToastContext.Provider>,
+      );
+
+      const linkArgs =
+        mockRewardsToastTestApi.enableNotificationsNudge.mock.calls[0][0];
+      await act(async () => {
+        await linkArgs.onPress();
+      });
+
+      expect(mockOndoEnableNotifications).toHaveBeenCalledTimes(1);
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close toast when enableNotifications rejects', async () => {
+      const mockCloseToast = jest.fn();
+      const toastRef = {
+        current: { closeToast: mockCloseToast, showToast: jest.fn() },
+      };
+      mockOndoEnableNotifications.mockRejectedValueOnce(new Error('network'));
+
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return false;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+
+      render(
+        <ToastContext.Provider value={{ toastRef }}>
+          <OndoCampaignDetailsView />
+        </ToastContext.Provider>,
+      );
+
+      const linkArgs =
+        mockRewardsToastTestApi.enableNotificationsNudge.mock.calls[0][0];
+      await expect(
+        act(async () => {
+          await linkArgs.onPress();
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(mockCloseToast).not.toHaveBeenCalled();
+    });
+
+    it('skips enableNotifications when hook reports loading', async () => {
+      mockEnableNotificationsLoading = true;
+
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return false;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+
+      render(<OndoCampaignDetailsView />);
+
+      const linkArgs =
+        mockRewardsToastTestApi.enableNotificationsNudge.mock.calls[0][0];
+      await act(async () => {
+        await linkArgs.onPress();
+      });
+
+      expect(mockOndoEnableNotifications).not.toHaveBeenCalled();
+    });
+
+    it('shows nudge again after resetOndoCampaignDetailsSessionAutoNavigationForTests', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return false;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
+        return null;
+      });
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+
+      const { rerender } = render(<OndoCampaignDetailsView />);
+      expect(mockRewardsToastTestApi.showToast).toHaveBeenCalledTimes(1);
+
+      resetOndoCampaignDetailsSessionAutoNavigationForTests();
+      rerender(<OndoCampaignDetailsView />);
+
+      expect(mockRewardsToastTestApi.showToast).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('loading state', () => {
