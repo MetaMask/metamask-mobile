@@ -306,7 +306,7 @@
     "@metamask/react-native-button": "patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch",
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch",
     "@metamask/react-native-search-api": "1.0.1",
-    "@metamask/react-native-webview": "^14.6.0",
+    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch",
     "@metamask/remote-feature-flag-controller": "^4.0.0",
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/sample-controllers": "^3.0.0",

@@ -10280,7 +10280,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@npm:^14.6.0":
+"@metamask/react-native-webview@npm:14.6.0":
   version: 14.6.0
   resolution: "@metamask/react-native-webview@npm:14.6.0"
   dependencies:
@@ -10290,6 +10290,19 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/e3c993afb0c9750970d66090e4dee0a0a3dac95e1a8d236950cb5be11f68d5cf726bad51c8361b18ba7d95ef7a69d61067840c07ea8abd5f308f1c869ca51093
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch":
+  version: 14.6.0
+  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch::version=14.6.0&hash=ee01ad"
+  dependencies:
+    escape-string-regexp: "npm:^4.0.0"
+    invariant: "npm:2.2.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/70003a55aeda7ffe7bb203d275d30c106a138c6eb4cff858e07a4ed59ced2b4b0c9cd4979a73ccdd13377fc69be5268dec125ae29a6a7ea3f2ce11345b9d6c10
   languageName: node
   linkType: hard
 
@@ -36646,7 +36659,7 @@ __metadata:
     "@metamask/react-native-button": "patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch"
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch"
     "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "npm:^14.6.0"
+    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch"
     "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
