@@ -158,23 +158,26 @@ export function useRampsProviders(options?: {
     }
   }, [enableSideEffects, providers, selectedProvider, completedOrders]);
 
+  let error: string | null = null;
+
+  if (providersQuery?.error != null) {
+    error = parseUserFacingError(
+      providersQuery.error,
+      strings('fiat_on_ramp.payment_error'),
+    );
+  } else if (providersStateError) {
+    error = parseUserFacingError(
+      providersState,
+      strings('fiat_on_ramp.payment_error'),
+    );
+  }
+
   return {
     providers,
     selectedProvider,
     setSelectedProvider,
     isLoading: providersQuery?.isLoading ?? providersStateIsLoading,
-    error:
-      providersQuery?.error != null
-        ? parseUserFacingError(
-            providersQuery.error,
-            strings('fiat_on_ramp.payment_error'),
-          )
-        : providersStateError
-          ? parseUserFacingError(
-              providersState,
-              strings('fiat_on_ramp.payment_error'),
-            )
-          : null,
+    error,
   };
 }
 
