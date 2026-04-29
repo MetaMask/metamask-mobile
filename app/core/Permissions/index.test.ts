@@ -65,7 +65,7 @@ const mockLastSelectedByAddress = (
     if (!(address in lastSelectedByAddress)) {
       return undefined;
     }
-    return { id: `account-${address}` };
+    return !(address in lastSelectedByAddress) ? undefined : { id: `account-${address}` };
   });
   mockGetAccountContext.mockImplementation((accountId: string) => ({
     groupId: `group-${accountId}`,
