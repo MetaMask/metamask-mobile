@@ -1,6 +1,6 @@
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
@@ -192,10 +192,26 @@ export const TokenListItem = React.memo(
       selectTokenListSecurityBadgesEnabled,
     );
 
-    const caipAssetIdForSecurity = useMemo(
-      () => getCaipAssetIdForToken(asset),
-      [asset],
-    );
+    const [caipAssetIdForSecurity, setCaipAssetIdForSecurity] =
+      useState<CaipAssetType | null>(null);
+
+    useEffect(() => {
+      let cancelled = false;
+      getCaipAssetIdForToken(asset)
+        .then((id) => {
+          if (!cancelled) {
+            setCaipAssetIdForSecurity(id);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setCaipAssetIdForSecurity(null);
+          }
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, [asset]);
 
     const skipTokenListSecurityBadge = useMemo(() => {
       if (!asset) {

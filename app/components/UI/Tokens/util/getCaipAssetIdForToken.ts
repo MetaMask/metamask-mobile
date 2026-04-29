@@ -1,6 +1,12 @@
-import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import {
+  convertHexToDecimal,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import { SPOT_PRICES_SUPPORT_INFO } from '@metamask/assets-controllers';
+import { Slip44Service } from '@metamask/network-enablement-controller';
+import {
+  hasProperty,
   isCaipAssetType,
   isStrictHexString,
   type CaipAssetType,
@@ -8,6 +14,25 @@ import {
 } from '@metamask/utils';
 
 import type { TokenI } from '../types';
+
+/**
+ * Native CAIP-19 asset id for an EVM chain (spot-price constants first, then Slip44).
+ * Expects `chainId` as canonical hex from network state (e.g. `0x1`).
+ */
+export async function getNativeAssetId(chainId: Hex): Promise<string> {
+  if (hasProperty(SPOT_PRICES_SUPPORT_INFO, chainId)) {
+    return SPOT_PRICES_SUPPORT_INFO[
+      chainId as keyof typeof SPOT_PRICES_SUPPORT_INFO
+    ] as string;
+  }
+
+  const decimalChainId = convertHexToDecimal(chainId);
+  const slip44CoinType = await Slip44Service.getEvmSlip44(
+    Number(decimalChainId),
+  );
+
+  return `eip155:${decimalChainId}/slip44:${slip44CoinType}`;
+}
 
 /**
  * `formatAddressToAssetId` only builds `eip155:…/erc20:…` when the address
@@ -26,20 +51,26 @@ function normalizeHexAddressForBridge(address: string): string {
 
 /**
  * Resolves a CAIP-19 asset id for token list / security API calls.
- * Mirrors TokenDetails / AssetOverviewContent behavior, with extra normalization
- * so ERC-20 rows match what the bridge formatter expects.
+ * **Native** tokens use {@link getNativeAssetId} (async). ERC-20 / CAIP rows resolve synchronously inside this async API.
  */
-export function getCaipAssetIdForToken(
+export async function getCaipAssetIdForToken(
   asset: TokenI | null | undefined,
-): CaipAssetType | null {
-  if (!asset?.address) {
+): Promise<CaipAssetType | null> {
+  if (!asset?.chainId) {
     return null;
   }
+
   try {
-    if (isCaipAssetType(asset.address)) {
+    if (asset.address && isCaipAssetType(asset.address)) {
       return asset.address;
     }
-    if (!asset.chainId) {
+
+    if (asset.isNative || asset.isETH) {
+      const id = await getNativeAssetId(asset.chainId as Hex);
+      return id as CaipAssetType;
+    }
+
+    if (!asset.address) {
       return null;
     }
 
