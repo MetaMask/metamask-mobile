@@ -80,6 +80,9 @@ const TrendingListHeader: React.FC<TrendingListHeaderProps> = ({
           onPressClearButton: handleSearchClear,
           autoFocus: true,
           testID: testID ? `${testID}-search-bar` : undefined,
+          clearButtonProps: {
+            testID: testID ? `${testID}-search-field-clear` : undefined,
+          },
         }}
         onPressCancelButton={onSearchToggle ?? (() => undefined)}
         cancelButtonProps={{
