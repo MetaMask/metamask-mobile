@@ -29,6 +29,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { LINEA_MUSD_ASSET_FOR_MERKL } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { YourBonusCardTestIds } from './YourBonusCard.testIds';
@@ -36,6 +38,7 @@ import { YourBonusCardTestIds } from './YourBonusCard.testIds';
 const YourBonusCard: React.FC = () => {
   const navigation = useNavigation();
   const formatFiat = useFiatFormatter();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { claimableReward, lifetimeBonusClaimed, hasPendingClaim, isClaiming } =
     useMerklBonusClaim(
@@ -71,13 +74,23 @@ const YourBonusCard: React.FC = () => {
   const isClaimDisabled = isClaiming || hasPendingClaim || !hasClaimable;
 
   const handleClaim = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+        .addProperties({
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+          action_type: 'claim_bonus',
+          network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
+          asset_symbol: LINEA_MUSD_ASSET_FOR_MERKL.symbol,
+        })
+        .build(),
+    );
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
       params: {
         location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
       },
     });
-  }, [navigation]);
+  }, [trackEvent, createEventBuilder, navigation]);
 
   // Hide card when user has no claim history and nothing to claim — there's
   // nothing meaningful to show until the Merkl rewards data lands.

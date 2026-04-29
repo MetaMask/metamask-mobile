@@ -31,6 +31,18 @@ jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
     `$${amount.toString()}`,
 }));
 
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
 const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
@@ -104,7 +116,7 @@ describe('YourBonusCard', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to ClaimBonusSheet when claim is tapped', () => {
+  it('navigates to ClaimBonusSheet and tracks the click event when claim is tapped', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       ...baseClaimData,
       claimableReward: '3.65',
@@ -116,6 +128,10 @@ describe('YourBonusCard', () => {
       screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
       params: { location: 'money_hub' },
     });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      expect.objectContaining({ category: expect.any(String) }),
+    );
   });
 
   it('renders estimated annual bonus computed from balance × bonus APY', () => {
