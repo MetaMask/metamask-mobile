@@ -389,7 +389,10 @@ describe('Permission Utility Functions', () => {
       const result = getDefaultCaip25CaveatValue();
       expect(result).toEqual({
         requiredScopes: {},
-        optionalScopes: { 'wallet:eip155': { accounts: [] } },
+        optionalScopes: {
+          'wallet:eip155': { accounts: [] },
+          'tron:728126428': { accounts: [] },
+        },
         sessionProperties: {},
         isMultichainOrigin: false,
       });
