@@ -16,7 +16,7 @@ export const MusdClaimInfo = () => (
     <InfoSection>
       <AccountRow label={strings('stake.claiming_to')} />
       <InfoRowDivider />
-      <NetworkRow />
+      <NetworkRow tooltip={strings('earn.claim_bonus_network_tooltip')} />
     </InfoSection>
     <GasFeesDetailsRow disableUpdate />
   </View>

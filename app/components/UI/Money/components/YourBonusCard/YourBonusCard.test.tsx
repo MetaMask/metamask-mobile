@@ -3,16 +3,10 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import YourBonusCard from './YourBonusCard';
 import { YourBonusCardTestIds } from './YourBonusCard.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
-}));
+const mockClaimRewards = jest.fn(() => Promise.resolve(undefined));
 
 jest.mock(
   '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
@@ -46,7 +40,7 @@ const baseClaimData = {
   hasPendingClaim: false,
   isClaiming: false,
   error: null,
-  claimRewards: jest.fn(),
+  claimRewards: mockClaimRewards,
   refetch: jest.fn(),
 };
 
@@ -116,10 +110,10 @@ describe('YourBonusCard', () => {
     });
     const { getByTestId } = renderWithProvider(<YourBonusCard />);
     fireEvent.press(getByTestId(YourBonusCardTestIds.CLAIM_BUTTON));
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockClaimRewards).not.toHaveBeenCalled();
   });
 
-  it('navigates to ClaimBonusSheet and tracks the click event when claim is tapped', () => {
+  it('dispatches claimRewards and tracks the click event when claim is tapped', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       ...baseClaimData,
       claimableReward: '3.65',
@@ -127,17 +121,8 @@ describe('YourBonusCard', () => {
     });
     const { getByTestId } = renderWithProvider(<YourBonusCard />);
     fireEvent.press(getByTestId(YourBonusCardTestIds.CLAIM_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
-      params: {
-        claimableReward: '3.65',
-        onConfirm: expect.any(Function),
-      },
-    });
+    expect(mockClaimRewards).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      expect.objectContaining({ category: expect.any(String) }),
-    );
   });
 
   it('renders estimated annual bonus computed from balance × bonus APY', () => {

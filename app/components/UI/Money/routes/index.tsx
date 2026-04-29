@@ -7,7 +7,6 @@ import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
 import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
-import ClaimBonusSheet from '../components/ClaimBonusSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
@@ -53,11 +52,6 @@ const MoneyModalStack = () => (
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.ADD_MONEY_SHEET}
       component={MoneyAddMoneySheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.CLAIM_BONUS_SHEET}
-      component={ClaimBonusSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

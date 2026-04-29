@@ -23,8 +23,6 @@ import {
   TextColor as CLTextColor,
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import {
@@ -34,7 +32,6 @@ import {
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useCashNavigation } from './useCashNavigation';
-import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { useTrackClaimBonusClicked } from '../../../../UI/Earn/components/MerklRewards/hooks/useTrackClaimBonusClicked';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
@@ -52,38 +49,13 @@ const MusdAggregatedRow = () => {
     );
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
   const trackClaimBonusClicked = useTrackClaimBonusClicked();
-  const navigation = useNavigation();
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
 
   const handleClaimBonus = useCallback(() => {
     trackClaimBonusClicked(
       MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
     );
-    // Money modal stack only mounts when the Money Home flag is on; fall
-    // back to dispatching the claim directly otherwise.
-    if (isMoneyHomeScreenEnabled) {
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
-        params: {
-          claimableReward,
-          // Run via parent's hook so the post-claim session lock survives sheet unmount.
-          onConfirm: () => {
-            claimRewards().catch(() => undefined);
-          },
-        },
-      });
-      return;
-    }
     claimRewards();
-  }, [
-    trackClaimBonusClicked,
-    navigation,
-    isMoneyHomeScreenEnabled,
-    claimRewards,
-    claimableReward,
-  ]);
+  }, [trackClaimBonusClicked, claimRewards]);
 
   const { navigateToCash: handleTokenRowPress } = useCashNavigation();
 

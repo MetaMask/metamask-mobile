@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import {
   Box,
@@ -24,7 +23,6 @@ import {
 } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { LINEA_MUSD_ASSET_FOR_MERKL } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { useTrackClaimBonusClicked } from '../../../Earn/components/MerklRewards/hooks/useTrackClaimBonusClicked';
@@ -38,7 +36,6 @@ import { YourBonusCardTestIds } from './YourBonusCard.testIds';
 const formatUsd = (value: string) => `$${value}`;
 
 const YourBonusCard: React.FC = () => {
-  const navigation = useNavigation();
   const trackClaimBonusClicked = useTrackClaimBonusClicked();
 
   const {
@@ -78,17 +75,8 @@ const YourBonusCard: React.FC = () => {
 
   const handleClaim = useCallback(() => {
     trackClaimBonusClicked(MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB);
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
-      params: {
-        claimableReward,
-        // Run via parent's hook so the post-claim session lock survives sheet unmount.
-        onConfirm: () => {
-          claimRewards().catch(() => undefined);
-        },
-      },
-    });
-  }, [trackClaimBonusClicked, navigation, claimableReward, claimRewards]);
+    claimRewards().catch(() => undefined);
+  }, [trackClaimBonusClicked, claimRewards]);
 
   // useMerklRewards returns '0.00' for eligible users with no history, so
   // the guard checks > 0 rather than null.

@@ -6304,6 +6304,7 @@
     "claim_bonus": "Claim bonus",
     "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
+    "claim_bonus_network_tooltip": "Your mUSD bonus is paid out on Linea, regardless of where you hold mUSD.",
     "percentage_bonus_on_linea": "{{percentage}}% bonus on Linea",
     "claim": "Claim",
     "sounds_good": "Sounds good",
@@ -6560,18 +6561,6 @@
       "lifetime_claimed": "Lifetime bonus claimed",
       "claim_amount": "Claim {{amount}} bonus",
       "accruing_next": "Accruing next bonus"
-    },
-    "claim_bonus_sheet": {
-      "title": "Claim bonus",
-      "subtitle": "Bonus will be paid out on Linea.",
-      "claiming_to": "Claiming to",
-      "network": "Network",
-      "network_fee": "Network fee",
-      "network_fee_estimate": "—",
-      "speed": "Speed",
-      "speed_market": "Market",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
     },
     "activity": {
       "title": "Activity",

@@ -26,16 +26,25 @@ const styles = StyleSheet.create({
 interface NetworkRowProps {
   chainId?: Hex;
   style?: Record<string, unknown>;
+  tooltip?: string;
 }
 
-const NetworkRow = ({ chainId: chainIdProp, style }: NetworkRowProps) => {
+const NetworkRow = ({
+  chainId: chainIdProp,
+  style,
+  tooltip,
+}: NetworkRowProps) => {
   const transactionMetadata = useTransactionMetadataRequest();
   const chainId = chainIdProp ?? (transactionMetadata?.chainId as Hex);
   const { networkName } = useNetworkInfo(chainId);
   const networkImage = getNetworkImageSource({ chainId });
 
   return (
-    <InfoRow label={strings('transactions.network')} style={style}>
+    <InfoRow
+      label={strings('transactions.network')}
+      style={style}
+      tooltip={tooltip}
+    >
       <View style={styles.container}>
         {networkImage && (
           <AvatarNetwork

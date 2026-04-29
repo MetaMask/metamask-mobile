@@ -105,31 +105,7 @@ describe('MusdAggregatedRow', () => {
     expect(screen.queryByText('3% bonus')).toBeNull();
   });
 
-  it('navigates to ClaimBonusSheet when "Claim 3% bonus" is tapped and Money Home is enabled', () => {
-    mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
-    mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: '0.02',
-      hasPendingClaim: false,
-      isClaiming: false,
-      claimRewards: mockClaimRewards,
-      lifetimeBonusClaimed: '0',
-    });
-
-    renderWithProvider(<MusdAggregatedRow />);
-
-    fireEvent.press(screen.getByText('Claim 3% bonus'));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
-      params: {
-        claimableReward: '0.02',
-        onConfirm: expect.any(Function),
-      },
-    });
-    expect(mockClaimRewards).not.toHaveBeenCalled();
-  });
-
-  it('falls back to direct claim when Money Home is disabled', () => {
-    mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+  it('calls claimRewards when "Claim 3% bonus" is tapped', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '0.02',
       hasPendingClaim: false,
@@ -142,7 +118,6 @@ describe('MusdAggregatedRow', () => {
 
     fireEvent.press(screen.getByText('Claim 3% bonus'));
     expect(mockClaimRewards).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('has cash-section-musd-row testID', () => {
