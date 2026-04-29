@@ -15,7 +15,6 @@ export { parseErrorByType } from './parser';
 export {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
-  isQRHardwareScanError,
   QRHardwareScanError,
   QRHardwareScanErrorType,
 } from './qrScan';
