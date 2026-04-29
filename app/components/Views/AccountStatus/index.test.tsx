@@ -10,6 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
+import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -77,8 +78,10 @@ describe('AccountStatus', () => {
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
         mockRouteParams = { type: 'found' };
-        const { getByText } = renderWithProvider(<AccountStatus />);
-        const primaryButton = getByText(strings('account_status.log_in'));
+        const { getByTestId } = renderWithProvider(<AccountStatus />);
+        const primaryButton = getByTestId(
+          AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
+        );
 
         fireEvent.press(primaryButton);
 
@@ -121,8 +124,10 @@ describe('AccountStatus', () => {
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
         mockRouteParams = { type: 'found', oauthLoginSuccess: true };
-        const { getByText } = renderWithProvider(<AccountStatus />);
-        const primaryButton = getByText(strings('account_status.log_in'));
+        const { getByTestId } = renderWithProvider(<AccountStatus />);
+        const primaryButton = getByTestId(
+          AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
+        );
 
         fireEvent.press(primaryButton);
 
@@ -157,8 +162,10 @@ describe('AccountStatus', () => {
         ).mockImplementation(mockCreateEventBuilder);
 
         mockRouteParams = { type: 'found' };
-        const { getByText } = renderWithProvider(<AccountStatus />);
-        const primaryButton = getByText('Log in');
+        const { getByTestId } = renderWithProvider(<AccountStatus />);
+        const primaryButton = getByTestId(
+          AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
+        );
 
         fireEvent.press(primaryButton);
 
@@ -194,9 +201,11 @@ describe('AccountStatus', () => {
   describe('Event Tracking', () => {
     it('calls trackOnboarding when primary button is pressed for existing account', () => {
       mockRouteParams = { type: 'found' };
-      const { getByText } = renderWithProvider(<AccountStatus />);
+      const { getByTestId } = renderWithProvider(<AccountStatus />);
 
-      const primaryButton = getByText(strings('account_status.log_in'));
+      const primaryButton = getByTestId(
+        AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
+      );
       fireEvent.press(primaryButton);
 
       expect(trackOnboarding).toHaveBeenCalled();
@@ -241,8 +250,10 @@ describe('AccountStatus', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const { getByText } = renderWithProvider(<AccountStatus />);
-      expect(getByText(strings('account_status.log_in'))).toBeOnTheScreen();
+      const { getByTestId } = renderWithProvider(<AccountStatus />);
+      expect(
+        getByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 });
