@@ -81,6 +81,23 @@ describe('useWithdrawValidation', () => {
     expect(result.current.availableBalance).toBe('1000');
   });
 
+  it('should prefer availableToTradeBalance for Unified Account target state', () => {
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
+      account: {
+        availableBalance: '$0.00',
+        availableToTradeBalance: '$2500.00',
+      },
+      isInitialLoading: false,
+    });
+
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100' }),
+    );
+
+    expect(result.current.availableBalance).toBe('2500');
+    expect(result.current.hasInsufficientBalance).toBe(false);
+  });
+
   it('should handle empty balance', () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       account: {

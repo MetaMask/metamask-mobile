@@ -4207,6 +4207,41 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
+      it('validates withdrawal against availableToTradeBalance when Unified Account has zero availableBalance', async () => {
+        const exchangeClient = createMockExchangeClient();
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(exchangeClient);
+
+        Object.defineProperty(provider, 'getAccountState', {
+          value: jest.fn().mockResolvedValue({
+            availableBalance: '0',
+            availableToTradeBalance: '2500',
+            totalBalance: '2500',
+            marginUsed: '0',
+            unrealizedPnl: '0',
+            returnOnEquity: '0',
+          }),
+          writable: true,
+        });
+
+        const withdrawParams = {
+          amount: '1000',
+          destination: '0x1234567890123456789012345678901234567890' as Hex,
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+        };
+
+        const result = await provider.withdraw(withdrawParams);
+
+        expect(result.success).toBe(true);
+        expect(mockValidateBalance).toHaveBeenCalledWith(1000, 2500);
+        expect(exchangeClient.withdraw3).toHaveBeenCalledWith({
+          destination: '0x1234567890123456789012345678901234567890',
+          amount: '1000',
+        });
+      });
+
       it('handles withdrawal API error', async () => {
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
           withdraw3: jest.fn().mockResolvedValue({

@@ -38,7 +38,11 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
   const hyperliquidBalance = Number.parseFloat(
-    account?.availableBalance?.toString() || '0',
+    (
+      account?.availableToTradeBalance ??
+      account?.availableBalance ??
+      '0'
+    ).toString(),
   );
 
   // Get all chain IDs to search for tokens (exclude Hyperliquid chains)
