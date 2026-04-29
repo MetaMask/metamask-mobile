@@ -5,13 +5,16 @@ import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import type { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
-const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockAddProperties = jest.fn<{ build: typeof mockBuild }, [JsonMap]>(
+  (_properties) => ({ build: mockBuild }),
+);
 
 import {
   getCapturedCallbacks,
