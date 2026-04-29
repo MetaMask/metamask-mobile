@@ -239,7 +239,7 @@ describe('TraderPositionView', () => {
       screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
     ).toBeOnTheScreen();
     // Price chart should not be rendered in the fallback state
-    expect(screen.queryByTestId('price-chart-mock')).toBeNull();
+    expect(screen.queryByTestId('trader-price-chart-mock')).toBeNull();
   });
 
   it('renders the skeleton while a positionId fetch is in flight', () => {
