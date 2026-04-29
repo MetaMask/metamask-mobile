@@ -71,6 +71,8 @@ jobs:
           localization_branch_name: l10n_crowdin_translations_${{ matrix.branch }}
           pull_request_title: 'chore: New Crowdin Translations for ${{ matrix.branch }}'
           skip_ref_checkout: true
+          # This will be in dry-run mode until after we've tested this on `main`
+          dryrun_action: true
 
           github_user_name: metamaskbot
           github_user_email: metamaskbot@users.noreply.github.com

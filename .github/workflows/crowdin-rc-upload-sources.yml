@@ -22,6 +22,8 @@ jobs:
           upload_sources: true
           upload_translations: false # disabled to prevent translations overwriting Blends translations
           download_translations: false # created separate action to pull down completed translations
+          # This will be in dry-run mode until after we've tested this on `main`
+          dryrun_action: true
           github_user_name: metamaskbot
           github_user_email: metamaskbot@users.noreply.github.com
         env:
