@@ -122,8 +122,8 @@ describe('AccountSelector', () => {
 
   it('renders address rows for each account', () => {
     const { getByText } = render(AddressSelector);
-    expect(getByText('Eth Account 1')).toBeOnTheScreen();
-    expect(getByText('Sol Account 1')).toBeOnTheScreen();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
+    expect(getByText('Solana')).toBeOnTheScreen();
   });
 
   it('includes only EVM addresses if isEvmOnly', () => {
