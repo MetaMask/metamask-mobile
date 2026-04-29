@@ -59,7 +59,10 @@ const BottomSheetDialog = forwardRef<
       keyboardAvoidingViewEnabled = true,
       onClose,
       onOpen,
-      panGestureHandlerProps,
+      // Deprecated under react-native-gesture-handler v2: the legacy
+      // PanGestureHandler-style config bag is no longer wired through.
+      // See BottomSheetDialog.types.ts for the migration note.
+      panGestureHandlerProps: _panGestureHandlerProps,
       style,
       ...props
     },

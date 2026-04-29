@@ -168,6 +168,41 @@ module.exports = function (baseConfig) {
               };
             }
           }
+          if (e2eAllowsSeedlessOAuthMetroMocks) {
+            if (
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller',
+              ) ||
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller/index',
+              ) ||
+              moduleName === './seedless-onboarding-controller' ||
+              moduleName === '../seedless-onboarding-controller'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/seedless/index.ts',
+                ),
+              };
+            }
+            // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
+            if (
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
+              moduleName === './OAuthLoginHandlers' ||
+              moduleName === '../OAuthLoginHandlers'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
+                ),
+              };
+            }
+          }
           return context.resolveRequest(context, moduleName, platform);
         },
       },
@@ -197,10 +232,7 @@ module.exports = function (baseConfig) {
           getPolyfills,
         },
       ),
-      serializer: {
-        getPolyfills,
-      },
-      resetCache: true,
+      resetCache: process.env.METRO_RESET_CACHE !== 'false',
       maxWorkers,
     }),
   );
