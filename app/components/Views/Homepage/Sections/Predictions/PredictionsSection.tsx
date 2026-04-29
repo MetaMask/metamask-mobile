@@ -38,7 +38,6 @@ import type { PredictNavigationParamList } from '../../../../UI/Predict/types/na
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
 import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
-import { usePredictLivePositions } from '../../../../UI/Predict/hooks/usePredictLivePositions';
 import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
 import { predictQueries } from '../../../../UI/Predict/queries';
 import { getEvmAccountFromSelectedAccountGroup } from '../../../../UI/Predict/utils/accounts';
@@ -203,10 +202,7 @@ const HomepagePredictPositions = ({
   onClaim,
   onPositionPress,
   showHeader = true,
-}: HomepagePredictPositionsProps) => {
-  const { livePositions } = usePredictLivePositions(positions);
-
-  return (
+}: HomepagePredictPositionsProps) => (
     <Box gap={3}>
       {showHeader && (
         <Box gap={1}>
@@ -235,7 +231,7 @@ const HomepagePredictPositions = ({
             <PredictPositionRowSkeleton />
           </>
         ) : (
-          livePositions.map((position) => (
+          positions.map((position) => (
             <PredictPositionRow
               key={`${position.outcomeId}:${position.outcomeIndex}`}
               position={position}
@@ -257,7 +253,6 @@ const HomepagePredictPositions = ({
       </Box>
     </Box>
   );
-};
 
 const usePredictNavigationHandlers = (): {
   handleViewAllPredictions: () => void;

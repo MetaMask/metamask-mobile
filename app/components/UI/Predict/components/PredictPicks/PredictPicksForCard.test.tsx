@@ -7,13 +7,6 @@ import { formatPrice } from '../../utils/format';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../hooks/usePredictPositions');
-jest.mock('../../hooks/usePredictLivePositions', () => ({
-  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
-    livePositions: positions ?? [],
-    isConnected: false,
-    lastUpdateTime: null,
-  })),
-}));
 jest.mock('../../utils/format');
 
 const mockUsePredictPositions = usePredictPositions as jest.Mock;

@@ -45,14 +45,6 @@ jest.mock('../../../../UI/Predict/hooks/useUnrealizedPnL', () => ({
   })),
 }));
 
-jest.mock('../../../../UI/Predict/hooks/usePredictLivePositions', () => ({
-  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
-    livePositions: positions,
-    isConnected: false,
-    lastUpdateTime: null,
-  })),
-}));
-
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
@@ -103,9 +95,6 @@ const mockUsePredictMarketsForHomepage =
   jest.requireMock('./hooks').usePredictMarketsForHomepage;
 const mockUsePredictPositionsForHomepage =
   jest.requireMock('./hooks').usePredictPositionsForHomepage;
-const mockUsePredictLivePositions = jest.requireMock(
-  '../../../../UI/Predict/hooks/usePredictLivePositions',
-).usePredictLivePositions as jest.Mock;
 const mockSelectPrivacyMode = jest.requireMock(
   '../../../../../selectors/preferencesController',
 ).selectPrivacyMode as jest.Mock;
@@ -234,11 +223,6 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       }),
     );
-    mockUsePredictLivePositions.mockImplementation((positions: unknown[]) => ({
-      livePositions: positions,
-      isConnected: false,
-      lastUpdateTime: null,
-    }));
     mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
@@ -330,19 +314,25 @@ describe('PredictionsSection', () => {
       });
     });
 
-    it('renders live values for active positions', async () => {
-      mockUsePredictLivePositions.mockImplementation(
-        (positions: unknown[]) => ({
-          livePositions: [
-            {
-              ...(positions as typeof mockActivePositions)[0],
-              currentValue: 99,
-              percentPnl: 890,
-            },
-            (positions as typeof mockActivePositions)[1],
-          ],
-          isConnected: true,
-          lastUpdateTime: 1704067200000,
+    it('renders the current active position values from the hook data', async () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable
+            ? []
+            : [
+                {
+                  ...mockActivePositions[0],
+                  currentValue: 99,
+                  percentPnl: 890,
+                },
+                mockActivePositions[1],
+              ],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
         }),
       );
 

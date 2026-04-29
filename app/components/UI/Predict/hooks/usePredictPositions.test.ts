@@ -34,6 +34,14 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
+jest.mock('./usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
+    livePositions: positions ?? [],
+    isConnected: false,
+    lastUpdateTime: null,
+  })),
+}));
+
 const mockGetPositions = jest.fn<
   Promise<PredictPosition[]>,
   [{ address: string }]
@@ -91,11 +99,20 @@ const createWrapper = () => {
   return { Wrapper, queryClient };
 };
 
+const mockUsePredictLivePositions = jest.requireMock(
+  './usePredictLivePositions',
+).usePredictLivePositions as jest.Mock;
+
 describe('usePredictPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
     mockGetPositions.mockResolvedValue([]);
+    mockUsePredictLivePositions.mockImplementation((positions: unknown[]) => ({
+      livePositions: positions ?? [],
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   it('returns empty positions when query returns no positions', async () => {
@@ -154,6 +171,13 @@ describe('usePredictPositions', () => {
     });
 
     expect(result.current.data).toEqual([activePosition]);
+    expect(mockUsePredictLivePositions).toHaveBeenLastCalledWith(
+      [activePosition],
+      {
+        enabled: true,
+        cacheAddress: MOCK_ADDRESS,
+      },
+    );
   });
 
   it('returns only claimable positions when claimable is true', async () => {
@@ -176,6 +200,13 @@ describe('usePredictPositions', () => {
     });
 
     expect(result.current.data).toEqual([claimablePosition]);
+    expect(mockUsePredictLivePositions).toHaveBeenLastCalledWith(
+      [claimablePosition],
+      {
+        enabled: false,
+        cacheAddress: MOCK_ADDRESS,
+      },
+    );
   });
 
   it('filters positions by marketId', async () => {
@@ -220,6 +251,10 @@ describe('usePredictPositions', () => {
     expect(mockGetPositions).not.toHaveBeenCalled();
     expect(result.current.data).toBeUndefined();
     expect(result.current.isFetching).toBe(false);
+    expect(mockUsePredictLivePositions).toHaveBeenLastCalledWith([], {
+      enabled: false,
+      cacheAddress: MOCK_ADDRESS,
+    });
   });
 
   it('returns query error message when query fails', async () => {
@@ -369,6 +404,99 @@ describe('usePredictPositions', () => {
       });
 
       expect(result.current.data).toEqual([parentPosition]);
+    });
+  });
+
+  it('updates returned data through cache sync while keeping claimable rows unchanged', async () => {
+    const { Wrapper } = createWrapper();
+    const activePosition = createPosition('active-cache-sync', {
+      claimable: false,
+      currentValue: 100,
+      cashPnl: 8,
+      percentPnl: 12,
+    });
+    const claimablePosition = createPosition('claimable-cache-sync', {
+      claimable: true,
+      currentValue: 40,
+      cashPnl: 30,
+      percentPnl: 300,
+      marketId: 'market-claimable',
+    });
+    mockGetPositions.mockResolvedValue([activePosition, claimablePosition]);
+
+    mockUsePredictLivePositions.mockImplementation(
+      (
+        positions: PredictPosition[],
+        options?: { enabled?: boolean; cacheAddress?: string },
+      ) => {
+        const { useEffect } = jest.requireActual('react');
+        const { useQueryClient } = jest.requireActual('@tanstack/react-query');
+        const queryClient = useQueryClient();
+
+        useEffect(() => {
+          if (!options?.enabled || !options.cacheAddress) {
+            return;
+          }
+
+          queryClient.setQueryData<PredictPosition[]>(
+            ['predict', 'positions', options.cacheAddress],
+            (cachedPositions) => {
+              if (!cachedPositions) {
+                return cachedPositions;
+              }
+
+              let hasChanges = false;
+
+              const nextPositions = cachedPositions.map((position) => {
+                if (position.id !== activePosition.id || position.claimable) {
+                  return position;
+                }
+
+                if (
+                  position.currentValue === 150 &&
+                  position.cashPnl === 58 &&
+                  position.percentPnl === 63
+                ) {
+                  return position;
+                }
+
+                hasChanges = true;
+
+                return {
+                  ...position,
+                  currentValue: 150,
+                  cashPnl: 58,
+                  percentPnl: 63,
+                };
+              });
+
+              return hasChanges ? nextPositions : cachedPositions;
+            },
+          );
+        }, [options?.cacheAddress, options?.enabled, queryClient, positions]);
+
+        return {
+          livePositions: positions ?? [],
+          isConnected: false,
+          lastUpdateTime: null,
+        };
+      },
+    );
+
+    const { result } = renderHook(() => usePredictPositions(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([
+        expect.objectContaining({
+          id: activePosition.id,
+          currentValue: 150,
+          cashPnl: 58,
+          percentPnl: 63,
+        }),
+        claimablePosition,
+      ]);
     });
   });
 });

@@ -3,11 +3,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import type { PredictPosition } from '../types';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
+import { usePredictLivePositions } from './usePredictLivePositions';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { predictQueries } from '../queries';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const OPTIMISTIC_POLL_INTERVAL = 2_000;
+const EMPTY_POSITIONS: PredictPosition[] = [];
 
 interface UsePredictPositionsOptions {
   enabled?: boolean;
@@ -74,7 +76,7 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     (p: PredictPosition) => p.optimistic,
   );
 
-  return useQuery({
+  const query = useQuery({
     ...queryOpts,
     enabled,
     refetchInterval: hasOptimistic
@@ -82,4 +84,11 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
       : (refetchInterval ?? false),
     select: buildSelect(claimable, marketId, childMarketIds),
   });
+
+  usePredictLivePositions(query.data ?? EMPTY_POSITIONS, {
+    enabled: enabled && claimable !== true,
+    cacheAddress: address,
+  });
+
+  return query;
 }
