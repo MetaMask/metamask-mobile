@@ -574,7 +574,8 @@ export const DEFAULT_BRIDGE_API_MOCKS = {
       responseCode: 200,
     },
     {
-      urlEndpoint: 'https://bridge.api.cx.metamask.io/getTokens?chainId=1',
+      urlEndpoint:
+        /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTokens\?chainId=1(&.*)?$/,
       response: BRIDGE_TOKEN_DETAILS_CHAIN_1,
       responseCode: 200,
     },
