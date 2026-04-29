@@ -23,7 +23,16 @@ class TrendingView {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
+  /**
+   * Native target for typing — DS `TextFieldSearch` applies `testID` on the `TextField`
+   * pressable (`textfieldsearch`), not on the outer `Box` (`explore-view-search-input`).
+   * Using the wrapper caused iOS Detox failures: view not hittable / visibility threshold.
+   */
   get searchInput(): DetoxElement {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_FIELD);
+  }
+
+  get searchInputContainer(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
   }
 
@@ -142,6 +151,7 @@ class TrendingView {
    */
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
+      Trending: 'tokens',
       'Trending tokens': 'tokens',
       Stocks: 'stocks',
       Sites: 'sites',
