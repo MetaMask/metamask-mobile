@@ -177,7 +177,6 @@ import {
   selectPredictEnabledFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
 } from '../../UI/Predict/selectors/featureFlags';
-import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
@@ -494,17 +493,6 @@ const WalletTokensTabView = forwardRef<
       tabs.push(<PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />);
     }
 
-    if (isPredictEnabled) {
-      tabs.push(
-        <PredictTabView
-          ref={predictRef}
-          {...predictTabProps}
-          key={predictTabProps.key}
-          isVisible={isPredictTabVisible}
-        />,
-      );
-    }
-
     if (enabledNetworksIsSolana) {
       return tabs;
     }
@@ -529,9 +517,6 @@ const WalletTokensTabView = forwardRef<
     tokensTabProps,
     isPerpsEnabled,
     perpsTabProps,
-    isPredictEnabled,
-    predictTabProps,
-    isPredictTabVisible,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
