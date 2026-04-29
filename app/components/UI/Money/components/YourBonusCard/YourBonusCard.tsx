@@ -82,9 +82,11 @@ const YourBonusCard: React.FC = () => {
     });
   }, [trackClaimBonusClicked, navigation]);
 
-  // Hide card when user has no claim history and nothing to claim — there's
-  // nothing meaningful to show until the Merkl rewards data lands.
-  if (lifetimeBonusClaimed === null && !hasClaimable) {
+  // Hide card when user has no claim history and nothing to claim. Note that
+  // useMerklRewards sets lifetimeBonusClaimed to '0.00' for eligible users
+  // who have never claimed, so a strict null check would show an empty card
+  // for that segment.
+  if (!hasLifetimeBonus && !hasClaimable) {
     return null;
   }
 

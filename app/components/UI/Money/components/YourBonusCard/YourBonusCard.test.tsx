@@ -80,6 +80,15 @@ describe('YourBonusCard', () => {
     expect(queryByTestId(YourBonusCardTestIds.CONTAINER)).toBeNull();
   });
 
+  it('returns null for eligible users who have never claimed (lifetime "0.00" with no claimable)', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      ...baseClaimData,
+      lifetimeBonusClaimed: '0.00',
+    });
+    const { queryByTestId } = renderWithProvider(<YourBonusCard />);
+    expect(queryByTestId(YourBonusCardTestIds.CONTAINER)).toBeNull();
+  });
+
   it('renders enabled "Claim $X.XX bonus" when reward is claimable', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       ...baseClaimData,
