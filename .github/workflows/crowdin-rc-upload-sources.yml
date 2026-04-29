@@ -12,7 +12,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref:
           # Use PAT to ensure that the commit later can trigger status check workflows
           token: ${{ secrets.METAMASKBOT_CROWDIN_TOKEN }}
 
