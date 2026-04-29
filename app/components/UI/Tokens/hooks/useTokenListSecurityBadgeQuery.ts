@@ -5,8 +5,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import { tokenListSecurityBadgeKeys } from '../queries/tokenSecurityBadgeKeys';
 import { requestTokenSecurityForAsset } from '../util/tokenSecurityBadgeBatch';
 
-/** Align with assets-controllers freshness window for security (12h). */
-const STALE_TIME_MS = 12 * 60 * 60 * 1000;
+const STALE_TIME_MS = 12 * 60 * 60 * 1000; //12 hours
 
 /**
  * Fetches minimal security payload for list badges; results are batched via
