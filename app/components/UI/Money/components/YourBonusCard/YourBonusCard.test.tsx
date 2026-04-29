@@ -25,12 +25,6 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(),
 }));
 
-jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (amount: { toString: () => string }) =>
-    `$${amount.toString()}`,
-}));
-
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -156,6 +150,6 @@ describe('YourBonusCard', () => {
     const { getByTestId } = renderWithProvider(<YourBonusCard />);
     expect(
       getByTestId(YourBonusCardTestIds.ESTIMATED_ANNUAL),
-    ).toHaveTextContent('$30');
+    ).toHaveTextContent('$30.00');
   });
 });

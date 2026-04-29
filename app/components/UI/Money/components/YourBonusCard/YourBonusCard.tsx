@@ -24,7 +24,6 @@ import {
 } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { strings } from '../../../../../../locales/i18n';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { LINEA_MUSD_ASSET_FOR_MERKL } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
@@ -34,9 +33,12 @@ import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { YourBonusCardTestIds } from './YourBonusCard.testIds';
 
+// mUSD is USD-pegged; show all amounts in USD to match the sheet and the
+// on-chain unit (avoid translating into the user's preferred fiat currency).
+const formatUsd = (value: string) => `$${value}`;
+
 const YourBonusCard: React.FC = () => {
   const navigation = useNavigation();
-  const formatFiat = useFiatFormatter();
   const trackClaimBonusClicked = useTrackClaimBonusClicked();
 
   const {
@@ -55,22 +57,19 @@ const YourBonusCard: React.FC = () => {
   const estimatedAnnualBonus = useMemo(
     () =>
       fiatBalanceAggregated
-        ? formatFiat(
+        ? formatUsd(
             new BigNumber(fiatBalanceAggregated)
               .multipliedBy(MUSD_CONVERSION_APY)
-              .dividedBy(100),
+              .dividedBy(100)
+              .toFixed(2),
           )
         : null,
-    [fiatBalanceAggregated, formatFiat],
+    [fiatBalanceAggregated],
   );
 
-  const lifetimeFormatted = useMemo(
-    () =>
-      lifetimeBonusClaimed
-        ? formatFiat(new BigNumber(lifetimeBonusClaimed))
-        : null,
-    [lifetimeBonusClaimed, formatFiat],
-  );
+  const lifetimeFormatted = lifetimeBonusClaimed
+    ? formatUsd(lifetimeBonusClaimed)
+    : null;
 
   const hasLifetimeBonus =
     !!lifetimeBonusClaimed && new BigNumber(lifetimeBonusClaimed).gt(0);
@@ -99,7 +98,7 @@ const YourBonusCard: React.FC = () => {
 
   const claimButtonLabel = hasClaimable
     ? strings('money.your_bonus.claim_amount', {
-        amount: formatFiat(new BigNumber(claimableReward as string)),
+        amount: formatUsd(claimableReward as string),
       })
     : strings('money.your_bonus.accruing_next');
 
