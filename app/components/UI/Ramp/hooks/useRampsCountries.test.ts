@@ -5,6 +5,11 @@ import React from 'react';
 import { useRampsCountries } from './useRampsCountries';
 import { type Country } from '@metamask/ramps-controller';
 
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+  locale: 'en',
+}));
+
 const mockCountries: Country[] = [
   {
     isoCode: 'US',
@@ -122,6 +127,18 @@ describe('useRampsCountries', () => {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
+    });
+
+    it('returns localized fallback when the countries state carries a circuit breaker errorKey', () => {
+      const store = createMockStore({
+        error: 'Execution prevented because the circuit breaker is open',
+        errorKey: 'CIRCUIT_BREAKER_OPEN',
+      });
+      const { result } = renderHook(() => useRampsCountries(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.error).toBe('fiat_on_ramp.payment_error');
     });
   });
 });

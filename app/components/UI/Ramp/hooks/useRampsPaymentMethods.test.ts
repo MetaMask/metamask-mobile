@@ -7,6 +7,11 @@ import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+  locale: 'en',
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
@@ -223,6 +228,30 @@ describe('useRampsPaymentMethods', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe('Network error');
     expect(result.current.paymentMethods).toEqual([]);
+  });
+
+  it('returns localized fallback when the payment methods query trips the circuit breaker', async () => {
+    const store = createMockStore();
+    const { Wrapper } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockRejectedValue(
+      Object.assign(
+        new Error('Execution prevented because the circuit breaker is open'),
+        { errorKey: 'CIRCUIT_BREAKER_OPEN' },
+      ),
+    );
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+
+    expect(result.current.error).toBe('fiat_on_ramp.payment_error');
   });
 
   it('calls Engine.context.RampsController.setSelectedPaymentMethod with full payment method object', () => {

@@ -13,6 +13,11 @@ import Engine from '../../../../core/Engine';
 import { determinePreferredProvider } from '../utils/determinePreferredProvider';
 import { getOrders, type FiatOrder } from '../../../../reducers/fiatOrders';
 
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+  locale: 'en',
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
@@ -204,6 +209,18 @@ describe('useRampsProviders', () => {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
+    });
+
+    it('returns localized fallback when the provider state carries a circuit breaker errorKey', () => {
+      const store = createMockStore({
+        error: 'Execution prevented because the circuit breaker is open',
+        errorKey: 'CIRCUIT_BREAKER_OPEN',
+      });
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.error).toBe('fiat_on_ramp.payment_error');
     });
   });
 

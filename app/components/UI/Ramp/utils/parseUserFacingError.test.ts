@@ -73,6 +73,27 @@ describe('parseUserFacingError', () => {
     expect(parseUserFacingError(new Error(''), FALLBACK)).toBe(FALLBACK);
   });
 
+  it('returns fallback for circuit breaker errors with errorKey metadata', () => {
+    const circuitBreakerError = Object.assign(
+      new Error('Execution prevented because the circuit breaker is open'),
+      { errorKey: 'CIRCUIT_BREAKER_OPEN' },
+    );
+
+    expect(parseUserFacingError(circuitBreakerError, FALLBACK)).toBe(FALLBACK);
+  });
+
+  it('returns fallback for resource-like circuit breaker errors', () => {
+    expect(
+      parseUserFacingError(
+        {
+          error: 'Execution prevented because the circuit breaker is open',
+          errorKey: 'CIRCUIT_BREAKER_OPEN',
+        },
+        FALLBACK,
+      ),
+    ).toBe(FALLBACK);
+  });
+
   it('handles JSON body where error.message is empty', () => {
     const httpError = new Error(
       `Fetching https://api.example.com/x failed with status '400': {"error":{"statusCode":400,"message":""}}`,

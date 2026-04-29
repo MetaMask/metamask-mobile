@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { strings } from '../../../../../locales/i18n';
 import {
   selectProviders,
   selectUserRegion,
@@ -13,6 +14,7 @@ import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../utils/determinePreferredProvider';
+import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { getOrders } from '../../../../reducers/fiatOrders';
 import { rampsQueries } from '../queries';
 
@@ -65,12 +67,13 @@ export function useRampsProviders(options?: {
   enableSideEffects?: boolean;
 }): UseRampsProvidersResult {
   const enableSideEffects = options?.enableSideEffects ?? false;
+  const providersState = useSelector(selectProviders);
   const {
     data: providersStateData,
     selected: selectedProvider,
     isLoading: providersStateIsLoading,
     error: providersStateError,
-  } = useSelector(selectProviders);
+  } = providersState;
 
   const userRegion = useSelector(selectUserRegion);
   const regionCode = userRegion?.regionCode ?? '';
@@ -161,9 +164,17 @@ export function useRampsProviders(options?: {
     setSelectedProvider,
     isLoading: providersQuery?.isLoading ?? providersStateIsLoading,
     error:
-      providersQuery?.error instanceof Error
-        ? providersQuery.error.message
-        : providersStateError,
+      providersQuery?.error != null
+        ? parseUserFacingError(
+            providersQuery.error,
+            strings('fiat_on_ramp.payment_error'),
+          )
+        : providersStateError
+          ? parseUserFacingError(
+              providersState,
+              strings('fiat_on_ramp.payment_error'),
+            )
+          : null,
   };
 }
 
