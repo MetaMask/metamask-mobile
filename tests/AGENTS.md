@@ -22,6 +22,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 - [.cursor/rules/e2e-testing-guidelines.mdc](../.cursor/rules/e2e-testing-guidelines.mdc) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
 - [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md) — Setup, run commands, build types, Metro, Detox, Flask; legacy Appium; Playwright.
+- [.github/guidelines/E2E_DECISION_TREE.md](../.github/guidelines/E2E_DECISION_TREE.md) — CI decision flow: when E2E runs, which labels gate it (pr-not-ready-for-e2e, skip-e2e, skip-smart-e2e-selection), AI test selection logic.
 - [tests/docs/README.md](docs/README.md) — Framework structure, withFixtures, FixtureBuilder, anti-patterns, checklist.
 - [tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md](docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — Local `buildPath` vs pre-installed app, `fullReset` / `noReset` for `EmulatorConfigBuilder`.
 - [tests/docs/MOCKING.md](docs/MOCKING.md) — API mocking, default and test-specific mocks.
