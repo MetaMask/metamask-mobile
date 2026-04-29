@@ -61,17 +61,14 @@ const MusdAggregatedRow = () => {
     trackClaimBonusClicked(
       MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
     );
-    // Money modal stack is only mounted in MainNavigator when the Money Home
-    // flag is on. Without it, fall back to dispatching the claim directly so
-    // the CTA still works for users on the legacy mUSD-conversion flag.
+    // Money modal stack only mounts when the Money Home flag is on; fall
+    // back to dispatching the claim directly otherwise.
     if (isMoneyHomeScreenEnabled) {
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
         params: {
           claimableReward,
-          // Run claim through this row's hook instance so the post-claim
-          // session lock is set on the still-mounted parent, not on the
-          // sheet (which unmounts before the tx resolves).
+          // Run via parent's hook so the post-claim session lock survives sheet unmount.
           onConfirm: () => {
             claimRewards().catch(() => undefined);
           },

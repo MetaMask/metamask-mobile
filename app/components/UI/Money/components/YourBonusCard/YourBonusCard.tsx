@@ -83,9 +83,7 @@ const YourBonusCard: React.FC = () => {
       screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
       params: {
         claimableReward,
-        // Run claim through this card's hook instance so the post-claim
-        // session lock is set here (still mounted), not on the sheet that
-        // unmounts before the tx resolves.
+        // Run via parent's hook so the post-claim session lock survives sheet unmount.
         onConfirm: () => {
           claimRewards().catch(() => undefined);
         },
@@ -93,10 +91,8 @@ const YourBonusCard: React.FC = () => {
     });
   }, [trackClaimBonusClicked, navigation, claimableReward, claimRewards]);
 
-  // Hide card when user has no claim history and nothing to claim. Note that
-  // useMerklRewards sets lifetimeBonusClaimed to '0.00' for eligible users
-  // who have never claimed, so a strict null check would show an empty card
-  // for that segment.
+  // useMerklRewards returns '0.00' for eligible users with no history, so
+  // the guard checks > 0 rather than null.
   if (!hasLifetimeBonus && !hasClaimable) {
     return null;
   }

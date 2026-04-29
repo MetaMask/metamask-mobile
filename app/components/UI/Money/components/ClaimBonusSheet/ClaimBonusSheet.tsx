@@ -46,16 +46,9 @@ import { ClaimBonusSheetTestIds } from './ClaimBonusSheet.testIds';
 const CLAIM_CHAIN_ID = CHAIN_IDS.LINEA_MAINNET as Hex;
 
 export interface ClaimBonusSheetRouteParams {
-  /** Claimable reward, formatted as a numeric mUSD string (e.g. "3.65"). */
   claimableReward: string | null;
-  /**
-   * Caller-supplied claim dispatcher. The sheet must invoke the *parent's*
-   * `claimRewards` rather than calling its own `useMerklBonusClaim` instance,
-   * otherwise the post-claim session lock — set via setState inside the
-   * dispatcher — is lost when the sheet unmounts before the tx resolves, and
-   * the parent CTAs would re-enable themselves before the next rewards
-   * refetch lands, allowing duplicate claim attempts.
-   */
+  // Must be the parent's claimRewards: setState inside the dispatcher is a
+  // no-op once the sheet unmounts, so the post-claim session lock is lost.
   onConfirm: () => void;
 }
 
