@@ -1,14 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
-import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import type { Hex } from '@metamask/utils';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
+import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
+import {
+  isNumberValue,
+  dotAndCommaDecimalFormatter,
+} from '../../../../../../util/number';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
+import { useGasFeeEstimates } from '../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import {
   setSourceAmount,
   setSourceToken,
@@ -16,30 +23,47 @@ import {
   resetBridgeState,
   selectIsSubmittingTx,
   selectDestAddress,
+  selectSlippage,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectBridgeFeatureFlags,
   setIsSubmittingTx,
 } from '../../../../../../core/redux/slices/bridge';
-import { useBridgeQuoteRequest } from '../../../../../UI/Bridge/hooks/useBridgeQuoteRequest';
-import { useBridgeQuoteData } from '../../../../../UI/Bridge/hooks/useBridgeQuoteData';
-import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
 import { useInitialSlippage } from '../../../../../UI/Bridge/hooks/useInitialSlippage';
-import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import {
+  parsePriceImpact,
+  exceedsPriceImpactErrorThreshold,
+} from '../../../../../UI/Bridge/utils/getPriceImpactViewData';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useRecipientInitialization } from '../../../../../UI/Bridge/hooks/useRecipientInitialization';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../../util/address';
 import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { calcTokenValue } from '../../../../../../util/transactions';
 
+export type QuickBuyButtonError =
+  | 'insufficient_balance'
+  | 'insufficient_gas'
+  | 'no_quotes';
+
+const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
+  insufficient_balance: 'bridge.insufficient_funds',
+  insufficient_gas: 'bridge.insufficient_gas',
+  no_quotes: 'social_leaderboard.quick_buy.no_quotes',
+};
+
 export interface UseQuickBuyBottomSheetResult {
   // refs
-  bottomSheetRef: React.RefObject<BottomSheetRef>;
   hiddenInputRef: React.RefObject<TextInput>;
   // setup
   destToken: BridgeToken | undefined;
@@ -59,23 +83,24 @@ export interface UseQuickBuyBottomSheetResult {
   usdAmount: string;
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string | undefined;
+  formattedNetworkFee: string;
+  formattedSlippage: string;
+  formattedMinimumReceived: string;
+  formattedPriceImpact: string;
+  totalAmountUsd: string;
   // quote state
   isQuoteLoading: boolean;
   isSubmittingTx: boolean;
-  // rewards
-  estimatedPoints: number | null;
-  isRewardsLoading: boolean;
-  shouldShowLiveRewardsEstimate: boolean;
-  shouldShowRewardsOptInCta: boolean;
-  shouldShowRewardsFallbackZero: boolean;
-  hasRewardsError: boolean;
-  accountOptedIn: boolean | null;
-  rewardsAccountScope: InternalAccount | null;
-  // button state
-  hasError: boolean;
+  isTotalLoading: boolean;
+  // warnings (banner-level; can stack)
+  isHardwareSolanaBlocked: boolean;
+  priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
+  isPriceImpactError: boolean;
+  // button state (priority-encoded; the Buy button surfaces at most one)
+  buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
   isConfirmDisabled: boolean;
-  isConfirmLoading: boolean;
+  confirmButtonState: 'idle' | 'loading' | 'success';
   getButtonLabel: () => string;
   // handlers
   handleClose: () => void;
@@ -89,18 +114,28 @@ export function useQuickBuyBottomSheet(
   position: Position,
   onClose: () => void,
 ): UseQuickBuyBottomSheetResult {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
   const [usdAmount, setUsdAmount] = useState('');
+  const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
+  const slippage = useSelector(selectSlippage);
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
+  const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareAddress = selectedAddress
+    ? !!isHardwareAccount(selectedAddress)
+    : false;
+  const isHardwareSolanaBlocked = isHardwareAddress && Boolean(isSolanaSourced);
 
   const {
     chainId: destChainId,
@@ -124,6 +159,22 @@ export function useQuickBuyBottomSheet(
 
   const sourceToken = selectedSourceToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
+
+  // BridgeController.fetchQuotes does not start gas fee polling, so estimates
+  // for the source chain may be missing when selectBridgeQuotesBase enriches
+  // the quote — producing a $0 network fee. Poll explicitly for the source
+  // chain's network client.
+  const sourceNetworkClientId = useMemo(() => {
+    if (!sourceChainId || isNonEvmChainId(sourceChainId)) return undefined;
+    try {
+      return Engine.context.NetworkController.findNetworkClientIdByChainId(
+        sourceChainId,
+      );
+    } catch {
+      return undefined;
+    }
+  }, [sourceChainId]);
+  useGasFeeEstimates(sourceNetworkClientId);
 
   useRefreshSmartTransactionsLiveness(sourceChainId);
   useIsGasIncludedSTXSendBundleSupported(sourceChainId);
@@ -163,80 +214,94 @@ export function useQuickBuyBottomSheet(
     balance: sourceToken?.balance,
   });
 
-  const updateQuoteParams = useBridgeQuoteRequest({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
   const {
     activeQuote,
     destTokenAmount: estimatedReceiveAmount,
-    isLoading: isQuoteLoading,
+    isQuoteLoading,
     isNoQuotesAvailable,
     quoteFetchError,
-    blockaidError,
     isActiveQuoteForCurrentTokenPair,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  } = useQuickBuyQuotes({
+    sourceToken,
+    destToken,
+    sourceTokenAmount,
   });
 
-  const {
-    estimatedPoints,
-    isLoading: isRewardsLoading,
-    shouldShowRewardsRow,
-    hasError: hasRewardsError,
-    accountOptedIn,
-    rewardsAccountScope,
-  } = useRewards({
-    activeQuote,
-    isQuoteLoading,
-  });
+  const networkFeeRawUsd = useMemo(() => {
+    if (!activeQuote) return null;
+    if (isGaslessQuote(activeQuote.quote)) {
+      const v = activeQuote.includedTxFees?.valueInCurrency;
+      return v != null && isNumberValue(v) ? parseFloat(v) : null;
+    }
+    const total = activeQuote.totalNetworkFee?.valueInCurrency;
+    if (total != null && isNumberValue(total)) return parseFloat(total);
+    const effective = activeQuote.gasFee?.effective?.valueInCurrency;
+    if (effective != null && isNumberValue(effective))
+      return parseFloat(effective);
+    return null;
+  }, [activeQuote]);
+
+  const formattedNetworkFee = useMemo(() => {
+    if (networkFeeRawUsd === null) return '-';
+    return `$${networkFeeRawUsd.toFixed(2)}`;
+  }, [networkFeeRawUsd]);
+
+  const formattedSlippage = useMemo(() => {
+    if (slippage == null) return '-';
+    return `${slippage}%`;
+  }, [slippage]);
+
+  const formattedMinimumReceived = useMemo(() => {
+    const amount = activeQuote?.minToTokenAmount?.amount;
+    const symbol = destToken?.symbol;
+    if (!amount || !symbol) return '-';
+    const num = parseFloat(amount);
+    if (isNaN(num)) return '-';
+    const floored = Math.floor(num * 1e8) / 1e8;
+    const formatted = floored.toFixed(8).replace(/\.?0+$/, '') || '0';
+    return `${formatted} ${symbol}`;
+  }, [activeQuote, destToken]);
+
+  const formattedPriceImpact = useMemo(() => {
+    const priceImpact = activeQuote?.quote?.priceData?.priceImpact;
+    if (!priceImpact) return '-';
+    return `${(Number(priceImpact) * 100).toFixed(2)}%`;
+  }, [activeQuote]);
+
+  const priceImpactViewData = usePriceImpactViewData(
+    activeQuote?.quote?.priceData?.priceImpact,
+  );
+
+  const isPriceImpactError = useMemo(
+    () =>
+      exceedsPriceImpactErrorThreshold(
+        parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact),
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      ),
+    [activeQuote, bridgeFeatureFlags],
+  );
+
+  const totalAmountUsd = useMemo(() => {
+    const inputNum = parseFloat(usdAmount);
+    if (!usdAmount || isNaN(inputNum)) return '$0';
+    if (activeQuote && networkFeeRawUsd !== null) {
+      return `$${(inputNum + networkFeeRawUsd).toFixed(2)}`;
+    }
+    return '$0';
+  }, [usdAmount, activeQuote, networkFeeRawUsd]);
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceTokenAmount,
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    quoteOverride: activeQuote ?? null,
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
 
-  const shouldShowLiveRewardsEstimate = Boolean(
-    shouldShowRewardsRow && accountOptedIn,
-  );
-  const shouldShowRewardsOptInCta = Boolean(
-    shouldShowRewardsRow && !accountOptedIn && rewardsAccountScope,
-  );
-  const hasRewardsQuoteContext = Boolean(
-    sourceTokenAmount && walletAddress && activeQuote,
-  );
-  const shouldShowRewardsFallbackZero = Boolean(
-    hasRewardsQuoteContext &&
-      !shouldShowLiveRewardsEstimate &&
-      !shouldShowRewardsOptInCta,
-  );
-
-  const { submitBridgeTx } = useSubmitBridgeTx();
+  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
-  const hasValidQuoteInputs = Boolean(
-    sourceToken &&
-      destToken &&
-      sourceTokenAmount &&
-      !isDestinationAddressMissing,
-  );
-
-  useEffect(() => {
-    if (hasValidQuoteInputs) {
-      updateQuoteParams();
-    }
-    return () => {
-      updateQuoteParams.cancel();
-    };
-  }, [hasValidQuoteInputs, updateQuoteParams]);
-
-  // Open bottom sheet on mount
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
 
   // Cleanup bridge state on unmount
   useEffect(
@@ -262,7 +327,7 @@ export function useQuickBuyBottomSheet(
   }, []);
 
   const handleAmountChange = useCallback((text: string) => {
-    const cleaned = text.replace(/[^0-9.]/g, '');
+    const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
     const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
     const parts = normalized.split('.');
     if (parts.length > 2) return;
@@ -275,23 +340,23 @@ export function useQuickBuyBottomSheet(
 
     try {
       dispatch(setIsSubmittingTx(true));
-      await submitBridgeTx({ quoteResponse: activeQuote });
+      await Engine.context.BridgeStatusController.submitTx(
+        walletAddress,
+        { ...activeQuote, approval: activeQuote.approval ?? undefined },
+        stxEnabled,
+      );
+      setTxPhase('success');
+      notificationAsync(NotificationFeedbackType.Success);
+      await new Promise((resolve) => setTimeout(resolve, 800));
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
-      // Keep sheet open on error
+      notificationAsync(NotificationFeedbackType.Error);
     } finally {
       dispatch(setIsSubmittingTx(false));
     }
-  }, [
-    activeQuote,
-    walletAddress,
-    submitBridgeTx,
-    dispatch,
-    onClose,
-    navigation,
-  ]);
+  }, [activeQuote, walletAddress, stxEnabled, dispatch, onClose, navigation]);
 
   const sourceBalanceFiat = useMemo(() => {
     if (
@@ -304,9 +369,7 @@ export function useQuickBuyBottomSheet(
     return `$${(balance * sourceToken.currencyExchangeRate).toFixed(2)}`;
   }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
 
-  const hasError = Boolean(
-    blockaidError || quoteFetchError || isNoQuotesAvailable,
-  );
+  const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);
   const hasValidAmount = Boolean(usdAmount && Number(usdAmount) > 0);
   const hasQuoteRequestableAmount = useMemo(() => {
     const hasNonZeroInputAmount = Boolean(
@@ -344,8 +407,6 @@ export function useQuickBuyBottomSheet(
       hasQuoteRequestableAmount &&
       !isDestinationAddressMissing,
   );
-  const isAwaitingQuote =
-    hasCompleteQuoteInputs && !activeQuote && !isQuoteLoading && !hasError;
   const isPendingQuoteRefresh =
     settledSourceTokenAmountRef.current !== sourceTokenAmount &&
     hasCompleteQuoteInputs;
@@ -361,35 +422,38 @@ export function useQuickBuyBottomSheet(
     !activeQuote ||
     hasQuoteMismatch ||
     isPendingQuoteRefresh ||
+    isQuoteLoading ||
     hasInsufficientBalance ||
     hasSufficientGas === false ||
     isSubmittingTx ||
     hasError ||
+    isHardwareSolanaBlocked ||
+    isPriceImpactError ||
     !walletAddress;
 
-  const isConfirmLoading =
-    isSubmittingTx ||
-    isAwaitingQuote ||
-    isPendingQuoteRefresh ||
-    (isQuoteLoading && !activeQuote && hasCompleteQuoteInputs);
+  const isTotalLoading =
+    hasValidAmount && (isQuoteLoading || isPendingQuoteRefresh);
+
+  const isConfirmLoading = isSubmittingTx;
+
+  const buttonError: QuickBuyButtonError | null = hasInsufficientBalance
+    ? 'insufficient_balance'
+    : hasSufficientGas === false
+      ? 'insufficient_gas'
+      : hasError
+        ? 'no_quotes'
+        : null;
+
+  const confirmButtonState: 'idle' | 'loading' | 'success' =
+    txPhase === 'success' ? 'success' : isConfirmLoading ? 'loading' : 'idle';
 
   const getButtonLabel = useCallback(() => {
-    if (isSetupLoading) return strings('social_leaderboard.quick_buy.loading');
-    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
-    if (hasSufficientGas === false) return strings('bridge.insufficient_gas');
+    if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
-    if (hasError) return strings('social_leaderboard.quick_buy.unavailable');
     return strings('social_leaderboard.trader_position.buy');
-  }, [
-    isSetupLoading,
-    hasInsufficientBalance,
-    hasSufficientGas,
-    isSubmittingTx,
-    hasError,
-  ]);
+  }, [buttonError, isSubmittingTx]);
 
   return {
-    bottomSheetRef,
     hiddenInputRef,
     destToken,
     isSetupLoading,
@@ -404,20 +468,21 @@ export function useQuickBuyBottomSheet(
     usdAmount,
     estimatedReceiveAmount,
     sourceBalanceFiat,
+    formattedNetworkFee,
+    formattedSlippage,
+    formattedMinimumReceived,
+    formattedPriceImpact,
+    totalAmountUsd,
     isQuoteLoading,
     isSubmittingTx,
-    estimatedPoints,
-    isRewardsLoading,
-    shouldShowLiveRewardsEstimate,
-    shouldShowRewardsOptInCta,
-    shouldShowRewardsFallbackZero,
-    hasRewardsError,
-    accountOptedIn,
-    rewardsAccountScope,
-    hasError,
+    isTotalLoading,
+    isHardwareSolanaBlocked,
+    priceImpactViewData,
+    isPriceImpactError,
+    buttonError,
     hasValidAmount,
     isConfirmDisabled,
-    isConfirmLoading,
+    confirmButtonState,
     getButtonLabel,
     handleClose,
     handlePresetPress,

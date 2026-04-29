@@ -261,7 +261,13 @@ describe('useSubmitBridgeTx', () => {
       undefined,
       undefined,
       undefined,
-      [{ key: expect.any(String), value: 'treatment' }],
+      [
+        expect.objectContaining({
+          key: expect.any(String),
+          value: 'treatment',
+          key_value_pair: expect.stringMatching(/[=]treatment$/u),
+        }),
+      ],
     );
   });
 
@@ -527,7 +533,13 @@ describe('useSubmitBridgeTx', () => {
       accountAddress: '0x1234567890123456789012345678901234567890',
       location: undefined,
       abTests: undefined,
-      activeAbTests: [{ key: expect.any(String), value: 'treatment' }],
+      activeAbTests: [
+        expect.objectContaining({
+          key: expect.any(String),
+          value: 'treatment',
+          key_value_pair: expect.stringMatching(/[=]treatment$/u),
+        }),
+      ],
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);

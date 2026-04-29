@@ -1,0 +1,70 @@
+##############################################################################################
+#
+# Runway OTA RC
+#
+# Triggered from Runway to push an OTA update to the RC channel (iOS + Android) and post a Slack
+# notification (matching the prior Runway RC behaviour on the OTA path).
+#
+# This workflow does not build binaries and does not bump the build version — the release PR is
+# expected to bump OTA_VERSION (app/constants/ota.ts) before dispatch.
+#
+##############################################################################################
+name: Runway OTA RC
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: >-
+          Optional branch, tag, or SHA for OTA publish.
+          Empty uses the branch selected in the "Use workflow from" UI.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+  id-token: write # required by push-eas-update.yml
+
+jobs:
+  resolve-context:
+    name: Resolve OTA context
+    uses: ./.github/workflows/runway-ota-resolve-context.yml
+    with:
+      source_branch: ${{ inputs.source_branch }}
+    secrets: inherit
+
+  validate-ota-pr:
+    name: Validate PR for OTA
+    needs: resolve-context
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR number
+        run: |
+          if [[ -z "${{ needs.resolve-context.outputs.pr_number }}" ]]; then
+            echo "::error::No PR found for this branch. OTA update requires a PR number."
+            echo "::error::If you ran the workflow manually (workflow_dispatch), select your release branch in the 'Use workflow from' dropdown (e.g. release/7.71.0), not main."
+            exit 1
+          fi
+          echo "Using PR #${{ needs.resolve-context.outputs.pr_number }}"
+
+  push-ota:
+    name: Push OTA update (rc)
+    needs: [resolve-context, validate-ota-pr]
+    uses: ./.github/workflows/push-eas-update.yml
+    with:
+      pr_number: ${{ needs.resolve-context.outputs.pr_number }}
+      base_branch: ${{ needs.resolve-context.outputs.base_ref }}
+      message: ${{ needs.resolve-context.outputs.ota_version }}
+      channel: rc
+      platform: all
+    secrets: inherit
+
+  slack-notification:
+    name: Slack RC Notification
+    needs: push-ota
+    if: success()
+    uses: ./.github/workflows/slack-rc-notification.yml
+    with:
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+    secrets: inherit

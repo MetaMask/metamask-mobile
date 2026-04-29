@@ -680,6 +680,29 @@ describe('OndoLeaderboard', () => {
         queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
       ).toBeNull();
     });
+
+    it('does not render Pending tag when isCampaignComplete is true, even if entry is not qualified and is current user', () => {
+      const entries = [
+        createMockEntry({
+          rank: 1,
+          referralCode: 'MYCODE',
+          qualified: false,
+          qualifiedDays: 3,
+        }),
+      ];
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={entries}
+          currentUserReferralCode="MYCODE"
+          isCampaignComplete
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toBeNull();
+    });
   });
 
   describe('rate of return formatting', () => {

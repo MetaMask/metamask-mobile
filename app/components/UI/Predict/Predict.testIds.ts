@@ -49,7 +49,6 @@ export const getPredictMarketListSelector = {
 export const PredictFeedSelectorsIDs = {
   TABS: 'predict-feed-tabs',
   PAGER: 'predict-feed-pager',
-  SEARCH_ICON: 'search-icon',
 } as const;
 
 export const getPredictFeedSelector = {

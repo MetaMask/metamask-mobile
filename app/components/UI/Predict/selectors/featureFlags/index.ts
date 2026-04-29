@@ -147,6 +147,11 @@ export const selectPredictUpDownEnabledFlag = createSelector(
   (flags) => flags.predictUpDownEnabled,
 );
 
+export const selectPredictClobV2EnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictClobV2Enabled,
+);
+
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>

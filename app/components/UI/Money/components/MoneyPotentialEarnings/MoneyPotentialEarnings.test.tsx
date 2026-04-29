@@ -229,4 +229,82 @@ describe('MoneyPotentialEarnings', () => {
     // which fails isPositiveNumber and hides the "+$..." text in each token row.
     expect(queryByText(/^\+\$/)).not.toBeOnTheScreen();
   });
+
+  describe('condensed mode', () => {
+    it('renders the gradient amount and description in condensed mode', () => {
+      const { getByTestId, getByText } = render(
+        <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} condensed />,
+      );
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.AMOUNT),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.potential_earnings.description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides token rows in condensed mode', () => {
+      const { queryByText } = render(
+        <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} condensed />,
+      );
+      expect(queryByText('USDC')).not.toBeOnTheScreen();
+    });
+
+    it('hides the View all button in condensed mode', () => {
+      const { queryByTestId } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          condensed
+          onViewAllPress={jest.fn()}
+        />,
+      );
+      expect(
+        queryByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the View potential earnings button in condensed mode', () => {
+      const { getByTestId } = render(
+        <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} condensed />,
+      );
+      expect(
+        getByTestId(
+          MoneyPotentialEarningsTestIds.VIEW_POTENTIAL_EARNINGS_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onViewAllPress when View potential earnings is pressed', () => {
+      const onViewAll = jest.fn();
+      const { getByTestId } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          condensed
+          onViewAllPress={onViewAll}
+        />,
+      );
+      fireEvent.press(
+        getByTestId(
+          MoneyPotentialEarningsTestIds.VIEW_POTENTIAL_EARNINGS_BUTTON,
+        ),
+      );
+      expect(onViewAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('still renders section header with onHeaderPress in condensed mode', () => {
+      const onHeader = jest.fn();
+      const { getByText } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          condensed
+          onHeaderPress={onHeader}
+        />,
+      );
+      fireEvent.press(getByText(strings('money.potential_earnings.title')));
+      expect(onHeader).toHaveBeenCalledTimes(1);
+    });
+  });
 });

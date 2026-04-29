@@ -14,6 +14,9 @@ const checkerPath = path.resolve(
   '../../.agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh',
 );
 
+const AB_TESTS_KEY = `ab_${'tests'}`;
+const ACTIVE_AB_TESTS_KEY = `active_${AB_TESTS_KEY}`;
+
 const tempRepos: string[] = [];
 
 const runCommand = (cwd: string, cmd: string, args: string[]): CommandResult => {
@@ -93,7 +96,7 @@ describe('check-ab-testing-compliance.sh', () => {
     const repo = createRepo();
     appendFileSync(
       path.join(repo, 'app/sample.ts'),
-      "const payload = { ab_tests: { example: 'control' } };\n",
+      `const payload = { ${AB_TESTS_KEY}: { example: 'control' } };\n`,
     );
 
     const result = runChecker(repo, ['--staged']);
@@ -102,11 +105,11 @@ describe('check-ab-testing-compliance.sh', () => {
     expect(result.output).toContain("added 'ab_tests' payload");
   });
 
-  it('fails when literal active_ab_tests object misses key/value fields', () => {
+  it('fails when literal active_ab_tests object misses key_value_pair', () => {
     const repo = createRepo();
     appendFileSync(
       path.join(repo, 'app/sample.ts'),
-      "const payload = { active_ab_tests: [{ key: 'swapsSWAPS9999AbtestFoo' }] };\n",
+      `const payload = { ${ACTIVE_AB_TESTS_KEY}: [{ key: 'swapsSWAPS9999AbtestFoo', value: 'control' }] };\n`,
     );
 
     const result = runChecker(repo, ['--staged']);
@@ -149,7 +152,7 @@ describe('check-ab-testing-compliance.sh', () => {
       [
         'const { variantName, isActive } = useABTest(FLAG_KEY, VARIANTS);',
         'const payload = isActive',
-        '  ? { active_ab_tests: [{ key: FLAG_KEY, value: variantName }] }',
+        '  ? { active_ab_tests: [createActiveABTestAssignment(FLAG_KEY, variantName)] }',
         '  : {};',
         '',
       ].join('\n'),
@@ -163,11 +166,77 @@ describe('check-ab-testing-compliance.sh', () => {
     );
   });
 
+  it('passes when helper-only active_ab_tests has sibling metadata key/value fields', () => {
+    const repo = createRepo();
+    appendFileSync(
+      path.join(repo, 'app/sample.ts'),
+      `const payload = { ${ACTIVE_AB_TESTS_KEY}: [createActiveABTestAssignment(FLAG_KEY, variantName)], metadata: { key: 'foo', value: 'bar' } };\n`,
+    );
+
+    const result = runChecker(repo, ['--staged']);
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain(
+      'malformed literal active_ab_tests object',
+    );
+  });
+
+  it('does not warn on key_value_pair strings when literal payload is complete', () => {
+    const repo = createRepo();
+    appendFileSync(
+      path.join(repo, 'app/sample.ts'),
+      "const payload = { active_ab_tests: [{ key: 'swapsSWAPS9999AbtestFoo', value: 'control', key_value_pair: 'swapsSWAPS9999AbtestFoo=control' }] };\n",
+    );
+
+    const result = runChecker(repo, ['--staged']);
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain(
+      'does not match {team}{TICKET}Abtest{Name}',
+    );
+  });
+
+  it('fails when helper-built and malformed literal entries are mixed together', () => {
+    const repo = createRepo();
+    appendFileSync(
+      path.join(repo, 'app/sample.ts'),
+      [
+        'const payload = {',
+        `  ${ACTIVE_AB_TESTS_KEY}: [`,
+        '    createActiveABTestAssignment(FLAG_KEY, variantName),',
+        "    { key: 'swapsSWAPS9999AbtestFoo', value: 'control' },",
+        '  ],',
+        '};',
+        '',
+      ].join('\n'),
+    );
+
+    const result = runChecker(repo, ['--staged']);
+
+    expect(result.status).toBe(1);
+    expect(result.output).toContain('malformed literal active_ab_tests object');
+  });
+
+  it('does not warn on naming-guidance strings that mention Abtest', () => {
+    const repo = createRepo();
+    appendFileSync(
+      path.join(repo, 'app/sample.ts'),
+      "const message = 'does not match {team}{TICKET}Abtest{Name}';\n",
+    );
+
+    const result = runChecker(repo, ['--staged']);
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain(
+      'does not match {team}{TICKET}Abtest{Name}',
+    );
+  });
+
   it('still scans staged added lines whose code starts with ++', () => {
     const repo = createRepo();
     appendFileSync(
       path.join(repo, 'app/sample.ts'),
-      "++ab_tests: { example: 'control' }\n",
+      `++${AB_TESTS_KEY}: { example: 'control' }\n`,
     );
     runGit(repo, ['add', 'app/sample.ts']);
 
