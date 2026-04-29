@@ -37,6 +37,8 @@ import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import TagColored from '../../../../../component-library/components-temp/TagColored';
+import { TagColor } from '../../../../../component-library/components-temp/TagColored/TagColored.types';
 
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
@@ -127,29 +129,24 @@ const MusdAggregatedRow = () => {
             </SensitiveText>
             {isClaiming ? (
               <Spinner color={IconColor.PrimaryDefault} />
-            ) : (
-              <TouchableOpacity
-                disabled={!hasClaimableBonus}
-                onPress={handleClaimBonus}
-              >
+            ) : hasClaimableBonus ? (
+              <TouchableOpacity onPress={handleClaimBonus}>
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={
-                    hasClaimableBonus
-                      ? TextColor.PrimaryDefault
-                      : TextColor.SuccessDefault
-                  }
+                  color={TextColor.PrimaryDefault}
                 >
-                  {hasClaimableBonus
-                    ? strings('earn.musd_conversion.claim_percentage_bonus', {
-                        percentage: MUSD_CONVERSION_APY,
-                      })
-                    : strings('earn.musd_conversion.percentage_bonus', {
-                        percentage: MUSD_CONVERSION_APY,
-                      })}
+                  {strings('earn.musd_conversion.claim_percentage_bonus', {
+                    percentage: MUSD_CONVERSION_APY,
+                  })}
                 </Text>
               </TouchableOpacity>
+            ) : (
+              <TagColored color={TagColor.Success}>
+                {strings('earn.percentage_bonus', {
+                  percentage: MUSD_CONVERSION_APY,
+                })}
+              </TagColored>
             )}
           </Box>
         </Box>

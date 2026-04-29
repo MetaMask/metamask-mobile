@@ -11,6 +11,8 @@ import type { Hex } from '@metamask/utils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Text,
   TextVariant,
   TextColor,
@@ -55,6 +57,8 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import TagColored from '../../../../../component-library/components-temp/TagColored';
+import { TagColor } from '../../../../../component-library/components-temp/TagColored/TagColored.types';
 import { useCashNavigation } from './useCashNavigation';
 
 interface CashGetMusdEmptyStateProps {
@@ -305,22 +309,22 @@ const CashGetMusdEmptyState = ({
             >
               {MUSD_TOKEN.name}
             </Text>
-            <Box twClassName="flex-row gap-1">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
+            >
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {musdPriceFormatted} {'\u2022'}
+                {musdPriceFormatted}
               </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
+              <TagColored color={TagColor.Success}>
                 {strings('earn.percentage_bonus', {
                   percentage: MUSD_CONVERSION_APY,
                 })}
-              </Text>
+              </TagColored>
             </Box>
           </Box>
         </Pressable>

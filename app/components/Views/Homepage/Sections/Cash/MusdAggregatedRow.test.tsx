@@ -83,14 +83,14 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByText(/1,800\.5\s*mUSD/)).toBeOnTheScreen();
   });
 
-  it('shows green "3% bonus" when no claimable reward', () => {
+  it('shows "3% bonus" tag when no claimable reward', () => {
     renderWithProvider(<MusdAggregatedRow />);
 
     expect(screen.queryByText('Claim 3% bonus')).toBeNull();
     expect(screen.getByText('3% bonus')).toBeOnTheScreen();
   });
 
-  it('shows blue "Claim 3% bonus" when claimable reward exists', () => {
+  it('shows "Claim 3% bonus" link when claimable reward exists', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '0.02',
       hasPendingClaim: false,
