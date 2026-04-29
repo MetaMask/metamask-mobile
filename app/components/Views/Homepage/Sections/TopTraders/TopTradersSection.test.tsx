@@ -23,7 +23,7 @@ const mockTraders = [
 const mockUseTopTraders = jest.fn((_options?: unknown) => ({
   traders: mockTraders,
   isLoading: false,
-  error: null,
+  error: null as string | null,
   refresh: mockRefetch,
   toggleFollow: jest.fn(),
 }));
@@ -137,6 +137,37 @@ describe('TopTradersSection', () => {
       Routes.SOCIAL_LEADERBOARD.PROFILE,
       { traderId: 'trader-1', traderName: 'alice', rank: 1 },
     );
+  });
+
+  it('renders the error state instead of the carousel when the fetch fails', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: 'Network error',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(screen.queryByTestId('homepage-top-traders-carousel')).toBeNull();
+    expect(
+      screen.getByTestId('homepage-top-traders-section-root'),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls refresh when the retry button in the error state is pressed', async () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: 'Network error',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Retry'));
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
   it('exposes refresh via ref and resolves when called', async () => {

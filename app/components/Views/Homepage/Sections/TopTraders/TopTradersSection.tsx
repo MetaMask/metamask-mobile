@@ -16,6 +16,7 @@ import SectionHeader from '../../../../../component-library/components-temp/Sect
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import ErrorState from '../../components/ErrorState';
 import ViewMoreCard from '../../components/ViewMoreCard';
 import useHomeViewedEvent, {
   HomeSectionNames,
@@ -57,7 +58,7 @@ const TopTradersSection = forwardRef<
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
 
-  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
+  const { traders, isLoading, error, refresh, toggleFollow } = useTopTraders({
     limit: HOME_TRADER_LIMIT,
     enabled: isEnabled,
   });
@@ -103,8 +104,28 @@ const TopTradersSection = forwardRef<
     [navigation],
   );
 
-  if (!isEnabled || (!isLoading && traders.length === 0)) {
+  if (!isEnabled || (!isLoading && !error && traders.length === 0)) {
     return null;
+  }
+
+  if (error) {
+    return (
+      <View
+        ref={sectionViewRef}
+        onLayout={onLayout}
+        testID="homepage-top-traders-section-root"
+      >
+        <Box gap={3}>
+          <SectionHeader title={title} onPress={handleViewAll} />
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={refresh}
+          />
+        </Box>
+      </View>
+    );
   }
 
   return (
