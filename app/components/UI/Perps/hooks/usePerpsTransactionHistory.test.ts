@@ -598,8 +598,6 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getFunding).toHaveBeenCalledWith(
         {
           accountId: undefined,
-          startTime: undefined,
-          endTime: undefined,
         },
         { forceRefresh: true },
       );
@@ -703,8 +701,6 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getFunding).toHaveBeenCalledWith(
         {
           accountId: undefined,
-          startTime: undefined,
-          endTime: undefined,
         },
         { forceRefresh: true },
       );

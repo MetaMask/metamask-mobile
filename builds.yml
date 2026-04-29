@@ -122,6 +122,10 @@ _signing_flask_prod: &signing_flask_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
   aws_secret: 'metamask-mobile-flask-prod-signer-v2'
   android_keystore_path: 'flaskRelease.keystore'
+_signing_dev: &signing_dev
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-dev-signer'
+  aws_secret: 'metamask-mobile-main-dev-signer'
+  android_keystore_path: 'debug.keystore'
 _signing_flask_uat: &signing_flask_uat
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
   aws_secret: 'metamask-mobile-flask-uat-signer'
@@ -129,7 +133,7 @@ _signing_flask_uat: &signing_flask_uat
 
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -139,7 +143,7 @@ _code_fencing_main: &code_fencing_main
 # Beta code fencing features (main + beta feature)
 _code_fencing_beta: &code_fencing_beta
   - beta
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -148,7 +152,7 @@ _code_fencing_beta: &code_fencing_beta
 
 # Experimental code fencing features (main + experimental)
 _code_fencing_experimental: &code_fencing_experimental
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -159,8 +163,7 @@ _code_fencing_experimental: &code_fencing_experimental
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
   - flask
-  - preinstalled-snaps
-  - external-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -284,8 +287,8 @@ builds:
 
   # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
   main-dev:
-    github_environment: build-exp
-    signing: *signing_uat
+    github_environment: build-dev
+    signing: *signing_dev
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'

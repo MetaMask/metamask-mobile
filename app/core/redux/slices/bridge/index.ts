@@ -20,14 +20,10 @@ import {
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
-  selectTokenWarnings as selectTokenWarningsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
   formatChainIdToHex,
-  TokenFeatureType,
-  type TokenFeature,
   type QuoteStreamCompleteData,
-  QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -40,6 +36,7 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
+import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -112,6 +109,19 @@ export const initialState: BridgeState = {
 
 const name = 'bridge';
 
+const normalizeBridgeToken = <T extends BridgeToken | undefined>(
+  token: T,
+): T => {
+  if (!token) {
+    return token;
+  }
+
+  const normalizedAddress = normalizeTokenAddress(token.address, token.chainId);
+  return normalizedAddress === token.address
+    ? token
+    : ({ ...token, address: normalizedAddress } as T);
+};
+
 export const setSourceTokenExchangeRate = createAsyncThunk(
   'bridge/setSourceTokenExchangeRate',
   getTokenExchangeRate,
@@ -160,12 +170,13 @@ const slice = createSlice({
       ...initialState,
     }),
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
-      state.sourceToken = action.payload;
+      state.sourceToken = normalizeBridgeToken(action.payload);
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
-      state.destToken = action.payload;
+      const destToken = normalizeBridgeToken(action.payload);
+      state.destToken = destToken;
       // Update selectedDestChainId to match the destination token's chain ID
-      state.selectedDestChainId = action.payload.chainId;
+      state.selectedDestChainId = destToken.chainId;
     },
     /**
      * Sets whether the destination token was manually selected by the user.
@@ -678,12 +689,6 @@ export const selectIsBridgeEnabledSource = createSelector(
   selectIsBridgeEnabledSourceFactory,
   (_: RootState, chainId: Hex | CaipChainId) => chainId,
   (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
-);
-
-export const selectDestTokenWarning = createSelector(
-  selectControllerFields,
-  (controllerFields): TokenFeature | undefined =>
-    selectTokenWarningsBase(controllerFields)?.[0],
 );
 
 export const selectQuoteStreamComplete = (
