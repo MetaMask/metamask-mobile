@@ -8,10 +8,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -378,13 +374,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
                 >
                   {selectedTierLabel}
                 </Text>
-                {tierNames.length > 1 && (
-                  <Icon
-                    name={IconName.ArrowDown}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                )}
               </>
             ) : null}
           </Box>
