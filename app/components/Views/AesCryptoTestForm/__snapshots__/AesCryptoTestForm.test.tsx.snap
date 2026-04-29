@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AesCryptoTestForm renders correctly 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -89,34 +86,6 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
                 "width": 32,
               },
               undefined,
-              {
-                "initial": {
-                  "updater": [Function],
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-                "jestAnimatedValues": {
-                  "current": {
-                    "value": {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  },
-                },
-                "viewDescriptors": {
-                  "add": [Function],
-                  "remove": [Function],
-                  "shareableViewDescriptors": "SharedValue(<circular>)",
-                },
-              },
             ]
           }
           onBlur={[Function]}
@@ -255,15 +224,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         }
         testID="account-address"
       />
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -371,16 +332,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Generate
           </Text>
         </View>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -513,16 +466,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Generate
           </Text>
         </View>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -655,16 +600,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Encrypt
           </Text>
         </View>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -772,16 +709,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Decrypt
           </Text>
         </View>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -914,16 +843,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Encrypt
           </Text>
         </View>
-      </RNCSafeAreaView>
-      <RNCSafeAreaView
-        edges={
-          {
-            "bottom": "additive",
-            "left": "additive",
-            "right": "additive",
-            "top": "additive",
-          }
-        }
+      </View>
+      <View
         style={
           {
             "paddingVertical": 10,
@@ -1031,8 +952,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             Decrypt
           </Text>
         </View>
-      </RNCSafeAreaView>
+      </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</View>
 `;

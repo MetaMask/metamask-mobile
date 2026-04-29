@@ -146,6 +146,7 @@ export const DEFAULT_MOCKS = {
   ],
   POST: [
     ...(authMocks.POST || []),
+    ...(DAPP_SCANNING_MOCKS.POST || []),
     ...(WALLETCONNECT_MOCKS.POST || []),
     ...(METAMETRICS_API_MOCKS.POST || []),
     ...(DEFAULT_RPC_ENDPOINT_MOCKS.POST || []),
