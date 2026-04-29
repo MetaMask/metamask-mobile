@@ -3,6 +3,8 @@ import {
   AvatarBaseSize,
   Box,
   BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -36,9 +38,9 @@ export interface TopTraderCardProps {
 }
 
 // Fixed dimensions for every tile in the homepage Top Traders carousel
-const AVATAR_SIZE = 60;
-export const TOP_TRADER_CARD_WIDTH = 200;
-export const TOP_TRADER_CARD_HEIGHT = 188;
+const AVATAR_SIZE = 48;
+export const TOP_TRADER_CARD_WIDTH = 220;
+export const TOP_TRADER_CARD_HEIGHT = 140;
 
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
@@ -59,7 +61,8 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
 
   return (
     <Box
-      twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-[${TOP_TRADER_CARD_HEIGHT}px] rounded-2xl bg-muted p-4 overflow-hidden gap-1`}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-[${TOP_TRADER_CARD_HEIGHT}px] rounded-2xl bg-muted p-4 overflow-hidden gap-3`}
       testID={testID ?? `top-trader-card-${trader.id}`}
     >
       <TouchableOpacity
@@ -73,7 +76,11 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         disabled={!onTraderPress}
         testID={`top-trader-card-pressable-${trader.id}`}
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="gap-1">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-3"
+        >
           {trader.avatarUri ? (
             <Image
               source={{ uri: trader.avatarUri }}
@@ -91,22 +98,22 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             />
           )}
 
-          <Box twClassName="w-full gap-0.5">
+          <Box twClassName="flex-1 gap-0.5">
             <Text
               variant={TextVariant.HeadingSm}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
               numberOfLines={1}
               ellipsizeMode="tail"
-              twClassName="text-center"
             >
               {trader.username}
             </Text>
 
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              twClassName="text-center"
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Start}
+              twClassName="gap-1"
             >
               <Text
                 variant={TextVariant.BodySm}
@@ -122,9 +129,9 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                {' 30D'}
+                {'30D'}
               </Text>
-            </Text>
+            </Box>
           </Box>
         </Box>
       </TouchableOpacity>
