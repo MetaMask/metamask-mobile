@@ -20,6 +20,7 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
@@ -31,6 +32,7 @@ import CryptoTab from './tabs/CryptoTab';
 import SportsTab from './tabs/SportsTab';
 import DappsTab from './tabs/DappsTab';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
+import ExplorePageV1 from './ExplorePageV1';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -59,6 +61,7 @@ export const ExploreFeed: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  const isExplorePageV2Enabled = useSelector(selectExplorePageV2EnabledFlag);
 
   const handleBrowserPress = useCallback(() => {
     if (browserTabsCount > 0) {
@@ -117,7 +120,9 @@ export const ExploreFeed: React.FC = () => {
           </TouchableOpacity>
         </Box>
 
-        {isBasicFunctionalityEnabled ? (
+        {!isBasicFunctionalityEnabled ? (
+          <BasicFunctionalityEmptyState />
+        ) : isExplorePageV2Enabled ? (
           <TabsList tabsListContentTwClassName="px-0 pb-3">
             <Box
               key="now"
@@ -171,7 +176,7 @@ export const ExploreFeed: React.FC = () => {
             </Box>
           </TabsList>
         ) : (
-          <BasicFunctionalityEmptyState />
+          <ExplorePageV1 {...tabProps} />
         )}
       </Box>
     </SafeAreaView>

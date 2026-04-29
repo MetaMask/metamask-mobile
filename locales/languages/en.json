@@ -8685,7 +8685,8 @@
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
-    "sites": "Popular",
+    "popular": "Popular",
+    "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "view_all": "View all",
@@ -8842,5 +8843,8 @@
       "unable_to_load": "Unable to load {{section}}",
       "retry": "Retry"
     }
+  },
+  "sites": {
+    "popular": "Popular"
   }
 }

@@ -106,7 +106,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
       },
       {
         feedId: 'sites',
-        title: strings('trending.sites'),
+        title: strings('sites.popular'),
         items: trim(sites.data),
         isLoading: isDebouncing || sites.isLoading,
       },
