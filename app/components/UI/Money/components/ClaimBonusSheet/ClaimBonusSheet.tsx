@@ -75,7 +75,11 @@ const ClaimBonusSheet: React.FC = () => {
 
   const networkImageSource = getNetworkImageSource({ chainId: CLAIM_CHAIN_ID });
   const networkName = lineaNetwork?.name ?? strings('networks.linea_mainnet');
-  const accountName = selectedAccount?.metadata.name ?? '';
+  const accountAddress = selectedAccount?.address ?? '';
+  const truncatedAddress = accountAddress
+    ? `${accountAddress.slice(0, 6)}…${accountAddress.slice(-4)}`
+    : '';
+  const accountName = selectedAccount?.metadata?.name || truncatedAddress;
   const tokenAmount = claimableReward
     ? `${claimableReward} ${MUSD_TOKEN.symbol}`
     : `— ${MUSD_TOKEN.symbol}`;
@@ -103,23 +107,25 @@ const ClaimBonusSheet: React.FC = () => {
         </Text>
 
         <View style={styles.amountBlock}>
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                size={AvatarSize.Xs}
-                isScaled={false}
-                imageSource={networkImageSource}
+          <View style={styles.amountAvatar}>
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  size={AvatarSize.Xs}
+                  isScaled={false}
+                  imageSource={networkImageSource}
+                />
+              }
+            >
+              <AvatarToken
+                name={MUSD_TOKEN.symbol}
+                src={MUSD_TOKEN.imageSource as number}
+                size={AvatarTokenSize.Xl}
               />
-            }
-          >
-            <AvatarToken
-              name={MUSD_TOKEN.symbol}
-              src={MUSD_TOKEN.imageSource as number}
-              size={AvatarTokenSize.Xl}
-            />
-          </BadgeWrapper>
+            </BadgeWrapper>
+          </View>
           <Text
             variant={TextVariant.HeadingLg}
             fontWeight={FontWeight.Bold}
@@ -139,7 +145,11 @@ const ClaimBonusSheet: React.FC = () => {
         <View style={styles.cardGroup}>
           <View style={styles.card}>
             <View style={styles.row}>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
                 {strings('money.claim_bonus_sheet.claiming_to')}
               </Text>
               <Text
@@ -158,6 +168,7 @@ const ClaimBonusSheet: React.FC = () => {
               <View style={styles.rowLabel}>
                 <Text
                   variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
                   {strings('money.claim_bonus_sheet.network')}
@@ -192,6 +203,7 @@ const ClaimBonusSheet: React.FC = () => {
               <View style={styles.rowLabel}>
                 <Text
                   variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
                   {strings('money.claim_bonus_sheet.network_fee')}
@@ -212,7 +224,11 @@ const ClaimBonusSheet: React.FC = () => {
               </Text>
             </View>
             <View style={styles.row}>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
                 {strings('money.claim_bonus_sheet.speed')}
               </Text>
               <Text

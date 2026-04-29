@@ -12,6 +12,9 @@ const styleSheet = (params: { theme: Theme }) =>
       alignItems: 'center',
       gap: 4,
     },
+    amountAvatar: {
+      alignSelf: 'center',
+    },
     cardGroup: {
       gap: 8,
     },
