@@ -23,11 +23,13 @@ import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 export interface QuickBuyBottomSheetProps {
   isVisible: boolean;
   position: Position | null;
+  marketCap?: number;
   onClose: () => void;
 }
 
 interface InnerProps {
   position: Position;
+  marketCap?: number;
   onClose: () => void;
 }
 
@@ -142,6 +144,7 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
  */
 const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   position,
+  marketCap,
   onClose,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -164,7 +167,11 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >
-      <QuickBuyHeader position={position} onClose={handleClose} />
+      <QuickBuyHeader
+        position={position}
+        marketCap={marketCap}
+        onClose={handleClose}
+      />
       {isContentReady ? (
         <QuickBuyBottomSheetContent position={position} onClose={onClose} />
       ) : (
@@ -182,10 +189,17 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
 const QuickBuyBottomSheet: React.FC<QuickBuyBottomSheetProps> = ({
   isVisible,
   position,
+  marketCap,
   onClose,
 }) => {
   if (!isVisible || !position) return null;
-  return <QuickBuyBottomSheetInner position={position} onClose={onClose} />;
+  return (
+    <QuickBuyBottomSheetInner
+      position={position}
+      marketCap={marketCap}
+      onClose={onClose}
+    />
+  );
 };
 
 export default QuickBuyBottomSheet;

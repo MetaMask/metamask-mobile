@@ -13,15 +13,18 @@ import {
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../../locales/i18n';
+import { formatCompactUsd } from '../../../../../UI/Rewards/utils/formatUtils';
 import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
 
 interface QuickBuyHeaderProps {
   position: Position;
+  marketCap?: number;
   onClose: () => void;
 }
 
 const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
   position,
+  marketCap,
   onClose,
 }) => (
   <Box
@@ -48,7 +51,9 @@ const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
       >
-        {strings('social_leaderboard.quick_buy.market_cap_label')}
+        {marketCap != null
+          ? `${formatCompactUsd(marketCap)} ${strings('social_leaderboard.quick_buy.market_cap_label')}`
+          : strings('social_leaderboard.quick_buy.market_cap_label')}
       </Text>
     </Box>
     <ButtonIcon
