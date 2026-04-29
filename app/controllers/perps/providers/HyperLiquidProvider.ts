@@ -1,6 +1,9 @@
 import { CaipAccountId, hasProperty } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
-import type { ExchangeClient } from '@nktkas/hyperliquid';
+import type {
+  ExchangeClient,
+  UserAbstractionResponse,
+} from '@nktkas/hyperliquid';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { CandlePeriod } from '../constants/chartConfig';
@@ -626,6 +629,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       userAddress,
     );
 
+    let currentMode: UserAbstractionResponse | undefined;
+
     try {
       // Re-check cache after acquiring lock (another provider might have finished)
       const recheckCache = TradingReadinessCache.get(network, userAddress);
@@ -641,7 +646,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const infoClient = this.#clientService.getInfoClient();
 
       // Check current abstraction mode on-chain
-      const currentMode = await infoClient.userAbstraction({
+      currentMode = await infoClient.userAbstraction({
         user: userAddress,
       });
 
@@ -701,9 +706,16 @@ export class HyperLiquidProvider implements PerpsProvider {
           user: userAddress,
           abstraction: 'unifiedAccount',
         });
-      } else {
+      } else if (currentMode === 'default' || currentMode === 'disabled') {
         // Silent — signed by agent key, no user prompt
         await exchangeClient.agentSetAbstraction({ abstraction: 'u' });
+      } else {
+        this.#deps.debugLogger.log(
+          'HyperLiquidProvider: Unknown abstraction mode, skipping Unified Account migration',
+          { user: userAddress, network, mode: currentMode },
+        );
+        completeInFlight();
+        return;
       }
 
       this.#deps.debugLogger.log(
@@ -748,6 +760,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
 
       this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+        ...(currentMode && {
+          [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
+          [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: currentMode,
+        }),
         [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
         [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
       });
