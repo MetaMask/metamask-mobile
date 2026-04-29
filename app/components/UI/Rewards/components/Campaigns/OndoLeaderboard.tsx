@@ -344,7 +344,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   return (
     <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER}>
       {/* Participants + tier subtitle */}
-      {(totalParticipants > 0 || selectedTierLabel) && (
+      {(totalParticipants > 0 || Boolean(selectedTierLabel)) && (
         <Pressable
           onPress={tierNames.length > 1 ? openTierSelector : undefined}
           testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
