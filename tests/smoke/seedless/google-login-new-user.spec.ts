@@ -4,9 +4,12 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeSeedlessOnboarding } from '../../tags';
 import { completeGoogleNewUserOnboarding } from './utils';
+import { googleLoginNewUserAnalyticsExpectations } from '../../helpers/analytics/expectations/google-login.analytics';
 
 describe(SmokeSeedlessOnboarding('Google Login - New User'), () => {
   beforeAll(async () => {
@@ -27,7 +30,12 @@ describe(SmokeSeedlessOnboarding('Google Login - New User'), () => {
           const oAuthMockttpService = createOAuthMockttpService();
           oAuthMockttpService.configureGoogleNewUser();
           await oAuthMockttpService.setup(mockServer);
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeaturePredictGtmOnboardingModalDisabled(),
+          );
         },
+        analyticsExpectations: googleLoginNewUserAnalyticsExpectations,
       },
       async () => {
         await completeGoogleNewUserOnboarding();

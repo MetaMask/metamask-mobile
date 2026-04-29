@@ -1,10 +1,7 @@
 import type { AnalyticsExpectations } from '../../../framework';
 import { onboardingEvents } from '../helpers';
 
-/**
- * Events fired during a Google new-user social login onboarding flow.
- */
-const googleLoginNewUserFlowEventNames = [
+const appleLoginNewUserFlowEventNames = [
   onboardingEvents.METRICS_OPT_IN,
   onboardingEvents.WALLET_SETUP_STARTED,
   onboardingEvents.SOCIAL_LOGIN_COMPLETED,
@@ -14,44 +11,40 @@ const googleLoginNewUserFlowEventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
 ];
 
-/**
- * Expected MetaMetrics payloads after completing Google social login onboarding.
- * Social login always enables metrics programmatically, so all events are always tracked.
- */
-export const googleLoginNewUserAnalyticsExpectations: AnalyticsExpectations = {
-  eventNames: googleLoginNewUserFlowEventNames,
+export const appleLoginNewUserAnalyticsExpectations: AnalyticsExpectations = {
+  eventNames: appleLoginNewUserFlowEventNames,
   events: [
     {
       name: onboardingEvents.METRICS_OPT_IN,
       containProperties: {
         updated_after_onboarding: false,
         location: 'onboarding_social_login',
-        account_type: 'metamask_google',
+        account_type: 'metamask_apple',
       },
     },
     {
       name: onboardingEvents.WALLET_SETUP_STARTED,
       containProperties: {
-        account_type: 'metamask_google',
+        account_type: 'metamask_apple',
       },
     },
     {
       name: onboardingEvents.SOCIAL_LOGIN_COMPLETED,
       containProperties: {
-        account_type: 'metamask_google',
+        account_type: 'metamask_apple',
       },
     },
     {
       name: onboardingEvents.WALLET_CREATION_ATTEMPTED,
       containProperties: {
-        account_type: 'metamask_google',
+        account_type: 'metamask_apple',
       },
     },
     {
       name: onboardingEvents.WALLET_CREATED,
       containProperties: {
         biometrics_enabled: false,
-        account_type: 'metamask_google',
+        account_type: 'metamask_apple',
       },
     },
     {
@@ -59,7 +52,7 @@ export const googleLoginNewUserAnalyticsExpectations: AnalyticsExpectations = {
       containProperties: {
         wallet_setup_type: 'new',
         new_wallet: true,
-        account_type: 'metamask_google',
+        account_type: 'metamask_apple',
       },
     },
     {
@@ -68,7 +61,7 @@ export const googleLoginNewUserAnalyticsExpectations: AnalyticsExpectations = {
         is_metrics_opted_in: true,
         location: 'onboarding_choosePassword',
         updated_after_onboarding: false,
-        account_type: 'metamask_google',
+        account_type: 'metamask_apple',
       },
     },
   ],
