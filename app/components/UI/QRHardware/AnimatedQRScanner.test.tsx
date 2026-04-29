@@ -223,7 +223,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
           error: 'Scanned QR code is not in UR format',
-          error_category: 'non_ur_qr_scanned',
+          error_category: QRHardwareScanErrorType.NonURQrScanned,
           is_ur_format: false,
           device_model: 'MockDevice',
           device_type: HardwareDeviceTypes.QR,
@@ -255,7 +255,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
           error: 'Scanned QR code is not in UR format',
-          error_category: 'non_ur_qr_scanned',
+          error_category: QRHardwareScanErrorType.NonURQrScanned,
           is_ur_format: false,
           device_model: 'MockDevice',
           device_type: HardwareDeviceTypes.QR,
@@ -302,7 +302,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           error: 'Invalid UR format',
-          error_category: 'ur_decode_error',
+          error_category: QRHardwareScanErrorType.URDecodeError,
           is_ur_format: true,
           device_model: 'MockDevice',
           device_type: HardwareDeviceTypes.QR,
@@ -350,7 +350,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         expect(mockAddProperties).toHaveBeenCalledWith({
           received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
           error: 'Received UR type is not valid for pairing flow',
-          error_category: 'wrong_ur_type',
+          error_category: QRHardwareScanErrorType.WrongURType,
           is_ur_format: true,
           device_model: 'MockDevice',
           device_type: HardwareDeviceTypes.QR,
@@ -400,7 +400,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           error: 'Received UR type is not valid for signing flow',
-          error_category: 'wrong_ur_type',
+          error_category: QRHardwareScanErrorType.WrongURType,
           is_ur_format: true,
           received_ur_type: SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
           device_model: 'MockDevice',
@@ -447,7 +447,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           error: 'Unexpected decoding error',
-          error_category: 'scan_exception',
+          error_category: QRHardwareScanErrorType.ScanException,
           is_ur_format: true,
           device_model: 'MockDevice',
           device_type: HardwareDeviceTypes.QR,
@@ -1020,7 +1020,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
           error: 'Decoder error',
-          error_category: 'ur_decode_error',
+          error_category: QRHardwareScanErrorType.URDecodeError,
           is_ur_format: true,
           device_model: 'Unknown',
           device_type: HardwareDeviceTypes.QR,
@@ -1057,7 +1057,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith(
           expect.objectContaining({
-            error_category: 'wrong_ur_type',
+            error_category: QRHardwareScanErrorType.WrongURType,
             received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
           }),
         );
@@ -1122,7 +1122,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         expect(mockAddProperties).toHaveBeenCalledWith(
           expect.objectContaining({
             error: 'string error',
-            error_category: 'scan_exception',
+            error_category: QRHardwareScanErrorType.ScanException,
             is_ur_format: true,
           }),
         );
@@ -1155,7 +1155,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         expect(mockAddProperties).toHaveBeenCalledWith(
           expect.objectContaining({
             error: 'custom error message',
-            error_category: 'scan_exception',
+            error_category: QRHardwareScanErrorType.ScanException,
           }),
         );
       });
@@ -1211,6 +1211,13 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await waitFor(
         () => {
           expect(mockPauseQRCode).toHaveBeenCalledWith(false);
+        },
+        { timeout: 2000 },
+      );
+
+      await waitFor(
+        () => {
+          expect(mockOnModalHideComplete).toHaveBeenCalledTimes(1);
         },
         { timeout: 2000 },
       );
