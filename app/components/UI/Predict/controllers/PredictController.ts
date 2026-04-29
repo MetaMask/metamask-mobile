@@ -2155,6 +2155,7 @@ export class PredictController extends BaseController<
         analyticsProperties: pendingOrder.analyticsProperties,
         paymentTokenAddress:
           this.state.activeBuyOrders[address]?.paymentTokenAddress,
+        paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
         orderType: pendingOrder.preview?.orderType,
         activeAbTests: pendingOrder.activeAbTests,
       });
@@ -2246,6 +2247,7 @@ export class PredictController extends BaseController<
           paymentTokenAddress:
             this.state.activeBuyOrders[address]?.paymentTokenAddress,
           orderType: pendingOrder?.preview?.orderType,
+          activeAbTests: pendingOrder?.activeAbTests,
         });
       }
 
