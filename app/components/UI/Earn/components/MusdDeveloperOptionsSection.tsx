@@ -70,23 +70,21 @@ export const MusdDeveloperOptionsSection = () => {
         width={ButtonWidthTypes.Full}
         style={styles.accessory}
       />
-      <>
-        <Text
-          color={TextColor.Alternative}
-          variant={TextVariant.BodyMD}
-          style={styles.desc}
-        >
-          {`Asset detail CTAs dismissed: ${String(assetDetailCtasSeenCount)}`}
-        </Text>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          label={'Clear asset detail CTAs seen'}
-          onPress={handleClearAssetDetailCtasSeen}
-          width={ButtonWidthTypes.Full}
-          style={styles.accessory}
-        />
-      </>
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={styles.desc}
+      >
+        {`Asset detail CTAs dismissed: ${String(assetDetailCtasSeenCount)}`}
+      </Text>
+      <Button
+        variant={ButtonVariants.Secondary}
+        size={ButtonSize.Lg}
+        label={'Clear asset detail CTAs seen'}
+        onPress={handleClearAssetDetailCtasSeen}
+        width={ButtonWidthTypes.Full}
+        style={styles.accessory}
+      />
     </>
   );
 };
