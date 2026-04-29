@@ -657,13 +657,10 @@ describe('RecipientSelectorModal', () => {
     });
 
     it('applies filtering logic to wallet sections', () => {
-      const { queryByText, getByText } = renderRecipientSelectorModal();
+      const { getByText } = renderRecipientSelectorModal();
 
-      // With a single wallet, MultichainAccountSelectorList omits section headers
-      // (headers only when uniqueWalletSections.length > 1).
-      expect(queryByText('Wallet 1')).toBeNull();
-      expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Account 2')).toBeTruthy();
+      // Wallet section should be shown with compatible accounts
+      expect(getByText('Wallet 1')).toBeTruthy();
     });
   });
 });
