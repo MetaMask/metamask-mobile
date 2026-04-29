@@ -6,8 +6,11 @@ import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
 import { handleFetch } from '@metamask/controller-utils';
+import Routes from '../../../../constants/navigation/Routes';
+import ClipboardManager from '../../../../core/ClipboardManager';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
@@ -80,6 +83,10 @@ const mockState = {
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn().mockResolvedValue({}),
+}));
+
+jest.mock('../../../../core/ClipboardManager', () => ({
+  setString: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../../util/haptics', () => {
@@ -156,7 +163,7 @@ jest.mock('@react-navigation/native', () => {
 
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
     useRoute: () => ({
       params: mockRouteParams,
     }),
@@ -209,14 +216,21 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
-  it('calls goBack when the back button is pressed', () => {
+  it('navigates to the trader profile when the back button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
       screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
     );
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+      },
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
@@ -343,6 +357,22 @@ describe('TraderPositionView', () => {
       '0x1234567890123456789012345678901234567890',
       'eip155:8453',
     );
+  });
+
+  it('copies the token address when the token address button is pressed', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(
+        TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(ClipboardManager.setString).toHaveBeenCalledWith(
+        '0x1234567890123456789012345678901234567890',
+      );
+    });
   });
 
   it('skips token image URL resolution when the position chain is unsupported', () => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
@@ -12,11 +12,19 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  Button,
-  ButtonVariant,
+  ButtonHero,
+  ButtonHeroSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../constants/navigation/Routes';
+import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
+import { useTheme } from '../../../../util/theme';
 import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
@@ -34,6 +42,8 @@ const TraderPositionView = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
   const {
     traderId,
@@ -80,8 +90,39 @@ const TraderPositionView = () => {
   } = positionData;
 
   const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    if (!traderId) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      traderId,
+      traderName,
+    });
+  }, [navigation, traderId, traderName]);
+
+  const handleCopyTokenAddress = useCallback(async () => {
+    if (!resolvedPosition?.tokenAddress) {
+      return;
+    }
+
+    await ClipboardManager.setString(resolvedPosition.tokenAddress);
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('detected_tokens.address_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
+    });
+  }, [
+    colors.accent03.dark,
+    colors.accent03.normal,
+    resolvedPosition?.tokenAddress,
+    toastRef,
+  ]);
 
   const handleBuyPress = useCallback(() => {
     if (!resolvedPosition) {
@@ -133,6 +174,10 @@ const TraderPositionView = () => {
               marketCap={marketCap}
               pricePercentChange={pricePercentChange}
               activeTimePeriodLabel={activeTimePeriod}
+              onCopyTokenAddress={handleCopyTokenAddress}
+              copyTokenAddressTestID={
+                TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+              }
             />
 
             <TraderPositionChartSection
@@ -164,14 +209,14 @@ const TraderPositionView = () => {
           </ScrollView>
 
           <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Secondary}
+            <ButtonHero
+              size={ButtonHeroSize.Lg}
               isFullWidth
               onPress={handleBuyPress}
               testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
             >
               {strings('social_leaderboard.trader_position.buy')}
-            </Button>
+            </ButtonHero>
           </Box>
 
           <QuickBuyBottomSheet
