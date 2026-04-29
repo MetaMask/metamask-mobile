@@ -366,16 +366,14 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
                 )}
               </Text>
             )}
-            {selectedTierLabel ? (
-              <>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {selectedTierLabel}
-                </Text>
-              </>
-            ) : null}
+            {Boolean(selectedTierLabel) && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {selectedTierLabel}
+              </Text>
+            )}
           </Box>
         </Pressable>
       )}
