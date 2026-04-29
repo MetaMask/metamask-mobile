@@ -1,3 +1,10 @@
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) =>
+    key === 'fiat_on_ramp.circuit_breaker_open'
+      ? 'This service is temporarily unavailable. Please try again in about 30 minutes.'
+      : key,
+}));
+
 import { parseUserFacingError } from './parseUserFacingError';
 
 const FALLBACK = 'Something went wrong';
@@ -79,7 +86,9 @@ describe('parseUserFacingError', () => {
       { errorKey: 'CIRCUIT_BREAKER_OPEN' },
     );
 
-    expect(parseUserFacingError(circuitBreakerError, FALLBACK)).toBe(FALLBACK);
+    expect(parseUserFacingError(circuitBreakerError, FALLBACK)).toBe(
+      'This service is temporarily unavailable. Please try again in about 30 minutes.',
+    );
   });
 
   it('returns fallback for resource-like circuit breaker errors', () => {
@@ -91,7 +100,9 @@ describe('parseUserFacingError', () => {
         },
         FALLBACK,
       ),
-    ).toBe(FALLBACK);
+    ).toBe(
+      'This service is temporarily unavailable. Please try again in about 30 minutes.',
+    );
   });
 
   it('handles JSON body where error.message is empty', () => {

@@ -1,4 +1,7 @@
+import { strings } from '../../../../../locales/i18n';
+
 const CIRCUIT_BREAKER_OPEN_ERROR_KEY = 'CIRCUIT_BREAKER_OPEN';
+const CIRCUIT_BREAKER_OPEN_MESSAGE_KEY = 'fiat_on_ramp.circuit_breaker_open';
 
 function getErrorKey(error: unknown): string | null {
   if (typeof error !== 'object' || error === null || !('errorKey' in error)) {
@@ -40,7 +43,7 @@ function getRawMessage(error: unknown): string {
  */
 export function parseUserFacingError(error: unknown, fallback: string): string {
   if (getErrorKey(error) === CIRCUIT_BREAKER_OPEN_ERROR_KEY) {
-    return fallback;
+    return strings(CIRCUIT_BREAKER_OPEN_MESSAGE_KEY);
   }
 
   const rawMessage = getRawMessage(error);

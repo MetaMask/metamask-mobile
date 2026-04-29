@@ -251,7 +251,7 @@ describe('useRampsPaymentMethods', () => {
       expect(result.current.status).toBe('error');
     });
 
-    expect(result.current.error).toBe('fiat_on_ramp.payment_error');
+    expect(result.current.error).toBe('fiat_on_ramp.circuit_breaker_open');
   });
 
   it('calls Engine.context.RampsController.setSelectedPaymentMethod with full payment method object', () => {

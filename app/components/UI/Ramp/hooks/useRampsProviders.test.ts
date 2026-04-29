@@ -220,7 +220,7 @@ describe('useRampsProviders', () => {
         wrapper: wrapper(store),
       });
 
-      expect(result.current.error).toBe('fiat_on_ramp.payment_error');
+      expect(result.current.error).toBe('fiat_on_ramp.circuit_breaker_open');
     });
   });
 
