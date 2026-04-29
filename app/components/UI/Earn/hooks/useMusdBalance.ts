@@ -16,7 +16,7 @@ import { selectNetworkConfigurations } from '../../../../selectors/networkContro
 import { fromTokenMinimalUnitString } from '../../../../util/number';
 import BigNumber from 'bignumber.js';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import I18n from '../../../../../locales/i18n';
+import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
 import { formatWithThreshold } from '../../../../util/assets';
 
 const SUPPORTED_MUSD_CHAIN_IDS = [
@@ -127,7 +127,7 @@ export const useMusdBalance = () => {
       fiatBalanceFormattedResult[chainId] = formatWithThreshold(
         fiatValue.toNumber(),
         0.01,
-        I18n.locale,
+        getLocaleLanguageCode(),
         {
           style: 'currency',
           currency: currentCurrency,
@@ -142,11 +142,16 @@ export const useMusdBalance = () => {
     const fiatBalanceAggregatedString = fiatBalanceTotal?.toFixed();
     const fiatBalanceAggregatedFormattedString =
       fiatBalanceTotal && currentCurrency
-        ? formatWithThreshold(fiatBalanceTotal.toNumber(), 0.01, I18n.locale, {
-            style: 'currency',
-            currency: currentCurrency,
-          })
-        : formatWithThreshold(0, 0.01, I18n.locale, {
+        ? formatWithThreshold(
+            fiatBalanceTotal.toNumber(),
+            0.01,
+            getLocaleLanguageCode(),
+            {
+              style: 'currency',
+              currency: currentCurrency,
+            },
+          )
+        : formatWithThreshold(0, 0.01, getLocaleLanguageCode(), {
             style: 'currency',
             currency: (currentCurrency ?? 'USD').toUpperCase(),
           });

@@ -5,10 +5,11 @@ import { useSelector } from 'react-redux';
 
 // External dependencies.
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
   TextColor,
@@ -109,17 +110,18 @@ const MultichainAccountConnectMultiSelector = ({
         <View style={styles.connectOrUpdateButtonContainer}>
           {areAnyAccountsSelected && (
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('networks.update')}
+              variant={ButtonVariant.Primary}
               onPress={handleSubmit}
-              size={ButtonSize.Lg}
+              size={ButtonBaseSize.Lg}
               style={{
                 ...styles.button,
                 ...(isLoading && styles.disabled),
               }}
-              disabled={isLoading}
+              isDisabled={isLoading}
               testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
-            />
+            >
+              {strings('networks.update')}
+            </Button>
           )}
         </View>
         {areNoAccountsSelected && showDisconnectAllButton && (
@@ -133,16 +135,17 @@ const MultichainAccountConnectMultiSelector = ({
             </View>
             <View style={styles.disconnectAllButtonContainer}>
               <Button
-                variant={ButtonVariants.Primary}
-                label={strings('accounts.disconnect')}
+                variant={ButtonVariant.Primary}
                 testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
                 onPress={handleDisconnect}
                 isDanger
-                size={ButtonSize.Lg}
+                size={ButtonBaseSize.Lg}
                 style={{
                   ...styles.button,
                 }}
-              />
+              >
+                {strings('accounts.disconnect')}
+              </Button>
             </View>
           </View>
         )}

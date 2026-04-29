@@ -81,9 +81,9 @@ export interface UseTokenTransactionsResult {
 }
 
 // Cache for non-EVM transactions
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 let cachedFilteredTransactions: Transaction[] | null = null;
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 let cacheKey: string | null = null;
 
 /**

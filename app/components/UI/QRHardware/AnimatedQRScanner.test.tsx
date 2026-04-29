@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor, act } from '@testing-library/react-native';
+import { render, waitFor, act, fireEvent } from '@testing-library/react-native';
 import { AppState, AppStateStatus, Linking } from 'react-native';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
@@ -18,20 +18,14 @@ import {
   resetCapturedCallbacks,
 } from '../../../__mocks__/react-native-vision-camera';
 
-jest.mock('../../../components/hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual(
-    '../../../components/hooks/useMetrics',
-  );
-  return {
-    ...actualMetrics,
-    useMetrics: jest.fn(() => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-      }),
-    })),
-  };
-});
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    }),
+  })),
+}));
 
 jest.mock('../../../core/QrKeyring/QrKeyring', () => ({
   withQrKeyring: jest.fn(async (callback) =>
@@ -682,7 +676,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       expect(getByTestId('open-settings-button')).toBeOnTheScreen();
 
       await act(async () => {
-        getByTestId('open-settings-button').props.onPress();
+        fireEvent.press(getByTestId('open-settings-button'));
       });
       expect(openSettingsSpy).toHaveBeenCalledTimes(1);
 
@@ -932,7 +926,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       );
     });
 
-    it('does not throw error when pauseQRCode is not provided', async () => {
+    it('does not throw error when pauseQRCode is not provided', () => {
       const propsWithoutPauseHidden = {
         ...defaultProps,
         pauseQRCode: undefined,

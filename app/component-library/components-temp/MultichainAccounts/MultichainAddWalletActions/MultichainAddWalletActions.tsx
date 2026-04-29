@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useMemo } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -10,7 +10,7 @@ import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../../core/Analytics/MetaMetrics.types';
 import Routes from '../../../../constants/navigation/Routes';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../../components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
 
 // Types
@@ -31,7 +31,7 @@ const MultichainAddWalletActions = ({
   onBack,
 }: MultichainAddWalletActionsProps) => {
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const createActionHandler = useCallback(
     (config: Omit<ActionConfig, 'isVisible'>) => () => {
@@ -85,7 +85,7 @@ const MultichainAddWalletActions = ({
   );
 
   return (
-    <SafeAreaView>
+    <SafeAreaView edges={['bottom']}>
       <Fragment>
         {actionConfigs.map(
           (config) =>

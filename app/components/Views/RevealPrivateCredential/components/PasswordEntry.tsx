@@ -1,30 +1,42 @@
 import React from 'react';
-import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  TextField,
+  IconName,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import TextField from '../../../../component-library/components/Form/TextField/TextField';
+  Text,
+  FontWeight,
+  ButtonIcon,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
 import { useTheme } from '../../../../util/theme';
 import { PasswordEntryProps } from '../types';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const PasswordEntry = ({
+  password,
   onPasswordChange,
   onSubmit,
   warningMessage,
   showPassword,
   onToggleShowPassword,
-  styles,
 }: PasswordEntryProps) => {
+  const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
 
   return (
     <>
-      <Text style={styles.enterPassword} variant={TextVariant.BodyMDMedium}>
+      <Text
+        twClassName="mb-1"
+        color={TextColor.TextDefault}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+      >
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextField
+        value={password}
         placeholder={'Password'}
         placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
@@ -33,6 +45,7 @@ const PasswordEntry = ({
         onSubmitEditing={onSubmit}
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
+        accessibilityLabel={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
         returnKeyType="done"
         autoComplete="password"
         endAccessory={
@@ -43,7 +56,9 @@ const PasswordEntry = ({
         }
       />
       <Text
-        style={styles.warningText}
+        twClassName="mt-2"
+        color={TextColor.ErrorDefault}
+        variant={TextVariant.BodySm}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID}
       >
         {warningMessage}

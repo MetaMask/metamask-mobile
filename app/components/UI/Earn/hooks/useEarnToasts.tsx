@@ -48,6 +48,9 @@ export interface EarnToastOptionsConfig {
     success: EarnToastOptions;
     failed: EarnToastOptions;
   };
+  tronWithdrawal: {
+    failed: (errors: string[]) => EarnToastOptions;
+  };
 }
 
 interface EarnToastLabelOptions {
@@ -232,6 +235,26 @@ const useEarnToasts = (): {
           }),
           closeButtonOptions,
         },
+      },
+      tronWithdrawal: {
+        failed: (errors: string[]) => ({
+          ...earnBaseToastOptions.error,
+          labelOptions: getEarnToastLabels({
+            primary: strings('stake.tron.unstaked_banner.error'),
+            primaryIsBold: true,
+            ...(errors.length > 0 && {
+              secondary: (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {errors.map((err) => `\u2022 ${err}`).join('\n')}
+                </Text>
+              ),
+            }),
+          }),
+          closeButtonOptions,
+        }),
       },
     }),
     [

@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { cloneDeep } from 'lodash';
 import Device from '../../util/device';
-// eslint-disable-next-line import/no-namespace
-import * as tokensControllerSelectors from '../../selectors/tokensController';
-import { FeatureFlags } from '@metamask/swaps-controller/dist/types';
-
-// Type definitions for the swaps reducer
-// Note: The reducer is written in JavaScript without proper TypeScript types,
-// so we need to use type assertions in some places
 
 interface SwapsAction {
   type: string | null;
@@ -16,7 +9,7 @@ interface SwapsAction {
 
 interface SetLivenessPayload {
   chainId: string;
-  featureFlags: FeatureFlags | null;
+  featureFlags: Record<string, unknown> | null;
 }
 
 interface SetLivenessAction {
@@ -24,7 +17,6 @@ interface SetLivenessAction {
   payload: SetLivenessPayload;
 }
 
-// Define a more flexible type for the swaps state that allows dynamic chain IDs
 interface SwapsState {
   isLive: boolean;
   hasOnboarded: boolean;
@@ -39,21 +31,10 @@ interface SwapsState {
   [chainId: string]: unknown;
 }
 
-jest.mock('../../selectors/tokensController');
-jest.mock('@metamask/swaps-controller/dist/constants', () => ({
-  CHAIN_ID_TO_NAME_MAP: {
-    '0x1': 'ethereum',
-    '0x38': 'bsc',
-    '0x89': 'polygon',
-  },
-}));
-
 import reducer, {
   initialState,
   SWAPS_SET_LIVENESS,
   SWAPS_SET_HAS_ONBOARDED,
-  swapsTokensObjectSelector,
-  swapsTokensMultiChainObjectSelector,
   getFeatureFlagChainId,
 } from './index';
 
@@ -100,7 +81,7 @@ const DEFAULT_FEATURE_FLAGS = {
     mobileActiveIOS: false,
     mobileActiveAndroid: false,
   },
-} as unknown as FeatureFlags;
+};
 
 describe('swaps reducer', () => {
   it('should return initial state', () => {
@@ -121,7 +102,6 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      // Note: Using 'as any' because the reducer is JavaScript without proper types
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const liveState = reducer(initalState as any, action) as SwapsState;
       expect(liveState['0x1'].isLive).toBe(true);
@@ -271,11 +251,9 @@ describe('swaps reducer', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const liveState = reducer(initalState as any, action) as SwapsState;
 
-      // Should set flags for ethereum (0x1)
       expect(liveState['0x1'].featureFlags).toEqual(
         DEFAULT_FEATURE_FLAGS.ethereum,
       );
-      // Should set flags for bsc (0x38)
       expect(
         (liveState['0x38'] as { featureFlags?: unknown }).featureFlags,
       ).toEqual(DEFAULT_FEATURE_FLAGS.bsc);
@@ -301,7 +279,6 @@ describe('swaps reducer', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const newState = reducer(existingState as any, action) as SwapsState;
 
-      // Should update feature flags but preserve other properties
       expect(newState['0x1'].featureFlags).toEqual(
         DEFAULT_FEATURE_FLAGS.ethereum,
       );
@@ -316,7 +293,7 @@ describe('swaps reducer', () => {
         invalidChain: {
           mobileActive: true,
         },
-      } as unknown as FeatureFlags;
+      };
 
       const initalState = reducer(undefined, emptyAction);
       const action: SetLivenessAction = {
@@ -329,11 +306,9 @@ describe('swaps reducer', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const liveState = reducer(initalState as any, action) as SwapsState;
 
-      // Should process valid chains
       expect(liveState['0x1'].featureFlags).toEqual(
         DEFAULT_FEATURE_FLAGS.ethereum,
       );
-      // Should not create entry for invalid chain
       expect(
         (liveState as Record<string, unknown>).invalidChain,
       ).toBeUndefined();
@@ -342,8 +317,8 @@ describe('swaps reducer', () => {
     it('should skip non-object feature flag values', () => {
       const featureFlagsWithNonObject = {
         ...DEFAULT_FEATURE_FLAGS,
-        ethereum: 'not-an-object', // Invalid value
-      } as unknown as FeatureFlags;
+        ethereum: 'not-an-object',
+      };
 
       const initalState = reducer(undefined, emptyAction);
       const action: SetLivenessAction = {
@@ -356,7 +331,6 @@ describe('swaps reducer', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const liveState = reducer(initalState as any, action) as SwapsState;
 
-      // Should skip the invalid ethereum entry
       expect(liveState['0x1'].featureFlags).toBeUndefined();
     });
   });
@@ -364,471 +338,12 @@ describe('swaps reducer', () => {
   describe('getFeatureFlagChainId', () => {
     it('returns the same chain ID without modification', () => {
       const result = getFeatureFlagChainId('0x1');
-
       expect(result).toBe('0x1');
     });
 
     it('returns the same chain ID for any input', () => {
       const result = getFeatureFlagChainId('0x38');
-
       expect(result).toBe('0x38');
-    });
-  });
-
-  describe('swapsTokensObjectSelector', () => {
-    it('should return a object that returns an object combining TokensController and SwapsController tokens where each key is an address and each value is undefined', () => {
-      jest.spyOn(tokensControllerSelectors, 'selectTokens').mockReturnValue([
-        {
-          address: '0x0000000000000000000000000000000000000010',
-          symbol: 'TOKEN1',
-          decimals: 1,
-          aggregators: [],
-        },
-        {
-          address: '0x0000000000000000000000000000000000000011',
-          symbol: 'TOKEN2',
-          decimals: 2,
-          aggregators: [],
-        },
-      ]);
-      const state = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [
-                {
-                  address: '0x0000000000000000000000000000000000000000',
-                  symbol: 'SWAPS-TOKEN1',
-                  decimals: 1,
-                  occurrences: 10,
-                  iconUrl: 'https://some.token.icon.url/1',
-                },
-                {
-                  address: '0x0000000000000000000000000000000000000001',
-                  symbol: 'SWAPS-TOKEN2',
-                  decimals: 2,
-                  occurrences: 20,
-                  iconUrl: 'https://some.token.icon.url/2',
-                },
-              ],
-            },
-          },
-        },
-      };
-      expect(swapsTokensObjectSelector(state)).toStrictEqual({
-        '0x0000000000000000000000000000000000000000': undefined,
-        '0x0000000000000000000000000000000000000001': undefined,
-        '0x0000000000000000000000000000000000000010': undefined,
-        '0x0000000000000000000000000000000000000011': undefined,
-      });
-    });
-
-    it('should return an empty object if there are no Swaps tokens or user tokens', () => {
-      jest.spyOn(tokensControllerSelectors, 'selectTokens').mockReturnValue([]);
-      const state = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [],
-            },
-          },
-        },
-      };
-      expect(swapsTokensObjectSelector(state)).toStrictEqual({});
-    });
-  });
-
-  describe('swapsTokensMultiChainObjectSelector', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('returns combined tokens from all sources', () => {
-      // Given tokens exist in SwapsController and across multiple chains
-      jest.spyOn(tokensControllerSelectors, 'selectAllTokens').mockReturnValue({
-        '0x1': {
-          '0xUserAddress123': [
-            {
-              address: '0x0000000000000000000000000000000000000010',
-              symbol: 'USER-TOKEN1',
-              decimals: 18,
-              hasBalanceError: false,
-              image: 'user1.png',
-            },
-            {
-              address: '0x0000000000000000000000000000000000000011',
-              symbol: 'USER-TOKEN2',
-              decimals: 6,
-              hasBalanceError: false,
-              image: 'user2.png',
-            },
-          ],
-        },
-        '0x89': {
-          '0xUserAddress123': [
-            {
-              address: '0x0000000000000000000000000000000000000012',
-              symbol: 'POLYGON-TOKEN',
-              decimals: 18,
-              hasBalanceError: false,
-              image: 'polygon.png',
-            },
-          ],
-        },
-      });
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [
-                {
-                  address: '0x0000000000000000000000000000000000000020',
-                  symbol: 'SWAPS-TOKEN1',
-                  decimals: 18,
-                  occurrences: 5,
-                  iconUrl: 'https://swaps1.url',
-                },
-                {
-                  address: '0x0000000000000000000000000000000000000021',
-                  symbol: 'SWAPS-TOKEN2',
-                  decimals: 6,
-                  occurrences: 3,
-                  iconUrl: 'https://swaps2.url',
-                },
-              ],
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    address: '0xUserAddress123',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // When the selector is called
-      const result = swapsTokensMultiChainObjectSelector(mockState);
-
-      // Then it returns all unique token addresses with undefined values
-      expect(result).toStrictEqual({
-        '0x0000000000000000000000000000000000000020': undefined,
-        '0x0000000000000000000000000000000000000021': undefined,
-        '0x0000000000000000000000000000000000000010': undefined,
-        '0x0000000000000000000000000000000000000011': undefined,
-        '0x0000000000000000000000000000000000000012': undefined,
-      });
-    });
-
-    it('returns user tokens when SwapsController is empty', () => {
-      // Given no SwapsController tokens exist
-      jest.spyOn(tokensControllerSelectors, 'selectAllTokens').mockReturnValue({
-        '0x1': {
-          '0xUserAddress123': [
-            {
-              address: '0x0000000000000000000000000000000000000030',
-              symbol: 'ONLY-USER-TOKEN',
-              decimals: 18,
-              hasBalanceError: false,
-              image: 'onlyuser.png',
-            },
-          ],
-        },
-      });
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [], // Empty SwapsController tokens
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    address: '0xUserAddress123',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // When the selector is called
-      const result = swapsTokensMultiChainObjectSelector(mockState);
-
-      // Then it returns only the user tokens
-      expect(result).toStrictEqual({
-        '0x0000000000000000000000000000000000000030': undefined,
-      });
-    });
-
-    it('returns SwapsController tokens when user tokens are empty', () => {
-      // Given no user tokens exist across chains
-      jest
-        .spyOn(tokensControllerSelectors, 'selectAllTokens')
-        .mockReturnValue({});
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [
-                {
-                  address: '0x0000000000000000000000000000000000000040',
-                  symbol: 'ONLY-SWAPS-TOKEN',
-                  decimals: 18,
-                  occurrences: 1,
-                  iconUrl: 'https://onlyswaps.url',
-                },
-              ],
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    address: '0xUserAddress123',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // When the selector is called
-      const result = swapsTokensMultiChainObjectSelector(mockState);
-
-      // Then it returns only the SwapsController tokens
-      expect(result).toStrictEqual({
-        '0x0000000000000000000000000000000000000040': undefined,
-      });
-    });
-
-    it('removes duplicate tokens when same address exists in both sources', () => {
-      // Given the same token address exists in both SwapsController and user tokens
-      jest.spyOn(tokensControllerSelectors, 'selectAllTokens').mockReturnValue({
-        '0x1': {
-          '0xUserAddress123': [
-            {
-              address: '0x0000000000000000000000000000000000000050',
-              symbol: 'USER-VERSION',
-              decimals: 18,
-              hasBalanceError: false,
-              image: 'user.png',
-            },
-          ],
-        },
-      });
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [
-                {
-                  address: '0x0000000000000000000000000000000000000050', // Same address
-                  symbol: 'SWAPS-VERSION',
-                  decimals: 18,
-                  occurrences: 10,
-                  iconUrl: 'https://swaps.url',
-                },
-              ],
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    address: '0xUserAddress123',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // When the selector is called
-      const result = swapsTokensMultiChainObjectSelector(mockState);
-
-      // Then it returns only one entry for the duplicated address
-      expect(result).toStrictEqual({
-        '0x0000000000000000000000000000000000000050': undefined,
-      });
-      expect(Object.keys(result)).toHaveLength(1);
-    });
-
-    it('converts addresses to lowercase', () => {
-      // Given addresses with mixed case formatting
-      jest.spyOn(tokensControllerSelectors, 'selectAllTokens').mockReturnValue({
-        '0x1': {
-          '0xUserAddress123': [
-            {
-              address: '0X0000000000000000000000000000000000000060', // Uppercase
-              symbol: 'UPPER-TOKEN',
-              decimals: 18,
-              hasBalanceError: false,
-              image: 'upper.png',
-            },
-          ],
-        },
-      });
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [
-                {
-                  address: '0X0000000000000000000000000000000000000070', // Uppercase
-                  symbol: 'SWAPS-UPPER',
-                  decimals: 18,
-                  occurrences: 1,
-                },
-              ],
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    address: '0xUserAddress123',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // When the selector is called
-      const result = swapsTokensMultiChainObjectSelector(mockState);
-
-      // Then addresses are normalized to lowercase
-      expect(result).toStrictEqual({
-        '0x0000000000000000000000000000000000000070': undefined,
-        '0x0000000000000000000000000000000000000060': undefined,
-      });
-    });
-
-    it('returns empty object when no tokens exist', () => {
-      // Given no tokens exist in any source
-      jest
-        .spyOn(tokensControllerSelectors, 'selectAllTokens')
-        .mockReturnValue({});
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [],
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    address: '0xUserAddress123',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // When the selector is called
-      const result = swapsTokensMultiChainObjectSelector(mockState);
-
-      // Then it returns an empty object
-      expect(result).toStrictEqual({});
-    });
-
-    it('returns tokens from multiple blockchains', () => {
-      // Given tokens exist across Ethereum, Polygon, and BSC
-      jest.spyOn(tokensControllerSelectors, 'selectAllTokens').mockReturnValue({
-        '0x1': {
-          '0xUserAddress123': [
-            {
-              address: '0x0000000000000000000000000000000000000090',
-              symbol: 'ETH-TOKEN',
-              decimals: 18,
-              hasBalanceError: false,
-              image: 'eth.png',
-            },
-          ],
-        },
-        '0x89': {
-          '0xUserAddress123': [
-            {
-              address: '0x0000000000000000000000000000000000000091',
-              symbol: 'MATIC-TOKEN',
-              decimals: 18,
-              hasBalanceError: false,
-              image: 'matic.png',
-            },
-          ],
-        },
-        '0x38': {
-          '0xUserAddress123': [
-            {
-              address: '0x0000000000000000000000000000000000000092',
-              symbol: 'BSC-TOKEN',
-              decimals: 18,
-              hasBalanceError: false,
-              image: 'bsc.png',
-            },
-          ],
-        },
-      });
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            SwapsController: {
-              tokens: [
-                {
-                  address: '0x0000000000000000000000000000000000000080',
-                  symbol: 'SWAPS-TOKEN',
-                  decimals: 18,
-                  occurrences: 1,
-                },
-              ],
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    address: '0xUserAddress123',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // When the selector is called
-      const result = swapsTokensMultiChainObjectSelector(mockState);
-
-      // Then it returns tokens from all chains plus SwapsController
-      expect(result).toStrictEqual({
-        '0x0000000000000000000000000000000000000080': undefined, // SwapsController
-        '0x0000000000000000000000000000000000000090': undefined, // Ethereum
-        '0x0000000000000000000000000000000000000091': undefined, // Polygon
-        '0x0000000000000000000000000000000000000092': undefined, // BSC
-      });
-      expect(Object.keys(result)).toHaveLength(4);
     });
   });
 

@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import type { ThemeColors } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 

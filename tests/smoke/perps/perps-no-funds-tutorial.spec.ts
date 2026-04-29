@@ -1,0 +1,73 @@
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { SmokePerps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
+import Assertions from '../../framework/Assertions';
+import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+
+describe.skip(
+  SmokePerps('Perps - no funds shows Start Trading and tutorial'),
+  () => {
+    beforeEach(async () => {
+      jest.setTimeout(150000);
+    });
+
+    it('displays Start Trading on Perps tab and tutorial screens', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withPerpsProfile('no-positions')
+            .withPerpsFirstTimeUser(true)
+            .build(),
+          restartDevice: true,
+          // Ensure Hyperliquid icons and Arbitrum RPC are mocked (no live requests)
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(mockServer, {
+              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            });
+            await PERPS_ARBITRUM_MOCKS(mockServer);
+            await mockPerpsGeolocation(
+              mockServer,
+              RampsRegions[RampsRegionsEnum.SPAIN],
+            );
+          },
+        },
+        async () => {
+          await loginToApp();
+
+          // This is needed due to disable animations
+          await device.disableSynchronization();
+
+          // Go to Perps from homepage section (same click path as smoke perps tests)
+          await WalletView.scrollAndTapPerpsSection();
+
+          await PerpsOnboarding.tapContinueButton();
+          await PerpsOnboarding.tapContinueButton();
+          await PerpsOnboarding.tapContinueButton();
+          await PerpsOnboarding.tapContinueButton();
+          await PerpsOnboarding.tapContinueButton();
+          await PerpsOnboarding.tapContinueButton();
+
+          // After skipping tutorial, user should land on markets screen
+          await Assertions.expectElementToBeVisible(
+            PerpsTabView.marketAddFundsButton as DetoxElement,
+            {
+              description:
+                'Perps market add funds button visible after skipping tutorial',
+            },
+          );
+        },
+      );
+    });
+  },
+);

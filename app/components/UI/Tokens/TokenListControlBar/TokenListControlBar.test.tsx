@@ -94,15 +94,12 @@ jest.mock('../../../../selectors/networkInfos', () => ({
 }));
 
 // Mock the theme
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#ffffff' },
-      text: { default: '#000000' },
-      border: { muted: '#e0e0e0' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 const mockStore = configureMockStore();
 
@@ -313,14 +310,14 @@ describe('TokenListControlBar', () => {
         WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
       );
 
-      expect(filterButton.props.disabled).toBe(false);
+      expect(filterButton).toBeEnabled();
     });
 
     it('renders add token button as enabled', () => {
       const { getByTestId } = renderComponent();
       const addTokenButton = getByTestId('import-token-button');
 
-      expect(addTokenButton.props.disabled).toBeFalsy();
+      expect(addTokenButton).toBeEnabled();
     });
   });
 

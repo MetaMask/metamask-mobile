@@ -18,6 +18,7 @@ import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsModifyActionSheet.styles';
 import type { ModifyAction } from './PerpsModifyActionSheet.types';
 import { type Position } from '@metamask/perps-controller';
+import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
 
 interface ActionOption {
   action: ModifyAction;
@@ -41,7 +42,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
   position,
   onActionSelect,
   sheetRef: externalSheetRef,
-  testID,
+  testID = PerpsModifyActionSheetSelectorsIDs.SHEET,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const internalSheetRef = useRef<BottomSheetRef>(null);

@@ -4,6 +4,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import EditAccountName from '../../page-objects/MultichainAccounts/EditAccountName';
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import LoginView from '../../page-objects/wallet/LoginView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
@@ -63,12 +64,8 @@ describe(RegressionAccounts('Change Account Name'), () => {
         );
 
         // Lock wallet
-        await Assertions.expectElementToBeVisible(
-          TabBarComponent.tabBarSettingButton,
-        );
-        await TabBarComponent.tapSettings();
-        await SettingsView.scrollToLockButton();
-        await SettingsView.tapLock();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.expectElementToBeVisible(LoginView.container);
 
@@ -131,12 +128,8 @@ describe(RegressionAccounts('Change Account Name'), () => {
         );
 
         // Lock wallet
-        await Assertions.expectElementToBeVisible(
-          TabBarComponent.tabBarSettingButton,
-        );
-        await TabBarComponent.tapSettings();
-        await SettingsView.scrollToLockButton();
-        await SettingsView.tapLock();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.expectElementToBeVisible(LoginView.container);
 

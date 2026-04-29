@@ -455,12 +455,10 @@ export function adaptAccountStateFromMYX(
   // accountInfo structure varies; extract what we can
   // TODO: Verify SDK semantics — if totalCollateral already includes unrealizedPnl,
   // the totalBalance formula below double-counts. Needs SDK documentation check.
-  const marginUsed = accountInfo
-    ? fromMYXCollateral(String(accountInfo.totalCollateral ?? '0'))
-    : 0;
-  const unrealizedPnl = accountInfo
-    ? fromMYXCollateral(String(accountInfo.unrealizedPnl ?? '0'))
-    : 0;
+  const rawCollateral = accountInfo?.totalCollateral ?? '0';
+  const rawPnl = accountInfo?.unrealizedPnl ?? '0';
+  const marginUsed = accountInfo ? fromMYXCollateral(String(rawCollateral)) : 0;
+  const unrealizedPnl = accountInfo ? fromMYXCollateral(String(rawPnl)) : 0;
   const balance = walletBalance ? fromMYXCollateral(walletBalance) : 0;
 
   const totalBalance = balance + marginUsed + unrealizedPnl;

@@ -1,17 +1,17 @@
 import React, { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 
 const CardDeveloperOptionsSection = () => {
@@ -41,15 +41,14 @@ const CardDeveloperOptionsSection = () => {
         )}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={strings(
-          'app_settings.developer_options.card.reset_onboarding_button',
-        )}
         onPress={handleResetOnboardingState}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={tw.style('mt-4')}
-      />
+      >
+        {strings('app_settings.developer_options.card.reset_onboarding_button')}
+      </Button>
     </Box>
   );
 };

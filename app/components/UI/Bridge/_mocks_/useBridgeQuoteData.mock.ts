@@ -8,7 +8,9 @@ export const mockUseBridgeQuoteData = {
   quoteFetchError: null,
   isNoQuotesAvailable: false,
   isExpired: false,
+  needsNewQuote: false,
   willRefresh: false,
+  isActiveQuoteForCurrentTokenPair: true,
   formattedQuoteData: {
     networkFee: '0',
     estimatedTime: '0 min',

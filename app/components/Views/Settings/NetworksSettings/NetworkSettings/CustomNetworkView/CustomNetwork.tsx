@@ -34,6 +34,8 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../../util/address';
 import TagColored, {
   TagColor,
 } from '../../../../../../component-library/components-temp/TagColored';
@@ -64,6 +66,12 @@ const CustomNetwork = ({
   const selectedChainId = useSelector(selectChainId);
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
+  );
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareWallet = Boolean(
+    selectedAddress && isHardwareAccount(selectedAddress),
   );
   const { safeChains } = useSafeChains();
   const blacklistedChainIds = useSelector(
@@ -181,7 +189,8 @@ const CustomNetwork = ({
                 <CustomText bold={!isNetworkUiRedesignEnabled()}>
                   {networkConfiguration.nickname}
                 </CustomText>
-                {isGasFeesSponsoredNetworkEnabled(
+                {!isHardwareWallet &&
+                isGasFeesSponsoredNetworkEnabled(
                   networkConfiguration.chainId,
                 ) ? (
                   <TagColored

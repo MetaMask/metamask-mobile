@@ -52,8 +52,11 @@ const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
 ];
 
 function getTokenTransfer(args) {
@@ -230,8 +233,12 @@ function getMetamaskPayTargetFiat(tx, decimals) {
 // user-currency fiat from the USD targetFiat stored in metamaskPay.
 function getPostQuoteDisplay(tx, currentCurrency) {
   const { metamaskPay } = tx ?? {};
+
   if (
-    !hasTransactionType(tx, [TransactionType.predictWithdraw]) ||
+    !hasTransactionType(tx, [
+      TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
+    ]) ||
     !metamaskPay?.isPostQuote ||
     !metamaskPay?.targetFiat
   ) {
@@ -1050,8 +1057,11 @@ export default async function decodeTransaction(args) {
     switch (actionKey) {
       case strings('transactions.tx_review_musd_conversion'):
       case strings('transactions.tx_review_perps_deposit'):
+      case strings('transactions.tx_review_perps_withdraw'):
       case strings('transactions.tx_review_predict_deposit'):
       case strings('transactions.tx_review_predict_withdraw'):
+      case strings('transactions.money_account_deposit'):
+      case strings('transactions.money_account_withdraw'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,

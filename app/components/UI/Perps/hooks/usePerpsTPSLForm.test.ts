@@ -246,6 +246,33 @@ describe('usePerpsTPSLForm', () => {
         expect(result.current.formState.takeProfitPrice).toBe('');
       });
 
+      it('accept 6-decimal take profit price for low-price assets like PUMP', () => {
+        // PUMP trades at ~$0.00186 — requires 6 decimal places for valid TP prices
+        const pumpParams = { ...defaultParams, currentPrice: 0.00186 };
+        const { result } = renderHook(() => usePerpsTPSLForm(pumpParams), {
+          wrapper: createWrapper(),
+        });
+
+        act(() => {
+          result.current.handlers.handleTakeProfitPriceChange('0.001234');
+        });
+
+        expect(result.current.formState.takeProfitPrice).toBe('0.001234');
+      });
+
+      it('accept 6-decimal stop loss price for low-price assets like PUMP', () => {
+        const pumpParams = { ...defaultParams, currentPrice: 0.00186 };
+        const { result } = renderHook(() => usePerpsTPSLForm(pumpParams), {
+          wrapper: createWrapper(),
+        });
+
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('0.001234');
+        });
+
+        expect(result.current.formState.stopLossPrice).toBe('0.001234');
+      });
+
       it('calculate percentage when price is entered', () => {
         const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
           wrapper: createWrapper(),

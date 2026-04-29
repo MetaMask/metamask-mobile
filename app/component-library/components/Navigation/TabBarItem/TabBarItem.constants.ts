@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 /* eslint-disable no-console */
 // External dependencies.
 import { IconName } from '../../Icons/Icon';

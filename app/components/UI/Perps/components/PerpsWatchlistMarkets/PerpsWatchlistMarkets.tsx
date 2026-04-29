@@ -24,6 +24,8 @@ interface PerpsWatchlistMarketsProps {
   positions?: Position[];
   /** Orders from parent - avoids duplicate WebSocket subscriptions */
   orders?: Order[];
+  /** Analytics source identifying the parent screen (e.g., 'perps_home') */
+  source?: string;
   /** Override section styles (e.g., to adjust margins) */
   sectionStyle?: StyleProp<ViewStyle>;
   /** Override header styles (e.g., to remove horizontal padding) */
@@ -37,6 +39,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   isLoading,
   positions = [],
   orders = [],
+  source,
   sectionStyle,
   headerStyle,
   contentContainerStyle,
@@ -57,17 +60,17 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
       } else if (hasOrder) {
         initialTab = 'orders';
       }
-      // If no position or order, initialTab remains undefined and defaults to Overview
 
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market,
           initialTab,
+          source,
         },
       });
     },
-    [navigation, positions, orders],
+    [navigation, positions, orders, source],
   );
 
   const renderMarket = useCallback(

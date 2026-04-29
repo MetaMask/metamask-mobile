@@ -14,3 +14,5 @@ export const selectMarketInsightsEnabled = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
+
+export { selectMarketInsightsPerpsEnabled } from './perps';

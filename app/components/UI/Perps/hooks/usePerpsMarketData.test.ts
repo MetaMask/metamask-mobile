@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts, { type PerpsToastOptionsConfig } from './usePerpsToasts';
@@ -51,9 +51,7 @@ describe('usePerpsMarketData', () => {
   it('should fetch market data successfully', async () => {
     mockGetMarkets.mockResolvedValue([mockMarketData]);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePerpsMarketData('BTC'),
-    );
+    const { result } = renderHook(() => usePerpsMarketData('BTC'));
 
     // Initially loading
     expect(result.current.isLoading).toBe(true);
@@ -61,9 +59,9 @@ describe('usePerpsMarketData', () => {
     expect(result.current.error).toBe(null);
 
     // Wait for data to load
-    await waitForNextUpdate();
-
-    expect(result.current.isLoading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
     expect(result.current.marketData).toEqual(mockMarketData);
     expect(result.current.error).toBe(null);
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
@@ -74,13 +72,11 @@ describe('usePerpsMarketData', () => {
       { name: 'ETH', szDecimals: 6, maxLeverage: 40, marginTableId: 2 },
     ]);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePerpsMarketData('BTC'),
-    );
+    const { result } = renderHook(() => usePerpsMarketData('BTC'));
 
-    await waitForNextUpdate();
-
-    expect(result.current.isLoading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
     expect(result.current.marketData).toBe(null);
     expect(result.current.error).toBe('Asset BTC is not tradable');
   });
@@ -89,13 +85,11 @@ describe('usePerpsMarketData', () => {
     const error = new Error('Network error');
     mockGetMarkets.mockRejectedValue(error);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePerpsMarketData('BTC'),
-    );
+    const { result } = renderHook(() => usePerpsMarketData('BTC'));
 
-    await waitForNextUpdate();
-
-    expect(result.current.isLoading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
     expect(result.current.marketData).toBe(null);
     expect(result.current.error).toBe('Network error');
   });
@@ -113,20 +107,18 @@ describe('usePerpsMarketData', () => {
   it('should refetch data when calling refetch', async () => {
     mockGetMarkets.mockResolvedValue([mockMarketData]);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePerpsMarketData('BTC'),
-    );
+    const { result } = renderHook(() => usePerpsMarketData('BTC'));
 
-    await waitForNextUpdate();
-
-    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+    });
 
     // Call refetch
     result.current.refetch();
 
-    await waitForNextUpdate();
-
-    expect(mockGetMarkets).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(mockGetMarkets).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('should fetch new data when asset changes', async () => {
@@ -147,19 +139,21 @@ describe('usePerpsMarketData', () => {
       .mockResolvedValueOnce([btcMarket])
       .mockResolvedValueOnce([ethMarket]);
 
-    const { result, rerender, waitForNextUpdate } = renderHook(
+    const { result, rerender } = renderHook(
       ({ asset }) => usePerpsMarketData(asset),
       { initialProps: { asset: 'BTC' } },
     );
 
-    await waitForNextUpdate();
-    expect(result.current.marketData).toEqual(btcMarket);
+    await waitFor(() => {
+      expect(result.current.marketData).toEqual(btcMarket);
+    });
 
     // Change asset
     rerender({ asset: 'ETH' });
 
-    await waitForNextUpdate();
-    expect(result.current.marketData).toEqual(ethMarket);
+    await waitFor(() => {
+      expect(result.current.marketData).toEqual(ethMarket);
+    });
 
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['ETH'] });
@@ -170,13 +164,11 @@ describe('usePerpsMarketData', () => {
       const error = new Error('Network error');
       mockGetMarkets.mockRejectedValue(error);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        usePerpsMarketData('BTC'),
-      );
+      const { result } = renderHook(() => usePerpsMarketData('BTC'));
 
-      await waitForNextUpdate();
-
-      expect(result.current.error).toBe('Network error');
+      await waitFor(() => {
+        expect(result.current.error).toBe('Network error');
+      });
       // Toast should not be called with default string parameter
     });
 
@@ -184,13 +176,13 @@ describe('usePerpsMarketData', () => {
       const error = new Error('Network error');
       mockGetMarkets.mockRejectedValue(error);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePerpsMarketData({ asset: 'BTC', showErrorToast: false }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.error).toBe('Network error');
+      await waitFor(() => {
+        expect(result.current.error).toBe('Network error');
+      });
       // Toast should not be called
     });
 
@@ -220,13 +212,13 @@ describe('usePerpsMarketData', () => {
       const error = new Error('Network error');
       mockGetMarkets.mockRejectedValue(error);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePerpsMarketData({ asset: 'BTC', showErrorToast: true }),
       );
 
-      await waitForNextUpdate();
-
-      expect(result.current.error).toBe('Network error');
+      await waitFor(() => {
+        expect(result.current.error).toBe('Network error');
+      });
       expect(mockMarketDataUnavailable).toHaveBeenCalledWith('BTC');
       expect(mockShowToast).toHaveBeenCalledWith(mockToastConfig);
 
@@ -249,18 +241,20 @@ describe('usePerpsMarketData', () => {
       mockGetMarkets.mockResolvedValue([mockMarketData]);
 
       // Test string format
-      const { result: stringResult, waitForNextUpdate: wait1 } = renderHook(
-        () => usePerpsMarketData('BTC'),
+      const { result: stringResult } = renderHook(() =>
+        usePerpsMarketData('BTC'),
       );
-      await wait1();
-      expect(stringResult.current.marketData).toEqual(mockMarketData);
+      await waitFor(() => {
+        expect(stringResult.current.marketData).toEqual(mockMarketData);
+      });
 
       // Test object format
-      const { result: objectResult, waitForNextUpdate: wait2 } = renderHook(
-        () => usePerpsMarketData({ asset: 'BTC', showErrorToast: false }),
+      const { result: objectResult } = renderHook(() =>
+        usePerpsMarketData({ asset: 'BTC', showErrorToast: false }),
       );
-      await wait2();
-      expect(objectResult.current.marketData).toEqual(mockMarketData);
+      await waitFor(() => {
+        expect(objectResult.current.marketData).toEqual(mockMarketData);
+      });
     });
   });
 });

@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   ParamListBase,
@@ -13,7 +13,9 @@ import { resetRewardsState } from '../../../../reducers/rewards';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useBulkLinkState } from './useBulkLinkState';
 
@@ -45,24 +47,11 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
-// Mock useMetrics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
-const mockAddTraitsToUser = jest.fn();
+const mockIdentify = jest.fn();
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-    addTraitsToUser: mockAddTraitsToUser,
-  }),
-  MetaMetricsEvents: {
-    REWARDS_OPT_OUT_STARTED: 'rewards_opt_out_started',
-    REWARDS_OPT_OUT_COMPLETED: 'rewards_opt_out_completed',
-    REWARDS_OPT_OUT_FAILED: 'rewards_opt_out_failed',
-    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
-  },
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 // Mock utils
 jest.mock('../utils', () => ({
@@ -175,7 +164,14 @@ describe('useOptout', () => {
       build: jest.fn().mockReturnValue({}),
     });
     mockTrackEvent.mockClear();
-    mockAddTraitsToUser.mockClear();
+    mockIdentify.mockClear();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+        identify: mockIdentify,
+      }),
+    );
 
     // Setup useBulkLinkState mock
     mockUseBulkLinkState.mockReturnValue({
@@ -246,7 +242,7 @@ describe('useOptout', () => {
       );
 
       // Verify user traits are updated
-      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+      expect(mockIdentify).toHaveBeenCalledWith({
         [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
       });
 
@@ -294,7 +290,7 @@ describe('useOptout', () => {
       );
 
       // Verify user traits are NOT updated on failure
-      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+      expect(mockIdentify).not.toHaveBeenCalled();
 
       expect(
         mockResetAllSessionTrackingForRewardsDashboardModals,
@@ -341,7 +337,7 @@ describe('useOptout', () => {
       );
 
       // Verify user traits are NOT updated on exception
-      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+      expect(mockIdentify).not.toHaveBeenCalled();
 
       expect(
         mockResetAllSessionTrackingForRewardsDashboardModals,
@@ -357,16 +353,23 @@ describe('useOptout', () => {
       const { result } = renderHook(() => useOptout());
 
       // Set loading to true by triggering an optout that doesn't resolve immediately
-      const slowPromise = new Promise((resolve) =>
-        setTimeout(() => resolve(true), 100),
-      );
+      let resolveSlowPromise: (value: boolean) => void;
+      const slowPromise = new Promise<boolean>((resolve) => {
+        resolveSlowPromise = resolve;
+      });
       mockEngineCall.mockReturnValueOnce(slowPromise);
 
       // Start first opt-out (this will set isLoading to true)
-      const firstOptoutPromise = result.current.optout();
+      let firstOptoutPromise: Promise<boolean>;
+      await act(async () => {
+        firstOptoutPromise = result.current.optout();
+      });
 
       // Act - Try to call optout while already loading
-      const secondOptoutResult = await result.current.optout();
+      let secondOptoutResult = false;
+      await act(async () => {
+        secondOptoutResult = await result.current.optout();
+      });
 
       // Assert - Second call should return false immediately without calling controller
       expect(secondOptoutResult).toBe(false);
@@ -374,7 +377,10 @@ describe('useOptout', () => {
 
       // Clean up the first promise
       await act(async () => {
-        await firstOptoutPromise;
+        resolveSlowPromise?.(true);
+        if (firstOptoutPromise) {
+          await firstOptoutPromise;
+        }
       });
     });
 
@@ -857,11 +863,14 @@ describe('useOptout', () => {
         result.current.showOptoutBottomSheet('Route3');
       });
 
-      // Assert - Should have been called 3 times, with the last call using 'Route3'
+      // Assert - Should have been called 3 times
       expect(mockNavigate).toHaveBeenCalledTimes(3);
       expect(mockNavigate).toHaveBeenLastCalledWith(
         Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-        expect.any(Object),
+        expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+        }),
       );
     });
   });
@@ -881,7 +890,7 @@ describe('useOptout', () => {
       });
 
       // Act
-      rerender();
+      rerender(undefined);
 
       // Assert
       expect(result.current.optout).not.toBe(initialOptout);
@@ -905,7 +914,7 @@ describe('useOptout', () => {
       });
 
       // Act - Rerender to see if callback changed
-      rerender();
+      rerender(undefined);
 
       // Assert - The callback should be different due to isLoading dependency change
       expect(result.current.showOptoutBottomSheet).not.toBe(

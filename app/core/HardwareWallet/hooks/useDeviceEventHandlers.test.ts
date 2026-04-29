@@ -54,6 +54,7 @@ describe('useDeviceEventHandlers', () => {
       isConnectingRef: { current: false },
       abortControllerRef: { current: null },
       targetWalletTypeRef: { current: null },
+      pendingOperationWalletTypeRef: { current: null },
     };
 
     // Track last connection state for assertion
@@ -70,6 +71,7 @@ describe('useDeviceEventHandlers', () => {
       }),
       setDeviceId: jest.fn(),
       setTargetWalletType: jest.fn(),
+      setPendingOperationWalletType: jest.fn(),
     };
   });
 
@@ -419,6 +421,30 @@ describe('useDeviceEventHandlers', () => {
 
       act(() => {
         result.current.handleError(new Error('Test'));
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
+    });
+
+    it('handles error when both walletType and adapter walletType are null', () => {
+      mockRefs.adapterRef.current = null;
+      const { result } = createHook(null);
+
+      act(() => {
+        result.current.handleError(new Error('Test'));
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
+    });
+
+    it('handles DeviceLocked when both walletType and adapter walletType are null', () => {
+      mockRefs.adapterRef.current = null;
+      const { result } = createHook(null);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.DeviceLocked,
+        });
       });
 
       expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);

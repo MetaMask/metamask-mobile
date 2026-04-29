@@ -25,7 +25,6 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import { useSelector } from 'react-redux';
-import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   PERPS_EVENT_PROPERTY,
@@ -45,7 +44,7 @@ import styleSheet from './PerpsTabView.styles';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
 const PerpsTabView = () => {
@@ -55,9 +54,6 @@ const PerpsTabView = () => {
 
   const navigation = useNavigation();
   const { account } = usePerpsLiveAccount();
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   const isEligible = useSelector(selectPerpsEligibility);
   const { track } = usePerpsEventTracking();
 
@@ -126,6 +122,7 @@ const PerpsTabView = () => {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.WALLET_HOME_PERPS_TAB,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: positions?.length || 0,
+      [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
       [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
     },
   });
@@ -394,10 +391,7 @@ const PerpsTabView = () => {
 
   return (
     <SafeAreaView
-      style={[
-        styles.wrapper,
-        isHomepageRedesignV1Enabled && { flex: undefined },
-      ]}
+      style={[styles.wrapper, { flex: undefined }]}
       edges={['left', 'right']}
     >
       <PerpsTabControlBar
@@ -406,7 +400,7 @@ const PerpsTabView = () => {
         hasOrders={hasOrders}
       />
       <ConditionalScrollView
-        isScrollEnabled={!isHomepageRedesignV1Enabled}
+        isScrollEnabled={false}
         scrollViewProps={{
           style: styles.content,
           testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,

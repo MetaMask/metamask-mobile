@@ -14,6 +14,8 @@ import {
   selectMusdConversionBlockedCountries,
   parseBlockedCountriesEnv,
   selectMusdConversionMinAssetBalanceRequired,
+  selectMusdTokenRegistrationChainIds,
+  MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { Json } from '@metamask/utils';
@@ -25,7 +27,7 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
@@ -2144,6 +2146,60 @@ describe('Earn Feature Flag Selectors', () => {
         selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
 
       expect(result).toBe(0.01);
+    });
+  });
+
+  describe('selectMusdTokenRegistrationChainIds', () => {
+    it('returns chain IDs from remote flag when the flag is a non-empty array', () => {
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdTokenRegistrationChainIds: { chainIds: ['0x1', '0xe708'] },
+      });
+
+      const result = selectMusdTokenRegistrationChainIds(stateWithRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('returns fallback chain IDs when remote flag is absent', () => {
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdTokenRegistrationChainIds(stateWithoutRemote);
+
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns an empty array when remote flag chainIds is an empty array, disabling registration', () => {
+      const stateWithEmptyRemote = createStateWithRemoteFlags({
+        earnMusdTokenRegistrationChainIds: { chainIds: [] },
+      });
+
+      const result = selectMusdTokenRegistrationChainIds(stateWithEmptyRemote);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns fallback chain IDs when remote flag chainIds is not an array', () => {
+      const stateWithInvalidRemote = createStateWithRemoteFlags({
+        earnMusdTokenRegistrationChainIds: { chainIds: 'not-an-array' },
+      });
+
+      const result = selectMusdTokenRegistrationChainIds(
+        stateWithInvalidRemote,
+      );
+
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns fallback chain IDs when remote flag is present but has no chainIds property', () => {
+      const stateWithMissingChainIds = createStateWithRemoteFlags({
+        earnMusdTokenRegistrationChainIds: {},
+      });
+
+      const result = selectMusdTokenRegistrationChainIds(
+        stateWithMissingChainIds,
+      );
+
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
     });
   });
 });

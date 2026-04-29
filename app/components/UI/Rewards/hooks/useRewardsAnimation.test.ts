@@ -13,17 +13,6 @@ jest.mock('rive-react-native', () => ({
   RiveRef: jest.fn(),
 }));
 
-// Mock react-native-reanimated
-jest.mock('react-native-reanimated', () => {
-  const actualReanimated = jest.requireActual('react-native-reanimated/mock');
-  return {
-    ...actualReanimated,
-    useSharedValue: jest.fn((initial) => ({ value: initial })),
-    useAnimatedStyle: jest.fn((cb) => cb()),
-    withTiming: jest.fn((value) => value),
-  };
-});
-
 describe('useRewardsAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();

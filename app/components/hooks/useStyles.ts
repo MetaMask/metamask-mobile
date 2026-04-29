@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import { useMemo } from 'react';
 import { useAppThemeFromContext } from '../../util/theme';
 import { Theme } from '../../util/theme/models';

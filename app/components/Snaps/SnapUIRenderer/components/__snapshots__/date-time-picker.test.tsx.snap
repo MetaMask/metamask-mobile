@@ -32,7 +32,25 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -67,15 +85,17 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
                 }
-                testID="label"
               >
                 Select date and time
               </Text>
@@ -133,9 +153,39 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                     }
                   }
                 >
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={[Function]}
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "opacity": 1,
+                      }
+                    }
                     testID="snap-ui-renderer__date-time-picker--datetime-touchable"
                   >
                     <TextInput
@@ -161,10 +211,9 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-              <View />
               <Text
                 accessibilityRole="text"
                 style={
@@ -182,7 +231,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
               </Text>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -225,7 +274,25 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -311,9 +378,39 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                     }
                   }
                 >
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={[Function]}
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "opacity": 1,
+                      }
+                    }
                     testID="snap-ui-renderer__date-time-picker--date-touchable"
                   >
                     <TextInput
@@ -339,13 +436,12 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                       }
                       testID="snap-ui-renderer__date-time-picker--date-input"
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-              <View />
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -388,7 +484,25 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -474,9 +588,39 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                     }
                   }
                 >
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={[Function]}
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "opacity": 1,
+                      }
+                    }
                     testID="snap-ui-renderer__date-time-picker--datetime-touchable"
                   >
                     <TextInput
@@ -502,13 +646,12 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-              <View />
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -551,7 +694,25 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -637,9 +798,39 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                     }
                   }
                 >
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={[Function]}
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "opacity": 1,
+                      }
+                    }
                     testID="snap-ui-renderer__date-time-picker--time-touchable"
                   >
                     <TextInput
@@ -665,13 +856,12 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                       }
                       testID="snap-ui-renderer__date-time-picker--time-input"
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-              <View />
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -714,7 +904,25 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -749,15 +957,17 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
                 }
-                testID="label"
               >
                 Select date and time
               </Text>
@@ -815,9 +1025,39 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                     }
                   }
                 >
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={[Function]}
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "opacity": 1,
+                      }
+                    }
                     testID="snap-ui-renderer__date-time-picker--datetime-touchable"
                   >
                     <TextInput
@@ -843,13 +1083,12 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-              <View />
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>

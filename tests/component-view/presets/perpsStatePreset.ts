@@ -50,6 +50,41 @@ export const initialStatePerps = () =>
           NetworkController: {
             providerConfig: { chainId: '0x1', type: 'mainnet' },
             selectedNetworkClientId: 'mainnet',
+            // Include Arbitrum so ensureArbitrumNetworkExists() returns without calling addNetwork
+            // (required for view tests that trigger navigateToOrder, e.g. PerpsActiveTraderFlow)
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                    name: 'Ethereum Network default RPC',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Main Network',
+                nativeCurrency: 'ETH',
+              },
+              '0xa4b1': {
+                chainId: '0xa4b1',
+                name: 'Arbitrum One',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'arbitrum-mainnet',
+                    type: 'infura',
+                    url: 'https://arbitrum-mainnet.infura.io/v3/{infuraProjectId}',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://arbiscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+              },
+            },
           },
           PreferencesController: {
             // useTokensWithBalance -> sortAssets expects tokenSortConfig.key

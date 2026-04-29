@@ -7,10 +7,10 @@ export const TrendingViewSelectorsIDs = {
   SEARCH_INPUT: 'explore-view-search-input',
   SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
-  PERPS_ROW_ITEM_PREFIX: 'perps-market-row-item-',
+  PERPS_ROW_ITEM_PREFIX: 'perps-market-tile-card-',
   PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-row-item-',
   SITE_ROW_ITEM_PREFIX: 'site-row-item-',
-  SEARCH_FOOTER_GOOGLE_LINK: 'trending-search-footer-google-link',
+  SEARCH_FOOTER_SEARCH_LINK: 'trending-search-footer-search-link',
   SCROLL_VIEW: AppTrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW,
   QUICK_ACTIONS_SCROLL_VIEW:
     AppTrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,

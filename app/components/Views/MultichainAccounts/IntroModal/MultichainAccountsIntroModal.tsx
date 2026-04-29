@@ -6,12 +6,10 @@ import {
   TextVariant,
   IconName,
   TextColor,
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { createAccountSelectorNavDetails } from '../../AccountSelector';
@@ -201,24 +199,26 @@ const MultichainAccountsIntroModal = () => {
 
         <View style={styles.buttonsContainer}>
           <Button
-            variant={ButtonVariants.Primary}
-            label={renderButtonLabel()}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            size={ButtonBaseSize.Lg}
+            isFullWidth
             onPress={handleViewAccounts}
             isDisabled={isAligning}
             testID={
               MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON
             }
-          />
+          >
+            {renderButtonLabel()}
+          </Button>
           <Button
-            variant={ButtonVariants.Link}
-            label={strings('multichain_accounts.intro.learn_more_button')}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Tertiary}
+            size={ButtonBaseSize.Lg}
+            isFullWidth
             onPress={handleLearnMore}
             testID={MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.LEARN_MORE_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.intro.learn_more_button')}
+          </Button>
         </View>
       </View>
     </View>

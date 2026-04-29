@@ -21,11 +21,17 @@ class OnboardingSheet {
   }
 
   get googleLoginButton() {
-    return Selectors.getXpathElementByResourceId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON);
+    }
+    return AppwrightSelectors.getElementByID(this._device, OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON);
   }
 
   get appleLoginButton() {
-    return Selectors.getXpathElementByResourceId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON);
+    }
+    return AppwrightSelectors.getElementByID(this._device, OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON);
   }
 
   get importSeedButton() {
@@ -41,11 +47,19 @@ class OnboardingSheet {
   }
 
   async tapGoogleLoginButton() {
-    await Gestures.waitAndTap(this.googleLoginButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.googleLoginButton);
+    } else {
+      await AppwrightGestures.tap(await this.googleLoginButton);
+    }
   }
 
   async tapAppleLoginButton() {
-    await Gestures.waitAndTap(this.appleLoginButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.appleLoginButton);
+    } else {
+      await AppwrightGestures.tap(await this.appleLoginButton);
+    }
   }
 
   async tapImportSeedButton() {

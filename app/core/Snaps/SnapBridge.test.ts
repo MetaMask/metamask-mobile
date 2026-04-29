@@ -2,7 +2,7 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { Json, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import ObjectMultiplex from '@metamask/object-multiplex';
 import { JsonRpcEngineNextCallback } from '@metamask/json-rpc-engine';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import SnapBridge from './SnapBridge';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
@@ -33,6 +33,19 @@ jest.mock('../Engine/Engine', () => ({
   context: {
     AccountsController: {
       listAccounts: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+          metadata: {
+            name: 'Test Account 1',
+            lastSelected: 1,
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
+      ]),
+      listMultichainAccounts: jest.fn().mockReturnValue([
         {
           address: '0x1234567890123456789012345678901234567890',
           id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
@@ -89,7 +102,9 @@ jest.mock('../Engine/Engine', () => ({
         value: {
           requiredScopes: {},
           optionalScopes: {
-            'eip155:1': {},
+            'eip155:1': {
+              accounts: ['eip155:1:0x1234567890123456789012345678901234567890'],
+            },
           },
           sessionProperties: {},
           isMultichainOrigin: true,

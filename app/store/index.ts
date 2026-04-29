@@ -22,7 +22,7 @@ const pReducer = persistReducer<RootState, AnyAction>(
   rootReducer,
 );
 
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 let store: ReduxStore, persistor: Persistor, runSaga: SagaMiddleware['run'];
 /* istanbul ignore next -- store initialization; runs at module load with heavy deps (sagas, persistence, tracing) */
 const createStoreAndPersistor = async () => {

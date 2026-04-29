@@ -2,7 +2,10 @@ import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
-import InfoRow, { InfoRowSkeleton } from '../../UI/info-row/info-row';
+import InfoRow, {
+  InfoRowSkeleton,
+  InfoRowVariant,
+} from '../../UI/info-row/info-row';
 import Text, {
   TextColor,
   TextVariant,
@@ -74,6 +77,7 @@ export function TokenConversionRateRow() {
     <InfoRow
       label={strings('earn.musd_conversion.rate')}
       testID={TokenConversionRateRowTestIds.CONTAINER}
+      rowVariant={InfoRowVariant.Small}
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {`1 ${inputTokenSymbol} = ${conversionRate} ${outputTokenSymbol}`}

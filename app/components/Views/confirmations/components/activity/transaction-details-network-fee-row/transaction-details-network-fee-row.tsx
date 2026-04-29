@@ -11,6 +11,7 @@ import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testId
 import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
 
 const FALLBACK_TYPES = [
+  TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
   TransactionType.musdClaim,

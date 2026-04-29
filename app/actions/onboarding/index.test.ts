@@ -1,11 +1,13 @@
 import {
   saveOnboardingEvent,
   clearOnboardingEvents,
+  clearOnboarding,
   setCompletedOnboarding,
   setAccountType,
   clearAccountType,
   SAVE_EVENT,
   CLEAR_EVENTS,
+  CLEAR_ONBOARDING,
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
@@ -46,16 +48,32 @@ describe('Onboarding actions', () => {
 
   describe('setAccountType', () => {
     it('creates an action to set accountType', () => {
-      expect(setAccountType(AccountType.Metamask)).toEqual({
+      const onboardingVersion = '7.0.0 (1234)';
+
+      expect(
+        setAccountType({
+          accountType: AccountType.Metamask,
+          onboardingVersion,
+        }),
+      ).toEqual({
         type: SET_ACCOUNT_TYPE,
         accountType: AccountType.Metamask,
+        onboardingVersion,
       });
     });
 
     it('creates an action with social login account type', () => {
-      expect(setAccountType(AccountType.MetamaskGoogle)).toEqual({
+      const onboardingVersion = '7.0.0 (1234)';
+
+      expect(
+        setAccountType({
+          accountType: AccountType.MetamaskGoogle,
+          onboardingVersion,
+        }),
+      ).toEqual({
         type: SET_ACCOUNT_TYPE,
         accountType: AccountType.MetamaskGoogle,
+        onboardingVersion,
       });
     });
   });
@@ -64,6 +82,14 @@ describe('Onboarding actions', () => {
     it('creates an action to clear accountType', () => {
       expect(clearAccountType()).toEqual({
         type: CLEAR_ACCOUNT_TYPE,
+      });
+    });
+  });
+
+  describe('clearOnboarding', () => {
+    it('creates an action to reset onboarding state', () => {
+      expect(clearOnboarding()).toEqual({
+        type: CLEAR_ONBOARDING,
       });
     });
   });

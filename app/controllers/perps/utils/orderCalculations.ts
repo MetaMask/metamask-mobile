@@ -1,12 +1,15 @@
 import type { Hex } from '@metamask/utils';
 
-import { ORDER_SLIPPAGE_CONFIG } from '../constants/perpsConfig';
-import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import type { PerpsDebugLogger } from '../types';
 import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
 } from './hyperLiquidAdapter';
+import {
+  MAX_ORDER_MARGIN_BUFFER,
+  ORDER_SLIPPAGE_CONFIG,
+} from '../constants/perpsConfig';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import type { PerpsDebugLogger } from '../types';
 import type { SDKOrderParams } from '../types/hyperliquid-types';
 
 /**
@@ -174,7 +177,11 @@ export function getMaxAllowedAmount(params: MaxAllowedAmountParams): number {
     maxAmount -= positionSizeIncrementUsd;
   }
 
-  return Math.max(0, maxAmount);
+  // Apply margin buffer to reduce "Insufficient margin" rejections from the exchange
+  // (fees, rounding, and exchange-side checks can make 100% theoretical max fail)
+  const bufferedMax = maxAmount * (1 - MAX_ORDER_MARGIN_BUFFER);
+
+  return Math.max(0, Math.floor(bufferedMax));
 }
 
 /**

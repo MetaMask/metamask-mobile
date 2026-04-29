@@ -1,13 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { FlatList, ListRenderItem, ActivityIndicator } from 'react-native';
-import {
-  Box,
-  Text,
-  TextVariant,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { usePointsEvents } from '../../../hooks/usePointsEvents';
 import {
   PointsEventDto,
@@ -23,10 +17,9 @@ import {
   selectSeasonStatusLoading,
   selectSeasonActivityTypes,
 } from '../../../../../../reducers/rewards/selectors';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import MetamaskRewardsActivityEmptyImage from '../../../../../../images/rewards/metamask-rewards-activity-empty.svg';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
-import { setActiveTab } from '../../../../../../actions/rewards';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
 import { NameType } from '../../../../Name/Name.types';
@@ -98,12 +91,7 @@ const LoadingFooter: React.FC = () => (
 const ItemSeparator: React.FC = () => <Box twClassName="h-2" />;
 
 const EmptyState: React.FC = () => {
-  const dispatch = useDispatch();
   const tw = useTailwind();
-
-  const handleSeeWaysToEarn = () => {
-    dispatch(setActiveTab('overview'));
-  };
 
   return (
     <Box twClassName="flex-1 items-center py-4">
@@ -128,10 +116,6 @@ const EmptyState: React.FC = () => {
         >
           {strings('rewards.activity_empty_description')}
         </Text>
-
-        <Button variant={ButtonVariant.Tertiary} onPress={handleSeeWaysToEarn}>
-          {strings('rewards.activity_empty_link')}
-        </Button>
       </Box>
     </Box>
   );

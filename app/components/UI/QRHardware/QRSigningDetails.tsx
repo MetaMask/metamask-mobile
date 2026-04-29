@@ -15,7 +15,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 interface IQRSigningDetails {
@@ -111,7 +111,7 @@ const QRSigningDetails = ({
   fromAddress,
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const [scannerVisible, setScannerVisible] = useState(false);

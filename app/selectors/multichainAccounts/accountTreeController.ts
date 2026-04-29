@@ -280,8 +280,7 @@ export const selectResolvedSelectedAccountGroup = createSelector(
     accountToGroupMap,
     selectedAccountId,
   ): AccountGroupObject | null => {
-    const selectedAccountGroupId =
-      accountTreeState?.accountTree?.selectedAccountGroup;
+    const selectedAccountGroupId = accountTreeState?.selectedAccountGroup;
     if (selectedAccountGroupId) {
       const [walletId] = selectedAccountGroupId.split('/') as [AccountWalletId];
       const wallet = accountTreeState?.accountTree?.wallets?.[walletId];
@@ -347,7 +346,7 @@ export const selectInternalAccountFromAccountGroup = (
 export const selectSelectedAccountGroupId = createSelector(
   [selectAccountTreeControllerState],
   (accountTreeState: AccountTreeControllerState) =>
-    accountTreeState?.accountTree?.selectedAccountGroup || null,
+    accountTreeState?.selectedAccountGroup || null,
 );
 
 /**

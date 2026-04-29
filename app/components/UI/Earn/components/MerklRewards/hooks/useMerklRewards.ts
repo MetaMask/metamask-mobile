@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
@@ -18,6 +17,7 @@ import Logger from '../../../../../../util/Logger';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+const MERKL_REWARDS_AUTO_REFRESH_INTERVAL_MS = 60_000;
 
 // Map of chains and eligible tokens
 // mUSD on mainnet is eligible because users earn rewards for holding it,
@@ -58,7 +58,10 @@ interface UseMerklRewardsOptions {
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
+  lifetimeBonusClaimed: string | null;
+  hasClaimedBefore: boolean;
   refetch: () => void;
+  rewardsFetchVersion: number;
 }
 
 /**
@@ -68,6 +71,11 @@ export const useMerklRewards = ({
   asset,
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
+  const [lifetimeBonusClaimed, setLifetimeBonusClaimed] = useState<
+    string | null
+  >(null);
+  const [hasClaimedBefore, setHasClaimedBefore] = useState(false);
+  const [rewardsFetchVersion, setRewardsFetchVersion] = useState(0);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -78,6 +86,8 @@ export const useMerklRewards = ({
       // Guard against undefined asset (can happen when selector returns undefined)
       if (!asset) {
         setClaimableReward(null);
+        setLifetimeBonusClaimed(null);
+        setHasClaimedBefore(false);
         return;
       }
 
@@ -88,6 +98,8 @@ export const useMerklRewards = ({
 
       if (!isEligible || !selectedAddress) {
         setClaimableReward(null);
+        setLifetimeBonusClaimed(null);
+        setHasClaimedBefore(false);
         return;
       }
 
@@ -108,6 +120,9 @@ export const useMerklRewards = ({
         }
 
         if (!matchingReward) {
+          setClaimableReward(null);
+          setLifetimeBonusClaimed(null);
+          setHasClaimedBefore(false);
           return;
         }
 
@@ -129,40 +144,35 @@ export const useMerklRewards = ({
             ? claimedFromContract
             : matchingReward.claimed;
 
-        // Use unclaimed amount as it represents claimable rewards in the Merkle tree
         // Use token decimals from API response, fallback to asset decimals
-        // Convert string amounts to BigInt for subtraction, then back to string
-        const unclaimedBaseUnits =
-          BigInt(matchingReward.amount) - BigInt(claimedAmount);
         const tokenDecimals =
           matchingReward.token.decimals ?? asset.decimals ?? 18;
 
-        if (unclaimedBaseUnits > 0n) {
-          // Convert from wei to token amount
-          const unclaimedAmount = renderFromTokenMinimalUnit(
-            unclaimedBaseUnits.toString(),
-            tokenDecimals,
-            2, // Show 2 decimal places
-          );
-          // Handle the "< 0.00001" case from renderFromTokenMinimalUnit
-          // by showing "< 0.01" for consistency with 2 decimal places
-          // Also ensure we always show exactly 2 decimal places for currency display
-          let displayAmount: string;
-          if (unclaimedAmount.startsWith('<')) {
-            displayAmount = '< 0.01';
+        if (!controller.signal.aborted) {
+          setHasClaimedBefore(BigInt(claimedAmount) > 0n);
+
+          // Compute lifetime bonus claimed as a human-readable dollar amount
+          const claimedBigInt = BigInt(claimedAmount);
+          if (claimedBigInt > 0n) {
+            const claimedDecimal =
+              Number(claimedBigInt) / Math.pow(10, tokenDecimals);
+            setLifetimeBonusClaimed(claimedDecimal.toFixed(2));
           } else {
-            // Ensure exactly 2 decimal places (e.g., "0.9" -> "0.90")
-            const numValue = parseFloat(unclaimedAmount);
-            displayAmount = numValue.toFixed(2);
+            setLifetimeBonusClaimed('0.00');
           }
-          // Double-check that the rendered amount is not '0' or '0.00'
-          // This handles edge cases where very small amounts round to zero
-          if (
-            displayAmount &&
-            displayAmount !== '0' &&
-            displayAmount !== '0.00'
-          ) {
-            // Final check before setting state to ensure effect is still active
+        }
+
+        // Use unclaimed amount as it represents claimable rewards in the Merkle tree
+        // Convert string amounts to BigInt for subtraction, then back to string
+        const unclaimedBaseUnits =
+          BigInt(matchingReward.amount) - BigInt(claimedAmount);
+
+        if (unclaimedBaseUnits > 0n) {
+          const unclaimedDecimal =
+            Number(unclaimedBaseUnits) / Math.pow(10, tokenDecimals);
+          const displayAmount =
+            unclaimedDecimal < 0.01 ? '< 0.01' : unclaimedDecimal.toFixed(2);
+          if (displayAmount !== '0' && displayAmount !== '0.00') {
             if (!controller.signal.aborted) {
               setClaimableReward(displayAmount);
             }
@@ -181,6 +191,10 @@ export const useMerklRewards = ({
           error as Error,
           'useMerklRewards: Error fetching claimable rewards',
         );
+      } finally {
+        if (!controller.signal.aborted) {
+          setRewardsFetchVersion((version) => version + 1);
+        }
       }
     },
     [asset, selectedAddress],
@@ -203,8 +217,25 @@ export const useMerklRewards = ({
     };
   }, [fetchClaimableRewards]);
 
+  useEffect(() => {
+    if (!asset || !selectedAddress) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch();
+    }, MERKL_REWARDS_AUTO_REFRESH_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [asset, selectedAddress, refetch]);
+
   return {
     claimableReward,
+    lifetimeBonusClaimed,
+    hasClaimedBefore,
     refetch,
+    rewardsFetchVersion,
   };
 };

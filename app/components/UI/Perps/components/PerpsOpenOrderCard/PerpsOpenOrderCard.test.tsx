@@ -43,6 +43,15 @@ jest.mock('../PerpsTokenLogo', () => ({
   },
 }));
 
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: (action: () => Promise<unknown>) => action(),
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 describe('PerpsOpenOrderCard', () => {
   const mockOrder: Order = {
     orderId: 'order-123',
@@ -276,8 +285,8 @@ describe('PerpsOpenOrderCard', () => {
       const cancelButton = screen.getByTestId(
         PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
       );
-      // Check that the button has disabled prop
-      expect(cancelButton.props.disabled).toBe(true);
+      // Check that the button is disabled
+      expect(cancelButton).toBeDisabled();
     });
 
     it('shows geo block modal when cancel button is pressed and user is not eligible', () => {

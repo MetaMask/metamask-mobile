@@ -29,8 +29,11 @@ export function Nft({ asset, onPress }: NftProps) {
     onPress(asset);
   }, [asset, onPress]);
 
+  const testID = `nft-${asset.name || asset.collectionName || 'NFT'}-${asset.tokenId}`;
+
   return (
     <Pressable
+      testID={testID}
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2',
@@ -57,7 +60,7 @@ export function Nft({ asset, onPress }: NftProps) {
             <AvatarToken
               name={asset.name || asset.collectionName || 'NFT'}
               src={asset.image ? { uri: asset.image } : undefined}
-              style={tw.style('w-10 h-10')}
+              style={tw.style('w-10 h-10 rounded-xl')}
             />
           </BadgeWrapper>
         </Box>

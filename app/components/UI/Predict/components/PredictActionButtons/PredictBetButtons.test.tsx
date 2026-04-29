@@ -26,8 +26,10 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getByText('35¢')).toBeOnTheScreen();
     });
 
     it('renders with custom labels', () => {
@@ -38,8 +40,8 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('SEA · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('DEN · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA')).toBeOnTheScreen();
+      expect(screen.getByText('DEN')).toBeOnTheScreen();
     });
 
     it('renders with custom prices', () => {
@@ -50,8 +52,8 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('YES · 49¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 51¢')).toBeOnTheScreen();
+      expect(screen.getByText('49¢')).toBeOnTheScreen();
+      expect(screen.getByText('51¢')).toBeOnTheScreen();
     });
 
     it('renders with testID prefix for each button', () => {
@@ -61,6 +63,29 @@ describe('PredictBetButtons', () => {
 
       expect(screen.getByTestId('custom-buttons-yes')).toBeOnTheScreen();
       expect(screen.getByTestId('custom-buttons-no')).toBeOnTheScreen();
+    });
+
+    it('renders draw button between yes and no when draw props are provided', () => {
+      const props = createDefaultProps({
+        drawLabel: 'DRAW',
+        drawPrice: 20,
+        onDrawPress: jest.fn(),
+      });
+
+      renderWithProvider(<PredictBetButtons {...props} />);
+
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('DRAW')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getByTestId('bet-buttons-draw')).toBeOnTheScreen();
+    });
+
+    it('does not render draw button when draw props are missing', () => {
+      const props = createDefaultProps();
+
+      renderWithProvider(<PredictBetButtons {...props} />);
+
+      expect(screen.queryByTestId('bet-buttons-draw')).not.toBeOnTheScreen();
     });
   });
 
@@ -101,6 +126,20 @@ describe('PredictBetButtons', () => {
       expect(mockOnYesPress).not.toHaveBeenCalled();
       expect(mockOnNoPress).not.toHaveBeenCalled();
     });
+
+    it('calls onDrawPress when draw button is pressed', () => {
+      const mockOnDrawPress = jest.fn();
+      const props = createDefaultProps({
+        drawLabel: 'DRAW',
+        drawPrice: 20,
+        onDrawPress: mockOnDrawPress,
+      });
+
+      renderWithProvider(<PredictBetButtons {...props} />);
+      fireEvent.press(screen.getByTestId('bet-buttons-draw'));
+
+      expect(mockOnDrawPress).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('team colors', () => {
@@ -137,8 +176,9 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('YES · 50¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 50¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getAllByText('50¢')).toHaveLength(2);
     });
 
     it('renders with extreme prices', () => {
@@ -149,8 +189,10 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('YES · 99¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 1¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('99¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getByText('1¢')).toBeOnTheScreen();
     });
   });
 });

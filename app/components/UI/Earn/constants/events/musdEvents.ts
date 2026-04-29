@@ -5,9 +5,10 @@ const EVENT_PROVIDERS = {
 const EVENT_LOCATIONS = {
   HOME_SCREEN: 'home',
   /** Cash section on homepage (aggregated mUSD row or empty state "Get mUSD") */
-  HOME_CASH_SECTION: 'home_cash_section',
+  HOME_CASH_SECTION: 'home_section',
   TOKEN_LIST_ITEM: 'token_list_item',
   ASSET_OVERVIEW: 'asset_overview',
+  BONUS_CLAIM_TOOLTIP: 'bonus_claim_tooltip',
   CONVERSION_EDUCATION_SCREEN: 'conversion_education_screen',
   CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
   BUY_SCREEN: 'buy_screen', // Buy mUSD screen.
@@ -16,6 +17,8 @@ const EVENT_LOCATIONS = {
     'quick_convert_max_bottom_sheet_confirmation_screen',
   CUSTOM_AMOUNT_NAVBAR: 'custom_amount_navbar',
   PERCENTAGE_ROW: 'percentage_row',
+  /** CTA on full page Cash token list */
+  MOBILE_TOKEN_LIST_PAGE: 'mobile-token-list-page',
 };
 
 const MUSD_CTA_TYPES = {

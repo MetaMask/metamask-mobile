@@ -1,10 +1,6 @@
-import {
-  Intent,
-  QuoteMetadata,
-  QuoteResponse,
-} from '@metamask/bridge-controller';
 import { Asset, TokenRwaData } from '@metamask/assets-controllers';
 import { Hex, CaipChainId } from '@metamask/utils';
+import { SecurityData } from './hooks/usePopularTokens';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
 export interface BridgeToken {
@@ -26,17 +22,12 @@ export interface BridgeToken {
     isSource: boolean;
     isDestination: boolean;
   };
+  isVerified?: boolean;
   aggregators?: string[];
   metadata?: Record<string, unknown>;
   rwaData?: TokenRwaData;
+  securityData?: SecurityData;
 }
-
-export type BridgeQuoteResponse = QuoteResponse &
-  QuoteMetadata & {
-    aggregator: string;
-    walletAddress: string;
-    intent?: Intent;
-  };
 
 export enum BridgeViewMode {
   Swap = 'Swap',

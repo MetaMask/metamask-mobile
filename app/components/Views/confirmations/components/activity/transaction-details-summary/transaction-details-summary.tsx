@@ -18,6 +18,7 @@ import {
 import { hasTransactionType } from '../../../utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
+import { SourceHashSummaryLine } from './source-hash-summary-line';
 import { DepositSummaryLine } from './deposit-summary-line';
 import { ApprovalSummaryLine } from './approval-summary-line';
 import { ReceiveSummaryLine } from './receive-summary-line';
@@ -28,6 +29,7 @@ export function TransactionDetailsSummary() {
   const {
     batchId,
     id: transactionId,
+    metamaskPay,
     requiredTransactionIds,
   } = transactionMeta;
 
@@ -62,10 +64,21 @@ export function TransactionDetailsSummary() {
       transaction.id === transactionId,
   );
 
+  const hasDepositTransactions =
+    (requiredTransactionIds?.length ?? 0) > 0 || batchTransactionIds.length > 0;
+
+  const { sourceHash } = metamaskPay ?? {};
+
   return (
     <Box gap={12}>
       <Text color={TextColor.Alternative}>Summary</Text>
       <ProgressList>
+        {!hasDepositTransactions && sourceHash ? (
+          <SourceHashSummaryLine
+            parentTransaction={transactionMeta}
+            sourceHash={sourceHash}
+          />
+        ) : null}
         {transactions.map((transaction) => (
           <SummaryLine
             key={transaction.id}

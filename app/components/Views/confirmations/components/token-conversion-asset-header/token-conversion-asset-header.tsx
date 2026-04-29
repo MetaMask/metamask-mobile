@@ -15,7 +15,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import BigNumber from 'bignumber.js';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { AssetType } from '../../types/token';
 import styleSheet from './token-conversion-asset-header.styles';
 import {

@@ -32,6 +32,7 @@ import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/brid
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import type { CaipChainId } from '@metamask/utils';
 import { FilterButton } from '../../../Trending/components/FilterBar/FilterBar';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { BridgeTrendingTokensSectionTestIds } from './BridgeTrendingTokensSection.testIds';
 
 const TOKEN_CHUNK_SIZE = 12;
@@ -188,6 +189,7 @@ const BridgeTrendingTokensSection = ({
                   position={index}
                   selectedTimeOption={selectedTimeOption}
                   filterContext={filterContext}
+                  tokenDetailsSource={TokenDetailsSource.TrendingSwaps}
                 />
               ))}
         {!isLoading && hasMore ? (

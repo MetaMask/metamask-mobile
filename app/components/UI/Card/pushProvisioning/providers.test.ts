@@ -1,17 +1,26 @@
 import { Platform } from 'react-native';
 import { getCardProvider, getWalletProvider } from './providers';
-import { GalileoCardAdapter } from './adapters/card';
-import { CardSDK } from '../sdk/CardSDK';
+import { ControllerCardAdapter } from './adapters/card';
+import { GoogleWalletAdapter, AppleWalletAdapter } from './adapters/wallet';
 
-// Mock the adapters
 jest.mock('./adapters/card', () => ({
-  GalileoCardAdapter: jest.fn().mockImplementation(() => ({
-    providerId: 'galileo',
+  ControllerCardAdapter: jest.fn().mockImplementation(() => ({
+    providerId: 'controller',
+  })),
+}));
+
+jest.mock('./adapters/wallet', () => ({
+  AppleWalletAdapter: jest.fn().mockImplementation(() => ({
+    walletType: 'apple_wallet',
+  })),
+  IWalletProviderAdapter: {},
+  GoogleWalletAdapter: jest.fn().mockImplementation(() => ({
+    walletType: 'google_wallet',
+    platform: 'android',
   })),
 }));
 
 describe('Push Provisioning Providers', () => {
-  const mockCardSDK = {} as CardSDK;
   const originalPlatform = Platform.OS;
 
   beforeEach(() => {
@@ -26,40 +35,29 @@ describe('Push Provisioning Providers', () => {
   });
 
   describe('getCardProvider', () => {
-    it('returns GalileoCardAdapter for US location', () => {
-      const result = getCardProvider('us', mockCardSDK);
+    it('returns ControllerCardAdapter for US location', () => {
+      const result = getCardProvider('us');
 
       expect(result).toBeDefined();
-      expect(GalileoCardAdapter).toHaveBeenCalledWith(mockCardSDK);
+      expect(ControllerCardAdapter).toHaveBeenCalled();
     });
 
     it('returns null for international location', () => {
-      const result = getCardProvider('international', mockCardSDK);
+      const result = getCardProvider('international');
 
       expect(result).toBeNull();
     });
 
     it('returns null for unknown location', () => {
       // @ts-expect-error - Testing invalid input
-      const result = getCardProvider('unknown', mockCardSDK);
+      const result = getCardProvider('unknown');
 
       expect(result).toBeNull();
     });
   });
 
   describe('getWalletProvider', () => {
-    it('returns null for Android (base branch has no platform adapters)', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-      });
-
-      const result = getWalletProvider();
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null for iOS (base branch has no platform adapters)', () => {
+    it('returns AppleWalletAdapter for iOS', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'ios',
         writable: true,
@@ -67,7 +65,20 @@ describe('Push Provisioning Providers', () => {
 
       const result = getWalletProvider();
 
-      expect(result).toBeNull();
+      expect(result).toBeDefined();
+      expect(AppleWalletAdapter).toHaveBeenCalled();
+    });
+
+    it('returns GoogleWalletAdapter for Android', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const result = getWalletProvider();
+
+      expect(result).toBeDefined();
+      expect(GoogleWalletAdapter).toHaveBeenCalled();
     });
 
     it('returns null for unsupported platforms', () => {

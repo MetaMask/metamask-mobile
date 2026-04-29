@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 ///////////////////////////////////////////////////////
 // This is a generated file
 // DO NOT EDIT - Use generate-assets.js
@@ -47,6 +47,7 @@ import calendarSVG from './assets/calendar.svg';
 import callSVG from './assets/call.svg';
 import cameraSVG from './assets/camera.svg';
 import campaignSVG from './assets/campaign.svg';
+import candlestickSVG from './assets/candlestick.svg';
 import cardposSVG from './assets/card-pos.svg';
 import cardSVG from './assets/card.svg';
 import cashSVG from './assets/cash.svg';
@@ -152,8 +153,8 @@ import mapSVG from './assets/map.svg';
 import menuSVG from './assets/menu.svg';
 import messagequestionSVG from './assets/message-question.svg';
 import messagesSVG from './assets/messages.svg';
-import metamaskfoxoutlineSVG from './assets/metamask-fox-outline.svg';
 import metamaskfoxfilledSVG from './assets/metamask-fox-filled.svg';
+import metamaskfoxoutlineSVG from './assets/metamask-fox-outline.svg';
 import micSVG from './assets/mic.svg';
 import minusboldSVG from './assets/minus-bold.svg';
 import minussquareSVG from './assets/minus-square.svg';
@@ -166,6 +167,7 @@ import morehorizontalSVG from './assets/more-horizontal.svg';
 import moreverticalSVG from './assets/more-vertical.svg';
 import mountainflagSVG from './assets/mountain-flag.svg';
 import musicnoteSVG from './assets/music-note.svg';
+import nophotographySVG from './assets/no-photography.svg';
 import notificationSVG from './assets/notification.svg';
 import pageinfoSVG from './assets/page-info.svg';
 import paletteSVG from './assets/palette.svg';
@@ -197,8 +199,8 @@ import savingSVG from './assets/saving.svg';
 import scanbarcodeSVG from './assets/scan-barcode.svg';
 import scanfocusSVG from './assets/scan-focus.svg';
 import scanSVG from './assets/scan.svg';
-import searchSVG from './assets/search.svg';
 import searchfilledSVG from './assets/search-filled.svg';
+import searchSVG from './assets/search.svg';
 import securityalertSVG from './assets/security-alert.svg';
 import securitycrossSVG from './assets/security-cross.svg';
 import securitykeySVG from './assets/security-key.svg';
@@ -329,6 +331,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Call]: callSVG,
   [IconName.Camera]: cameraSVG,
   [IconName.Campaign]: campaignSVG,
+  [IconName.Candlestick]: candlestickSVG,
   [IconName.CardPos]: cardposSVG,
   [IconName.Card]: cardSVG,
   [IconName.Cash]: cashSVG,
@@ -434,8 +437,8 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Menu]: menuSVG,
   [IconName.MessageQuestion]: messagequestionSVG,
   [IconName.Messages]: messagesSVG,
-  [IconName.MetamaskFoxOutline]: metamaskfoxoutlineSVG,
   [IconName.MetamaskFoxFilled]: metamaskfoxfilledSVG,
+  [IconName.MetamaskFoxOutline]: metamaskfoxoutlineSVG,
   [IconName.Mic]: micSVG,
   [IconName.MinusBold]: minusboldSVG,
   [IconName.MinusSquare]: minussquareSVG,
@@ -448,6 +451,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.MoreVertical]: moreverticalSVG,
   [IconName.MountainFlag]: mountainflagSVG,
   [IconName.MusicNote]: musicnoteSVG,
+  [IconName.NoPhotography]: nophotographySVG,
   [IconName.Notification]: notificationSVG,
   [IconName.PageInfo]: pageinfoSVG,
   [IconName.Palette]: paletteSVG,
@@ -479,8 +483,8 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ScanBarcode]: scanbarcodeSVG,
   [IconName.ScanFocus]: scanfocusSVG,
   [IconName.Scan]: scanSVG,
-  [IconName.Search]: searchSVG,
   [IconName.SearchFilled]: searchfilledSVG,
+  [IconName.Search]: searchSVG,
   [IconName.SecurityAlert]: securityalertSVG,
   [IconName.SecurityCross]: securitycrossSVG,
   [IconName.SecurityKey]: securitykeySVG,

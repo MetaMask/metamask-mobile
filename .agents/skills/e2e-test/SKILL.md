@@ -3,7 +3,8 @@ name: e2e-test
 description:
   Add and fix Detox E2E tests (smoke and regression) for MetaMask Mobile using
   withFixtures, Page Objects, and tests/framework. Use when creating a new spec,
-  fixing a failing E2E test, or adding page objects and selectors.
+  fixing a failing E2E test, adding page objects and selectors, or adding
+  MetaMetrics analytics expectations (analyticsExpectations).
 ---
 
 # E2E Test Builder — Skill
@@ -43,6 +44,10 @@ Task → What do you need?
 ├─ Mock API or feature flags
 │  → Open references/mocking.md (testSpecificMock, setupRemoteFeatureFlagsMock, setupMockRequest)
 │  → When writing the spec: open references/writing-tests.md
+│
+├─ MetaMetrics / Segment analytics assertions (`analyticsExpectations` on `withFixtures`)
+│  → Open [tests/docs/analytics-e2e.md](../../../tests/docs/analytics-e2e.md) (config shape, teardown order, presets under `tests/helpers/analytics/expectations/`, `runAnalyticsExpectations`)
+│  → When wiring a spec: still follow references/writing-tests.md for `withFixtures` usage
 │
 └─ Run tests, debug failures, or self-review
    → Open references/running-tests.md (build check, detox commands, common failures, retry patterns)
@@ -84,9 +89,10 @@ Step 5 → Iterate (fix → lint → run) until green
 
 Documentation is split by **action**. Open only the reference that matches what you are doing.
 
-| Action                                        | File                                                       | When to open it                                                                                   |
-| --------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **Writing or updating a spec**                | [references/writing-tests.md](references/writing-tests.md) | New spec file, spec structure, FixtureBuilder patterns, smoke/regression templates.               |
-| **Page Objects and selectors**                | [references/page-objects.md](references/page-objects.md)   | Create or update POM classes, selector/testId conventions, Matchers/Gestures/Assertions API.      |
-| **API and feature flag mocking**              | [references/mocking.md](references/mocking.md)             | testSpecificMock, setupRemoteFeatureFlagsMock, setupMockRequest, shared mock files.               |
-| **Running tests, debugging, fixing failures** | [references/running-tests.md](references/running-tests.md) | Build check, detox run commands, lint/tsc, common failures table, retry patterns, iteration loop. |
+| Action                                        | File                                                                | When to open it                                                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Writing or updating a spec**                | [references/writing-tests.md](references/writing-tests.md)          | New spec file, spec structure, FixtureBuilder patterns, smoke/regression templates.                                |
+| **Page Objects and selectors**                | [references/page-objects.md](references/page-objects.md)            | Create or update POM classes, selector/testId conventions, Matchers/Gestures/Assertions API.                       |
+| **API and feature flag mocking**              | [references/mocking.md](references/mocking.md)                      | testSpecificMock, setupRemoteFeatureFlagsMock, setupMockRequest, shared mock files.                                |
+| **MetaMetrics / analytics expectations**      | [tests/docs/analytics-e2e.md](../../../tests/docs/analytics-e2e.md) | `analyticsExpectations` on `withFixtures`, declarative checks, presets in `tests/helpers/analytics/expectations/`. |
+| **Running tests, debugging, fixing failures** | [references/running-tests.md](references/running-tests.md)          | Build check, detox run commands, lint/tsc, common failures table, retry patterns, iteration loop.                  |

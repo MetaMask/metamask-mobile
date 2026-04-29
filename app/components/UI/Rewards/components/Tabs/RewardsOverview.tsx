@@ -1,6 +1,5 @@
 import React from 'react';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
-import SnapshotsSection from './OverviewTab/SnapshotsSection';
 import ActiveBoosts from './OverviewTab/ActiveBoosts';
 import { useActivePointsBoosts } from '../../hooks/useActivePointsBoosts';
 import { WaysToEarn } from './OverviewTab/WaysToEarn/WaysToEarn';
@@ -17,12 +16,10 @@ const RewardsOverview: React.FC<RewardsOverviewProps> = () => {
 
   return (
     <ScrollView
-      contentContainerStyle={tw.style('flex-grow')}
+      contentContainerStyle={tw.style('flex-grow p-4 gap-4')}
       showsVerticalScrollIndicator={false}
       testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_OVERVIEW}
     >
-      <SnapshotsSection />
-
       <ActiveBoosts fetchActivePointsBoosts={fetchActivePointsBoosts} />
 
       <WaysToEarn />

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
+import { isE2E } from '../../../../util/test/utils';
 
 const BLINK_DURATION = 800;
 const INITIAL_OPACITY = 0.6;
@@ -13,7 +14,7 @@ export function useBlinkingCursor(enabled = true): Animated.Value {
   const cursorOpacity = useRef(new Animated.Value(INITIAL_OPACITY)).current;
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'test' || !enabled) {
+    if (process.env.NODE_ENV === 'test' || isE2E || !enabled) {
       return;
     }
 

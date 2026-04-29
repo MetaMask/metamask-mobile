@@ -2,13 +2,13 @@ import {
   normalizeTransactionParams,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import * as SecurityAlertsActions from '../../reducers/security-alerts'; // eslint-disable-line import/no-namespace
+import * as SecurityAlertsActions from '../../reducers/security-alerts'; // eslint-disable-line import-x/no-namespace
 import Engine from '../../core/Engine';
 import PPOMUtil, {
   METHOD_SIGN_TYPED_DATA_V3,
   METHOD_SIGN_TYPED_DATA_V4,
 } from './ppom-util';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as securityAlertAPI from './security-alerts-api';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { Hex } from '@metamask/utils';

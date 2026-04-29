@@ -14,11 +14,11 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
   IconName,
@@ -86,7 +86,10 @@ const PerpsClosePositionView: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
-  const { position } = route.params as { position: Position };
+  const { position, source: routeSource } = route.params as {
+    position: Position;
+    source?: string;
+  };
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
@@ -392,6 +395,7 @@ const PerpsClosePositionView: React.FC = () => {
         metamaskFee: feeResults.metamaskFee,
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
+        source: routeSource,
       },
       marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context
@@ -557,6 +561,9 @@ const PerpsClosePositionView: React.FC = () => {
         receiveTooltip:
           PerpsClosePositionViewSelectorsIDs.YOU_RECEIVE_TOOLTIP_BUTTON,
         pointsTooltip: PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON,
+        marginValue: PerpsClosePositionViewSelectorsIDs.MARGIN_VALUE,
+        feesValue: PerpsClosePositionViewSelectorsIDs.FEES_VALUE,
+        receiveValue: PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
       }}
     />
   );
@@ -680,33 +687,37 @@ const PerpsClosePositionView: React.FC = () => {
           {Summary}
           <View style={styles.percentageButtonsContainer}>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              label="25%"
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
-            />
+            >
+              25%
+            </Button>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              label="50%"
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
-            />
+            >
+              50%
+            </Button>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
-            />
+            >
+              {strings('perps.deposit.max_button')}
+            </Button>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              label={strings('perps.deposit.done_button')}
               onPress={handleDonePress}
               style={styles.percentageButton}
-            />
+            >
+              {strings('perps.deposit.done_button')}
+            </Button>
           </View>
 
           <Keypad
@@ -725,14 +736,9 @@ const PerpsClosePositionView: React.FC = () => {
         {!isInputFocused && Summary}
         {!isInputFocused && (
           <Button
-            label={
-              isClosing
-                ? strings('perps.close_position.closing')
-                : strings('perps.close_position.button')
-            }
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             onPress={handleConfirm}
             isDisabled={
               isClosing ||
@@ -741,11 +747,15 @@ const PerpsClosePositionView: React.FC = () => {
               (orderType === 'market' && closePercentage === 0) ||
               !validationResult.isValid
             }
-            loading={isClosing}
+            isLoading={isClosing}
             testID={
               PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
             }
-          />
+          >
+            {isClosing
+              ? strings('perps.close_position.closing')
+              : strings('perps.close_position.button')}
+          </Button>
         )}
       </View>
 

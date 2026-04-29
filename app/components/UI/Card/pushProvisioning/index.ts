@@ -7,11 +7,11 @@
  * ## Architecture
  *
  * The module uses an adapter pattern to support:
- * - Card providers (Galileo, Monavate)
+ * - Card providers (currently Galileo via CardController)
  * - Wallet providers (Google Wallet, Apple Wallet)
  *
  * Providers are selected automatically based on:
- * - User location: 'us' -> Galileo, 'international' -> Monavate
+ * - User location: only 'us' users are eligible; other locations are not supported yet
  * - Platform OS: 'android' -> Google Wallet, 'ios' -> Apple Wallet
  *
  * ## Usage
@@ -20,8 +20,7 @@
  * import { usePushProvisioning } from '@app/components/UI/Card/pushProvisioning';
  *
  * const { initiateProvisioning, isProvisioning, canAddToWallet } = usePushProvisioning({
- *   cardId: 'card-123',
- *   cardholderName: 'John Doe',
+ *   cardDetails: { id: 'card-123', holderName: 'John Doe', panLast4: '1234', status: 'active' },
  * });
  * ```
  */
@@ -39,11 +38,11 @@ export { getCardProvider, getWalletProvider } from './providers';
 export {
   // Card provider adapters
   type ICardProviderAdapter,
-  GalileoCardAdapter,
+  ControllerCardAdapter,
   // Wallet provider adapters
   type IWalletProviderAdapter,
-  // NOTE: Platform-specific adapters (GoogleWalletAdapter, AppleWalletAdapter)
-  // are exported from platform-specific branches
+  AppleWalletAdapter,
+  GoogleWalletAdapter,
 } from './adapters';
 
 // Service

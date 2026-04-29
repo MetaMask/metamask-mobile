@@ -9,6 +9,7 @@ import { mockTheme } from '../../../../../util/theme';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
+import useRegions from '../../hooks/useRegions';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -43,6 +44,8 @@ jest.mock('../../../../../util/Logger', () => ({
 
 // Mock useStartVerification hook
 jest.mock('../../hooks/useStartVerification');
+
+jest.mock('../../hooks/useRegions');
 
 // Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
@@ -140,6 +143,33 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     IconColor: {
       IconAlternative: 'IconAlternative',
+    },
+    Button: ({
+      children,
+      label,
+      onPress,
+      isDisabled,
+      isFullWidth,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) => {
+      const { TouchableOpacity, Text: RNText } =
+        jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        {
+          ...props,
+          testID: 'verify-identity-continue-button',
+          onPress,
+          disabled: isDisabled,
+        },
+        React.createElement(RNText, null, label || children),
+      );
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
     },
   };
 });
@@ -239,7 +269,6 @@ const createTestStore = (initialState = {}) =>
             user: null,
             ...initialState,
           },
-          userCardLocation: 'international',
         },
         action = { type: '', payload: null },
       ) => {
@@ -273,6 +302,10 @@ describe('VerifyIdentity Component', () => {
       error: null,
     });
 
+    (useRegions as jest.Mock).mockReturnValue({
+      userCountry: { key: 'US', name: 'United States', emoji: '🇺🇸' },
+    });
+
     (VeriffSdk.launchVeriff as jest.Mock).mockResolvedValue({
       status: VeriffSdk.statusDone,
     });
@@ -304,7 +337,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(false);
+      expect(continueButton).not.toBeDisabled();
     });
 
     it('does not show error messages initially when verification is successful', () => {
@@ -392,7 +425,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
   });
 
@@ -431,7 +464,7 @@ describe('VerifyIdentity Component', () => {
       );
 
       const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
   });
 
@@ -686,6 +719,9 @@ describe('VerifyIdentity Component', () => {
 
     it('uses correct i18n keys for terms text', () => {
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: { key: 'CA', name: 'Canada', emoji: '🇨🇦' },
+      });
 
       render(
         <Provider store={store}>

@@ -247,6 +247,23 @@ describe('usePerpsNavigation', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
+    it('does not navigate when depositWithOrder rejects', async () => {
+      const depositError = new Error('Deposit failed');
+      mockDepositWithOrder.mockRejectedValue(depositError);
+
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { direction: 'long' as const, asset: 'BTC' };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
+        expect(mockShowToast).toHaveBeenCalledWith({});
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('navigates to tutorial without params', () => {
       const { result } = renderHook(() => usePerpsNavigation());
 

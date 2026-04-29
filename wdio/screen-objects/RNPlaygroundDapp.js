@@ -1,3 +1,4 @@
+// Migrated to tests/page-objects/MMConnect/RNPlaygroundDapp.ts
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { PLAYGROUND_PACKAGE_ID } from '../../tests/framework/Constants.ts';

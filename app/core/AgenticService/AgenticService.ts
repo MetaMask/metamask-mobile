@@ -7,7 +7,10 @@
  * apply production code standards (strict types, full error handling,
  * abstraction layers) here; keep it pragmatic and easy to change.
  */
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
@@ -18,21 +21,30 @@ import {
   setExistingUser,
   logIn,
   seedphraseBackedUp,
+  setMultichainAccountsIntroModalSeen,
 } from '../../actions/user';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
+  OPTIN_META_METRICS_UI_SEEN,
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
   REWARDS_GTM_MODAL_SHOWN,
 } from '../../constants/storage';
 import { analytics } from '../../util/analytics/analytics';
-import { setDataCollectionForMarketing } from '../../actions/security';
+import {
+  setDataCollectionForMarketing,
+  setOsAuthEnabled,
+} from '../../actions/security';
+import { setLockTime } from '../../actions/settings';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import SecureKeychain from '../SecureKeychain';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -43,6 +55,7 @@ import Routes from '../../constants/navigation/Routes';
 interface FiberNode {
   child: FiberNode | null;
   sibling: FiberNode | null;
+  return: FiberNode | null;
   memoizedProps: {
     testID?: string;
     onPress?: (...args: unknown[]) => unknown;
@@ -80,6 +93,10 @@ interface AgenticBridge {
     testId?: string;
     error?: string;
   };
+  pressText: (
+    text: string,
+    options?: { requiredTexts?: string[]; maxTexts?: number },
+  ) => { ok: boolean; text?: string; error?: string };
   scrollView: (options?: {
     testId?: string;
     offset?: number;
@@ -91,6 +108,32 @@ interface AgenticBridge {
     offset?: number;
     animated?: boolean;
   };
+  setInput: (
+    testId: string,
+    value: string,
+  ) => {
+    ok: boolean;
+    testId?: string;
+    value?: string;
+    error?: string;
+  };
+  getTextByTestId: (
+    testId: string,
+    options?: { all?: boolean },
+  ) => string | string[] | null;
+  getAncestorTextsByTestId: (
+    testId: string,
+    options?: { requiredLabels?: string[]; maxTexts?: number },
+  ) => string[] | null;
+  getRowValue: (
+    label: string,
+    pattern: string,
+    options?: {
+      anchorTestId?: string;
+      requiredLabels?: string[];
+      maxTexts?: number;
+    },
+  ) => string | null;
   switchAccount: (address: string) => {
     switched: boolean;
     id: string;
@@ -108,12 +151,17 @@ interface AgenticBridge {
       metametrics?: boolean;
       skipGtmModals?: boolean;
       skipPerpsTutorial?: boolean;
+      autoLockNever?: boolean;
+      deviceAuthEnabled?: boolean;
     };
   }) => Promise<{
     ok: boolean;
     error?: string;
     accounts?: { address: string; name: string }[];
   }>;
+  showStep: (step: { id: string; description: string }) => void;
+  hideStep: () => void;
+  findFiberByTestId: (testId: string) => boolean;
 }
 
 declare global {
@@ -225,6 +273,140 @@ function tryScroll(
   return false;
 }
 
+function appendTextContent(value: unknown, out: string[]) {
+  if (value === null || value === undefined) {
+    return;
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    const text = String(value).trim();
+    if (text.length > 0) {
+      out.push(text);
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((entry) => appendTextContent(entry, out));
+    return;
+  }
+  if (typeof value === 'object' && value && 'props' in value) {
+    const maybeProps = (value as { props?: { children?: unknown } }).props;
+    if (maybeProps?.children !== undefined) {
+      appendTextContent(maybeProps.children, out);
+    }
+  }
+}
+
+function dedupeTexts(texts: string[]): string[] {
+  return texts.filter((text, index) => texts.indexOf(text) === index);
+}
+
+function collectFiberTexts(fiber: FiberNode | null): string[] {
+  const texts: string[] = [];
+  walkFiber(fiber, (node) => {
+    if (node.memoizedProps?.children !== undefined) {
+      appendTextContent(node.memoizedProps.children, texts);
+    }
+    return false;
+  });
+  return dedupeTexts(texts);
+}
+
+function findAncestorTexts(
+  fiber: FiberNode | null,
+  predicate: (texts: string[]) => boolean,
+  maxTexts = 14,
+): string[] | null {
+  let current = fiber;
+  while (current) {
+    const texts = collectFiberTexts(current);
+    if (texts.length > 0 && texts.length <= maxTexts && predicate(texts)) {
+      return texts;
+    }
+    current = current.return;
+  }
+  return null;
+}
+
+function findRowTexts(
+  label: string,
+  options: {
+    anchorTestId?: string;
+    requiredLabels?: string[];
+    maxTexts?: number;
+  } = {},
+): string[] | null {
+  const { anchorTestId, requiredLabels = [], maxTexts = 14 } = options;
+  const matchesRow = (texts: string[]) =>
+    texts.includes(label) &&
+    requiredLabels.every((requiredLabel) => texts.includes(requiredLabel));
+
+  if (anchorTestId) {
+    let anchoredMatch: string[] | null = null;
+    walkFiberRoots((rootFiber) => {
+      const anchor = findFiberByTestId(rootFiber, anchorTestId);
+      if (!anchor) {
+        return false;
+      }
+      anchoredMatch = findAncestorTexts(anchor, matchesRow, maxTexts);
+      return Boolean(anchoredMatch);
+    });
+    if (anchoredMatch) {
+      return anchoredMatch;
+    }
+  }
+
+  let fallbackMatch: string[] | null = null;
+  walkFiberRoots((rootFiber) =>
+    walkFiber(rootFiber, (fiber) => {
+      const texts = collectFiberTexts(fiber);
+      if (texts.length === 0 || texts.length > maxTexts) {
+        return false;
+      }
+      if (!matchesRow(texts)) {
+        return false;
+      }
+      fallbackMatch = texts;
+      return true;
+    }),
+  );
+
+  return fallbackMatch;
+}
+
+function getRowValue(
+  label: string,
+  pattern: string,
+  options: {
+    anchorTestId?: string;
+    requiredLabels?: string[];
+    maxTexts?: number;
+  } = {},
+): string | null {
+  try {
+    const rowTexts = findRowTexts(label, options);
+    if (!rowTexts) {
+      return null;
+    }
+    const matcher = new RegExp(pattern);
+    return (
+      rowTexts.find((text) => text !== label && matcher.test(text)) ?? null
+    );
+  } catch {
+    return null;
+  }
+}
+
+// ─── Step HUD callback registry ─────────────────────────────────────────────
+
+type StepHudCallback =
+  | ((step: { id: string; description: string } | null) => void)
+  | null;
+let _stepHudCallback: StepHudCallback = null;
+
+export function registerStepHudCallback(fn: StepHudCallback) {
+  _stepHudCallback = fn;
+}
+
 // ─── AgenticService ─────────────────────────────────────────────────────────
 
 /**
@@ -244,15 +426,22 @@ const AgenticService = {
    * @param navRef  - Raw (unwrapped) navigation container ref
    * @param deferredNav - The requestAnimationFrame-deferred proxy
    */
-  install(navRef: NavigationContainerRef, deferredNav: NavigationContainerRef) {
+  install(
+    navRef: NavigationContainerRef<ParamListBase>,
+    deferredNav: NavigationContainerRef<ParamListBase>,
+  ) {
     Logger.log('[AgenticService] __AGENTIC__ bridge installed');
 
     globalThis.__AGENTIC__ = {
       platform: Platform.OS,
       navigate: (name: string, params?: object) =>
-        deferredNav.navigate(name as never, params as never),
+        (
+          deferredNav as unknown as {
+            navigate: (name: string, params?: object) => void;
+          }
+        ).navigate(name, params),
       getRoute: () => navRef.getCurrentRoute(),
-      getState: () => navRef.dangerouslyGetState(),
+      getState: () => navRef.getState(),
       canGoBack: () => navRef.canGoBack(),
       goBack: () => deferredNav.goBack(),
       listAccounts: () =>
@@ -279,6 +468,49 @@ const AgenticService = {
           return {
             ok: false,
             error: `No component with testID="${testId}" found or no onPress prop`,
+          };
+        } catch (e) {
+          return { ok: false, error: String(e) };
+        }
+      },
+      pressText: (
+        text: string,
+        options: { requiredTexts?: string[]; maxTexts?: number } = {},
+      ) => {
+        const { requiredTexts = [], maxTexts = 14 } = options;
+        try {
+          let bestMatch: FiberNode | null = null;
+          let bestTextCount = Number.POSITIVE_INFINITY;
+          walkFiberRoots((rootFiber) =>
+            walkFiber(rootFiber, (fiber) => {
+              if (typeof fiber.memoizedProps?.onPress !== 'function') {
+                return false;
+              }
+              const texts = collectFiberTexts(fiber);
+              if (texts.length === 0 || texts.length > maxTexts) {
+                return false;
+              }
+              if (!texts.includes(text)) {
+                return false;
+              }
+              if (requiredTexts.some((required) => !texts.includes(required))) {
+                return false;
+              }
+              if (texts.length < bestTextCount) {
+                bestMatch = fiber;
+                bestTextCount = texts.length;
+              }
+              return false;
+            }),
+          );
+          const matched = bestMatch as FiberNode | null;
+          if (matched && typeof matched.memoizedProps?.onPress === 'function') {
+            matched.memoizedProps.onPress();
+            return { ok: true, text };
+          }
+          return {
+            ok: false,
+            error: `No pressable found for text="${text}"`,
           };
         } catch (e) {
           return { ok: false, error: String(e) };
@@ -317,6 +549,87 @@ const AgenticService = {
           return { ok: false, error: String(e) };
         }
       },
+      setInput: (testId: string, value: string) => {
+        try {
+          const result: {
+            ok: boolean;
+            testId?: string;
+            value?: string;
+            error?: string;
+          } = {
+            ok: false,
+            error: `No component with testID="${testId}" found`,
+          };
+          walkFiberRoots((rootFiber) => {
+            const target = findFiberByTestId(rootFiber, testId);
+            if (!target) return false;
+            // Walk the found fiber and its parents looking for onChangeText
+            let current: FiberNode | null = target;
+            while (current) {
+              if (typeof current.memoizedProps?.onChangeText === 'function') {
+                current.memoizedProps.onChangeText(value);
+                result.ok = true;
+                result.testId = testId;
+                result.value = value;
+                result.error = undefined;
+                return true;
+              }
+              current = current.return;
+            }
+            result.error = `Component with testID="${testId}" has no onChangeText prop`;
+            return true;
+          });
+          return result;
+        } catch (e) {
+          return { ok: false, error: String(e) };
+        }
+      },
+      getTextByTestId: (testId: string, options: { all?: boolean } = {}) => {
+        let texts: string[] | null = null;
+        walkFiberRoots((rootFiber) => {
+          const target = findFiberByTestId(rootFiber, testId);
+          if (!target) {
+            return false;
+          }
+          texts = collectFiberTexts(target);
+          return true;
+        });
+        const collected = texts as string[] | null;
+        if (!collected || collected.length === 0) {
+          return null;
+        }
+        return options.all ? collected : collected[0];
+      },
+      getAncestorTextsByTestId: (
+        testId: string,
+        options: { requiredLabels?: string[]; maxTexts?: number } = {},
+      ) => {
+        const { requiredLabels = [], maxTexts = 14 } = options;
+        let texts: string[] | null = null;
+        walkFiberRoots((rootFiber) => {
+          const target = findFiberByTestId(rootFiber, testId);
+          if (!target) {
+            return false;
+          }
+          texts = findAncestorTexts(
+            target,
+            (candidateTexts) =>
+              requiredLabels.every((label) => candidateTexts.includes(label)),
+            maxTexts,
+          );
+          return Boolean(texts);
+        });
+        return texts;
+      },
+      getRowValue: (
+        label: string,
+        pattern: string,
+        options: {
+          anchorTestId?: string;
+          requiredLabels?: string[];
+          maxTexts?: number;
+        } = {},
+      ) => getRowValue(label, pattern, options),
       switchAccount: (address: string) => {
         const accounts = Engine.context.AccountsController.listAccounts();
         const target = accounts.find(
@@ -328,6 +641,23 @@ const AgenticService = {
         }
         Engine.setSelectedAddress(target.address);
         return { switched: true, ...toAccountSummary(target) };
+      },
+      showStep: (step: { id: string; description: string }) => {
+        _stepHudCallback?.(step);
+      },
+      hideStep: () => {
+        _stepHudCallback?.(null);
+      },
+      findFiberByTestId: (testId: string): boolean => {
+        let found = false;
+        walkFiberRoots((rootFiber) => {
+          if (findFiberByTestId(rootFiber, testId)) {
+            found = true;
+            return true;
+          }
+          return false;
+        });
+        return found;
       },
       setupWallet: async (fixture) => {
         try {
@@ -394,24 +724,58 @@ const AgenticService = {
             store.dispatch(setDataCollectionForMarketing(false));
           }
 
+          // 5b. Set metrics UI as seen (prevents Authentication.unlockWallet
+          // from navigating to OptinMetrics after setupWallet resets to Wallet)
+          if (settings.metametrics !== undefined) {
+            await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, 'true');
+          }
+
+          // 5c. Mark multichain accounts intro modal as seen
+          store.dispatch(setMultichainAccountsIntroModalSeen(true));
+
           // 6. Skip perps tutorial onboarding if requested
           if (settings.skipPerpsTutorial === true) {
             Engine.context.PerpsController?.markTutorialCompleted();
           }
 
-          // 7. Configure MetaMetrics if specified
+          // 7. Set auto-lock to "Never" (-1) for agentic workflows
+          if (settings.autoLockNever === true) {
+            ReduxService.store.dispatch(setLockTime(-1));
+          }
+
+          // 8. Enable device authentication (biometrics/passcode bypass)
+          if (settings.deviceAuthEnabled === true) {
+            ReduxService.store.dispatch(setOsAuthEnabled(true));
+          }
+
+          // 8b. Store password in SecureKeychain for device-auth auto-unlock on reload (Android only — iOS already handles this)
+          if (
+            settings.deviceAuthEnabled === true &&
+            Platform.OS === 'android'
+          ) {
+            DevLogger.log('[AUTO-UNLOCK] Storing password in SecureKeychain', {
+              authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+            });
+            await SecureKeychain.setGenericPassword(
+              fixture.password,
+              AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+            );
+            DevLogger.log('[AUTO-UNLOCK] SecureKeychain password stored');
+          }
+
+          // 9. Configure MetaMetrics if specified
           if (settings.metametrics === false) {
             await analytics.optOut();
           } else if (settings.metametrics === true) {
             await analytics.optIn();
           }
 
-          // 8. Navigate to wallet (same as Authentication.unlockWallet)
+          // 10. Navigate to wallet (same as Authentication.unlockWallet)
           NavigationService.navigation?.reset({
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
           });
 
-          // 9. Collect all ETH accounts for the summary
+          // 11. Collect all ETH accounts for the summary
           const ethAccs = (
             Object.values(
               AccountsController.state.internalAccounts.accounts,

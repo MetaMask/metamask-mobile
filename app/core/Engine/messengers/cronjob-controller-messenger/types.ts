@@ -1,11 +1,11 @@
 import {
-  HandleSnapRequest as SnapControllerHandleRequestActionType,
-  GetAllSnaps as SnapControllerGetAllActionType,
-  SnapInstalled as SnapControllerSnapInstalledEventType,
-  SnapUpdated as SnapControllerSnapUpdatedEventType,
-  SnapUninstalled as SnapControllerSnapUninstalledEventType,
-  SnapEnabled as SnapControllerSnapEnabledEventType,
-  SnapDisabled as SnapControllerSnapDisabledEventType,
+  SnapControllerHandleRequestAction as SnapControllerHandleRequestActionType,
+  SnapControllerGetAllSnapsAction as SnapControllerGetAllActionType,
+  SnapControllerSnapInstalledEvent as SnapControllerSnapInstalledEventType,
+  SnapControllerSnapUpdatedEvent as SnapControllerSnapUpdatedEventType,
+  SnapControllerSnapUninstalledEvent as SnapControllerSnapUninstalledEventType,
+  SnapControllerSnapEnabledEvent as SnapControllerSnapEnabledEventType,
+  SnapControllerSnapDisabledEvent as SnapControllerSnapDisabledEventType,
 } from '@metamask/snaps-controllers';
 import { GetPermissions as PermissionControllerGetPermissionsAction } from '@metamask/permission-controller';
 

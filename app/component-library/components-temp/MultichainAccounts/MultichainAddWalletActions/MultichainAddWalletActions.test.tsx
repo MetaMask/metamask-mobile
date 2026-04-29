@@ -24,8 +24,8 @@ const mockCreateEventBuilder = jest.fn((event) => ({
   build: jest.fn(() => event),
 }));
 
-jest.mock('../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -47,19 +47,6 @@ const mockProps = {
 describe('MultichainAddWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('renders correctly', () => {
-    const wrapper = renderScreen(
-      () => <MultichainAddWalletActions {...mockProps} />,
-      {
-        name: 'MultichainAddWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-    expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
   it('shows all wallet creation options', () => {

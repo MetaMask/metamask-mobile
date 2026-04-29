@@ -10,7 +10,7 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import Keypad, { Keys } from '../../../../Base/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import { InputStepper } from '../InputStepper';
 import { DefaultSlippageModalParams } from './types';
 import { customSlippageModalStyles } from './styles';
@@ -23,11 +23,10 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
 import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisableCustomSlippageConfirm';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
+import { useCustomSlippageCursor } from './useCustomSlippageCursor';
 
 export const CustomSlippageModal = () => {
   const dispatch = useDispatch();
-  useModalCloseOnQuoteExpiry();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { sourceChainId, destChainId } =
     useParams<DefaultSlippageModalParams>();
@@ -44,52 +43,30 @@ export const CustomSlippageModal = () => {
     slippageConfig,
     hasAttemptedToExceedMax,
   });
+  const { selection, handleSelectionChange, handleKeypadChange, resetCursor } =
+    useCustomSlippageCursor({
+      value: inputAmount,
+      inputMaxDecimals: slippageConfig.input_max_decimals,
+      maxAmount: slippageConfig.max_amount,
+      onValueChange: setInputAmount,
+      onAttemptExceedMaxChange: setHasAttemptedToExceedMax,
+    });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleConfirm = useCallback(() => {
-    dispatch(setSlippage(inputAmount));
+    const sanitizedInputAmount = inputAmount.endsWith('.')
+      ? inputAmount.slice(0, -1)
+      : inputAmount;
+
+    dispatch(setSlippage(sanitizedInputAmount));
     sheetRef.current?.onCloseBottomSheet();
   }, [dispatch, inputAmount]);
 
-  const handleKeypadChange = useCallback(
-    (data: { value: string; valueAsNumber: number; pressedKey: Keys }) => {
-      let newValue = data.value;
-      setHasAttemptedToExceedMax(false);
-
-      // If user pressed backspace and the result ends with a trailing dot, remove it
-      if (data.pressedKey === Keys.Back && newValue.endsWith('.')) {
-        newValue = newValue.slice(0, -1);
-      }
-
-      const [, decimalPart] = newValue.split('.');
-      const valueAsNumber = parseFloat(newValue) || 0;
-
-      // Cap the value to input_max_decimals
-      if ((decimalPart?.length ?? 0) > slippageConfig.input_max_decimals) {
-        return;
-      }
-
-      if (valueAsNumber > slippageConfig.max_amount) {
-        setHasAttemptedToExceedMax(true);
-        return;
-      }
-
-      // Do not render dot when reaching max_amount
-      if (newValue === slippageConfig.max_amount + '.') {
-        setInputAmount(String(slippageConfig.max_amount));
-        setHasAttemptedToExceedMax(true);
-        return;
-      }
-
-      setInputAmount(newValue);
-    },
-    [slippageConfig],
-  );
-
   const handleOnIncreasePress = useCallback(() => {
+    resetCursor();
     setHasAttemptedToExceedMax(false);
 
     setInputAmount((value) => {
@@ -101,9 +78,10 @@ export const CustomSlippageModal = () => {
             parseFloat(newValue.toFixed(slippageConfig.input_max_decimals)),
           );
     });
-  }, [slippageConfig]);
+  }, [resetCursor, slippageConfig]);
 
   const handleOnDecreasePress = useCallback(() => {
+    resetCursor();
     setHasAttemptedToExceedMax(false);
 
     setInputAmount((value) => {
@@ -115,7 +93,7 @@ export const CustomSlippageModal = () => {
             parseFloat(newValue.toFixed(slippageConfig.input_max_decimals)),
           );
     });
-  }, [slippageConfig]);
+  }, [resetCursor, slippageConfig]);
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -132,6 +110,8 @@ export const CustomSlippageModal = () => {
           minAmount={slippageConfig.min_amount}
           maxAmount={slippageConfig.max_amount}
           postValue="%"
+          selection={selection}
+          onSelectionChange={handleSelectionChange}
         />
       </View>
       <View style={customSlippageModalStyles.keypadContainer}>

@@ -54,6 +54,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     testID = PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP,
     buttonConfig: buttonConfigProps,
     data,
+    buttonLocation,
   }) => {
     const { styles } = useStyles(createStyles, {});
     const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -96,17 +97,16 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
 
     // Memoize the button handler to prevent recreation
     const handleGotItPress = useCallback(() => {
-      // Track tooltip button click
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
           PERPS_EVENT_VALUE.BUTTON_CLICKED.TOOLTIP,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-          PERPS_EVENT_VALUE.BUTTON_LOCATION.TOOLTIP,
+          buttonLocation ?? PERPS_EVENT_VALUE.BUTTON_LOCATION.TOOLTIP,
       });
       handleClose();
-    }, [track, handleClose]);
+    }, [track, handleClose, buttonLocation]);
 
     // Memoize button label and footer buttons
     const buttonLabel = useMemo(

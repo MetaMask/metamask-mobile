@@ -24,33 +24,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
-  const actual = jest.requireActual(
-    '../../../../selectors/multichainAccounts/accounts',
-  );
-  return {
-    ...actual,
-    selectIconSeedAddressByAccountGroupId: jest.fn(() =>
-      jest.fn(() => '0xseed'),
-    ),
-  };
-});
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    goBack: mockGoBack,
-    navigate: mockNavigate,
-  }),
-}));
-
-jest.mock('../../../../util/address', () => ({
-  isHDOrFirstPartySnapAccount: jest.fn(),
-  isHardwareAccount: jest.fn(),
-  toFormattedAddress: jest.fn((address) => address),
-  areAddressesEqual: jest.fn((addr1, addr2) => addr1 === addr2),
-}));
-
 const mockAccountGroup = createMockAccountGroup(
   'keyring:test-wallet/0',
   'Test Account Group',
@@ -70,6 +43,38 @@ const mockWallet = createMockWallet(
 );
 const internalAccounts = createMockInternalAccountsFromGroups(groups);
 const baseState = createMockState([mockWallet], internalAccounts);
+
+let mockRouteParams = { accountGroup: mockAccountGroup };
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
+  const actual = jest.requireActual(
+    '../../../../selectors/multichainAccounts/accounts',
+  );
+  return {
+    ...actual,
+    selectIconSeedAddressByAccountGroupId: jest.fn(() =>
+      jest.fn(() => '0xseed'),
+    ),
+  };
+});
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+  }),
+  useRoute: () => ({
+    params: mockRouteParams,
+  }),
+}));
+
+jest.mock('../../../../util/address', () => ({
+  isHDOrFirstPartySnapAccount: jest.fn(),
+  isHardwareAccount: jest.fn(),
+  toFormattedAddress: jest.fn((address) => address),
+  areAddressesEqual: jest.fn((addr1, addr2) => addr1 === addr2),
+}));
 
 const mockNetworkControllerState = {
   networkConfigurationsByChainId: {
@@ -115,17 +120,10 @@ const mockMultichainNetworkController = {
 describe('AccountGroupDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = { accountGroup: mockAccountGroup };
     (isHDOrFirstPartySnapAccount as jest.Mock).mockReturnValue(true);
     (isHardwareAccount as jest.Mock).mockReturnValue(false);
   });
-
-  const defaultProps = {
-    route: {
-      params: {
-        accountGroup: mockAccountGroup,
-      },
-    },
-  };
 
   const mockState = {
     ...baseState,
@@ -146,10 +144,9 @@ describe('AccountGroupDetails', () => {
   };
 
   it('renders correctly with account group details', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     expect(
       getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
@@ -161,10 +158,9 @@ describe('AccountGroupDetails', () => {
   });
 
   it('navigates back when back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     const backButton = getByTestId(AccountDetailsIds.BACK_BUTTON);
     fireEvent.press(backButton);
@@ -186,10 +182,9 @@ describe('AccountGroupDetails', () => {
         },
       );
 
-    const { unmount } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { unmount } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     // Multiple subscriptions may exist. Invoke handlers until we find the one that triggers goBack.
     let foundHandlerCalledGoBack = false;
@@ -219,28 +214,25 @@ describe('AccountGroupDetails', () => {
   });
 
   it('displays unlock to reveal text for private keys', () => {
-    const { getByText } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { getByText } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     expect(getByText('Unlock to reveal')).toBeTruthy();
   });
 
   it('displays set up text for smart account', () => {
-    const { getByText } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { getByText } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     expect(getByText('Set up')).toBeTruthy();
   });
 
   it('renders Wallet component when wallet exists', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     expect(getByTestId(AccountDetailsIds.WALLET_NAME_LINK)).toBeTruthy();
   });
@@ -249,7 +241,7 @@ describe('AccountGroupDetails', () => {
     (isHDOrFirstPartySnapAccount as jest.Mock).mockReturnValue(false);
 
     const { queryByText, queryByTestId } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
+      <AccountGroupDetails />,
       { state: mockState },
     );
 
@@ -265,13 +257,11 @@ describe('AccountGroupDetails', () => {
       'Test Account Group',
     );
 
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails
-        {...defaultProps}
-        route={{ params: { accountGroup: singleAccountGroup } }}
-      />,
-      { state: mockState },
-    );
+    mockRouteParams = { accountGroup: singleAccountGroup };
+
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     expect(
       getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
@@ -299,11 +289,10 @@ describe('AccountGroupDetails', () => {
       multiAccountInternalAccounts,
     );
 
+    mockRouteParams = { accountGroup: multiAccountGroup };
+
     const { queryByText, queryByTestId } = renderWithProvider(
-      <AccountGroupDetails
-        {...defaultProps}
-        route={{ params: { accountGroup: multiAccountGroup } }}
-      />,
+      <AccountGroupDetails />,
       { state: multiAccountState },
     );
 
@@ -334,11 +323,11 @@ describe('AccountGroupDetails', () => {
     };
 
     const { getByTestId: getByTestId1 } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
+      <AccountGroupDetails />,
       { state: stateWithoutWallet },
     );
     const { getByTestId: getByTestId2 } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
+      <AccountGroupDetails />,
       { state: stateWithoutAccount },
     );
 
@@ -351,10 +340,9 @@ describe('AccountGroupDetails', () => {
   });
 
   it('navigates to Address List when Networks link is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
     fireEvent.press(networksLink);
@@ -367,10 +355,9 @@ describe('AccountGroupDetails', () => {
   });
 
   it('navigates to Smart Account Details when Smart Account link is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     const smartAccountLink = getByTestId(AccountDetailsIds.SMART_ACCOUNT_LINK);
     fireEvent.press(smartAccountLink);
@@ -381,10 +368,9 @@ describe('AccountGroupDetails', () => {
   });
 
   it('navigates to edit account name when account name is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      { state: mockState },
-    );
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
     const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
     fireEvent.press(accountNameLink);
 
@@ -394,12 +380,9 @@ describe('AccountGroupDetails', () => {
   });
 
   it('uses the group icon seed address to render the avatar', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails {...defaultProps} />,
-      {
-        state: mockState,
-      },
-    );
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
 
     // Assert that the selector selectIconSeedAddressByAccountGroupId was called
     const { selectIconSeedAddressByAccountGroupId: mockedFactory } =
@@ -445,13 +428,11 @@ describe('AccountGroupDetails', () => {
       },
     };
 
-    const { queryByTestId } = renderWithProvider(
-      <AccountGroupDetails
-        {...defaultProps}
-        route={{ params: { accountGroup: mockLedgerAccountGroup } }}
-      />,
-      { state: ledgerState },
-    );
+    mockRouteParams = { accountGroup: mockLedgerAccountGroup };
+
+    const { queryByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: ledgerState,
+    });
 
     // Verify that the private key button is NOT visible for hardware wallet accounts
     expect(queryByTestId(AccountDetailsIds.PRIVATE_KEYS_LINK)).toBeNull();
@@ -492,13 +473,11 @@ describe('AccountGroupDetails', () => {
       },
     };
 
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupDetails
-        {...defaultProps}
-        route={{ params: { accountGroup: mockHDAccountGroup } }}
-      />,
-      { state: hdState },
-    );
+    mockRouteParams = { accountGroup: mockHDAccountGroup };
+
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: hdState,
+    });
 
     // Verify that the private key button IS visible for non-hardware wallet accounts
     expect(getByTestId(AccountDetailsIds.PRIVATE_KEYS_LINK)).toBeTruthy();

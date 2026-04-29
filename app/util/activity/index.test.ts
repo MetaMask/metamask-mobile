@@ -1398,3 +1398,207 @@ describe('Activity utils :: filterByAddress - token poisoning protection', () =>
     expect(result).toEqual(true);
   });
 });
+
+describe('Activity utils :: filterByAddress - incoming native poisoning protection', () => {
+  const chainId = '0x1' as Hex;
+  const UNKNOWN_SENDER = '0x9999999999999999999999999999999999999999';
+
+  it('hides incoming native transfer from unknown address', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: UNKNOWN_SENDER,
+        to: TEST_ADDRESS_ONE,
+        value: '0x38d7ea4c68000', // 0.001 ETH
+      },
+      isTransfer: false,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      [],
+      {},
+      {},
+      [TEST_ADDRESS_ONE],
+    );
+    expect(result).toEqual(false);
+  });
+
+  it('shows incoming native from address in address book', () => {
+    const friendAddress = TEST_ADDRESS_TWO;
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: friendAddress,
+        to: TEST_ADDRESS_ONE,
+        value: '0x1',
+      },
+      isTransfer: false,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const addressBook = {
+      '0x1': {
+        [friendAddress]: {
+          address: friendAddress,
+          name: 'Friend',
+          chainId: '0x1',
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      [],
+      {},
+      addressBook,
+      [TEST_ADDRESS_ONE],
+    );
+    expect(result).toEqual(true);
+  });
+
+  it('shows incoming native from user own account', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_TWO,
+        to: TEST_ADDRESS_ONE,
+        value: '0x1',
+      },
+      isTransfer: false,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      [],
+      {},
+      {},
+      [TEST_ADDRESS_ONE, TEST_ADDRESS_TWO],
+    );
+    expect(result).toEqual(true);
+  });
+
+  it('always shows outgoing native to unknown address', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: UNKNOWN_SENDER,
+        value: '0x1',
+      },
+      isTransfer: false,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      [],
+      {},
+      {},
+      [TEST_ADDRESS_ONE],
+    );
+    expect(result).toEqual(true);
+  });
+
+  it('does not treat zero-value incoming as native transfer for poisoning rule', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: UNKNOWN_SENDER,
+        to: TEST_ADDRESS_ONE,
+        value: '0x0',
+      },
+      isTransfer: false,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      [],
+      {},
+      {},
+      [TEST_ADDRESS_ONE],
+    );
+    expect(result).toEqual(true);
+  });
+});
+
+describe('Activity utils :: filterByAddressAndNetwork - incoming native poisoning protection', () => {
+  const chainId = '0x1' as Hex;
+  const UNKNOWN_SENDER = '0x9999999999999999999999999999999999999999';
+
+  it('hides incoming native from unknown address', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: UNKNOWN_SENDER,
+        to: TEST_ADDRESS_ONE,
+        value: '0x1',
+      },
+      isTransfer: false,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      [],
+      {},
+      {},
+      [TEST_ADDRESS_ONE],
+    );
+    expect(result).toEqual(false);
+  });
+
+  it('shows incoming native from trusted address', () => {
+    const friendAddress = TEST_ADDRESS_TWO;
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: friendAddress,
+        to: TEST_ADDRESS_ONE,
+        value: '0x1',
+      },
+      isTransfer: false,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const addressBook = {
+      '0x1': {
+        [friendAddress]: {
+          address: friendAddress,
+          name: 'Friend',
+          chainId: '0x1',
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      [],
+      {},
+      addressBook,
+      [TEST_ADDRESS_ONE],
+    );
+    expect(result).toEqual(true);
+  });
+});

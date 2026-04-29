@@ -42,6 +42,7 @@ export function getProfileMetricsControllerMessenger(messenger: RootMessenger) {
       'AccountsController:accountRemoved',
       'KeyringController:lock',
       'KeyringController:unlock',
+      'TransactionController:transactionSubmitted',
     ],
   });
   return profileMetricsControllerMessenger;

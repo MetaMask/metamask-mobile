@@ -9,6 +9,7 @@ import { Device, AppwrightLocator } from 'appwright';
 export default class AppwrightGestures {
   /**
    * Tap method with retry logic
+   * @deprecated Use PlaywrightGestures.tap() instead
    * @param elem - The element promise to tap
    * @param options - Configuration options for retry behavior
    * @param maxRetries - Maximum number of tap attempts
@@ -66,7 +67,7 @@ export default class AppwrightGestures {
   }
 
   /**
-   *
+   * @deprecated
    * @param x - The x coordinate to tap
    * @param y - The y coordinate to tap
    */
@@ -82,6 +83,7 @@ export default class AppwrightGestures {
   }
 
   /**
+   * @deprecated
    * Type text into an element with retry logic
    * @param elem - The element promise to type into
    * @param text - The text to type
@@ -95,25 +97,39 @@ export default class AppwrightGestures {
     options: {
       maxRetries?: number;
       retryDelay?: number;
+      tapBeforeFill?: boolean;
     } = {},
   ): Promise<void> {
-    const { maxRetries = 1, retryDelay = 1000 } = options;
+    const {
+      maxRetries = 1,
+      retryDelay = 1000,
+      tapBeforeFill = false,
+    } = options;
     let lastError: Error | undefined;
     const elementToType = await elem;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
+        if (tapBeforeFill) {
+          try {
+            await elementToType.tap();
+            await AppwrightGestures.wait(300);
+          } catch {
+            // Field may already be focused; still try fill.
+          }
+        }
         await elementToType.fill(text);
         return; // Success, exit early
       } catch (error: unknown) {
         lastError = error as Error;
 
-        // Check if it's a "not found" error and we have retries left
-        if (lastError.message.includes('not found') && attempt < maxRetries) {
+        const retriable =
+          lastError.message.includes('not found') ||
+          lastError.message.includes('invalid element state');
+
+        if (retriable && attempt < maxRetries) {
           console.log(
-            `Element not found on type attempt ${
-              attempt + 1
-            }, retrying in ${retryDelay}ms...`,
+            `typeText retry ${attempt + 1}/${maxRetries}: ${lastError.message}`,
           );
           await AppwrightGestures.wait(retryDelay);
           continue;
@@ -127,6 +143,7 @@ export default class AppwrightGestures {
   }
 
   /**
+   * @deprecated
    * Utility method to wait for a specified amount of time
    * @param ms - Time to wait in milliseconds
    */
@@ -135,6 +152,7 @@ export default class AppwrightGestures {
   }
 
   /**
+   * @deprecated
    * Scroll element into view with platform-specific scrolling
    * @param testDevice - The device instance
    * @param elem - The element promise to scroll into view
@@ -225,6 +243,7 @@ export default class AppwrightGestures {
   }
 
   /**
+   * @deprecated
    * Terminate the MetaMask app
    * @param deviceInstance - The device object
    * @param options - Configuration options for termination behavior
@@ -260,6 +279,7 @@ export default class AppwrightGestures {
 
   /**
    * Activate the MetaMask app
+   * @deprecated
    * @param deviceInstance - The device object
    * @param options - Configuration options for activation behavior
    * @param maxRetries - Maximum number of activation attempts
@@ -303,6 +323,7 @@ export default class AppwrightGestures {
 
   /**
    * Hide keyboard for both Android and iOS
+   * @deprecated
    * @param deviceInstance - The device object
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
@@ -333,6 +354,7 @@ export default class AppwrightGestures {
 
   /**
    * Background the app for specified time
+   * @deprecated
    * @param deviceInstance - The device object
    * @param time - Time in seconds to background the app
    */
@@ -347,6 +369,7 @@ export default class AppwrightGestures {
 
   /**
    * Dismiss alert with platform-specific timeout
+   * @deprecated
    * @param deviceInstance - The device object
    */
   static async dismissAlert(deviceInstance: Device): Promise<void> {

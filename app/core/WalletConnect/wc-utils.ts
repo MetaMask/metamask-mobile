@@ -1,6 +1,9 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
@@ -141,7 +144,7 @@ export const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
 export const hideWCLoadingState = ({
   navigation,
 }: {
-  navigation?: NavigationContainerRef;
+  navigation?: NavigationContainerRef<ParamListBase>;
 }): void => {
   const currentRoute = navigation?.getCurrentRoute()?.name;
   if (currentRoute === Routes.SHEET.SDK_LOADING && navigation?.canGoBack()) {
@@ -158,7 +161,7 @@ export const hideWCLoadingState = ({
 export const showWCLoadingState = ({
   navigation,
 }: {
-  navigation?: NavigationContainerRef;
+  navigation?: NavigationContainerRef<ParamListBase>;
 }): void => {
   navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.SHEET.SDK_LOADING,
@@ -413,4 +416,14 @@ export const hasPermissionsToSwitchChainRequest = async (
 export const getUnverifiedRequestOrigin = (
   request: WalletKitTypes.SessionRequest,
   defaultOrigin: string,
-) => request.verifyContext?.verified?.origin ?? defaultOrigin;
+) => {
+  // Only trust verifyContext.verified.origin when it's a parseable URL. The
+  // WalletConnect Verify API may return an empty string or a non-URL value
+  // (e.g. a topic/identifier) when the dapp is unverified, which would
+  // otherwise be rendered verbatim in the "Request from" field.
+  const verifiedOrigin = request.verifyContext?.verified?.origin;
+  if (isValidUrl(verifiedOrigin)) {
+    return verifiedOrigin as string;
+  }
+  return defaultOrigin;
+};

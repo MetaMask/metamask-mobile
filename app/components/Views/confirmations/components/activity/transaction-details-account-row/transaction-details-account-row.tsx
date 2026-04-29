@@ -11,6 +11,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 
 const TRANSACTION_TYPES = [
+  TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
 ];

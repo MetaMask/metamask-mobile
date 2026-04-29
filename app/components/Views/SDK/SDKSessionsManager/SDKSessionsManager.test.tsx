@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -10,16 +10,12 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(() => ({ params: {} })),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
-}));
-
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: { background: { default: '#FFF' } },
-    typography: {},
-  })),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -132,13 +128,13 @@ describe('SDKSessionsManager', () => {
         'app_settings.manage_sdk_connections_title',
         mockNavigation,
         false,
-        expect.any(Object),
+        expect.anything(),
       );
     });
   });
 
   describe('User Actions', () => {
-    it('handles disconnect all button press', () => {
+    it('handles disconnect all button press', async () => {
       (useSelector as jest.Mock).mockReturnValue({
         connections: {
           conn1: { id: 'conn1', name: 'Connection 1' },
@@ -180,7 +176,7 @@ describe('SDKSessionsManager', () => {
           trigger: 123,
           connection: { id: 'conn1', name: 'Connection 1' },
         }),
-        expect.any(Object),
+        {},
       );
     });
   });
@@ -209,7 +205,7 @@ describe('SDKSessionsManager', () => {
         expect.objectContaining({
           trigger: undefined,
         }),
-        expect.any(Object),
+        {},
       );
     });
 

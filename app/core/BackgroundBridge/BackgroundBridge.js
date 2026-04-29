@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 import URL from 'url-parse';
 import {
   createSelectedNetworkMiddleware,
@@ -25,7 +25,7 @@ import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
@@ -50,7 +50,7 @@ const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
 const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 const pump = require('pump');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
@@ -102,6 +102,7 @@ import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddlewa
 import createDupeReqFilterStream from './createDupeReqFilterStream';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
 import { createWalletSnapPermissionMiddleware } from '@metamask/snaps-rpc-methods';
+import { getAddTransactionSendCallExtraOptions } from '../../util/tempo/tempo-tx-utils';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -377,7 +378,7 @@ export class BackgroundBridge extends EventEmitter {
    */
   getNonEvmSupportedMethods(scope) {
     return Engine.controllerMessenger.call(
-      'MultichainRouter:getSupportedMethods',
+      'MultichainRoutingService:getSupportedMethods',
       scope,
     );
   }
@@ -539,6 +540,11 @@ export class BackgroundBridge extends EventEmitter {
         this.handleTronAccountChangedFromSelectedAccountGroupChanges,
       );
       ///: END:ONLY_INCLUDE_IF
+
+      controllerMessenger.unsubscribe(
+        `${AccountTreeController.name}:selectedAccountGroupChange`,
+        this.handleSessionChangedFromSelectedAccountGroupChanges,
+      );
     }
 
     this.port.emit('disconnect', { name: this.port.name, data: null });
@@ -637,7 +643,7 @@ export class BackgroundBridge extends EventEmitter {
     // Sentry tracing middleware
     engine.push(createTracingMiddleware());
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // These Snaps RPC methods are disabled in WalletConnect and SDK for now
     if (this.isMMSDK || this.isWalletConnect) {
       engine.push((req, _res, next, end) => {
@@ -651,7 +657,7 @@ export class BackgroundBridge extends EventEmitter {
     }
     ///: END:ONLY_INCLUDE_IF
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // The Snaps middleware is disabled in WalletConnect and SDK for now.
     if (!this.isMMSDK && !this.isWalletConnect) {
       engine.push(
@@ -766,17 +772,21 @@ export class BackgroundBridge extends EventEmitter {
         getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
-          'MultichainRouter:isSupportedScope',
+          'MultichainRoutingService:isSupportedScope',
         ),
         handleNonEvmRequestForOrigin: (params) =>
-          Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
-            ...params,
-            origin: this.origin,
-          }),
+          Engine.controllerMessenger.call(
+            'MultichainRoutingService:handleRequest',
+            {
+              ...params,
+              origin: this.origin,
+            },
+          ),
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
-          'MultichainRouter:getSupportedAccounts',
+          'MultichainRoutingService:getSupportedAccounts',
         ),
+        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: () => undefined,
       }),
     );
@@ -872,14 +882,26 @@ export class BackgroundBridge extends EventEmitter {
       processSendCalls: processSendCalls.bind(
         null,
         {
-          addTransaction:
-            Engine.context.TransactionController.addTransaction.bind(
-              Engine.context.TransactionController,
-            ),
-          addTransactionBatch:
-            Engine.context.TransactionController.addTransactionBatch.bind(
-              Engine.context.TransactionController,
-            ),
+          addTransaction: async (txParams, options) =>
+            Engine.context.TransactionController.addTransaction(txParams, {
+              ...options,
+              ...(await getAddTransactionSendCallExtraOptions({
+                keyringController: Engine.context.KeyringController,
+                networkController: Engine.context.NetworkController,
+                networkClientId: options.networkClientId,
+                from: txParams.from,
+              })),
+            }),
+          addTransactionBatch: async (request) =>
+            Engine.context.TransactionController.addTransactionBatch({
+              ...request,
+              ...(await getAddTransactionSendCallExtraOptions({
+                keyringController: Engine.context.KeyringController,
+                networkController: Engine.context.NetworkController,
+                networkClientId: request.networkClientId,
+                from: request.from,
+              })),
+            }),
           getDismissSmartAccountSuggestionEnabled: () =>
             Engine.context.PreferencesController.state
               .dismissSmartAccountSuggestionEnabled,
@@ -1010,6 +1032,12 @@ export class BackgroundBridge extends EventEmitter {
       this.handleTronAccountChangedFromSelectedAccountGroupChanges,
     );
     ///: END:ONLY_INCLUDE_IF
+
+    // wallet_sessionChanged when selected account group changes (account ordering update)
+    controllerMessenger.subscribe(
+      `${AccountTreeController.name}:selectedAccountGroupChange`,
+      this.handleSessionChangedFromSelectedAccountGroupChanges,
+    );
   }
 
   /**
@@ -1190,6 +1218,47 @@ export class BackgroundBridge extends EventEmitter {
     const solanaAccount = this.getSolanaAccountFromSelectedAccountGroup();
     if (solanaAccount) {
       this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
+    }
+  };
+
+  /**
+   * Emits a wallet_sessionChanged notification when the selected account group
+   * changes, to update the account ordering for the current origin's session.
+   */
+  handleSessionChangedFromSelectedAccountGroupChanges = () => {
+    try {
+      const caip25Caveat = Engine.context.PermissionController.getCaveat(
+        this.channelIdOrOrigin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+      if (caip25Caveat) {
+        // TODO: Remove this setTimeout once the core issue in https://github.com/MetaMask/core/pull/8261 is resolved.
+        // Two issues still exist. One is that the AccountGroup metadata is not available when the wallet is locked.
+        // The other is that the EVM metadata is not updated by by the time the selectedAccountGroupChange event is fired.
+        // The former issue mainly affects Extension, not Mobile, but to keep both in sync, we'll keep the setTimeout for now.
+        // The latter issue is what requires the setTimeout below.
+        setTimeout(() => {
+          // We refetch the caip25Caveat to get the latest value in case it
+          // has changed since we first fetched it.
+          const caip25CaveatRefetched =
+            Engine.context.PermissionController.getCaveat(
+              this.channelIdOrOrigin,
+              Caip25EndowmentPermissionName,
+              Caip25CaveatType,
+            );
+          if (caip25CaveatRefetched) {
+            this.notifyCaipAuthorizationChange(caip25CaveatRefetched.value);
+          }
+        }, 1000);
+      }
+    } catch (err) {
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+      } else {
+        throw err;
+      }
     }
   };
 
@@ -1408,13 +1477,15 @@ export class BackgroundBridge extends EventEmitter {
    */
   notifyCaipAuthorizationChange(newAuthorization) {
     if (this.multichainEngine) {
+      const sessionScopes = getSessionScopes(newAuthorization, {
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
+      });
+
       this.multichainEngine.emit('notification', {
         method: 'wallet_sessionChanged',
         params: {
-          sessionScopes: getSessionScopes(newAuthorization, {
-            getNonEvmSupportedMethods:
-              this.getNonEvmSupportedMethods.bind(this),
-          }),
+          sessionScopes,
         },
       });
     }

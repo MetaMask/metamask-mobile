@@ -152,6 +152,18 @@ export function getPostQuoteTransactionType(
   );
 }
 
+/**
+ * Returns true if the user has selected a non-native token to pay for gas.
+ *
+ * @param transactionMeta - Transaction meta object
+ * @returns Whether a gas fee token is selected
+ */
+export function hasGasFeeTokenSelected(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return Boolean(transactionMeta?.selectedGasFeeToken);
+}
+
 export function getSeverity(status: TransactionStatus): Severity {
   switch (status) {
     case TransactionStatus.confirmed:

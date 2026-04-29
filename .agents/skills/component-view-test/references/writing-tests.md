@@ -12,6 +12,7 @@ Before writing any test, read:
 - Any existing `*.view.test.tsx` for the same component
 - The relevant preset(s) in `tests/component-view/presets/`
 - The relevant renderer(s) in `tests/component-view/renderers/`
+- If the view calls an external HTTP API: `tests/component-view/api-mocking/` and any existing `api-mocking/<feature>.ts` for that API (see navigation-mocking.md, External Service / API Mocking)
 
 ---
 
@@ -193,6 +194,38 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
 ```
 
 Then each test only specifies its delta from this baseline.
+
+### describe / it and platform (iOS + Android)
+
+Import from `tests/component-view/platform`. All helpers accept an optional **filter** (3rd arg): `'ios'` | `'android'` | `['ios','android']` | `{ only: 'ios' }` | `{ skip: ['android'] }`. Env: `TEST_OS=ios` or `TEST_OS=android` to run only one OS.
+
+| Helper                                                                  | Use                                                                                                           |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `describeForPlatforms(name, define, filter?)`                           | One describe per OS. Inside, `define({ os })`; use `it()` or `itForPlatforms()` — each runs once per that OS. |
+| `itForPlatforms(name, (ctx) => {}, filter?)`                            | One `it` per OS. Callback receives `{ os }`.                                                                  |
+| `itOnlyForPlatforms(name, fn, filter?)`                                 | Same as `itForPlatforms` but registers `it.only`.                                                             |
+| `itEach(table)(name, (row) => {}, filter?)`                             | One `it` per table row × per OS. Use `$key` in name to interpolate row fields.                                |
+| `describeEach(table)(name, (row) => { it('...', () => {}); }, filter?)` | One describe per row × per OS. Use `$key` in name.                                                            |
+| `getTargetPlatforms(filter?)`                                           | Returns `['ios','android']` (or filtered list) for custom loops.                                              |
+
+Example — `itEach` (each case runs on iOS and Android):
+
+```typescript
+import { itEach } from '../../../../../../tests/component-view/platform';
+
+const cases = [
+  { name: 'renders empty', amount: '0' },
+  { name: 'displays fiat', amount: '1' },
+];
+itEach(cases)('$name', ({ amount }) => {
+  const { findByDisplayValue } = renderDefault({
+    bridge: { sourceAmount: amount },
+  });
+  expect(findByDisplayValue(amount)).toBeOnTheScreen();
+});
+```
+
+Jest modifiers (`it.only`, `it.skip`, `describe.only`, `describe.skip`) work as usual inside these blocks.
 
 ### Minimal template
 

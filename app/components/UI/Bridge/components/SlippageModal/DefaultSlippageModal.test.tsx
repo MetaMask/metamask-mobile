@@ -74,10 +74,6 @@ jest.mock('../../hooks/useSlippageConfig', () => ({
   useSlippageConfig: jest.fn(),
 }));
 
-jest.mock('../../hooks/useModalCloseOnQuoteExpiry', () => ({
-  useModalCloseOnQuoteExpiry: jest.fn(),
-}));
-
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
@@ -119,7 +115,6 @@ import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { AUTO_SLIPPAGE_VALUE } from './constants';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 
 const mockUseGetSlippageOptions = useGetSlippageOptions as jest.MockedFunction<
   typeof useGetSlippageOptions
@@ -128,10 +123,6 @@ const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
 >;
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-const mockUseModalCloseOnQuoteExpiry =
-  useModalCloseOnQuoteExpiry as jest.MockedFunction<
-    typeof useModalCloseOnQuoteExpiry
-  >;
 
 describe('DefaultSlippageModal', () => {
   const mockSlippageConfig = {
@@ -229,7 +220,7 @@ describe('DefaultSlippageModal', () => {
 
       // Bottom sheet close is handled internally by ref
       // We verify the component renders without errors
-      expect(closeButton).toBeTruthy();
+      expect(closeButton).toBeOnTheScreen();
     });
   });
 
@@ -396,25 +387,25 @@ describe('DefaultSlippageModal', () => {
     it('renders header with correct title', () => {
       const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Slippage')).toBeTruthy();
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
 
     it('renders description text', () => {
       const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Set your slippage tolerance')).toBeTruthy();
+      expect(getByText('Set your slippage tolerance')).toBeOnTheScreen();
     });
 
     it('renders DefaultSlippageButtonGroup with options', () => {
       const { getByTestId } = render(<DefaultSlippageModal />);
 
-      expect(getByTestId('default-slippage-button-group')).toBeTruthy();
+      expect(getByTestId('default-slippage-button-group')).toBeOnTheScreen();
     });
 
     it('renders submit button', () => {
       const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Submit')).toBeTruthy();
+      expect(getByText('Submit')).toBeOnTheScreen();
     });
 
     it('passes correct props to useGetSlippageOptions', () => {
@@ -432,46 +423,31 @@ describe('DefaultSlippageModal', () => {
 
   describe('snapshot tests', () => {
     it('matches snapshot for complete modal', () => {
-      const { toJSON } = render(<DefaultSlippageModal />);
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
 
     it('matches snapshot with auto selected', () => {
       mockSelector.mockReturnValue(undefined);
 
-      const { toJSON } = render(<DefaultSlippageModal />);
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Submit')).toBeOnTheScreen();
     });
 
     it('matches snapshot with numeric slippage selected', () => {
       mockSelector.mockReturnValue('2');
 
-      const { toJSON } = render(<DefaultSlippageModal />);
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Submit')).toBeOnTheScreen();
     });
 
-    it('matches snapshot for header', () => {
-      const { getByText, toJSON } = render(<DefaultSlippageModal />);
+    it('renders header text', () => {
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Slippage')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot('header style');
-    });
-
-    it('matches snapshot for description', () => {
-      const { getByText, toJSON } = render(<DefaultSlippageModal />);
-
-      expect(getByText('Set your slippage tolerance')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot('description style');
-    });
-
-    it('matches snapshot for submit button', () => {
-      const { getByText, toJSON } = render(<DefaultSlippageModal />);
-
-      expect(getByText('Submit')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot('submit button style');
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
   });
 
@@ -542,9 +518,9 @@ describe('DefaultSlippageModal', () => {
     it('handles empty slippage options', () => {
       mockUseGetSlippageOptions.mockReturnValue([]);
 
-      const { toJSON } = render(<DefaultSlippageModal />);
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Submit')).toBeOnTheScreen();
     });
 
     it('handles zero slippage value', () => {
@@ -641,20 +617,6 @@ describe('DefaultSlippageModal', () => {
       const call = mockUseGetSlippageOptions.mock.calls[0][0];
       expect(call.onCustomOptionPress).toBeDefined();
       expect(typeof call.onCustomOptionPress).toBe('function');
-    });
-  });
-
-  describe('useModalCloseOnQuoteExpiry', () => {
-    it('calls useModalCloseOnQuoteExpiry on render', () => {
-      render(<DefaultSlippageModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalled();
-    });
-
-    it('calls useModalCloseOnQuoteExpiry exactly once per render', () => {
-      render(<DefaultSlippageModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalledTimes(1);
     });
   });
 

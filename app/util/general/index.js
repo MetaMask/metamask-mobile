@@ -22,12 +22,12 @@ export function timeoutFetch(url, options, timeout = 500) {
 
 export function findRouteNameFromNavigatorState(routes) {
   let route = routes?.[routes.length - 1];
-  if (route.state) {
+  if (route?.state) {
     route = route.state;
   }
   while (route !== undefined && route.index !== undefined) {
     route = route?.routes?.[route.index];
-    if (route.state) {
+    if (route?.state) {
       route = route.state;
     }
   }

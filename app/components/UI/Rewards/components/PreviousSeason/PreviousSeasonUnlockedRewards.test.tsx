@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import PreviousSeasonUnlockedRewards from './PreviousSeasonUnlockedRewards';
 import {
@@ -36,7 +36,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectUnlockedRewards: jest.fn(),
   selectSeasonTiers: jest.fn(),
-  selectSeasonShouldInstallNewVersion: jest.fn(),
   selectUnlockedRewardLoading: jest.fn(),
   selectUnlockedRewardError: jest.fn(),
   selectCurrentTier: jest.fn(),
@@ -182,7 +181,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Skeleton
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
@@ -533,7 +532,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const retryButton = getByTestId('error-retry-button');
-    retryButton.props.onPress();
+    fireEvent.press(retryButton);
 
     expect(mockFetchUnlockedRewards).toHaveBeenCalledTimes(1);
   });
@@ -820,7 +819,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-metal-card');
-    rewardItem.props.onPress();
+    fireEvent.press(rewardItem);
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockMetalCardUnlockedReward.id,
@@ -847,7 +846,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-1');
-    rewardItem.props.onPress();
+    fireEvent.press(rewardItem);
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -904,7 +903,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-nansen-without-url');
-    rewardItem.props.onPress();
+    fireEvent.press(rewardItem);
 
     // NANSEN requires manual claim, so it navigates even without URL
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
@@ -931,7 +930,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-nansen-with-url');
-    rewardItem.props.onPress();
+    fireEvent.press(rewardItem);
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockNansenUnlockedRewardWithUrl.id,
@@ -957,7 +956,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-linea-tokens');
-    rewardItem.props.onPress();
+    fireEvent.press(rewardItem);
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockLineaTokensUnlockedReward.id,
@@ -1003,7 +1002,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-otherside-with-url');
-    rewardItem.props.onPress();
+    fireEvent.press(rewardItem);
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockOthersideUnlockedRewardWithUrl.id,
@@ -1065,7 +1064,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-otherside-without-url');
-    rewardItem.props.onPress();
+    fireEvent.press(rewardItem);
 
     expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
       rewardId: mockOthersideUnlockedRewardWithoutUrl.id,

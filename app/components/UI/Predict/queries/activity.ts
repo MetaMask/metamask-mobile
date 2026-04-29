@@ -9,7 +9,7 @@ export const predictActivityKeys = {
 };
 
 export const predictActivityOptions = ({ address }: { address: string }) =>
-  queryOptions({
+  queryOptions<PredictActivity[], Error>({
     queryKey: predictActivityKeys.byAddress(address),
     queryFn: async (): Promise<PredictActivity[]> =>
       Engine.context.PredictController.getActivity({ address }),

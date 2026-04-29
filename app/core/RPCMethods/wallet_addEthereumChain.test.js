@@ -15,7 +15,7 @@ jest.mock('../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
 
 const mockEngine = Engine;
 
-const existingNetworkConfiguration = {
+const mockExistingNetworkConfiguration = {
   id: 'test-network-configuration-id',
   chainId: '0x2',
   name: 'Test Chain',
@@ -40,7 +40,7 @@ jest.mock('../Engine', () => ({
       setActiveNetwork: jest.fn(),
     },
     ApprovalController: {
-      clear: jest.fn(),
+      clearRequests: jest.fn(),
     },
     PermissionController: {
       hasPermission: jest.fn().mockReturnValue(true),
@@ -71,7 +71,7 @@ jest.mock('../../store', () => ({
                 ticker: 'ETH',
               },
               {
-                ...existingNetworkConfiguration,
+                ...mockExistingNetworkConfiguration,
               },
             ),
           },
@@ -371,7 +371,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
   describe('Approval Flow', () => {
     it('clears existing approval requests', async () => {
-      Engine.context.ApprovalController.clear.mockClear();
+      Engine.context.ApprovalController.clearRequests.mockClear();
 
       await wallet_addEthereumChain({
         req: {
@@ -380,7 +380,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
         ...otherOptions,
       });
 
-      expect(Engine.context.ApprovalController.clear).toBeCalledTimes(1);
+      expect(Engine.context.ApprovalController.clearRequests).toBeCalledTimes(
+        1,
+      );
     });
   });
 

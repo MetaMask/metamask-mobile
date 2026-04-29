@@ -1,12 +1,13 @@
 import React from 'react';
 import RemoteImage from './';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Logger from '../../../util/Logger';
 import { Dimensions } from 'react-native';
 import { Image } from 'expo-image';
+import { mockTheme } from '../../../util/theme';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -56,7 +57,7 @@ describe('RemoteImage', () => {
   });
 
   it('renders svg correctly', () => {
-    const { toJSON } = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
@@ -64,11 +65,13 @@ describe('RemoteImage', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(UNSAFE_getByType(Image).props.source.uri).toBe(
+      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
+    );
   });
 
   it('renders static sources', () => {
-    const { toJSON } = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: 'https://s3.amazonaws.com/airswap-token-images/OXT.png',
@@ -76,14 +79,17 @@ describe('RemoteImage', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    const image = UNSAFE_getByType(Image);
+    expect(image.props.source.uri).toBe(
+      'https://s3.amazonaws.com/airswap-token-images/OXT.png',
+    );
   });
 
   it('renders ipfs sources', async () => {
     const testIpfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
     mockGetFormattedIpfsUrl.mockResolvedValue(testIpfsUri);
 
-    const wrapper = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: testIpfsUri,
@@ -96,7 +102,8 @@ describe('RemoteImage', () => {
     });
 
     await waitFor(() => {
-      expect(wrapper).toMatchSnapshot();
+      const image = UNSAFE_getByType(Image);
+      expect(image.props.source.uri).toBe(testIpfsUri);
     });
   });
 
@@ -117,7 +124,7 @@ describe('RemoteImage', () => {
       return selector(mockState);
     });
 
-    const wrapper = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         fadeIn
         isTokenImage
@@ -132,7 +139,8 @@ describe('RemoteImage', () => {
     });
 
     await waitFor(() => {
-      expect(wrapper).toMatchSnapshot();
+      const image = UNSAFE_getByType(Image);
+      expect(image.props.source.uri).toBe('https://example.com/token.png');
     });
   });
 
@@ -227,6 +235,28 @@ describe('RemoteImage', () => {
     });
   });
 
+  describe('onLoad callback', () => {
+    it('calls onLoad prop when image loads successfully', async () => {
+      const mockOnLoad = jest.fn();
+
+      const { UNSAFE_getByType } = render(
+        <RemoteImage
+          source={{ uri: 'https://example.com/image.png' }}
+          onLoad={mockOnLoad}
+        />,
+      );
+
+      await act(async () => {
+        const image = UNSAFE_getByType(Image);
+        image.props.onLoad({ source: { width: 100, height: 100 } });
+      });
+
+      await waitFor(() => {
+        expect(mockOnLoad).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
   describe('Error Handling', () => {
     it('renders Identicon when image fails to load and address is provided', async () => {
       const { UNSAFE_getByType, findByTestId } = render(
@@ -239,7 +269,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       await waitFor(async () => {
@@ -260,7 +290,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       await waitFor(() => {
@@ -279,7 +309,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       // After error, Identicon should be rendered
@@ -301,7 +331,7 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         expect(queryByTestId('identicon')).not.toBeOnTheScreen();
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
+        expect(image).not.toBeNull();
       });
     });
   });
@@ -534,12 +564,12 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({ source: {} });
+        fireEvent(image, 'load', { source: {} });
       });
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
+        expect(image).not.toBeNull();
       });
     });
   });
@@ -555,12 +585,13 @@ describe('RemoteImage', () => {
       );
 
       const image = UNSAFE_getByType(Image);
-      expect(image).toBeDefined();
       expect(image.props.source.uri).toBe('https://example.com/image.png');
     });
 
     it('renders with fadeIn but not as token image', async () => {
-      const testPlaceholderStyle = { backgroundColor: '#808080' };
+      const testPlaceholderStyle = {
+        backgroundColor: mockTheme.colors.background.alternative,
+      };
       const { UNSAFE_getByType } = render(
         <RemoteImage
           fadeIn
@@ -575,7 +606,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/image.png');
       });
     });
@@ -597,7 +627,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/token.png');
       });
     });
@@ -649,7 +678,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/token.png');
       });
     });

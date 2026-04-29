@@ -10,10 +10,11 @@ import Notifications from '../../UI/Notification/List';
 import { sortNotifications } from '../../../util/notifications';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 import Text, {
   TextVariant,
@@ -118,13 +119,14 @@ const NotificationsView = ({
           />
           {!isLoading && unreadCount > 0 && (
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('notifications.mark_all_as_read')}
+              variant={ButtonVariant.Primary}
               onPress={handleMarkAllAsRead}
               size={ButtonSize.Lg}
               style={styles.stickyButton}
-              disabled={loading}
-            />
+              isDisabled={loading}
+            >
+              {strings('notifications.mark_all_as_read')}
+            </Button>
           )}
         </>
       ) : (

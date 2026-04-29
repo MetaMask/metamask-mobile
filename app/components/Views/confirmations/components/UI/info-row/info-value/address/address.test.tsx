@@ -11,13 +11,6 @@ import Address from './address';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NameType } from '../../../../../../../UI/Name/Name.types';
 
-jest.mock(
-  '../../../../../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -36,7 +29,7 @@ jest.mock('../../../../../../../UI/Name', () => ({
 
 describe('InfoAddress', () => {
   const mockName = jest.mocked(Name);
-  it('calls Name component with correct props', async () => {
+  it('calls Name component with correct props', () => {
     renderWithProvider(
       <Address address={MOCK_ADDRESS_1} chainId={CHAIN_IDS.MAINNET} />,
       {
@@ -49,7 +42,7 @@ describe('InfoAddress', () => {
         variation: CHAIN_IDS.MAINNET,
         type: NameType.EthereumAddress,
       }),
-      expect.anything(),
+      {},
     );
   });
 });

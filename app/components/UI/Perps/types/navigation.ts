@@ -8,6 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 /**
  * PERPS navigation parameter types
@@ -19,6 +20,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsOrder: {
     direction: 'long' | 'short';
     asset: string;
+    defaultSzDecimals?: number;
+    defaultMaxLeverage?: number;
     leverage?: number;
     amount?: string;
     price?: string;
@@ -99,6 +102,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     source?: string;
     button_clicked?: string;
     button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsPositions: undefined;
@@ -110,6 +114,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsClosePosition: {
     position: Position;
+    source?: string;
   };
 
   PerpsAdjustMargin: {
@@ -179,11 +184,16 @@ export interface PerpsNavigationParamList extends ParamListBase {
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L
+    /**
+     * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
+     * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
+     */
     onConfirm: (
+      position?: Position,
       takeProfitPrice?: string,
       stopLossPrice?: string,
       trackingData?: TPSLTrackingData,
-    ) => Promise<void>;
+    ) => Promise<{ success: boolean } | void>;
   };
 
   // PnL Hero Card screen
@@ -229,8 +239,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     asset: string;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
-    /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
-    assetsASSETS2493AbtestTokenDetailsLayout?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 }
 

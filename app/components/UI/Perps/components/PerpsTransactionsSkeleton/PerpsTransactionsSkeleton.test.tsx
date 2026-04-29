@@ -22,19 +22,17 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 // Mock the Skeleton component
-jest.mock(
-  '../../../../../component-library/components/Skeleton/Skeleton',
-  () =>
-    function MockSkeleton({
-      testID,
-      ...props
-    }: {
-      testID?: string;
-      [key: string]: unknown;
-    }) {
-      return <div data-testid={testID} {...props} />;
-    },
-);
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => ({
+  Skeleton: function MockSkeleton({
+    testID,
+    ...props
+  }: {
+    testID?: string;
+    [key: string]: unknown;
+  }) {
+    return <div data-testid={testID} {...props} />;
+  },
+}));
 
 describe('PerpsTransactionsSkeleton', () => {
   it('renders loading skeleton with correct structure', () => {

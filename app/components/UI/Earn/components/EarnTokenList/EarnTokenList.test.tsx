@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import { act, fireEvent } from '@testing-library/react-native';
 import { TrxScope } from '@metamask/keyring-api';
 import React from 'react';
@@ -7,20 +7,11 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import EarnTokenList from '.';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-// Prevent `useMetrics` from triggering async Engine readiness polling (`whenEngineReady`)
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+// Prevent `useAnalytics` from triggering async Engine readiness polling (`whenEngineReady`)
 // which can cause Jest timeouts / "import after environment torn down" errors.
-jest.mock('../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    EARN_TOKEN_LIST_ITEM_CLICKED: 'EARN_TOKEN_LIST_ITEM_CLICKED',
-  },
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: () => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    }),
-  }),
-}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -154,6 +145,8 @@ describe('EarnTokenList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
+
     jest.spyOn(useStakingEligibilityHook, 'default').mockReturnValue({
       isEligible: true,
       isLoadingEligibility: false,
@@ -199,8 +192,8 @@ describe('EarnTokenList', () => {
       });
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON, getByText, getAllByText } = renderWithProvider(
+  it('renders token list with deposit heading, upsell banner, and token rows', () => {
+    const { getByText, getAllByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <EarnTokenList />
       </SafeAreaProvider>,
@@ -209,14 +202,16 @@ describe('EarnTokenList', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
-
     // Bottom Sheet Title
-    expect(getByText(strings('stake.select_a_token_to_deposit'))).toBeDefined();
+    expect(
+      getByText(strings('stake.select_a_token_to_deposit')),
+    ).toBeOnTheScreen();
 
     // Upsell Banner
-    expect(getByText(strings('stake.you_could_earn_up_to'))).toBeDefined();
-    expect(getByText(strings('stake.per_year_on_your_tokens'))).toBeDefined();
+    expect(getByText(strings('stake.you_could_earn_up_to'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('stake.per_year_on_your_tokens')),
+    ).toBeOnTheScreen();
 
     // Token List
     // Ethereum
@@ -224,8 +219,8 @@ describe('EarnTokenList', () => {
     expect(getAllByText('2.29% APR').length).toBe(1);
 
     // USDC
-    expect(getByText('USDC')).toBeDefined();
-    expect(getByText('4% APR')).toBeDefined();
+    expect(getByText('USDC')).toBeOnTheScreen();
+    expect(getByText('4% APR')).toBeOnTheScreen();
 
     expect(useEarnTokensSpy).toHaveBeenCalled();
     expect(useEarnNetworkPollingSpy).toHaveBeenCalled();
@@ -268,11 +263,13 @@ describe('EarnTokenList', () => {
       selectStablecoinLendingEnabledFlag as unknown as jest.Mock
     ).mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(<EarnTokenList />, {
+    const { queryByText } = renderWithProvider(<EarnTokenList />, {
       state: initialState,
     });
 
-    expect(toJSON()).toBeNull();
+    expect(
+      queryByText(strings('stake.select_a_token_to_deposit')),
+    ).not.toBeOnTheScreen();
   });
 
   it('changes active network if selected token is on a different network', async () => {
@@ -457,7 +454,7 @@ describe('EarnTokenList', () => {
       { state: initialState },
     );
 
-    expect(getByTestId('earn-token-list-skeleton')).toBeTruthy();
+    expect(getByTestId('earn-token-list-skeleton')).toBeOnTheScreen();
   });
 
   it('sorts tokens by balance (non-zero first)', () => {
@@ -590,10 +587,10 @@ describe('EarnTokenList', () => {
       );
 
       // ETH should be filtered out (not staked + pooled staking disabled)
-      expect(queryByText('Ethereum')).toBeNull();
+      expect(queryByText('Ethereum')).not.toBeOnTheScreen();
 
       // USDC should still be shown (non-ETH token)
-      expect(getByText('USDC')).toBeDefined();
+      expect(getByText('USDC')).toBeOnTheScreen();
     });
 
     it('shows ETH tokens that are staked when pooled staking is disabled', () => {
@@ -649,10 +646,10 @@ describe('EarnTokenList', () => {
       );
 
       // ETH should be shown (staked ETH)
-      expect(getByText('Ethereum')).toBeDefined();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
 
       // USDC should also be shown
-      expect(getByText('USDC')).toBeDefined();
+      expect(getByText('USDC')).toBeOnTheScreen();
     });
 
     it('shows ETH tokens that are not staked when pooled staking is enabled', () => {
@@ -708,10 +705,10 @@ describe('EarnTokenList', () => {
       );
 
       // ETH should be shown (pooled staking enabled)
-      expect(getByText('Ethereum')).toBeDefined();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
 
       // USDC should also be shown
-      expect(getByText('USDC')).toBeDefined();
+      expect(getByText('USDC')).toBeOnTheScreen();
     });
 
     it('shows non-ETH tokens regardless of pooled staking status', () => {
@@ -769,7 +766,7 @@ describe('EarnTokenList', () => {
       );
 
       // Both USDC tokens should be shown (non-ETH tokens)
-      expect(getAllByText('USDC')).toBeDefined();
+      expect(getAllByText('USDC')).toHaveLength(2);
     });
   });
 
@@ -834,7 +831,7 @@ describe('EarnTokenList', () => {
 
     const closeButton = getByTestId('earn-token-list-close-button');
 
-    expect(closeButton).toBeDefined();
+    expect(closeButton).toBeOnTheScreen();
 
     // Press the close button - this triggers:
     // 1. handleClose callback
@@ -891,7 +888,7 @@ describe('EarnTokenList', () => {
         { state: initialState },
       );
 
-      expect(getByText('Tron')).toBeDefined();
+      expect(getByText('Tron')).toBeOnTheScreen();
     });
 
     it('navigates directly to Tron deposit screen without switching EVM network', async () => {
@@ -968,7 +965,7 @@ describe('EarnTokenList', () => {
 
       // The close button should be pressable without errors
       // handleClose calls bottomSheetRef.current?.onCloseBottomSheet()
-      expect(closeButton).toBeDefined();
+      expect(closeButton).toBeOnTheScreen();
     });
   });
 });

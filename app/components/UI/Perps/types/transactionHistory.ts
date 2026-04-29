@@ -24,9 +24,17 @@ export enum FillType {
   AutoDeleveraging = 'auto_deleveraging',
 }
 
+export enum PerpsTransactionType {
+  Trade = 'trade',
+  Order = 'order',
+  Funding = 'funding',
+  Deposit = 'deposit',
+  Withdrawal = 'withdrawal',
+}
+
 export interface PerpsTransaction {
   id: string;
-  type: 'trade' | 'order' | 'funding' | 'deposit' | 'withdrawal';
+  type: `${PerpsTransactionType}`;
   category:
     | 'position_open'
     | 'position_close'
@@ -98,8 +106,6 @@ export type ListItem =
   | { type: 'transaction'; transaction: PerpsTransaction; id: string };
 
 export type FilterTab = 'Trades' | 'Orders' | 'Funding' | 'Deposits';
-
-export interface PerpsTransactionsViewProps {}
 
 export type PerpsPositionTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,

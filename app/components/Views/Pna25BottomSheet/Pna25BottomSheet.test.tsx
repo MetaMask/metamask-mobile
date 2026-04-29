@@ -7,6 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Engine from '../../../core/Engine';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -52,6 +53,38 @@ jest.mock('react-native', () => ({
     openURL: jest.fn(),
   },
 }));
+
+jest.mock('../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+}));
+
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const { forwardRef, useImperativeHandle } =
+      jest.requireActual<typeof import('react')>('react');
+    const { View } =
+      jest.requireActual<typeof import('react-native')>('react-native');
+
+    const MockBottomSheet = forwardRef<
+      { onCloseBottomSheet: () => void },
+      { children: React.ReactNode; onClose?: () => void }
+    >(({ children, onClose }, ref) => {
+      useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: () => onClose?.(),
+      }));
+      return <View>{children}</View>;
+    });
+    MockBottomSheet.displayName = 'MockBottomSheet';
+
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
 
 const Stack = createStackNavigator();
 
@@ -205,5 +238,53 @@ describe('Pna25BottomSheet', () => {
     fireEvent.press(openSettingsButton);
 
     expect(mockDispatch).toHaveBeenCalled();
+  });
+
+  it('skips initial delay when confirm button is pressed', () => {
+    const { getByText } = renderComponent();
+    const confirmButton = getByText(
+      strings('privacy_policy.pna25_confirm_button'),
+    );
+
+    fireEvent.press(confirmButton);
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'ProfileMetricsController:skipInitialDelay',
+    );
+  });
+
+  it('does not skip initial delay on view', () => {
+    renderComponent();
+
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalled();
+  });
+
+  it('does not skip initial delay when open settings button is pressed', () => {
+    const { getByText } = renderComponent();
+    const openSettingsButton = getByText(
+      strings('privacy_policy.pna25_open_settings_button'),
+    );
+
+    fireEvent.press(openSettingsButton);
+
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+      'ProfileMetricsController:skipInitialDelay',
+    );
+  });
+
+  it('calls skipInitialDelay exactly once when confirm button triggers both accept and close actions', () => {
+    const { getByText } = renderComponent();
+    const confirmButton = getByText(
+      strings('privacy_policy.pna25_confirm_button'),
+    );
+
+    fireEvent.press(confirmButton);
+
+    const skipDelayCalls = jest
+      .mocked(Engine.controllerMessenger.call)
+      .mock.calls.filter(
+        ([action]) => action === 'ProfileMetricsController:skipInitialDelay',
+      );
+    expect(skipDelayCalls).toHaveLength(1);
   });
 });

@@ -236,7 +236,7 @@ describe('AccountService', () => {
       );
     });
 
-    it('updates state with completed status when tx hash provided', async () => {
+    it('removes withdrawal request from queue when provider returns tx hash', async () => {
       mockProvider.withdraw.mockResolvedValue({
         success: true,
         txHash: '0xTransactionHash',
@@ -252,20 +252,36 @@ describe('AccountService', () => {
 
       const updateCalls = (mockContext.stateManager?.update as jest.Mock).mock
         .calls;
+
+      // Run the first updater to discover the generated withdrawal ID
+      const setupUpdater = updateCalls[0][0];
+      const setupState = {
+        withdrawInProgress: false,
+        withdrawalRequests: [] as { id: string; status: string }[],
+      };
+      setupUpdater(setupState);
+      const generatedId = setupState.withdrawalRequests[0].id;
+
+      // Build mock state with the real ID so the success updater can find it
       const successUpdateCall = updateCalls[1][0];
       const mockState = {
         withdrawInProgress: true,
-        withdrawalRequests: [{ id: expect.any(String), status: 'pending' }],
+        withdrawalRequests: [{ id: generatedId, status: 'pending' }],
         lastError: null,
         lastUpdateTimestamp: 0,
         lastWithdrawResult: null,
+        lastCompletedWithdrawalTimestamp: null,
+        lastCompletedWithdrawalTxHashes: [] as string[],
       };
 
-      mockState.withdrawalRequests[0].id =
-        mockState.withdrawalRequests[0].id || '';
       successUpdateCall(mockState);
 
       expect(mockState.withdrawInProgress).toBe(false);
+      expect(mockState.withdrawalRequests).toHaveLength(0);
+      expect(mockState.lastCompletedWithdrawalTimestamp).toBeNull();
+      expect(mockState.lastCompletedWithdrawalTxHashes).toEqual([
+        '0xTransactionHash',
+      ]);
       expect(mockState.lastWithdrawResult).toEqual(
         expect.objectContaining({
           success: true,
@@ -348,7 +364,7 @@ describe('AccountService', () => {
       expect(result.error).toBe('Insufficient balance');
     });
 
-    it('updates state with failed status on provider failure', async () => {
+    it('removes withdrawal request from queue on provider failure', async () => {
       mockProvider.withdraw.mockResolvedValue({
         success: false,
         error: 'Insufficient balance',
@@ -363,6 +379,15 @@ describe('AccountService', () => {
 
       const updateCalls = (mockContext.stateManager?.update as jest.Mock).mock
         .calls;
+
+      const setupUpdater = updateCalls[0][0];
+      const setupState = {
+        withdrawInProgress: false,
+        withdrawalRequests: [] as { id: string; status: string }[],
+      };
+      setupUpdater(setupState);
+      const generatedId = setupState.withdrawalRequests[0].id;
+
       const failureUpdateCall = updateCalls[updateCalls.length - 1][0];
       const mockState: Pick<
         PerpsControllerState,
@@ -375,7 +400,7 @@ describe('AccountService', () => {
         withdrawInProgress: true,
         withdrawalRequests: [
           {
-            id: expect.any(String) as string,
+            id: generatedId,
             status: 'pending',
             success: false,
             amount: '100',
@@ -391,6 +416,7 @@ describe('AccountService', () => {
 
       failureUpdateCall(mockState);
 
+      expect(mockState.withdrawalRequests).toHaveLength(0);
       expect(mockState.withdrawInProgress).toBe(false);
       expect(mockState.lastError).toBe('Insufficient balance');
       expect(mockState.lastWithdrawResult?.success).toBe(false);
@@ -474,11 +500,20 @@ describe('AccountService', () => {
 
       const updateCalls = (mockContext.stateManager?.update as jest.Mock).mock
         .calls;
+
+      const setupUpdater = updateCalls[0][0];
+      const setupState = {
+        withdrawInProgress: false,
+        withdrawalRequests: [] as { id: string; status: string }[],
+      };
+      setupUpdater(setupState);
+      const generatedId = setupState.withdrawalRequests[0].id;
+
       const errorUpdateCall = updateCalls[updateCalls.length - 1][0];
       const mockState = {
         withdrawInProgress: true,
         withdrawalRequests: [
-          { id: expect.any(String), status: 'pending', success: false },
+          { id: generatedId, status: 'pending', success: false },
         ],
         lastError: null,
         lastUpdateTimestamp: 0,
@@ -488,6 +523,7 @@ describe('AccountService', () => {
       errorUpdateCall(mockState);
 
       expect(mockState.lastError).toBe('Network error');
+      expect(mockState.withdrawalRequests).toHaveLength(0);
       expect(mockState.withdrawInProgress).toBe(false);
     });
 

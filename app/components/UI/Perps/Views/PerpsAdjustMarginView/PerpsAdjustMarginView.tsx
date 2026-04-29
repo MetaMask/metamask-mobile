@@ -7,11 +7,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { type Position, PERPS_CONSTANTS } from '@metamask/perps-controller';
 import styleSheet from './PerpsAdjustMarginView.styles';
@@ -24,6 +24,7 @@ import Icon, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { PerpsAdjustMarginViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
@@ -312,7 +313,10 @@ const PerpsAdjustMarginView: React.FC = () => {
                 ? strings('perps.adjust_margin.margin_available_to_add')
                 : strings('perps.adjust_margin.margin_available_to_remove')}
             </Text>
-            <Text variant={TextVariant.BodyMD}>
+            <Text
+              variant={TextVariant.BodyMD}
+              testID={PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE}
+            >
               {formatPerpsFiat(flooredMaxAmount, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
@@ -347,18 +351,28 @@ const PerpsAdjustMarginView: React.FC = () => {
                   })}
                 </Text>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />
-                <Text variant={TextVariant.BodyMD}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  testID={
+                    PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_PRICE_VALUE
+                  }
+                >
                   {formatPerpsFiat(displayNewLiquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })}
                 </Text>
               </View>
             ) : (
-              <Text variant={TextVariant.BodyMD}>
+              <Text
+                variant={TextVariant.BodyMD}
+                testID={
+                  PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_PRICE_VALUE
+                }
+              >
                 {formatPerpsFiat(currentLiquidationPrice, {
                   ranges: PRICE_RANGES_UNIVERSAL,
                 })}
@@ -395,11 +409,16 @@ const PerpsAdjustMarginView: React.FC = () => {
                   )}
                 </Text>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />
-                <Text variant={TextVariant.BodyMD}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  testID={
+                    PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                  }
+                >
                   {formatLiquidationDistance(
                     displayNewLiquidationDistance,
                     displayNewLiquidationPrice,
@@ -407,7 +426,12 @@ const PerpsAdjustMarginView: React.FC = () => {
                 </Text>
               </View>
             ) : (
-              <Text variant={TextVariant.BodyMD}>
+              <Text
+                variant={TextVariant.BodyMD}
+                testID={
+                  PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                }
+              >
                 {formatLiquidationDistance(
                   currentLiquidationDistance,
                   currentLiquidationPrice,
@@ -422,50 +446,57 @@ const PerpsAdjustMarginView: React.FC = () => {
       {!isInputFocused ? (
         <View style={styles.footer}>
           <Button
-            variant={ButtonVariants.Primary}
+            testID={PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={buttonLabel}
+            isFullWidth
             onPress={handleConfirm}
             isDisabled={
               marginAmount <= 0 ||
               isAdjusting ||
               (!isAddMode && marginAmount > flooredMaxAmount)
             }
-            loading={isAdjusting}
-          />
+            isLoading={isAdjusting}
+          >
+            {buttonLabel}
+          </Button>
         </View>
       ) : (
         <View style={styles.keypadFooter}>
           <View style={styles.percentageButtonsContainer}>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              label="25%"
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
-            />
+            >
+              25%
+            </Button>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              label="50%"
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
-            />
+            >
+              50%
+            </Button>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
-            />
+            >
+              {strings('perps.deposit.max_button')}
+            </Button>
             <Button
-              variant={ButtonVariants.Secondary}
+              testID={PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              label={strings('perps.deposit.done_button')}
               onPress={handleDonePress}
               style={styles.percentageButton}
-            />
+            >
+              {strings('perps.deposit.done_button')}
+            </Button>
           </View>
 
           <Keypad

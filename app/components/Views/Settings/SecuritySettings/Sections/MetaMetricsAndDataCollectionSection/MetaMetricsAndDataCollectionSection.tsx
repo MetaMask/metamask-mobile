@@ -35,7 +35,6 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/s
 import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
-import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 
 interface MetaMetricsAndDataCollectionSectionProps {
@@ -68,7 +67,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const accountType = useSelector(selectOnboardingAccountType);
 
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
 
   useEffect(() => {
@@ -116,6 +114,17 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       analytics.identify(consolidatedTraits);
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.METRICS_OPT_IN,
+        )
+          .addProperties({
+            updated_after_onboarding: true,
+            location: analyticsLocation,
+            ...(accountType && { account_type: accountType }),
+          })
+          .build(),
+      );
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
         )
           .addProperties({
@@ -130,7 +139,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       // If user has not acknowledged PNA25 and is enabling metrics
       // we count this as an acknowledgement of PNA25
       // and the PNA25 notice is not shown to them
-      if (isPna25FlagEnabled && !isPna25Acknowledged) {
+      if (!isPna25Acknowledged) {
         dispatch(storePna25Acknowledged());
       }
     } else {
@@ -162,9 +171,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
     analytics.identify({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn
-        ? UserProfileProperty.ON
-        : UserProfileProperty.OFF,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
     });
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(

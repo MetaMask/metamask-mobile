@@ -5,12 +5,10 @@ import {
   Label,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,12 +18,10 @@ import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField'
 import {
   resetOnboardingState,
   selectOnboardingId,
-  selectSelectedCountry,
-  setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
-import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import {
   formatDateOfBirth,
   validateDateOfBirth,
@@ -35,11 +31,9 @@ import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
-  Region,
   setOnValueChange,
 } from './RegionSelectorModal';
 
@@ -48,7 +42,11 @@ const PersonalDetails = () => {
   const dispatch = useDispatch();
   const { setUser, fetchUserData, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
-  const initialSelectedCountry = useSelector(selectSelectedCountry);
+  const {
+    allRegions,
+    userCountry: selectedCountry,
+    getRegionByCode,
+  } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -59,9 +57,6 @@ const PersonalDetails = () => {
   const [SSN, setSSN] = useState('');
   const [isSSNError, setIsSSNError] = useState(false);
   const [isSSNTouched, setIsSSNTouched] = useState(false);
-
-  // Get registration settings data
-  const { data: registrationSettings } = useRegistrationSettings();
 
   useEffect(() => {
     fetchUserData();
@@ -106,37 +101,7 @@ const PersonalDetails = () => {
     }
   }, [userData]);
 
-  const regions: Region[] = useMemo(() => {
-    if (!registrationSettings?.countries) {
-      return [];
-    }
-    return [...registrationSettings.countries]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((country) => ({
-        key: country.iso3166alpha2,
-        name: country.name,
-        emoji: countryCodeToFlag(country.iso3166alpha2),
-        areaCode: country.callingCode,
-      }));
-  }, [registrationSettings]);
-
-  const nationalityName = useMemo(
-    () => regions.find((region) => region.key === nationalityKey)?.name,
-    [regions, nationalityKey],
-  );
-
-  const selectedCountry = useMemo(
-    () =>
-      initialSelectedCountry ||
-      regions.find((region) => region.key === userData?.countryOfResidence),
-    [initialSelectedCountry, regions, userData?.countryOfResidence],
-  );
-
-  useEffect(() => {
-    if (!initialSelectedCountry && selectedCountry) {
-      dispatch(setSelectedCountry(selectedCountry));
-    }
-  }, [selectedCountry, dispatch, initialSelectedCountry]);
+  const nationalityName = getRegionByCode(nationalityKey)?.name;
 
   const {
     registerPersonalDetails,
@@ -169,10 +134,11 @@ const PersonalDetails = () => {
     });
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
-        regions,
+        regions: allRegions,
+        selectedRegionKey: nationalityKey || null,
       }),
     );
-  }, [navigation, regions, resetRegisterPersonalDetails]);
+  }, [navigation, allRegions, nationalityKey, resetRegisterPersonalDetails]);
 
   const handleDateOfBirthChange = useCallback(
     (timestamp: string) => {
@@ -480,15 +446,16 @@ const PersonalDetails = () => {
         </Text>
       )}
       <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         isDisabled={isDisabled}
-        loading={registerLoading}
+        isLoading={registerLoading}
         testID="personal-details-continue-button"
-      />
+      >
+        {strings('card.card_onboarding.continue_button')}
+      </Button>
     </Box>
   );
 

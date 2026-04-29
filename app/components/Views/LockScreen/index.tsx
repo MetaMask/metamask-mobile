@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 import React from 'react';
 import FoxLoader from '../../UI/FoxLoader';
 

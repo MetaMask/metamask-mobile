@@ -57,11 +57,11 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         // 6. Type a query
         await TrendingView.typeSearchQuery('test');
 
-        // 6.5. Scroll down to ensure Google Search Option is visible
-        await TrendingView.scrollToGoogleSearchOption();
+        // 6.5. Scroll down to ensure Search Engine Option is visible
+        await TrendingView.scrollToSearchEngineOption();
 
-        // 7. Verify Google Search Option is visible
-        await TrendingView.verifyGoogleSearchOptionVisible();
+        // 7. Verify Search Engine Option is visible
+        await TrendingView.verifySearchEngineOptionVisible();
 
         // 8. Verify Cancel button is visible
         await Assertions.expectElementToBeVisible(

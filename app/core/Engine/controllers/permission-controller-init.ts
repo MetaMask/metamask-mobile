@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   PermissionController,
   type PermissionSpecificationConstraint,
@@ -11,7 +11,7 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from '../../Permissions/specifications';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { getSnapPermissionSpecifications } from '../../Snaps/permissions/specifications';
 ///: END:ONLY_INCLUDE_IF
 import { CaipChainId } from '@metamask/utils';
@@ -23,16 +23,21 @@ import { CaipChainId } from '@metamask/utils';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const permissionControllerInit: ControllerInitFunction<
+export const permissionControllerInit: MessengerClientInitFunction<
   PermissionController<
     PermissionSpecificationConstraint,
     CaveatSpecificationConstraint
   >,
   PermissionControllerMessenger,
   PermissionControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState, getController }) => {
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  const keyringController = getController('KeyringController');
+> = ({
+  controllerMessenger,
+  initMessenger,
+  persistedState,
+  getMessengerClient,
+}) => {
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  const keyringController = getMessengerClient('KeyringController');
   ///: END:ONLY_INCLUDE_IF
 
   const controller = new PermissionController({
@@ -48,18 +53,18 @@ export const permissionControllerInit: ControllerInitFunction<
         ),
       isNonEvmScopeSupported: (scope) =>
         initMessenger.call(
-          'MultichainRouter:isSupportedScope',
+          'MultichainRoutingService:isSupportedScope',
           scope as CaipChainId,
         ),
       getNonEvmAccountAddresses: (scope) =>
         initMessenger.call(
-          'MultichainRouter:getSupportedAccounts',
+          'MultichainRoutingService:getSupportedAccounts',
           scope as CaipChainId,
         ),
     }),
     permissionSpecifications: {
       ...getPermissionSpecifications(),
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       ...getSnapPermissionSpecifications(initMessenger, {
         addNewKeyring: keyringController.addNewKeyring.bind(keyringController),
       }),

@@ -85,7 +85,7 @@ jest.mock('../Engine', () => ({
   },
   context: {
     ApprovalController: {
-      has: jest.fn(),
+      hasRequest: jest.fn(),
     },
     SelectedNetworkController: {
       getNetworkClientIdForDomain: jest.fn(),
@@ -1913,10 +1913,12 @@ describe('getRpcMethodMiddlewareHooks', () => {
   });
 
   describe('hasApprovalRequestsForOrigin', () => {
-    it('should call ApprovalController.has with correct origin', () => {
+    it('should call ApprovalController.hasRequest with correct origin', () => {
       hooks.hasApprovalRequestsForOrigin();
 
-      expect(MockEngine.context.ApprovalController.has).toHaveBeenCalledWith({
+      expect(
+        MockEngine.context.ApprovalController.hasRequest,
+      ).toHaveBeenCalledWith({
         origin: testOrigin,
       });
     });

@@ -2,12 +2,13 @@ import { isHardwareAccount } from '../../util/address';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { strings } from '../../../locales/i18n';
+import { getDeviceId } from '../Ledger/Ledger';
 
 /**
  * Helper to get wallet type display name
  */
 export const getHardwareWalletTypeName = (
-  walletType?: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): string => {
   switch (walletType) {
     case HardwareWalletType.Ledger:
@@ -38,6 +39,25 @@ export function getHardwareWalletTypeForAddress(
 }
 
 /**
+ * Resolve the transport-specific device id for a hardware wallet address.
+ *
+ * Some hardware wallets, like Ledger over BLE, require a persisted device id
+ * to reconnect. Others, like QR signers, do not.
+ */
+export async function getDeviceIdForAddress(
+  address: string,
+): Promise<string | undefined> {
+  const walletType = getHardwareWalletTypeForAddress(address);
+
+  switch (walletType) {
+    case HardwareWalletType.Ledger:
+      return await getDeviceId();
+    default:
+      return undefined;
+  }
+}
+
+/**
  * Returns i18n keys for connection tips based on the wallet type.
  */
 export function getConnectionTipsForWalletType(
@@ -49,7 +69,12 @@ export function getConnectionTipsForWalletType(
         'hardware_wallet.connecting.tip_unlock',
         'hardware_wallet.connecting.tip_open_app',
         'hardware_wallet.connecting.tip_enable_bluetooth',
-        'hardware_wallet.connecting.tip_dnd_off',
+      ];
+    case HardwareWalletType.Qr:
+      return [
+        'hardware_wallet.connecting.qr_tip_scan',
+        'hardware_wallet.connecting.qr_tip_align',
+        'hardware_wallet.connecting.qr_tip_lighting',
       ];
     default:
       return [];

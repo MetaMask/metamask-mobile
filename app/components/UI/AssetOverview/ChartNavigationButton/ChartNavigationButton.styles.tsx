@@ -12,21 +12,22 @@ const styleSheet = (params: {
     vars: { selected },
   } = params;
   const { colors } = theme;
+  const finalBackgroundColor = selected
+    ? colors.background.muted
+    : 'transparent';
+  /** Matches {@link TimeRangeSelector} segment Pressables: `py-1`, `px-4`, `rounded-lg`, `flex-1`, `bg-muted` when selected. */
   return StyleSheet.create({
     button: {
-      backgroundColor: selected
-        ? colors.background.pressed
-        : colors.background.default,
-      borderRadius: 40,
-      paddingVertical: 2,
-      paddingHorizontal: 8,
-      // compensates for letter spacing
-      paddingLeft: 10,
+      flex: 1,
+      minWidth: 0,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: finalBackgroundColor,
+      borderRadius: 8,
+      paddingVertical: 4,
+      paddingHorizontal: 16,
     },
     label: {
-      letterSpacing: 3,
       textAlign: 'center',
     } as TextStyle,
   });

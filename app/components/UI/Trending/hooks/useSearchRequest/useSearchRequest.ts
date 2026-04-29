@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { CaipChainId } from '@metamask/utils';
-import { searchTokens, TrendingAsset } from '@metamask/assets-controllers';
+import {
+  searchTokens,
+  TrendingAsset,
+  TokenSecurityData,
+} from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
@@ -14,6 +18,7 @@ interface SearchResult {
   price: string;
   pricePercentChange1d: string;
   rwaData?: TrendingAsset['rwaData'];
+  securityData?: TokenSecurityData;
 }
 
 const DEBOUNCE_MS = 300;
@@ -85,6 +90,7 @@ export const useSearchRequest = (options: {
       const searchResults = await searchTokens(stableChainIds, debouncedQuery, {
         limit,
         includeMarketData,
+        includeTokenSecurityData: true,
       });
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {

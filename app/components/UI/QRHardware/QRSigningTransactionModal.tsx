@@ -61,7 +61,7 @@ const QRSigningTransactionModal = () => {
       setSigningStarted(true);
       try {
         // This triggers the QR keyring which populates pendingScanRequest
-        await ApprovalController.accept(transactionId, undefined, {
+        await ApprovalController.acceptRequest(transactionId, undefined, {
           waitForResult: true,
         });
         onConfirmationComplete(true);

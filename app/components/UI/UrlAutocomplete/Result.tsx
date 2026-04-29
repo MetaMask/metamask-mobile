@@ -31,16 +31,16 @@ import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { addCurrencySymbol } from '../../../util/number';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import TrendingTokenLogo from '../Trending/components/TrendingTokenLogo';
 import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 import AppConstants from '../../../core/AppConstants';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 interface ResultProps {
   result: AutocompleteSearchResult;
   onPress: () => void;
   onSwapPress: (result: TokenSearchResult) => void;
-  navigation?: NavigationProp<ParamListBase>;
+  navigation?: AppNavigationProp;
 }
 
 /**

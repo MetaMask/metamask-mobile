@@ -8,10 +8,10 @@ import { AnvilManager } from '../../seeder/anvil-manager';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
+import { asDetoxElement } from '../../framework';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
 import WalletView from '../../page-objects/wallet/WalletView';
-import DeeplinkModal from '../../page-objects/swaps/Deeplink';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
@@ -66,18 +66,12 @@ describe(
             url: SWAP_DEEPLINK_FULL,
           });
 
-          // Handle "Proceed with caution" modal that appears for deep links
-          await Assertions.expectElementToBeVisible(
-            DeeplinkModal.proceedWithCaution,
-          );
-          await DeeplinkModal.tapContinue();
-
           // Check that USDC and USDT tokens are displayed (using text display check
           // since the token area containers have additional text like labels)
           await Assertions.expectTextDisplayed('USDC');
           await Assertions.expectTextDisplayed('USDT');
           await Assertions.expectElementToHaveText(
-            QuoteView.amountInput,
+            asDetoxElement(QuoteView.amountInput),
             '1.0',
           );
           await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
@@ -130,12 +124,6 @@ describe(
           await device.launchApp({
             url: SWAP_DEEPLINK_BASE,
           });
-
-          // Handle "Proceed with caution" modal that appears for deep links
-          await Assertions.expectElementToBeVisible(
-            DeeplinkModal.proceedWithCaution,
-          );
-          await DeeplinkModal.tapContinue();
 
           // Check that we are on the quote view with default state
           await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea);
@@ -191,13 +179,7 @@ describe(
             url: invalidDeeplink,
           });
 
-          // Handle "Proceed with caution" modal that appears for deep links
-          await Assertions.expectElementToBeVisible(
-            DeeplinkModal.proceedWithCaution,
-          );
-          await DeeplinkModal.tapContinue();
-
-          // Wait for bridge view to load after modal is dismissed
+          // Wait for bridge view to load (swap deeplinks bypass the interstitial modal)
           await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea);
 
           // Verify we can navigate back

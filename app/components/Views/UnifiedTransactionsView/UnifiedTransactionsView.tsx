@@ -2,6 +2,7 @@ import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { numberToHex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -9,6 +10,7 @@ import { RefreshControl, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { RPC } from '../../../constants/network';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
@@ -47,7 +49,6 @@ import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridge
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import TransactionElement from '../../UI/TransactionElement';
-import RetryModal from '../../UI/Transactions/RetryModal';
 import { filterDuplicateOutgoingTransactions } from '../../UI/Transactions/utils';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
@@ -61,6 +62,8 @@ import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.testIds';
+import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
+import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -149,6 +152,10 @@ const UnifiedTransactionsView = ({
     () => enabledNonEVMNetworks ?? [],
     [enabledNonEVMNetworks],
   );
+
+  const { maliciousTokenKeys } =
+    useMultichainActivityMaliciousTokenKeys(nonEvmTransactions);
+
   const providerType = useSelector(selectProviderType);
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -167,9 +174,10 @@ const UnifiedTransactionsView = ({
     [addressBook, internalAccounts],
   );
 
-  const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
-    data: UnifiedItem[];
-    nonEvmTransactionsForSelectedChain: NonEvmTransaction[];
+  const unifiedTransactionSource = useMemo<{
+    evmPendingItems: UnifiedItem[];
+    evmConfirmedItems: UnifiedItem[];
+    chainFilteredNonEvmTransactionsForSelectedChain: NonEvmTransaction[];
   }>(() => {
     // Build EVM submitted/confirmed with full filtering pipeline
     let accountAddedTimeInsertPointFound = false;
@@ -305,9 +313,21 @@ const UnifiedTransactionsView = ({
     const evmConfirmedDeduped =
       filterDuplicateOutgoingTransactions(allConfirmedFiltered);
 
-    // Non-EVM: filter by enabled chains
-    const filteredNonEvmTransactionsForSelectedChain = nonEvmTransactions
-      .filter((tx) => enabledNonEVMChainIds.includes(tx.chain))
+    // Non-EVM: filter by enabled chains, also include bridge txs
+    // whose destination chain is enabled (e.g. Solana→Optimism bridge
+    // should appear when viewing Optimism activity)
+    const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
+    const chainFilteredNonEvmTransactionsForSelectedChain = nonEvmTransactions
+      .filter((tx) => {
+        if (enabledNonEVMChainIds.includes(tx.chain)) return true;
+        const bridge = bridgeHistoryValues.find(
+          (item) => item.status?.srcChain?.txHash === tx.id,
+        );
+        return (
+          bridge?.quote?.destChainId !== undefined &&
+          enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
+        );
+      })
       // deduplicate by id
       .filter(
         (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
@@ -321,14 +341,46 @@ const UnifiedTransactionsView = ({
       kind: TransactionKind.Evm,
       tx,
     }));
-    const nonEvmItems: UnifiedItem[] = (
-      filteredNonEvmTransactionsForSelectedChain ?? []
-    ).map((tx) => ({
-      kind: TransactionKind.NonEvm,
-      tx,
-    }));
 
-    // Merge confirmed by time across EVM confirmed and non-EVM
+    return {
+      evmPendingItems,
+      evmConfirmedItems,
+      chainFilteredNonEvmTransactionsForSelectedChain,
+    };
+  }, [
+    evmTransactions,
+    nonEvmTransactions,
+    selectedAccountGroupInternalAccountsAddresses,
+    enabledEVMChainIds,
+    enabledNonEVMChainIds,
+    selectedInternalAccount,
+    tokens,
+    bridgeHistory,
+    trustedAddresses,
+  ]);
+
+  const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
+    data: UnifiedItem[];
+    nonEvmTransactionsForSelectedChain: NonEvmTransaction[];
+  }>(() => {
+    const {
+      evmPendingItems,
+      evmConfirmedItems,
+      chainFilteredNonEvmTransactionsForSelectedChain,
+    } = unifiedTransactionSource;
+
+    const filteredNonEvmTransactionsForSelectedChain =
+      filterMultichainTransactionsExcludingMaliciousTokenActivity(
+        chainFilteredNonEvmTransactionsForSelectedChain,
+        maliciousTokenKeys,
+      );
+
+    const nonEvmItems: UnifiedItem[] =
+      filteredNonEvmTransactionsForSelectedChain.map((tx) => ({
+        kind: TransactionKind.NonEvm,
+        tx,
+      }));
+
     const confirmedUnified = [...evmConfirmedItems, ...nonEvmItems].sort(
       (a, b) => {
         const ta =
@@ -348,17 +400,7 @@ const UnifiedTransactionsView = ({
       nonEvmTransactionsForSelectedChain:
         filteredNonEvmTransactionsForSelectedChain,
     };
-  }, [
-    evmTransactions,
-    nonEvmTransactions,
-    selectedAccountGroupInternalAccountsAddresses,
-    enabledEVMChainIds,
-    enabledNonEVMChainIds,
-    selectedInternalAccount,
-    tokens,
-    bridgeHistory,
-    trustedAddresses,
-  ]);
+  }, [unifiedTransactionSource, maliciousTokenKeys]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
   const popularListBlockExplorer = useBlockExplorer(
@@ -410,7 +452,7 @@ const UnifiedTransactionsView = ({
     let title;
     if (configBlockExplorerUrl) {
       const result = getBlockExplorerAddressUrl(
-        providerType,
+        RPC,
         selectedAccountGroupEvmAddress,
         blockExplorerUrl,
       );
@@ -436,7 +478,6 @@ const UnifiedTransactionsView = ({
     });
   }, [
     navigation,
-    providerType,
     blockExplorerUrl,
     selectedAccountGroupEvmAddress,
     popularListBlockExplorer,
@@ -532,15 +573,10 @@ const UnifiedTransactionsView = ({
 
   const [refreshing, setRefreshing] = useState(false);
   const {
-    retryIsOpen,
-    retryErrorMsg,
     speedUpIsOpen,
     cancelIsOpen,
     confirmDisabled,
     existingTx,
-    speedUpTxId,
-    cancelTxId,
-    toggleRetry,
     onSpeedUpAction,
     onCancelAction,
     onSpeedUpCancelCompleted,
@@ -627,6 +663,9 @@ const UnifiedTransactionsView = ({
         navigation={navigation}
         index={index}
         location={location}
+        showDestinationPerspective={
+          !enabledNonEVMChainIds.includes(item.tx.chain)
+        }
       />
     ) : (
       <MultichainTransactionListItem
@@ -684,16 +723,6 @@ const UnifiedTransactionsView = ({
           onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
           onClose={onSpeedUpCancelCompleted}
           confirmDisabled={confirmDisabled}
-        />
-        <RetryModal
-          onCancelPress={() => toggleRetry(undefined)}
-          onConfirmPress={() => {
-            toggleRetry(undefined);
-            if (speedUpTxId) onSpeedUpAction(true, existingTx ?? undefined);
-            if (cancelTxId) onCancelAction(true, existingTx ?? undefined);
-          }}
-          retryIsOpen={retryIsOpen}
-          errorMsg={retryErrorMsg}
         />
       </View>
     </PriceChartProvider>

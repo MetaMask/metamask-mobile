@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /** @type {import('@expo/fingerprint').Config} */
 
 /**

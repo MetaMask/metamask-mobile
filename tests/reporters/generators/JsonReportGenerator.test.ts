@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 jest.mock('fs', () => ({
   writeFileSync: jest.fn(),
   existsSync: jest.fn(() => true),

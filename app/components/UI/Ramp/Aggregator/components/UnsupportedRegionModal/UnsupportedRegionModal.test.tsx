@@ -62,8 +62,9 @@ describe('UnsupportedRegionModal', () => {
   });
 
   it('renders correctly for buy flow', () => {
-    const { toJSON } = render(UnsupportedRegionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render(UnsupportedRegionModal);
+    expect(getByText('Afghanistan')).toBeOnTheScreen();
+    expect(getByText(/buy/i, { exact: false })).toBeOnTheScreen();
   });
 
   it('renders correctly for sell flow', () => {
@@ -72,7 +73,8 @@ describe('UnsupportedRegionModal', () => {
       isBuy: false,
       isSell: true,
     };
-    const { toJSON } = render(UnsupportedRegionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render(UnsupportedRegionModal);
+    expect(getByText('Afghanistan')).toBeOnTheScreen();
+    expect(getByText(/sell/i, { exact: false })).toBeOnTheScreen();
   });
 });

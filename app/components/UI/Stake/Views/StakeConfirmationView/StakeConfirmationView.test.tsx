@@ -8,9 +8,10 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
+import { StakeConfirmationViewRouteParams } from './StakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -49,7 +50,6 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: 'keyring:test-wallet/ethereum',
           wallets: {
             'keyring:test-wallet': {
               groups: {
@@ -60,6 +60,7 @@ const mockInitialState: DeepPartial<RootState> = {
             },
           },
         },
+        selectedAccountGroup: 'keyring:test-wallet/ethereum',
       },
     },
   },
@@ -80,6 +81,18 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
+    }),
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
+      params: {
+        amountWei: '10000000000000000',
+        amountFiat: '26.21',
+        annualRewardRate: '2.6%',
+        annualRewardsETH: '0.00026 ETH',
+        annualRewardsFiat: '$0.68',
+        chainId: '1',
+      } as StakeConfirmationViewRouteParams,
     }),
   };
 });
@@ -103,40 +116,14 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   }),
 }));
 
-expect.addSnapshotSerializer({
-  test: (val) =>
-    val &&
-    typeof val === 'object' &&
-    (val.props?.source?.uri === '' ||
-      val.props?.onLayout ||
-      val.props?.onError ||
-      val.props?.onLoadEnd),
-  print: () => 'IGNORED_RANDOM_ELEMENT',
-});
-
 describe('StakeConfirmationView', () => {
-  it('render matches snapshot', () => {
-    const props: StakeConfirmationViewProps = {
-      route: {
-        key: '1',
-        params: {
-          amountWei: '10000000000000000',
-          amountFiat: '26.21',
-          annualRewardRate: '2.6%',
-          annualRewardsETH: '0.00026 ETH',
-          annualRewardsFiat: '$0.68',
-          chainId: '1',
-        },
-        name: 'params',
-      },
-    };
-
-    const { toJSON } = renderWithProvider(
+  it('renders stake confirmation view', () => {
+    const { getByText } = renderWithProvider(
       <Provider store={store}>
-        <StakeConfirmationView {...props} />
+        <StakeConfirmationView />
       </Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.staking_from'))).toBeOnTheScreen();
   });
 });

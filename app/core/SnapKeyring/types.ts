@@ -10,24 +10,24 @@ import {
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
 import type {
-  AcceptRequest,
-  AddApprovalRequest,
-  EndFlow,
-  RejectRequest,
-  ShowError,
-  ShowSuccess,
-  StartFlow,
+  ApprovalControllerAcceptRequestAction,
+  ApprovalControllerAddRequestAction,
+  ApprovalControllerEndFlowAction,
+  ApprovalControllerRejectRequestAction,
+  ApprovalControllerShowErrorAction,
+  ApprovalControllerShowSuccessAction,
+  ApprovalControllerStartFlowAction,
 } from '@metamask/approval-controller';
 import { SnapKeyringAllowedActions } from '@metamask/eth-snap-keyring';
 
 export type SnapKeyringBuilderAllowActions =
-  | StartFlow
-  | EndFlow
-  | ShowSuccess
-  | ShowError
-  | AddApprovalRequest
-  | AcceptRequest
-  | RejectRequest
+  | ApprovalControllerStartFlowAction
+  | ApprovalControllerEndFlowAction
+  | ApprovalControllerShowSuccessAction
+  | ApprovalControllerShowErrorAction
+  | ApprovalControllerAddRequestAction
+  | ApprovalControllerAcceptRequestAction
+  | ApprovalControllerRejectRequestAction
   | MaybeUpdateState
   | TestOrigin
   | KeyringControllerGetAccountsAction

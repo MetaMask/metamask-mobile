@@ -7,7 +7,7 @@ import {
   MAIN_NOTIFICATION_TOGGLE_TEST_ID,
   MainNotificationToggle,
 } from './MainNotificationToggle';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as MainNotificationToggleHookModule from './MainNotificationToggle.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 

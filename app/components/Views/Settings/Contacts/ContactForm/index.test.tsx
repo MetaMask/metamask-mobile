@@ -6,6 +6,7 @@ import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
 import ContactForm from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xf55C0d639d99699bFd7EC54d9FAFee40E4d272C4';
@@ -132,8 +133,8 @@ describe('ContactForm', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderContactForm();
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderContactForm();
+    expect(getByText(strings('address_book.name'))).toBeOnTheScreen();
   });
 
   it('renders in add mode by default', async () => {
@@ -344,9 +345,9 @@ describe('ContactForm', () => {
 
     await waitFor(() => {
       expect(addressInput.props.value).toBe(MOCK_ADDRESS);
-      expect(addressInput.props.editable).toBeFalsy(); // Address is immutable in edit mode
-      expect(nameInput.props.editable).toBeTruthy();
-      expect(memoInput.props.editable).toBeTruthy();
+      expect(addressInput).toHaveProp('editable', false); // Address is immutable in edit mode
+      expect(nameInput).toHaveProp('editable', true);
+      expect(memoInput).toHaveProp('editable', true);
     });
 
     // The delete button should be visible now

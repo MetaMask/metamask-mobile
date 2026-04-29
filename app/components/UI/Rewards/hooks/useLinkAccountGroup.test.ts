@@ -5,7 +5,9 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useLinkAccountGroup } from './useLinkAccountGroup';
 import Engine from '../../../../core/Engine';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { deriveAccountMetricProps } from '../utils';
 import useRewardsToast from './useRewardsToast';
 import { strings } from '../../../../../locales/i18n';
@@ -29,14 +31,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    REWARDS_ACCOUNT_LINKING_STARTED: 'Rewards Account Linking Started',
-    REWARDS_ACCOUNT_LINKING_COMPLETED: 'Rewards Account Linking Completed',
-    REWARDS_ACCOUNT_LINKING_FAILED: 'Rewards Account Linking Failed',
-  },
-  useMetrics: jest.fn(),
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../utils', () => ({
   deriveAccountMetricProps: jest.fn(),
@@ -77,7 +72,7 @@ describe('useLinkAccountGroup', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
-  const mockUseMetrics = jest.mocked(useMetrics);
+  const mockUseAnalytics = jest.mocked(useAnalytics);
   const mockDeriveAccountMetricProps = jest.mocked(deriveAccountMetricProps);
   const mockUseRewardsToast = jest.mocked(useRewardsToast);
   const mockStrings = jest.mocked(strings);
@@ -93,6 +88,11 @@ describe('useLinkAccountGroup', () => {
 
   const mockShowToast = jest.fn();
   const mockRewardsToastOptions = {
+    entriesClosed: jest.fn().mockReturnValue({
+      variant: 'icon',
+      iconName: 'lock',
+      hapticsType: 'warning',
+    }),
     success: jest.fn().mockReturnValue({
       variant: 'icon',
       iconName: 'confirmation',
@@ -165,11 +165,13 @@ describe('useLinkAccountGroup', () => {
       return undefined;
     });
 
-    // Setup useMetrics mock
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    } as never);
+    // Setup useAnalytics mock
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Setup useRewardsToast mock
     mockUseRewardsToast.mockReturnValue({

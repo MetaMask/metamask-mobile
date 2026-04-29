@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
@@ -10,9 +10,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const os = require('node:os');
 
 const parsedArgs = parseArgs({
@@ -26,13 +26,13 @@ const parsedArgs = parseArgs({
 });
 
 const getPolyfills = () => [
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
   require.resolve('reflect-metadata'),
 ];
 
 // We should replace path for react-native-fs
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
@@ -46,6 +46,15 @@ module.exports = function (baseConfig) {
   const isE2E =
     process.env.IS_TEST === 'true' ||
     process.env.METAMASK_ENVIRONMENT === 'e2e';
+
+  /**
+   * E2E Metro redirects under tests/module-mocking.
+   * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
+   * True when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
+   */
+  const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
+
+  const e2eAllowsSeedlessOAuthMetroMocks = isE2E || isE2EMockOAuth;
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -98,6 +107,17 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // Bare package only: subpaths (e.g. jest/mock) must resolve to node_modules.
+          // Jest does not remap this package — mapping breaks jest/mock's requireActual().
+          if (moduleName === 'react-native-safe-area-context') {
+            return {
+              type: 'sourceFile',
+              filePath: path.resolve(
+                __dirname,
+                'app/shims/react-native-safe-area-context.tsx',
+              ),
+            };
+          }
           // @ecies/ciphers uses package.json "exports" subpaths that Metro
           // can't resolve without unstable_enablePackageExports. Map them to
           // the react-native condition targets manually.
@@ -150,6 +170,8 @@ module.exports = function (baseConfig) {
                 ),
               };
             }
+          }
+          if (e2eAllowsSeedlessOAuthMetroMocks) {
             if (
               moduleName.endsWith(
                 'controllers/seedless-onboarding-controller',
@@ -168,7 +190,7 @@ module.exports = function (baseConfig) {
                 ),
               };
             }
-            // Mock OAuth Login Handlers for E2E Google/Apple login tests
+            // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
             if (
               moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
               moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
@@ -213,7 +235,7 @@ module.exports = function (baseConfig) {
           getPolyfills,
         },
       ),
-      resetCache: true,
+      resetCache: process.env.METRO_RESET_CACHE !== 'false',
       maxWorkers,
     }),
   );

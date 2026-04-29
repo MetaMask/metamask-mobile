@@ -7,6 +7,8 @@ import {
   completeSrpQuiz,
 } from '../../flows/accounts.flow.ts';
 import { defaultOptions } from '../../seeder/anvil-manager.ts';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 const SRP_1 = {
   index: 1,
@@ -25,6 +27,15 @@ const IMPORTED_SRP =
 describe(
   SmokeWalletPlatform('Multi-SRP: Exports the correct srp in account actions'),
   () => {
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: /^https:\/\/api\.merkl\.xyz\/v4\/users\/[a-zA-Z0-9]+\/rewards(\?|$)/,
+        response: [],
+        responseCode: 200,
+      });
+    };
+
     it('exports the correct srp for the default hd keyring', async () => {
       await withFixtures(
         {
@@ -32,6 +43,7 @@ describe(
             .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
             .build(),
           restartDevice: true,
+          testSpecificMock,
         },
         async () => {
           await loginToApp();
@@ -48,6 +60,7 @@ describe(
             .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
             .build(),
           restartDevice: true,
+          testSpecificMock,
         },
         async () => {
           await loginToApp();

@@ -65,6 +65,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -76,6 +77,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -86,6 +88,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -96,6 +99,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -106,6 +110,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -115,6 +120,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     refresh: jest.fn(() => Promise.resolve()),
     prewarm: jest.fn(() => jest.fn()),
     clearCache: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 });

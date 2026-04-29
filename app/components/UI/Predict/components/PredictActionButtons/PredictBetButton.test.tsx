@@ -24,7 +24,8 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('65¢')).toBeOnTheScreen();
     });
 
     it('renders with no variant label and price', () => {
@@ -36,7 +37,21 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getByText('35¢')).toBeOnTheScreen();
+    });
+
+    it('renders with draw variant label and price', () => {
+      const props = createDefaultProps({
+        label: 'Draw',
+        price: 20,
+        variant: 'draw',
+      });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      expect(screen.getByText('DRAW')).toBeOnTheScreen();
+      expect(screen.getByText('20¢')).toBeOnTheScreen();
     });
 
     it('renders team abbreviation as label for game markets', () => {
@@ -48,7 +63,8 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('SEA · 49¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA')).toBeOnTheScreen();
+      expect(screen.getByText('49¢')).toBeOnTheScreen();
     });
 
     it('renders with testID', () => {
@@ -132,13 +148,50 @@ describe('PredictBetButton', () => {
     });
   });
 
+  describe('inline layout', () => {
+    it('renders label and price on a single line with dot separator', () => {
+      const props = createDefaultProps({
+        label: 'SEA',
+        price: 70,
+        layout: 'inline',
+      });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      expect(screen.getByText('SEA · 70¢')).toBeOnTheScreen();
+    });
+
+    it('renders inline with draw variant', () => {
+      const props = createDefaultProps({
+        label: 'Draw',
+        price: 20,
+        variant: 'draw',
+        layout: 'inline',
+      });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      expect(screen.getByText('DRAW · 20¢')).toBeOnTheScreen();
+    });
+
+    it('defaults to stacked layout when layout prop is omitted', () => {
+      const props = createDefaultProps({ label: 'Yes', price: 65 });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('65¢')).toBeOnTheScreen();
+    });
+  });
+
   describe('edge cases', () => {
     it('renders with zero price', () => {
       const props = createDefaultProps({ price: 0 });
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('YES · 0¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('0¢')).toBeOnTheScreen();
     });
 
     it('renders with 100 price', () => {
@@ -146,7 +199,8 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('YES · 100¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('100¢')).toBeOnTheScreen();
     });
 
     it('renders with empty label', () => {
@@ -154,7 +208,7 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText(' · 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('65¢')).toBeOnTheScreen();
     });
   });
 });

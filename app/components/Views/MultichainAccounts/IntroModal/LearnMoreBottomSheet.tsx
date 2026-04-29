@@ -3,16 +3,14 @@ import { View } from 'react-native';
 import {
   Text,
   ButtonIcon,
+  Checkbox,
   TextVariant,
   IconName,
   TextColor,
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
-import Checkbox from '../../../../component-library/components/Checkbox';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -27,7 +25,7 @@ import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
 import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
 
 interface LearnMoreBottomSheetProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
@@ -50,10 +48,6 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
-
-  const handleCheckboxToggle = useCallback(() => {
-    setIsCheckboxChecked(!isCheckboxChecked);
-  }, [isCheckboxChecked]);
 
   const handleConfirm = useCallback(() => {
     if (isCheckboxChecked) {
@@ -102,8 +96,8 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
           </Text>
 
           <Checkbox
-            isChecked={isCheckboxChecked}
-            onPress={handleCheckboxToggle}
+            isSelected={isCheckboxChecked}
+            onChange={setIsCheckboxChecked}
             label={strings('multichain_accounts.learn_more.checkbox_label')}
             testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX}
           />
@@ -111,14 +105,15 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
 
         <View style={styles.footer}>
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('multichain_accounts.learn_more.confirm_button')}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            size={ButtonBaseSize.Lg}
+            isFullWidth
             onPress={handleConfirm}
             isDisabled={!isCheckboxChecked}
             testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CONFIRM_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.learn_more.confirm_button')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

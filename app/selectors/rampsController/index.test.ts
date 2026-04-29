@@ -6,6 +6,9 @@ import {
   type Country,
   type PaymentMethod,
 } from '@metamask/ramps-controller';
+import { AccountGroupType } from '@metamask/account-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import {
   selectUserRegion,
   selectProviders,
@@ -14,6 +17,7 @@ import {
   selectPaymentMethods,
   selectRampsControllerState,
   selectRampsOrders,
+  selectRampsOrdersForSelectedAccountGroup,
   selectTransak,
 } from './index';
 
@@ -31,6 +35,7 @@ type RampsControllerStateOverride = Partial<RampsControllerState>;
 
 const createMockState = (
   rampsController: RampsControllerStateOverride = {},
+  extraBackgroundState: Record<string, unknown> = {},
 ): RootState =>
   ({
     engine: {
@@ -58,9 +63,64 @@ const createMockState = (
           },
           ...rampsController,
         },
+        KeyringController: {
+          keyrings: [],
+        },
+        ...extraBackgroundState,
       },
     },
   }) as unknown as RootState;
+
+const WALLET_ID = 'keyring:ramps-selector-test' as const;
+const GROUP_ID = `${WALLET_ID}/ethereum` as const;
+
+function createStateWithSelectedAccountGroup(
+  rampsController: RampsControllerStateOverride,
+  internalAccount: InternalAccount,
+  accountId: string,
+): RootState {
+  return createMockState(rampsController, {
+    AccountTreeController: {
+      accountTree: {
+        wallets: {
+          [WALLET_ID]: {
+            id: WALLET_ID,
+            metadata: { name: 'Test wallet' },
+            groups: {
+              [GROUP_ID]: {
+                id: GROUP_ID,
+                type: AccountGroupType.SingleAccount,
+                accounts: [accountId],
+                metadata: { name: 'Test Group' },
+              },
+            },
+          },
+        },
+      },
+      selectedAccountGroup: GROUP_ID,
+    },
+    RemoteFeatureFlagController: {
+      remoteFeatureFlags: {
+        enableMultichainAccounts: {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '1.0.0',
+        },
+      },
+    },
+    AccountsController: {
+      internalAccounts: {
+        accounts: {
+          [accountId]: internalAccount,
+        },
+        selectedAccount: accountId,
+      },
+    },
+    KeyringController: {
+      keyrings: [],
+    },
+  });
+}
 
 const mockUserRegion: UserRegion = {
   country: {
@@ -311,6 +371,73 @@ describe('RampsController Selectors', () => {
 
       const result = selectRampsOrders(state);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('selectRampsOrdersForSelectedAccountGroup', () => {
+    const accountId = 'account-ramps-1';
+    const walletAddrLower = '0x2990079bcdee240329a520d2444386fc119da21a';
+    const internalAccount = {
+      ...createMockInternalAccount(walletAddrLower, 'Account 1'),
+      id: accountId,
+    };
+
+    it('returns empty array when no selected account group addresses', () => {
+      const mockOrders = [
+        {
+          providerOrderId: 'order-1',
+          walletAddress: walletAddrLower,
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+      ];
+      const state = createMockState({
+        orders: mockOrders,
+      } as never);
+
+      expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([]);
+    });
+
+    it('keeps orders whose walletAddress matches a selected group address (case-insensitive for EVM)', () => {
+      const mockOrders = [
+        {
+          providerOrderId: 'order-match',
+          walletAddress: '0x2990079BCDEE240329A520D2444386FC119DA21A',
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+        {
+          providerOrderId: 'order-other',
+          walletAddress: '0x0000000000000000000000000000000000000001',
+          status: 'COMPLETED',
+          createdAt: 2000,
+        },
+      ];
+      const state = createStateWithSelectedAccountGroup(
+        { orders: mockOrders } as never,
+        internalAccount,
+        accountId,
+      );
+
+      const result = selectRampsOrdersForSelectedAccountGroup(state);
+      expect(result).toEqual([mockOrders[0]]);
+    });
+
+    it('excludes orders with missing walletAddress', () => {
+      const mockOrders = [
+        {
+          providerOrderId: 'order-no-wallet',
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+      ];
+      const state = createStateWithSelectedAccountGroup(
+        { orders: mockOrders } as never,
+        internalAccount,
+        accountId,
+      );
+
+      expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([]);
     });
   });
 

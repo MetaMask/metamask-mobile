@@ -21,7 +21,6 @@ describe('BadgeNetwork', () => {
 
   it('should render BadgeNetwork', () => {
     const { toJSON, queryByTestId } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
     expect(queryByTestId(BADGENETWORK_TEST_ID)).not.toBe(null);
   });
 

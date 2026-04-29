@@ -26,7 +26,9 @@ export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
 ];

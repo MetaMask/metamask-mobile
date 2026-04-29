@@ -35,6 +35,8 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
+import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -56,6 +58,13 @@ export function PayWithModal() {
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
   const blockedTokens = useTransactionPayBlockedTokens();
+  const { onPaymentTokenChange: onPredictPaymentTokenChange } =
+    usePredictPaymentToken();
+  const isPredictContext = hasTransactionType(transactionMeta, [
+    TransactionType.predictDepositAndOrder,
+  ]);
+  const predictBalanceTokenFilter =
+    usePredictBalanceTokenFilter(isPredictContext);
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -90,7 +99,7 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      const onClosed = () => {
+      const onClosed = async () => {
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
         ) {
@@ -107,9 +116,14 @@ export function PayWithModal() {
           return;
         }
 
+        if (isPredictContext) {
+          onPredictPaymentTokenChange(token);
+          return;
+        }
+
         // Ensure the token is tracked by TokensController so the pay
         // controller can resolve its metadata (symbol, decimals, balance).
-        // This is needed for zero-balance tokens from the catalog.
+        // Must complete before setPayToken so the controller can find the token.
         if (isWithdraw && token.balance === '0' && !token.isNative) {
           const { TokensController, NetworkController } = Engine.context;
           try {
@@ -117,16 +131,17 @@ export function PayWithModal() {
               NetworkController.findNetworkClientIdByChainId(
                 token.chainId as Hex,
               );
-            TokensController.addTokens(
+            await TokensController.addTokens(
               [
                 {
                   address: token.address,
                   symbol: token.symbol,
                   decimals: token.decimals,
+                  image: token.image || undefined,
                 },
               ],
               networkClientId,
-            ).catch(noop);
+            );
           } catch {
             // Network not configured — skip
           }
@@ -142,9 +157,11 @@ export function PayWithModal() {
     },
     [
       close,
+      isPredictContext,
       isWithdraw,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
+      onPredictPaymentTokenChange,
       setPayToken,
       transactionMeta,
     ],
@@ -177,6 +194,8 @@ export function PayWithModal() {
         ])
       ) {
         filteredTokens = perpsBalanceTokenFilter(availableTokens);
+      } else if (isPredictContext) {
+        filteredTokens = predictBalanceTokenFilter(availableTokens);
       }
 
       const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
@@ -195,7 +214,9 @@ export function PayWithModal() {
       payToken,
       requiredTokens,
       transactionMeta,
+      isPredictContext,
       perpsBalanceTokenFilter,
+      predictBalanceTokenFilter,
       wrapHighlightedItemCallbacks,
     ],
   );

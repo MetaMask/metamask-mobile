@@ -1,22 +1,22 @@
 import React, { useCallback, useRef } from 'react';
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
+import { useNavigation } from '@react-navigation/native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  Box,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { RAMP_UNSUPPORTED_MODAL_TEST_IDS } from './RampUnsupportedModal.testIds';
 
 export const createRampUnsupportedModalNavigationDetails =
   createNavigationDetails(
@@ -26,6 +26,7 @@ export const createRampUnsupportedModalNavigationDetails =
 
 function RampUnsupportedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -34,21 +35,23 @@ function RampUnsupportedModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       isInteractable={false}
-      testID="ramp-unsupported-modal"
+      testID={RAMP_UNSUPPORTED_MODAL_TEST_IDS.MODAL}
     >
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
+        closeButtonProps={{
+          testID: RAMP_UNSUPPORTED_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
       >
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('fiat_on_ramp_aggregator.unsupported_region_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <Box twClassName="px-6 pb-6">
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings(
             'fiat_on_ramp_aggregator.unsupported_region_modal.description',
           )}
@@ -59,12 +62,11 @@ function RampUnsupportedModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={handleClose}
-          label={strings(
-            'fiat_on_ramp_aggregator.unsupported_region_modal.got_it',
-          )}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('fiat_on_ramp_aggregator.unsupported_region_modal.got_it')}
+        </Button>
       </Box>
     </BottomSheet>
   );

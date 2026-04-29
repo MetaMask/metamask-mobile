@@ -5,6 +5,7 @@ import NotificationsSettings from '.';
 import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: jest.fn().mockReturnValue(true),
@@ -13,9 +14,6 @@ jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
 const mockInitialState = {
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
-  },
-  notificationsSettings: {
-    isEnabled: true,
   },
   engine: {
     backgroundState: {
@@ -42,11 +40,13 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../UI/Notification/SwitchLoadingModal', () => () => null);
+
 const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders correctly', () => {
+    const { getByTestId } = renderWithProvider(
       <NotificationsSettings
         navigation={
           {
@@ -59,6 +59,8 @@ describe('NotificationsSettings', () => {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+    ).toBeOnTheScreen();
   });
 });

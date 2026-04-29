@@ -12,15 +12,6 @@
 		<item name="android:textColor">@color/themeInverse</item>
 	</style>
 
-	<style name="SplashTheme" parent="Theme.AppCompat.DayNight">
-	 	<item name="android:windowDisablePreview">true</item>
-        <item name="android:windowBackground">@drawable/app_background</item>
-		<item name="android:statusBarColor">@color/theme</item>
-		<item name="android:navigationBarColor">@color/navBar</item>
-		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
-		<item name="android:textColor">@color/themeInverse</item>
-	</style>
-
 	<style name="AlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
 		<item name="android:background">@color/alertBackground</item>
 		<item name="android:textColor">@color/alertTextColor</item>

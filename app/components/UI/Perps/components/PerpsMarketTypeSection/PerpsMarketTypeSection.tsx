@@ -24,6 +24,8 @@ export interface PerpsMarketTypeSectionProps {
   sortBy?: SortField;
   /** Whether markets are loading */
   isLoading?: boolean;
+  /** Analytics source identifying the parent screen (e.g., 'perps_home') */
+  source?: string;
   /** Test ID for component */
   testID?: string;
   /** Optional style override for the section container */
@@ -63,6 +65,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   marketType,
   sortBy = 'volume',
   isLoading,
+  source,
   testID,
   style,
   headerStyle,
@@ -72,23 +75,23 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   const navigation = useNavigation();
 
   const handleViewAll = useCallback(() => {
-    // Navigate to the specific market type tab when "See all" is pressed
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
         defaultMarketTypeFilter: marketType,
+        source,
       },
     });
-  }, [navigation, marketType]);
+  }, [navigation, marketType, source]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source },
       });
     },
-    [navigation],
+    [navigation, source],
   );
 
   // Show skeleton during initial load

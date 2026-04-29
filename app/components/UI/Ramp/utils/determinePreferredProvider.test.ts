@@ -179,7 +179,7 @@ describe('determinePreferredProvider', () => {
   });
 
   describe('when user has completed orders', () => {
-    it('returns provider from most recent completed order', () => {
+    it('returns provider from most recent completed order with autoSelected false', () => {
       const completedOrders = [
         { providerId: 'provider-1', completedAt: 1000 },
         { providerId: 'provider-2', completedAt: 2000 },
@@ -188,10 +188,13 @@ describe('determinePreferredProvider', () => {
 
       const result = determinePreferredProvider(completedOrders, providers);
 
-      expect(result).toEqual(mockProvider2);
+      expect(result).toEqual({
+        provider: mockProvider2,
+        autoSelected: false,
+      });
     });
 
-    it('falls back to Transak if provider from order is not in available providers', () => {
+    it('falls back to Transak with autoSelected false if provider from order is not in available providers', () => {
       const completedOrders = [
         { providerId: 'non-existent-provider', completedAt: 1000 },
       ];
@@ -199,25 +202,31 @@ describe('determinePreferredProvider', () => {
 
       const result = determinePreferredProvider(completedOrders, providers);
 
-      expect(result).toEqual(mockTransakProvider);
+      expect(result).toEqual({
+        provider: mockTransakProvider,
+        autoSelected: false,
+      });
     });
   });
 
   describe('when user has no orders', () => {
-    it('returns Transak provider if available', () => {
+    it('returns Transak provider with autoSelected false', () => {
       const providers = [mockProvider1, mockProvider2, mockTransakProvider];
 
       const result = determinePreferredProvider([], providers);
 
-      expect(result).toEqual(mockTransakProvider);
+      expect(result).toEqual({
+        provider: mockTransakProvider,
+        autoSelected: false,
+      });
     });
 
-    it('returns first provider if Transak is not available', () => {
+    it('returns null if Transak is not available (no preselection without signal)', () => {
       const providers = [mockProvider1, mockProvider2];
 
       const result = determinePreferredProvider([], providers);
 
-      expect(result).toEqual(mockProvider1);
+      expect(result).toBeNull();
     });
   });
 
@@ -228,7 +237,10 @@ describe('determinePreferredProvider', () => {
 
       const result = determinePreferredProvider(completedOrders, providers);
 
-      expect(result).toEqual(mockProvider1);
+      expect(result).toEqual({
+        provider: mockProvider1,
+        autoSelected: false,
+      });
     });
 
     it('matches provider by name case-insensitively', () => {
@@ -239,7 +251,10 @@ describe('determinePreferredProvider', () => {
 
       const result = determinePreferredProvider(completedOrders, providers);
 
-      expect(result).toEqual(mockProvider1);
+      expect(result).toEqual({
+        provider: mockProvider1,
+        autoSelected: false,
+      });
     });
 
     it('matches Transak by id containing "transak"', () => {
@@ -252,7 +267,10 @@ describe('determinePreferredProvider', () => {
 
       const result = determinePreferredProvider(completedOrders, providers);
 
-      expect(result).toEqual(transakVariant);
+      expect(result).toEqual({
+        provider: transakVariant,
+        autoSelected: false,
+      });
     });
   });
 
@@ -272,7 +290,10 @@ describe('determinePreferredProvider', () => {
         providers,
       );
 
-      expect(result).toEqual(mockProvider2);
+      expect(result).toEqual({
+        provider: mockProvider2,
+        autoSelected: false,
+      });
     });
 
     it('works with controller RampsOrders through converter', () => {
@@ -289,7 +310,10 @@ describe('determinePreferredProvider', () => {
         providers,
       );
 
-      expect(result).toEqual(mockProvider2);
+      expect(result).toEqual({
+        provider: mockProvider2,
+        autoSelected: false,
+      });
     });
 
     it('picks most recent across both legacy and controller orders', () => {
@@ -316,7 +340,10 @@ describe('determinePreferredProvider', () => {
         providers,
       );
 
-      expect(result).toEqual(mockProvider2);
+      expect(result).toEqual({
+        provider: mockProvider2,
+        autoSelected: false,
+      });
     });
   });
 });

@@ -42,6 +42,14 @@ jest.mock('../../../util/date', () => ({
   toDateFormat: jest.fn(() => 'Mar 15, 2025'),
 }));
 
+const mockGetNetworkImageSource = jest.fn(
+  (_opts: { chainId?: string }) => ({}),
+);
+jest.mock('../../../util/networks', () => ({
+  getNetworkImageSource: (opts: { chainId?: string }) =>
+    mockGetNetworkImageSource(opts),
+}));
+
 // Create a mock store with the necessary state
 const createMockStore = () =>
   configureStore({
@@ -331,6 +339,105 @@ describe('MultichainBridgeTransactionListItem', () => {
           location: TransactionDetailLocation.AssetDetails,
         }),
       );
+    });
+  });
+
+  describe('showDestinationPerspective', () => {
+    it('displays destination amount and symbol with + prefix when showDestinationPerspective is true', () => {
+      const { getByText } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective
+        />,
+      );
+
+      expect(getByText('+2 ETH')).toBeTruthy();
+    });
+
+    it('displays source amount and symbol without + when showDestinationPerspective is false', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective={false}
+        />,
+      );
+
+      expect(getByText('1 ETH')).toBeTruthy();
+      expect(queryByText('+2 ETH')).toBeNull();
+    });
+
+    it('uses destination asset chain for network badge when showDestinationPerspective is true', () => {
+      mockGetNetworkImageSource.mockClear();
+
+      renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective
+        />,
+      );
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith(
+        expect.objectContaining({ chainId: 'eip155:10' }),
+      );
+    });
+
+    it('uses source asset chain for network badge when showDestinationPerspective is false', () => {
+      mockGetNetworkImageSource.mockClear();
+
+      renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective={false}
+        />,
+      );
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith(
+        expect.objectContaining({ chainId: 'eip155:1' }),
+      );
+    });
+
+    it('formats destination amount with destination asset decimals when showDestinationPerspective is true', () => {
+      const customDecimalsBridgeItem = {
+        ...mockBridgeHistoryItem,
+        quote: {
+          ...mockBridgeHistoryItem.quote,
+          destAsset: {
+            ...mockBridgeHistoryItem.quote.destAsset,
+            symbol: 'OP',
+            decimals: 6,
+          },
+          destTokenAmount: '1500000',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={customDecimalsBridgeItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective
+        />,
+      );
+
+      expect(getByText('+1.5 OP')).toBeTruthy();
     });
   });
 });

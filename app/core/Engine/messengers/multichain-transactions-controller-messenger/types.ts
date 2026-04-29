@@ -12,12 +12,12 @@ import {
   MultichainTransactionsControllerTransactionConfirmedEvent,
   MultichainTransactionsControllerTransactionSubmittedEvent,
 } from '@metamask/multichain-transactions-controller';
-import { HandleSnapRequest } from '@metamask/snaps-controllers';
+import { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
 
 export type MultichainTransactionsControllerActions =
   | MultichainTransactionsControllerGetStateAction
   | AccountsControllerListMultichainAccountsAction
-  | HandleSnapRequest
+  | SnapControllerHandleRequestAction
   | KeyringControllerGetStateAction;
 
 export type MultichainTransactionsControllerEvents =

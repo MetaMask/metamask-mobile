@@ -1,17 +1,13 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import {
-  BackHandler,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { BackHandler, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
   AlignItems,
@@ -60,17 +56,15 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 
-interface AccountGroupDetailsProps {
-  route: {
-    params: {
-      accountGroup: AccountGroupObject;
-    };
-  };
+interface AccountGroupDetailsRouteParams {
+  accountGroup: AccountGroupObject;
 }
 
-export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
+export const AccountGroupDetails = () => {
+  const route =
+    useRoute<RouteProp<{ params: AccountGroupDetailsRouteParams }, 'params'>>();
   const navigation = useNavigation();
-  const { accountGroup: initialAccountGroup } = props.route.params;
+  const { accountGroup: initialAccountGroup } = route.params;
   const { id } = initialAccountGroup;
 
   // Use selector to get current account group data from Redux store

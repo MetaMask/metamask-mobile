@@ -120,6 +120,50 @@ function shouldShowTransferByAddress(
   return false;
 }
 
+function hasPositiveNativeValue(value: string | undefined): boolean {
+  if (value === undefined || value === null || value === '') {
+    return false;
+  }
+  try {
+    return BigInt(value) > 0n;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Incoming native coin (ETH, MATIC, etc.) to the selected account: not a token
+ * transfer, recipient is the user, sender is someone else, and non-zero `value`.
+ * Mirrors address-poisoning policy for ERC-20: show only if the sender is trusted
+ * (own account or address book); outgoing native is unaffected.
+ */
+function isIncomingNativeTransfer(
+  tx: TransactionMeta,
+  selectedAddress: string,
+): boolean {
+  if (tx.isTransfer) {
+    return false;
+  }
+  const { from, to, value } = tx.txParams;
+  if (!from || !to) {
+    return false;
+  }
+  if (!areAddressesEqual(to, selectedAddress)) {
+    return false;
+  }
+  if (areAddressesEqual(from, selectedAddress)) {
+    return false;
+  }
+  return hasPositiveNativeValue(value);
+}
+
+function shouldShowIncomingNativeByAddress(
+  from: string,
+  trustedAddresses: Set<string>,
+): boolean {
+  return isTrustedAddress(from, trustedAddresses);
+}
+
 /**
  * Determines if a transaction was executed in the current chain/network
  * @param tx - Transaction to evaluate
@@ -197,6 +241,10 @@ export const filterByAddressAndNetwork = (
     condition &&
     tx.status !== TX_UNAPPROVED
   ) {
+    if (isIncomingNativeTransfer(tx, selectedAddress)) {
+      return shouldShowIncomingNativeByAddress(from, trustedAddresses);
+    }
+
     const result = isTransfer
       ? shouldShowTransferByAddress(
           from,
@@ -235,6 +283,10 @@ export const filterByAddress = (
     isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
     tx.status !== TX_UNAPPROVED
   ) {
+    if (isIncomingNativeTransfer(tx, selectedAddress)) {
+      return shouldShowIncomingNativeByAddress(from, trustedAddresses);
+    }
+
     const result = isTransfer
       ? shouldShowTransferByAddress(
           from,

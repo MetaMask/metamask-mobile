@@ -174,76 +174,17 @@ describe('CardSDK', () => {
 
   describe('constructor', () => {
     it('initializes with correct card feature flag and chain ID', () => {
-      expect(cardSDK.isCardEnabled).toBe(true);
       expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
         mockSupportedTokens,
       );
-    });
-  });
-
-  describe('isCardEnabled', () => {
-    it('returns true when card is enabled for the chain', () => {
-      expect(cardSDK.isCardEnabled).toBe(true);
-    });
-
-    it('returns false when card is disabled for the chain', () => {
-      const disabledCardFeatureFlag: CardFeatureFlag = {
-        constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        },
-        chains: {
-          'eip155:59144': {
-            enabled: false,
-            tokens: [],
-          },
-        },
-      };
-
-      const disabledCardholderSDK = new CardSDK({
-        cardFeatureFlag: disabledCardFeatureFlag,
-      });
-
-      expect(disabledCardholderSDK.isCardEnabled).toBe(false);
-    });
-
-    it('returns false when chain is not configured', () => {
-      const emptyCardFeatureFlag: CardFeatureFlag = {};
-
-      const noChainCardholderSDK = new CardSDK({
-        cardFeatureFlag: emptyCardFeatureFlag,
-      });
-
-      expect(noChainCardholderSDK.isCardEnabled).toBe(false);
     });
   });
 
   describe('getSupportedTokensByChainId', () => {
-    it('returns supported tokens when card is enabled', () => {
+    it('returns supported tokens', () => {
       expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
         mockSupportedTokens,
       );
-    });
-
-    it('returns empty array when card is disabled', () => {
-      const disabledCardFeatureFlag: CardFeatureFlag = {
-        constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        },
-        chains: {
-          'eip155:59144': {
-            enabled: false,
-            tokens: mockSupportedTokens,
-          },
-        },
-      };
-
-      const disabledCardholderSDK = new CardSDK({
-        cardFeatureFlag: disabledCardFeatureFlag,
-      });
-
-      expect(
-        disabledCardholderSDK.getSupportedTokensByChainId('eip155:59144'),
-      ).toEqual([]);
     });
 
     it('returns empty array when tokens array is undefined', () => {
@@ -627,7 +568,7 @@ describe('CardSDK', () => {
   describe('getSupportedTokensAllowances', () => {
     const testAddress = '0x1234567890123456789012345678901234567890';
 
-    it('throws error when card is not enabled', async () => {
+    it('returns empty array when the chain has no supported tokens', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         constants: {
           onRampApiUrl: '',
@@ -644,9 +585,9 @@ describe('CardSDK', () => {
         cardFeatureFlag: disabledCardFeatureFlag,
       });
 
-      await expect(
-        disabledCardholderSDK.getSupportedTokensAllowances(testAddress),
-      ).rejects.toThrow('Card feature is not enabled for this chain');
+      const result =
+        await disabledCardholderSDK.getSupportedTokensAllowances(testAddress);
+      expect(result).toEqual([]);
     });
 
     it('returns empty array when no supported tokens', async () => {
@@ -705,7 +646,7 @@ describe('CardSDK', () => {
     const testAddress = '0x1234567890123456789012345678901234567890';
     const nonZeroBalanceTokens = [mockSupportedTokens[0].address as string];
 
-    it('throws error when card is not enabled', async () => {
+    it('returns null when the chain has no supported tokens to match', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         chains: {
           'eip155:59144': {
@@ -719,12 +660,11 @@ describe('CardSDK', () => {
         cardFeatureFlag: disabledCardFeatureFlag,
       });
 
-      await expect(
-        disabledCardholderSDK.getPriorityToken(
-          testAddress,
-          nonZeroBalanceTokens,
-        ),
-      ).rejects.toThrow('Card feature is not enabled for this chain');
+      const result = await disabledCardholderSDK.getPriorityToken(
+        testAddress,
+        nonZeroBalanceTokens,
+      );
+      expect(result).toBeNull();
     });
 
     it('returns the matching token when only one token has non-zero balance', async () => {
@@ -1625,6 +1565,30 @@ describe('CardSDK', () => {
   });
 
   describe('getCardExternalWalletDetails', () => {
+    // Helper to create delegation settings that match external wallet networks
+    const createDelegationSettings = (
+      network = 'linea',
+      tokens: string[] = ['USDC', 'USDT'],
+    ): DelegationSettingsNetwork[] => [
+      {
+        network,
+        environment: 'production',
+        chainId: network === 'solana' ? '1' : '59144',
+        delegationContract: '0xDelegationContract',
+        tokens: tokens.reduce(
+          (acc, symbol) => ({
+            ...acc,
+            [symbol.toLowerCase()]: {
+              symbol,
+              decimals: 6,
+              address: `0x${symbol}Address`,
+            },
+          }),
+          {},
+        ),
+      },
+    ];
+
     const createMockWalletData = (
       externalWallets: {
         address: string;
@@ -1717,7 +1681,9 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
@@ -1865,7 +1831,9 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       // Should be sorted by priority ascending (1 comes before 5)
       expect(result[0].priority).toBe(1);
@@ -1925,7 +1893,9 @@ describe('CardSDK', () => {
           },
         ]);
 
-        const result = await cardSDK.getCardExternalWalletDetails([]);
+        const result = await cardSDK.getCardExternalWalletDetails(
+          createDelegationSettings('linea', ['USDC', 'USDT']),
+        );
 
         expect(result).toHaveLength(1);
         expect(result[0].currency).toBe('USDT');
@@ -1947,7 +1917,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0].currency).toBe('USDC');
@@ -1973,7 +1945,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['WETH', 'USDC', 'DAI']),
+      );
 
       expect(result).toHaveLength(3);
       expect(result[0].currency).toBe('WETH');
@@ -2008,7 +1982,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT', 'DAI', 'WETH']),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].currency).toBe('WETH');
@@ -2029,7 +2005,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].currency).toBe('USDT');
@@ -4606,10 +4584,6 @@ describe('CardSDK', () => {
     const mockGoogleProvisioningResponse = {
       success: true,
       data: {
-        cardNetwork: 'MASTERCARD',
-        lastFourDigits: '1234',
-        cardholderName: 'John Doe',
-        cardDescription: 'MetaMask Card',
         opaquePaymentCard: 'encrypted-opc-data',
       },
     };
@@ -4634,10 +4608,6 @@ describe('CardSDK', () => {
       const result = await cardSDK.createGoogleWalletProvisioningRequest();
 
       expect(result).toEqual({
-        cardNetwork: 'MASTERCARD',
-        lastFourDigits: '1234',
-        cardholderName: 'John Doe',
-        cardDescription: 'MetaMask Card',
         opaquePaymentCard: 'encrypted-opc-data',
       });
     });
@@ -4675,51 +4645,6 @@ describe('CardSDK', () => {
           }),
         }),
       );
-    });
-
-    it('handles response with panLast4 fallback', async () => {
-      const responseWithPanLast4 = {
-        success: true,
-        data: {
-          cardNetwork: 'MASTERCARD',
-          panLast4: '5678',
-          holderName: 'Jane Doe',
-          opaquePaymentCard: 'encrypted-opc-data',
-        },
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue(responseWithPanLast4),
-      });
-
-      const result = await cardSDK.createGoogleWalletProvisioningRequest();
-
-      expect(result).toEqual({
-        cardNetwork: 'MASTERCARD',
-        lastFourDigits: '5678',
-        cardholderName: 'Jane Doe',
-        cardDescription: undefined,
-        opaquePaymentCard: 'encrypted-opc-data',
-      });
-    });
-
-    it('uses default cardNetwork when not provided', async () => {
-      const responseWithoutNetwork = {
-        success: true,
-        data: {
-          opaquePaymentCard: 'encrypted-opc-data',
-        },
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue(responseWithoutNetwork),
-      });
-
-      const result = await cardSDK.createGoogleWalletProvisioningRequest();
-
-      expect(result.cardNetwork).toBe('MASTERCARD');
     });
 
     it('throws INVALID_CREDENTIALS error on 401 response', async () => {

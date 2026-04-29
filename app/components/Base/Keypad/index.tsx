@@ -132,29 +132,50 @@ function KeypadComponent({
   return (
     <Keypad {...props}>
       <Keypad.Row>
-        <Keypad.Button onPress={handleKeypadPress1}>1</Keypad.Button>
-        <Keypad.Button onPress={handleKeypadPress2}>2</Keypad.Button>
-        <Keypad.Button onPress={handleKeypadPress3}>3</Keypad.Button>
+        <Keypad.Button testID="keypad-key-1" onPress={handleKeypadPress1}>
+          1
+        </Keypad.Button>
+        <Keypad.Button testID="keypad-key-2" onPress={handleKeypadPress2}>
+          2
+        </Keypad.Button>
+        <Keypad.Button testID="keypad-key-3" onPress={handleKeypadPress3}>
+          3
+        </Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
-        <Keypad.Button onPress={handleKeypadPress4}>4</Keypad.Button>
-        <Keypad.Button onPress={handleKeypadPress5}>5</Keypad.Button>
-        <Keypad.Button onPress={handleKeypadPress6}>6</Keypad.Button>
+        <Keypad.Button testID="keypad-key-4" onPress={handleKeypadPress4}>
+          4
+        </Keypad.Button>
+        <Keypad.Button testID="keypad-key-5" onPress={handleKeypadPress5}>
+          5
+        </Keypad.Button>
+        <Keypad.Button testID="keypad-key-6" onPress={handleKeypadPress6}>
+          6
+        </Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
-        <Keypad.Button onPress={handleKeypadPress7}>7</Keypad.Button>
-        <Keypad.Button onPress={handleKeypadPress8}>8</Keypad.Button>
-        <Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
+        <Keypad.Button testID="keypad-key-7" onPress={handleKeypadPress7}>
+          7
+        </Keypad.Button>
+        <Keypad.Button testID="keypad-key-8" onPress={handleKeypadPress8}>
+          8
+        </Keypad.Button>
+        <Keypad.Button testID="keypad-key-9" onPress={handleKeypadPress9}>
+          9
+        </Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
         <Keypad.Button
+          testID="keypad-key-dot"
           onPress={handleKeypadPressPeriod}
           style={styles.periodButton}
           {...periodButtonProps}
         >
           {decimalSeparator}
         </Keypad.Button>
-        <Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
+        <Keypad.Button testID="keypad-key-0" onPress={handleKeypadPress0}>
+          0
+        </Keypad.Button>
         <Keypad.DeleteButton
           testID="keypad-delete-button"
           onPress={handleKeypadPressBack}

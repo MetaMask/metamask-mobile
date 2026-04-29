@@ -1,3 +1,4 @@
+import { hasProperty } from '@metamask/utils';
 import type {
   CaipAccountId,
   CaipChainId,
@@ -212,6 +213,7 @@ export type Position = {
 // Using 'type' instead of 'interface' for BaseController Json compatibility
 export type AccountState = {
   availableBalance: string; // Based on HyperLiquid: withdrawable
+  availableToTradeBalance?: string; // withdrawable + unreserved spot collateral (order-entry path)
   totalBalance: string; // Based on HyperLiquid: accountValue
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
@@ -596,21 +598,35 @@ export type PerpsControllerConfig = {
   fallbackHip3BlocklistMarkets?: string[];
 
   /**
-   * MYX provider credentials.
+   * Per-provider credentials and configuration.
+   * Nested by provider name so each provider's settings are self-contained
+   * and new protocols can be added without polluting the top-level config.
    * Passed from the init file where `process.env.X` is babel-transformed at build time.
    */
-  myxAppIdTestnet?: string;
-  myxApiSecretTestnet?: string;
-  myxBrokerAddressTestnet?: string;
-  myxAppIdMainnet?: string;
-  myxApiSecretMainnet?: string;
-  myxBrokerAddressMainnet?: string;
+  providerCredentials?: PerpsProviderCredentials;
+};
 
-  /**
-   * Whether MYX provider is enabled via local env var (MM_PERPS_MYX_PROVIDER_ENABLED).
-   * Must match the UI selector logic so the controller and UI agree on MYX availability.
-   */
-  myxProviderEnabled?: boolean;
+export type HyperLiquidCredentials = {
+  /** Builder fee wallet address for testnet. Empty/omitted = uses BUILDER_FEE_CONFIG default. */
+  builderAddressTestnet?: string;
+  /** Builder fee wallet address for mainnet. Empty/omitted = uses BUILDER_FEE_CONFIG default. */
+  builderAddressMainnet?: string;
+};
+
+export type MYXCredentials = {
+  /** Whether MYX provider is enabled via local env var. */
+  enabled?: boolean;
+  appIdTestnet?: string;
+  apiSecretTestnet?: string;
+  brokerAddressTestnet?: string;
+  appIdMainnet?: string;
+  apiSecretMainnet?: string;
+  brokerAddressMainnet?: string;
+};
+
+export type PerpsProviderCredentials = {
+  hyperliquid?: HyperLiquidCredentials;
+  myx?: MYXCredentials;
 };
 
 export type PriceUpdate = {
@@ -701,6 +717,16 @@ export type GetOrdersParams = {
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
   standalone?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
   userAddress?: string; // Optional: required when standalone is true - user address to query orders for
+};
+
+/**
+ * Options for cache-aware provider read calls (getOrders, getOrderFills, etc.).
+ * Provider-agnostic: providers without inner caches can ignore; providers that
+ * cache at the service layer (e.g. HyperLiquid) must honor forceRefresh.
+ */
+export type PerpsReadOptions = {
+  /** Bypass any provider-internal cache. Used for user-initiated refresh (pull-to-refresh). */
+  forceRefresh?: boolean;
 };
 
 export type GetFundingParams = {
@@ -958,7 +984,10 @@ export type PerpsProvider = {
    * Purpose: Track what actually happened when orders were executed.
    * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
    */
-  getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+  getOrderFills(
+    params?: GetOrderFillsParams,
+    options?: PerpsReadOptions,
+  ): Promise<OrderFill[]>;
 
   /**
    * Get fills using WebSocket cache first, falling back to REST API.
@@ -985,7 +1014,10 @@ export type PerpsProvider = {
    * Purpose: Track the complete journey of orders from request to completion.
    * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
    */
-  getOrders(params?: GetOrdersParams): Promise<Order[]>;
+  getOrders(
+    params?: GetOrdersParams,
+    options?: PerpsReadOptions,
+  ): Promise<Order[]>;
 
   /**
    * Currently active open orders (real-time status).
@@ -1000,7 +1032,10 @@ export type PerpsProvider = {
    * Purpose: Track ongoing expenses and income from position maintenance.
    * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)
    */
-  getFunding(params?: GetFundingParams): Promise<Funding[]>;
+  getFunding(
+    params?: GetFundingParams,
+    options?: PerpsReadOptions,
+  ): Promise<Funding[]>;
 
   /**
    * Get user non-funding ledger updates (deposits, transfers, withdrawals)
@@ -1010,6 +1045,15 @@ export type PerpsProvider = {
     startTime?: number;
     endTime?: number;
   }): Promise<RawLedgerUpdate[]>;
+
+  /**
+   * Resolve the provider's currently active account identifier.
+   * Used by the REST coalesce layer so cached payloads are account-scoped
+   * even when callers omit params.accountId (the common hook path) — prevents
+   * one account's data from being served after an account switch within
+   * the coalesce TTL window.
+   */
+  getCurrentAccountId(): Promise<CaipAccountId>;
 
   /**
    * Get user history (deposits, withdrawals, transfers)
@@ -1405,6 +1449,13 @@ export type PerpsTracer = {
   }): void;
 
   setMeasurement(name: string, value: number, unit: string): void;
+
+  addBreadcrumb(breadcrumb: {
+    category: string;
+    message: string;
+    level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
+    data?: Record<string, unknown>;
+  }): void;
 };
 
 // ============================================================================
@@ -1501,6 +1552,14 @@ export type PerpsPlatformDependencies = {
 
   // === Cache Invalidation (for standalone query caches) ===
   cacheInvalidator: PerpsCacheInvalidator;
+
+  // === Disk Cache (cold-start persistence) ===
+  diskCache: {
+    getItem(key: string): Promise<string | null>;
+    getItemSync?(key: string): string | null;
+    setItem(key: string, value: string): Promise<void>;
+    removeItem(key: string): Promise<void>;
+  };
 
   // === Rewards (DI — no RewardsController in Core yet) ===
   rewards: {
@@ -1622,8 +1681,8 @@ export function isVersionGatedFeatureFlag(
   return (
     typeof value === 'object' &&
     value !== null &&
-    'enabled' in value &&
-    'minimumVersion' in value &&
+    hasProperty(value, 'enabled') &&
+    hasProperty(value, 'minimumVersion') &&
     typeof (value as { enabled: unknown }).enabled === 'boolean' &&
     typeof (value as { minimumVersion: unknown }).minimumVersion === 'string'
   );

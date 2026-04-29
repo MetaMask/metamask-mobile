@@ -6,6 +6,9 @@
   ],
   "settings": {
     "metametrics": false,
-    "skipGtmModals": true
+    "skipGtmModals": true,
+    "skipPerpsTutorial": true,
+    "autoLockNever": true,
+    "deviceAuthEnabled": false
   }
 }

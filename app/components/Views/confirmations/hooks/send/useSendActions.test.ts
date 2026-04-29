@@ -10,13 +10,13 @@ import {
   SOLANA_ASSET,
 } from '../../__mocks__/send.mock';
 import { useSendContext } from '../../context/send-context';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SendUtils from '../../utils/send';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SendExitMetrics from './metrics/useSendExitMetrics';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as MultichainSnaps from '../../utils/multichain-snaps';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SendType from './useSendType';
 import { useSendActions } from './useSendActions';
 

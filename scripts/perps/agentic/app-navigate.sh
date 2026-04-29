@@ -5,6 +5,7 @@
 # Usage:
 #   scripts/perps/agentic/app-navigate.sh <RouteName> [params-json]
 #   scripts/perps/agentic/app-navigate.sh --no-screenshot <RouteName>
+#   scripts/perps/agentic/app-navigate.sh PerpsHomeView                 # perps home (alias for PerpsMarketListView)
 #   scripts/perps/agentic/app-navigate.sh PerpsMarketListView          # perps home
 #   scripts/perps/agentic/app-navigate.sh PerpsTrendingView             # market list (all markets)
 #   scripts/perps/agentic/app-navigate.sh PerpsMarketDetails '{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}'
@@ -107,6 +108,7 @@ if [ -z "$ROUTE" ]; then
   echo ""
   echo "Common routes:"
   echo "  WalletTabHome          Wallet home screen"
+  echo "  PerpsHomeView          Perps home (alias for PerpsMarketListView)"
   echo "  PerpsMarketListView    Perps home (positions, orders, watchlist)"
   echo "  PerpsTrendingView      Market list (all markets, full view)"
   echo "  PerpsMarketDetails     Perps market details"

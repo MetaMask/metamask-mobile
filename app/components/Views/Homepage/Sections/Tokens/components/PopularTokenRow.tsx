@@ -167,9 +167,9 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   }, [navigation, token.assetId, token.symbol]);
 
   const handleBuy = useCallback(() => {
-    trackBuyButtonClicked();
-    goToBuy({ assetId: token.assetId });
-  }, [trackBuyButtonClicked, goToBuy, token.assetId]);
+    trackBuyButtonClicked(token.symbol);
+    goToBuy({ assetId: token.assetId }, { buyFlowOrigin: 'homeTokenList' });
+  }, [trackBuyButtonClicked, goToBuy, token.assetId, token.symbol]);
 
   const priceDisplay = useMemo(() => {
     if (token.price === undefined) {
@@ -222,16 +222,15 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
                 color={TextColor.Alternative}
               >
                 {priceDisplay}
+                {percentageChange.text ? ' \u2022 ' : ''}
               </Text>
               {percentageChange.text ? (
-                <Box twClassName="ml-2">
-                  <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={percentageChange.color}
-                  >
-                    {percentageChange.text}
-                  </Text>
-                </Box>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={percentageChange.color}
+                >
+                  {percentageChange.text}
+                </Text>
               ) : null}
             </Box>
           )}

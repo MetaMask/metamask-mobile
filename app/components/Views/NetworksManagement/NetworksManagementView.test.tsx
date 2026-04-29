@@ -51,9 +51,8 @@ jest.mock('./hooks/useNetworkManagementData', () => ({
     mockSections(params),
 }));
 
-// Mock useMetrics
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),

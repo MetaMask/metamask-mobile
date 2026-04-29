@@ -30,8 +30,9 @@ import styleSheet from './PerpsMarketTabs.styles';
 import {
   OrderDirection,
   PERPS_CONSTANTS,
-  type Position,
   type Order,
+  type Position,
+  type TPSLTrackingData,
 } from '@metamask/perps-controller';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
@@ -329,9 +330,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       position,
       initialTakeProfitPrice: position.takeProfitPrice,
       initialStopLossPrice: position.stopLossPrice,
-      onConfirm: async () => {
-        // TP/SL is set directly on the position, no need to handle here
-        // The position will update via WebSocket
+      onConfirm: async (
+        _position?: Position,
+        _takeProfitPrice?: string,
+        _stopLossPrice?: string,
+        _trackingData?: TPSLTrackingData,
+      ) => {
+        // TP/SL is set directly on the position via WebSocket; callback signature matches PerpsTPSL route type
       },
     });
   }, [position, currentPrice, navigation]);
@@ -626,6 +631,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'position-tab',
       tabLabel: strings('perps.market.position'),
+      testID: PerpsMarketTabsSelectorsIDs.POSITION_TAB,
       position,
       showIcon: true,
       onAutoClosePress: handleAutoClosePress,
@@ -639,6 +645,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'orders-tab',
       tabLabel: strings('perps.market.orders'),
+      testID: PerpsMarketTabsSelectorsIDs.ORDERS_TAB,
       sortedUnfilledOrders,
       activeTPOrderId,
       activeSLOrderId,
@@ -660,6 +667,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'statistics-tab',
       tabLabel: strings('perps.market.statistics'),
+      testID: PerpsMarketTabsSelectorsIDs.STATISTICS_TAB,
       symbol,
       onTooltipPress: handleTooltipPress,
       nextFundingTime,

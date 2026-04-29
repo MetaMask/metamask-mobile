@@ -1,6 +1,7 @@
 import { MockedEndpoint, Mockttp, MockttpServer } from 'mockttp';
 import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
 import { createLogger } from '../../framework/logger';
+import { logCapturedMetaMetricsPayloads } from './analyticsDebug';
 
 const logger = createLogger({
   name: 'AnalyticsHelpers',
@@ -85,9 +86,18 @@ export const getEventsPayloads = async (
     await Promise.all(matchingRequests.map((req) => req.body?.getJson()))
   ).filter(Boolean);
 
-  return (payloads as EventPayload[])
+  const result = (payloads as EventPayload[])
     .filter((payload) => events.length === 0 || events.includes(payload.event))
     .map(({ event, properties }) => ({ event, properties }));
+
+  logCapturedMetaMetricsPayloads(
+    result,
+    events.length > 0
+      ? `getEventsPayloads (filtered to ${String(events.length)} name(s))`
+      : 'getEventsPayloads (all MetaMetrics)',
+  );
+
+  return result;
 };
 
 /**

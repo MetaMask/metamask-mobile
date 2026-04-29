@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
 
@@ -28,6 +28,11 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
         contentContainerStyle={tw.style(`pb-[${insets.bottom + 8}px]`)}
         showsVerticalScrollIndicator={false}
       >
+        <Skeleton
+          width="100%"
+          style={tw.style('w-full', { aspectRatio: 786 / 340 })}
+        />
+
         <Box twClassName="px-4 pt-4 pb-3" gap={2}>
           <Skeleton height={28} width="90%" />
           <Skeleton height={28} width="62%" />

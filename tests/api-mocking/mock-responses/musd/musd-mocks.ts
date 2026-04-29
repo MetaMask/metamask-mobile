@@ -147,6 +147,8 @@ export async function setupMusdMocks(
     earnMusdConvertibleTokensAllowlist: { '*': ['USDC'] },
     earnMusdConversionMinAssetBalanceRequired: 0.01,
     earnMusdConversionGeoBlockedCountries: { blockedRegions: ['GB'] },
+    homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+    homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
   });
 
   await setupMockRequest(mockServer, {
@@ -218,7 +220,7 @@ export async function setupMusdMocks(
       `token\\.api\\.cx\\.metamask\\.io/token/1\\?address=${MUSD_MAINNET}`,
       'i',
     ),
-    response: MUSD_TOKEN_API_RESPONSE,
+    response: { ...MUSD_TOKEN_API_RESPONSE, chainId: 1 },
     requestMethod: 'GET',
     responseCode: 200,
   });

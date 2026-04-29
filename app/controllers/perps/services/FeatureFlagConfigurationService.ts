@@ -1,12 +1,12 @@
 import { hasProperty } from '@metamask/utils';
 
+import type { ServiceContext } from './ServiceContext';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { isVersionGatedFeatureFlag } from '../types';
 import type {
   PerpsPlatformDependencies,
   PerpsRemoteFeatureFlagState,
 } from '../types';
-import type { ServiceContext } from './ServiceContext';
 import { ensureError } from '../utils/errorUtils';
 import { validateMarketPattern } from '../utils/marketUtils';
 import {

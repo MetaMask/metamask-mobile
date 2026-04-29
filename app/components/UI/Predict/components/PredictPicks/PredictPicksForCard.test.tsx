@@ -132,7 +132,7 @@ describe('PredictPicksForCard', () => {
 
       render(<PredictPicksForCard marketId="market-1" />);
 
-      expect(screen.getByText(/Yes to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Yes/)).toBeOnTheScreen();
     });
 
     it('displays formatted initialValue', () => {
@@ -289,8 +289,8 @@ describe('PredictPicksForCard', () => {
 
       render(<PredictPicksForCard marketId="market-1" />);
 
-      expect(screen.getByText(/Yes to win/)).toBeOnTheScreen();
-      expect(screen.getByText(/No to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Yes/)).toBeOnTheScreen();
+      expect(screen.getByText(/on No/)).toBeOnTheScreen();
     });
 
     it('calls formatPrice for each position cashPnl', () => {
@@ -389,8 +389,8 @@ describe('PredictPicksForCard', () => {
         />,
       );
 
-      expect(screen.getByText(/Provided Yes to win/)).toBeOnTheScreen();
-      expect(screen.queryByText(/Fetched to win/)).toBeNull();
+      expect(screen.getByText(/on Provided Yes/)).toBeOnTheScreen();
+      expect(screen.queryByText(/on Fetched/)).toBeNull();
     });
 
     it('renders provided positions correctly', () => {
@@ -406,8 +406,8 @@ describe('PredictPicksForCard', () => {
         />,
       );
 
-      expect(screen.getByText(/Team A to win/)).toBeOnTheScreen();
-      expect(screen.getByText(/Team B to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Team A/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Team B/)).toBeOnTheScreen();
     });
 
     it('returns null when provided positions is empty', () => {
@@ -445,7 +445,7 @@ describe('PredictPicksForCard', () => {
 
       render(<PredictPicksForCard marketId="market-1" />);
 
-      expect(screen.getByText(/Maybe to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Maybe/)).toBeOnTheScreen();
     });
   });
 

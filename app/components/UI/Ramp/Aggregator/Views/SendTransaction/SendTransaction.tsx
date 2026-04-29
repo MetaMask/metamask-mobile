@@ -118,13 +118,13 @@ function SendTransaction() {
   const transactionAnalyticsPayload = useMemo(
     () => ({
       crypto_amount: orderData?.cryptoAmount as string,
-      chain_id_source: orderData?.cryptoCurrency.network.chainId,
+      chain_id_source: orderData?.cryptoCurrency?.network?.chainId,
       fiat_out: orderData?.fiatAmount,
-      payment_method_id: orderData?.paymentMethod.id,
-      currency_source: orderData?.cryptoCurrency.symbol,
-      currency_destination: orderData?.fiatCurrency.symbol,
+      payment_method_id: orderData?.paymentMethod?.id,
+      currency_source: orderData?.cryptoCurrency?.symbol,
+      currency_destination: orderData?.fiatCurrency?.symbol,
       order_id: order?.id,
-      provider_offramp: orderData?.provider.name,
+      provider_offramp: orderData?.provider?.name,
     }),
     [order?.id, orderData],
   );
@@ -140,9 +140,12 @@ function SendTransaction() {
   }, [trackEvent, transactionAnalyticsPayload]);
 
   const handleSend = useCallback(async () => {
+    const chainId = orderData?.cryptoCurrency?.network?.chainId;
+    if (!chainId) return;
+
     let chainIdAsHex: `0x${string}`;
     try {
-      chainIdAsHex = toHex(orderData.cryptoCurrency.network.chainId);
+      chainIdAsHex = toHex(chainId);
     } catch {
       return;
     }
@@ -229,7 +232,7 @@ function SendTransaction() {
     networkClientId,
   ]);
 
-  if (!order) {
+  if (!order || !orderData?.cryptoCurrency) {
     return null;
   }
 

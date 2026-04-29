@@ -3,14 +3,15 @@ import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  IconName as DesignSystemIconName,
+} from '@metamask/design-system-react-native';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { getNetworkDetailsFromNotifPayload } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
@@ -70,11 +71,12 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      label={strings('asset_details.options.view_on_block')}
+      variant={ButtonVariant.Primary}
       style={styles.ctaBtn}
-      endIconName={IconName.Arrow2UpRight}
+      endIconName={DesignSystemIconName.Arrow2UpRight}
       onPress={onPress}
-    />
+    >
+      {strings('asset_details.options.view_on_block')}
+    </Button>
   );
 }
