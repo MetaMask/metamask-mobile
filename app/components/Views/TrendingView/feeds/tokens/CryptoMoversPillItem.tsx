@@ -1,18 +1,7 @@
 import React, { useMemo } from 'react';
-import { Pressable } from 'react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { isCaipChainId } from '@metamask/utils';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxAlignItems,
-  BoxBackgroundColor,
-  BoxFlexDirection,
-  Text,
-  TextColor,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import {
   getCaipChainIdFromAssetId,
@@ -30,6 +19,7 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import { useTrendingTokenPress } from '../../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { CRYPTO_MOVERS_HOME_FILTER_CONTEXT } from '../search-utils';
+import ExplorePill from '../../components/ExplorePill';
 
 const LOGO_SIZE = 24;
 
@@ -42,7 +32,6 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   token,
   index,
 }) => {
-  const tw = useTailwind();
   const { onPress } = useTrendingTokenPress({
     token,
     index,
@@ -56,89 +45,66 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
     return getNetworkBadgeSource(caipChainId);
   }, [token.assetId]);
 
-  const { changeLabel, textColor, showChange } = useMemo(() => {
+  const { changeLabel, changeTextColor } = useMemo(() => {
     const key = getPriceChangeFieldKey(TimeOption.TwentyFourHours);
     const raw = token.priceChangePct?.[key];
     const n = raw !== undefined && raw !== null ? parseFloat(String(raw)) : NaN;
     if (isNaN(n)) {
       return {
         changeLabel: undefined as string | undefined,
-        textColor: TextColor.TextAlternative,
-        showChange: false,
+        changeTextColor: TextColor.TextAlternative,
       };
     }
     if (n === 0) {
       return {
         changeLabel: '0.00%',
-        textColor: TextColor.TextAlternative,
-        showChange: true,
+        changeTextColor: TextColor.TextAlternative,
       };
     }
     return {
       changeLabel: `${n > 0 ? '+' : ''}${n.toFixed(2)}%`,
-      textColor:
+      changeTextColor:
         n > 0
           ? TextColor.SuccessDefault
           : n < 0
             ? TextColor.ErrorDefault
             : TextColor.TextAlternative,
-      showChange: true,
     };
   }, [token.priceChangePct]);
 
+  const leading = useMemo(
+    () => (
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            size={AvatarSize.Xs}
+            variant={BadgeVariant.Network}
+            imageSource={networkBadgeImageSource}
+            isScaled={false}
+          />
+        }
+      >
+        <TrendingTokenLogo
+          assetId={token.assetId}
+          symbol={token.symbol}
+          size={LOGO_SIZE}
+          recyclingKey={token.assetId}
+        />
+      </BadgeWrapper>
+    ),
+    [networkBadgeImageSource, token.assetId, token.symbol],
+  );
+
   return (
-    <Pressable
+    <ExplorePill
       onPress={onPress}
       testID={`section-pill-${token.assetId}`}
-      accessibilityRole="button"
-      style={({ pressed }) => tw.style('shrink', pressed && 'opacity-80')}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={2}
-        backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        paddingHorizontal={3}
-        paddingVertical={2}
-        twClassName="rounded-full"
-      >
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              size={AvatarSize.Xs}
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeImageSource}
-              isScaled={false}
-            />
-          }
-        >
-          <TrendingTokenLogo
-            assetId={token.assetId}
-            symbol={token.symbol}
-            size={LOGO_SIZE}
-            recyclingKey={token.assetId}
-          />
-        </BadgeWrapper>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {token.symbol}
-        </Text>
-        {showChange && changeLabel !== undefined ? (
-          <Text
-            variant={TextVariant.BodySm}
-            color={textColor}
-            numberOfLines={1}
-          >
-            {changeLabel}
-          </Text>
-        ) : null}
-      </Box>
-    </Pressable>
+      leading={leading}
+      title={token.symbol}
+      changeLabel={changeLabel}
+      changeTextColor={changeTextColor}
+    />
   );
 };
 

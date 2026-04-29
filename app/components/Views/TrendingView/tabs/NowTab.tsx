@@ -20,8 +20,7 @@ import CryptoMoversSkeleton from '../feeds/tokens/CryptoMoversSkeleton';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
-import PerpsTileRowItem from '../feeds/perps/PerpsTileRowItem';
-import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
+import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { PredictionCarouselRowItem } from '../feeds/predictions/PredictionRowItem';
@@ -33,7 +32,6 @@ import ExploreScroll from '../components/ExploreScroll';
 import HorizontalCarousel from '../components/HorizontalCarousel';
 import PillScrollList from '../components/PillScrollList';
 import SectionHeader from '../components/SectionHeader';
-import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 
 interface PerpsBlockProps {
@@ -45,7 +43,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   const perps = usePerpsFeed({
     variant: 'all',
     refresh,
-    withTileExtras: true,
+    withTileExtras: false,
   });
 
   if (!perps.isLoading && perps.data.length === 0) return null;
@@ -53,21 +51,17 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   return (
     <Box>
       <SectionHeader
-        title={strings('trending.perps')}
+        title={strings('trending.perps_movers')}
         onViewAll={() => navigateToPerpsMarketList(navigation)}
         testID="section-header-view-all-perps"
       />
-      <TileCarousel<PerpsFeedItem>
+      <PillScrollList<PerpsFeedItem>
         data={perps.data}
         isLoading={perps.isLoading}
-        renderItem={(item) => (
-          <PerpsTileRowItem item={item} testIdPrefix="perps-market-tile-card" />
-        )}
+        renderItem={(item) => <PerpsPillItem item={item} />}
         keyExtractor={(item) => item.market.symbol}
-        Skeleton={PerpsMarketTileCardSkeleton}
-        onViewMore={() => navigateToPerpsMarketList(navigation)}
-        testID="explore-perps-carousel"
-        viewMoreTestID="perps-view-more-card"
+        Skeleton={CryptoMoversSkeleton}
+        listTestId="explore-perps-pills-list"
       />
     </Box>
   );

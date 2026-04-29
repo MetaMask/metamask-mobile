@@ -8699,6 +8699,7 @@
   "trending": {
     "title": "Explore",
     "crypto_movers": "Crypto movers",
+    "perps_movers": "Perps movers",
     "trending_tokens": "Trending",
     "stocks": "Stocks",
     "price_change": "Price change",
