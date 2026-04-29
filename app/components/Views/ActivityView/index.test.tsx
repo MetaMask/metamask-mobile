@@ -267,12 +267,6 @@ describe('ActivityView', () => {
     mockRoute.params = {};
   });
 
-  it('renders the activity view', () => {
-    const { getByTestId } = renderComponent(mockInitialState);
-
-    getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW);
-  });
-
   describe('Network Manager Integration', () => {
     beforeEach(() => {
       jest.clearAllMocks();

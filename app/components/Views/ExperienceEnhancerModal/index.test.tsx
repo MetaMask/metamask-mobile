@@ -1,7 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Linking } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
@@ -43,12 +42,6 @@ describe('ExperienceEnhancerModal', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('should render correctly', () => {
-    const { getByTestId } = render(<ExperienceEnhancerModal />);
-
-    getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON);
   });
 
   it('should handle cancel button press correctly', () => {

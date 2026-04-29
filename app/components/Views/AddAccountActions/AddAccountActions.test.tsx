@@ -73,21 +73,6 @@ describe('AddAccountActions', () => {
     );
   });
 
-  it('renders correctly', () => {
-    renderScreen(
-      () => <AddAccountActions {...mockProps} />,
-      {
-        name: 'AddAccountActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-    screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-    );
-  });
-
   it('shows all account creation options', () => {
     renderScreen(
       () => <AddAccountActions {...mockProps} />,

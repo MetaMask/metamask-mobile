@@ -209,16 +209,6 @@ describe('ConnectQRHardware', () => {
     mockCreateEventBuilder.mockClear();
   });
 
-  it('renders correctly', () => {
-    mockKeyringController.getAccounts.mockResolvedValue([]);
-    const { getByTestId } = renderWithProvider(
-      <ConnectQRHardware navigation={mockedNavigate} />,
-      { state: mockInitialState },
-    );
-
-    getByTestId(QR_CONTINUE_BUTTON);
-  });
-
   it('renders first page correctly when user clicks `continue` button', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 

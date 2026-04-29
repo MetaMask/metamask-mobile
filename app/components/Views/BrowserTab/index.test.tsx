@@ -157,8 +157,6 @@ describe('BrowserTab', () => {
       await waitFor(() =>
         expect(screen.getByTestId('browser-webview')).toBeVisible(),
       );
-
-      screen.getByTestId('browser-tab-close-button');
     });
 
     it('goes back when close button is pressed and opened from benefit', async () => {

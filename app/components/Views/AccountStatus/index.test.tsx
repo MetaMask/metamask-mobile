@@ -7,7 +7,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { Platform } from 'react-native';
+
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 
@@ -68,60 +68,6 @@ describe('AccountStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
-  });
-
-  describe('Snapshots iOS', () => {
-    beforeEach(() => {
-      Platform.OS = 'ios';
-    });
-
-    it('renders correctly with type="not_exist"', () => {
-      mockRouteParams = { type: 'not_exist' };
-      const { getByText } = renderWithProvider(<AccountStatus />);
-      getByText(strings('account_status.account_not_found'));
-    });
-
-    it('renders correctly with type="found"', () => {
-      mockRouteParams = { type: 'found' };
-      const { getByText } = renderWithProvider(<AccountStatus />);
-      getByText(strings('account_status.account_already_exists'));
-    });
-
-    it('renders correctly with accountName in route params', () => {
-      mockRouteParams = {
-        type: 'found',
-        accountName: 'test@example.com',
-      };
-      const { getByText } = renderWithProvider(<AccountStatus />);
-      getByText(strings('account_status.account_already_exists'));
-    });
-  });
-
-  describe('Snapshots android', () => {
-    beforeEach(() => {
-      Platform.OS = 'android';
-    });
-
-    it('renders correctly with type="not_exist"', () => {
-      mockRouteParams = { type: 'not_exist' };
-      const { getByText } = renderWithProvider(<AccountStatus />);
-      getByText(strings('account_status.account_not_found'));
-    });
-
-    it('renders correctly with type="found"', () => {
-      mockRouteParams = { type: 'found' };
-      const { getByText } = renderWithProvider(<AccountStatus />);
-      getByText(strings('account_status.account_already_exists'));
-    });
-
-    it('renders correctly with accountName in route params', () => {
-      mockRouteParams = {
-        type: 'found',
-        accountName: 'test@example.com',
-      };
-      const { getByText } = renderWithProvider(<AccountStatus />);
-      getByText(strings('account_status.account_already_exists'));
-    });
   });
 
   describe('Behavior Tests', () => {

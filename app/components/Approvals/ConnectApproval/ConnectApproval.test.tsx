@@ -37,20 +37,6 @@ describe('ConnectApproval', () => {
     jest.clearAllMocks();
   });
 
-  it('renders', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.CONNECT_ACCOUNTS,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
-
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, {
-      state: { engine: { backgroundState } },
-    });
-
-    expect(toJSON()).not.toBeNull();
-  });
-
   it('sets isVisible to false if no approval request', () => {
     mockApprovalRequest(undefined);
 

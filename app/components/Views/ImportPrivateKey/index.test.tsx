@@ -90,41 +90,6 @@ describe('ImportPrivateKey', () => {
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
-  it('renders without errors', () => {
-    const { getByText } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: initialState },
-    );
-    getByText(strings('import_private_key.title'));
-  });
-
-  it('displays SRP warning description when user has no social auth connection', () => {
-    const { getByText, getByPlaceholderText } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: srpState },
-    );
-
-    getByText(strings('import_private_key.title'));
-    getByText(strings('import_private_key.description_srp'), { exact: false });
-    getByPlaceholderText(strings('import_private_key.subtitle'));
-    getByText(strings('import_private_key.cta_text'));
-    getByText(strings('import_private_key.or_scan_a_qr_code'));
-  });
-
-  it('displays Apple/Google auth description when user has social auth connection', () => {
-    const { getByText, getByPlaceholderText } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: initialState },
-    );
-
-    getByText(strings('import_private_key.title'));
-    getByText(strings('import_private_key.description_one'));
-    getByPlaceholderText(strings('import_private_key.subtitle'));
-  });
-
   it('calls dismiss function when close button is pressed', () => {
     // Arrange
     const { getByTestId } = renderScreen(

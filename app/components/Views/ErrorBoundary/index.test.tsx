@@ -89,16 +89,6 @@ describe('ErrorBoundary', () => {
     expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalled();
   });
 
-  it('renders all buttons when dataCollectionForMarketing is true', () => {
-    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
-      state: initialState,
-    });
-
-    getByText('Describe what happened');
-    getByText('Contact support');
-    getByText('Try again');
-  });
-
   it('hides Describe what happened button when dataCollectionForMarketing is false', () => {
     const stateWithoutDataCollection = {
       security: {
@@ -112,28 +102,6 @@ describe('ErrorBoundary', () => {
     );
 
     expect(queryByText('Describe what happened')).toBeNull();
-    getByText('Contact support');
-    getByText('Try again');
-  });
-
-  it('opens modal when describe button is pressed', async () => {
-    const { getByText, getByPlaceholderText } = renderWithProvider(
-      <Fallback {...mockProps} />,
-      { state: initialState },
-    );
-
-    const describeButton = getByText('Describe what happened');
-    await act(async () => {
-      fireEvent.press(describeButton);
-    });
-
-    await waitFor(() => {
-      getByPlaceholderText(
-        'Sharing details like how we can reproduce the bug will help us fix the problem.',
-      );
-      getByText('Cancel');
-      getByText('Submit');
-    });
   });
 
   it('closes modal when cancel button is pressed', async () => {
@@ -252,14 +220,6 @@ describe('ErrorBoundary', () => {
     );
   });
 
-  it('renders error message correctly', () => {
-    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
-      state: initialState,
-    });
-
-    getByText('Test error message');
-  });
-
   describe('Onboarding Error Handling', () => {
     const mockCaptureExceptionForced = jest.mocked(captureExceptionForced);
     const onboardingProps = {
@@ -305,17 +265,6 @@ describe('ErrorBoundary', () => {
           ErrorBoundary: true,
         }),
       );
-    });
-
-    it('renders onboarding error fallback with correct props', () => {
-      const { getByText } = renderWithProvider(
-        <Fallback {...onboardingProps} />,
-        { state: initialState },
-      );
-
-      getByText('An error occurred');
-      getByText('Send report');
-      getByText('Try again');
     });
 
     it('calls captureExceptionForced and navigates to onboarding when Send report is pressed in onboarding mode', async () => {

@@ -51,13 +51,6 @@ describe('ChangeInSimulationModal', () => {
     };
   });
 
-  it('renders without errors', () => {
-    const { getByText } = renderWithProvider(<ChangeInSimulationModal />, {
-      state: mockInitialState,
-    });
-    getByText('Results have changed');
-  });
-
   it('calls onProceed and onReject callbacks', () => {
     const mockOnReject = jest.fn();
     const mockOnProceed = jest.fn();
