@@ -22,7 +22,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: () => ({}) }),
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
