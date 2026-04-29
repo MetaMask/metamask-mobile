@@ -241,14 +241,21 @@ describe('OndoLeaderboard', () => {
       ).toBeDefined();
     });
 
-    it('does not render tier selector when single tier', () => {
-      const { queryByTestId } = render(
-        <OndoLeaderboard {...defaultProps} tierNames={['STARTER']} />,
+    it('renders subtitle row with single tier but does not open selector on press', () => {
+      const onTierChange = jest.fn();
+      const { getByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          tierNames={['STARTER']}
+          onTierChange={onTierChange}
+        />,
       );
 
       expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE),
-      ).toBeNull();
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE),
+      ).toBeDefined();
+      fireEvent.press(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE));
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('displays the selected tier display name in the selector', () => {
@@ -673,6 +680,29 @@ describe('OndoLeaderboard', () => {
           {...defaultProps}
           entries={entries}
           currentUserReferralCode="MYCODE"
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toBeNull();
+    });
+
+    it('does not render Pending tag when isCampaignComplete is true, even if entry is not qualified and is current user', () => {
+      const entries = [
+        createMockEntry({
+          rank: 1,
+          referralCode: 'MYCODE',
+          qualified: false,
+          qualifiedDays: 3,
+        }),
+      ];
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={entries}
+          currentUserReferralCode="MYCODE"
+          isCampaignComplete
         />,
       );
 
