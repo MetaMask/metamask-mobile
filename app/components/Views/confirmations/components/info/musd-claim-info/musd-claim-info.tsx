@@ -14,11 +14,10 @@ import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 
-// InfoRow's default 8px paddingBottom is meant to space sibling rows; in a
-// single-row section it stacks with the section's own paddingBottom and
-// creates visibly more bottom than top padding. Zero it out so the row sits
-// vertically centered within its card.
-const SINGLE_ROW_OVERRIDE = { paddingBottom: 0 };
+// InfoRow's default 8px paddingBottom + InfoSection's 8px paddingBottom = 16
+// below vs the section's 12px paddingTop. Drop the row's paddingBottom to 4
+// so total bottom (4 + 8) matches total top (12) and the row sits centered.
+const SINGLE_ROW_OVERRIDE = { paddingBottom: 4 };
 
 const ClaimingToRow = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccount);
