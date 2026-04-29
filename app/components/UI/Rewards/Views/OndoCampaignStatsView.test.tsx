@@ -1062,6 +1062,7 @@ describe('OndoCampaignStatsView — last updated', () => {
     mockUseOndoCampaignParticipantOutcome.mockReturnValue({
       outcome: null,
       isLoading: false,
+      hasError: false,
     });
     mockRewardsState.campaigns = [createTestCampaign()];
   });
