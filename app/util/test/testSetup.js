@@ -419,11 +419,6 @@ jest.mock(
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
-jest.mock('react-native-worklets', () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('react-native-worklets/src/mock'),
-);
-
 jest.mock('react-native-mmkv', () => {
   const store = new Map();
   return {
