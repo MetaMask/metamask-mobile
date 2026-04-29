@@ -3596,7 +3596,8 @@
           "tab_change": "Impact — Tab change",
           "pull_to_refresh_engage": "Impact — Pull to refresh (engage)",
           "pull_to_refresh": "Impact — Pull to refresh (release)",
-          "chart_crosshair": "Impact — Chart crosshair"
+          "chart_crosshair": "Impact — Chart crosshair",
+          "follow_toggle": "Impact — Follow toggle"
         },
         "raw_styles": {
           "light": "Raw impact — Light",
