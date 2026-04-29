@@ -94,8 +94,8 @@ const TopTradersSection = forwardRef<
   const hasTraders = traders.length > 0;
   const hasError = Boolean(error);
   const showError = hasError && !isFetching && !hasTraders;
-  const showSkeletons = isInFlight;
-  const showViewMore = !isInFlight && hasTraders;
+  const showSkeletons = isInFlight && !hasTraders;
+  const showViewMore = hasTraders;
   const isEmpty = !isInFlight && !hasError && !hasTraders;
 
   const handleViewAll = useCallback(() => {

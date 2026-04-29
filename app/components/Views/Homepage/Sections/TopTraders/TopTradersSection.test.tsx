@@ -208,7 +208,7 @@ describe('TopTradersSection', () => {
     expect(screen.queryByText('Retry')).toBeNull();
   });
 
-  it('does not render ViewMoreCard while a background refetch is in flight', () => {
+  it('keeps cached traders and ViewMoreCard visible during a background refetch', () => {
     mockUseTopTraders.mockReturnValue({
       traders: mockTraders,
       isLoading: false,
@@ -219,7 +219,8 @@ describe('TopTradersSection', () => {
     });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    expect(screen.queryByTestId('top-traders-view-more-card')).toBeNull();
+    expect(screen.getByTestId('top-trader-card-trader-1')).toBeOnTheScreen();
+    expect(screen.getByTestId('top-traders-view-more-card')).toBeOnTheScreen();
   });
 
   it('exposes refresh via ref and resolves when called', async () => {
