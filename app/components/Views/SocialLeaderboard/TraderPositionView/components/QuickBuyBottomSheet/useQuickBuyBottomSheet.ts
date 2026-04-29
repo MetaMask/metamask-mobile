@@ -144,18 +144,36 @@ export function useQuickBuyBottomSheet(
     isUnsupportedChain,
   } = useQuickBuySetup(position);
 
-  const { options: sourceTokenOptions } = useSourceTokenOptions(destChainId);
+  const { options: sourceTokenOptions, fallback: fallbackSourceToken } =
+    useSourceTokenOptions(destChainId);
   const [selectedSourceToken, setSelectedSourceToken] = useState<
     BridgeToken | undefined
   >(undefined);
   const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
 
-  // Auto-select the first option (highest fiat balance) when options load
+  // Auto-select the highest-fiat option when balances load. When the user has
+  // no balance-bearing options, fall back to the destination chain's native
+  // token so the sheet can still fetch a quote — the Buy button will surface
+  // the "insufficient balance" error and stay disabled.
   useEffect(() => {
-    if (sourceTokenOptions.length > 0 && !selectedSourceToken) {
-      setSelectedSourceToken(sourceTokenOptions[0]);
+    if (sourceTokenOptions.length > 0) {
+      if (!selectedSourceToken) {
+        setSelectedSourceToken(sourceTokenOptions[0]);
+        return;
+      }
+      // Upgrade from the zero-balance fallback if real balances arrive later.
+      const isCurrentInOptions = sourceTokenOptions.some(
+        (token) =>
+          token.address === selectedSourceToken.address &&
+          token.chainId === selectedSourceToken.chainId,
+      );
+      if (!isCurrentInOptions) {
+        setSelectedSourceToken(sourceTokenOptions[0]);
+      }
+    } else if (fallbackSourceToken && !selectedSourceToken) {
+      setSelectedSourceToken(fallbackSourceToken);
     }
-  }, [sourceTokenOptions, selectedSourceToken]);
+  }, [sourceTokenOptions, selectedSourceToken, fallbackSourceToken]);
 
   const sourceToken = selectedSourceToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
