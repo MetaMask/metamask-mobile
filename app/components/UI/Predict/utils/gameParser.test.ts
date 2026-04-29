@@ -88,6 +88,52 @@ describe('gameParser', () => {
       expect(result).toBeNull();
     });
 
+    it('returns league for suffixed child events when extended markets are enabled and teams match the league', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
+      });
+
+      const result = getEventLeague(event, ['epl']);
+
+      expect(result).toBe('epl');
+    });
+
+    it('returns null for suffixed child events when extended markets are disabled', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
+      });
+
+      const result = getEventLeague(event);
+
+      expect(result).toBeNull();
+    });
+
     it('returns null when tags is not an array', () => {
       const event = createMockEvent({
         tags: undefined as unknown as [],
@@ -125,6 +171,29 @@ describe('gameParser', () => {
       const result = isLiveSportsEvent(event, ['nfl']);
 
       expect(result).toBe(false);
+    });
+
+    it('returns true for suffixed child events when the league is enabled for extended markets', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
+      });
+
+      const result = isLiveSportsEvent(event, ['epl'], ['epl']);
+
+      expect(result).toBe(true);
     });
   });
 

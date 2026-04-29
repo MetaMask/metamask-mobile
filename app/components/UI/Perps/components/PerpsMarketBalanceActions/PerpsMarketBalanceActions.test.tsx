@@ -200,6 +200,7 @@ jest.mock('../../../../../images/image-icons', () => ({
 // Mock format utils
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((amount) => `$${amount}`),
+  formatPerpsBalance: jest.fn((amount) => `$${amount}`),
 }));
 
 // Mock PerpsBottomSheetTooltip to avoid SafeArea issues

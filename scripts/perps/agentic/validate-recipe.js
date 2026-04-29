@@ -354,7 +354,7 @@ function describeStep(step) {
     case 'set_input':
       return `set ${step.test_id}`;
     case 'screenshot':
-      return `capture screenshot ${step.id || step.filename || ''}`.trim();
+      return step.note || `capture screenshot ${step.id || step.filename || ''}`.trim();
     case 'call':
       return `call ${step.ref}`;
     case 'eval_ref':
@@ -1338,6 +1338,12 @@ async function runExecutableNode(node, context, options = {}) {
     if (screenshotPath && artifacts && fs.existsSync(screenshotPath)) {
       const dest = path.join(artifacts.screenshotsDir, path.basename(screenshotPath));
       fs.copyFileSync(screenshotPath, dest);
+      if (typeof node.note === 'string' && node.note.trim().length > 0) {
+        fs.writeFileSync(
+          `${dest}.json`,
+          `${JSON.stringify({ note: node.note, nodeId: node.id }, null, 2)}\n`,
+        );
+      }
     }
 
     stats.passed += 1;

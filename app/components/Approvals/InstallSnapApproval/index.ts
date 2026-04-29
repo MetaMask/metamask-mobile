@@ -1,3 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 export { default } from './InstallSnapApproval';
 ///: END:ONLY_INCLUDE_IF
