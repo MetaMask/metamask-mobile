@@ -22,11 +22,16 @@ jest.mock('../utils', () => ({
 
 import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
 import { getRawTokenBalance } from './core';
+import { inspectMissingRequirements } from './inspectMissingRequirements';
 import { planWithdraw } from './withdraw';
 
 const mockGetRawTokenBalance = getRawTokenBalance as jest.MockedFunction<
   typeof getRawTokenBalance
 >;
+const mockInspectMissingRequirements =
+  inspectMissingRequirements as jest.MockedFunction<
+    typeof inspectMissingRequirements
+  >;
 
 const signer = {
   address: '0x1111111111111111111111111111111111111111',
@@ -54,6 +59,18 @@ describe('planWithdraw', () => {
     expect(mockGetRawTokenBalance).toHaveBeenCalledWith({
       address: '0x9999999999999999999999999999999999999999',
       tokenAddress: POLYMARKET_V2_PROTOCOL.collateral.legacyUsdceToken,
+    });
+    expect(mockInspectMissingRequirements).toHaveBeenCalledWith({
+      address: '0x9999999999999999999999999999999999999999',
+      requirements: expect.arrayContaining([
+        expect.objectContaining({
+          tokenAddress: POLYMARKET_V2_PROTOCOL.collateral.legacyUsdceToken,
+          spender: POLYMARKET_V2_PROTOCOL.collateral.onrampAddress,
+        }),
+        expect.objectContaining({
+          tokenAddress: POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+        }),
+      ]),
     });
     expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
       POLYMARKET_V2_PROTOCOL.collateral.onrampAddress,

@@ -12,7 +12,8 @@ import {
 } from './core';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import {
-  getLegacySweepAllowanceRequirements,
+  getActiveV2AllowanceRequirements,
+  getCanonicalV2AllowanceRequirements,
   type V2AllowanceRequirement,
 } from './v2AllowanceRequirements';
 
@@ -37,13 +38,14 @@ export async function planDepositMaintenance({
       address: safeAddress,
       tokenAddress: protocol.collateral.legacyUsdceToken,
     }));
-  const missingRequirements =
+  const requirements =
     preExistingSafeUsdceBalance > 0n
-      ? await inspectMissingRequirements({
-          address: safeAddress,
-          requirements: getLegacySweepAllowanceRequirements(protocol),
-        })
-      : [];
+      ? getCanonicalV2AllowanceRequirements(protocol)
+      : getActiveV2AllowanceRequirements(protocol);
+  const missingRequirements = await inspectMissingRequirements({
+    address: safeAddress,
+    requirements,
+  });
 
   return {
     missingRequirements,

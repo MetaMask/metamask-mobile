@@ -109,6 +109,19 @@ describe('preflight workflow planners', () => {
     );
   });
 
+  it('builds deposit maintenance allowance repairs even without legacy balance', async () => {
+    mockGetRawTokenBalance.mockResolvedValueOnce(0n);
+
+    const plan = await planDepositMaintenance({
+      protocol: POLYMARKET_V2_PROTOCOL,
+      safeAddress: '0x1111111111111111111111111111111111111111',
+    });
+
+    expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
+      '0x1000000000000000000000000000000000000000',
+    ]);
+  });
+
   it('builds claim transactions as repairs, wrap, adapter claim, then exact pUSD gas transfer', async () => {
     mockGetRawTokenBalance.mockResolvedValueOnce(10n).mockResolvedValueOnce(0n);
 
@@ -194,6 +207,22 @@ describe('preflight workflow planners', () => {
     expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
       '0x1000000000000000000000000000000000000000',
       POLYMARKET_V2_PROTOCOL.collateral.onrampAddress,
+      POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+    ]);
+  });
+
+  it('builds withdraw allowance repairs even without legacy balance', async () => {
+    mockGetRawTokenBalance.mockResolvedValueOnce(0n);
+
+    const plan = await planWithdraw({
+      protocol: POLYMARKET_V2_PROTOCOL,
+      signer,
+      safeAddress: '0x9999999999999999999999999999999999999999',
+      requestedAmountRaw: BigInt(parseUnits('2', 6).toString()),
+    });
+
+    expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
+      '0x1000000000000000000000000000000000000000',
       POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
     ]);
   });
