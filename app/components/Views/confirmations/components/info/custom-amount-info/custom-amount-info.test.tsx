@@ -32,7 +32,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { fireEvent } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
+import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
@@ -318,6 +320,56 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeDefined();
   });
 
+  describe('hasExtraBottomPadding', () => {
+    const originalPlatformOS = Platform.OS;
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatformOS,
+        writable: true,
+      });
+    });
+
+    it('applies 56dp paddingBottom to the bottom block on Android when hasExtraBottomPadding is true', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const { getByTestId } = render({ hasExtraBottomPadding: true });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
+        paddingBottom: 56,
+      });
+    });
+
+    it('does not apply paddingBottom to the bottom block when hasExtraBottomPadding is false (Android)', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const { getByTestId } = render({ hasExtraBottomPadding: false });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
+        { paddingBottom: 56 },
+      );
+    });
+
+    it('does not apply paddingBottom to the bottom block on iOS even when hasExtraBottomPadding is true', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'ios',
+        writable: true,
+      });
+
+      const { getByTestId } = render({ hasExtraBottomPadding: true });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
+        { paddingBottom: 56 },
+      );
+    });
+  });
+
   it('renders footerText when passed in', () => {
     const hint = 'Test footer text';
     const { getByText } = render({ footerText: hint });
@@ -417,6 +469,57 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls updateTokenAmount when Done is pressed for non-moneyAccountDeposit transactions', async () => {
+    const updateTokenAmountMock = jest.fn();
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: true,
+      isInputChanged: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
+    });
+
+    const { getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call updateTokenAmount when Done is pressed for moneyAccountDeposit transactions', async () => {
+    const updateTokenAmountMock = jest.fn();
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: true,
+      isInputChanged: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByText } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateTokenAmountMock).not.toHaveBeenCalled();
   });
 
   it('renders PayAccountSelector when supportAccountSelection is true', () => {
