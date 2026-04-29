@@ -3869,6 +3869,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tokenListSecurityBadges: {
+    name: 'tokenListSecurityBadges',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.76.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenSearchDiscoveryEnabled: {
     name: 'tokenSearchDiscoveryEnabled',
     type: FeatureFlagType.Remote,
