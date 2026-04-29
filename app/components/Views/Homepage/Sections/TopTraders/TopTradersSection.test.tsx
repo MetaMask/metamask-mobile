@@ -149,6 +149,28 @@ describe('TopTradersSection', () => {
     );
   });
 
+  it('calls toggleFollow with the correct analytics context when the follow button is pressed', () => {
+    const mockToggleFollow = jest.fn();
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Follow'));
+
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      'trader-1',
+      expect.objectContaining({
+        source: 'home_carousel',
+        traderAddress: '0x0000000000000000000000000000000000000001',
+      }),
+    );
+  });
+
   it('exposes refresh via ref and resolves when called', async () => {
     const ref = createRef<SectionRefreshHandle>();
     renderWithProvider(<TopTradersSection ref={ref} {...defaultProps} />);
