@@ -39,11 +39,16 @@ import type {
   PerpsPlatformDependencies,
   PerpsLogger,
 } from '../types';
-import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
+import { hyperLiquidModeFoldsSpot } from '../types/hyperliquid-types';
+import type {
+  SpotClearinghouseStateResponse,
+  UserAbstractionResponse,
+} from '../types/hyperliquid-types';
 import {
   addSpotBalanceToAccountState,
   calculateWeightedReturnOnEquity,
 } from '../utils/accountUtils';
+import type { AddSpotBalanceOptions } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptPositionFromSDK,
@@ -174,6 +179,8 @@ export class HyperLiquidSubscriptionService {
   #cachedSpotState: SpotClearinghouseStateResponse | null = null;
 
   #cachedSpotStateUserAddress: string | null = null;
+
+  readonly #abstractionModeByUser = new Map<string, UserAbstractionResponse>();
 
   #spotStatePromise?: Promise<void>;
 
@@ -1020,7 +1027,26 @@ export class HyperLiquidSubscriptionService {
         returnOnEquity,
       },
       this.#cachedSpotState,
+      this.#getSpotBalanceOptions(),
     );
+  }
+
+  #getAbstractionModeForUser(
+    userAddress?: string | null,
+  ): UserAbstractionResponse | null {
+    if (!userAddress) {
+      return null;
+    }
+
+    return this.#abstractionModeByUser.get(userAddress.toLowerCase()) ?? null;
+  }
+
+  #getSpotBalanceOptions(): AddSpotBalanceOptions {
+    return {
+      foldIntoCollateral: hyperLiquidModeFoldsSpot(
+        this.#getAbstractionModeForUser(this.#cachedSpotStateUserAddress),
+      ),
+    };
   }
 
   async #ensureSpotState(accountId?: CaipAccountId): Promise<void> {
@@ -1081,9 +1107,12 @@ export class HyperLiquidSubscriptionService {
       }
 
       const infoClient = this.#clientService.getInfoClient();
-      const result = await infoClient.spotClearinghouseState({
-        user: userAddress,
-      });
+      const [spotResult, abstractionResult] = await Promise.allSettled([
+        infoClient.spotClearinghouseState({
+          user: userAddress,
+        }),
+        infoClient.userAbstraction({ user: userAddress }),
+      ]);
 
       // Drop stale results: cleanUp/clearAll or a newer fetch bumped generation.
       // Writing here would re-populate the cache with a different user's data.
@@ -1091,7 +1120,28 @@ export class HyperLiquidSubscriptionService {
         return;
       }
 
-      this.#cachedSpotState = result;
+      if (abstractionResult.status === 'fulfilled') {
+        this.#abstractionModeByUser.set(
+          userAddress.toLowerCase(),
+          abstractionResult.value,
+        );
+      } else {
+        this.#deps.debugLogger.log(
+          'User abstraction fetch failed during spot refresh; falling back to Unified-mode assumption',
+          {
+            error: ensureError(
+              abstractionResult.reason,
+              'HyperLiquidSubscriptionService.refreshSpotState.abstraction',
+            ).message,
+          },
+        );
+      }
+
+      if (spotResult.status === 'rejected') {
+        throw spotResult.reason;
+      }
+
+      this.#cachedSpotState = spotResult.value;
       this.#cachedSpotStateUserAddress = userAddress;
 
       if (this.#dexAccountCache.size > 0) {
@@ -1623,6 +1673,7 @@ export class HyperLiquidSubscriptionService {
               const spotAdjustedAccount = addSpotBalanceToAccountState(
                 accountState,
                 this.#cachedSpotState,
+                this.#getSpotBalanceOptions(),
               );
 
               const positionsHash = this.#hashPositions(positionsWithTPSL);
@@ -2167,6 +2218,7 @@ export class HyperLiquidSubscriptionService {
       this.#cachedAccount = null;
       this.#cachedSpotState = null;
       this.#cachedSpotStateUserAddress = null;
+      this.#abstractionModeByUser.clear();
       // Bump generation so any in-flight spot fetch from a prior user discards
       // its result instead of re-populating the cache post-cleanup.
       this.#spotStateGeneration += 1;
@@ -3945,6 +3997,7 @@ export class HyperLiquidSubscriptionService {
     this.#dexAccountCache.clear();
     this.#cachedSpotState = null;
     this.#cachedSpotStateUserAddress = null;
+    this.#abstractionModeByUser.clear();
     this.#spotStateGeneration += 1;
     this.#spotStatePromise = undefined;
     this.#spotStatePromiseUserAddress = undefined;

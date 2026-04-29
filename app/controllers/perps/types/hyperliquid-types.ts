@@ -17,7 +17,26 @@ import type {
   PredictedFundingsResponse,
   OrderParameters,
   SpotMetaResponse,
+  UserAbstractionResponse,
 } from '@nktkas/hyperliquid';
+
+/**
+ * True when the given HL abstraction mode treats spot balances as perps
+ * collateral. Missing mode is treated as Unified to avoid under-reporting
+ * usable balance during a transient userAbstraction fetch failure.
+ *
+ * @param mode - Abstraction mode returned by HyperLiquid.
+ * @returns Whether spot balances should fold into perps collateral.
+ */
+export function hyperLiquidModeFoldsSpot(
+  mode?: UserAbstractionResponse | null,
+): boolean {
+  if (mode === null || mode === undefined) {
+    return true;
+  }
+
+  return mode === 'unifiedAccount' || mode === 'portfolioMargin';
+}
 
 // Clearinghouse (Account) Types
 export type AssetPosition =
@@ -44,4 +63,5 @@ export type {
   MetaAndAssetCtxsResponse,
   PredictedFundingsResponse,
   SpotMetaResponse,
+  UserAbstractionResponse,
 };

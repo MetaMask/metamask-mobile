@@ -260,6 +260,49 @@ describe('spot balance helpers', () => {
     expect(result.totalBalance).toBe('30');
   });
 
+  it('does not add non-USDC spot balances to availableToTradeBalance', () => {
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '10',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'mUSD', total: '25', hold: '5' },
+        { coin: 'HYPE', total: '999' },
+      ],
+    } as never);
+
+    expect(result.totalBalance).toBe('10');
+    expect(result.availableToTradeBalance).toBe('0');
+  });
+
+  it('does not fold USDC spot collateral into availableToTradeBalance for Standard modes', () => {
+    const accountState: AccountState = {
+      availableBalance: '7',
+      totalBalance: '10',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [{ coin: 'USDC', total: '25', hold: '5' }],
+      } as never,
+      {
+        foldIntoCollateral: false,
+      },
+    );
+
+    expect(result.totalBalance).toBe('30');
+    expect(result.availableToTradeBalance).toBe('7');
+  });
+
   it('returns the original account state when spot balance is zero', () => {
     const accountState: AccountState = {
       availableBalance: '1',
