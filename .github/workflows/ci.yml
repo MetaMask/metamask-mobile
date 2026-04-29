@@ -815,7 +815,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download fixture validation results
         continue-on-error: true
@@ -840,10 +840,10 @@ jobs:
     needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
       - uses: actions/download-artifact@v4
@@ -886,7 +886,7 @@ jobs:
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
