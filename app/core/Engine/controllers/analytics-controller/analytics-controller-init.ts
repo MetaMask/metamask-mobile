@@ -80,9 +80,9 @@ export const analyticsControllerInit: MessengerClientInitFunction<
     (accounts: InternalAccounts) => {
       const fingerprint = getCompositionFingerprint(accounts);
       if (fingerprint === lastCompositionFingerprint) return;
-      lastCompositionFingerprint = fingerprint;
       try {
         analytics.identify(getAccountCompositionTraits(accounts));
+        lastCompositionFingerprint = fingerprint;
       } catch (error) {
         Logger.error(
           error as Error,
