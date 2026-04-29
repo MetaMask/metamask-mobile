@@ -59,7 +59,7 @@ export const PredictEventProperties = {
 
   // Payment token (buy-with-any-token flow only)
   PREDICT_TOKEN_ADDRESS: 'predict_token_address',
-  PREDICT_TOKEN_SYMBOL: 'predict_token_symbol',
+  PAYMENT_TOKEN_SYMBOL: 'predict_token_symbol',
 
   // Betslip dismissal
   DISMISSAL_METHOD: 'dismissal_method',

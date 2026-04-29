@@ -1056,7 +1056,8 @@ export class PredictController extends BaseController<
         orderType: params.preview.orderType,
         paymentTokenAddress:
           params.preview.side === Side.BUY
-            ? this.state.selectedPaymentToken?.address
+            ? this.state.activeBuyOrders[activeOrderAddress]
+                ?.paymentTokenAddress
             : undefined,
         paymentTokenSymbol:
           params.preview.side === Side.BUY
@@ -1138,7 +1139,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         sharePrice,
         orderType: preview.orderType,
-        paymentTokenAddress: this.state.selectedPaymentToken?.address,
+        paymentTokenAddress,
         paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
         activeAbTests: params.activeAbTests,
       });
@@ -1220,7 +1221,7 @@ export class PredictController extends BaseController<
         completionDuration,
         sharePrice: realSharePrice,
         orderType: preview.orderType,
-        paymentTokenAddress: this.state.selectedPaymentToken?.address,
+        paymentTokenAddress,
         paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
         activeAbTests: params.activeAbTests,
       });
@@ -1243,7 +1244,7 @@ export class PredictController extends BaseController<
         completionDuration,
         failureReason: errorMessage,
         orderType: preview.orderType,
-        paymentTokenAddress: this.state.selectedPaymentToken?.address,
+        paymentTokenAddress,
         paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
         activeAbTests: params.activeAbTests,
       });
@@ -2212,7 +2213,8 @@ export class PredictController extends BaseController<
         this.trackPredictOrderEvent({
           status: PredictTradeStatus.SWAP_FAILED,
           analyticsProperties: pendingOrder?.analyticsProperties,
-          paymentTokenAddress: this.state.selectedPaymentToken?.address,
+          paymentTokenAddress:
+            this.state.activeBuyOrders[address]?.paymentTokenAddress,
           paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
           failureReason: errorMessage,
           activeAbTests: pendingOrder?.activeAbTests,
@@ -2261,7 +2263,8 @@ export class PredictController extends BaseController<
         this.trackPredictOrderEvent({
           status: PredictTradeStatus.SWAP_FAILED,
           analyticsProperties: rejectedPendingOrder?.analyticsProperties,
-          paymentTokenAddress: this.state.selectedPaymentToken?.address,
+          paymentTokenAddress:
+            this.state.activeBuyOrders[address]?.paymentTokenAddress,
           paymentTokenSymbol: this.state.selectedPaymentToken?.symbol,
           failureReason: 'user_rejected',
           activeAbTests: rejectedPendingOrder?.activeAbTests,

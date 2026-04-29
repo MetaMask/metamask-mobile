@@ -148,7 +148,7 @@ export class PredictAnalytics {
         [PredictEventProperties.PREDICT_TOKEN_ADDRESS]: paymentTokenAddress,
       }),
       ...(paymentTokenSymbol && {
-        [PredictEventProperties.PREDICT_TOKEN_SYMBOL]: paymentTokenSymbol,
+        [PredictEventProperties.PAYMENT_TOKEN_SYMBOL]: paymentTokenSymbol,
       }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {
