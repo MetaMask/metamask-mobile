@@ -334,10 +334,7 @@ export const getScopedPermissions = async ({
     permittedChains,
   });
   if (tronNamespace) {
-    namespaces[KnownCaipNamespace.Tron] = {
-      ...tronNamespace,
-      methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Tron],
-    };
+    namespaces[KnownCaipNamespace.Tron] = tronNamespace;
     DevLogger.log(`WC::getScopedPermissions added Tron namespace`, {
       chains: tronNamespace.chains,
       accountsCount: tronNamespace.accounts.length,
