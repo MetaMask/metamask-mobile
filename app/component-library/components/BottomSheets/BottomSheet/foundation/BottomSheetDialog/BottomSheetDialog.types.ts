@@ -34,10 +34,12 @@ export interface BottomSheetDialogProps extends ViewProps {
    */
   onOpen?: (hasPendingAction?: boolean) => void;
   /**
-   * Optional props forwarded directly to the underlying `PanGestureHandler`.
-   * Provides access to all `PanGestureHandler` configuration (e.g.
-   * `simultaneousHandlers`, `activeOffsetY`, `failOffsetX`) so consumers are
-   * not limited to a single prop subset.
+   * @deprecated react-native-gesture-handler v2 dropped the
+   * `PanGestureHandler` component in favour of `Gesture.Pan()` /
+   * `GestureDetector`, which configures behaviour through builder methods
+   * rather than props. This prop is retained for source-compatibility but is
+   * a no-op. To customise gesture behaviour, modify the `Gesture.Pan()`
+   * builder inside `BottomSheetDialog.tsx`.
    */
   panGestureHandlerProps?: Omit<
     PanGestureHandlerProps,

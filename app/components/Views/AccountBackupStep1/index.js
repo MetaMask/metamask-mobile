@@ -57,26 +57,19 @@ const AccountBackupStep1 = (props) => {
 
   const navigation = useNavigation();
 
-  useEffect(
-    () => {
-      if (Engine.hasFunds()) setHasFunds(true);
+  useEffect(() => {
+    if (Engine.hasFunds()) setHasFunds(true);
 
-      const hardwareBackPress = () => true;
-      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+    const hardwareBackPress = () => true;
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      hardwareBackPress,
+    );
 
-      // Add event listener
-      const backHandlerSubscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        hardwareBackPress,
-      );
-
-      // Remove event listener on cleanup
-      return () => {
-        backHandlerSubscription.remove();
-      };
-    },
-    [], // Run only when component mounts
-  );
+    return () => {
+      backHandlerSubscription.remove();
+    };
+  }, []);
 
   const goNext = () => {
     navigation.navigate('ManualBackupStep1', {
