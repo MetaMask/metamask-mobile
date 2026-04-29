@@ -8702,29 +8702,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eslint-config-typescript@npm:10.0.0":
-  version: 10.0.0
-  resolution: "@metamask/eslint-config-typescript@npm:10.0.0"
+"@metamask/eslint-config-typescript@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "@metamask/eslint-config-typescript@npm:13.0.0"
   peerDependencies:
-    "@metamask/eslint-config": ^10.0.0
-    "@typescript-eslint/eslint-plugin": ^5.33.0
-    "@typescript-eslint/parser": ^5.33.0
-    eslint: ^8.21.0
-    typescript: ^4.0.7
-  checksum: 10/08c052d3fe034c9712a69fda395975438ea18c10ee73bb573a6758e068d7020e62d9a7347eb2d67e5e7a38275fcd96b8f33e975d4f37363a8631c253d30f7dd9
-  languageName: node
-  linkType: hard
-
-"@metamask/eslint-config-typescript@patch:@metamask/eslint-config-typescript@npm%3A10.0.0#~/.yarn/patches/@metamask-eslint-config-typescript-npm-10.0.0-7263987c81.patch":
-  version: 10.0.0
-  resolution: "@metamask/eslint-config-typescript@patch:@metamask/eslint-config-typescript@npm%3A10.0.0#~/.yarn/patches/@metamask-eslint-config-typescript-npm-10.0.0-7263987c81.patch::version=10.0.0&hash=c3be81"
-  peerDependencies:
-    "@metamask/eslint-config": ^10.0.0
-    "@typescript-eslint/eslint-plugin": ^5.33.0
-    "@typescript-eslint/parser": ^5.33.0
-    eslint: ^8.21.0
-    typescript: ^4.0.7
-  checksum: 10/cb169d831adf2e952a6f352ef2567c832d096d348d74acac74eea2cbb9cd1ee5178404b68f25440c26b4c341dcfbcfeba3220d6d9f8ae3282a8594bb259b6c16
+    "@metamask/eslint-config": ^13.0.0
+    "@typescript-eslint/eslint-plugin": ^8.1.0
+    "@typescript-eslint/parser": ^8.1.0
+    eslint: ^8.57.0
+    typescript: ">=4.8.4 <5.6"
+  checksum: 10/8abd73f81e395e62aeac0972af71d82c7e97bb1ef75f34c5c50f39b72cd9cca0bf32ae80eaa5cb3f5cf6d14b6c0d84c213ed56cc55c8f9d46b62d2fb0704edd3
   languageName: node
   linkType: hard
 
@@ -9786,23 +9773,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/post-message-stream@npm:10.0.0":
+"@metamask/post-message-stream@npm:^10.0.0":
   version: 10.0.0
   resolution: "@metamask/post-message-stream@npm:10.0.0"
   dependencies:
     "@metamask/utils": "npm:^11.4.0"
     readable-stream: "npm:3.6.2"
   checksum: 10/7892b30e6107b662680dfba75c078ac925c9f45bf1f90a0c86035f206a6305ddf903086a02b08e6fe9aec9ec32a0fecd2ff31941d5961d45ee782c07993846c5
-  languageName: node
-  linkType: hard
-
-"@metamask/post-message-stream@patch:@metamask/post-message-stream@npm%3A10.0.0#~/.yarn/patches/@metamask-post-message-stream-npm-10.0.0-rn-exports.patch":
-  version: 10.0.0
-  resolution: "@metamask/post-message-stream@patch:@metamask/post-message-stream@npm%3A10.0.0#~/.yarn/patches/@metamask-post-message-stream-npm-10.0.0-rn-exports.patch::version=10.0.0&hash=ed137f"
-  dependencies:
-    "@metamask/utils": "npm:^11.4.0"
-    readable-stream: "npm:3.6.2"
-  checksum: 10/929b1af7f18fed85845f7fc44a5056810d40edc156d63da8afd197ff8d779b0a2015da2ccc68b0fe98b23a05c90c4642bf50139f6d39fd92adcd6fbe4659f86f
   languageName: node
   linkType: hard
 
@@ -36126,7 +36103,7 @@ __metadata:
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
     "@metamask/ens-resolver-snap": "npm:^1.2.0"
-    "@metamask/eslint-config-typescript": "patch:@metamask/eslint-config-typescript@npm%3A10.0.0#~/.yarn/patches/@metamask-eslint-config-typescript-npm-10.0.0-7263987c81.patch"
+    "@metamask/eslint-config-typescript": "npm:^13.0.0"
     "@metamask/eslint-plugin-design-tokens": "npm:^1.0.0"
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
     "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
@@ -42444,10 +42421,10 @@ __metadata:
 
 "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch":
   version: 4.2.0
-  resolution: "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch::version=4.2.0&hash=26b865"
+  resolution: "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch::version=4.2.0&hash=4dfd27"
   dependencies:
     react-native-blob-util: "npm:^0.18.0"
-  checksum: 10/7502cf71e2df7e0ed4714664899bd0e3955902bc88e186768f2767b1ba2a8f1b0dbcf24247f0f0c00fb69ee587907c620345bb5341f2ebf3aea7400aa53901fc
+  checksum: 10/fa556e2d1784a5e664e2e7024fa2255b08334e0dacf8993acca676cb912ad82c0f8ef3ba9ec2597d455f9dded83acf3343cc0a66d4e2fc14486e31dd9efe6def
   languageName: node
   linkType: hard
 
