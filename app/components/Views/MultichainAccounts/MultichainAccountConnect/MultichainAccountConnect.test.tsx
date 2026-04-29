@@ -33,11 +33,10 @@ import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock'
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnValue({
-    build: jest.fn(),
-  }),
-});
+const mockAddProperties = jest.fn().mockReturnValue({ build: jest.fn() });
+const mockCreateEventBuilder = jest
+  .fn()
+  .mockReturnValue({ addProperties: mockAddProperties });
 const mockGetNextAvailableAccountName = jest.fn().mockReturnValue('Account 3');
 
 // Generate consistent UUIDs for testing
@@ -73,21 +72,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
     <>{children}</>
   ),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: View,
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 const mockRejectPermissionsRequest = jest.fn();
 const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
@@ -181,7 +165,12 @@ jest.mock('../../../hooks/useFavicon/useFavicon', () =>
   jest.fn(() => 'favicon-url'),
 );
 
-jest.mock('../../../hooks/useOriginSource', () => jest.fn(() => 'test-source'));
+jest.mock('../../../hooks/useOriginSource', () =>
+  jest.fn(() => ({
+    source: 'in-app browser',
+    requestSource: 'In-App-Browser',
+  })),
+);
 
 jest.mock('../../../hooks/useSDKV2Connection/useSDKV2Connection', () => ({
   useSDKV2Connection: jest.fn(() => undefined),
@@ -638,6 +627,12 @@ describe('MultichainAccountConnect', () => {
       sendTerminate: true,
     });
     expect(mockCreateEventBuilder).toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'in-app browser',
+        request_source: 'In-App-Browser',
+      }),
+    );
   });
 
   it('handles confirm button press correctly', async () => {
@@ -690,6 +685,15 @@ describe('MultichainAccountConnect', () => {
           permissions: expect.objectContaining({
             [Caip25EndowmentPermissionName]: expect.any(Object),
           }),
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'in-app browser',
+          request_source: 'In-App-Browser',
         }),
       );
     });

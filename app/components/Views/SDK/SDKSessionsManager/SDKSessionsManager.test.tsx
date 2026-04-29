@@ -10,10 +10,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(() => ({ params: {} })),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
-}));
-
 jest.mock('../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../util/theme');
   return {

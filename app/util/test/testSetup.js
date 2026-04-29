@@ -895,11 +895,22 @@ jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
 );
 
-jest.mock('react-native-safe-area-context', () => ({
-  ...jest.requireActual('react-native-safe-area-context'),
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-}));
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { x: 0, y: 0, width: 390, height: 844 };
+  return {
+    ...jest.requireActual('react-native-safe-area-context'),
+    SafeAreaView: ({ children, ...props }) =>
+      React.createElement(View, props, children),
+    SafeAreaProvider: ({ children, ...props }) =>
+      React.createElement(View, props, children),
+    SafeAreaConsumer: ({ children }) => children(inset),
+    useSafeAreaInsets: () => inset,
+    useSafeAreaFrame: () => frame,
+  };
+});
 
 jest.mock(
   'react-native-keyboard-controller',
