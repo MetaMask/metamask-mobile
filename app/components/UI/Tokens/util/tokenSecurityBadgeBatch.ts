@@ -15,6 +15,17 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
 const FLUSH_MS = 32;
 
+/** Token `/assets` API supports a bounded number of `assetIds` per request. */
+const MAX_ASSETS_PER_REQUEST = 100;
+
+function chunkArray<T>(items: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    chunks.push(items.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
 function scheduleFlush() {
   if (flushTimer !== null) {
     return;
@@ -45,14 +56,22 @@ async function flush() {
     }
   };
 
+  const byAssetId = new Map<CaipAssetType, TokenSecurityData | null>();
   try {
-    const assets = await fetchTokenAssets(assetIds, {
-      includeTokenSecurityData: true,
-    });
-    const byAssetId = new Map<CaipAssetType, TokenSecurityData | null>();
-    for (const a of assets) {
-      const key = normalizeCaipAssetIdForTokenApi(a.assetId as CaipAssetType);
-      byAssetId.set(key, a.securityData ?? null);
+    for (const chunk of chunkArray(assetIds, MAX_ASSETS_PER_REQUEST)) {
+      try {
+        const assets = await fetchTokenAssets(chunk, {
+          includeTokenSecurityData: true,
+        });
+        for (const a of assets) {
+          const key = normalizeCaipAssetIdForTokenApi(
+            a.assetId as CaipAssetType,
+          );
+          byAssetId.set(key, a.securityData ?? null);
+        }
+      } catch {
+        // Fail-open per chunk so large flushes still get partial data.
+      }
     }
     resolveAll(
       (id) => byAssetId.get(normalizeCaipAssetIdForTokenApi(id)) ?? null,
@@ -63,7 +82,8 @@ async function flush() {
 }
 
 /**
- * Batches concurrent `fetchTokenAssets` calls into one request (DataLoader-style).
+ * Batches concurrent `fetchTokenAssets` calls (DataLoader-style), splitting into
+ * requests of at most {@link MAX_ASSETS_PER_REQUEST} asset ids when a flush is large.
  * Used by TanStack `useQuery` for token list security badges.
  */
 export function requestTokenSecurityForAsset(
