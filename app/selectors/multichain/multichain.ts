@@ -176,7 +176,6 @@ export const selectMultichainAssetsRates = createDeepEqualSelector(
  * It is only used in the useTokenHistoricalPrices hook.
  */
 export function selectMultichainHistoricalPrices(state: RootState) {
-  // TODO AssetsController deprecated state
   return state.engine.backgroundState.MultichainAssetsRatesController
     .historicalPrices;
 }
