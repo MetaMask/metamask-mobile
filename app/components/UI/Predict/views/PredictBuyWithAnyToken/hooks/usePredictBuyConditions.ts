@@ -88,23 +88,23 @@ export const usePredictBuyConditions = ({
   );
 
   // Whether the TransactionPay controller has completed at least one quote
-  // cycle. `quotes` starts as `undefined` and becomes an array (empty or not)
-  // only after the first fetch resolves. Using this as a secondary gate
-  // prevents the "Change Payment Method" CTA from flashing during the brief
-  // window between `updateSourceAmounts` (synchronous) and `updateQuotes`
-  // setting `isLoading = true` (asynchronous), which is NOT covered by
-  // `isPayFeesLoading` alone.
-  const hasQuoteCycleCompleted = quotes !== undefined && quotes !== null;
+  // cycle for this transaction. `quotes` starts as `undefined` (no key in
+  // transactionData) and becomes an array only after the first fetch resolves.
+  // This gates the CTA for ERC20 tokens so it doesn't flash during the brief
+  // window between `updateSourceAmounts` running synchronously and
+  // `updateQuotes` setting `isLoading = true` asynchronously — a gap that
+  // `isPayFeesLoading` alone cannot cover.
+  const hasQuoteCycleCompleted = quotes !== undefined;
 
   // Only surface token-insufficiency after the pay system has settled.
   // Two guards:
-  //  1. isPayFeesLoading — covers the active quote-fetch period
-  //  2. hasQuoteCycleCompleted — covers the gap before the first fetch starts
-  //     (sourceAmounts updated synchronously, isLoading not yet true)
+  //  1. !isPayFeesLoading       — active quote-fetch period
+  //  2. hasQuoteCycleCompleted  — pre-fetch gap (ERC20 only; Predict balance
+  //                               doesn't go through the quote pipeline)
   const isCurrentTokenInsufficient = useMemo(
     () =>
       !isPayFeesLoading &&
-      (!isPredictBalanceSelected ? hasQuoteCycleCompleted : true) &&
+      (isPredictBalanceSelected || hasQuoteCycleCompleted) &&
       (isInsufficientBalance || hasBlockingPayAlerts),
     [
       isPayFeesLoading,

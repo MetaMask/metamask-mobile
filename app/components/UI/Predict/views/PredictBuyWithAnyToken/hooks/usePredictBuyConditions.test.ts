@@ -73,7 +73,6 @@ jest.mock(
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
     useTransactionPayQuotes: () => mockQuotes,
     useTransactionPayRequiredTokens: () => mockRequiredTokens,
-    useTransactionPaySourceAmounts: () => [],
   }),
 );
 
@@ -364,7 +363,6 @@ describe('usePredictBuyConditions', () => {
 
     it('returns false when isPayFeesLoading is true', () => {
       mockIsPredictBalanceSelected = false;
-      mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
       mockIsPayTotalsLoading = true;
 
       const { result } = renderHook(() =>
@@ -401,7 +399,6 @@ describe('usePredictBuyConditions', () => {
 
     it('returns true when external token selected and isPayTotalsLoading', () => {
       mockIsPredictBalanceSelected = false;
-      mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
       mockIsPayTotalsLoading = true;
 
       const { result } = renderHook(() =>
@@ -413,7 +410,6 @@ describe('usePredictBuyConditions', () => {
 
     it('returns true when external token selected and isPayQuoteLoading', () => {
       mockIsPredictBalanceSelected = false;
-      mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
       mockIsPayQuoteLoading = true;
 
       const { result } = renderHook(() =>
@@ -433,9 +429,8 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPayFeesLoading).toBe(false);
     });
 
-    it('returns false when source amount has not been set yet', () => {
+    it('returns false when external token selected but no loading is in progress', () => {
       mockIsPredictBalanceSelected = false;
-      mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
 
       const { result } = renderHook(() =>
         usePredictBuyConditions(defaultParams),
