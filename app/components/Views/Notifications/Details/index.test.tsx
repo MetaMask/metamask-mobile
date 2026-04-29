@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import {
@@ -66,10 +66,12 @@ describe('NotificationsDetails', () => {
       </Provider>,
     );
 
-  it('shows the details page with valid notification', () => {
+  it('shows the details page with valid notification', async () => {
     const { getByTestId } = renderDetailsPage(MOCK_NOTIFICATIONS[1]);
 
-    expect(getByTestId('notification-details')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(getByTestId('notification-details')).toBeOnTheScreen();
+    });
   });
 
   const nullTests = [
@@ -94,10 +96,12 @@ describe('NotificationsDetails', () => {
 
   it.each(nullTests)(
     'returns null on invalid notifications - $type',
-    (notification) => {
+    async (notification) => {
       const result = renderDetailsPage(notification);
 
-      expect(result.toJSON()).toBe(null);
+      await waitFor(() => {
+        expect(result.toJSON()).toBe(null);
+      });
     },
   );
 });

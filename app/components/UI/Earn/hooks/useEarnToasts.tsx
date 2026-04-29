@@ -17,8 +17,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { Spinner } from '@metamask/design-system-react-native/spinner';
-import {
+import { Spinner ,
   IconSize as ReactNativeDsIconSize,
   Text,
   TextColor,

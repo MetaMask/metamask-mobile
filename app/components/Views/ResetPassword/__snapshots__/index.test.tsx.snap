@@ -1,13 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ResetPassword render matches snapshot 1`] = `
-<RNCSafeAreaView
+<View
   edges={
     {
       "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
     }
   }
   style={
@@ -91,34 +88,6 @@ exports[`ResetPassword render matches snapshot 1`] = `
                 "width": 32,
               },
               undefined,
-              {
-                "initial": {
-                  "updater": [Function],
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-                "jestAnimatedValues": {
-                  "current": {
-                    "value": {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  },
-                },
-                "viewDescriptors": {
-                  "add": [Function],
-                  "remove": [Function],
-                  "shareableViewDescriptors": "SharedValue(<circular>)",
-                },
-              },
             ]
           }
           onBlur={[Function]}
@@ -514,34 +483,6 @@ exports[`ResetPassword render matches snapshot 1`] = `
                       "paddingRight": 16,
                       "width": "100%",
                     },
-                    {
-                      "initial": {
-                        "updater": [Function],
-                        "value": {
-                          "transform": [
-                            {
-                              "scale": 1,
-                            },
-                          ],
-                        },
-                      },
-                      "jestAnimatedValues": {
-                        "current": {
-                          "value": {
-                            "transform": [
-                              {
-                                "scale": 1,
-                              },
-                            ],
-                          },
-                        },
-                      },
-                      "viewDescriptors": {
-                        "add": [Function],
-                        "remove": [Function],
-                        "shareableViewDescriptors": "SharedValue(<circular>)",
-                      },
-                    },
                   ]
                 }
                 onBlur={[Function]}
@@ -612,5 +553,5 @@ exports[`ResetPassword render matches snapshot 1`] = `
       </RCTScrollView>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;
