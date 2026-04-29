@@ -66,6 +66,9 @@ const MusdAggregatedRow = () => {
     );
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
+      params: {
+        location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+      },
     });
   }, [trackEvent, createEventBuilder, navigation]);
 

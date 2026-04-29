@@ -171,7 +171,6 @@ const MoneyHomeView = () => {
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
         <Divider />
         <YourBonusCard />
-        <Divider />
         {!isMilestone && (
           <>
             <MoneyHowItWorks

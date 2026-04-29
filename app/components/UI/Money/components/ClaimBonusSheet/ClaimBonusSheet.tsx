@@ -1,6 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -44,9 +48,23 @@ import { ClaimBonusSheetTestIds } from './ClaimBonusSheet.testIds';
 
 const CLAIM_CHAIN_ID = CHAIN_IDS.LINEA_MAINNET as Hex;
 
+export interface ClaimBonusSheetRouteParams {
+  /**
+   * Analytics location of the surface that opened the sheet. Forwarded to
+   * `useMerklBonusClaim` so claim CTAs from the Wallet Home Cash row vs. the
+   * Money Hub bonus card report distinct origins.
+   */
+  location?: string;
+}
+
 const ClaimBonusSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const route =
+    useRoute<RouteProp<{ params: ClaimBonusSheetRouteParams }, 'params'>>();
+  const location =
+    route.params?.location ??
+    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION;
   const { styles } = useStyles(styleSheet, {});
 
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -56,7 +74,7 @@ const ClaimBonusSheet: React.FC = () => {
 
   const { claimableReward, claimRewards } = useMerklBonusClaim(
     LINEA_MUSD_ASSET_FOR_MERKL,
-    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+    location,
   );
 
   const handleGoBack = useCallback(() => {

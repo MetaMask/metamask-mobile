@@ -10,9 +10,12 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockClaimRewards = jest.fn(() => Promise.resolve(undefined));
 
+const mockRouteParams: { location?: string } = {};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock(

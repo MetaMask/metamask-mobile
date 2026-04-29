@@ -73,6 +73,9 @@ const YourBonusCard: React.FC = () => {
   const handleClaim = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.CLAIM_BONUS_SHEET,
+      params: {
+        location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+      },
     });
   }, [navigation]);
 
@@ -101,88 +104,93 @@ const YourBonusCard: React.FC = () => {
   }
 
   return (
-    <Box twClassName="px-4 py-3" testID={YourBonusCardTestIds.CONTAINER}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="mb-2"
-      >
+    <>
+      <Box twClassName="px-4 py-3" testID={YourBonusCardTestIds.CONTAINER}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="mb-2"
         >
-          <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-            {strings('money.your_bonus.title')}
-          </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSize.Md}
-            accessibilityLabel={strings('money.your_bonus.info_label')}
-          />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+              {strings('money.your_bonus.title')}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Info}
+              size={ButtonIconSize.Md}
+              accessibilityLabel={strings('money.your_bonus.info_label')}
+            />
+          </Box>
+          <TagBase
+            shape={TagShape.Rectangle}
+            severity={TagSeverity.Success}
+            textProps={{ variant: ComponentTextVariant.BodySMMedium }}
+          >
+            {strings('earn.musd_conversion.percentage_bonus', {
+              percentage: MUSD_CONVERSION_APY,
+            })}
+          </TagBase>
         </Box>
-        <TagBase
-          shape={TagShape.Rectangle}
-          severity={TagSeverity.Success}
-          textProps={{ variant: ComponentTextVariant.BodySMMedium }}
-        >
-          {strings('earn.musd_conversion.percentage_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
-        </TagBase>
-      </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2"
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {strings('money.your_bonus.estimated_annual')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextDefault}
-          testID={YourBonusCardTestIds.ESTIMATED_ANNUAL}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2"
         >
-          {estimatedAnnualBonus ?? '—'}
-        </Text>
-      </Box>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {strings('money.your_bonus.estimated_annual')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            testID={YourBonusCardTestIds.ESTIMATED_ANNUAL}
+          >
+            {estimatedAnnualBonus ?? '—'}
+          </Text>
+        </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2"
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {strings('money.your_bonus.lifetime_claimed')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={
-            hasLifetimeBonus ? TextColor.SuccessDefault : TextColor.TextDefault
-          }
-          testID={YourBonusCardTestIds.LIFETIME_CLAIMED}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2"
         >
-          {lifetimeDisplay}
-        </Text>
-      </Box>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {strings('money.your_bonus.lifetime_claimed')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={
+              hasLifetimeBonus
+                ? TextColor.SuccessDefault
+                : TextColor.TextDefault
+            }
+            testID={YourBonusCardTestIds.LIFETIME_CLAIMED}
+          >
+            {lifetimeDisplay}
+          </Text>
+        </Box>
 
-      <Box twClassName="mt-4">
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          isDisabled={isClaimDisabled}
-          onPress={handleClaim}
-          testID={YourBonusCardTestIds.CLAIM_BUTTON}
-        >
-          {claimButtonLabel}
-        </Button>
+        <Box twClassName="mt-4">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={isClaimDisabled}
+            onPress={handleClaim}
+            testID={YourBonusCardTestIds.CLAIM_BUTTON}
+          >
+            {claimButtonLabel}
+          </Button>
+        </Box>
       </Box>
-    </Box>
+      <Box twClassName="h-px bg-border-muted my-5" />
+    </>
   );
 };
 
