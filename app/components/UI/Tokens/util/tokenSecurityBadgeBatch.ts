@@ -1,9 +1,18 @@
 import {
   fetchTokenAssets,
-  normalizeCaipAssetIdForTokenApi,
   type TokenSecurityData,
 } from '@metamask/assets-controllers';
 import type { CaipAssetType } from '@metamask/utils';
+
+function normalizeCaipAssetIdForTokenApi(assetId: string): CaipAssetType {
+  const match = /^eip155:(\d+)\/erc20:(0x[0-9a-fA-F]{40})$/.exec(
+    String(assetId),
+  );
+  if (match) {
+    return `eip155:${match[1]}/erc20:${match[2].toLowerCase()}` as CaipAssetType;
+  }
+  return assetId as CaipAssetType;
+}
 
 interface Waiter {
   resolve: (data: TokenSecurityData | null) => void;
@@ -64,10 +73,7 @@ async function flush() {
           includeTokenSecurityData: true,
         });
         for (const a of assets) {
-          const key = normalizeCaipAssetIdForTokenApi(
-            a.assetId as CaipAssetType,
-          );
-          byAssetId.set(key, a.securityData ?? null);
+          byAssetId.set(a.assetId as CaipAssetType, a.securityData ?? null);
         }
       } catch {
         // Fail-open per chunk so large flushes still get partial data.
