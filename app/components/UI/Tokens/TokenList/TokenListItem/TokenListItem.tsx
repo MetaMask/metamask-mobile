@@ -68,6 +68,7 @@ import {
   selectNativeCurrencyByChainId,
   selectProviderType,
 } from '../../../../../selectors/networkController';
+import { selectTokenListSecurityBadgesEnabled } from '../../../../../selectors/featureFlagController/tokenListSecurityBadges';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
@@ -185,6 +186,10 @@ export const TokenListItem = React.memo(
 
     const basicFunctionalityEnabled = useSelector(
       (state: RootState) => state.settings.basicFunctionalityEnabled,
+    );
+
+    const isTokenListSecurityBadgesEnabled = useSelector(
+      selectTokenListSecurityBadgesEnabled,
     );
 
     const caipAssetIdForSecurity = useMemo(
@@ -578,6 +583,7 @@ export const TokenListItem = React.memo(
                   <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
                 )}
                 {basicFunctionalityEnabled &&
+                  isTokenListSecurityBadgesEnabled &&
                   !skipTokenListSecurityBadge &&
                   caipAssetIdForSecurity && (
                     <TokenListSecurityBadge
