@@ -402,20 +402,6 @@ describe('TransactionsView', () => {
     jest.clearAllMocks();
   });
 
-  describe('Basic Rendering', () => {
-    it('renders with loading state initially', () => {
-      (
-        selectSelectedInternalAccount as jest.MockedFunction<
-          typeof selectSelectedInternalAccount
-        >
-      ).mockReturnValue(createMockAccount() as any);
-
-      const component = renderTransactionsView();
-
-      expect(component.toJSON()).not.toBeNull();
-    });
-  });
-
   describe('Transaction Filtering Logic', () => {
     it('calls sortTransactions with provided transactions', async () => {
       const mockTransactions = [
@@ -693,22 +679,6 @@ describe('TransactionsView', () => {
       });
 
       expect(sortTransactions).toHaveBeenCalledWith([]);
-    });
-
-    it('handles missing selected account gracefully', async () => {
-      (
-        selectSelectedInternalAccount as jest.MockedFunction<
-          typeof selectSelectedInternalAccount
-        >
-      ).mockReturnValue(undefined);
-
-      const component = renderTransactionsView();
-
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(component.toJSON()).not.toBeNull();
     });
 
     it('handles transactions with invalid structures', async () => {

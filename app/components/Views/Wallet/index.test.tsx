@@ -663,38 +663,6 @@ describe('Wallet', () => {
     expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
-  it('renders correctly when selectedInternalAccount changes', async () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose
-    render(Wallet);
-
-    // Re-render with a different selected account to verify no crash
-    const { toJSON } = renderScreen(
-      // @ts-expect-error we are ignoring the navigation params on purpose
-      Wallet,
-      { name: Routes.WALLET_VIEW },
-      {
-        state: {
-          ...mockInitialState,
-          engine: {
-            backgroundState: {
-              ...mockInitialState.engine.backgroundState,
-              AccountsController: {
-                ...mockInitialState.engine.backgroundState.AccountsController,
-                internalAccounts: {
-                  ...mockInitialState.engine.backgroundState.AccountsController
-                    .internalAccounts,
-                  selectedAccount: 'different-account-id',
-                },
-              },
-            },
-          },
-        },
-      },
-    );
-
-    expect(toJSON()).not.toBeNull();
-  });
-
   describe('AssetDetailsActions', () => {
     const mockAssetDetailsActions = jest.mocked(
       jest.requireMock('../AssetDetails/AssetDetailsActions').default,
@@ -869,49 +837,6 @@ describe('Wallet', () => {
       render(Wallet);
 
       expect(typeof getAssetDetailsActionsProps().goToSwaps).toBe('function');
-    });
-  });
-
-  // Conditional Rendering Tests
-  describe('Conditional Rendering', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should render banner when basic functionality is disabled', () => {
-      const stateWithDisabledBasicFunctionality = {
-        ...mockInitialState,
-        settings: {
-          ...mockInitialState.settings,
-          basicFunctionalityEnabled: false,
-        },
-      };
-
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) =>
-          callback(stateWithDisabledBasicFunctionality),
-        );
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      const wrapper = render(Wallet);
-      expect(wrapper.toJSON()).not.toBeNull();
-    });
-
-    it('should render loader when no selected account', () => {
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) => {
-          const selectorString = callback.toString();
-          if (selectorString.includes('selectSelectedInternalAccount')) {
-            return null; // No selected account
-          }
-          return callback(mockInitialState);
-        });
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      const wrapper = render(Wallet);
-      expect(wrapper.toJSON()).not.toBeNull();
     });
   });
 

@@ -120,8 +120,12 @@ describe('AccountConnectMultiSelector', () => {
       <AccountConnectMultiSelector {...defaultProps} />,
       { state: { engine: { backgroundState } } },
     );
-    getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
-    getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
+    expect(
+      getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('displays accounts list', () => {
@@ -218,7 +222,7 @@ describe('AccountConnectMultiSelector', () => {
     const updateButton = getByTestId(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
-    expect(updateButton).toBeTruthy();
+    expect(updateButton).toBeOnTheScreen();
     fireEvent.press(updateButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x1234']);
@@ -236,7 +240,7 @@ describe('AccountConnectMultiSelector', () => {
     const disconnectButton = getByTestId(
       ConnectedAccountsSelectorsIDs.DISCONNECT,
     );
-    expect(disconnectButton).toBeTruthy();
+    expect(disconnectButton).toBeOnTheScreen();
     fireEvent.press(disconnectButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith([]);

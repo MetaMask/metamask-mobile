@@ -275,7 +275,7 @@ describe('ActivityView', () => {
     it('displays "Popular networks" text when multiple networks are enabled', () => {
       const { getByText } = renderComponent(mockInitialState);
 
-      expect(getByText('Popular networks')).toBeTruthy();
+      expect(getByText('Popular networks')).toBeOnTheScreen();
     });
 
     it('displays network name when single network is enabled', () => {
@@ -306,7 +306,7 @@ describe('ActivityView', () => {
 
       const { getByText } = renderComponent(mockInitialState);
 
-      expect(getByText('Ethereum Mainnet')).toBeTruthy();
+      expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
     });
 
     it('navigates to NetworkManager on filter button press', () => {
@@ -356,7 +356,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      expect(getByTestId('activity-view-back-button')).toBeTruthy();
+      expect(getByTestId('activity-view-back-button')).toBeOnTheScreen();
     });
 
     it('hides back button when showBackButton param is false', () => {
@@ -469,7 +469,7 @@ describe('ActivityView', () => {
 
       const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
 
-      expect(getByTestId('tab-perps')).toBeTruthy();
+      expect(getByTestId('tab-perps')).toBeOnTheScreen();
       expect(queryByTestId('perps-transactions-view')).toBeNull();
       expect(getRenderedTabs()).toContain('perps');
     });
@@ -502,7 +502,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      expect(getByTestId('perps-transactions-view')).toBeTruthy();
+      expect(getByTestId('perps-transactions-view')).toBeOnTheScreen();
       expect(getLastInitialActiveIndex()).toBe(2);
       expect(mockNavigation.setParams).toHaveBeenCalledWith({
         redirectToPerpsTransactions: false,
@@ -524,7 +524,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      expect(getByTestId('ramp-orders-list')).toBeTruthy();
+      expect(getByTestId('ramp-orders-list')).toBeOnTheScreen();
       expect(getLastInitialActiveIndex()).toBe(1);
       expect(mockNavigation.setParams).toHaveBeenCalledWith({
         redirectToOrders: false,
@@ -543,7 +543,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      expect(getByTestId('tab-predict')).toBeTruthy();
+      expect(getByTestId('tab-predict')).toBeOnTheScreen();
       expect(getRenderedTabs()).toContain('predict');
     });
 
@@ -561,7 +561,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      expect(getByTestId('tab-predict')).toBeTruthy();
+      expect(getByTestId('tab-predict')).toBeOnTheScreen();
       expect(getRenderedTabs()).toContain('predict');
     });
   });

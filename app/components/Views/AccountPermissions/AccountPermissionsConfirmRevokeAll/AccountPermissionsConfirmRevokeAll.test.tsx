@@ -49,8 +49,10 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       { state: mockInitialState },
     );
 
-    getByTestId('revoke-all-permissions-cancel-button');
-    getByTestId('confirm_disconnect_networks');
+    expect(
+      getByTestId('revoke-all-permissions-cancel-button'),
+    ).toBeOnTheScreen();
+    expect(getByTestId('confirm_disconnect_networks')).toBeOnTheScreen();
   });
 
   it('handles cancel button press', () => {
@@ -107,6 +109,6 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       dappUrl: testOrigin,
     });
 
-    expect(getByText(expectedText)).toBeTruthy();
+    expect(getByText(expectedText)).toBeOnTheScreen();
   });
 });

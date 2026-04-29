@@ -215,16 +215,6 @@ describe('AccountStatus', () => {
     });
   });
 
-  describe('SafeAreaView Configuration', () => {
-    it('uses SafeAreaView with top and bottom edges', () => {
-      mockRouteParams = { type: 'not_exist' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      const tree = toJSON();
-
-      expect(tree).toBeTruthy();
-    });
-  });
-
   describe('Route params handling', () => {
     it('uses default type when route params are empty', () => {
       mockRouteParams = {};

@@ -32,19 +32,6 @@ describe('ConnectionDetails', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const { getByText } = renderWithProvider(
-      <ConnectionDetails
-        route={{
-          params: {
-            connectionDateTime: 1677628800000, // March 1, 2023
-          },
-        }}
-      />,
-    );
-    getByText(strings('permissions.connection_details_title'));
-  });
-
   it('displays the correct title', () => {
     const { getByText } = renderWithProvider(
       <ConnectionDetails
@@ -58,7 +45,7 @@ describe('ConnectionDetails', () => {
 
     expect(
       getByText(strings('permissions.connection_details_title')),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('formats and displays the connection date correctly', () => {
@@ -81,7 +68,7 @@ describe('ConnectionDetails', () => {
           connectionDateTime: expectedFormattedDate,
         }),
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('uses default timestamp when connectionDateTime is not provided', () => {
@@ -109,7 +96,7 @@ describe('ConnectionDetails', () => {
           connectionDateTime: expectedFormattedDate,
         }),
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('calls onCloseBottomSheet when Got It button is pressed', () => {

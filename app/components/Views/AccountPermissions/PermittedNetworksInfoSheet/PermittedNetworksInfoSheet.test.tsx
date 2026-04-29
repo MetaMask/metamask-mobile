@@ -32,14 +32,11 @@ describe('PermittedNetworksInfoSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
-    const { getByText } = renderWithProvider(<PermittedNetworksInfoSheet />);
-    getByText(strings('permissions.permitted_networks'));
-  });
-
   it('should display the correct title', () => {
     const { getByText } = renderWithProvider(<PermittedNetworksInfoSheet />);
-    expect(getByText(strings('permissions.permitted_networks'))).toBeDefined();
+    expect(
+      getByText(strings('permissions.permitted_networks')),
+    ).toBeOnTheScreen();
   });
 
   it('should display the correct description', () => {
@@ -48,12 +45,12 @@ describe('PermittedNetworksInfoSheet', () => {
       getByText(
         strings('permissions.permitted_networks_info_sheet_description'),
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('should display the "Got it" button with correct text', () => {
     const { getByText } = renderWithProvider(<PermittedNetworksInfoSheet />);
-    expect(getByText(strings('permissions.got_it'))).toBeDefined();
+    expect(getByText(strings('permissions.got_it'))).toBeOnTheScreen();
   });
 
   it('should apply correct styles to containers', () => {

@@ -4,7 +4,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import { fireEvent, act } from '@testing-library/react-native';
 import { processUrlForBrowser } from '../../../util/browser';
-import Device from '../../../util/device';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 
 jest.mock(
@@ -213,73 +212,7 @@ describe('DiscoveryTab', () => {
         { state: initialState },
       );
 
-      getByTestId('browser-url-bar');
-    });
-
-    it('hides content when tab is not active', () => {
-      const inactiveState = {
-        ...initialState,
-        browser: {
-          ...initialState.browser,
-          activeTab: 2,
-        },
-      };
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: inactiveState },
-      );
-
-      expect(toJSON()).not.toBeNull();
-    });
-  });
-
-  describe('Props Handling', () => {
-    it('accepts showTabs prop', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('accepts updateTabInfo prop', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('renders with all required props', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).not.toBeNull();
-    });
-  });
-
-  describe('URL Bar Interactions', () => {
-    it('renders BrowserUrlBar component', () => {
-      const { getByTestId } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      getByTestId('browser-url-bar');
-    });
-
-    it('passes showTabs callback to BrowserUrlBar', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).not.toBeNull();
+      expect(getByTestId('browser-url-bar')).toBeOnTheScreen();
     });
   });
 
@@ -293,50 +226,6 @@ describe('DiscoveryTab', () => {
       });
 
       expect(BrowserBottomBarMock).toHaveBeenCalled();
-    });
-
-    it('passes newTab prop to BrowserBottomBar', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).not.toBeNull();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('renders when tab ID does not match active tab', () => {
-      const differentTabState = {
-        ...initialState,
-        browser: {
-          ...initialState.browser,
-          activeTab: 99,
-        },
-      };
-
-      const propsWithAllRequired = {
-        id: 1,
-        showTabs: mockShowTabs,
-        newTab: mockNewTab,
-        updateTabInfo: mockUpdateTabInfo,
-      };
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...propsWithAllRequired} />,
-        { state: differentTabState },
-      );
-
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('renders TokenDiscovery component', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).not.toBeNull();
     });
   });
 
@@ -555,58 +444,6 @@ describe('DiscoveryTab', () => {
       }
 
       expect(mockNewTab).toHaveBeenCalled();
-    });
-  });
-
-  describe('Platform-specific behavior', () => {
-    it('uses padding behavior for KeyboardAvoidingView on iOS', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
-
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('uses height behavior for KeyboardAvoidingView on Android', () => {
-      const DeviceMock = Device as jest.Mocked<typeof Device>;
-      DeviceMock.isAndroid.mockReturnValue(true);
-
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const RN = require('react-native');
-      RN.Platform.OS = 'android';
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
-
-      expect(toJSON()).not.toBeNull();
-
-      DeviceMock.isAndroid.mockReturnValue(false);
-      RN.Platform.OS = 'ios';
-    });
-  });
-
-  describe('Device-specific behavior', () => {
-    it('adds collapsable prop to View when on Android', () => {
-      const DeviceMock = Device as jest.Mocked<typeof Device>;
-      DeviceMock.isAndroid.mockReturnValue(true);
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
-
-      expect(toJSON()).not.toBeNull();
-
-      DeviceMock.isAndroid.mockReturnValue(false);
     });
   });
 
