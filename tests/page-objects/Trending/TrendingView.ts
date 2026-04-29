@@ -26,10 +26,13 @@ class TrendingView {
   /**
    * Native target for typing — DS `TextFieldSearch` applies `testID` on the `TextField`
    * pressable (`textfieldsearch`), not on the outer `Box` (`explore-view-search-input`).
-   * Using the wrapper caused iOS Detox failures: view not hittable / visibility threshold.
+   * iOS: that id is used directly. Android: `replaceText` must hit `EditText`, so we match
+   * `android.widget.EditText` under the same ancestor (see LoginView passwordInput).
    */
   get searchInput(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_FIELD);
+    return Matchers.getEditTextWithAncestorTestId(
+      TrendingViewSelectorsIDs.SEARCH_TEXT_FIELD,
+    );
   }
 
   get searchInputContainer(): DetoxElement {
