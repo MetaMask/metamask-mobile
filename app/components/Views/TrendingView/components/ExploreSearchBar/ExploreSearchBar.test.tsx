@@ -1,8 +1,10 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { TextInput } from 'react-native';
 import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -74,13 +76,14 @@ describe('ExploreSearchBar', () => {
 
       expect(getByTestId('explore-view-search-input')).toBeDefined();
       expect(getByDisplayValue('bitcoin')).toBeDefined();
+      expect(getByTestId('textfieldsearch')).toBeDefined();
     });
 
     it('calls onSearchChange when text is entered', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
-      const { getByTestId } = render(
+      const { getByPlaceholderText } = render(
         <ExploreSearchBar
           type="interactive"
           searchQuery=""
@@ -89,7 +92,9 @@ describe('ExploreSearchBar', () => {
         />,
       );
 
-      const input = getByTestId('explore-view-search-input');
+      const input = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
 
       fireEvent.changeText(input, 'ethereum');
 
@@ -189,7 +194,7 @@ describe('ExploreSearchBar', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
-      const { getByTestId } = render(
+      const { UNSAFE_getByType } = render(
         <ExploreSearchBar
           type="interactive"
           searchQuery=""
@@ -198,7 +203,7 @@ describe('ExploreSearchBar', () => {
         />,
       );
 
-      const input = getByTestId('explore-view-search-input');
+      const input = UNSAFE_getByType(TextInput);
 
       expect(input.props.autoFocus).toBe(true);
     });

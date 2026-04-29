@@ -6,6 +6,7 @@ import {
   BoxAlignItems,
   Text,
   TextVariant,
+  TextFieldSearch,
   Icon,
   IconName,
   IconSize,
@@ -14,7 +15,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 
@@ -97,7 +97,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
         </TouchableOpacity>
       ) : (
         <>
-          <Box twClassName="flex-1">
+          <Box twClassName="flex-1" testID="explore-view-search-input">
             <TextFieldSearch
               value={props.searchQuery}
               onChangeText={props.onSearchChange}
@@ -105,7 +105,6 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               autoFocus={props.type === 'interactive'}
               autoCapitalize="none"
               onPressClearButton={handleClear}
-              testID="explore-view-search-input"
               clearButtonProps={{ testID: 'explore-search-clear-button' }}
             />
           </Box>
