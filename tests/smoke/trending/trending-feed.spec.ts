@@ -41,7 +41,35 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         // Navigate to Trending Tab
         await TrendingView.tapTrendingTab();
 
-        // Now tab only — feed order: predictions → crypto movers (pills) → perps → stocks
+        // Test QuickAction buttons in their rendered order (left to right)
+        // to allow progressive right-scrolling through the horizontal list
+        const quickActionSections = [
+          TrendingViewSelectorsText.SECTION_TOKENS,
+          TrendingViewSelectorsText.SECTION_PERPS,
+          TrendingViewSelectorsText.SECTION_STOCKS,
+          TrendingViewSelectorsText.SECTION_PREDICTIONS,
+          TrendingViewSelectorsText.SECTION_SITES,
+        ];
+
+        for (const section of quickActionSections) {
+          // Verify feed is visible
+          await TrendingView.verifyFeedVisible();
+
+          // Tap QuickAction button for the section
+          await TrendingView.tapQuickAction(section);
+
+          // Verify we are in full view (Header matches section title)
+          await TrendingView.verifySectionHeaderInFullView(section);
+
+          // Go back to main feed
+          await TrendingView.tapBackFromFullView(section);
+
+          // Verify Feed is visible again before proceeding
+          await TrendingView.verifyFeedVisible();
+        }
+
+        // Define the sections to visit in feed order (top to bottom) for reliable
+        // progressive downward scrolling: predictions → tokens → perps → stocks → sites
         const sectionsConfig = [
           {
             section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
@@ -54,15 +82,15 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             tapBack: () => TrendingView.tapBackFromPredictionDetails(),
           },
           {
-            section: TrendingViewSelectorsText.SECTION_CRYPTO_MOVERS,
+            section: TrendingViewSelectorsText.SECTION_TOKENS,
             itemId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             itemTitle: 'USD Coin',
             verifyItemVisible: () =>
-              TrendingView.verifyCryptoMoversPillVisible(
+              TrendingView.verifyTokenVisible(
                 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
               ),
             tapItem: () =>
-              TrendingView.tapCryptoMoversPill(
+              TrendingView.tapTokenRow(
                 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
               ),
             verifyDetailsVisible: () =>
@@ -90,6 +118,16 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
                 'Ondo US Dollar Yield (Ondo Tokenized)',
               ),
             tapBack: () => TrendingView.tapBackFromTokenDetails(),
+          },
+          {
+            section: TrendingViewSelectorsText.SECTION_SITES,
+            itemId: 'Uniswap',
+            itemTitle: 'Uniswap',
+            verifyItemVisible: () => TrendingView.verifySiteVisible('Uniswap'),
+            tapItem: () => TrendingView.tapSiteRow('Uniswap'),
+            verifyDetailsVisible: () =>
+              TrendingView.verifyBrowserUrlVisible('uniswap.org'),
+            tapBack: () => TrendingView.tapBackFromBrowser(),
           },
         ];
 

@@ -20,9 +20,7 @@ export const TrendingViewSelectorsIDs = {
 } as const;
 
 export const TrendingViewSelectorsText = {
-  // Section titles — must match `strings('trending.*')` in QuickActions.tsx (see en.json)
-  SECTION_PREDICTIONS: 'Predictions',
-  SECTION_TOKENS: 'Trending',
+  // Section titles — must match `strings('trending.*')` in sections.config.tsx (see en.json)  SECTION_TOKENS: 'Trending',
   SECTION_STOCKS: 'Stocks',
   SECTION_PERPS: 'Perps',
   SECTION_SITES: 'Sites',
