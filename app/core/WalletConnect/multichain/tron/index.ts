@@ -13,12 +13,21 @@
  */
 
 import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
-import type { CaipAccountId } from '@metamask/utils';
+import {
+  type CaipAccountId,
+  KnownCaipNamespace,
+  parseCaipAccountId,
+} from '@metamask/utils';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getCaipAccountIdsFromCaip25CaveatValue,
+} from '@metamask/chain-agnostic-permission';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../../../Engine';
 import { addPermittedAccounts } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { normalizeCaipChainIdOutbound } from '../../wc-utils';
 import type { ChainAdapter } from '../types';
 
 interface SnapMappedRequest {
@@ -34,6 +43,38 @@ const TRON_EVENTS: readonly string[] = [];
 
 /** CAIP-2 prefix used to identify Tron chain ids in proposals. */
 const TRON_PREFIX = 'tron:';
+const DEFAULT_TRON_CHAIN_ID = 'tron:0x2b6653dc';
+
+const normalizeTronChainIdInbound = (caipChainId: string): string => {
+  if (!caipChainId.startsWith(TRON_PREFIX)) {
+    return caipChainId;
+  }
+  const chainRef = caipChainId.slice(TRON_PREFIX.length);
+  if (chainRef.startsWith('0x')) {
+    return `tron:${parseInt(chainRef, 16)}`;
+  }
+  return caipChainId;
+};
+
+const normalizeTronChainIdOutbound = (caipChainId: string): string => {
+  if (!caipChainId.startsWith(TRON_PREFIX)) {
+    return caipChainId;
+  }
+  const chainRef = caipChainId.slice(TRON_PREFIX.length);
+  if (!chainRef.startsWith('0x')) {
+    return `tron:0x${parseInt(chainRef, 10).toString(16)}`;
+  }
+  return caipChainId;
+};
+
+const getCompatibleTronCaipChainIds = (caipChainId: string): string[] =>
+  Array.from(
+    new Set([
+      caipChainId,
+      normalizeTronChainIdInbound(caipChainId),
+      normalizeTronChainIdOutbound(caipChainId),
+    ]),
+  );
 
 /**
  * Minimal shape of the relevant parts of a WalletConnect session
@@ -61,6 +102,98 @@ export interface TronNamespaceSlice {
   events: string[];
   accounts: `${string}:${string}:${string}`[];
 }
+
+/**
+ * List Tron EOA addresses currently managed by the wallet.
+ */
+const listTronEoaAddresses = (): string[] =>
+  Engine.context.AccountsController.listAccounts()
+    .filter((account: { type: string }) => account.type === TrxAccountType.Eoa)
+    .map((account: { address: string }) => account.address);
+
+export const buildTronScopedPermissionsNamespace = ({
+  channelId,
+  permittedChains,
+}: {
+  channelId: string;
+  permittedChains: string[];
+}): TronNamespaceSlice | undefined => {
+  const tronChains = permittedChains
+    .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`))
+    .flatMap((chain) => getCompatibleTronCaipChainIds(chain));
+  const uniqueTronChains = Array.from(new Set(tronChains));
+
+  let permittedTronAccountStrings: string[] = [];
+  try {
+    const tronPermissionCaveat = Engine.context.PermissionController?.getCaveat(
+      channelId,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+    if (tronPermissionCaveat) {
+      permittedTronAccountStrings = getCaipAccountIdsFromCaip25CaveatValue(
+        tronPermissionCaveat.value as Parameters<
+          typeof getCaipAccountIdsFromCaip25CaveatValue
+        >[0],
+      )
+        .filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`))
+        .flatMap((account) => {
+          try {
+            const parsedAccount = parseCaipAccountId(account);
+            if (parsedAccount.chain.namespace !== KnownCaipNamespace.Tron) {
+              return [account];
+            }
+            const chainId = `${parsedAccount.chain.namespace}:${parsedAccount.chain.reference}`;
+            return getCompatibleTronCaipChainIds(chainId).map(
+              (compatibleChainId) =>
+                `${compatibleChainId}:${parsedAccount.address}`,
+            );
+          } catch {
+            return [account];
+          }
+        });
+    }
+  } catch (error) {
+    if (!(error instanceof PermissionDoesNotExistError)) {
+      DevLogger.log(
+        '[wc][multichain/tron] failed to read tron permission caveat',
+        error,
+      );
+    }
+  }
+
+  const tronAccounts = listTronEoaAddresses();
+  if (uniqueTronChains.length > 0) {
+    const discoveredTronAccountStrings = tronAccounts.flatMap((address) =>
+      uniqueTronChains.map((tronChainId) => `${tronChainId}:${address}`),
+    );
+    return {
+      chains: uniqueTronChains,
+      methods: [...TRON_METHODS],
+      events: [...TRON_EVENTS],
+      accounts: Array.from(
+        new Set([
+          ...permittedTronAccountStrings,
+          ...discoveredTronAccountStrings,
+        ]),
+      ) as `${string}:${string}:${string}`[],
+    };
+  }
+
+  if (tronAccounts.length > 0) {
+    const tronChainIds = getCompatibleTronCaipChainIds(TrxScope.Mainnet);
+    return {
+      chains: tronChainIds,
+      methods: [...TRON_METHODS],
+      events: [...TRON_EVENTS],
+      accounts: tronAccounts.flatMap((address) =>
+        tronChainIds.map((tronChainId) => `${tronChainId}:${address}`),
+      ) as `${string}:${string}:${string}`[],
+    };
+  }
+
+  return undefined;
+};
 
 const extractTronRawDataHex = (value: unknown): string | undefined => {
   if (!value || typeof value !== 'object') {
@@ -291,14 +424,6 @@ export const normalizeTronSnapResponse = ({
 };
 
 /**
- * List Tron EOA addresses currently managed by the wallet.
- */
-const listTronEoaAddresses = (): string[] =>
-  Engine.context.AccountsController.listAccounts()
-    .filter((account: { type: string }) => account.type === TrxAccountType.Eoa)
-    .map((account: { address: string }) => account.address);
-
-/**
  * Seed Tron accounts into the CAIP-25 caveat for the given WalletConnect
  * channel. No-op if the wallet has no Tron EOAs. Errors are swallowed and
  * logged to mirror the previous best-effort behavior.
@@ -384,7 +509,7 @@ export const buildTronNamespace = ({
   const tronChains =
     requestedTronChains.length > 0
       ? requestedTronChains
-      : [normalizeCaipChainIdOutbound(TrxScope.Mainnet)];
+      : [DEFAULT_TRON_CHAIN_ID];
 
   const requestedTronMethods = allNamespaces.tron?.methods ?? [];
   const requestedTronEvents = allNamespaces.tron?.events ?? [];

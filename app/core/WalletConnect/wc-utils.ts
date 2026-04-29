@@ -1,22 +1,11 @@
 import { rpcErrors } from '@metamask/rpc-errors';
-import {
-  CaipChainId,
-  Hex,
-  KnownCaipNamespace,
-  parseCaipAccountId,
-} from '@metamask/utils';
+import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
-import {
-  Caip25CaveatValue,
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-  getCaipAccountIdsFromCaip25CaveatValue,
-} from '@metamask/chain-agnostic-permission';
 import qs from 'qs';
 import Routes from '../../../app/constants/navigation/Routes';
 import { store } from '../../../app/store';
@@ -30,11 +19,8 @@ import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
-import Engine from '../Engine';
 import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
+import { buildTronScopedPermissionsNamespace } from './multichain/tron';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -343,85 +329,20 @@ export const getScopedPermissions = async ({
     ),
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const tronChains = permittedChains
-    .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`))
-    .flatMap((chain) => getCompatibleTronCaipChainIdsForWalletConnect(chain));
-  const uniqueTronChains = Array.from(new Set(tronChains));
-
-  const tronPermissionCaveat = Engine.context.PermissionController?.getCaveat?.(
+  const tronNamespace = buildTronScopedPermissionsNamespace({
     channelId,
-    Caip25EndowmentPermissionName,
-    Caip25CaveatType,
-  );
-  const permittedTronAccountStrings = tronPermissionCaveat
-    ? getCaipAccountIdsFromCaip25CaveatValue(
-        tronPermissionCaveat.value as Caip25CaveatValue,
-      )
-        .filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`))
-        .flatMap((account) => {
-          try {
-            const parsedAccount = parseCaipAccountId(account);
-            if (parsedAccount.chain.namespace !== KnownCaipNamespace.Tron) {
-              return [account];
-            }
-
-            const chainId = `${parsedAccount.chain.namespace}:${parsedAccount.chain.reference}`;
-            return getCompatibleTronCaipChainIdsForWalletConnect(chainId).map(
-              (compatibleChainId) =>
-                `${compatibleChainId}:${parsedAccount.address}`,
-            );
-          } catch {
-            return [account];
-          }
-        })
-    : [];
-
-  const tronAccounts = Engine.context.AccountsController.listAccounts().filter(
-    (account) => account.type === TrxAccountType.Eoa,
-  );
-  if (uniqueTronChains.length > 0) {
-    const discoveredTronAccountStrings = tronAccounts.flatMap((account) =>
-      uniqueTronChains.map(
-        (tronChainId) => `${tronChainId}:${account.address}`,
-      ),
-    );
-    const tronAccountStrings = Array.from(
-      new Set([
-        ...permittedTronAccountStrings,
-        ...discoveredTronAccountStrings,
-      ]),
-    );
+    permittedChains,
+  });
+  if (tronNamespace) {
     namespaces[KnownCaipNamespace.Tron] = {
-      chains: uniqueTronChains,
+      ...tronNamespace,
       methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Tron],
-      events: [],
-      accounts: tronAccountStrings,
     };
     DevLogger.log(`WC::getScopedPermissions added Tron namespace`, {
-      chains: uniqueTronChains,
-      accountsCount: tronAccountStrings.length,
-    });
-  } else if (tronAccounts.length > 0) {
-    // Fallback for local setups where tron scope is not persisted yet.
-    const tronChainIds = getCompatibleTronCaipChainIdsForWalletConnect(
-      TrxScope.Mainnet,
-    );
-    const tronAccountStrings = tronAccounts.flatMap((account) =>
-      tronChainIds.map((tronChainId) => `${tronChainId}:${account.address}`),
-    );
-    namespaces[KnownCaipNamespace.Tron] = {
-      chains: tronChainIds,
-      methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Tron],
-      events: [],
-      accounts: tronAccountStrings,
-    };
-    DevLogger.log(`WC::getScopedPermissions fallback Tron namespace`, {
-      chains: tronChainIds,
-      accountsCount: tronAccountStrings.length,
+      chains: tronNamespace.chains,
+      accountsCount: tronNamespace.accounts.length,
     });
   }
-  ///: END:ONLY_INCLUDE_IF
 
   DevLogger.log(`WC::getScopedPermissions final namespaces`, namespaces);
   return namespaces;
