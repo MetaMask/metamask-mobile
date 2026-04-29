@@ -27,6 +27,10 @@ import {
   type TransactionActiveAbTestEntry,
   withPendingTransactionActiveAbTests,
 } from '../../transactions/transaction-active-ab-test-attribution-registry';
+import {
+  createActiveABTestAssignment,
+  normalizeActiveABTestAssignments,
+} from '../../analytics/activeABTestAssignments';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -37,7 +41,8 @@ function mergeTransactionActiveAbTests(
       merged.push(...group);
     }
   }
-  return merged.length > 0 ? merged : undefined;
+  const normalizedTests = normalizeActiveABTestAssignments(merged);
+  return normalizedTests.length > 0 ? normalizedTests : undefined;
 }
 
 export default function useSubmitBridgeTx() {
@@ -68,27 +73,33 @@ export default function useSubmitBridgeTx() {
       }
     : undefined;
   const activeAbTests = useMemo(() => {
-    const tests: { key: string; value: string }[] = [];
+    const tests: TransactionActiveAbTestEntry[] = [];
 
     if (isNumpadAbActive) {
-      tests.push({
-        key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-        value: numpadVariantName,
-      });
+      tests.push(
+        createActiveABTestAssignment(
+          NUMPAD_QUICK_ACTIONS_AB_KEY,
+          numpadVariantName,
+        ),
+      );
     }
 
     if (isTokenSelectorAbActive) {
-      tests.push({
-        key: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-        value: tokenSelectorVariantName,
-      });
+      tests.push(
+        createActiveABTestAssignment(
+          TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+          tokenSelectorVariantName,
+        ),
+      );
     }
 
     if (isStickyFooterAbActive) {
-      tests.push({
-        key: STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-        value: stickyFooterVariantName,
-      });
+      tests.push(
+        createActiveABTestAssignment(
+          STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+          stickyFooterVariantName,
+        ),
+      );
     }
 
     return tests.length > 0 ? tests : undefined;

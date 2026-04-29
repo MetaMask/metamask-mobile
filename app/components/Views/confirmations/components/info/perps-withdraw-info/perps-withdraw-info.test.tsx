@@ -71,4 +71,13 @@ describe('PerpsWithdrawInfo', () => {
       tokenAddress: ARBITRUM_USDC.address,
     });
   });
+
+  it('passes hasMax=true to CustomAmountInfo so the percentage row shows Max instead of 90%', () => {
+    render(<PerpsWithdrawInfo />);
+
+    expect(mockCustomAmountInfo).toHaveBeenCalledWith(
+      expect.objectContaining({ hasMax: true }),
+      expect.anything(),
+    );
+  });
 });

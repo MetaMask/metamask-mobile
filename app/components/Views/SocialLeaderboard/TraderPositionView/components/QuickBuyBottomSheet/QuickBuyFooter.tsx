@@ -1,0 +1,360 @@
+import React, { useState } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import {
+  Box,
+  Text,
+  TextVariant,
+  TextColor,
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  AvatarToken,
+  AvatarTokenSize,
+  Icon as IconDS,
+  IconSize as IconSizeDS,
+} from '@metamask/design-system-react-native';
+import QuickBuyConfirmButton, {
+  type ConfirmButtonState,
+} from './QuickBuyConfirmButton';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import { getNetworkImageSource } from '../../../../../../util/networks';
+import type { Hex } from '@metamask/utils';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import type { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import SourceTokenPicker from './SourceTokenPicker';
+import { strings } from '../../../../../../../locales/i18n';
+
+const USD_PRESETS = ['1', '20', '50', '100'];
+
+interface QuickBuyFooterProps {
+  usdAmount: string;
+  formattedNetworkFee: string;
+  formattedSlippage: string;
+  formattedMinimumReceived: string;
+  formattedPriceImpact: string;
+  priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
+  totalAmountUsd: string;
+  sourceToken: BridgeToken | undefined;
+  sourceChainId: Hex | undefined;
+  sourceTokenOptions: BridgeToken[];
+  selectedSourceToken: BridgeToken | undefined;
+  isSourcePickerOpen: boolean;
+  setIsSourcePickerOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedSourceToken: React.Dispatch<
+    React.SetStateAction<BridgeToken | undefined>
+  >;
+  sourceBalanceFiat: string | undefined;
+  isTotalLoading: boolean;
+  isConfirmDisabled: boolean;
+  confirmButtonState: ConfirmButtonState;
+  getButtonLabel: () => string;
+  onPresetPress: (preset: string) => void;
+  onConfirm: () => Promise<void>;
+  colors: { icon: { alternative: string } };
+}
+
+const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
+  usdAmount,
+  formattedNetworkFee,
+  formattedSlippage,
+  formattedMinimumReceived,
+  formattedPriceImpact,
+  priceImpactViewData,
+  totalAmountUsd,
+  sourceToken,
+  sourceChainId,
+  sourceTokenOptions,
+  selectedSourceToken,
+  isSourcePickerOpen,
+  setIsSourcePickerOpen,
+  setSelectedSourceToken,
+  sourceBalanceFiat,
+  isTotalLoading,
+  isConfirmDisabled,
+  confirmButtonState,
+  getButtonLabel,
+  onPresetPress,
+  onConfirm,
+  colors,
+}) => {
+  const tw = useTailwind();
+  const isPriceImpactSafe = !priceImpactViewData.icon;
+  const [isTotalExpanded, setIsTotalExpanded] = useState(!isPriceImpactSafe);
+  return (
+    <Box twClassName="w-full">
+      {/* Preset pills */}
+      <Box twClassName="pt-4 pb-6 px-4">
+        <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+          {USD_PRESETS.map((preset) => (
+            <Box key={preset} twClassName="flex-1">
+              <Button
+                variant={
+                  usdAmount === preset
+                    ? ButtonVariant.Primary
+                    : ButtonVariant.Secondary
+                }
+                size={ButtonBaseSize.Md}
+                onPress={() => onPresetPress(preset)}
+                isFullWidth
+                testID={`quick-buy-preset-${preset}`}
+              >
+                {`$${preset}`}
+              </Button>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      {/* Footer details */}
+      <Box twClassName="px-4 pb-6" gap={6}>
+        <Box gap={4}>
+          {/* Pay with row */}
+          <TouchableOpacity
+            onPress={() => setIsSourcePickerOpen((prev) => !prev)}
+            disabled={sourceTokenOptions.length === 0}
+            testID="quick-buy-pay-with-row"
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('social_leaderboard.quick_buy.pay_with')}
+              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <BadgeWrapper
+                  badgePosition={BadgePosition.BottomRight}
+                  badgeElement={
+                    sourceChainId ? (
+                      <BadgeNetwork
+                        name={sourceToken?.symbol ?? ''}
+                        imageSource={getNetworkImageSource({
+                          chainId: sourceChainId,
+                        })}
+                      />
+                    ) : null
+                  }
+                >
+                  <AvatarToken
+                    name={sourceToken?.symbol ?? ''}
+                    src={
+                      sourceToken?.image
+                        ? { uri: sourceToken.image }
+                        : undefined
+                    }
+                    size={AvatarTokenSize.Xs}
+                  />
+                </BadgeWrapper>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {sourceToken?.symbol ?? ''}
+                </Text>
+                {sourceBalanceFiat && (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {`(${sourceBalanceFiat})`}
+                  </Text>
+                )}
+                <Icon
+                  name={
+                    isSourcePickerOpen ? IconName.ArrowUp : IconName.ArrowDown
+                  }
+                  size={IconSize.Sm}
+                  color={colors.icon.alternative}
+                />
+              </Box>
+            </Box>
+          </TouchableOpacity>
+
+          {/* Inline source token dropdown */}
+          {isSourcePickerOpen && (
+            <SourceTokenPicker
+              options={sourceTokenOptions}
+              selectedToken={selectedSourceToken}
+              onSelect={(token) => {
+                setSelectedSourceToken(token);
+                setIsSourcePickerOpen(false);
+              }}
+            />
+          )}
+
+          {/* Total row (tap to expand fee breakdown) */}
+          <TouchableOpacity
+            onPress={() => setIsTotalExpanded((prev) => !prev)}
+            testID="quick-buy-total-row"
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+            >
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.quick_buy.total')}
+                </Text>
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={colors.icon.alternative}
+                />
+              </Box>
+              {isTotalLoading ? (
+                <Skeleton
+                  width={56}
+                  height={20}
+                  style={tw.style('rounded-md')}
+                  testID="skeleton-view"
+                />
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {totalAmountUsd}
+                </Text>
+              )}
+            </Box>
+          </TouchableOpacity>
+
+          {/* Expanded fee breakdown (subsection of Total) */}
+          {isTotalExpanded && (
+            <Box twClassName="pl-4" gap={3}>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.quick_buy.network_fee')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {formattedNetworkFee}
+                </Text>
+              </Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.quick_buy.slippage')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {formattedSlippage}
+                </Text>
+              </Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.quick_buy.minimum_received')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {formattedMinimumReceived}
+                </Text>
+              </Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.quick_buy.price_impact')}
+                </Text>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  testID="quick-buy-price-impact"
+                >
+                  {priceImpactViewData.icon && (
+                    <IconDS
+                      name={priceImpactViewData.icon.name}
+                      size={IconSizeDS.Sm}
+                      color={priceImpactViewData.icon.color}
+                    />
+                  )}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={
+                      priceImpactViewData.icon
+                        ? priceImpactViewData.textColor
+                        : TextColor.TextDefault
+                    }
+                  >
+                    {formattedPriceImpact}
+                  </Text>
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </Box>
+
+        {/* Buy button */}
+        <QuickBuyConfirmButton
+          state={confirmButtonState}
+          label={getButtonLabel()}
+          isDisabled={isConfirmDisabled}
+          onPress={onConfirm}
+          testID="quick-buy-confirm-button"
+        />
+      </Box>
+    </Box>
+  );
+};
+
+export default QuickBuyFooter;

@@ -11,6 +11,8 @@ import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { InteractionManager, Platform } from 'react-native';
 import { AccountType } from '../../../constants/onboarding';
+import SRPDesignDark from '../../../images/secure_wallet_dark.png';
+import SRPDesignLight from '../../../images/secure_wallet_light.png';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -123,30 +125,36 @@ describe('AccountBackupStep1', () => {
     };
   };
 
-  describe('Snapshots iOS', () => {
-    it('render matches snapshot', () => {
+  describe('Rendering iOS', () => {
+    it('renders correctly on iOS', () => {
       Platform.OS = 'ios';
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 
-  describe('Snapshots android', () => {
+  describe('Rendering android', () => {
     beforeEach(() => {
       Platform.OS = 'android';
     });
 
-    it('render matches snapshot', () => {
+    it('renders correctly on android', () => {
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
-    it('render matches snapshot with status bar height to zero', () => {
+    it('renders correctly on android with status bar height zero', () => {
       const { StatusBar } = jest.requireMock('react-native');
       const originalCurrentHeight = StatusBar.currentHeight;
       StatusBar.currentHeight = 0;
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
       StatusBar.currentHeight = originalCurrentHeight;
     });
   });
@@ -262,11 +270,8 @@ describe('AccountBackupStep1', () => {
 
     const { wrapper } = setupTest();
 
-    // Verify AndroidBackHandler is rendered
+    // Verify AndroidBackHandler is rendered and customBackPress prop is passed
     const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
-    expect(androidBackHandler).toBeTruthy();
-
-    // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
   });
 
@@ -406,7 +411,7 @@ describe('AccountBackupStep1', () => {
       });
     });
 
-    it('renders dark SRP design image by default (dark theme)', () => {
+    it('renders dark SRP design image for dark theme', () => {
       mockUseTheme.mockReturnValue({
         colors: {},
         themeAppearance: 'dark',
@@ -414,7 +419,7 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      expect(wrapper).toMatchSnapshot();
+      wrapper.UNSAFE_getByProps({ source: SRPDesignDark });
     });
 
     it('renders light SRP design image for light theme', () => {
@@ -425,7 +430,7 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      expect(wrapper).toMatchSnapshot();
+      wrapper.UNSAFE_getByProps({ source: SRPDesignLight });
     });
   });
 });

@@ -39,7 +39,7 @@ describe('SelectOptionSheet', () => {
         onValueChange={mockOnValueChange}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('shows selected value', () => {

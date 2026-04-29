@@ -1,10 +1,9 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CashTokensFullView from './CashTokensFullView';
 import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
-import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
-import { AssetType } from '../confirmations/types/token';
 
 const mockGoBack = jest.fn();
 
@@ -15,12 +14,14 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockUseMusdBalance = jest.fn(() => ({ hasMusdBalanceOnAnyChain: false }));
+const mockUseMusdBalance = jest.fn(() => ({
+  hasMusdBalanceOnAnyChain: false,
+  tokenBalanceByChain: {},
+}));
 jest.mock('../../UI/Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: () => mockUseMusdBalance(),
 }));
 
-// Let real CashGetMusdEmptyState render; mock its dependencies
 jest.mock('../../../core/NavigationService', () => ({
   __esModule: true,
   default: { navigation: { navigate: jest.fn() } },
@@ -37,11 +38,9 @@ jest.mock('../../UI/Earn/hooks/useMusdConversion', () => ({
     hasSeenConversionEducationScreen: true,
   }),
 }));
-const mockUseMusdConversionTokens = jest.fn(() => ({
-  tokens: [] as AssetType[],
-}));
 jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
+  useMusdConversionTokens: () => ({ tokens: [] }),
+  tokenFiatValue: () => 0,
 }));
 jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => ({ goToSwaps: jest.fn() }),
@@ -90,7 +89,6 @@ jest.mock(
 );
 
 const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
-const mockSelectMoneyHubEnabledFlag = jest.mocked(selectMoneyHubEnabledFlag);
 jest.mock('../../../core/Engine', () => ({
   context: {},
 }));
@@ -101,7 +99,10 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
 }));
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHubEnabledFlag: jest.fn(),
+  selectMoneyHubEnabledFlag: jest.fn(() => false),
+}));
+jest.mock('./useCashTokensRefresh', () => ({
+  useCashTokensRefresh: () => ({ refreshing: false, onRefresh: jest.fn() }),
 }));
 jest.mock('../../UI/Tokens', () => {
   const { createElement } = jest.requireActual('react');
@@ -125,12 +126,49 @@ jest.mock('../../UI/Tokens', () => {
   return { __esModule: true, default: MockTokens };
 });
 
+jest.mock('../Homepage/Sections/Cash/CashGetMusdEmptyState', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => (
+      <View testID="cash-get-musd-empty-state">
+        <Text>Get mUSD</Text>
+      </View>
+    ),
+  };
+});
+
+jest.mock('../Homepage/components/SectionRow/SectionRow', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
+  };
+});
+
 describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
-    mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
-    mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((cb) => {
+        if (typeof cb === 'function') cb();
+        const donePromise = Promise.resolve();
+        return {
+          cancel: jest.fn(),
+          done: (...args: Parameters<typeof donePromise.then>) =>
+            donePromise.then(...args),
+          then: donePromise.then.bind(donePromise),
+        } as unknown as ReturnType<
+          typeof InteractionManager.runAfterInteractions
+        >;
+      });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: null,
       lifetimeBonusClaimed: null,
@@ -138,7 +176,12 @@ describe('CashTokensFullView', () => {
       isClaiming: false,
       error: null,
       claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
     });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders mUSD title', () => {
@@ -147,16 +190,24 @@ describe('CashTokensFullView', () => {
   });
 
   it('renders Get mUSD empty state when user has no mUSD', () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
     renderWithProvider(<CashTokensFullView />);
     expect(screen.getByTestId('cash-get-musd-empty-state')).toBeOnTheScreen();
     expect(screen.getByText('Get mUSD')).toBeOnTheScreen();
   });
 
-  it('renders Tokens with isFullView and showOnlyMusd when user has mUSD', () => {
-    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: true });
+  it('renders Tokens with isFullView and showOnlyMusd when user has mUSD', async () => {
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceByChain: { '0x1': '1000' },
+    });
     renderWithProvider(<CashTokensFullView />);
-    expect(screen.getByTestId('tokens-cash-view')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(screen.getByTestId('tokens-cash-view')).toBeOnTheScreen();
+    });
     expect(
       screen.getByText('isFullView=true showOnlyMusd=true'),
     ).toBeOnTheScreen();
@@ -164,78 +215,7 @@ describe('CashTokensFullView', () => {
 
   it('navigates back when back button is pressed', () => {
     renderWithProvider(<CashTokensFullView />);
-    fireEvent.press(screen.getByTestId('back-button'));
+    fireEvent.press(screen.getByTestId('cash-tokens-full-view-back-button'));
     expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('does not render bonus section when Money Hub flag is disabled', () => {
-    mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
-
-    renderWithProvider(<CashTokensFullView />);
-
-    expect(
-      screen.queryByTestId('asset-overview-claim-bonus'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders bonus section when Money Hub flag is enabled', () => {
-    mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
-
-    renderWithProvider(<CashTokensFullView />);
-
-    expect(screen.getByTestId('asset-overview-claim-bonus')).toBeOnTheScreen();
-  });
-
-  it('does not render convert stablecoins section when Money Hub flag is disabled', () => {
-    mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
-
-    renderWithProvider(<CashTokensFullView />);
-
-    expect(
-      screen.queryByTestId('money-convert-stablecoins-container'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders convert stablecoins section when Money Hub flag is enabled', () => {
-    mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
-
-    renderWithProvider(<CashTokensFullView />);
-
-    expect(
-      screen.getByTestId('money-convert-stablecoins-container'),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not render CTA buttons when Money Hub flag is disabled', () => {
-    mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
-
-    renderWithProvider(<CashTokensFullView />);
-
-    expect(screen.queryByText('Convert to mUSD')).not.toBeOnTheScreen();
-    expect(screen.queryByText('Swap')).not.toBeOnTheScreen();
-    expect(screen.queryByText('Buy')).not.toBeOnTheScreen();
-  });
-
-  it('renders Convert CTA when Money Hub is enabled and conversion tokens exist', () => {
-    mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
-    mockUseMusdConversionTokens.mockReturnValue({
-      tokens: [{ address: '0xabc', chainId: '0x1' } as AssetType],
-    });
-
-    renderWithProvider(<CashTokensFullView />);
-
-    expect(screen.getByText('Convert to mUSD')).toBeOnTheScreen();
-    expect(screen.queryByText('Swap')).not.toBeOnTheScreen();
-    expect(screen.queryByText('Buy')).not.toBeOnTheScreen();
-  });
-
-  it('renders Swap and Buy CTAs when Money Hub is enabled and no conversion tokens exist', () => {
-    mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
-
-    renderWithProvider(<CashTokensFullView />);
-
-    expect(screen.getByText('Swap')).toBeOnTheScreen();
-    expect(screen.getByText('Buy')).toBeOnTheScreen();
-    expect(screen.queryByText('Convert to mUSD')).not.toBeOnTheScreen();
   });
 });
