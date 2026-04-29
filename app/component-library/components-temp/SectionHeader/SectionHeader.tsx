@@ -5,12 +5,12 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 // External dependencies.
 import {
   Text,
+  Icon,
   IconName,
+  IconSize,
   TextVariant,
   TextColor,
   IconColor,
-  ButtonIcon,
-  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -74,14 +74,11 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 
       {/* Arrow icon: visual indicator only, no touch handling */}
       {onPress && (
-        <ButtonIcon
+        <Icon
           testID="section-header-arrow-icon"
-          disabled
-          iconName={endIconName}
-          size={ButtonIconSize.Sm}
-          iconProps={{
-            color: endIconColor,
-          }}
+          name={endIconName}
+          size={IconSize.Sm}
+          color={endIconColor}
         />
       )}
 
