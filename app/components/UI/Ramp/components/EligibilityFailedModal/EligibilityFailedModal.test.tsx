@@ -5,6 +5,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const mockOnCloseBottomSheet = jest.fn();
 
@@ -15,11 +16,12 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   canOpenURL: jest.fn().mockResolvedValue(true),
 }));
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -33,9 +35,9 @@ jest.mock(
         }));
         return <>{children}</>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 function render(component: React.ComponentType) {
   return renderScreen(
@@ -67,7 +69,7 @@ describe('EligibilityFailedModal', () => {
 
     fireEvent.press(contactSupportButton);
 
-    expect(Linking.openURL).toHaveBeenCalledWith('https://support.metamask.io');
+    expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
   });
 
   it('closes the modal when the close button is pressed', () => {

@@ -37,6 +37,7 @@ describe('getSmartTransactionsControllerMessenger', () => {
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         actions: expect.arrayContaining([
+          'AuthenticationController:getBearerToken',
           'NetworkController:getNetworkClientById',
           'NetworkController:getState',
           'RemoteFeatureFlagController:getState',

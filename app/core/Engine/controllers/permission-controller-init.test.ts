@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getPermissionControllerMessenger,
@@ -26,27 +26,29 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getPermissionControllerMessenger(baseMessenger),
     initMessenger: getPermissionControllerInitMessenger(baseMessenger),
   };
 
-  // @ts-expect-error: Partial implementation.
-  requestMock.getController.mockImplementation((controllerName: string) => {
-    if (controllerName === 'ApprovalController') {
-      return {
-        addAndShowApprovalRequest: jest.fn(),
-      };
-    }
+  requestMock.getMessengerClient.mockImplementation(
+    // @ts-expect-error: Partial implementation.
+    (controllerName: string) => {
+      if (controllerName === 'ApprovalController') {
+        return {
+          addAndShowApprovalRequest: jest.fn(),
+        };
+      }
 
-    if (controllerName === 'KeyringController') {
-      return {
-        addNewKeyring: jest.fn(),
-      };
-    }
+      if (controllerName === 'KeyringController') {
+        return {
+          addNewKeyring: jest.fn(),
+        };
+      }
 
-    throw new Error(`Controller "${controllerName}" not found.`);
-  });
+      throw new Error(`Controller "${controllerName}" not found.`);
+    },
+  );
 
   return requestMock;
 }

@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getMoneyAccountControllerMessenger } from '../messengers/money-account-controller-messenger';
 import { MessengerClientInitRequest } from '../types';
@@ -19,7 +19,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getMoneyAccountControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };
