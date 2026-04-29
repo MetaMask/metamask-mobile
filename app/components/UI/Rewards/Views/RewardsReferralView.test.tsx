@@ -213,10 +213,7 @@ describe('RewardsReferralView', () => {
       const { getByTestId } = render(<RewardsReferralView />);
       const button = getByTestId('referral-share-button');
 
-      const isDisabled =
-        button.props.disabled === true ||
-        button.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables the share button when referral code is absent', () => {
@@ -229,10 +226,7 @@ describe('RewardsReferralView', () => {
       const { getByTestId } = render(<RewardsReferralView />);
       const button = getByTestId('referral-share-button');
 
-      const isDisabled =
-        button.props.disabled === true ||
-        button.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('calls Share.open when the share button is pressed', async () => {

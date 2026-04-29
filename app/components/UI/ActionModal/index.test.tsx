@@ -1,10 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import ActionModal from './';
 
 describe('ActionModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<ActionModal />);
+    const { toJSON } = renderWithProvider(<ActionModal />);
     expect(toJSON()).toMatchSnapshot();
   });
 });
