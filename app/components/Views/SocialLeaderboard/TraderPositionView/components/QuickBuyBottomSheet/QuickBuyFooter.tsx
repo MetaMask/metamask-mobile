@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { type LayoutChangeEvent, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  Easing,
+  scrollTo,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import type { QuickBuyScrollAnimatedRef } from './QuickBuyBottomSheet';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
   Box,
   Text,
@@ -15,9 +23,13 @@ import {
   BoxJustifyContent,
   AvatarToken,
   AvatarTokenSize,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeNetwork,
   Icon as IconDS,
   IconSize as IconSizeDS,
 } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import QuickBuyConfirmButton, {
   type ConfirmButtonState,
 } from './QuickBuyConfirmButton';
@@ -25,18 +37,18 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import type { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import SourceTokenPicker from './SourceTokenPicker';
+import { getBridgeTokenImageSource } from './getBridgeTokenImageSource';
 import { strings } from '../../../../../../../locales/i18n';
 
 const USD_PRESETS = ['1', '20', '50', '100'];
+
+const PAY_WITH_ANIMATION_DURATION_MS = 220;
+const PAY_WITH_ANIMATION_EASING = Easing.out(Easing.cubic);
 
 interface QuickBuyFooterProps {
   usdAmount: string;
@@ -62,6 +74,13 @@ interface QuickBuyFooterProps {
   getButtonLabel: () => string;
   onPresetPress: (preset: string) => void;
   onConfirm: () => Promise<void>;
+  /**
+   * Animated ref to the parent ScrollView. Used by `useAnimatedReaction` to
+   * drive `scrollTo` on the UI thread in lockstep with the picker/total
+   * height animations, so the Buy button stays pinned at the bottom of the
+   * sheet while content grows above it.
+   */
+  scrollAnimatedRef?: QuickBuyScrollAnimatedRef;
   colors: { icon: { alternative: string } };
 }
 
@@ -87,11 +106,125 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   getButtonLabel,
   onPresetPress,
   onConfirm,
+  scrollAnimatedRef,
   colors,
 }) => {
   const tw = useTailwind();
   const isPriceImpactSafe = !priceImpactViewData.icon;
   const [isTotalExpanded, setIsTotalExpanded] = useState(!isPriceImpactSafe);
+
+  // Animate the source picker's real `height` so React Native's layout system
+  // re-measures the parent BottomSheet on each frame; this lets the whole sheet
+  // grow/shrink smoothly instead of jumping.
+  const pickerHeight = useSharedValue(0);
+  const measuredPickerHeight = useRef(0);
+
+  const animatedPickerStyle = useAnimatedStyle(() => ({
+    height: pickerHeight.value,
+  }));
+
+  const handlePickerLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height <= 0 || height === measuredPickerHeight.current) return;
+      measuredPickerHeight.current = height;
+      if (isSourcePickerOpen) {
+        pickerHeight.value = withTiming(height, {
+          duration: PAY_WITH_ANIMATION_DURATION_MS,
+          easing: PAY_WITH_ANIMATION_EASING,
+        });
+      }
+    },
+    [isSourcePickerOpen, pickerHeight],
+  );
+
+  useEffect(() => {
+    pickerHeight.value = withTiming(
+      isSourcePickerOpen ? measuredPickerHeight.current : 0,
+      {
+        duration: PAY_WITH_ANIMATION_DURATION_MS,
+        easing: PAY_WITH_ANIMATION_EASING,
+      },
+    );
+  }, [isSourcePickerOpen, pickerHeight]);
+
+  // Animate the Total fee-breakdown the same way. `isTotalExpanded` can start
+  // `true` (when price impact is unsafe) so we use an `initialized` ref to
+  // commit the first measurement without an animation; subsequent toggles run
+  // through `withTiming` so the parent BottomSheet grows smoothly.
+  const totalBreakdownHeight = useSharedValue(0);
+  const measuredTotalBreakdownHeight = useRef(0);
+  const totalBreakdownInitialized = useRef(false);
+
+  const animatedTotalBreakdownStyle = useAnimatedStyle(() => ({
+    height: totalBreakdownHeight.value,
+  }));
+
+  const handleTotalBreakdownLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height <= 0 || height === measuredTotalBreakdownHeight.current)
+        return;
+      measuredTotalBreakdownHeight.current = height;
+      if (!totalBreakdownInitialized.current) {
+        totalBreakdownInitialized.current = true;
+        totalBreakdownHeight.value = isTotalExpanded ? height : 0;
+        return;
+      }
+      if (isTotalExpanded) {
+        totalBreakdownHeight.value = withTiming(height, {
+          duration: PAY_WITH_ANIMATION_DURATION_MS,
+          easing: PAY_WITH_ANIMATION_EASING,
+        });
+      }
+    },
+    [isTotalExpanded, totalBreakdownHeight],
+  );
+
+  useEffect(() => {
+    if (!totalBreakdownInitialized.current) return;
+    totalBreakdownHeight.value = withTiming(
+      isTotalExpanded ? measuredTotalBreakdownHeight.current : 0,
+      {
+        duration: PAY_WITH_ANIMATION_DURATION_MS,
+        easing: PAY_WITH_ANIMATION_EASING,
+      },
+    );
+  }, [isTotalExpanded, totalBreakdownHeight]);
+
+  // Drive the parent ScrollView's offset on the UI thread, in lockstep with
+  // the picker/total height animations. Calling `scrollTo` from inside a
+  // worklet that depends on the height shared values means the scroll snaps
+  // to the new bottom on the same frame the content grows — eliminating the
+  // 1-frame snap that a JS-thread `onContentSizeChange` → `scrollToEnd` round
+  // trip produces. The large `y` value is clamped natively to the current
+  // max content offset, so we always land exactly at the bottom.
+  useAnimatedReaction(
+    () => pickerHeight.value + totalBreakdownHeight.value,
+    (sum, prev) => {
+      // Only follow when content is growing (or on the first run, e.g. when
+      // the breakdown starts open). Shrinking is handled implicitly: native
+      // ScrollViews clamp the offset to the new max, keeping us at the
+      // bottom without an explicit scroll command.
+      if (prev !== null && sum <= prev) return;
+      if (!scrollAnimatedRef) return;
+      scrollTo(scrollAnimatedRef, 0, Number.MAX_SAFE_INTEGER, false);
+    },
+    [scrollAnimatedRef],
+  );
+
+  const handleSourcePickerToggle = useCallback(() => {
+    setIsSourcePickerOpen((prev) => !prev);
+  }, [setIsSourcePickerOpen]);
+
+  const handleSourceTokenSelect = useCallback(
+    (token: BridgeToken) => {
+      setSelectedSourceToken(token);
+      setIsSourcePickerOpen(false);
+    },
+    [setSelectedSourceToken, setIsSourcePickerOpen],
+  );
+
   return (
     <Box twClassName="w-full">
       {/* Preset pills */}
@@ -120,228 +253,248 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
       {/* Footer details */}
       <Box twClassName="px-4 pb-6" gap={6}>
         <Box gap={4}>
-          {/* Pay with row */}
-          <TouchableOpacity
-            onPress={() => setIsSourcePickerOpen((prev) => !prev)}
-            disabled={sourceTokenOptions.length === 0}
-            testID="quick-buy-pay-with-row"
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('social_leaderboard.quick_buy.pay_with')}
-              </Text>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-              >
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    sourceChainId ? (
-                      <BadgeNetwork
-                        name={sourceToken?.symbol ?? ''}
-                        imageSource={getNetworkImageSource({
-                          chainId: sourceChainId,
-                        })}
-                      />
-                    ) : null
-                  }
-                >
-                  <AvatarToken
-                    name={sourceToken?.symbol ?? ''}
-                    src={
-                      sourceToken?.image
-                        ? { uri: sourceToken.image }
-                        : undefined
-                    }
-                    size={AvatarTokenSize.Xs}
-                  />
-                </BadgeWrapper>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {sourceToken?.symbol ?? ''}
-                </Text>
-                {sourceBalanceFiat && (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {`(${sourceBalanceFiat})`}
-                  </Text>
-                )}
-                <Icon
-                  name={
-                    isSourcePickerOpen ? IconName.ArrowUp : IconName.ArrowDown
-                  }
-                  size={IconSize.Sm}
-                  color={colors.icon.alternative}
-                />
-              </Box>
-            </Box>
-          </TouchableOpacity>
-
-          {/* Inline source token dropdown */}
-          {isSourcePickerOpen && (
-            <SourceTokenPicker
-              options={sourceTokenOptions}
-              selectedToken={selectedSourceToken}
-              onSelect={(token) => {
-                setSelectedSourceToken(token);
-                setIsSourcePickerOpen(false);
-              }}
-            />
-          )}
-
-          {/* Total row (tap to expand fee breakdown) */}
-          <TouchableOpacity
-            onPress={() => setIsTotalExpanded((prev) => !prev)}
-            testID="quick-buy-total-row"
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
+          {/* Pay with card (tap to expand source picker inline) */}
+          <Box twClassName="rounded-xl bg-muted overflow-hidden">
+            <TouchableOpacity
+              onPress={handleSourcePickerToggle}
+              disabled={sourceTokenOptions.length === 0}
+              activeOpacity={0.7}
+              testID="quick-buy-pay-with-row"
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                gap={2}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.total')}
-                </Text>
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={colors.icon.alternative}
-                />
-              </Box>
-              {isTotalLoading ? (
-                <Skeleton
-                  width={56}
-                  height={20}
-                  style={tw.style('rounded-md')}
-                  testID="skeleton-view"
-                />
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {totalAmountUsd}
-                </Text>
-              )}
-            </Box>
-          </TouchableOpacity>
-
-          {/* Expanded fee breakdown (subsection of Total) */}
-          {isTotalExpanded && (
-            <Box twClassName="pl-4" gap={3}>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
+                twClassName="px-4 py-3"
               >
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                 >
-                  {strings('social_leaderboard.quick_buy.network_fee')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {formattedNetworkFee}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.slippage')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {formattedSlippage}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.minimum_received')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {formattedMinimumReceived}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.price_impact')}
+                  {strings('social_leaderboard.quick_buy.pay_with')}
                 </Text>
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  gap={1}
-                  testID="quick-buy-price-impact"
+                  gap={2}
                 >
-                  {priceImpactViewData.icon && (
-                    <IconDS
-                      name={priceImpactViewData.icon.name}
-                      size={IconSizeDS.Sm}
-                      color={priceImpactViewData.icon.color}
-                    />
-                  )}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={
-                      priceImpactViewData.icon
-                        ? priceImpactViewData.textColor
-                        : TextColor.TextDefault
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.BottomRight}
+                    badge={
+                      sourceChainId ? (
+                        <BadgeNetwork
+                          name={sourceToken?.symbol ?? ''}
+                          src={getNetworkImageSource({
+                            chainId: sourceChainId,
+                          })}
+                          twClassName="scale-75"
+                        />
+                      ) : null
                     }
                   >
-                    {formattedPriceImpact}
+                    <AvatarToken
+                      name={sourceToken?.symbol ?? ''}
+                      src={
+                        sourceToken
+                          ? getBridgeTokenImageSource(sourceToken)
+                          : undefined
+                      }
+                      size={AvatarTokenSize.Xs}
+                    />
+                  </BadgeWrapper>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {sourceToken?.symbol ?? ''}
                   </Text>
+                  {sourceBalanceFiat && (
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {`(${sourceBalanceFiat})`}
+                    </Text>
+                  )}
+                  <Icon
+                    name={
+                      isSourcePickerOpen ? IconName.ArrowUp : IconName.ArrowDown
+                    }
+                    size={IconSize.Sm}
+                    color={colors.icon.alternative}
+                  />
                 </Box>
               </Box>
-            </Box>
-          )}
+            </TouchableOpacity>
+
+            <Animated.View
+              pointerEvents={isSourcePickerOpen ? 'auto' : 'none'}
+              style={[tw.style('overflow-hidden'), animatedPickerStyle]}
+            >
+              <View
+                onLayout={handlePickerLayout}
+                style={tw.style('absolute inset-x-0 top-0')}
+              >
+                <SourceTokenPicker
+                  options={sourceTokenOptions}
+                  selectedToken={selectedSourceToken}
+                  onSelect={handleSourceTokenSelect}
+                />
+              </View>
+            </Animated.View>
+          </Box>
+
+          {/* Total row (tap to expand fee breakdown) */}
+          <Box>
+            <TouchableOpacity
+              onPress={() => setIsTotalExpanded((prev) => !prev)}
+              testID="quick-buy-total-row"
+            >
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={2}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('social_leaderboard.quick_buy.total')}
+                  </Text>
+                  <Icon
+                    name={
+                      isTotalExpanded ? IconName.ArrowUp : IconName.ArrowDown
+                    }
+                    size={IconSize.Sm}
+                    color={colors.icon.alternative}
+                  />
+                </Box>
+                {isTotalLoading ? (
+                  <Skeleton
+                    width={56}
+                    height={20}
+                    style={tw.style('rounded-md')}
+                    testID="skeleton-view"
+                  />
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {totalAmountUsd}
+                  </Text>
+                )}
+              </Box>
+            </TouchableOpacity>
+
+            {/* Expanded fee breakdown (subsection of Total) */}
+            <Animated.View
+              style={[tw.style('overflow-hidden'), animatedTotalBreakdownStyle]}
+            >
+              <View
+                onLayout={handleTotalBreakdownLayout}
+                style={tw.style('absolute inset-x-0 top-0 pt-4 pl-4')}
+              >
+                <Box gap={3}>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('social_leaderboard.quick_buy.network_fee')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {formattedNetworkFee}
+                    </Text>
+                  </Box>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('social_leaderboard.quick_buy.slippage')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {formattedSlippage}
+                    </Text>
+                  </Box>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('social_leaderboard.quick_buy.minimum_received')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {formattedMinimumReceived}
+                    </Text>
+                  </Box>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('social_leaderboard.quick_buy.price_impact')}
+                    </Text>
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={1}
+                      testID="quick-buy-price-impact"
+                    >
+                      {priceImpactViewData.icon && (
+                        <IconDS
+                          name={priceImpactViewData.icon.name}
+                          size={IconSizeDS.Sm}
+                          color={priceImpactViewData.icon.color}
+                        />
+                      )}
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={
+                          priceImpactViewData.icon
+                            ? priceImpactViewData.textColor
+                            : TextColor.TextDefault
+                        }
+                      >
+                        {formattedPriceImpact}
+                      </Text>
+                    </Box>
+                  </Box>
+                </Box>
+              </View>
+            </Animated.View>
+          </Box>
         </Box>
 
         {/* Buy button */}

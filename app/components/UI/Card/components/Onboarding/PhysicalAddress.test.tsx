@@ -783,7 +783,7 @@ describe('PhysicalAddress Component', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to VERIFYING_REGISTRATION when registration is complete', async () => {
+    it('navigates to ChooseYourCard when registration is complete', async () => {
       const mockGetOnboardingConsentSetByOnboardingId = jest
         .fn()
         .mockResolvedValue(null);
