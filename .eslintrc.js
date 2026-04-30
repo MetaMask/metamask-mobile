@@ -624,11 +624,17 @@ module.exports = {
                   'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
               },
               {
+                // gitignore-style: `**/util/number` matches the whole subtree and
+                // incorrectly flags `util/number/bignumber`, `bigint`, etc. Restrict
+                // everything under `util/number/` except allowed non-deprecated modules.
                 group: [
-                  '**/util/number',
-                  '**/util/number/index',
-                  '**/app/util/number',
-                  '**/app/util/number/index',
+                  '**/util/number/**',
+                  '!**/util/number/bignumber',
+                  '!**/util/number/bignumber/**',
+                  '!**/util/number/bigint',
+                  '!**/util/number/bigint/**',
+                  '!**/util/number/subscriptNotation',
+                  '!**/util/number/subscriptNotation/**',
                 ],
                 message:
                   'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
