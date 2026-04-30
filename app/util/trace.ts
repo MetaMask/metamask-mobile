@@ -203,6 +203,7 @@ export enum TraceName {
   PredictGetBalance = 'Predict Get Balance',
   PredictGetAccountState = 'Predict Get Account State',
   PredictGetPriceHistory = 'Predict Get Price History',
+  PredictGetCryptoPriceHistory = 'Predict Get Crypto Price History',
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
   PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',

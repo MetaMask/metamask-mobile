@@ -366,7 +366,7 @@ export const formatCurrencyValue = (
   value?: number,
   options: { showSign?: boolean } = {},
 ): string | undefined => {
-  if (value === undefined || value === null) {
+  if (value === undefined || value === null || !Number.isFinite(value)) {
     return undefined;
   }
 

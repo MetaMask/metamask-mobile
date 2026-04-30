@@ -24,7 +24,7 @@ import {
   type PredictOutcome,
   type PredictOutcomeToken,
 } from '../../../../types';
-import { formatPrice } from '../../../../utils/format';
+import { formatCurrencyValue } from '../../../../utils/format';
 
 const LONG_OUTCOME_LABEL_THRESHOLD = 12;
 const TALL_ACTION_BUTTON_MIN_HEIGHT = 48;
@@ -33,23 +33,20 @@ const DEFAULT_PAYOUT_INVESTMENT_AMOUNT = 100;
 const shouldUseStackedActionButtonLabel = (title?: string) =>
   Boolean(title && title.length > LONG_OUTCOME_LABEL_THRESHOLD);
 
-const formatUsdAmount = (value: number) =>
-  formatPrice(value, {
-    minimumDecimals: 2,
-    maximumDecimals: 2,
-  });
-
 const formatPayoutEstimate = (
   price: number | undefined,
   investmentAmount = DEFAULT_PAYOUT_INVESTMENT_AMOUNT,
 ) => {
+  const investmentAmountDisplay = formatCurrencyValue(investmentAmount) ?? '--';
+
   if (typeof price !== 'number' || !Number.isFinite(price) || price <= 0) {
-    return `${formatUsdAmount(investmentAmount)} -> --`;
+    return `${investmentAmountDisplay} -> --`;
   }
 
-  return `${formatUsdAmount(investmentAmount)} -> ${formatUsdAmount(
-    investmentAmount / price,
-  )}`;
+  const payoutAmountDisplay =
+    formatCurrencyValue(investmentAmount / price) ?? '--';
+
+  return `${investmentAmountDisplay} -> ${payoutAmountDisplay}`;
 };
 
 export interface PredictMarketDetailsActionsProps {

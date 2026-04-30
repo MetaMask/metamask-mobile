@@ -796,11 +796,35 @@ export class PredictController extends BaseController<
   async getCryptoPriceHistory(
     params: GetCryptoPriceHistoryParams,
   ): Promise<CryptoPriceHistoryPoint[]> {
-    const provider = this.provider;
-    if (!provider?.getCryptoPriceHistory) {
-      return [];
-    }
-    return provider.getCryptoPriceHistory(params);
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoPriceHistory',
+        trace: {
+          name: TraceName.PredictGetCryptoPriceHistory,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+            variant: params.variant,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          symbol: params.symbol,
+          eventStartTime: params.eventStartTime,
+          variant: params.variant,
+          endDate: params.endDate,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.PRICE_HISTORY_FAILED,
+        traceData: (history) => ({ pointCount: history.length }),
+      },
+      async () => {
+        const history = await this.provider.getCryptoPriceHistory?.(params);
+        return history ?? [];
+      },
+    );
   }
 
   async getPrices(params: GetPriceParams): Promise<GetPriceResponse> {

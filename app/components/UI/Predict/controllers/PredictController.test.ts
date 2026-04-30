@@ -18,7 +18,7 @@ import {
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
-import { endTrace, trace } from '../../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
   addTransaction,
   addTransactionBatch,
@@ -910,6 +910,15 @@ describe('PredictController', () => {
         expect(
           mockPolymarketProvider.getCryptoPriceHistory,
         ).toHaveBeenCalledWith(params);
+        expect(trace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.PredictGetCryptoPriceHistory,
+            tags: expect.objectContaining({
+              symbol: 'BTC',
+              variant: 'hourly',
+            }),
+          }),
+        );
       });
     });
 
@@ -933,6 +942,35 @@ describe('PredictController', () => {
         });
 
         expect(result).toEqual([]);
+      });
+    });
+
+    it('sets lastError and ends trace when getCryptoPriceHistory throws', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Failed to fetch crypto price history';
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.getCryptoPriceHistory({
+            symbol: 'BTC',
+            eventStartTime: '2025-01-01T00:00:00Z',
+            variant: 'hourly',
+          }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(endTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.PredictGetCryptoPriceHistory,
+            data: expect.objectContaining({
+              success: false,
+              error: errorMessage,
+            }),
+          }),
+        );
       });
     });
   });

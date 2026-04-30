@@ -12,6 +12,7 @@ export const useLiveCryptoPrices = (
 ): UseLiveCryptoPricesResult => {
   const [isConnected, setIsConnected] = useState(false);
   const isMountedRef = useRef(true);
+  const isConnectedRef = useRef(false);
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
 
@@ -19,6 +20,7 @@ export const useLiveCryptoPrices = (
     isMountedRef.current = true;
 
     if (!symbol) {
+      isConnectedRef.current = false;
       setIsConnected(false);
       return;
     }
@@ -28,20 +30,25 @@ export const useLiveCryptoPrices = (
       [symbol],
       (update: CryptoPriceUpdate) => {
         if (!isMountedRef.current) return;
-        if (!isConnected) setIsConnected(true);
+        if (!isConnectedRef.current) {
+          isConnectedRef.current = true;
+          setIsConnected(true);
+        }
         onUpdateRef.current(update);
       },
     );
 
     const status = PredictController.getConnectionStatus();
+    isConnectedRef.current = status.rtdsConnected;
     setIsConnected(status.rtdsConnected);
 
     return () => {
       isMountedRef.current = false;
+      isConnectedRef.current = false;
       setIsConnected(false);
       unsubscribe();
     };
-  }, [symbol]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [symbol]);
 
   return { isConnected };
 };

@@ -32,7 +32,7 @@ import {
   type PredictOutcomeToken,
   type PredictSeries,
 } from '../../types';
-import { formatMarketEndDate, formatPrice } from '../../utils/format';
+import { formatCurrencyValue, formatMarketEndDate } from '../../utils/format';
 import usePredictShare from '../../hooks/usePredictShare';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -55,26 +55,6 @@ const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
 const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
-};
-
-const formatUsdPrice = (price: number | undefined) => {
-  if (typeof price !== 'number' || !Number.isFinite(price)) {
-    return '--';
-  }
-
-  return formatPrice(price, {
-    minimumDecimals: 2,
-    maximumDecimals: 2,
-  });
-};
-
-const formatSignedUsdPrice = (price: number | undefined) => {
-  if (typeof price !== 'number' || !Number.isFinite(price)) {
-    return undefined;
-  }
-
-  const prefix = price >= 0 ? '+' : '-';
-  return `${prefix}${formatUsdPrice(Math.abs(price))}`;
 };
 
 const getOpenOutcomes = (market: PredictMarket): PredictOutcome[] =>
@@ -404,7 +384,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
-              {formatUsdPrice(validatedTargetPrice)}
+              {formatCurrencyValue(validatedTargetPrice) ?? '--'}
             </Text>
           </Box>
           <Box twClassName="flex-1">
@@ -422,7 +402,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                   fontWeight={FontWeight.Medium}
                   color={currentPriceDeltaColor}
                 >
-                  {formatSignedUsdPrice(currentPriceDelta)}
+                  {formatCurrencyValue(currentPriceDelta, { showSign: true })}
                 </Text>
               )}
             </Box>
@@ -431,7 +411,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
               fontWeight={FontWeight.Medium}
               style={tw.style({ color: currentPriceAccentColor })}
             >
-              {formatUsdPrice(currentPrice)}
+              {formatCurrencyValue(currentPrice) ?? '--'}
             </Text>
           </Box>
         </Box>
