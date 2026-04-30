@@ -44,7 +44,7 @@ function PillToggleCardList<T>({
   const pills: PillOption[] = tabs.map(({ key, name }) => ({ key, name }));
 
   return (
-    <Box testID={testIdPrefix} twClassName="mb-6">
+    <Box testID={testIdPrefix} twClassName="mt-2 mb-9">
       <PillRow
         pills={pills}
         activeKey={activeKey}

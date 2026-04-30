@@ -29,10 +29,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { Theme } from '../../../../../util/theme/models';
 
 export const SITE_TILE_WIDTH = 180;
-export const SITE_TILE_HEIGHT = 104;
+export const SITE_TILE_HEIGHT = 120;
 export const SITE_TILE_BORDER_RADIUS = 12;
 
-const LOGO_SIZE = 28;
+const LOGO_SIZE = 40;
 
 const websiteIconTextStyle: TextStyle = { fontSize: 12 };
 
@@ -43,7 +43,8 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       height: SITE_TILE_HEIGHT,
       backgroundColor: theme.colors.background.section,
       borderRadius: SITE_TILE_BORDER_RADIUS,
-      padding: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
     websiteIcon: {
       width: LOGO_SIZE,
@@ -110,10 +111,11 @@ const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({ site }) => {
       </Box>
 
       <Text
-        variant={TextVariant.BodySm}
+        variant={TextVariant.BodyMd}
         color={TextColor.TextDefault}
         numberOfLines={1}
         fontWeight={FontWeight.Medium}
+        twClassName="pt-2"
       >
         {site.name}
       </Text>
@@ -121,7 +123,6 @@ const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({ site }) => {
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         numberOfLines={1}
-        twClassName="mt-0.5"
       >
         {site.displayUrl}
       </Text>

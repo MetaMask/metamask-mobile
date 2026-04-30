@@ -101,7 +101,7 @@ export const ExploreFeed: React.FC = () => {
       />
 
       <Box twClassName="gap-4 flex-1">
-        <Box twClassName="mt-3 flex-row items-center gap-2 px-4">
+        <Box twClassName="mt-2 mb-2 flex-row items-center gap-2 px-4">
           <Box twClassName="flex-1">
             <ExploreSearchBar type="button" onPress={handleSearchPress} />
           </Box>

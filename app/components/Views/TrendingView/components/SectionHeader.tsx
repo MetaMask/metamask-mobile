@@ -31,7 +31,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="mb-2"
+        twClassName="mt-1"
       >
         {subtitle}
       </Text>

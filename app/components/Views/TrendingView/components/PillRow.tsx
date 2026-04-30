@@ -32,7 +32,7 @@ const PillRow: React.FC<PillRowProps> = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="-mx-4 mb-3">
+    <Box twClassName="-mx-4 mb-2">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -55,17 +55,15 @@ const PillRow: React.FC<PillRowProps> = ({
                 onPress={() => onSelect(pill.key)}
                 testID={`${testIdPrefix}-pill-${pill.key}`}
                 style={tw.style(
-                  'rounded-xl px-4 py-2',
+                  'rounded-xl px-[12px] py-2',
                   isSelected ? 'bg-icon-default' : 'bg-muted',
                 )}
               >
                 <Text
-                  variant={TextVariant.BodySm}
+                  variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   color={
-                    isSelected
-                      ? TextColor.InfoInverse
-                      : TextColor.TextAlternative
+                    isSelected ? TextColor.InfoInverse : TextColor.TextDefault
                   }
                   testID={`${testIdPrefix}-pill-label-${pill.key}`}
                 >

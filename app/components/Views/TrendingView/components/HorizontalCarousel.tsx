@@ -44,7 +44,7 @@ function HorizontalCarousel<T>({
   const displayData = isLoading ? skeletonData : data;
 
   return (
-    <Box twClassName="-mx-4 mb-6">
+    <Box twClassName="-mx-4 mb-7">
       <FlashList
         ref={flashListRef}
         data={displayData}
@@ -57,7 +57,7 @@ function HorizontalCarousel<T>({
               <Box
                 borderColor={BoxBorderColor.BorderDefault}
                 twClassName={`rounded-2xl overflow-hidden ${
-                  !isLastItem ? 'pr-4' : ''
+                  !isLastItem ? 'pr-3' : ''
                 }`}
               >
                 {isLoading ? (
