@@ -579,8 +579,10 @@ export const TokenListItem = React.memo(
                 {label && (
                   <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
                 )}
-                {securityDataQuery.data?.result_type && (
-                  <Tag label={securityDataQuery.data.result_type} />
+                {securityDataQuery.isLoading ? (
+                  'Loading...'
+                ) : (
+                  <Tag label={securityDataQuery.data?.result_type ?? ''} />
                 )}
               </View>
 

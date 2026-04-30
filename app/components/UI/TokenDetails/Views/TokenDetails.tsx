@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Text } from '@metamask/design-system-react-native';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -37,6 +38,7 @@ import MultichainTransactionsView from '../../../Views/MultichainTransactionsVie
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
+import { useAssetSecurityDataFetch } from '../../../../util/fetchWithDebounce.ts/useAssetSecurityDataFetch';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -261,6 +263,10 @@ const TokenDetails: React.FC<{
     </>
   );
 
+  const securityDataQuery = useAssetSecurityDataFetch(
+    caip19AssetId as CaipAssetType,
+  );
+
   const renderLoader = () => (
     <View style={styles.loader}>
       <ActivityIndicator style={styles.loader} size="small" />
@@ -269,6 +275,14 @@ const TokenDetails: React.FC<{
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader onBackPress={() => navigation.goBack()} />
+
+      <View>
+        <Text>
+          {securityDataQuery.isLoading
+            ? 'Loading...'
+            : securityDataQuery.data?.result_type}
+        </Text>
+      </View>
 
       {txLoading ? (
         renderLoader()

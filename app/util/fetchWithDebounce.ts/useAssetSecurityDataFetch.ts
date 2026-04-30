@@ -22,6 +22,11 @@ const fetchAssetSecurityData = createBatchFetchWithDebounce({
     const ids = assetIds.map(({ id }) => id);
     const url = `${SECURITY_API_BASE}?assetIds=${ids.join(',')}`;
 
+    console.log('DEBUG XXX FETCHING ASSETS SECURITY DATA', {
+      ids,
+      url,
+    });
+
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -33,6 +38,11 @@ const fetchAssetSecurityData = createBatchFetchWithDebounce({
     const assets = (await response.json()) as {
       results: Record<CaipAssetType, AssetSecurityData>;
     };
+
+    console.log('DEBUG XXX FETCHED ASSETS SECURITY DATA', {
+      ids,
+      assets: assets.results,
+    });
 
     return assets.results;
   },
@@ -53,9 +63,14 @@ const STALE_TIME_MS = 1000 * 60 * 60; // 60 minutes
  */
 export const useAssetSecurityDataFetch = (
   assetId: CaipAssetType,
-): UseQueryResult<AssetSecurityData, Error> =>
-  useQuery<AssetSecurityData, Error>({
+): UseQueryResult<AssetSecurityData, Error> => {
+  const x = useQuery<AssetSecurityData, Error>({
     queryKey: ['assetSecurityData', assetId],
     queryFn: () => fetchAssetSecurityData({ id: assetId }),
     staleTime: STALE_TIME_MS,
   });
+
+  console.log(`DEBUG XXX CALLED HOOK FOR ASSET ${assetId}`);
+
+  return x;
+};
