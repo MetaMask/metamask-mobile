@@ -57,7 +57,9 @@ jest.mock(
   '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({
     useNetworkEnablement: () => ({
-      listPopularNetworks: () => [],
+      popularNetworks: [],
+      popularEvmNetworks: [],
+      popularMultichainNetworks: [],
     }),
   }),
 );

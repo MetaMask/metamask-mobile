@@ -66,12 +66,14 @@ jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-// AccountGroupBalance uses listPopularNetworks for balance selectors
+// AccountGroupBalance uses `popularNetworks` from useNetworkEnablement (arrays, not controller methods)
 jest.mock(
   '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({
     useNetworkEnablement: () => ({
-      listPopularNetworks: () => [],
+      popularNetworks: [],
+      popularEvmNetworks: [],
+      popularMultichainNetworks: [],
     }),
   }),
 );
