@@ -303,6 +303,11 @@ import {
   MoneyAccountControllerState,
 } from '@metamask/money-account-controller';
 import {
+  MoneyAccountBalanceService,
+  MoneyAccountBalanceServiceActions,
+  MoneyAccountBalanceServiceEvents,
+} from '@metamask/money-account-balance-service';
+import {
   GeolocationController,
   GeolocationControllerState,
   GeolocationControllerActions,
@@ -440,6 +445,11 @@ import {
   type SocialServiceEvents,
 } from '@metamask/social-controllers';
 import {
+  AuthenticatedUserStorageService,
+  type AuthenticatedUserStorageActions,
+  type AuthenticatedUserStorageEvents,
+} from '@metamask/authenticated-user-storage';
+import {
   ComplianceController,
   ComplianceControllerActions,
   ComplianceControllerEvents,
@@ -554,6 +564,7 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | MoneyAccountControllerActions
+  | MoneyAccountBalanceServiceActions
   | GeolocationControllerActions
   | GeolocationApiServiceActions
   | PerpsControllerActions
@@ -576,6 +587,7 @@ type GlobalActions =
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
+  | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions;
@@ -640,6 +652,7 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | MoneyAccountControllerEvents
+  | MoneyAccountBalanceServiceEvents
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
@@ -659,6 +672,7 @@ type GlobalEvents =
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
+  | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
   | TransakServiceEvents;
@@ -769,6 +783,7 @@ export type MessengerClients = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   MoneyAccountController: MoneyAccountController;
+  MoneyAccountBalanceService: MoneyAccountBalanceService;
   GeolocationController: GeolocationController;
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
@@ -786,6 +801,7 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   TransakService: TransakService;
@@ -936,6 +952,7 @@ export type MessengerClientsToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
+  | 'MoneyAccountBalanceService'
   | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
@@ -987,6 +1004,7 @@ export type MessengerClientsToInitialize =
   | 'AiDigestController'
   | 'SocialService'
   | 'SocialController'
+  | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController';
 

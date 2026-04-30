@@ -1,0 +1,91 @@
+{
+  "title": "Benchmark: Perps Limit Long Fill — limit long ETH at Mid, verify order and fill",
+  "description": "Mirrors smoke/perps/perps-limit-long-fill.spec.ts. Creates an ETH limit long at mid price via controller API, verifies the order appears, then waits for fill. Uses order-limit-place-controller flow (bypasses UI deposit path broken in dev mode).",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade", "perps.sufficient_balance"],
+      "setup": [
+        { "id": "setup-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ],
+      "entry": "ensure-testnet",
+      "nodes": {
+        "ensure-testnet": {
+          "action": "call",
+          "ref": "setup-testnet",
+          "next": "clear-eth-position"
+        },
+        "clear-eth-position": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p)return JSON.stringify({cleared:true});return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({cleared:true})})})",
+          "assert": { "operator": "eq", "field": "cleared", "value": true },
+          "next": "cancel-eth-orders"
+        },
+        "cancel-eth-orders": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var eth=os.filter(function(o){return o.symbol==='ETH'&&!o.isTrigger});if(!eth.length)return JSON.stringify({cancelled:0});return Promise.all(eth.map(function(o){return Engine.context.PerpsController.cancelOrder({orderId:o.oid})})).then(function(){return JSON.stringify({cancelled:eth.length})})})",
+          "assert": { "operator": "not_null" },
+          "next": "place-limit-order"
+        },
+        "place-limit-order": {
+          "action": "call",
+          "ref": "order-limit-place-controller",
+          "params": { "symbol": "ETH", "side": "long", "usdAmount": "10" },
+          "next": "screenshot-order"
+        },
+        "screenshot-order": {
+          "action": "screenshot",
+          "filename": "evidence-limit-order-placed.png",
+          "next": "verify-order-or-fill"
+        },
+        "verify-order-or-fill": {
+          "action": "eval_async",
+          "expression": "Promise.all([Engine.context.PerpsController.getOpenOrders(),Engine.context.PerpsController.getPositions()]).then(function(r){var orders=r[0].filter(function(o){return o.symbol==='ETH'&&!o.isTrigger});var pos=r[1].find(function(p){return p.symbol==='ETH'});return JSON.stringify({hasOrder:orders.length>0,hasPosition:!!pos})})",
+          "assert": {
+            "any": [
+              { "operator": "eq", "field": "hasOrder", "value": true },
+              { "operator": "eq", "field": "hasPosition", "value": true }
+            ]
+          },
+          "next": "wait-fill"
+        },
+        "wait-fill": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p})})",
+          "assert": { "operator": "eq", "field": "found", "value": true },
+          "timeout_ms": 120000,
+          "next": "screenshot-filled"
+        },
+        "screenshot-filled": {
+          "action": "screenshot",
+          "filename": "evidence-limit-order-filled.png",
+          "next": "cleanup"
+        },
+        "cleanup": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({closed:true})}).catch(function(){return JSON.stringify({closed:true})})",
+          "assert": { "operator": "not_null" },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      },
+      "teardown": [
+        {
+          "id": "teardown-close-eth",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p)return JSON.stringify({clean:true});return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({clean:true})}).catch(function(){return JSON.stringify({clean:true})})})",
+          "assert": { "operator": "not_null" }
+        },
+        {
+          "id": "teardown-cancel-eth-orders",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var eth=os.filter(function(o){return o.symbol==='ETH'&&!o.isTrigger});if(!eth.length)return JSON.stringify({cancelled:0});return Promise.all(eth.map(function(o){return Engine.context.PerpsController.cancelOrder({orderId:o.oid})})).then(function(){return JSON.stringify({cancelled:eth.length})})})",
+          "assert": { "operator": "not_null" }
+        },
+        { "id": "teardown-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ]
+    }
+  }
+}

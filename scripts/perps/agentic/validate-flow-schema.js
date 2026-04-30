@@ -83,6 +83,11 @@ function validateActionShape(node, issues) {
       if (!node.route && !node.not_route && !node.test_id && !node.expression) {
         issues.push(`  [${node.id || '?'}] action="wait_for" requires a condition`);
       }
+      if ('timeout' in node && !('timeout_ms' in node)) {
+        issues.push(
+          `  [${node.id || '?'}] action="wait_for" uses unsupported field "timeout"; use "timeout_ms" instead`
+        );
+      }
       break;
     case 'switch':
       if (!Array.isArray(node.cases) || node.cases.length === 0) {

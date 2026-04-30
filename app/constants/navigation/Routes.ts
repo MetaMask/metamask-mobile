@@ -20,6 +20,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    HEADLESS_PLAYGROUND: 'RampHeadlessPlayground',
     AMOUNT_INPUT: 'RampAmountInput',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
@@ -105,6 +106,7 @@ const Routes = {
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
   REWARDS_MUSD_CALCULATOR_VIEW: 'RewardsMusdCalculatorView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
+  REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
   REWARDS_CAMPAIGN_MECHANICS: 'RewardsCampaignMechanics',
   REWARDS_ONDO_CAMPAIGN_LEADERBOARD: 'RewardsOndoCampaignLeaderboard',
@@ -355,6 +357,7 @@ const Routes = {
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
+    NOTIFICATION_PREFERENCES: 'NotificationPreferencesView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -414,6 +417,7 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
+    HOW_IT_WORKS: 'MoneyHowItWorks',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',

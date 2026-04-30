@@ -76,7 +76,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
-  const { marketId, entryPoint, title, image } = route.params || {};
+  const { marketId, entryPoint, title, image, transactionActiveAbTests } =
+    route.params || {};
   const resolvedMarketId = marketId;
 
   const { executeGuardedAction } = usePredictActionGuard({
@@ -210,6 +211,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           outcomeToken: token,
           entryPoint:
             entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
         });
       },
       {

@@ -1862,7 +1862,7 @@
       "market_hours": {
         "title": "Horário de funcionamento do mercado",
         "closes_in": "Fecha em {{time}}",
-        "content": "You're trading within regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "Você está negociando no horário normal de funcionamento do mercado (de 9h30 às 16h, horário do leste dos EUA). Quando os mercados estão fechados, há risco de spreads maiores, oscilações de preços e taxas de funding mais altas."
       },
       "after_hours_trading": {
         "title": "Negociação fora do horário comercial",
@@ -6515,7 +6515,7 @@
       "fiat_unavailable": "Valores em moeda fiduciária temporariamente indisponíveis.",
       "estimated_annual_reward": "Recompensa anual estimada",
       "trx_locked_for": "TRX bloqueado por",
-      "trx_locked_for_minimum_time": "cerca de 3 dias",
+      "trx_locked_for_minimum_time": "cerca de 14 dias",
       "trx_released_in": "TRX lançado em",
       "trx_released_in_minimum_time": "cerca de 14 dias",
       "fee": "Taxa",

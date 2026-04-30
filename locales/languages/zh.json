@@ -1862,7 +1862,7 @@
       "market_hours": {
         "title": "交易时段",
         "closes_in": "距收盘 {{time}}",
-        "content": "You're trading within regular market hours (9:30 am to 4 pm EST). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+        "content": "您当前处于常规交易时段（美东时间上午 9:30 至下午 4点）。休市期间可能面临买卖差价扩大、价格波动加剧及资金费率上升的风险。"
       },
       "after_hours_trading": {
         "title": "非交易时段交易",
@@ -6515,7 +6515,7 @@
       "fiat_unavailable": "法币价值暂时无法获取。",
       "estimated_annual_reward": "预计年度奖励",
       "trx_locked_for": "TRX 锁定时长",
-      "trx_locked_for_minimum_time": "约 3 天",
+      "trx_locked_for_minimum_time": "约 14 天",
       "trx_released_in": "TRX 释放时间",
       "trx_released_in_minimum_time": "约 14 天",
       "fee": "费用",

@@ -5032,4 +5032,58 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Get campaign deposits failed: 500');
     });
   });
+
+  describe('getOndoCampaignParticipantOutcome', () => {
+    const mockCampaignId = 'campaign-outcome-123';
+    const mockSubscriptionId = 'sub-outcome-1';
+    const mockToken = 'test-bearer-token';
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'finalized',
+      winnerVerificationCode: 'WINNER-XYZ',
+      tierRank: 1,
+      tier: 'gold',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('calls the authenticated outcome endpoint and returns data', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOutcome),
+      } as unknown as Response);
+
+      const result = await service.getOndoCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/outcome/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockOutcome);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get Ondo GM participant outcome failed: 500');
+    });
+  });
 });

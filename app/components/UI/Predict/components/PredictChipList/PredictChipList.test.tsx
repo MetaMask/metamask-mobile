@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import PredictChipList from './PredictChipList';
+import PredictChipList, { calculateChipScrollX } from './PredictChipList';
 import {
   PREDICT_CHIP_LIST_TEST_IDS,
   getPredictChipTestId,
@@ -206,5 +206,106 @@ describe('PredictChipList', () => {
       expect(getByTestId(getPredictChipTestId('only'))).toBeOnTheScreen();
       expect(getByText('Only Chip')).toBeOnTheScreen();
     });
+  });
+});
+
+describe('calculateChipScrollX', () => {
+  const VIEWPORT = 375;
+
+  const buildLayouts = (
+    entries: { x: number; width: number }[],
+  ): Map<number, { x: number; width: number }> => {
+    const map = new Map<number, { x: number; width: number }>();
+    entries.forEach((entry, i) => map.set(i, entry));
+    return map;
+  };
+
+  it('returns null when selected chip layout is missing', () => {
+    const layouts = buildLayouts([]);
+
+    const result = calculateChipScrollX(0, 1, layouts, VIEWPORT);
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null when adjacent chip layout is missing', () => {
+    const layouts = buildLayouts([{ x: 16, width: 80 }]);
+    layouts.delete(1);
+
+    const result = calculateChipScrollX(0, 3, layouts, VIEWPORT);
+
+    expect(result).toBeNull();
+  });
+
+  it('centers the range for a middle chip with neighbors', () => {
+    const layouts = buildLayouts([
+      { x: 16, width: 100 },
+      { x: 124, width: 80 },
+      { x: 212, width: 90 },
+    ]);
+
+    const result = calculateChipScrollX(1, 3, layouts, VIEWPORT);
+
+    expect(result).not.toBeNull();
+    expect(result).toBeGreaterThanOrEqual(0);
+  });
+
+  it('clamps scroll offset to 0 when range is near the start', () => {
+    const layouts = buildLayouts([
+      { x: 16, width: 80 },
+      { x: 104, width: 80 },
+      { x: 192, width: 80 },
+    ]);
+
+    const result = calculateChipScrollX(0, 3, layouts, VIEWPORT);
+
+    expect(result).toBe(0);
+  });
+
+  it('uses first chip as left bound when selecting first chip', () => {
+    const layouts = buildLayouts([
+      { x: 16, width: 80 },
+      { x: 104, width: 80 },
+    ]);
+
+    const result = calculateChipScrollX(0, 2, layouts, VIEWPORT);
+
+    expect(result).toBe(0);
+  });
+
+  it('uses last chip as right bound when selecting last chip', () => {
+    const layouts = buildLayouts([
+      { x: 16, width: 80 },
+      { x: 104, width: 80 },
+      { x: 192, width: 80 },
+      { x: 280, width: 80 },
+      { x: 368, width: 80 },
+    ]);
+
+    const result = calculateChipScrollX(4, 5, layouts, VIEWPORT);
+
+    expect(result).not.toBeNull();
+    expect(result).toBeGreaterThanOrEqual(0);
+  });
+
+  it('centers selected chip when range exceeds viewport', () => {
+    const layouts = buildLayouts([
+      { x: 16, width: 200 },
+      { x: 224, width: 200 },
+      { x: 432, width: 200 },
+    ]);
+
+    const result = calculateChipScrollX(1, 3, layouts, 300);
+
+    const expectedCenter = 224 + 200 / 2 - 300 / 2;
+    expect(result).toBe(expectedCenter);
+  });
+
+  it('handles single chip list', () => {
+    const layouts = buildLayouts([{ x: 16, width: 100 }]);
+
+    const result = calculateChipScrollX(0, 1, layouts, VIEWPORT);
+
+    expect(result).toBe(0);
   });
 });

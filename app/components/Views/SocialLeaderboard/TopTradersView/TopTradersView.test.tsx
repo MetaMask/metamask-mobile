@@ -98,24 +98,25 @@ describe('TopTradersView', () => {
     expect(screen.getByText('Top Traders')).toBeOnTheScreen();
   });
 
-  it('renders the search button', () => {
-    renderWithProvider(<TopTradersView />);
-    expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.SEARCH_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
   it('calls goBack when the back button is pressed', () => {
     renderWithProvider(<TopTradersView />);
     fireEvent.press(screen.getByTestId(TopTradersViewSelectorsIDs.BACK_BUTTON));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('search button press fires with no side effects', () => {
+  it('renders the notification button', () => {
+    renderWithProvider(<TopTradersView />);
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to NotificationPreferencesView when notification button is pressed', () => {
     renderWithProvider(<TopTradersView />);
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.SEARCH_BUTTON),
+      screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON),
     );
+    expect(mockNavigate).toHaveBeenCalledWith('NotificationPreferencesView');
   });
 
   it('renders all traders', () => {

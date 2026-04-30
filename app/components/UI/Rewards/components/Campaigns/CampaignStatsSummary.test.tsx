@@ -1,8 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Text as RNText } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import CampaignStatsSummary, {
   IneligibleTag,
+  PendingTag,
+  StatCell,
   CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from './CampaignStatsSummary';
 import type {
@@ -24,6 +27,25 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
+
+jest.mock('./OndoCampaignOutcomeBanners', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    OndoGmCampaignOutcomeBanner: ({
+      outcomeStatus,
+      winnerVerificationCode,
+    }: {
+      outcomeStatus: string;
+      winnerVerificationCode: string | null;
+      onWinnerPress: () => void;
+    }) =>
+      ReactActual.createElement(View, {
+        testID: `outcome-banner-${outcomeStatus}-${winnerVerificationCode ?? 'null'}`,
+      }),
+  };
+});
 
 jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -57,7 +79,7 @@ jest.mock('../RewardsErrorBanner', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, string>) => {
     const t: Record<string, string> = {
       'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
       'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
@@ -78,7 +100,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_stats.label_market_value': 'Market value',
       'rewards.ondo_campaign_stats.label_rank': 'Rank',
       'rewards.ondo_campaign_stats.label_tier': 'Tier',
+      'rewards.ondo_campaign_stats.qualified_title': 'You are qualified',
+      'rewards.ondo_campaign_leaderboard.qualify_for_rank_title':
+        'Qualify for this rank',
     };
+    if (key === 'rewards.ondo_campaign_stats.qualified_description') {
+      return `Qualified copy ${params?.minNetDeposit ?? ''}`;
+    }
+    if (
+      key === 'rewards.ondo_campaign_leaderboard.qualify_for_rank_description'
+    ) {
+      return `Qualify copy ${params?.minNetDeposit ?? ''} ${params?.daysRemaining ?? ''}`;
+    }
     return t[key] ?? key;
   },
   default: { locale: 'en-US' },
@@ -584,6 +617,154 @@ describe('CampaignStatsSummary', () => {
     expect(
       queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
     ).toBeNull();
+  });
+
+  // ── Campaign complete state ───────────────────────────────────────
+
+  it('hides qualified card when isCampaignComplete=true', () => {
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        tierMinDeposit={1000}
+        isCampaignComplete
+      />,
+    );
+    expect(queryByText('You are qualified')).toBeNull();
+  });
+
+  it('hides not-eligible banner when isCampaignComplete=true', () => {
+    const { queryByTestId } = render(
+      <CampaignStatsSummary {...baseProps} isIneligible isCampaignComplete />,
+    );
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+    ).toBeNull();
+  });
+
+  it('hides qualify-for-rank card when isCampaignComplete=true', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 4,
+    };
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={1000}
+        isCampaignComplete
+      />,
+    );
+    expect(queryByText('Qualify for this rank')).toBeNull();
+  });
+
+  it('shows outcome banner when isCampaignComplete=true and outcome is provided', () => {
+    const { getByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        isCampaignComplete
+        outcomeStatus="pending"
+        winnerVerificationCode="LVL346"
+        onWinnerPress={jest.fn()}
+      />,
+    );
+    expect(getByTestId('outcome-banner-pending-LVL346')).toBeDefined();
+  });
+
+  it('does not show outcome banner when isCampaignComplete=false', () => {
+    const { queryByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        isCampaignComplete={false}
+        outcomeStatus="pending"
+        winnerVerificationCode="LVL346"
+        onWinnerPress={jest.fn()}
+      />,
+    );
+    expect(queryByTestId('outcome-banner-pending-LVL346')).toBeNull();
+  });
+
+  it('shows the qualified explainer card when qualified and tierMinDeposit is set', () => {
+    const { getByText } = render(
+      <CampaignStatsSummary {...baseProps} tierMinDeposit={2500} />,
+    );
+    expect(getByText('You are qualified')).toBeOnTheScreen();
+    expect(getByText(/Qualified copy/)).toBeOnTheScreen();
+  });
+
+  it('shows the qualify-for-rank card when pending with remaining qualifying days and tierMinDeposit', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 4,
+    };
+    const { getByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={1000}
+      />,
+    );
+    expect(getByText('Qualify for this rank')).toBeOnTheScreen();
+    expect(getByText(/Qualify copy/)).toBeOnTheScreen();
+  });
+
+  it('omits the qualify-for-rank card when pending but no qualifying days remain', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 10,
+    };
+    const { queryByText } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+        tierMinDeposit={1000}
+      />,
+    );
+    expect(queryByText('Qualify for this rank')).toBeNull();
+  });
+});
+
+describe('StatCell', () => {
+  it('renders a skeleton instead of value text while loading', () => {
+    const { queryByTestId } = render(
+      <StatCell label="L" value="V" isLoading testID="stat-val" />,
+    );
+    expect(queryByTestId('stat-val')).toBeNull();
+  });
+
+  it('renders suffix only when not loading', () => {
+    const { getByText } = render(
+      <StatCell
+        label="L"
+        value="V"
+        isLoading={false}
+        suffix={<RNText>Sfx</RNText>}
+      />,
+    );
+    expect(getByText('Sfx')).toBeOnTheScreen();
+    const { queryByText } = render(
+      <StatCell
+        label="L2"
+        value="V2"
+        isLoading
+        suffix={<RNText>Hidden</RNText>}
+      />,
+    );
+    expect(queryByText('Hidden')).toBeNull();
+  });
+});
+
+describe('PendingTag', () => {
+  it('renders pending label', () => {
+    const { getByText } = render(<PendingTag />);
+    expect(getByText('Pending')).toBeOnTheScreen();
+  });
+
+  it('forwards testID', () => {
+    const { getByTestId } = render(<PendingTag testID="pending-tag-id" />);
+    expect(getByTestId('pending-tag-id')).toBeOnTheScreen();
   });
 });
 

@@ -130,6 +130,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../reducers/fiatOrders', () => ({
   getRampRoutingDecision: () => 'AGGREGATOR',
   UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
+  selectHasAgreedTransakNativePolicy: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/useRampAccountAddress', () => ({
@@ -213,6 +214,12 @@ const mockUseAnalytics = jest.requireMock(
 const mockUseDebouncedValue = jest.requireMock(
   '../../../../hooks/useDebouncedValue',
 ).useDebouncedValue as jest.Mock;
+
+const mockFiatOrdersModule = jest.requireMock(
+  '../../../../../reducers/fiatOrders',
+) as {
+  selectHasAgreedTransakNativePolicy: jest.Mock;
+};
 
 const mockDeviceIsAndroid = jest.requireMock('../../../../../util/device')
   .isAndroid as jest.Mock;
@@ -391,6 +398,19 @@ describe('createBuildQuoteNavDetails', () => {
       nativeFlowError: 'error',
     });
   });
+
+  it('forwards headlessSessionId for headless buy attempts', () => {
+    const result = createBuildQuoteNavDetails({
+      assetId: 'eip155:1/slip44:60',
+      amount: 25,
+      headlessSessionId: 'headless-abc',
+    });
+    expect(result[1].params.params).toEqual({
+      assetId: 'eip155:1/slip44:60',
+      amount: 25,
+      headlessSessionId: 'headless-abc',
+    });
+  });
 });
 
 const mockSetSelectedProvider = jest.fn();
@@ -416,6 +436,9 @@ const buildRampsControllerResult = (overrides = {}) => ({
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
+      false,
+    );
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: number) => value);
@@ -1290,7 +1313,35 @@ describe('BuildQuote', () => {
       expect(mockGetBuyQuote).not.toHaveBeenCalled();
       expect(mockRouteAfterAuth).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
+        Routes.RAMP.VERIFY_IDENTITY,
+        expect.objectContaining({
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/slip44:60',
+        }),
+      );
+    });
+
+    it('navigates to Enter Email for native provider without token after policy agreement', async () => {
+      mockCheckExistingToken.mockResolvedValue(false);
+
+      mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
+        true,
+      );
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON));
+      });
+
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+      expect(mockGetBuyQuote).not.toHaveBeenCalled();
+      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.ENTER_EMAIL,
         expect.objectContaining({
           amount: '100',
           currency: 'USD',
@@ -1903,6 +1954,106 @@ describe('BuildQuote', () => {
             screen: 'RampTokenNotAvailableModal',
           }),
         );
+      });
+
+      it('skips quote fetch while the current provider does not support the selected token', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+        expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+      });
+
+      it('does not render "Powered by" for the outgoing provider while the token is unavailable', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        // No quotes response yet — isolates the isTokenUnavailable gate from
+        // the hasGenericNoQuotes branch so this test exercises the gate directly.
+        mockUseRampsQuotes.mockReturnValue({
+          data: null,
+          loading: false,
+          error: null,
+        });
+
+        const { queryByText } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        expect(queryByText('Powered by PayPal')).not.toBeOnTheScreen();
+      });
+
+      it('shows Continue button as loading (not just disabled) while the switch is pending', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+          selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+          paymentMethods: [SELECTED_PAYMENT_METHOD],
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        mockUseRampsQuotes.mockReturnValue({
+          data: null,
+          loading: false,
+          error: null,
+        });
+
+        const { getByTestId } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+        expect(continueButton.props.accessibilityState?.busy).toBe(true);
+      });
+    });
+
+    describe('Powered by during controller sync gap', () => {
+      it('does not render "Powered by" while nav params assetId does not match controller-selected token', () => {
+        // Simulates the window where the user navigated back to BuildQuote with
+        // a new nav params.assetId but the controller has not yet updated
+        // selectedToken. tokenStateIsSettled is false during this render.
+        mockUseParams.mockReturnValue({ assetId: 'eip155:1/slip44:999' });
+
+        const { queryByText } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        expect(queryByText('Powered by MoonPay')).not.toBeOnTheScreen();
+      });
+
+      it('shows Continue button as loading while nav params have not caught up to controller-selected token', () => {
+        mockUseParams.mockReturnValue({ assetId: 'eip155:1/slip44:999' });
+
+        const { getByTestId } = renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+        const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+        expect(continueButton.props.accessibilityState?.busy).toBe(true);
       });
     });
   });

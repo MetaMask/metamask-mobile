@@ -1,0 +1,75 @@
+{
+  "title": "Benchmark: Perf — Perps position open and close BTC",
+  "description": "Mirrors performance/login/perps-position-management.spec.ts. Opens a BTC long position and closes it. Performance spec measures timing with 40x leverage; recipe uses default leverage via trade-open-market flow.",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade", "perps.sufficient_balance"],
+      "setup": [
+        { "id": "setup-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ],
+      "entry": "ensure-testnet",
+      "nodes": {
+        "ensure-testnet": {
+          "action": "call",
+          "ref": "setup-testnet",
+          "next": "clear-btc-position"
+        },
+        "clear-btc-position": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});if(!p)return JSON.stringify({cleared:true});return Engine.context.PerpsController.closePosition({symbol:'BTC'}).then(function(){return JSON.stringify({cleared:true})})})",
+          "assert": { "operator": "eq", "field": "cleared", "value": true },
+          "next": "open-long-btc"
+        },
+        "open-long-btc": {
+          "action": "call",
+          "ref": "trade-open-market",
+          "params": { "symbol": "BTC", "side": "long", "usdAmount": "10" },
+          "next": "wait-position"
+        },
+        "wait-position": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});return JSON.stringify({found:!!p})})",
+          "assert": { "operator": "eq", "field": "found", "value": true },
+          "timeout_ms": 15000,
+          "next": "screenshot-open"
+        },
+        "screenshot-open": {
+          "action": "screenshot",
+          "filename": "evidence-perf-btc-open.png",
+          "next": "close-position"
+        },
+        "close-position": {
+          "action": "call",
+          "ref": "trade-close-position",
+          "params": { "symbol": "BTC" },
+          "next": "verify-closed"
+        },
+        "verify-closed": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});return JSON.stringify({found:!!p})})",
+          "assert": { "operator": "eq", "field": "found", "value": false },
+          "timeout_ms": 10000,
+          "next": "screenshot-closed"
+        },
+        "screenshot-closed": {
+          "action": "screenshot",
+          "filename": "evidence-perf-btc-closed.png",
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      },
+      "teardown": [
+        {
+          "id": "teardown-close-btc",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});if(!p)return JSON.stringify({clean:true});return Engine.context.PerpsController.closePosition({symbol:'BTC'}).then(function(){return JSON.stringify({clean:true})})})",
+          "assert": { "operator": "not_null" }
+        },
+        { "id": "teardown-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ]
+    }
+  }
+}

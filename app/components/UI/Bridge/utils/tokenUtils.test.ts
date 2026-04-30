@@ -3,6 +3,7 @@ import {
   getNativeSourceToken,
   getDefaultDestToken,
   tokenMatchesQuery,
+  getSecurityWarnings,
 } from './tokenUtils';
 import { BridgeToken } from '../types';
 import {
@@ -11,6 +12,8 @@ import {
 } from '@metamask/bridge-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
+import { createMockToken } from '../testUtils/fixtures';
+import { SecurityDataType } from '../hooks/usePopularTokens';
 
 // Mock dependencies
 jest.mock('@metamask/utils', () => {
@@ -305,5 +308,54 @@ describe('tokenUtils', () => {
       expect(tokenMatchesQuery(token, 'bit')).toBe(true);
       expect(tokenMatchesQuery(token, 'btc')).toBe(true);
     });
+  });
+});
+
+describe('getSecurityWarnings', () => {
+  it('returns descriptions from all features', () => {
+    const token = createMockToken({
+      securityData: {
+        type: SecurityDataType.Malicious,
+        metadata: {
+          features: [
+            {
+              featureId: 'HONEYPOT',
+              type: SecurityDataType.Warning,
+              description: 'Honeypot risk',
+            },
+            {
+              featureId: 'FAKE_TOKEN',
+              type: SecurityDataType.Warning,
+              description: 'Fake token warning',
+            },
+          ],
+        },
+      },
+    });
+
+    expect(getSecurityWarnings(token)).toEqual([
+      'Honeypot risk',
+      'Fake token warning',
+    ]);
+  });
+
+  it('returns empty array when metadata is absent', () => {
+    const token = createMockToken({
+      securityData: { type: SecurityDataType.Warning },
+    });
+    expect(getSecurityWarnings(token)).toEqual([]);
+  });
+
+  it('returns empty array when securityData is absent', () => {
+    const token = createMockToken({ securityData: undefined });
+    expect(getSecurityWarnings(token)).toEqual([]);
+  });
+
+  it('returns empty array for undefined token', () => {
+    expect(getSecurityWarnings(undefined)).toEqual([]);
+  });
+
+  it('returns empty array for null token', () => {
+    expect(getSecurityWarnings(null)).toEqual([]);
   });
 });
