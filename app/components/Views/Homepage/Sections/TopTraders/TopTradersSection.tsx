@@ -72,6 +72,11 @@ const TopTradersSection = forwardRef<
     [refresh],
   );
 
+  const isInFlight = isLoading || isFetching;
+  const hasTraders = traders.length > 0;
+  const hasError = Boolean(error);
+  const showError = hasError && !isFetching && !hasTraders;
+
   const { onLayout } = useHomeViewedEvent({
     sectionRef: sectionViewRef,
     isLoading,
@@ -84,16 +89,19 @@ const TopTradersSection = forwardRef<
 
   useSectionPerformance({
     sectionId: HomeSectionNames.TOP_TRADERS,
-    contentReady: !isLoading && traders.length > 0,
-    isEmpty: !isLoading && traders.length === 0,
+    contentReady: !isLoading && hasTraders,
+    // Exclude error renders from the empty bucket so Sentry doesn't conflate
+    // visible error states (which render the retry UI) with truly empty
+    // sections. Without this, a fetch error with no cached traders would be
+    // reported as `content_state: 'empty'`.
+    isEmpty: !isLoading && !hasError && !hasTraders,
     isLoading,
-    enabled: isEnabled,
+    // Disable telemetry once we render the error UI so the in-flight TTC and
+    // data-fetch spans get closed via the hook's cleanup instead of remaining
+    // open until the user navigates away.
+    enabled: isEnabled && !showError,
   });
 
-  const isInFlight = isLoading || isFetching;
-  const hasTraders = traders.length > 0;
-  const hasError = Boolean(error);
-  const showError = hasError && !isFetching && !hasTraders;
   const showSkeletons = isInFlight && !hasTraders;
   const showViewMore = hasTraders;
   const isEmpty = !isInFlight && !hasError && !hasTraders;

@@ -71,7 +71,7 @@ describe('categoriseSocialError', () => {
     ).toBe('schema_error');
   });
 
-  it('returns auth_failure for auth/token/JWT related messages', () => {
+  it('returns auth_failure for auth/JWT/bearer/unauthorized messages', () => {
     expect(
       categoriseSocialError(new Error('getBearerToken: auth token expired')),
     ).toBe('auth_failure');
@@ -81,6 +81,22 @@ describe('categoriseSocialError', () => {
     expect(categoriseSocialError(new Error('unauthorized access'))).toBe(
       'auth_failure',
     );
+    expect(categoriseSocialError(new Error('Bearer token missing'))).toBe(
+      'auth_failure',
+    );
+  });
+
+  it('does not classify crypto-token errors as auth_failure', () => {
+    // Crypto wallet errors frequently reference tokens but are not auth issues.
+    expect(
+      categoriseSocialError(new Error('unknown token contract 0xabc')),
+    ).toBe('unknown');
+    expect(categoriseSocialError(new Error('tokenAddress invalid'))).toBe(
+      'unknown',
+    );
+    expect(
+      categoriseSocialError(new Error('tokenSymbol could not be resolved')),
+    ).toBe('unknown');
   });
 
   it('returns network_error for network/timeout/aborted messages', () => {

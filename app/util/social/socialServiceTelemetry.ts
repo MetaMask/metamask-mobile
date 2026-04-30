@@ -75,7 +75,11 @@ export function categoriseSocialError(error: unknown): SocialErrorCategory {
     return 'schema_error';
   }
 
-  if (/auth|token|jwt|unauthor/i.test(message)) {
+  // Match auth-specific terms only. The bare word "token" is intentionally
+  // excluded because crypto wallet errors frequently mention tokens
+  // (e.g. "unknown token contract", "tokenAddress invalid") and would
+  // otherwise be misclassified as auth failures, polluting Sentry filters.
+  if (/auth|jwt|unauthor|bearer/i.test(message)) {
     return 'auth_failure';
   }
 
