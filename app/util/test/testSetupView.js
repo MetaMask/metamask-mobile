@@ -85,17 +85,19 @@ jest.mock('react-native', () => {
 
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
 
-  // Shim: BackHandler.removeEventListener was removed in RN 0.75+.
-  // Libraries like @metamask/design-system-react-native still call it.
-  if (!originalModule.BackHandler.removeEventListener) {
-    originalModule.BackHandler.removeEventListener = jest.fn();
-  }
-
   return originalModule;
 });
 
 // --------------------------------------------------------------------------------
 // External Library Mocks & Test Environment Configuration
+// Shim: BackHandler.removeEventListener was removed in RN 0.75+.
+// Libraries like @metamask/design-system-react-native still call it.
+// Must be patched post-require (the jest.mock factory mutation doesn't persist).
+const ReactNativeView = require('react-native');
+if (!ReactNativeView.BackHandler.removeEventListener) {
+  ReactNativeView.BackHandler.removeEventListener = jest.fn();
+}
+
 // --------------------------------------------------------------------------------
 // We group non-React Native mocks here to ensure consistent behavior across tests.
 // These mocks replace native modules and external libraries that either:
