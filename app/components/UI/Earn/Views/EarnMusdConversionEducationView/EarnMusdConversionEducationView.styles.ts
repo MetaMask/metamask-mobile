@@ -49,9 +49,4 @@ export const styleSheet = (_params: { theme: Theme }) =>
       paddingHorizontal: 16,
       marginTop: 16,
     },
-    featureTag: {
-      flexBasis: '32%',
-      flexGrow: 0,
-      justifyContent: 'center',
-    },
   });

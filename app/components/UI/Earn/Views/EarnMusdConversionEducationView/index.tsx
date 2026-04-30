@@ -426,7 +426,6 @@ const EarnMusdConversionEducationView = () => {
               shape={TagShape.Rectangle}
               severity={TagSeverity.Neutral}
               gap={4}
-              style={styles.featureTag}
               startAccessory={
                 <Icon
                   name={IconName.CheckBold}
@@ -436,6 +435,7 @@ const EarnMusdConversionEducationView = () => {
               }
               textProps={{
                 variant: ComponentTextVariant.BodySMMedium,
+                numberOfLines: 1,
               }}
             >
               {strings(key)}
