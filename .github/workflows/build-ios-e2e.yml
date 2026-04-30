@@ -32,8 +32,8 @@ jobs:
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
       # Bump these to bust the respective caches and force a full rebuild
-      XCODE_CACHE_VERSION: 2
-      IOS_APP_CACHE_VERSION: 3
+      XCODE_CACHE_VERSION: 3
+      IOS_APP_CACHE_VERSION: 4
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
       GITHUB_CI: 'true' # This ensures it's available during pod install
