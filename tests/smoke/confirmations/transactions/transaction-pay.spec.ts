@@ -86,4 +86,31 @@ async function testSpecificMock(mockServer: Mockttp) {
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await mockRelayQuote(mockServer);
   await mockRelayStatus(mockServer);
+  // Mock all token-by-address lookups on Polygon (chainId 137) to avoid
+  // unmocked live requests when TokensController fetches metadata for
+  // detected tokens (e.g. SNX) while the Polygon network is active.
+  await mockPolygonTokenByAddress(mockServer);
+}
+
+async function mockPolygonTokenByAddress(mockServer: Mockttp) {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('token.api.cx.metamask.io/token/137');
+    })
+    .thenCallback((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      const tokenUrl = new URL(urlParam);
+      const address = tokenUrl.searchParams.get('address') ?? '';
+      return {
+        statusCode: 200,
+        json: {
+          address: address.toLowerCase(),
+          symbol: 'UNKNOWN',
+          decimals: 18,
+          name: 'Unknown Token',
+        },
+      };
+    });
 }

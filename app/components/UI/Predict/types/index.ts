@@ -198,11 +198,11 @@ export type PredictSportTeam = {
   alias?: string; // Team alias (e.g., "Seahawks")
 };
 
-// Parsed score data normalized into away/home values
+// Parsed score data
 export type PredictGameScore = {
   away: number;
   home: number;
-  raw: string; // Original provider format (e.g., "21-14")
+  raw: string; // Original "away-home" format (e.g., "21-14")
 };
 
 export type PredictGamePeriod =
@@ -233,7 +233,7 @@ export type PredictMarketGame = {
   league: PredictSportsLeague;
   elapsed: string | null; // Game clock, null if not available
   period: PredictGamePeriod | null; // Current period, null if not available
-  score: PredictGameScore | null; // Parsed score normalized to away/home values, null if not available
+  score: PredictGameScore | null; // Parsed score with away/home values, null if not available
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;
   turn?: string; // Team abbreviation with possession
