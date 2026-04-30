@@ -94,6 +94,7 @@ export interface ApplyBonusCodeDto {
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
   SEASON_1 = 'SEASON_1',
+  PERPS_TRADING = 'PERPS_TRADING',
 }
 
 /**
