@@ -85,10 +85,10 @@ const YourBonusCard: React.FC = () => {
   }
 
   const claimButtonLabel = hasClaimable
-    ? strings('money.your_bonus.claim_amount', {
-        amount: formatUsd(claimableReward as string),
+    ? strings('earn.claim_amount_bonus', {
+        amount: claimableReward as string,
       })
-    : strings('money.your_bonus.accruing_next');
+    : strings('earn.accruing_next_bonus');
 
   let lifetimeDisplay: string;
   if (!lifetimeFormatted) {
@@ -114,12 +114,12 @@ const YourBonusCard: React.FC = () => {
             twClassName="gap-1"
           >
             <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-              {strings('money.your_bonus.title')}
+              {strings('earn.your_bonus')}
             </Text>
             <ButtonIcon
               iconName={IconName.Info}
               size={ButtonIconSize.Md}
-              accessibilityLabel={strings('money.your_bonus.info_label')}
+              accessibilityLabel={strings('earn.your_bonus_info_label')}
             />
           </Box>
           <TagBase
@@ -139,7 +139,7 @@ const YourBonusCard: React.FC = () => {
           twClassName="py-2"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {strings('money.your_bonus.estimated_annual')}
+            {strings('earn.estimated_annual_bonus')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
@@ -156,7 +156,7 @@ const YourBonusCard: React.FC = () => {
           twClassName="py-2"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {strings('money.your_bonus.lifetime_claimed')}
+            {strings('earn.lifetime_bonus_claimed')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}

@@ -6310,6 +6310,7 @@
     "sounds_good": "Sounds good",
     "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "your_bonus": "Your bonus",
+    "your_bonus_info_label": "Bonus info",
     "estimated_annual_bonus": "Estimated annual bonus",
     "lifetime_bonus_claimed": "Lifetime bonus claimed",
     "accruing_next_bonus": "Accruing next bonus",
@@ -6553,14 +6554,6 @@
       "move_musd_no_amount": "Move your mUSD",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
-    },
-    "your_bonus": {
-      "title": "Your bonus",
-      "info_label": "Bonus info",
-      "estimated_annual": "Estimated annual bonus",
-      "lifetime_claimed": "Lifetime bonus claimed",
-      "claim_amount": "Claim {{amount}} bonus",
-      "accruing_next": "Accruing next bonus"
     },
     "activity": {
       "title": "Activity",

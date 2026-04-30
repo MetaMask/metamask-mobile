@@ -22,6 +22,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
 import { useMerklBonusClaim } from '../MerklRewards/hooks/useMerklBonusClaim';
+import { useTrackClaimBonusClicked } from '../MerklRewards/hooks/useTrackClaimBonusClicked';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
@@ -77,6 +78,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackClaimBonusClicked = useTrackClaimBonusClicked();
 
   const isClaimPressedRef = useRef(false);
   const isLoading = isClaiming || hasPendingClaim;
@@ -242,23 +244,16 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     if (isClaimPressedRef.current || isLoading || ctaDisabled) return;
     isClaimPressedRef.current = true;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
-        .addProperties({
-          location,
-          action_type: 'claim_bonus',
-          network_chain_id: asset.chainId,
-          network_name: network?.name,
-          asset_symbol: asset.symbol,
-        })
-        .build(),
-    );
+    trackClaimBonusClicked(location, {
+      chainId: asset.chainId as Hex,
+      assetSymbol: asset.symbol,
+      networkName: network?.name,
+    });
     claimRewards();
   }, [
     isLoading,
     ctaDisabled,
-    trackEvent,
-    createEventBuilder,
+    trackClaimBonusClicked,
     location,
     asset.chainId,
     asset.symbol,
