@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
@@ -12,7 +12,7 @@ import { mockDialogSnap } from '../../api-mocking/mock-response-data/snaps/snap-
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Dialog Snap Tests'), () => {
+describe(SmokeSnaps('Dialog Snap Tests'), () => {
   it('connects to the Dialog Snap', async () => {
     await withFixtures(
       {

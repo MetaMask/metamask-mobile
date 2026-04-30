@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -15,7 +15,7 @@ import { mockMultichainProviderSnap } from '../../api-mocking/mock-response-data
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
+describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
   it('can use the Multichain provider', async () => {
     await withFixtures(
       {

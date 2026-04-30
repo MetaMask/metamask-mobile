@@ -237,7 +237,7 @@ export const getSnapPermissionSpecifications = (
     ...buildSnapRestrictedMethodSpecifications(
       Object.keys(ExcludedSnapPermissions),
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ...snapRestrictedMethods,
         ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

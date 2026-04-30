@@ -12,6 +12,7 @@ const mockTraders = [
   {
     id: 'trader-1',
     rank: 1,
+    overallRank: 1,
     username: 'alice',
     percentageChange: 96.2,
     pnlValue: 963000,
@@ -134,7 +135,7 @@ describe('TopTradersSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.PROFILE,
-      { traderId: 'trader-1', traderName: 'alice' },
+      { traderId: 'trader-1', traderName: 'alice', rank: 1 },
     );
   });
 

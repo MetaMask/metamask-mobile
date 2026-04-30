@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -12,7 +12,7 @@ import { mockNetworkSnap } from '../../api-mocking/mock-response-data/snaps/snap
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Network Access Snap Tests'), () => {
+describe(SmokeSnaps('Network Access Snap Tests'), () => {
   it('can use fetch and WebSockets', async () => {
     await withFixtures(
       {

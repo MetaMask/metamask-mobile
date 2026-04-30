@@ -20,6 +20,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -27,6 +28,7 @@ import {
   Skeleton,
   Text,
   TextButton,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -41,6 +43,7 @@ import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerShe
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
 import OndoNotEligibleSheet from '../components/Campaigns/OndoNotEligibleSheet';
 import CampaignStatsSummary from '../components/Campaigns/CampaignStatsSummary';
+import CampaignEndedStats from '../components/Campaigns/CampaignEndedStats';
 import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -51,6 +54,7 @@ import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPositio
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -58,12 +62,8 @@ import {
   OndoCampaignHowItWorks,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
-import {
-  isCampaignIneligible,
-  isOndoCampaignWinner,
-} from '../utils/ondoCampaignConstants';
+import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -75,18 +75,9 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'campaign-details-container',
 } as const;
 
-/**
- * Session-only guards for one-shot auto-navigation (cleared on cold start).
- * Survives component remount within the same JS runtime so we do not bounce
- * the user again when the screen unmounts/remounts.
- */
 const sessionUpcomingRedirectCampaignIds = new Set<string>();
 const sessionWinningViewAutoNavCampaignIds = new Set<string>();
 
-/**
- * Clears session auto-navigation flags. Exported for unit tests (Jest keeps one
- * module instance across cases).
- */
 export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
   sessionUpcomingRedirectCampaignIds.clear();
   sessionWinningViewAutoNavCampaignIds.clear();
@@ -95,7 +86,6 @@ export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   // campaignId may be absent when arriving via a deeplink (no ID in the URL).
@@ -174,6 +164,12 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const isOptedIn = participantStatusData?.optedIn === true;
 
+  const { outcome: participantOutcome } = useOndoCampaignParticipantOutcome(
+    campaign && getCampaignStatus(campaign) === 'complete' && isOptedIn
+      ? effectiveCampaignId || undefined
+      : undefined,
+  );
+
   // Single fetch point for portfolio — only fetches when opted in
   const {
     portfolio: portfolioData,
@@ -195,34 +191,23 @@ const OndoCampaignDetailsView: React.FC = () => {
     isOptedIn && hasPositions ? effectiveCampaignId || undefined : undefined,
   );
 
-  const isWinner = useMemo(
-    () => isOndoCampaignWinner(campaign, leaderboardPosition),
-    [campaign, leaderboardPosition],
-  );
-
-  const navigateToWinningView = useCallback(() => {
-    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
-      campaignId: effectiveCampaignId,
-      campaignName: campaign?.name ?? '',
-    });
-  }, [navigation, effectiveCampaignId, campaign]);
-
   useFocusEffect(
     useCallback(() => {
       if (
-        !campaign ||
-        getCampaignStatus(campaign) !== 'complete' ||
-        !isWinner ||
-        !effectiveCampaignId
+        !sessionWinningViewAutoNavCampaignIds.has(effectiveCampaignId) &&
+        campaign &&
+        getCampaignStatus(campaign) === 'complete' &&
+        participantOutcome?.winnerVerificationCode &&
+        participantOutcome?.outcomeStatus === 'pending' &&
+        effectiveCampaignId
       ) {
-        return;
+        sessionWinningViewAutoNavCampaignIds.add(effectiveCampaignId);
+        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+          campaignId: effectiveCampaignId,
+          campaignName: campaign.name ?? '',
+        });
       }
-      if (sessionWinningViewAutoNavCampaignIds.has(effectiveCampaignId)) {
-        return;
-      }
-      sessionWinningViewAutoNavCampaignIds.add(effectiveCampaignId);
-      navigateToWinningView();
-    }, [campaign, isWinner, effectiveCampaignId, navigateToWinningView]),
+    }, [campaign, participantOutcome, effectiveCampaignId, navigation]),
   );
 
   const {
@@ -278,6 +263,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     showStatsSummarySection,
     showLeaderboardSection,
     showPortfolioSection,
+    showCampaignEndedStats,
   } = useMemo(() => {
     if (!campaign) {
       return {
@@ -285,6 +271,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         showStatsSummarySection: false,
         showLeaderboardSection: false,
         showPortfolioSection: false,
+        showCampaignEndedStats: false,
       };
     }
 
@@ -294,10 +281,22 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPositions &&
         getCampaignStatus(campaign) === 'active',
       showStatsSummarySection: hasPositions,
-      showPortfolioSection: isOptedIn && hasPositions,
+      showPortfolioSection:
+        isOptedIn && hasPositions && getCampaignStatus(campaign) !== 'complete',
       showLeaderboardSection: true,
+      showCampaignEndedStats:
+        getCampaignStatus(campaign) === 'complete' &&
+        !isOptedIn &&
+        !isParticipantStatusLoading,
     };
-  }, [campaign, isOptedIn, hasPositions]);
+  }, [campaign, isOptedIn, isParticipantStatusLoading, hasPositions]);
+
+  const navigateToWinningView = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
+      campaignId: effectiveCampaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, effectiveCampaignId, campaign]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
@@ -370,6 +369,21 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
+              {showCampaignEndedStats && (
+                <Box twClassName="p-4">
+                  <CampaignEndedStats
+                    leaderboard={leaderboard}
+                    totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                    isLeaderboardLoading={isLeaderboardLoading}
+                    isDepositsLoading={isDepositsLoading}
+                    hasLeaderboardError={hasLeaderboardError}
+                    hasDepositsError={hasDepositsError}
+                    onRetryLeaderboard={refetchLeaderboard}
+                    onRetryDeposits={refetchDeposits}
+                  />
+                </Box>
+              )}
+
               {showStatsSummarySection && (
                 <>
                   <Box twClassName="p-4">
@@ -415,9 +429,14 @@ const OndoCampaignDetailsView: React.FC = () => {
                       }}
                       tierMinDeposit={tierMinDeposit}
                       isIneligible={notEligibleForCampaign}
-                      isWinner={isWinner}
-                      campaignName={campaign?.name ?? ''}
-                      onWinnerBannerPress={navigateToWinningView}
+                      isCampaignComplete={
+                        getCampaignStatus(campaign) === 'complete'
+                      }
+                      outcomeStatus={participantOutcome?.outcomeStatus}
+                      winnerVerificationCode={
+                        participantOutcome?.winnerVerificationCode ?? null
+                      }
+                      onWinnerPress={navigateToWinningView}
                     />
                   </Box>
                 </>
@@ -468,7 +487,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {getCampaignStatus(campaign) === 'active' && (
+              {getCampaignStatus(campaign) !== 'upcoming' && (
                 <>
                   <Box twClassName="my-1 border-b border-border-muted" />
                   <Box twClassName="p-4">
@@ -528,6 +547,9 @@ const OndoCampaignDetailsView: React.FC = () => {
                       currentUserReferralCode={referralCode}
                       userPosition={leaderboardUserPosition}
                       campaignId={effectiveCampaignId}
+                      isCampaignComplete={
+                        getCampaignStatus(campaign) === 'complete'
+                      }
                     />
                   </Box>
                 </>

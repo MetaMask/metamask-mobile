@@ -28,6 +28,7 @@ import {
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
   type OndoGmCampaignDepositsDto,
+  type OndoGmCampaignParticipantOutcomeDto,
   type PaginatedOndoGmActivityDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
@@ -55,6 +56,7 @@ import {
   getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isHardwareAccount } from '../../../../util/address';
@@ -135,6 +137,9 @@ const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 // Campaign activity cache threshold (first page only)
 const ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
+
+// Campaign participant outcome cache threshold
+const ONDO_CAMPAIGN_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -403,7 +408,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getOndoCampaignLeaderboardPosition',
   'getOndoCampaignActivity',
   'getOndoCampaignPortfolioPosition',
-  'getOndoCampaignWinnerCode',
+  'getOndoCampaignParticipantOutcome',
   'getOptInStatus',
   'getPerpsDiscountForAccount',
   'getPointsEvents',
@@ -452,6 +457,10 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #participantOutcomeCache: Map<
+    string,
+    { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
+  > = new Map();
   #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
@@ -942,6 +951,9 @@ export class RewardsController extends BaseController<
       try {
         await this.#reauthPromises.get(subscriptionId);
       } catch (reauthError) {
+        captureException(reauthError as Error, {
+          tags: { feature: 'rewards', context: 'withAuthRetry.reauth_failed' },
+        });
         this.invalidateSubscriptionCache(subscriptionId);
         await this.invalidateSubscriptionAndAccounts(subscriptionId);
         throw reauthError;
@@ -1306,6 +1318,13 @@ export class RewardsController extends BaseController<
         // Unknown error
         subscription = null;
         authUnexpectedError = true;
+        captureException(error as Error, {
+          tags: {
+            feature: 'rewards',
+            context: 'performSilentAuth.unexpected_error',
+          },
+          extra: { accountType: internalAccount.type },
+        });
       }
     } finally {
       // Update state
@@ -2533,6 +2552,10 @@ export class RewardsController extends BaseController<
         sessionId: optinResponse.sessionId,
       };
     } catch (error) {
+      captureException(error as Error, {
+        tags: { feature: 'rewards', context: 'optIn.unexpected_error' },
+        extra: { accountType: account.type },
+      });
       Logger.log(
         'RewardsController: Opt-in failed for account',
         account.address,
@@ -3051,6 +3074,13 @@ export class RewardsController extends BaseController<
 
       return true;
     } catch (error) {
+      captureException(error as Error, {
+        tags: {
+          feature: 'rewards',
+          context: 'linkAccountToSubscriptionCandidate.failed',
+        },
+        extra: { accountType: account.type },
+      });
       Logger.log(
         'RewardsController: Failed to link account to subscription',
         caipAccount,
@@ -3170,6 +3200,9 @@ export class RewardsController extends BaseController<
       );
       return false;
     } catch (error) {
+      captureException(error as Error, {
+        tags: { feature: 'rewards', context: 'optOut.failed' },
+      });
       Logger.log('RewardsController: Failed to opt out', error);
       return false;
     }
@@ -3710,28 +3743,46 @@ export class RewardsController extends BaseController<
     return result;
   }
 
-  /**
-   * Fetch the winning code for the current user in a completed Ondo GM campaign.
-   * This is an authenticated, no-cache endpoint — called only when the winner
-   * screen is shown, so freshness is guaranteed.
-   * Returns null when rewards are disabled; otherwise propagates request failures
-   * so callers can surface retry UI (unlike a silent null on errors).
-   */
-  async getOndoCampaignWinnerCode(
+  async getOndoCampaignParticipantOutcome(
     campaignId: string,
     subscriptionId: string,
-  ): Promise<string | null> {
+  ): Promise<OndoGmCampaignParticipantOutcomeDto | null> {
     if (!this.isRewardsFeatureEnabled()) {
       return null;
     }
-    return this.#withAuthRetry(async () => {
-      Logger.log('RewardsController: Fetching Ondo campaign winner code');
-      return this.messenger.call(
-        'RewardsDataService:getOndoCampaignWinnerCode',
-        campaignId,
-        subscriptionId,
+    const key = `${subscriptionId}:${campaignId}`;
+    try {
+      return await wrapWithCache<OndoGmCampaignParticipantOutcomeDto | null>({
+        key,
+        ttl: ONDO_CAMPAIGN_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS,
+        readCache: (k) => this.#participantOutcomeCache.get(k) ?? undefined,
+        fetchFresh: async () =>
+          this.#withAuthRetry(async () => {
+            Logger.log(
+              'RewardsController: Fetching Ondo campaign participant outcome',
+            );
+            return this.messenger.call(
+              'RewardsDataService:getOndoCampaignParticipantOutcome',
+              campaignId,
+              subscriptionId,
+            );
+          }, subscriptionId),
+        writeCache: (k, payload) => {
+          if (payload !== null) {
+            this.#participantOutcomeCache.set(k, {
+              payload,
+              lastFetched: Date.now(),
+            });
+          }
+        },
+      });
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get Ondo campaign participant outcome:',
+        error instanceof Error ? error.message : String(error),
       );
-    }, subscriptionId);
+      return null;
+    }
   }
 
   /**

@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -10,7 +10,7 @@ import { mockBip32Snap } from '../../api-mocking/mock-response-data/snaps/snap-b
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
+describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
   it('can connect to BIP-32 snap', async () => {
     await withFixtures(
       {

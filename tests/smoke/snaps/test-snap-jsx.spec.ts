@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -10,7 +10,7 @@ import { mockJsxSnap } from '../../api-mocking/mock-response-data/snaps/snap-bin
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('JSX Snap Tests'), () => {
+describe(SmokeSnaps('JSX Snap Tests'), () => {
   it('can connect to the JSX Snap', async () => {
     await withFixtures(
       {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import VerifyIdentity from './VerifyIdentity';
 import { strings } from '../../../../../../../locales/i18n';
@@ -12,7 +13,6 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockDispatch = jest.fn();
-const mockLinkingOpenURL = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -28,11 +28,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: mockLinkingOpenURL,
-  addEventListener: jest.fn(),
-}));
 
 jest.mock('../../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
@@ -108,13 +103,13 @@ describe('VerifyIdentity Component', () => {
   it('opens Transak website when Transak link is pressed', () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByText('Transak'));
-    expect(mockLinkingOpenURL).toHaveBeenCalledWith('https://www.transak.com');
+    expect(Linking.openURL).toHaveBeenCalledWith('https://www.transak.com');
   });
 
   it('opens privacy policy when privacy policy link is pressed', () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByTestId('privacy-policy-link-1'));
-    expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+    expect(Linking.openURL).toHaveBeenCalledWith(
       'https://consensys.net/privacy-policy',
     );
   });
@@ -122,7 +117,7 @@ describe('VerifyIdentity Component', () => {
   it('opens US Transak terms when Transak terms link is pressed (US region)', () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByText("Transak's Terms of Use"));
-    expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+    expect(Linking.openURL).toHaveBeenCalledWith(
       'https://www.transak.com/terms-of-service-us',
     );
   });
@@ -133,7 +128,7 @@ describe('VerifyIdentity Component', () => {
     });
     render(VerifyIdentity);
     fireEvent.press(screen.getByText("Transak's Terms of Use"));
-    expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+    expect(Linking.openURL).toHaveBeenCalledWith(
       'https://www.transak.com/terms-of-service',
     );
   });
@@ -141,7 +136,7 @@ describe('VerifyIdentity Component', () => {
   it('opens privacy policy when agreement privacy policy link is pressed', () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByTestId('privacy-policy-link-2'));
-    expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+    expect(Linking.openURL).toHaveBeenCalledWith(
       'https://consensys.net/privacy-policy',
     );
   });

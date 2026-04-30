@@ -1,7 +1,7 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
@@ -10,7 +10,7 @@ import { mockLifecycleHooksSnap } from '../../api-mocking/mock-response-data/sna
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
+describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
   it('runs the onInstall lifecycle hook when the Snap is installed', async () => {
     await withFixtures(
       {
