@@ -152,11 +152,19 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     selectWalletHomeOnboardingSteps,
   );
   const stepIndex = walletHomeOnboardingStepsState.stepIndex ?? 0;
+  const displayStepIndex = isAwaitingBalance ? 0 : stepIndex;
+  /** Capped index for progress + hero; matches `VISIBLE_STEPS[…]` bounds before Redux clamps persisted step. */
+  const visualStepIndexForProgress = Math.min(
+    displayStepIndex,
+    VISIBLE_STEPS.length - 1,
+  );
 
   const slideX = useRef(new Animated.Value(0)).current;
   const slideY = useRef(new Animated.Value(0)).current;
   const progressRatioAnim = useRef(
-    new Animated.Value(walletHomeProgressRatioForStep(0)),
+    new Animated.Value(
+      walletHomeProgressRatioForStep(visualStepIndexForProgress),
+    ),
   ).current;
   const isFirstProgressSync = useRef(true);
   const advanceLockRef = useRef(false);
@@ -203,11 +211,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   }, [dispatch, stepIndex]);
 
   const totalSteps = VISIBLE_STEPS.length;
-  const displayStepIndex = isAwaitingBalance ? 0 : stepIndex;
-  const currentStep =
-    VISIBLE_STEPS[Math.min(displayStepIndex, VISIBLE_STEPS.length - 1)];
-
-  const visualStepIndexForProgress = displayStepIndex;
+  const currentStep = VISIBLE_STEPS[visualStepIndexForProgress];
 
   useEffect(() => {
     const target = walletHomeProgressRatioForStep(visualStepIndexForProgress);
