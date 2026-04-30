@@ -927,10 +927,13 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
 
       // Attempt Unified Account migration as early as possible so users aren't
-      // blocked when they try to trade. dexAbstraction users will see a one-time
-      // EIP-712 signing prompt here. Builder fee and referral remain deferred to
-      // ensureReadyForTrading() to avoid extra popups just from viewing the section.
-      await this.#ensureUnifiedAccountEnabled();
+      // blocked when they try to trade. Software-wallet dexAbstraction users can
+      // complete the one-time EIP-712 migration during initial setup so the first
+      // trade sees the unified balance. Hardware wallets remain deferred to
+      // action time to avoid QR / Ledger prompt spam while browsing.
+      await this.#ensureUnifiedAccountEnabled({
+        allowUserSigning: !this.#walletService.isSelectedHardwareWallet(),
+      });
     })();
 
     // Await initialization - keep the promise so subsequent calls resolve immediately

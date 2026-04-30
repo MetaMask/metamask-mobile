@@ -13,6 +13,9 @@ jest.mock('@metamask/keyring-api', () => ({
 
 // Mock MetaMask utils
 jest.mock('@metamask/utils', () => ({
+  hasProperty: jest.fn((object: object, property: string) =>
+    Object.prototype.hasOwnProperty.call(object, property),
+  ),
   parseCaipAccountId: jest.fn((accountId: string) => {
     const parts = accountId.split(':');
     return {
@@ -313,6 +316,52 @@ describe('HyperLiquidWalletService', () => {
       const address = await service.getUserAddressWithDefault();
 
       expect(address).toBe(mockEvmAccount.address);
+    });
+
+    it('should return false when selected account is a software wallet', () => {
+      expect(service.isSelectedHardwareWallet()).toBe(false);
+    });
+
+    it('should return true when selected account is a Ledger hardware wallet', () => {
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [
+            {
+              ...mockEvmAccount,
+              metadata: {
+                ...mockEvmAccount.metadata,
+                keyring: { type: 'Ledger Hardware' },
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      expect(service.isSelectedHardwareWallet()).toBe(true);
+    });
+
+    it('should return true when selected account is a QR hardware wallet', () => {
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [
+            {
+              ...mockEvmAccount,
+              metadata: {
+                ...mockEvmAccount.metadata,
+                keyring: { type: 'QR Hardware Wallet Device' },
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      expect(service.isSelectedHardwareWallet()).toBe(true);
     });
   });
 

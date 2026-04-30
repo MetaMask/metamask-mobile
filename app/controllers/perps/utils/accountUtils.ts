@@ -16,7 +16,7 @@ function isEvmAccountType(type: string): boolean {
 
 export function findEvmAccount(
   accounts: (InternalAccount | PerpsInternalAccount)[],
-): { address: string; type: string } | null {
+): InternalAccount | PerpsInternalAccount | null {
   const evmAccount = accounts.find(
     (account) =>
       account && isEvmAccountType(account.type as InternalAccount['type']),

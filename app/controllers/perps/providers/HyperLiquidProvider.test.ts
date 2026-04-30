@@ -406,6 +406,7 @@ describe('HyperLiquidProvider', () => {
         .fn()
         .mockResolvedValue('0x1234567890123456789012345678901234567890'),
       isKeyringUnlocked: jest.fn().mockReturnValue(true),
+      isSelectedHardwareWallet: jest.fn().mockReturnValue(false),
     } as Partial<HyperLiquidWalletService> as jest.Mocked<HyperLiquidWalletService>;
 
     mockSubscriptionService = {
@@ -8905,17 +8906,15 @@ describe('HyperLiquidProvider', () => {
     });
 
     // ─────────────────────────────────────────────────
-    // dexAbstraction → unifiedAccount migration deferred on init
+    // dexAbstraction → unifiedAccount migration on init
     //
     // The transition requires an EIP-712 prompt (HL blocks the agent path),
-    // so init must NOT trigger it — it would surface a signing dialog just
-    // from opening the Perps section. The user-signed migration is driven
-    // by ensureReadyForTrading() at trade/withdraw entry instead. Those
-    // action-time tests live in the (currently skipped) HIP-3 Private
-    // Methods block; cover them via integration testing.
+    // so software-wallet users migrate during initial setup to ensure the
+    // first trade sees unified collateral. Hardware wallets remain deferred
+    // to avoid QR / Ledger prompt spam while browsing.
     // ─────────────────────────────────────────────────
 
-    it('does not call userSetAbstraction on init when mode is dexAbstraction', async () => {
+    it('calls userSetAbstraction on init for software-wallet dexAbstraction users', async () => {
       // Arrange
       const mockExchangeClient = createMockExchangeClient();
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
@@ -8930,12 +8929,16 @@ describe('HyperLiquidProvider', () => {
       // Act - init path
       await provider.getMarketDataWithPrices();
 
-      // Assert - no signing prompt, no agent call either
-      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+      // Assert - software wallets migrate during setup so first trade sees
+      // unified collateral folded into the size slider.
+      expect(mockExchangeClient.userSetAbstraction).toHaveBeenCalledWith({
+        user: USER_ADDRESS,
+        abstraction: 'unifiedAccount',
+      });
       expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
     });
 
-    it('does not track migration_required or write cache for dexAbstraction on init', async () => {
+    it('tracks migration_required and writes cache for software-wallet dexAbstraction on init', async () => {
       // Arrange
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -8949,17 +8952,34 @@ describe('HyperLiquidProvider', () => {
       // Act
       await provider.getMarketDataWithPrices();
 
-      // Assert - analytics only fire on actual migration attempts
+      // Assert - analytics fire because software-wallet init performs the
+      // migration attempt.
       const trackCalls = (
         mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
       ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
-      expect(trackCalls).toEqual([]);
+      expect(trackCalls[0]).toEqual([
+        'Perp Account Setup',
+        expect.objectContaining({
+          abstraction_mode: 'dexAbstraction',
+          status: 'migration_required',
+        }),
+      ]);
+      expect(trackCalls[1]).toEqual([
+        'Perp Account Setup',
+        expect.objectContaining({
+          previous_abstraction_mode: 'dexAbstraction',
+          abstraction_mode: 'unifiedAccount',
+          status: 'success',
+        }),
+      ]);
 
-      // Cache untouched so the next entry (action-time) re-evaluates
       expect(
         (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
           .set,
-      ).not.toHaveBeenCalled();
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: true,
+      });
     });
 
     // ─────────────────────────────────────────────────
@@ -9012,10 +9032,7 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalledWith(USER_ADDRESS, 'unifiedAccount');
     });
 
-    it('does not call setUserAbstractionMode on init when mode is dexAbstraction', async () => {
-      // Init defers the user-signed migration; no migration means no mode
-      // is recorded yet. The action-time path (covered by integration
-      // testing) is what records the new mode after a successful migration.
+    it('records unifiedAccount mode after migrating software-wallet dexAbstraction on init', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
@@ -9027,6 +9044,34 @@ describe('HyperLiquidProvider', () => {
 
       await provider.getMarketDataWithPrices();
 
+      expect(
+        mockSubscriptionService.setUserAbstractionMode,
+      ).toHaveBeenCalledWith(USER_ADDRESS, 'unifiedAccount');
+    });
+
+    it('defers dexAbstraction migration on init for hardware wallets', async () => {
+      // Arrange
+      mockWalletService.isSelectedHardwareWallet.mockReturnValue(true);
+      const mockExchangeClient = createMockExchangeClient();
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act - init path
+      await provider.getMarketDataWithPrices();
+
+      // Assert - no browsing-time hardware prompt; action-time setup can still run.
+      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+      expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).not.toHaveBeenCalled();
       expect(
         mockSubscriptionService.setUserAbstractionMode,
       ).not.toHaveBeenCalled();
