@@ -306,6 +306,8 @@ builds:
       RAMP_DEV_BUILD: 'true'
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      # TODO: Decouple configuration, profile, and build type
+      PROFILE: 'development'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
@@ -334,6 +336,8 @@ builds:
       IS_SIM_BUILD: 'true'
       IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
+      # TODO: Decouple configuration, profile, and build type
+      PROFILE: 'development'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main

@@ -517,31 +517,25 @@ generateIosBinary() {
 		exit 1
 	fi
 
+	# PROFILE: 'development' or 'release' (set in builds.yml, defaults to 'release')
+	local profile="${PROFILE:-release}"
+
 	if [ "$scheme" = "MetaMask" ] ; then
-		# Main target
-		if [ "$configuration" = "Debug" ] ; then
-			# Debug configuration
+		if [ "$profile" = "development" ] ; then
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
 		else
-			# Release configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
 		fi
 	elif [ "$scheme" = "MetaMask-QA" ] ; then
-		# QA target
-		if [ "$configuration" = "Debug" ] ; then
-			# Debug configuration
+		if [ "$profile" = "development" ] ; then
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
 		else
-			# Release configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
 		fi
 	elif [ "$scheme" = "MetaMask-Flask" ] ; then
-		# Flask target
-		if [ "$configuration" = "Debug" ] ; then
-			# Debug configuration
+		if [ "$profile" = "development" ] ; then
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
 		else
-			# Release configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
 		fi
 	fi
