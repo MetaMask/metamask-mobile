@@ -5,7 +5,6 @@ import {
 } from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { getChainId } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type {
@@ -15,9 +14,11 @@ import type {
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { findEvmAccount, getSelectedEvmAccount } from '../utils/accountUtils';
 
+// Mirrors KeyringTypes from @metamask/keyring-controller. Inlined to keep this
+// service portable between mobile and the core monorepo.
 const HARDWARE_KEYRING_TYPES = new Set<string>([
-  ExtendedKeyringTypes.ledger,
-  ExtendedKeyringTypes.qr,
+  'Ledger Hardware',
+  'QR Hardware Wallet Device',
 ]);
 
 /**
