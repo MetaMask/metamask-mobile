@@ -30,6 +30,7 @@ import type { EventPayload } from '../helpers/analytics/helpers.ts';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
 import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
+import { CurrentDeviceDetails } from './fixture/index';
 
 /*
  * WDIO PLAYWRIGHT TESTS
@@ -279,6 +280,9 @@ export interface LaunchArgs {
   fixtureServerPort: string;
   detoxURLBlacklistRegex: string;
   mockServerPort: string;
+  commandQueueServerPort: string;
+  /** Account-activity WebSocket mock port; launch-arg key matches `launchArgKey` in `tests/websocket/constants.ts`. */
+  accountActivityWsPort: string;
 }
 
 /**
@@ -435,6 +439,7 @@ export interface AnalyticsExpectations {
  * @param {Record<string, unknown>} [permissions] - The permissions to set for the device.
  * @param {() => Promise<void>} [endTestfn] - The function to execute after the test is finished.
  * @param {AnalyticsExpectations} [analyticsExpectations] - Optional MetaMetrics assertions run after `endTestfn`, before mock drain.
+ * @param {CurrentDeviceDetails} [currentDeviceDetails] - The current device details to use for the test.
  */
 export interface WithFixturesOptions {
   fixture:
@@ -462,4 +467,5 @@ export interface WithFixturesOptions {
   skipReactNativeReload?: boolean;
   useCommandQueueServer?: boolean;
   analyticsExpectations?: AnalyticsExpectations;
+  currentDeviceDetails?: CurrentDeviceDetails;
 }

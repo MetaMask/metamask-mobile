@@ -16,7 +16,10 @@ import {
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../Utilities';
-import { dismissDevScreens } from '../../flows/general.flow';
+import {
+  dismissDevScreens,
+  dismissDevScreensPlaywright,
+} from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -62,6 +65,8 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
+import { FrameworkDetector } from '../FrameworkDetector';
+import PlaywrightUtilities from '../PlaywrightUtilities';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -516,6 +521,7 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
     analyticsExpectations,
+    currentDeviceDetails,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -619,34 +625,57 @@ export async function withFixtures(
       // On Android, LaunchArguments library integration is unreliable on CI
       // We must pass fallback ports so the app uses them and adb reverse can map them
       // to the actual allocated ports
-      const isAndroid = device.getPlatform() === 'android';
+      const isAndroid = await PlatformDetector.isAndroid();
+      const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
-      await TestHelpers.launchApp({
-        delete: true,
-        launchArgs: {
-          fixtureServerPort: isAndroid
-            ? `${FALLBACK_FIXTURE_SERVER_PORT}`
-            : `${getFixturesServerPort()}`,
-          commandQueueServerPort: isAndroid
-            ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
-            : `${commandQueueServer.getServerPort()}`,
-          detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-          mockServerPort: isAndroid
-            ? `${FALLBACK_MOCKSERVER_PORT}`
-            : `${mockServerPort}`,
-          [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
-            ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
-            : `${accountActivityWsServer.getServerPort()}`,
-          ...(launchArgs || {}),
-        },
-        languageAndLocale,
-        permissions,
-      });
+      if (framework === 'Detox') {
+        await TestHelpers.launchApp({
+          delete: true,
+          launchArgs: {
+            fixtureServerPort: isAndroid
+              ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+              : `${getFixturesServerPort()}`,
+            commandQueueServerPort: isAndroid
+              ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+              : `${commandQueueServer.getServerPort()}`,
+            detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+            mockServerPort: isAndroid
+              ? `${FALLBACK_MOCKSERVER_PORT}`
+              : `${mockServerPort}`,
+            [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+              ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+              : `${accountActivityWsServer.getServerPort()}`,
+            ...(launchArgs || {}),
+          },
+          languageAndLocale,
+          permissions,
+        });
+      } else if (framework === 'Appium') {
+        if (!currentDeviceDetails) {
+          throw new Error('currentDeviceDetails is not available');
+        }
+        await PlaywrightUtilities.launchApp(currentDeviceDetails, {
+          launchArgs: {
+            fixtureServerPort: `${getFixturesServerPort()}`,
+            commandQueueServerPort: `${commandQueueServer.getServerPort()}`,
+            detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+            mockServerPort: `${mockServerPort}`,
+            [ACCOUNT_ACTIVITY_WS.launchArgKey]: `${accountActivityWsServer.getServerPort()}`,
+            ...(launchArgs || {}),
+          },
+        });
+      } else {
+        throw new Error(`Unsupported test runner: ${framework}`);
+      }
     }
 
     // Dismiss dev screens if running locally (not in CI)
     if (process.env.CI !== 'true') {
-      await dismissDevScreens();
+      if (FrameworkDetector.isDetox()) {
+        await dismissDevScreens();
+      } else if (FrameworkDetector.isAppium()) {
+        await dismissDevScreensPlaywright();
+      }
     }
 
     await testSuite({

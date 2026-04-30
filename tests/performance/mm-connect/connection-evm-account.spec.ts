@@ -131,9 +131,7 @@ test('@metamask/connect-evm - Account switching and wallet-side verification', a
     // Wait here to make sure UI is visible before attempted interaction
     await sleep(1000);
     // We're only using Android for now
-    await PlaywrightUtilities.launchApp({
-      packageName: APP_PACKAGE_IDS.ANDROID,
-    });
+    await PlaywrightUtilities.launchApp(currentDeviceDetails);
     await unlockIfLockScreenVisible();
 
     // Change selected account to Account 3 in MetaMask

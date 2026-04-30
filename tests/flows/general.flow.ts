@@ -1,6 +1,11 @@
 import { createLogger } from '../framework/logger';
 import Assertions from '../framework/Assertions';
-import { Gestures } from '../framework';
+import {
+  Gestures,
+  PlaywrightAssertions,
+  PlaywrightGestures,
+  PlaywrightMatchers,
+} from '../framework';
 import Matchers from '../framework/Matchers';
 import Utilities, { sleep } from '../framework/Utilities';
 import LoginView from '../page-objects/wallet/LoginView';
@@ -52,6 +57,54 @@ export const dismissDevScreens = async (): Promise<void> => {
     await Gestures.tap(fastRefreshButton, {
       elemDescription: 'Dev Menu Fast Refresh Button',
     });
+  } catch {
+    logger.error('Dev screens dismiss error');
+  }
+};
+
+/**
+ * Dismisses development build screens using Playwright.
+ * Handles 'Development servers' and 'Developer menu' screens.
+ * These screens are expected to appear when running locally.
+ */
+export const dismissDevScreensPlaywright = async (): Promise<void> => {
+  const port = process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
+  const host = process.env.METRO_HOST_E2E || 'localhost';
+  const serverUrl = `http://${host}:${port}`;
+
+  try {
+    // 1. Check for Development Servers screen
+    // We tap the server row matching the current metro port
+    const devServerRow = await PlaywrightMatchers.getElementByText(serverUrl);
+    await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
+      timeout: 2000,
+      description: 'Dev Server Row should be visible',
+    });
+    await PlaywrightGestures.waitAndTap(devServerRow);
+
+    // 2. Check for Developer Menu onboarding
+    const continueButton =
+      await PlaywrightMatchers.getElementByText('Continue');
+    await PlaywrightAssertions.expectElementToBeVisible(continueButton, {
+      timeout: 5000,
+      description: 'Dev Menu Continue Button should be visible',
+    });
+
+    // Tap Continue to proceed past the onboarding screen.
+    await PlaywrightGestures.waitAndTap(continueButton);
+
+    // 3. Close the Developer Menu
+    // After tapping Continue, the Developer Menu options list appears.
+    // The user provided the ID 'fast-refresh' to tap on.
+    const fastRefreshButton = await PlaywrightMatchers.getElementById(
+      'fast-refresh',
+      { exact: true },
+    );
+    await PlaywrightAssertions.expectElementToBeVisible(fastRefreshButton, {
+      timeout: 5000,
+      description: 'Dev Menu Fast Refresh Button should be visible',
+    });
+    await PlaywrightGestures.waitAndTap(fastRefreshButton);
   } catch {
     logger.error('Dev screens dismiss error');
   }
