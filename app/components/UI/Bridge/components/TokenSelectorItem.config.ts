@@ -1,1 +1,1 @@
-export const SHOW_TOKEN_WARNINGS = false;
+export const SHOW_TOKEN_WARNINGS = true;
