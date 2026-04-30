@@ -4,7 +4,9 @@ import {
 } from '@metamask/assets-controllers';
 import type { CaipAssetType } from '@metamask/utils';
 
-function normalizeCaipAssetIdForTokenApi(assetId: string): CaipAssetType {
+export function normalizeCaipAssetIdForTokenApi(
+  assetId: string,
+): CaipAssetType {
   const match = /^eip155:(\d+)\/erc20:(0x[0-9a-fA-F]{40})$/.exec(
     String(assetId),
   );
