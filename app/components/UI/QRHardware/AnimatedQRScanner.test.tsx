@@ -1329,10 +1329,21 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       const propsVisible = { ...defaultProps, visible: true };
       const propsHidden = { ...defaultProps, visible: false };
 
-      const { rerender } = render(<AnimatedQRScannerModal {...propsVisible} />);
+      const { queryByText, rerender } = render(
+        <AnimatedQRScannerModal {...propsVisible} />,
+      );
 
       // Simulate scanning to set progress
-      await mockOnCodeScanned([{ value: 'mock-qr-data', type: 'qr' }]);
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
+
+      await waitFor(() => {
+        expect(mockDecoderInstance.receivePart).toHaveBeenCalledWith(
+          'ur:crypto-hdkey/mock-part',
+        );
+        expect(queryByText('qr_scanner.scanning 50%')).not.toBeNull();
+      });
 
       // Hide modal to trigger reset
       mockPauseQRCode.mockClear();
@@ -1348,6 +1359,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       await waitFor(() => {
         expect(mockPauseQRCode).toHaveBeenCalledWith(true);
+        expect(queryByText('qr_scanner.scanning 50%')).toBeNull();
       });
     });
   });
