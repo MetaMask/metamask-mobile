@@ -29,6 +29,7 @@ export interface InfoRowProps {
   tooltipTitle?: string;
   tooltipColor?: IconColor;
   style?: Record<string, unknown>;
+  labelContainerStyle?: Record<string, unknown>;
   labelChildren?: React.ReactNode;
   testID?: string;
   variant?: TextColor;
@@ -48,6 +49,7 @@ const InfoRow = ({
   onTooltipPress,
   onLabelClick,
   style = {},
+  labelContainerStyle = {},
   labelChildren = null,
   tooltip,
   tooltipTitle,
@@ -81,7 +83,7 @@ const InfoRow = ({
         testID={testID ?? 'info-row'}
       >
         {Boolean(label) && (
-          <View style={styles.labelContainer}>
+          <View style={{ ...styles.labelContainer, ...labelContainerStyle }}>
             <Text variant={labelVariant} color={variant} onPress={onLabelClick}>
               {label}
             </Text>
@@ -101,6 +103,7 @@ const InfoRow = ({
             style={{
               ...styles.labelContainer,
               ...styles.labelContainerWithoutLabel,
+              ...labelContainerStyle,
             }}
           >
             {labelChildren}
