@@ -35,6 +35,8 @@ export interface UseOHLCVChartResult {
   hasMore: boolean;
   /** Opaque cursor for the next page. Pass to the WebView so it can fetch directly. */
   nextCursor: string | null;
+  /** True if the API returned an empty data array (asset not supported for OHLCV) */
+  hasEmptyData: boolean;
 }
 
 const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
@@ -97,6 +99,7 @@ export const useOHLCVChart = ({
   const [isLoading, setIsLoading] = useState(!!assetId);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [hasEmptyData, setHasEmptyData] = useState(false);
 
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -112,6 +115,7 @@ export const useOHLCVChart = ({
     setError(null);
     setNextCursor(null);
     setHasMore(false);
+    setHasEmptyData(false);
 
     try {
       const result = await fetchOHLCV(
@@ -121,6 +125,8 @@ export const useOHLCVChart = ({
       );
 
       if (!controller.signal.aborted) {
+        const isEmpty = result.data.length === 0;
+        setHasEmptyData(isEmpty);
         setOhlcvData(result.data.map(mapCandle));
         setNextCursor(result.nextCursor || null);
         setHasMore(result.hasNext);
@@ -142,5 +148,5 @@ export const useOHLCVChart = ({
     return () => abortRef.current?.abort();
   }, [loadInitial]);
 
-  return { ohlcvData, isLoading, error, hasMore, nextCursor };
+  return { ohlcvData, isLoading, error, hasMore, nextCursor, hasEmptyData };
 };

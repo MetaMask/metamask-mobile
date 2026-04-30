@@ -5,7 +5,7 @@ import {
   getCronjobControllerMessenger,
 } from '../../messengers/snaps';
 import { cronjobControllerInit } from './cronjob-controller-init';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import ReduxService from '../../../redux';
 import configureStore from '../../../../util/test/configureStore';
@@ -18,7 +18,7 @@ function getInitRequestMock(): jest.Mocked<
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getCronjobControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

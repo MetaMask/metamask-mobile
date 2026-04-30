@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Platform, SafeAreaView, StatusBar } from 'react-native';
+import { Alert } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
@@ -405,7 +405,7 @@ describe('OAuthRehydration', () => {
       expect(() => getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toThrow();
     });
 
-    it('clears password field after login attempt', async () => {
+    it('clears password field on error', async () => {
       mockUnlockWallet.mockRejectedValue(new Error('Invalid password'));
       const { getByTestId, queryByDisplayValue } = renderWithProvider(
         <OAuthRehydration />,
@@ -543,8 +543,31 @@ describe('OAuthRehydration', () => {
         );
       });
     });
+  });
 
-    it('sanitizes seedless error message by removing controller prefix', async () => {
+  describe('Error Handling and Validation', () => {
+    it('handles DoCipher error for Android', async () => {
+      // Arrange
+      mockUnlockWallet.mockRejectedValue(
+        new Error('Error: Error: Error: DoCipher'),
+      );
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      });
+    });
+
+    it('handles generic seedless error and sanitizes message', async () => {
+      // Arrange
       const seedlessError = new Error(
         'SeedlessOnboardingController - Something went wrong',
       );
@@ -595,6 +618,91 @@ describe('OAuthRehydration', () => {
             tags: expect.objectContaining({ view: 'Re-login' }),
           }),
         );
+      });
+    });
+
+    it('tracks analytics for wrong password errors', async () => {
+      // Arrange
+      mockUnlockWallet.mockRejectedValue(new Error('Error: Wrong password'));
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      mockTrackOnboarding.mockClear();
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'wrongPassword');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalled();
+      });
+    });
+
+    it('handles seedless error with zero remainingTime', async () => {
+      // Arrange
+      const tooManyAttemptsError =
+        new SeedlessOnboardingControllerRecoveryError(
+          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
+          { numberOfAttempts: 0, remainingTime: 0 },
+        );
+      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      mockTrackOnboarding.mockClear();
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalled();
+      });
+    });
+
+    it('tracks metrics when login is attempted', async () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      mockTrackOnboarding.mockClear();
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalled();
+      });
+    });
+
+    it('formats countdown timer with hours and minutes', async () => {
+      // Arrange
+      const tooManyAttemptsError =
+        new SeedlessOnboardingControllerRecoveryError(
+          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
+          { numberOfAttempts: 5, remainingTime: 3661 },
+        );
+      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      mockTrackOnboarding.mockClear();
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalled();
       });
     });
   });
@@ -764,52 +872,6 @@ describe('OAuthRehydration', () => {
       });
 
       expect(mockUnlockWallet).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Platform configuration', () => {
-    let originalPlatform: string;
-    let originalStatusBarHeight: number | undefined;
-
-    beforeEach(() => {
-      originalPlatform = Platform.OS;
-      originalStatusBarHeight = StatusBar.currentHeight;
-    });
-
-    afterEach(() => {
-      Object.defineProperty(Platform, 'OS', {
-        value: originalPlatform,
-        writable: true,
-      });
-      StatusBar.currentHeight = originalStatusBarHeight;
-    });
-
-    it('applies Android-specific layout spacing and status bar padding', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-      });
-      StatusBar.currentHeight = 42;
-
-      const { UNSAFE_root } = renderWithProvider(<OAuthRehydration />);
-      const safeAreaView = UNSAFE_root.findByType(SafeAreaView);
-      const keyboardAwareScrollView = UNSAFE_root.findByProps({
-        extraScrollHeight: -200,
-      });
-      const ctaWrapper = UNSAFE_root.findByProps({
-        twClassName: 'w-full mt-4 gap-4',
-      });
-
-      expect(safeAreaView.props.style).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            backgroundColor: expect.any(String),
-          }),
-          { paddingTop: 42 },
-        ]),
-      );
-      expect(keyboardAwareScrollView.props.extraScrollHeight).toBe(-200);
-      expect(ctaWrapper).toBeDefined();
     });
   });
 

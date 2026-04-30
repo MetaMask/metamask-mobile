@@ -6,10 +6,11 @@ import {
   SubscriptionClient,
   WebSocketTransport,
 } from '@nktkas/hyperliquid';
+import type { HistoricalOrdersResponse } from '@nktkas/hyperliquid';
 
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { WebSocketConnectionState } from '../types';
 import type {
@@ -18,7 +19,8 @@ import type {
 } from '../types';
 import type { HyperLiquidNetwork } from '../types/config';
 import type { CandleData } from '../types/perps-types';
-import { ensureError } from '../utils/errorUtils';
+import { coalescePerpsRestRequest } from '../utils/coalescePerpsRestRequest';
+import { ensureError, isAbortError } from '../utils/errorUtils';
 import { getPerpsConnectionAttemptContext } from '../utils/perpsConnectionAttemptContext';
 
 /**
@@ -484,26 +486,78 @@ export class HyperLiquidClientService {
     const { symbol, interval, limit = 100, endTime, signal } = options;
     this.ensureInitialized();
 
+    if (signal?.aborted) {
+      const abortError = new Error('Aborted');
+      abortError.name = 'AbortError';
+      throw abortError;
+    }
+
+    // Explicit endTime is a paging call — the caller owns that exact window
+    // and expects a fresh page. Coalescing per-millisecond endTimes produces
+    // keys that never dedupe and never evict (TTL-miss sweep only fires on
+    // re-access with the same key), so route paging straight to the SDK and
+    // only coalesce the live-snapshot path where all callers share 'now'.
+    if (endTime !== undefined) {
+      return this.#runCandleSnapshotFetch({
+        symbol,
+        interval,
+        limit,
+        endTime,
+        signal,
+      });
+    }
+
+    // Live snapshot: coalesce across rapid market switches (pass 1 → pass 2
+    // of the 10-market stress loop) so callers share one snapshot per
+    // (symbol, interval).
+    // Signal is intentionally dropped inside the coalesced fetch — the HL
+    // SDK charges weight for any request already sent, and dropping a
+    // per-caller abort lets the next caller reuse the in-flight/cached
+    // result instead of re-firing the REST. The WS stream keeps live
+    // candles fresh, so reusing the first-caller snapshot for up to the
+    // TTL is acceptable.
+    const cacheKey = [
+      'candleSnapshot',
+      this.#isTestnet ? 'testnet' : 'mainnet',
+      symbol,
+      interval,
+      limit,
+    ].join('|');
+
+    return coalescePerpsRestRequest<CandleData | null>(
+      cacheKey,
+      () => this.#runCandleSnapshotFetch({ symbol, interval, limit }),
+      { ttlMs: PERFORMANCE_CONFIG.PerpsCandleCoalesceTtlMs },
+    );
+  }
+
+  async #runCandleSnapshotFetch(options: {
+    symbol: string;
+    interval: ValidCandleInterval;
+    limit: number;
+    endTime?: number;
+    signal?: AbortSignal;
+  }): Promise<CandleData | null> {
+    const { symbol, interval, limit, endTime, signal } = options;
     try {
-      // Calculate start and end times based on interval and limit
       const now = endTime ?? Date.now();
       const intervalMs = this.#getIntervalMilliseconds(interval);
       const startTime = now - limit * intervalMs;
 
-      // Use the SDK's InfoClient to fetch candle data
-      // HyperLiquid SDK uses 'coin' terminology
-      const infoClient = this.getInfoClient();
-      const data = await infoClient.candleSnapshot(
-        {
-          coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
-          interval,
-          startTime,
-          endTime: now,
-        },
-        signal,
-      );
+      // Use HTTP transport for historical candle snapshots (request/response).
+      // This avoids the WebSocket abort race condition that causes 429s
+      // during rapid market switching on extension (#TAT-2954).
+      const infoClient = this.getInfoClient({ useHttp: true });
+      const request = {
+        coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
+        interval,
+        startTime,
+        endTime: now,
+      };
+      const data = signal
+        ? await infoClient.candleSnapshot(request, signal)
+        : await infoClient.candleSnapshot(request);
 
-      // Transform API response to match expected format
       if (Array.isArray(data) && data.length > 0) {
         const candles = data.map((candle) => ({
           time: candle.t, // open time
@@ -532,6 +586,10 @@ export class HyperLiquidClientService {
         'HyperLiquidClientService.fetchHistoricalCandles',
       );
 
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       // Log to Sentry: prevents initial chart data load
       this.#deps.logger.error(errorInstance, {
         tags: {
@@ -553,6 +611,52 @@ export class HyperLiquidClientService {
 
       throw error;
     }
+  }
+
+  /**
+   * Fetch the user's historical orders via the HyperLiquid SDK, coalesced
+   * across concurrent callers and cached for {@link PERFORMANCE_CONFIG.PerpsRestCoalesceTtlMs}.
+   *
+   * Both getOrders (service layer) and the getUserFills enrichment sidecar
+   * (fills→order-type resolution for TP/SL pills in activity) hit the same
+   * `historicalOrders` info-post. Routing both through this wrapper means the
+   * enrichment path rides the same cache as an explicit activity-page fetch,
+   * so rapid market switching never fires redundant HL traffic.
+   *
+   * Pass `forceRefresh: true` to bypass the coalesce cache end-to-end
+   * (hooks → controller → MarketDataService → provider → this method), which
+   * is required for pull-to-refresh to fetch fresh data from the network.
+   *
+   * @param userAddress - The user's 0x address to query.
+   * @param options - Optional cache-control options.
+   * @param options.forceRefresh - When true, bypasses the coalesce cache.
+   * @returns Array of historical orders, empty array on SDK null.
+   */
+  public async fetchHistoricalOrders(
+    userAddress: Hex,
+    options?: { forceRefresh?: boolean },
+  ): Promise<HistoricalOrdersResponse> {
+    this.ensureInitialized();
+
+    const cacheKey = [
+      'historicalOrders',
+      this.#isTestnet ? 'testnet' : 'mainnet',
+      userAddress.toLowerCase(),
+    ].join('|');
+
+    return coalescePerpsRestRequest<HistoricalOrdersResponse>(
+      cacheKey,
+      () => this.#runHistoricalOrdersFetch(userAddress),
+      { forceRefresh: options?.forceRefresh },
+    );
+  }
+
+  async #runHistoricalOrdersFetch(
+    userAddress: Hex,
+  ): Promise<HistoricalOrdersResponse> {
+    const infoClient = this.getInfoClient();
+    const result = await infoClient.historicalOrders({ user: userAddress });
+    return result ?? [];
   }
 
   /**

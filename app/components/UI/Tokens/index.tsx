@@ -30,10 +30,7 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  selectHomepageRedesignV1Enabled,
-  selectHomepageSectionsV1Enabled,
-} from '../../../selectors/featureFlagController/homepage';
+import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
@@ -60,6 +57,18 @@ interface TokensProps {
    */
   hasMusdBalanceOnAnyChain?: boolean;
   listFooterComponent?: React.ReactElement;
+  /**
+   * Optional external RefreshControl. When provided, overrides the internal
+   * refresh wiring so callers (e.g. the Money Hub) can compose their own
+   * refreshers. Applied to both the FlashList-backed list and the empty-state
+   * ScrollView.
+   */
+  refreshControl?: React.ReactElement;
+  /**
+   * When true, suppress the internal TokenListSkeleton. Useful when the parent
+   * already handles its own loading state (e.g. CashTokensFullView).
+   */
+  hideLoadingSkeleton?: boolean;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -69,6 +78,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
       listFooterComponent,
+      refreshControl,
+      hideLoadingSkeleton = false,
     },
     ref,
   ) => {
@@ -89,10 +100,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
       null;
     const isSolanaSelected = selectedSolanaAccount !== null;
-
-    const isHomepageRedesignV1Enabled = useSelector(
-      selectHomepageRedesignV1Enabled,
-    );
 
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
@@ -230,12 +237,15 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       if (isFullView) {
         return undefined;
       }
-      return isHomepageRedesignV1Enabled ? 10 : undefined;
-    }, [isFullView, isHomepageRedesignV1Enabled]);
+      return 10;
+    }, [isFullView]);
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
       if (!hasInitialLoad) {
+        if (hideLoadingSkeleton) {
+          return null;
+        }
         return (
           <Box twClassName={isFullView ? 'px-4' : undefined}>
             <TokenListSkeleton />
@@ -260,6 +270,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               maxItems={maxItems}
               isFullView={isFullView}
               listFooterComponent={listFooterComponent}
+              refreshControl={refreshControl}
             />
           </>
         );
@@ -282,9 +293,13 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         </Box>
       );
 
-      if (listFooterComponent) {
+      if (listFooterComponent || refreshControl) {
         return (
-          <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={tw`flex-1`}
+            showsVerticalScrollIndicator={false}
+            refreshControl={refreshControl}
+          >
             {emptyState}
             {listFooterComponent}
           </ScrollView>
@@ -294,6 +309,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       return emptyState;
     }, [
       hasInitialLoad,
+      hideLoadingSkeleton,
       isFullView,
       tokenKeysForList,
       showOnlyMusd,
@@ -307,23 +323,22 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       maxItems,
       isGeoEligible,
       listFooterComponent,
+      refreshControl,
     ]);
 
     return (
       <Box
-        twClassName={
-          isHomepageRedesignV1Enabled && !isFullView
-            ? 'bg-default'
-            : 'flex-1 bg-default'
-        }
+        twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
-        <TokenListControlBar
-          goToAddToken={goToAddToken}
-          showAddToken={!showOnlyMusd}
-          hideSort={showOnlyMusd}
-          style={isFullView ? tw`px-4 pb-4` : undefined}
-        />
+        {!showOnlyMusd && (
+          <TokenListControlBar
+            goToAddToken={goToAddToken}
+            showAddToken={!showOnlyMusd}
+            hideSort={showOnlyMusd}
+            style={isFullView ? tw`px-4 pb-4` : undefined}
+          />
+        )}
         {tokenContent}
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}

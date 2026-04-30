@@ -1,0 +1,65 @@
+{
+  "title": "Trade (controller) — market {{side}} {{symbol}} ${{usdAmount}}",
+  "description": "Controller-level market order via PerpsController.placeOrder(). Bypasses UI deposit flow (depositWithOrder → RedesignedConfirmations) which breaks in dev mode. Navigates to market screen for context, then places order directly via controller API.",
+  "inputs": {
+    "side": {
+      "type": "string",
+      "default": "long",
+      "description": "Trade side (long/short)"
+    },
+    "symbol": {
+      "type": "string",
+      "default": "BTC",
+      "description": "Market symbol"
+    },
+    "usdAmount": {
+      "type": "string",
+      "default": "10",
+      "description": "USD notional amount"
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.ready_to_trade",
+        "perps.sufficient_balance"
+      ],
+      "entry": "nav",
+      "nodes": {
+        "nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "wait-render"
+        },
+        "wait-render": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-{{side}}-button",
+          "next": "place-order-controller"
+        },
+        "place-order-controller": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.placeOrder({symbol:'{{symbol}}',isBuy:'{{side}}'==='long',orderType:'market',size:'0.0001',leverage:2,usdAmount:'{{usdAmount}}',maxSlippageBps:500}).then(function(r){return JSON.stringify(r)})",
+          "assert": { "operator": "eq", "field": "success", "value": true },
+          "timeout_ms": 30000,
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}

@@ -443,19 +443,19 @@ class TransactionDetails extends PureComponent {
             </View>
           </DetailsModal.Column>
         </DetailsModal.Section>
-        <DetailsModal.Section>
-          <DetailsModal.Column>
-            <DetailsModal.SectionTitle upper>
-              {strings('transactions.nonce')}
-            </DetailsModal.SectionTitle>
-            {!!txParams?.nonce && (
+        {!!txParams?.nonce && (
+          <DetailsModal.Section>
+            <DetailsModal.Column>
+              <DetailsModal.SectionTitle upper>
+                {strings('transactions.nonce')}
+              </DetailsModal.SectionTitle>
               <Text small primary>{`#${parseInt(
                 txParams.nonce.replace(regex.transactionNonce, ''),
                 16,
               )}`}</Text>
-            )}
-          </DetailsModal.Column>
-        </DetailsModal.Section>
+            </DetailsModal.Column>
+          </DetailsModal.Section>
+        )}
         <View
           style={[
             styles.summaryWrapper,
@@ -474,6 +474,7 @@ class TransactionDetails extends PureComponent {
             gasEstimationReady
             transactionType={updatedTransactionDetails.transactionType}
             chainId={chainId}
+            isGasFeeSponsored={transactionObject.isGasFeeSponsored}
           />
         </View>
         {updatedTransactionDetails.hash &&

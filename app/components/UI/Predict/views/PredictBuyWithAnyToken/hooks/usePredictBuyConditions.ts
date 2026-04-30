@@ -1,10 +1,7 @@
 import { useEffect, useMemo } from 'react';
-import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
-  useTransactionPayQuotes,
-  useTransactionPayTotals,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
@@ -21,6 +18,7 @@ interface UsePredictBuyConditionsParams {
   isConfirming: boolean;
   totalPayForPredictBalance: number;
   isInputFocused: boolean;
+  hasBlockingPayAlerts: boolean;
 }
 
 export const usePredictBuyConditions = ({
@@ -31,22 +29,18 @@ export const usePredictBuyConditions = ({
   isConfirming,
   totalPayForPredictBalance,
   isInputFocused,
+  hasBlockingPayAlerts,
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
   const { isDepositPending } = usePredictDeposit();
-  const payTotals = useTransactionPayTotals();
-  const quotes = useTransactionPayQuotes();
   const { isPredictBalanceSelected, resetSelectedPaymentToken } =
     usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
 
-  const [insufficientPayTokenBalanceAlert] =
-    useInsufficientPayTokenBalanceAlert();
-
-  const shouldWaitForPayFees = !isPredictBalanceSelected;
+  const shouldWaitForPayFees = !isPredictBalanceSelected && currentValue > 0;
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -75,26 +69,11 @@ export const usePredictBuyConditions = ({
     [isConfirming, isPredictBalanceSelected, currentValue, maxBetAmount],
   );
 
-  const isInsufficientPayTokenBalance = useMemo(
-    () => !isPredictBalanceSelected && !!insufficientPayTokenBalanceAlert,
-    [isPredictBalanceSelected, insufficientPayTokenBalanceAlert],
-  );
-
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
   const isPayFeesLoading = useMemo(
-    () =>
-      shouldWaitForPayFees &&
-      (isPayTotalsLoading ||
-        isPayQuoteLoading ||
-        (quotes?.length === 0 && !payTotals)),
-    [
-      shouldWaitForPayFees,
-      isPayTotalsLoading,
-      isPayQuoteLoading,
-      payTotals,
-      quotes?.length,
-    ],
+    () => shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading),
+    [shouldWaitForPayFees, isPayTotalsLoading, isPayQuoteLoading],
   );
 
   const canPlaceBet = useMemo(
@@ -106,7 +85,7 @@ export const usePredictBuyConditions = ({
       !isRateLimited &&
       !isBalanceLoading &&
       !isPayFeesLoading &&
-      !isInsufficientPayTokenBalance,
+      !hasBlockingPayAlerts,
     [
       isConfirming,
       isBelowMinimum,
@@ -115,7 +94,7 @@ export const usePredictBuyConditions = ({
       isRateLimited,
       isBalanceLoading,
       isPayFeesLoading,
-      isInsufficientPayTokenBalance,
+      hasBlockingPayAlerts,
     ],
   );
 

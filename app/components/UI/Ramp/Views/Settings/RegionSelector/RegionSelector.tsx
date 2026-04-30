@@ -12,11 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Fuse from 'fuse.js';
 
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
@@ -32,15 +28,12 @@ import {
   FontWeight,
   Icon,
   IconName,
-  ButtonIcon,
-  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 
-import styleSheet, {
-  styles as navigationOptionsStyles,
-} from './RegionSelector.styles';
+import styleSheet from './RegionSelector.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { getNavigationOptionsTitle } from '../../../../Navbar';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { CommonSelectorsIDs } from '../../../../../../util/Common.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { Country, State } from '@metamask/ramps-controller';
@@ -88,23 +81,6 @@ function isRegionSupported(supported: unknown): boolean {
   );
 }
 
-interface HeaderBackButtonProps {
-  onPress: () => void;
-  testID?: string;
-}
-
-function HeaderBackButton({ onPress, testID }: HeaderBackButtonProps) {
-  return (
-    <ButtonIcon
-      size={ButtonIconSize.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={onPress}
-      style={navigationOptionsStyles.headerLeft}
-      testID={testID}
-    />
-  );
-}
-
 function RegionSelector() {
   const navigation = useNavigation();
   const { colors } = useAppTheme();
@@ -122,20 +98,6 @@ function RegionSelector() {
   const [currentData, setCurrentData] = useState<RegionItem[]>(countries);
   const [regionInTransit, setRegionInTransit] = useState<Country | null>(null);
   const { styles } = useStyles(styleSheet, {});
-
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        activeView === RegionViewType.COUNTRY
-          ? strings('fiat_on_ramp_aggregator.region.title')
-          : regionInTransit?.name ||
-              strings('fiat_on_ramp_aggregator.region.title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [colors, navigation, activeView, regionInTransit]);
 
   useEffect(() => {
     if (countries.length > 0 && activeView === RegionViewType.COUNTRY) {
@@ -638,38 +600,42 @@ function RegionSelector() {
     navigation.goBack();
   }, [navigation]);
 
-  const stateHeaderLeft = useCallback(
-    () => (
-      <HeaderBackButton
-        onPress={handleRegionBackButton}
-        testID={REGION_SELECTOR_TEST_IDS.BACK_BUTTON}
-      />
-    ),
-    [handleRegionBackButton],
+  const headerTitle = useMemo(
+    () =>
+      activeView === RegionViewType.COUNTRY
+        ? strings('fiat_on_ramp_aggregator.region.title')
+        : regionInTransit?.name ||
+          strings('fiat_on_ramp_aggregator.region.title'),
+    [activeView, regionInTransit],
   );
 
-  const defaultHeaderLeft = useCallback(
-    () => <HeaderBackButton onPress={handleGoBack} />,
-    [handleGoBack],
+  const headerBackTestId = useMemo(
+    () =>
+      activeView === RegionViewType.STATE
+        ? REGION_SELECTOR_TEST_IDS.BACK_BUTTON
+        : CommonSelectorsIDs.BACK_ARROW_BUTTON,
+    [activeView],
   );
 
-  useEffect(() => {
+  const handleHeaderBack = useCallback(() => {
     if (activeView === RegionViewType.STATE) {
-      navigation.setOptions({
-        headerLeft: stateHeaderLeft,
-      });
+      handleRegionBackButton();
     } else {
-      navigation.setOptions({
-        headerLeft: defaultHeaderLeft,
-      });
+      handleGoBack();
     }
-  }, [activeView, navigation, stateHeaderLeft, defaultHeaderLeft]);
+  }, [activeView, handleRegionBackButton, handleGoBack]);
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <HeaderCompactStandard
+        title={headerTitle}
+        onBack={handleHeaderBack}
+        backButtonProps={{ testID: headerBackTestId }}
+        includesTopInset
+      />
       <View style={styles.searchContainer}>
         {activeView === RegionViewType.COUNTRY && (
           <Text
@@ -724,20 +690,5 @@ function RegionSelector() {
     </KeyboardAvoidingView>
   );
 }
-
-RegionSelector.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      size={ButtonIconSize.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
-      style={navigationOptionsStyles.headerLeft}
-    />
-  ),
-});
 
 export default RegionSelector;

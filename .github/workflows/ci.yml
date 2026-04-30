@@ -4,8 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    branches-ignore:
+      - stable
   merge_group:
-    types: [checks_requested]
   schedule:
     # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
     # This helps to identy the flaky and failed tests on main branch
@@ -16,26 +21,19 @@ concurrency:
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
-  check-skip-merge-queue:
-    name: Check if pull request can skip merge queue
-    runs-on: ubuntu-latest
-    outputs:
-      skip-merge-queue: ${{ steps.check-skip-merge-queue.outputs.up-to-date }}
-    steps:
-      - name: Check pull request merge queue status
-        id: check-skip-merge-queue
-        if: github.event_name == 'merge_group'
-        uses: MetaMask/github-tools/.github/actions/check-skip-merge-queue@v1
+  get_requirements:
+    name: Get workflow and job requirements
+    uses: ./.github/workflows/get-requirements.yml
 
   check-diff:
     name: Check diff
     runs-on: macos-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -81,12 +79,12 @@ jobs:
   dedupe:
     name: Dedupe
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -117,12 +115,12 @@ jobs:
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -146,9 +144,9 @@ jobs:
   scripts:
     name: Run `${{ matrix.scripts }}`
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     strategy:
       matrix:
         scripts:
@@ -159,10 +157,10 @@ jobs:
           - test:depcheck
           - test:tgz-check
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -189,12 +187,15 @@ jobs:
   js-bundle-size-check:
     name: JS bundle size check
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
+    permissions:
+      contents: read
+      statuses: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -214,7 +215,177 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 55
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Baseline is the latest successful ci/ios-js-bundle-size status on
+          # github.event.pull_request.base.sha (GitHub's PR base commit for this run), not git merge-base(head, base).
+          append_job_summary() {
+            if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+              cat >> "$GITHUB_STEP_SUMMARY"
+            fi
+          }
+
+          FILE_PATH='ios/main.jsbundle'
+          CURRENT_MB="$(stat -c %s "$FILE_PATH" | awk '{print $1/1024/1024}')"
+          echo "Current iOS JS bundle: ${CURRENT_MB} MB"
+
+          BASELINE_MB=""
+          BASE_SHA='${{ github.event.pull_request.base.sha }}'
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+
+          if [[ -n "$BASE_SHA" ]]; then
+            echo "Resolving baseline bundle size from ci/ios-js-bundle-size status on base commit ${BASE_SHA}"
+            if ! STATUSES_JSON="$(
+              curl -fsS \
+                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/${BASE_SHA}/status"
+            )"; then
+              echo "::warning::Failed to fetch commit statuses for base ${BASE_SHA}; skipping iOS JS bundle delta check."
+              append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** skipped — could not load [combined status](${REPO_URL}/commit/${BASE_SHA}) for PR base \`${BASE_SHA}\`.
+
+          | | MiB |
+          |---|--:|
+          | Current bundle | ${CURRENT_MB} |
+
+          Baseline would be read from the latest successful \`ci/ios-js-bundle-size\` status description on that base commit (MiB from awk, then an optional trailing semicolon, matching the main-branch post step).
+          EOF
+              exit 0
+            fi
+            DESC="$(
+              echo "$STATUSES_JSON" | jq -r '
+                (.statuses // [])
+                | map(select(.context == "ci/ios-js-bundle-size" and .state == "success"))
+                | sort_by(.updated_at // .created_at)
+                | if length > 0 then .[-1].description else "" end
+              '
+            )"
+            # Status description is "${FILE_SIZE_MB};" from the Post iOS JS bundle size step (awk MiB + ';').
+            # Regex in a variable: ';' in an unquoted [[ =~ ... ]] pattern is parsed as a command separator (shellcheck SC1072).
+            _bundle_desc_re='^[[:space:]]*([0-9]+(\.[0-9]*)?)[[:space:]]*;?[[:space:]]*$'
+            if [[ "$DESC" =~ $_bundle_desc_re ]]; then
+              BASELINE_MB="${BASH_REMATCH[1]}"
+              echo "Baseline from base ref status: ${BASELINE_MB} MB"
+            else
+              echo "::warning::No successful ci/ios-js-bundle-size status (or unrecognized description) on base ${BASE_SHA}; skipping iOS JS bundle delta check."
+              append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** skipped — no parseable \`ci/ios-js-bundle-size\` success status on PR base [\`${BASE_SHA}\`](${REPO_URL}/commit/${BASE_SHA}).
+
+          | | MiB |
+          |---|--:|
+          | Current bundle | ${CURRENT_MB} |
+          | Raw description | \`${DESC:-<empty>}\` |
+
+          EOF
+              exit 0
+            fi
+          else
+            echo "::warning::Pull request base SHA is empty; skipping iOS JS bundle delta check."
+            append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** skipped — \`github.event.pull_request.base.sha\` was empty.
+
+          | | MiB |
+          |---|--:|
+          | Current bundle | ${CURRENT_MB} |
+
+          EOF
+            exit 0
+          fi
+
+          if [[ -z "${BASELINE_MB:-}" ]]; then
+            echo "::warning::Baseline is undefined; skipping iOS JS bundle delta check."
+            append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** skipped — baseline MiB was empty after parsing.
+
+          | | MiB |
+          |---|--:|
+          | Current bundle | ${CURRENT_MB} |
+
+          EOF
+            exit 0
+          fi
+
+          DELTA_MB="$(echo "${CURRENT_MB} - ${BASELINE_MB}" | bc -l)"
+          echo "Delta (current - baseline): ${DELTA_MB} MB"
+          echo "::notice::iOS JS bundle delta vs baseline: ${DELTA_MB} MB (current ${CURRENT_MB} MB, baseline ${BASELINE_MB} MB)"
+          if (( $(echo "${DELTA_MB} > 1" | bc -l) )); then
+            echo "::error::JS bundle exceeds baseline by more than 1 MiB (delta ${DELTA_MB} MiB; current ${CURRENT_MB} MiB, baseline ${BASELINE_MB} MiB)."
+            append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** failed — delta is more than 1 MiB above the status baseline on PR base [\`${BASE_SHA}\`](${REPO_URL}/commit/${BASE_SHA}).
+
+          | | MiB |
+          |---|--:|
+          | PR base commit | — |
+          | Baseline (from status) | ${BASELINE_MB} |
+          | Current bundle | ${CURRENT_MB} |
+          | Delta (current - baseline) | ${DELTA_MB} |
+
+          EOF
+            exit 1
+          fi
+          echo "JS bundle size check passed (delta is one or less)."
+          append_job_summary <<EOF
+          ### iOS JS bundle size (PR)
+
+          **Result:** passed
+
+          | | MiB |
+          |---|--:|
+          | PR base commit | [\`${BASE_SHA}\`](${REPO_URL}/commit/${BASE_SHA}) |
+          | Baseline (from \`ci/ios-js-bundle-size\` status) | ${BASELINE_MB} |
+          | Current bundle | ${CURRENT_MB} |
+          | Delta (current - baseline) | ${DELTA_MB} |
+
+          Fail threshold: more than 1 MiB above baseline. Baseline is **not** from \`git merge-base\`; it is the value posted to the PR base commit by CI.
+
+          EOF
+
+      - name: Post iOS JS bundle size to commit status
+        if: ${{ github.ref == 'refs/heads/main' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE_PATH='ios/main.jsbundle'
+          # Match scripts/js-bundle-stats.sh: GNU stat byte size, MiB via awk
+          FILE_SIZE_MB="$(stat -c %s "$FILE_PATH" | awk '{print $1/1024/1024}')"
+          echo "File size of $FILE_PATH: $FILE_SIZE_MB MB"
+          COMMIT_SHA='${{ github.event.pull_request.head.sha || github.sha }}'
+          TARGET_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          BODY="$(jq -n \
+            --arg state success \
+            --arg context 'ci/ios-js-bundle-size' \
+            --arg desc "${FILE_SIZE_MB};" \
+            --arg target_url "$TARGET_URL" \
+            '{
+              state: $state,
+              context: $context,
+              description: ($desc | if length > 140 then .[0:140] else . end),
+              target_url: $target_url
+            }')"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -d "$BODY"
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
@@ -229,13 +400,31 @@ jobs:
     needs: [js-bundle-size-check]
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download iOS bundle
         uses: actions/download-artifact@v4
         with:
           name: ios-bundle
-          path: ios/main.jsbundle
+          path: ios
+
+      - name: Verify iOS bundle artifact layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -la ios/
+          if [[ ! -f ios/main.jsbundle ]]; then
+            echo "::error::Expected ios/main.jsbundle to be a regular file (artifact layout may be wrong)."
+            exit 1
+          fi
+
+      - name: Report iOS JS bundle size and commit (main)
+        run: |
+          SHORT_SHA="$(git rev-parse --short HEAD)"
+          FILE_PATH='ios/main.jsbundle'
+          MB="$(stat -c %s "$FILE_PATH" | awk '{print $1/1024/1024}')"
+          echo "commit_short=$SHORT_SHA"
+          echo "::notice::iOS JS bundle (main): ${MB} MiB @ ${SHORT_SHA}"
 
       - name: Push bundle size to mobile_bundlesize_stats repo
         run: ./scripts/push-bundle-size.sh
@@ -246,11 +435,11 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download actionlint
         id: download-actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
@@ -262,15 +451,15 @@ jobs:
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -320,8 +509,8 @@ jobs:
     needs: [unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -425,15 +614,15 @@ jobs:
   component-view-tests:
     name: Component view tests
     runs-on: ubuntu-latest
-    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     strategy:
       matrix:
         shard: [1, 2]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -469,15 +658,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  needs_e2e_build:
-    uses: ./.github/workflows/needs-e2e-build.yml
-
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true') && !github.event.pull_request.head.repo.fork }}
+    if: ${{ needs.get_requirements.outputs.run_smart_e2e_selection == 'true' }}
     needs:
-      - check-skip-merge-queue
+      - get_requirements
     continue-on-error: true
     permissions:
       contents: read
@@ -486,14 +672,12 @@ jobs:
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
-      force_run: ${{ steps.e2e-selection.outputs.force_run }}
     steps:
       - name: Checkout for action definition
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
-            .github/scripts/e2e-risk-label.mjs
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
@@ -501,7 +685,6 @@ jobs:
         id: e2e-selection
         uses: ./.github/actions/smart-e2e-selection
         with:
-          event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           openai-api-key: ${{ secrets.E2E_OPENAI_API_KEY }}
           google-api-key: ${{ secrets.E2E_GEMINI_API_KEY }}
@@ -510,23 +693,19 @@ jobs:
           repository: ${{ github.repository }}
           post-comment: 'true'
           base-ref: ${{ github.event.pull_request.base.ref }}
-          is-draft: ${{ github.event.pull_request.draft }}
-
-  # Main E2E tests
 
   build-android-apks:
     name: 'Build Android APKs'
     if: >-
       ${{
-        github.event_name != 'merge_group' &&
-        !github.event.pull_request.head.repo.fork &&
-        (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
+        !cancelled() &&
+        needs.get_requirements.outputs.android_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
@@ -536,14 +715,14 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    needs: [get_requirements, build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -555,73 +734,36 @@ jobs:
     name: 'Build iOS Apps'
     if: >-
       ${{
-        github.event_name != 'merge_group' &&
-        !github.event.pull_request.head.repo.fork &&
-        (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
+        !cancelled() &&
+        needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
-    needs: [needs_e2e_build, build-ios-apps, smart-e2e-selection]
+    if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
+    needs: [build-ios-apps]
     steps:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-    secrets: inherit
-
-  # Flask E2E tests
-
-  e2e-smoke-tests-android-flask:
-    name: 'Android Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
-    with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-    secrets: inherit
-
-  e2e-smoke-tests-ios-flask:
-    name: 'iOS Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-smoke-tests-ios-flask.yml
-    with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -632,11 +774,11 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
@@ -656,7 +798,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download fixture validation results
         continue-on-error: true
@@ -681,10 +823,10 @@ jobs:
     needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
       - uses: actions/download-artifact@v4
@@ -727,7 +869,7 @@ jobs:
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
@@ -837,16 +979,18 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs:
-      - check-skip-merge-queue
+      - get_requirements
       - all-jobs-pass
-      - needs_e2e_build
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
-      - e2e-smoke-tests-android-flask
-      - e2e-smoke-tests-ios-flask
     env:
-      SKIPPED: ${{ needs.check-skip-merge-queue.outputs.skip-merge-queue == 'true' }}
+      SKIPPED: ${{ needs.get_requirements.outputs.skip_everything == 'true' }}
     steps:
+      - name: Block merge while pr-not-ready-for-e2e label is applied
+        if: ${{ needs.get_requirements.outputs.block_merge_for_e2e_readiness == 'true' }}
+        run: |
+          echo "::error::The 'pr-not-ready-for-e2e' label is still applied. Remove it to trigger E2E tests before merging."
+          exit 1
       - run: |
           # If the merge queue was skipped, consider all jobs as passed
           if [[ "$SKIPPED" == "true" ]]; then
@@ -861,7 +1005,7 @@ jobs:
           fi
 
           # Check E2E jobs only if they should have run
-          if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
+          if [[ "${{ needs.get_requirements.outputs.skip_e2e }}" != "true" ]]; then
             # Accept both 'success' and 'skipped' as valid results
             # 'skipped' occurs during merge_group events or when jobs are intentionally skipped
             # Only fail on 'failure' or 'cancelled'
@@ -874,18 +1018,6 @@ jobs:
             IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
             if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
               echo "iOS E2E tests failed (result: $IOS_RESULT)"
-              exit 1
-            fi
-
-            ANDROID_FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
-            if [[ "$ANDROID_FLASK_RESULT" == "failure" ]] || [[ "$ANDROID_FLASK_RESULT" == "cancelled" ]]; then
-              echo "Android Flask E2E tests failed (result: $ANDROID_FLASK_RESULT)"
-              exit 1
-            fi
-
-            IOS_FLASK_RESULT="${{ needs.e2e-smoke-tests-ios-flask.result }}"
-            if [[ "$IOS_FLASK_RESULT" == "failure" ]] || [[ "$IOS_FLASK_RESULT" == "cancelled" ]]; then
-              echo "iOS Flask E2E tests failed (result: $IOS_FLASK_RESULT)"
               exit 1
             fi
           fi

@@ -49,9 +49,10 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 }));
 
 // Mock homepage redesign selector
-jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageRedesignV1Enabled: jest.fn(),
-}));
+jest.mock(
+  '../../../../../selectors/featureFlagController/homepage',
+  () => ({}),
+);
 
 // Mock PerpsConnectionProvider
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
@@ -73,11 +74,26 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   usePerpsStream: jest.fn(() => ({
-    prices: { subscribe: jest.fn(() => jest.fn()) },
-    positions: { subscribe: jest.fn(() => jest.fn()) },
-    orders: { subscribe: jest.fn(() => jest.fn()) },
-    account: { subscribe: jest.fn(() => jest.fn()) },
-    marketData: { subscribe: jest.fn(() => jest.fn()) },
+    prices: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    account: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    marketData: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
   })),
 }));
 
@@ -252,9 +268,6 @@ describe('PerpsTabView', () => {
   const mockSelectPerpsEligibility = jest.requireMock(
     '../../selectors/perpsController',
   ).selectPerpsEligibility;
-  const mockSelectHomepageRedesignV1Enabled = jest.requireMock(
-    '../../../../../selectors/featureFlagController/homepage',
-  ).selectHomepageRedesignV1Enabled;
   const mockSelectSelectedInternalAccountByScope = jest.requireMock(
     '../../../../../selectors/multichainAccounts/accounts',
   ).selectSelectedInternalAccountByScope;
@@ -341,9 +354,6 @@ describe('PerpsTabView', () => {
     (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
-      }
-      if (selector === mockSelectHomepageRedesignV1Enabled) {
-        return false; // Default: V1 disabled
       }
       if (selector === mockSelectSelectedInternalAccountByScope) {
         return () => ({
@@ -749,13 +759,10 @@ describe('PerpsTabView', () => {
     });
   });
 
-  describe('Homepage Redesign V1 Feature', () => {
-    it('renders content without ScrollView when isHomepageRedesignV1Enabled is true', () => {
+  describe('Scroll container behaviour', () => {
+    it('renders content without ScrollView on homepage', () => {
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        if (selector === mockSelectHomepageRedesignV1Enabled) {
           return true;
         }
         if (selector === mockSelectSelectedInternalAccountByScope) {
@@ -783,45 +790,9 @@ describe('PerpsTabView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders content with ScrollView when isHomepageRedesignV1Enabled is false', () => {
+    it('displays explore state when no positions or orders', () => {
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        if (selector === mockSelectHomepageRedesignV1Enabled) {
-          return false;
-        }
-        if (selector === mockSelectSelectedInternalAccountByScope) {
-          return () => ({
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:eoa',
-          });
-        }
-        return undefined;
-      });
-
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [mockPosition],
-        isInitialLoading: false,
-      });
-
-      render(<PerpsTabView />);
-
-      expect(
-        screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.position.title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('displays explore state when homepage redesign is enabled and no positions or orders', () => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        if (selector === mockSelectHomepageRedesignV1Enabled) {
           return true;
         }
         if (selector === mockSelectSelectedInternalAccountByScope) {

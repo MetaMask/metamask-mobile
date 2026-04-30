@@ -13,6 +13,7 @@ let mockCachedUserData: {
   orders: unknown[];
   accountState: AccountState | null;
 } | null = null;
+let mockChannelAccountSnapshot: AccountState | null | undefined;
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -28,6 +29,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     account: {
       subscribe: mockSubscribe,
+      getSnapshot: () => mockChannelAccountSnapshot,
     },
   })),
 }));
@@ -36,6 +38,7 @@ describe('usePerpsLiveAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCachedUserData = null;
+    mockChannelAccountSnapshot = undefined;
   });
 
   describe('default state', () => {
@@ -69,6 +72,28 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('state from PerpsController', () => {
+    it('returns account state from the channel snapshot before controller cache', () => {
+      const mockAccountState: AccountState = {
+        availableBalance: '7000',
+        marginUsed: '500',
+        unrealizedPnl: '25',
+        returnOnEquity: '1.0',
+        totalBalance: '7525',
+      };
+
+      mockChannelAccountSnapshot = mockAccountState;
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current).toEqual({
+        account: mockAccountState,
+        isInitialLoading: false,
+      });
+    });
+
     it('returns account state from PerpsController', () => {
       const mockAccountState: AccountState = {
         availableBalance: '3000',

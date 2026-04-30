@@ -1238,6 +1238,9 @@ export function getDepositNavbarOptions(
     startButtonIconProps,
     closeButtonProps,
     includesTopInset: true,
+    style: {
+      backgroundColor: theme.colors.background.default,
+    },
   });
 }
 
@@ -1443,6 +1446,7 @@ export function getStakingNavbar(
  */
 export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
   return {
+    headerShown: true,
     headerTitle: () => null,
     headerLeft: () => (
       <ButtonIcon

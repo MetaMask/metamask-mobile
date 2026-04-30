@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePredictPositionsForHomepage } from './usePredictPositionsForHomepage';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 

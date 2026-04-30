@@ -7,6 +7,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
@@ -61,7 +62,11 @@ const CampaignsPreview: React.FC = () => {
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.campaigns_preview.title')}
           </Text>
-          <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
         </Box>
       </Pressable>
 

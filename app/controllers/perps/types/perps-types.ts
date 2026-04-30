@@ -137,3 +137,17 @@ export type ExtendedPerpDex = {
   /** ISO timestamp of last fee scale change */
   lastDeployerFeeScaleChangeTime?: string;
 };
+
+/**
+ * Unified DEX discovery state — single source of truth for all perpDexs() derivatives.
+ * Replaces three separate caches (#cachedAllPerpDexs, #cachedValidatedDexs, #perpDexsCache)
+ * to eliminate desync bugs by construction.
+ */
+export type DexDiscoveryState = {
+  /** perpDexs() API response (raw objects with deployerFeeScale etc.) */
+  raw: (ExtendedPerpDex | null)[];
+  /** Feature-flag-filtered DEX names (null = main DEX, strings = HIP-3 DEXs) */
+  validated: (string | null)[];
+  /** When raw was fetched — used for fee-scale TTL checks */
+  timestamp: number;
+};

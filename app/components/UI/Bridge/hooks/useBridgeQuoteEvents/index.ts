@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import {
   selectBridgeControllerState,
   selectBridgeQuotes,
+  selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
@@ -10,6 +11,7 @@ import {
   QuoteWarning,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
+import { useTokenBalanceInUsd } from '../useTokenBalanceInUsd';
 
 /**
  * Hook for publishing the QuotesReceived event.
@@ -35,6 +37,9 @@ export const useBridgeQuoteEvents = ({
   );
   const { activeQuote, recommendedQuote, isLoading } =
     useSelector(selectBridgeQuotes);
+
+  const sourceToken = useSelector(selectSourceToken);
+  const fromTokenBalanceInUsd = useTokenBalanceInUsd(sourceToken ?? undefined);
 
   const warnings = useMemo(() => {
     const latestWarnings: QuoteWarning[] = [];
@@ -65,6 +70,7 @@ export const useBridgeQuoteEvents = ({
           warnings,
           !isSubmitDisabled,
           recommendedQuote,
+          fromTokenBalanceInUsd,
         ),
       );
     }

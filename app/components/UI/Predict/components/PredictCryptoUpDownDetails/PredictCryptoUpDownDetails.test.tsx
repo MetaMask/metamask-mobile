@@ -14,29 +14,23 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('react-native-reanimated', () => {
-  const { ScrollView } = jest.requireActual('react-native');
+  const { ScrollView, View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('react-native-reanimated');
+  // The component uses `import Animated from 'react-native-reanimated'` (default export)
+  // and then accesses `Animated.ScrollView`. The default export must include ScrollView.
+  const MockAnimated = {
+    ...actual.default,
+    ScrollView,
+    View,
+  };
   return {
-    ...jest.requireActual('react-native-reanimated'),
-    Animated: { ScrollView },
+    __esModule: true,
+    ...actual,
+    default: MockAnimated,
     useSharedValue: jest.fn((initialValue: number) => ({
       value: initialValue,
     })),
     useAnimatedScrollHandler: jest.fn(() => jest.fn()),
-  };
-});
-
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: View,
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
   };
 });
 

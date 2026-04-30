@@ -135,6 +135,37 @@ export const PERFORMANCE_CONFIG = {
   // Prevents WS subscription churn during rapid market switching (#28141)
   CandleConnectDebounceMs: 500,
 
+  // Candle WS teardown delay (milliseconds)
+  // When the last subscriber for a cacheKey unsubscribes, wait this long before
+  // tearing down the WS. A subsequent subscribe inside the window cancels the
+  // teardown so rapid back-and-forth switches do not churn the connection.
+  CandleTeardownDelayMs: 150,
+
+  // Perps REST coalesce TTL (milliseconds)
+  //
+  // Window in which identical GET-style REST calls (getOrderFills, getOrders,
+  // getFunding, historicalOrders) share a single in-flight promise / cached
+  // result. `forceRefresh` still bypasses the cache end-to-end (hooks →
+  // controller → MarketDataService → provider → HyperLiquidClientService), so
+  // pull-to-refresh always hits the network.
+  //
+  // Why 60 s: HyperLiquid's documented rate limit is 1200 weight / IP /
+  // rolling 60 s window. Sizing TTL = window length caps each endpoint-per-
+  // account at ≤1 REST hit per window under any UI activity pattern — rapid
+  // market switching, re-mounts (usePerpsMarketFills, usePerpsTransactionHistory),
+  // and multi-tab scans all share a single request. Live fills/orders/prices
+  // still flow via WS subscriptions, so REST is seed/backfill only — cache
+  // staleness inside the 60 s window is never user-visible.
+  PerpsRestCoalesceTtlMs: 60_000,
+
+  // Candle snapshot REST coalesce TTL (milliseconds).
+  // Longer than PerpsRestCoalesceTtlMs because WS stream keeps live candles
+  // fresh — the REST snapshot only seeds the chart on initial subscribe. A
+  // 30 s window lets rapid market switching (pass 1 → pass 2 of a stress
+  // loop) share the same snapshot per (symbol, interval), cutting
+  // candleSnapshot REST weight roughly in half.
+  PerpsCandleCoalesceTtlMs: 30_000,
+
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
@@ -372,3 +403,43 @@ export const PROVIDER_CONFIG = {
   /** Force MYX to testnet only (mainnet credentials not yet available) */
   MYX_TESTNET_ONLY: false,
 } as const;
+
+// Disk-backed cold-start cache keys and throttle interval
+export const PERPS_DISK_CACHE_MARKETS = 'PERPS_DISK_CACHE_MARKETS';
+export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA';
+export const PERPS_DISK_CACHE_THROTTLE_MS = 30_000;
+
+/**
+ * Build the standard provider:network cache key from controller state.
+ *
+ * @param state - Controller state containing provider and network info.
+ * @param state.activeProvider - Active perps provider name.
+ * @param state.isTestnet - Whether testnet mode is active.
+ * @returns Cache key in the format "provider:mainnet" or "provider:testnet".
+ */
+export function getProviderNetworkKey(state: {
+  activeProvider?: string;
+  isTestnet?: boolean;
+}): string {
+  return `${state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider}:${state.isTestnet ? 'testnet' : 'mainnet'}`;
+}
+
+/**
+ * Build a provider:network cache key for a specific provider id.
+ * Accounts for MYX_TESTNET_ONLY: MYX is always on testnet regardless of the
+ * global network flag.
+ *
+ * @param providerId - The provider identifier (e.g. "hyperliquid", "myx").
+ * @param isTestnet - Global testnet flag from controller state.
+ * @returns Cache key in the format "provider:mainnet" or "provider:testnet".
+ */
+export function buildProviderCacheKey(
+  providerId: string,
+  isTestnet: boolean,
+): string {
+  const effectiveTestnet =
+    providerId === 'myx'
+      ? PROVIDER_CONFIG.MYX_TESTNET_ONLY || isTestnet
+      : isTestnet;
+  return `${providerId}:${effectiveTestnet ? 'testnet' : 'mainnet'}`;
+}

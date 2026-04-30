@@ -67,9 +67,11 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
+  GetCryptoTargetPriceParams,
   GetMarketsParams,
   GetPositionsParams,
   GetPriceHistoryParams,
@@ -141,6 +143,7 @@ export type PredictControllerState = {
       transactionId?: string;
       state: ActiveOrderState;
       error?: string;
+      paymentTokenAddress?: string;
     };
   };
 
@@ -354,6 +357,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getActivity',
   'getBalance',
   'getConnectionStatus',
+  'getCryptoTargetPrice',
   'getMarket',
   'getMarketSeries',
   'getMarkets',
@@ -369,6 +373,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'refreshEligibility',
   'selectPaymentToken',
   'setSelectedPaymentToken',
+  'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
   'trackActivityViewed',
@@ -692,6 +697,61 @@ export class PredictController extends BaseController<
     return this.provider.getMarketSeries(params);
   }
 
+  async getCryptoTargetPrice(
+    params: GetCryptoTargetPriceParams & { eventId: string },
+  ): Promise<number | null> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoTargetPrice',
+        trace: {
+          name: TraceName.PredictGetCryptoTargetPrice,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          eventId: params.eventId,
+          symbol: params.symbol,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        updateErrorState: false,
+      },
+      async () => {
+        let price: number | null = null;
+        try {
+          price = (await this.provider.getCryptoTargetPrice?.(params)) ?? null;
+        } catch {
+          // Provider threw — fall through to groupItemThreshold fallback.
+        }
+
+        if (price !== null) {
+          return price;
+        }
+
+        Logger.log(
+          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to groupItemThreshold`,
+        );
+
+        try {
+          const market = await this.provider.getMarketDetails({
+            marketId: params.eventId,
+          });
+          if (!market?.outcomes?.length) {
+            return null;
+          }
+          return market.outcomes[0].groupItemThreshold ?? null;
+        } catch {
+          return null;
+        }
+      },
+    );
+  }
+
   async getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]> {
@@ -962,6 +1022,8 @@ export class PredictController extends BaseController<
             ActiveOrderState.DEPOSITING;
           state.activeBuyOrders[activeOrderAddress].transactionId =
             transactionId;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
+            state.selectedPaymentToken?.address;
         }
       });
 
@@ -1007,9 +1069,17 @@ export class PredictController extends BaseController<
         if (state.activeBuyOrders[activeOrderAddress]) {
           state.activeBuyOrders[activeOrderAddress].state =
             ActiveOrderState.PLACING_ORDER;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
+            state.activeBuyOrders[activeOrderAddress].paymentTokenAddress ??
+            state.selectedPaymentToken?.address;
         }
       });
     }
+
+    const paymentTokenAddress = isBuyWithAnyToken
+      ? (this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenAddress ??
+        this.state.selectedPaymentToken?.address)
+      : undefined;
 
     const startTime = performance.now();
     const { analyticsProperties, preview } = params;
@@ -1054,6 +1124,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         sharePrice,
         orderType: preview.orderType,
+        paymentTokenAddress,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1133,6 +1204,7 @@ export class PredictController extends BaseController<
         completionDuration,
         sharePrice: realSharePrice,
         orderType: preview.orderType,
+        paymentTokenAddress,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1153,6 +1225,7 @@ export class PredictController extends BaseController<
         completionDuration,
         failureReason: errorMessage,
         orderType: preview.orderType,
+        paymentTokenAddress,
       });
 
       // Update error state for Sentry integration
@@ -1548,14 +1621,36 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Subscribes to real-time crypto price updates via RTDS WebSocket.
+   *
+   * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
+   * @param callback - Function invoked when a crypto price update is received
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToCryptoPrices(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToCryptoPrices) {
+      return () => undefined;
+    }
+    return provider.subscribeToCryptoPrices(symbols, callback);
+  }
+
+  /**
    * Gets the current WebSocket connection status for live data feeds.
    *
-   * @returns Connection status for sports and market data WebSocket channels
+   * @returns Connection status for sports, market, and RTDS data WebSocket channels
    */
   public getConnectionStatus(): ConnectionStatus {
     const provider = this.provider;
     if (!provider?.getConnectionStatus) {
-      return { sportsConnected: false, marketConnected: false };
+      return {
+        sportsConnected: false,
+        marketConnected: false,
+        rtdsConnected: false,
+      };
     }
     return provider.getConnectionStatus();
   }
@@ -2063,6 +2158,17 @@ export class PredictController extends BaseController<
         : null;
       const marketId = pendingOrder?.analyticsProperties?.marketId;
       const outcomeTokenId = pendingOrder?.preview?.outcomeTokenId;
+
+      // Track deposit failure analytics with payment token
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        analyticsProperties: pendingOrder?.analyticsProperties,
+        failureReason:
+          transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED,
+        paymentTokenAddress:
+          this.state.activeBuyOrders[address]?.paymentTokenAddress,
+        orderType: pendingOrder?.preview?.orderType,
+      });
 
       const isBackgroundOrder =
         transactionId !== undefined &&

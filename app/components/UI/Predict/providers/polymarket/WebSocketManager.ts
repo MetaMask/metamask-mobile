@@ -1,5 +1,7 @@
 import { AppState, AppStateStatus } from 'react-native';
 import {
+  CryptoPriceUpdate,
+  CryptoPriceUpdateCallback,
   GameUpdate,
   PredictGamePeriod,
   PredictGameStatus,
@@ -14,6 +16,10 @@ const MARKET_WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
 const RECONNECT_DELAY_MS = 3000;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const PING_INTERVAL_MS = 50000;
+
+const RTDS_WS_URL = 'wss://ws-live-data.polymarket.com';
+const RTDS_PING_INTERVAL_MS = 5000;
+const DEFAULT_THROTTLE_INTERVAL_MS = 16;
 
 type GameUpdateCallback = (update: GameUpdate) => void;
 type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
@@ -41,6 +47,17 @@ interface MarketWebSocketEvent {
   timestamp: string;
 }
 
+interface RtdsWebSocketEvent {
+  topic: string;
+  type: string;
+  timestamp: number;
+  payload: {
+    symbol: string;
+    timestamp: number;
+    value: number;
+  };
+}
+
 export class WebSocketManager {
   private static instance: WebSocketManager | null = null;
 
@@ -57,6 +74,17 @@ export class WebSocketManager {
 
   private sportsPingInterval: ReturnType<typeof setInterval> | null = null;
   private marketPingInterval: ReturnType<typeof setInterval> | null = null;
+
+  private rtdsWs: WebSocket | null = null;
+  private cryptoPriceSubscriptions: Map<
+    string,
+    Set<CryptoPriceUpdateCallback>
+  > = new Map();
+  private rtdsReconnectAttempts = 0;
+  private rtdsReconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private rtdsPingInterval: ReturnType<typeof setInterval> | null = null;
+  private cryptoPriceBuffer: Map<string, CryptoPriceUpdate> = new Map();
+  private throttleTimer: ReturnType<typeof setInterval> | null = null;
 
   private appStateSubscription: { remove: () => void } | null = null;
 
@@ -288,6 +316,39 @@ export class WebSocketManager {
     };
   }
 
+  subscribeToCryptoPrices(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void {
+    const subscriptionKey = [...symbols]
+      .sort((a, b) => a.localeCompare(b))
+      .join(',');
+
+    let callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
+    if (!callbacks) {
+      callbacks = new Set();
+      this.cryptoPriceSubscriptions.set(subscriptionKey, callbacks);
+    }
+    callbacks.add(callback);
+
+    this.ensureRtdsConnection();
+
+    return () => {
+      const _callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
+      if (_callbacks) {
+        _callbacks.delete(callback);
+        if (_callbacks.size === 0) {
+          this.cryptoPriceSubscriptions.delete(subscriptionKey);
+          this.sendRtdsUnsubscribe();
+        }
+      }
+
+      if (this.cryptoPriceSubscriptions.size === 0) {
+        this.disconnectRtds();
+      }
+    };
+  }
+
   private ensureMarketConnection(tokenIds: string[]): void {
     if (this.marketWs?.readyState === WebSocket.OPEN) {
       this.sendMarketSubscribe(tokenIds);
@@ -460,9 +521,224 @@ export class WebSocketManager {
     this.marketReconnectAttempts = 0;
   }
 
+  private ensureRtdsConnection(): void {
+    if (this.rtdsWs?.readyState === WebSocket.OPEN) {
+      this.sendRtdsSubscribe();
+      return;
+    }
+    if (this.rtdsWs?.readyState === WebSocket.CONNECTING) {
+      return;
+    }
+
+    this.connectRtds();
+  }
+
+  private connectRtds(): void {
+    this.cleanupRtdsConnection();
+
+    try {
+      this.rtdsWs = new WebSocket(RTDS_WS_URL);
+
+      this.rtdsWs.onopen = () => {
+        this.rtdsReconnectAttempts = 0;
+        this.startRtdsPing();
+        this.resubscribeAllRtds();
+      };
+
+      this.rtdsWs.onclose = () => {
+        this.stopRtdsPing();
+        this.scheduleRtdsReconnect();
+      };
+
+      this.rtdsWs.onerror = () => {
+        // Error will trigger onclose
+      };
+
+      this.rtdsWs.onmessage = this.handleRtdsMessage;
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Failed to connect to RTDS WebSocket', {
+        error,
+      });
+      this.scheduleRtdsReconnect();
+    }
+  }
+
+  private handleRtdsMessage = (event: WebSocketMessageEvent): void => {
+    try {
+      if (event.data === 'pong') {
+        return;
+      }
+
+      const data: RtdsWebSocketEvent = JSON.parse(event.data);
+
+      if (data.topic !== 'crypto_prices' || !data.payload) {
+        return;
+      }
+
+      const update: CryptoPriceUpdate = {
+        symbol: data.payload.symbol,
+        price: data.payload.value,
+        timestamp: data.payload.timestamp,
+      };
+
+      this.cryptoPriceBuffer.set(update.symbol, update);
+      this.ensureThrottleTimer();
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Failed to parse RTDS message', {
+        error,
+      });
+    }
+  };
+
+  private ensureThrottleTimer(): void {
+    if (this.throttleTimer) {
+      return;
+    }
+
+    this.throttleTimer = setInterval(() => {
+      this.flushCryptoPriceBuffer();
+    }, DEFAULT_THROTTLE_INTERVAL_MS);
+  }
+
+  private flushCryptoPriceBuffer(): void {
+    if (this.cryptoPriceBuffer.size === 0) {
+      if (this.throttleTimer) {
+        clearInterval(this.throttleTimer);
+        this.throttleTimer = null;
+      }
+      return;
+    }
+
+    this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
+      const subscribedSymbols = new Set(key.split(','));
+
+      this.cryptoPriceBuffer.forEach((update, symbol) => {
+        if (subscribedSymbols.has(symbol)) {
+          callbacks.forEach((callback) => callback(update));
+        }
+      });
+    });
+
+    this.cryptoPriceBuffer.clear();
+  }
+
+  private sendRtdsSubscribe(): void {
+    if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const msg = JSON.stringify({
+      action: 'subscribe',
+      subscriptions: [
+        {
+          topic: 'crypto_prices',
+          type: 'update',
+        },
+      ],
+    });
+    this.rtdsWs.send(msg);
+  }
+
+  private sendRtdsUnsubscribe(): void {
+    if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    this.rtdsWs.send(
+      JSON.stringify({
+        action: 'unsubscribe',
+        subscriptions: [
+          {
+            topic: 'crypto_prices',
+            type: 'update',
+          },
+        ],
+      }),
+    );
+  }
+
+  private resubscribeAllRtds(): void {
+    const allSymbols = new Set<string>();
+    this.cryptoPriceSubscriptions.forEach((_, key) => {
+      key.split(',').forEach((symbol) => allSymbols.add(symbol));
+    });
+
+    if (allSymbols.size > 0) {
+      this.sendRtdsSubscribe();
+    }
+  }
+
+  private scheduleRtdsReconnect(): void {
+    if (this.cryptoPriceSubscriptions.size === 0) {
+      return;
+    }
+
+    if (this.rtdsReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      return;
+    }
+
+    this.rtdsReconnectAttempts++;
+    const delay = RECONNECT_DELAY_MS * this.rtdsReconnectAttempts;
+
+    this.rtdsReconnectTimeout = setTimeout(() => {
+      this.connectRtds();
+    }, delay);
+  }
+
+  private startRtdsPing(): void {
+    this.rtdsPingInterval = setInterval(() => {
+      if (this.rtdsWs?.readyState === WebSocket.OPEN) {
+        this.rtdsWs.send('ping');
+      }
+    }, RTDS_PING_INTERVAL_MS);
+  }
+
+  private stopRtdsPing(): void {
+    if (this.rtdsPingInterval) {
+      clearInterval(this.rtdsPingInterval);
+      this.rtdsPingInterval = null;
+    }
+  }
+
+  private cleanupRtdsConnection(): void {
+    this.stopRtdsPing();
+
+    if (this.throttleTimer) {
+      clearInterval(this.throttleTimer);
+      this.throttleTimer = null;
+    }
+    this.cryptoPriceBuffer.clear();
+
+    if (this.rtdsReconnectTimeout) {
+      clearTimeout(this.rtdsReconnectTimeout);
+      this.rtdsReconnectTimeout = null;
+    }
+
+    if (this.rtdsWs) {
+      this.rtdsWs.onopen = null;
+      this.rtdsWs.onclose = null;
+      this.rtdsWs.onerror = null;
+      this.rtdsWs.onmessage = null;
+
+      if (
+        this.rtdsWs.readyState === WebSocket.OPEN ||
+        this.rtdsWs.readyState === WebSocket.CONNECTING
+      ) {
+        this.rtdsWs.close();
+      }
+      this.rtdsWs = null;
+    }
+  }
+
+  private disconnectRtds(): void {
+    this.cleanupRtdsConnection();
+    this.rtdsReconnectAttempts = 0;
+  }
+
   private reconnectAll(): void {
     this.sportsReconnectAttempts = 0;
     this.marketReconnectAttempts = 0;
+    this.rtdsReconnectAttempts = 0;
 
     if (this.gameSubscriptions.size > 0) {
       this.connectSports();
@@ -470,17 +746,22 @@ export class WebSocketManager {
     if (this.priceSubscriptions.size > 0) {
       this.connectMarket();
     }
+    if (this.cryptoPriceSubscriptions.size > 0) {
+      this.connectRtds();
+    }
   }
 
   private disconnectAll(): void {
     this.disconnectSports();
     this.disconnectMarket();
+    this.disconnectRtds();
   }
 
   cleanup(): void {
     this.disconnectAll();
     this.gameSubscriptions.clear();
     this.priceSubscriptions.clear();
+    this.cryptoPriceSubscriptions.clear();
 
     if (this.appStateSubscription) {
       this.appStateSubscription.remove();
@@ -491,14 +772,18 @@ export class WebSocketManager {
   getConnectionStatus(): {
     sportsConnected: boolean;
     marketConnected: boolean;
+    rtdsConnected: boolean;
     gameSubscriptionCount: number;
     priceSubscriptionCount: number;
+    cryptoPriceSubscriptionCount: number;
   } {
     return {
       sportsConnected: this.sportsWs?.readyState === WebSocket.OPEN,
       marketConnected: this.marketWs?.readyState === WebSocket.OPEN,
+      rtdsConnected: this.rtdsWs?.readyState === WebSocket.OPEN,
       gameSubscriptionCount: this.gameSubscriptions.size,
       priceSubscriptionCount: this.priceSubscriptions.size,
+      cryptoPriceSubscriptionCount: this.cryptoPriceSubscriptions.size,
     };
   }
 }

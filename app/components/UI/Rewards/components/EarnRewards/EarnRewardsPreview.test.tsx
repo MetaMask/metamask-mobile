@@ -42,7 +42,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.earn_rewards.title': 'Earn rewards',
       'rewards.earn_rewards.musd_title': 'Up to 3% bonus on stables',
       'rewards.earn_rewards.musd_subtitle': 'Calculate your mUSD bonus',
-      'rewards.earn_rewards.card_title': 'Up to 3% cash back',
+      'rewards.earn_rewards.card_title': 'Up to 3% back on spend',
       'rewards.earn_rewards.card_subtitle': 'Get your MetaMask Card now',
       'rewards.earn_rewards.card_subtitle_cardholder':
         'Access your MetaMask Card benefits',
@@ -202,7 +202,7 @@ describe('EarnRewardsPreview', () => {
     it('renders correct text for MetaMask card', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3% cash back')).toBeOnTheScreen();
+      expect(getByText('Up to 3% back on spend')).toBeOnTheScreen();
       expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
     });
   });

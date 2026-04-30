@@ -196,8 +196,8 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('signup-email-error-text')).toBeNull();
-      expect(queryByTestId('signup-password-error-text')).toBeNull();
+      expect(queryByTestId('signup-email-error-text')).not.toBeOnTheScreen();
+      expect(queryByTestId('signup-password-error-text')).not.toBeOnTheScreen();
     });
   });
 
@@ -246,7 +246,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(queryByTestId('signup-email-error-text')).toBeNull();
+        expect(queryByTestId('signup-email-error-text')).not.toBeOnTheScreen();
       });
     });
   });
@@ -311,7 +311,7 @@ describe('SignUp Component', () => {
       ).toBeTruthy();
 
       // Error should not be visible
-      expect(queryByTestId('signup-password-error-text')).toBeNull();
+      expect(queryByTestId('signup-password-error-text')).not.toBeOnTheScreen();
     });
 
     it('shows error message and hides description when password is invalid', async () => {
@@ -334,7 +334,7 @@ describe('SignUp Component', () => {
       // Description should be hidden when error is shown
       expect(
         queryByText('card.card_onboarding.sign_up.password_description'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('shows description again when password becomes valid', async () => {
@@ -363,7 +363,9 @@ describe('SignUp Component', () => {
 
       // Error should be hidden
       await waitFor(() => {
-        expect(queryByTestId('signup-password-error-text')).toBeNull();
+        expect(
+          queryByTestId('signup-password-error-text'),
+        ).not.toBeOnTheScreen();
       });
 
       // Description should be visible again
@@ -466,7 +468,7 @@ describe('SignUp Component', () => {
         getByTestId('signup-country-not-available-text'),
       ).toBeOnTheScreen();
       // Password field hidden in waitlist mode
-      expect(queryByTestId('signup-password-input')).toBeNull();
+      expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
       // GB maps to 'international' location
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });

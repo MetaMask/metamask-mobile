@@ -1,6 +1,4 @@
-import { Device } from 'appwright';
 import TimerStore from './TimerStore';
-import AppwrightSelectors from './AppwrightSelectors';
 
 /** Platform-specific threshold values in milliseconds. */
 export interface PlatformThreshold {
