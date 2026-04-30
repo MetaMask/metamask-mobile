@@ -206,7 +206,10 @@ export const testSpecificMock: TestSpecificMock = async (
 
   await interceptProxyUrl(
     mockServer,
-    (url) => url.includes('getQuote') && url.includes('insufficientBal=false'),
+    (url) =>
+      url.includes('getQuote') &&
+      !url.includes('getQuoteStream') &&
+      url.includes('insufficientBal=false'),
     (url) => url.replace('insufficientBal=false', 'insufficientBal=true'),
   );
 };
