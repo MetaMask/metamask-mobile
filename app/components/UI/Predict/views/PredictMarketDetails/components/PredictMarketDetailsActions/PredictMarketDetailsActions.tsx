@@ -33,7 +33,8 @@ const DEFAULT_PAYOUT_INVESTMENT_AMOUNT = 100;
 const shouldUseStackedActionButtonLabel = (title?: string) =>
   Boolean(title && title.length > LONG_OUTCOME_LABEL_THRESHOLD);
 
-const formatUsdAmount = (value: number) => formatPrice(value, {
+const formatUsdAmount = (value: number) =>
+  formatPrice(value, {
     minimumDecimals: 2,
     maximumDecimals: 2,
   });

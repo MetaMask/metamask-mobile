@@ -146,8 +146,7 @@ jest.mock('../PredictCryptoUpDownChart', () => {
     default: jest.fn(({ market, targetPrice, onCurrentPriceChange }) => (
       <TouchableOpacity
         testID="mock-predict-crypto-up-down-chart"
-        testID-marketId={market.id}
-        testID-targetPrice={targetPrice}
+        accessibilityLabel={`market:${market.id};target:${targetPrice ?? 'none'}`}
         onPress={() => {
           if (typeof mockChartCurrentPrice === 'number') {
             onCurrentPriceChange?.(mockChartCurrentPrice);
@@ -184,6 +183,12 @@ const createMockMarket = (
     },
     ...overrides,
   }) as PredictMarket & { series: PredictSeries };
+
+const getChartMarketId = () => {
+  const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
+  const label = chart.props.accessibilityLabel as string | undefined;
+  return label?.match(/^market:([^;]+)/)?.[1];
+};
 
 describe('PredictCryptoUpDownDetails', () => {
   const mockOnBack = jest.fn();
@@ -393,13 +398,12 @@ describe('PredictCryptoUpDownDetails', () => {
 
     render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
 
-    const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
-    expect(chart.props['testID-marketId']).toBe('market-1');
+    expect(getChartMarketId()).toBe('market-1');
 
     const timeSlot2 = screen.getByTestId('mock-time-slot-market-2');
     fireEvent.press(timeSlot2);
 
-    expect(chart.props['testID-marketId']).toBe('market-2');
+    expect(getChartMarketId()).toBe('market-2');
   });
 
   it('syncs selected market when the market prop changes', () => {
@@ -418,8 +422,7 @@ describe('PredictCryptoUpDownDetails', () => {
       <PredictCryptoUpDownDetails market={nextMarket} onBack={mockOnBack} />,
     );
 
-    const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
-    expect(chart.props['testID-marketId']).toBe('market-3');
+    expect(getChartMarketId()).toBe('market-3');
   });
 
   it('auto-advances to the live market slot when the initial market has already ended', () => {
@@ -437,9 +440,8 @@ describe('PredictCryptoUpDownDetails', () => {
       <PredictCryptoUpDownDetails market={expiredMarket} onBack={mockOnBack} />,
     );
 
-    const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
     // findLiveMarket picks market-1 (closest future endDate from epoch 123)
-    expect(chart.props['testID-marketId']).toBe('market-1');
+    expect(getChartMarketId()).toBe('market-1');
   });
 
   it('auto-advances to the live market when an expired slot is selected', () => {
@@ -458,7 +460,6 @@ describe('PredictCryptoUpDownDetails', () => {
 
     fireEvent.press(screen.getByTestId('mock-time-slot-expired-market'));
 
-    const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
-    expect(chart.props['testID-marketId']).toBe('live-market');
+    expect(getChartMarketId()).toBe('live-market');
   });
 });
