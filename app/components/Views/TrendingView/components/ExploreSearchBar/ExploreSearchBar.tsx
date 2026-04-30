@@ -17,6 +17,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 
 interface ExploreSearchBarButtonProps {
   type: 'button';
@@ -83,7 +84,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
         </TouchableOpacity>
       ) : (
         <>
-          <Box twClassName="flex-1" testID="explore-view-search-input">
+          <Box twClassName="flex-1">
             <TextFieldSearch
               value={props.searchQuery}
               onChangeText={props.onSearchChange}
@@ -95,6 +96,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               clearButtonProps={{ testID: 'explore-search-clear-button' }}
               inputProps={{
                 autoCapitalize: 'none',
+                testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT,
               }}
             />
           </Box>
