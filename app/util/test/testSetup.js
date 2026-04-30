@@ -40,6 +40,26 @@ Keyboard.addListener = patchedAddListener;
 // Mock the redux-devtools-expo-dev-plugin module
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
 
+// Mock expo-modules-core: globalThis.expo.EventEmitter is not available in Jest
+// because the native module installer doesn't run. Provide a minimal stub so
+// that expo-file-system and other Expo packages can be imported.
+jest.mock('expo-modules-core', () => ({
+  EventEmitter: jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+    emit: jest.fn(),
+  })),
+  NativeModule: jest.fn(),
+  NativeModulesProxy: {},
+  requireNativeModule: jest.fn(() => ({})),
+  requireOptionalNativeModule: jest.fn(() => null),
+  Platform: { OS: 'ios' },
+  CodedError: class CodedError extends Error {},
+  UnavailabilityError: class UnavailabilityError extends Error {},
+  LegacyEventEmitter: jest.fn(),
+}));
+
 // Mock Expo's fetch implementation
 jest.mock('expo/fetch', () => {
   return {
