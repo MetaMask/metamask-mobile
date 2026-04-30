@@ -64,7 +64,7 @@ describe(
           await device.sendToHome();
           // eslint-disable-next-line no-restricted-syntax
           // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
-          await new Promise((r) => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 10000));
           await device.launchApp({
             newInstance: false,
             url: SWAP_DEEPLINK_FULL,
@@ -127,7 +127,7 @@ describe(
           await device.sendToHome();
           // eslint-disable-next-line no-restricted-syntax
           // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
-          await new Promise((r) => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 10000));
           await device.launchApp({
             newInstance: false,
             url: SWAP_DEEPLINK_BASE,
@@ -185,7 +185,7 @@ describe(
           await device.sendToHome();
           // eslint-disable-next-line no-restricted-syntax
           // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
-          await new Promise((r) => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 10000));
           await device.launchApp({
             newInstance: false,
             url: invalidDeeplink,
