@@ -364,6 +364,13 @@ export class HyperLiquidProvider implements PerpsProvider {
   // caller retries DEX discovery instead of reusing a degraded mapping.
   #dexDiscoveryComplete = false;
 
+  // True when the most recent #ensureUnifiedAccountEnabled run ended in a
+  // transient state that warrants retry (silent agent-key failure, REST
+  // userAbstraction lookup failure, or keyring locked). #ensureReady resets
+  // its memoized promise when this is set so the next entry retries the
+  // migration instead of returning the cached resolved promise.
+  #unifiedAccountSetupNeedsRetry = false;
+
   // Pending promise to deduplicate concurrent getValidatedDexs() calls
   #pendingValidatedDexsPromise: Promise<(string | null)[]> | null = null;
 
@@ -599,6 +606,13 @@ export class HyperLiquidProvider implements PerpsProvider {
     // the user actually intends to act.
     const allowUserSigning = options?.allowUserSigning ?? false;
 
+    // Optimistic reset — set true below only at the failure points that
+    // warrant retry (silent agent failure, REST lookup failure, keyring
+    // locked). Final-state outcomes (success, prompted-failure cached,
+    // already-on-compatible, defer, unknown mode, feature off) leave it
+    // false so #ensureReady can keep the memoized promise.
+    this.#unifiedAccountSetupNeedsRetry = false;
+
     if (!this.#useUnifiedAccount) {
       return; // Feature disabled
     }
@@ -799,6 +813,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         this.#deps.debugLogger.log(
           '[ensureUnifiedAccountEnabled] Keyring locked, will retry later',
         );
+        this.#unifiedAccountSetupNeedsRetry = true;
         completeInFlight();
         return;
       }
@@ -818,6 +833,13 @@ export class HyperLiquidProvider implements PerpsProvider {
           attempted: true,
           enabled: false,
         });
+      } else {
+        // Silent agent-key failure (default/disabled) or read-only
+        // userAbstraction lookup failure — neither is a final state, so
+        // signal #ensureReady to drop its memoized promise and retry on
+        // the next entry instead of pinning the user in the deprecated
+        // mode for the provider's lifetime.
+        this.#unifiedAccountSetupNeedsRetry = true;
       }
 
       const errorMessage = ensureError(
@@ -910,6 +932,12 @@ export class HyperLiquidProvider implements PerpsProvider {
       // DEX discovery failed transiently — reset so next call retries.
       // Trading still works (main DEX mapping is populated), but HIP-3 markets
       // will be re-discovered on the next #ensureReady() call.
+      this.#ensureReadyPromise = null;
+    } else if (this.#unifiedAccountSetupNeedsRetry) {
+      // Silent migration / lookup / keyring-locked failure left the cache
+      // empty. Without resetting the memoized promise, subsequent
+      // #ensureReady calls would skip retry and the user would be stuck
+      // in the deprecated mode for the provider's lifetime.
       this.#ensureReadyPromise = null;
     }
     this.#deps.debugLogger.log('[ensureReady] Initialization complete');

@@ -9112,6 +9112,48 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
+    it('retries migration on the next #ensureReady after a silent agent failure', async () => {
+      // Without resetting #ensureReadyPromise on the silent-failure path,
+      // a transient agentSetAbstraction blip during the first Perps section
+      // open would pin the user in the deprecated mode for the entire
+      // provider lifetime — every subsequent #ensureReady would just return
+      // the memoized resolved promise and skip the migration.
+      const userAbstractionMock = jest.fn().mockResolvedValue('default');
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: userAbstractionMock,
+        }),
+      );
+      const agentSetAbstractionMock = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Transient HL network blip'))
+        .mockResolvedValueOnce({ status: 'ok' });
+      const exchangeClient = createMockExchangeClient();
+      exchangeClient.agentSetAbstraction = agentSetAbstractionMock;
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+
+      // First entry: migration fails silently, no cache write.
+      await provider.getMarketDataWithPrices();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+      expect(agentSetAbstractionMock).toHaveBeenCalledTimes(1);
+
+      // Second entry: must re-run the migration because #ensureReadyPromise
+      // was reset on the silent-failure exit. agentSetAbstraction succeeds
+      // this time → cache attempted/enabled → no further retries.
+      await provider.getMarketDataWithPrices();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(2);
+      expect(agentSetAbstractionMock).toHaveBeenCalledTimes(2);
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: true,
+      });
+    });
+
     it("caches failure when user-signed userSetAbstraction throws (don't re-prompt rejected users)", async () => {
       // The dexAbstraction → unifiedAccount migration goes through
       // userSetAbstraction which surfaces an EIP-712 signing dialog. Once
