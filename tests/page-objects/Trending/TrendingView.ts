@@ -23,7 +23,19 @@ class TrendingView {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
+  /**
+   * Native target for typing — DS `TextFieldSearch` applies `testID` on the `TextField`
+   * pressable (`textfieldsearch`), not on the outer `Box` (`explore-view-search-input`).
+   * iOS: that id is used directly. Android: `replaceText` must hit `EditText`, so we match
+   * `android.widget.EditText` under the same ancestor (see LoginView passwordInput).
+   */
   get searchInput(): DetoxElement {
+    return Matchers.getEditTextWithAncestorTestId(
+      TrendingViewSelectorsIDs.SEARCH_TEXT_FIELD,
+    );
+  }
+
+  get searchInputContainer(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
   }
 
@@ -142,6 +154,7 @@ class TrendingView {
    */
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
+      Trending: 'tokens',
       'Trending tokens': 'tokens',
       Stocks: 'stocks',
       Sites: 'sites',

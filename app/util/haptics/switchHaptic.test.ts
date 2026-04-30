@@ -13,6 +13,10 @@ jest.mock('expo-haptics', () => ({
 
 const mockImpactAsync = impactAsync as jest.MockedFunction<typeof impactAsync>;
 
+function getPlayModule() {
+  return jest.requireActual<typeof import('./play')>('./play');
+}
+
 describe('fireSwitchHaptic', () => {
   const originalPlatform = Platform.OS;
 
@@ -47,6 +51,34 @@ describe('fireSwitchHaptic', () => {
 
       expect(mockImpactAsync).toHaveBeenCalledTimes(1);
       expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
+    it('skips impactAsync when reduced haptics gate blocks playback', () => {
+      const spy = jest
+        .spyOn(getPlayModule(), 'getHapticGateOptions')
+        .mockReturnValue({
+          reducedHaptics: true,
+          killSwitchActive: false,
+        });
+
+      fireSwitchHaptic(ImpactFeedbackStyle.Light);
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it('skips impactAsync when remote kill switch gate blocks playback', () => {
+      const spy = jest
+        .spyOn(getPlayModule(), 'getHapticGateOptions')
+        .mockReturnValue({
+          reducedHaptics: false,
+          killSwitchActive: true,
+        });
+
+      fireSwitchHaptic(ImpactFeedbackStyle.Light);
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      spy.mockRestore();
     });
   });
 

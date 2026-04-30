@@ -24,6 +24,7 @@ import {
 
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
+const ARBITRUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0xa4b1');
 
 export function getKeypadKeyTestId(key: string): string {
   return key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
@@ -224,17 +225,25 @@ class TransactionPayConfirmation {
   getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(tokenSymbol, 0),
-      appium: () => PlaywrightMatchers.getElementByCatchAll(tokenSymbol),
+      appium: () =>
+        PlaywrightMatchers.getElementByXPath(
+          `//*[@resource-id='${tokenSymbol}' or contains(@text,'${tokenSymbol}') or contains(@content-desc,'${tokenSymbol}')]/*[@resource-id='badgenetwork']`,
+        ),
     });
   }
 
   getNetworkFilter(networkName: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(networkName),
-      appium: () =>
-        PlaywrightMatchers.getElementById(ETHEREUM_NETWORK_FILTER_TEST_ID, {
+      appium: () => {
+        const networkFilter =
+          networkName === 'Ethereum'
+            ? ETHEREUM_NETWORK_FILTER_TEST_ID
+            : ARBITRUM_NETWORK_FILTER_TEST_ID;
+        return PlaywrightMatchers.getElementById(networkFilter, {
           exact: true,
-        }),
+        });
+      },
     });
   }
 
@@ -297,25 +306,24 @@ class TransactionPayConfirmation {
     });
   }
 
-  async tapEthereumFilter(): Promise<void> {
-    const ethereumFilter = this.getNetworkFilter('Ethereum');
-
+  async tapByNetworkFilter(networkName: string): Promise<void> {
+    const networkFilter = this.getNetworkFilter(networkName);
     await encapsulatedAction({
       detox: async () => {
-        await Assertions.expectElementToBeVisible(ethereumFilter, {
+        await Assertions.expectElementToBeVisible(networkFilter, {
           description: 'Ethereum filter should be visible',
           timeout: 15000,
         });
 
-        await UnifiedGestures.waitAndTap(ethereumFilter, {
+        await UnifiedGestures.waitAndTap(networkFilter, {
           description: 'Ethereum Filter',
         });
       },
       appium: async () => {
-        const resolvedFilter = await asPlaywrightElement(ethereumFilter);
+        const resolvedFilter = await asPlaywrightElement(networkFilter);
         await PlaywrightAssertions.expectElementToBeVisible(resolvedFilter, {
           timeout: 15000,
-          description: 'Ethereum filter should be visible',
+          description: 'Network filter should be visible',
         });
 
         if (await PlatformDetector.isIOS()) {

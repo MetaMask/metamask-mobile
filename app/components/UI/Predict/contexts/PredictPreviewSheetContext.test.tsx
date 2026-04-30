@@ -13,6 +13,16 @@ import type {
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockTrackBetslipDismissed = jest.fn();
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackBetslipDismissed: (...args: unknown[]) =>
+        mockTrackBetslipDismissed(...args),
+    },
+  },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
@@ -109,6 +119,9 @@ jest.mock('../views/PredictBuyPreview/PredictBuyPreview', () => {
     default: (props: Record<string, unknown>) => (
       <RNView testID="buy-preview" {...props} />
     ),
+    predictBuyPreviewDismissedViaBackRef: { current: false },
+    predictBuyPreviewOrderInitiatedRef: { current: false },
+    predictBuyPreviewSessionRef: { mountTimestamp: 0, hadEnteredAmount: false },
   };
 });
 
