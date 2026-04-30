@@ -21,11 +21,9 @@ import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { FlashListAssetKey } from '../TokenList';
 import {
-  selectIsMusdConversionFlowEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -218,11 +216,6 @@ export const TokenListItem = React.memo(
       selectMusdQuickConvertEnabledFlag,
     );
 
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
-
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
@@ -236,8 +229,6 @@ export const TokenListItem = React.memo(
     );
 
     const isMusdAsset = !!asset && isMusdToken(asset.address);
-    const isMusdSurfaceEnabled =
-      isMusdAsset && isMusdConversionFlowEnabled && isMusdGeoEligible;
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -659,93 +650,64 @@ export const TokenListItem = React.memo(
             justifyContent={BoxJustifyContent.Between}
             twClassName="gap-2.5"
           >
-            {isMusdSurfaceEnabled && shouldShowConvertToMusdCta ? (
-              <>
-                <Box twClassName="shrink min-w-0">
-                  <SensitiveText
-                    variant={CLTextVariant.BodySMMedium}
-                    color={CLTextColor.Alternative}
-                    length={SensitiveTextLength.Short}
-                    isHidden={privacyMode}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {tokenBalance}
-                  </SensitiveText>
-                </Box>
+            {/* Token price and percentage change */}
+            <View style={styles.percentageChange}>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="uppercase"
+              >
+                {tokenPriceInFiat && !hideFiatForScamWarning
+                  ? formatPriceWithSubscriptNotation(
+                      tokenPriceInFiat,
+                      currentCurrency,
+                    )
+                  : '-'}
+                {' \u2022 '}
+              </Text>
 
-                <SensitiveText
-                  variant={CLTextVariant.BodySMMedium}
-                  color={secondaryBalanceDisplay.color}
-                  isHidden={false}
-                  length={SensitiveTextLength.Short}
-                  testID={SECONDARY_BALANCE_TEST_ID}
+              {hideFiatForScamWarning ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  twClassName="uppercase"
                 >
-                  {secondaryBalanceDisplay.text}
-                </SensitiveText>
-              </>
-            ) : (
-              <>
-                {/* Token price and percentage change */}
-                <View style={styles.percentageChange}>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                    twClassName="uppercase"
-                  >
-                    {tokenPriceInFiat && !hideFiatForScamWarning
-                      ? formatPriceWithSubscriptNotation(
-                          tokenPriceInFiat,
-                          currentCurrency,
-                        )
-                      : '-'}
-                    {' \u2022 '}
-                  </Text>
-
-                  {hideFiatForScamWarning ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="uppercase"
-                    >
-                      {'-'}
-                    </Text>
-                  ) : (
-                    <TouchableOpacity
-                      disabled={!secondaryBalanceDisplay.onPress}
-                      onPress={secondaryBalanceDisplay.onPress}
-                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                    >
-                      <SensitiveText
-                        variant={CLTextVariant.BodySMMedium}
-                        color={secondaryBalanceDisplay.color}
-                        isHidden={false}
-                        length={SensitiveTextLength.Short}
-                        testID={SECONDARY_BALANCE_TEST_ID}
-                      >
-                        {secondaryBalanceDisplay.text || '-'}
-                      </SensitiveText>
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                {/* Token balance */}
-                <Box twClassName="shrink">
+                  {'-'}
+                </Text>
+              ) : (
+                <TouchableOpacity
+                  disabled={!secondaryBalanceDisplay.onPress}
+                  onPress={secondaryBalanceDisplay.onPress}
+                  testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                >
                   <SensitiveText
                     variant={CLTextVariant.BodySMMedium}
-                    style={styles.secondaryBalance}
+                    color={secondaryBalanceDisplay.color}
+                    isHidden={false}
                     length={SensitiveTextLength.Short}
-                    isHidden={privacyMode}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
+                    testID={SECONDARY_BALANCE_TEST_ID}
                   >
-                    {tokenBalance}
+                    {secondaryBalanceDisplay.text || '-'}
                   </SensitiveText>
-                </Box>
-              </>
-            )}
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Token balance */}
+            <Box twClassName="shrink">
+              <SensitiveText
+                variant={CLTextVariant.BodySMMedium}
+                style={styles.secondaryBalance}
+                length={SensitiveTextLength.Short}
+                isHidden={privacyMode}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {tokenBalance}
+              </SensitiveText>
+            </Box>
           </Box>
         </Box>
       </TouchableOpacity>

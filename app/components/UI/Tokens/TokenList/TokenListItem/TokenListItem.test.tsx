@@ -65,11 +65,13 @@ jest.mock('../../../shared/StockBadge', () => {
   };
 });
 
+const mockNavigate = jest.fn();
+
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
   }),
 }));
 
@@ -1258,6 +1260,25 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
       expect(getByText('Test Token')).toBeOnTheScreen();
+    });
+
+    it('navigates to Asset details when the compact mUSD row is pressed', () => {
+      prepareMocks({ asset: musdAsset });
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={musdAssetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+          hideSecondaryPriceRow
+        />,
+      );
+      fireEvent.press(getByText('MetaMask USD'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({ symbol: 'mUSD' }),
+      );
     });
   });
 
