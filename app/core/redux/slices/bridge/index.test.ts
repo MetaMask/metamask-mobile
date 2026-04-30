@@ -8,6 +8,7 @@ import reducer, {
   setSlippage,
   setBridgeViewMode,
   selectBridgeViewMode,
+  setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
   selectIsDestTokenManuallySet,
@@ -52,6 +53,15 @@ describe('bridge slice', () => {
     name: 'USDC',
     balance: '100',
     balanceFiat: '100',
+  };
+
+  const polygonNativeToken: BridgeToken = {
+    address: '0x0000000000000000000000000000000000001010',
+    symbol: 'POL',
+    decimals: 18,
+    image: '',
+    chainId: '0x89' as Hex,
+    name: 'POL',
   };
 
   describe('initial state', () => {
@@ -187,6 +197,14 @@ describe('bridge slice', () => {
   });
 
   describe('setDestToken', () => {
+    it('normalizes Polygon native token address', () => {
+      const state = reducer(initialState, setDestToken(polygonNativeToken));
+
+      expect(state.destToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
     it('sets the destination token and updates selectedDestChainId', () => {
       const action = setDestToken(mockDestToken);
       const state = reducer(initialState, action);
@@ -205,6 +223,16 @@ describe('bridge slice', () => {
       const state = reducer(stateWithManualFlag, action);
 
       expect(state.isDestTokenManuallySet).toBe(true);
+    });
+  });
+
+  describe('setSourceToken', () => {
+    it('normalizes Polygon native token address', () => {
+      const state = reducer(initialState, setSourceToken(polygonNativeToken));
+
+      expect(state.sourceToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
     });
   });
 
