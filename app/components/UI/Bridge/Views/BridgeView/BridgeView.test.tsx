@@ -13,7 +13,7 @@ import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
 import {
   RequestStatus,
   type QuoteResponse,
@@ -22,7 +22,6 @@ import {
   TokenFeatureType,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
-import { SecurityDataType } from '../../hooks/usePopularTokens';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';

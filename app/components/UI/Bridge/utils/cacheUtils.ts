@@ -24,7 +24,8 @@ export const isCacheValid = (entry: CacheEntry): boolean => {
  */
 export const getMinimalIncludedAssets = (
   includeAssets: IncludeAsset[],
-): string => includeAssets.map(({ assetId }) => assetId.toLowerCase()).join(',');
+): string =>
+  includeAssets.map(({ assetId }) => assetId.toLowerCase()).join(',');
 
 /**
  * Generates a cache key from request parameters

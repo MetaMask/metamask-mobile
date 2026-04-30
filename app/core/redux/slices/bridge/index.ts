@@ -185,11 +185,11 @@ const slice = createSlice({
       state.selectedDestChainId = action.payload;
     },
     resetBridgeState: (state) => ({
-        ...initialState,
-        // Preserve the cache and last cleanup time when resetting the bridge state
-        popularTokensCache: state.popularTokensCache,
-        lastCleanupTime: state.lastCleanupTime,
-      }),
+      ...initialState,
+      // Preserve the cache and last cleanup time when resetting the bridge state
+      popularTokensCache: state.popularTokensCache,
+      lastCleanupTime: state.lastCleanupTime,
+    }),
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = normalizeBridgeToken(action.payload);
     },

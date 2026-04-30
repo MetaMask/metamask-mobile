@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Text as RNText } from 'react-native';
 import { TokenSelectorItem, getSecurityTag } from './TokenSelectorItem';
-import { SecurityDataType } from '../hooks/usePopularTokens';
+import { SecurityDataType } from '../types';
 import { ethers } from 'ethers';
 import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';

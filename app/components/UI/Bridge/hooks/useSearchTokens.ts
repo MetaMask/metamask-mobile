@@ -185,18 +185,22 @@ export const useSearchTokens = ({
 
   // Create debounced search function
   // Only triggers search when query meets minimum length requirement
-  const debouncedSearch = useMemo(() => debounce((query: string) => {
-      setSearchResults([]);
-      const queryLength = query.trim().length;
-      // Only search if query meets minimum length
-      if (queryLength >= MIN_SEARCH_LENGTH) {
-        searchTokens(query);
-      } else if (queryLength === 0) {
-        // Reset search if query is empty
-        resetSearch();
-      }
-      // If query is below minimum length but not empty, do nothing (don't search or reset)
-    }, 300), [searchTokens, resetSearch]);
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        setSearchResults([]);
+        const queryLength = query.trim().length;
+        // Only search if query meets minimum length
+        if (queryLength >= MIN_SEARCH_LENGTH) {
+          searchTokens(query);
+        } else if (queryLength === 0) {
+          // Reset search if query is empty
+          resetSearch();
+        }
+        // If query is below minimum length but not empty, do nothing (don't search or reset)
+      }, 300),
+    [searchTokens, resetSearch],
+  );
 
   // Cleanup debounce on unmount
   useEffect(
