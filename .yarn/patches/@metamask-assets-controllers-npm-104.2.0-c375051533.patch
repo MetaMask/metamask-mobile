@@ -1,5 +1,5 @@
 diff --git a/dist/MultichainAssetsController/MultichainAssetsController.cjs b/dist/MultichainAssetsController/MultichainAssetsController.cjs
-index 0f74ce9c3200043c7c8fd121218e41790c55cc0e..ed29a2f1778db752698a9ae384c61d1b36e1db22 100644
+index 0f74ce9c3200043c7c8fd121218e41790c55cc0e..ee449c44281ae3dd37e73ea0e9cc0b8ee18dea0e 100644
 --- a/dist/MultichainAssetsController/MultichainAssetsController.cjs
 +++ b/dist/MultichainAssetsController/MultichainAssetsController.cjs
 @@ -493,7 +493,7 @@ async function _MultichainAssetsController_getAssetsMetadataFrom(assets, snapId)
@@ -28,9 +28,8 @@ index 0f74ce9c3200043c7c8fd121218e41790c55cc0e..ed29a2f1778db752698a9ae384c61d1b
                  const scanned = outcome.response[entry.address];
 +                // Reject only if we have a definitive malicious result
                  if (scanned?.result_type &&
--                    scanned.result_type !== phishing_controller_1.TokenScanResultType.Malicious) {
+                     scanned.result_type !== phishing_controller_1.TokenScanResultType.Malicious) {
 -                    keptTokenAssets.add(entry.asset);
-+                    scanned.result_type === phishing_controller_1.TokenScanResultType.Malicious) {
 +                    rejectedAssets.add(entry.asset);
                  }
              }
