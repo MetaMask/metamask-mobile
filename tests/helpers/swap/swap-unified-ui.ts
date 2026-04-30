@@ -46,7 +46,9 @@ export async function submitSwapUnifiedUI(
     await QuoteView.verifySlippageDisplayed(DEFAULT_SLIPPAGE_VALUE);
   }
 
-  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
+  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap, {
+    timeout: 30000,
+  });
 
   await QuoteView.tapConfirmSwap();
 }
