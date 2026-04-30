@@ -3874,6 +3874,65 @@ describe('HyperLiquidSubscriptionService', () => {
     });
   });
 
+  describe('userAbstraction fetch failure handling', () => {
+    it('does not seal the spot cache when userAbstraction fails, so the next refresh retries', async () => {
+      // Without this guard, a transient userAbstraction failure leaves
+      // #cachedSpotStateUserAddress set, the early-return in #ensureSpotState
+      // takes the fast path forever, and Standard / dexAbstraction users
+      // keep seeing spot folded into availableToTradeBalance via the
+      // fail-open Unified default.
+      const userAbstractionMock = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('transient HL outage'))
+        .mockResolvedValueOnce('dexAbstraction');
+
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction: userAbstractionMock,
+      })) as never;
+
+      const unsub1 = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      // Second subscribe (same user) must trigger another refresh because
+      // the prior failure left the cache unsealed.
+      const unsub2 = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(2);
+
+      unsub1();
+      unsub2();
+    });
+
+    it('seals the cache normally once a prior abstraction mode has been resolved', async () => {
+      // Sanity check: when userAbstraction has already resolved successfully,
+      // a subsequent refresh failure must not force pointless retries.
+      const userAbstractionMock = jest
+        .fn()
+        .mockResolvedValueOnce('dexAbstraction')
+        .mockRejectedValueOnce(new Error('transient HL outage'));
+
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction: userAbstractionMock,
+      })) as never;
+
+      const unsub1 = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      // Subsequent subscribe takes the early-return path; the second mock
+      // entry (the rejection) is never consumed.
+      const unsub2 = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      unsub1();
+      unsub2();
+    });
+  });
+
   describe('spot-adjusted account balance parity', () => {
     it('includes spot balance exactly once in streamed totalBalance across multiple DEXs', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({

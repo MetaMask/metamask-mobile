@@ -1162,7 +1162,14 @@ export class HyperLiquidSubscriptionService {
       }
 
       this.#cachedSpotState = spotResult.value;
-      this.#cachedSpotStateUserAddress = userAddress;
+      // Only seal the cache for this user if we have a resolved abstraction
+      // mode. Without it, the fail-open Unified default would fold spot for
+      // Standard / dexAbstraction users indefinitely after a transient
+      // userAbstraction failure. Leaving #cachedSpotStateUserAddress unset
+      // forces the next #ensureSpotState() to re-run both fetches.
+      if (this.#abstractionModeByUser.has(userAddress.toLowerCase())) {
+        this.#cachedSpotStateUserAddress = userAddress;
+      }
 
       if (this.#dexAccountCache.size > 0) {
         this.#aggregateAndNotifySubscribers();
