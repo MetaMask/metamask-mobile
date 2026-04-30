@@ -8,7 +8,8 @@ export type SocialEndpoint =
   | 'leaderboard'
   | 'following'
   | 'open_positions'
-  | 'closed_positions';
+  | 'closed_positions'
+  | 'position_by_id';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.

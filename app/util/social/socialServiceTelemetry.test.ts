@@ -255,6 +255,7 @@ describe('addSocialBreadcrumb', () => {
       'following',
       'open_positions',
       'closed_positions',
+      'position_by_id',
     ];
     endpoints.forEach((endpoint) => {
       mockAddBreadcrumb.mockClear();
