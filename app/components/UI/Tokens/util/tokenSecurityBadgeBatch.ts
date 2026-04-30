@@ -5,15 +5,13 @@ import {
 import type { CaipAssetType } from '@metamask/utils';
 
 export function normalizeCaipAssetIdForTokenApi(
-  assetId: string,
+  assetId: CaipAssetType,
 ): CaipAssetType {
-  const match = /^eip155:(\d+)\/erc20:(0x[0-9a-fA-F]{40})$/.exec(
-    String(assetId),
-  );
+  const match = /^eip155:(\d+)\/erc20:(0x[0-9a-fA-F]{40})$/.exec(assetId);
   if (match) {
-    return `eip155:${match[1]}/erc20:${match[2].toLowerCase()}` as CaipAssetType;
+    return `eip155:${match[1]}/erc20:${match[2].toLowerCase()}`;
   }
-  return assetId as CaipAssetType;
+  return assetId;
 }
 
 interface Waiter {
@@ -76,7 +74,7 @@ async function flush() {
         });
         for (const a of assets) {
           byAssetId.set(
-            normalizeCaipAssetIdForTokenApi(String(a.assetId)),
+            normalizeCaipAssetIdForTokenApi(a.assetId),
             a.securityData ?? null,
           );
         }
@@ -84,9 +82,7 @@ async function flush() {
         // Fail-open per chunk so large flushes still get partial data.
       }
     }
-    resolveAll(
-      (id) => byAssetId.get(normalizeCaipAssetIdForTokenApi(id)) ?? null,
-    );
+    resolveAll((id) => byAssetId.get(id) ?? null);
   } catch {
     resolveAll(() => null);
   }
@@ -101,9 +97,10 @@ export function requestTokenSecurityForAsset(
   assetId: CaipAssetType,
 ): Promise<TokenSecurityData | null> {
   return new Promise((resolve) => {
-    const list = waitersByAsset.get(assetId) ?? [];
+    const key = normalizeCaipAssetIdForTokenApi(assetId);
+    const list = waitersByAsset.get(key) ?? [];
     list.push({ resolve });
-    waitersByAsset.set(assetId, list);
+    waitersByAsset.set(key, list);
     scheduleFlush();
   });
 }

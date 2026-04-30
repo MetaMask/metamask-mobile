@@ -63,7 +63,7 @@ describe('normalizeCaipAssetIdForTokenApi', () => {
   });
 
   it('returns the original string when the erc20 pattern does not match', () => {
-    const opaque = 'not-a-caip-id';
+    const opaque = 'not-a-caip-id' as CaipAssetType;
 
     const result = normalizeCaipAssetIdForTokenApi(opaque);
 
@@ -90,9 +90,29 @@ describe('requestTokenSecurityForAsset', () => {
 
     await expect(p).resolves.toEqual({ resultType: 'Verified' });
 
-    expect(mockFetchTokenAssets).toHaveBeenCalledWith([USDC_MIXED], {
+    expect(mockFetchTokenAssets).toHaveBeenCalledWith([USDC_LOWER], {
       includeTokenSecurityData: true,
     });
+  });
+
+  it('deduplicates erc-20 ids that differ only by address casing into one fetch', async () => {
+    mockFetchTokenAssets.mockResolvedValue([
+      tokenAssetFixture({
+        assetId: USDC_LOWER,
+        securityData: { resultType: 'Verified' } as TokenSecurityData,
+      }),
+    ]);
+
+    const p1 = requestTokenSecurityForAsset(USDC_MIXED);
+    const p2 = requestTokenSecurityForAsset(USDC_LOWER);
+
+    await waitForBatchFlush();
+
+    expect(mockFetchTokenAssets).toHaveBeenCalledTimes(1);
+    expect(mockFetchTokenAssets.mock.calls[0][0]).toEqual([USDC_LOWER]);
+
+    await expect(p1).resolves.toEqual({ resultType: 'Verified' });
+    await expect(p2).resolves.toEqual({ resultType: 'Verified' });
   });
 
   it('batches multiple asset ids into one fetchTokenAssets call', async () => {
