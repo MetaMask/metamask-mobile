@@ -124,7 +124,7 @@ export class WC2Manager {
           );
         }
         // Remove session from local list
-        this.sessions[event.topic]?.removeListeners();
+        await this.sessions[event.topic]?.removeListeners();
         delete this.sessions[event.topic];
       },
     );
@@ -143,7 +143,7 @@ export class WC2Manager {
     );
 
     try {
-      this.sessions[session.topic]?.removeListeners();
+      await this.sessions[session.topic]?.removeListeners();
       delete this.sessions[session.topic];
     } catch (cleanupError) {
       DevLogger.log(
@@ -427,7 +427,7 @@ export class WC2Manager {
       });
 
       // Remove session from local list
-      this.sessions[session.topic]?.removeListeners();
+      await this.sessions[session.topic]?.removeListeners();
       delete this.sessions[session.topic];
 
       // Remove associated permissions
