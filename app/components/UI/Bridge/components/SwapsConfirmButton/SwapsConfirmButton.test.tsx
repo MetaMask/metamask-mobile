@@ -21,12 +21,10 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
 import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
-import {
-  MetaMetricsSwapsEventSource,
-  TokenFeatureType,
-} from '@metamask/bridge-controller';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
+import { SecurityDataType } from '../../hooks/usePopularTokens';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -238,12 +236,8 @@ const mockState: DeepPartial<RootState> = {
           bridgeConfigV2: defaultBridgeConfigV2,
         },
       },
-      // Required by selectControllerFields (used by selectDestTokenWarning)
       GasFeeController: {
         gasFeeEstimatesByChainId: {},
-      },
-      BridgeController: {
-        tokenWarnings: [],
       },
     },
   },
@@ -1145,21 +1139,39 @@ describe('SwapsConfirmButton', () => {
   });
 
   describe('handleContinue — token warning routing', () => {
-    const mockWarning = {
-      type: TokenFeatureType.WARNING,
-      feature_id: 'warn-1',
-      description: 'This token may be suspicious',
-    };
+    const mockWarningFeatures = [
+      {
+        featureId: 'low_locked_liquidity',
+        type: SecurityDataType.Warning,
+        description: 'Low locked liquidity',
+      },
+    ];
+
+    const mockMaliciousFeatures = [
+      {
+        featureId: 'honeypot',
+        type: SecurityDataType.Malicious,
+        description: 'Honeypot risk',
+      },
+    ];
 
     const stateWithWarning = (
-      warning = mockWarning,
+      type: SecurityDataType = SecurityDataType.Warning,
+      features = mockWarningFeatures,
     ): DeepPartial<RootState> => ({
       ...mockState,
-      engine: {
-        backgroundState: {
-          ...mockState.engine?.backgroundState,
-          BridgeController: {
-            tokenWarnings: [warning],
+      bridge: {
+        ...mockState.bridge,
+        destToken: {
+          address: '0x000000000000000000000000000000000000dEaD',
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          image: '',
+          name: 'Suspicious Token',
+          symbol: 'SQUID',
+          securityData: {
+            type,
+            metadata: { features },
           },
         },
       },
@@ -1181,8 +1193,8 @@ describe('SwapsConfirmButton', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params: {
-          warningType: TokenFeatureType.WARNING,
-          description: mockWarning.description,
+          warningType: SecurityDataType.Warning,
+          features: mockWarningFeatures,
           mode: TokenWarningModalMode.Execution,
           location: MetaMetricsSwapsEventSource.MainView,
         },
@@ -1205,19 +1217,18 @@ describe('SwapsConfirmButton', () => {
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('passes MALICIOUS type through to TokenWarningModal params', async () => {
-      const maliciousWarning = {
-        type: TokenFeatureType.MALICIOUS,
-        feature_id: 'mal-1',
-        description: 'This token is malicious',
-      };
-
+    it('passes Malicious type through to TokenWarningModal params', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
-        { state: stateWithWarning(maliciousWarning) },
+        {
+          state: stateWithWarning(
+            SecurityDataType.Malicious,
+            mockMaliciousFeatures,
+          ),
+        },
       );
 
       await act(async () => {
@@ -1227,9 +1238,47 @@ describe('SwapsConfirmButton', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params: expect.objectContaining({
-          warningType: TokenFeatureType.MALICIOUS,
-          description: maliciousWarning.description,
+          warningType: SecurityDataType.Malicious,
+          features: mockMaliciousFeatures,
           mode: TokenWarningModalMode.Execution,
+        }),
+      });
+    });
+
+    it('passes an empty features array when securityData has no metadata', async () => {
+      const stateWithEmptyFeatures: DeepPartial<RootState> = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          destToken: {
+            address: '0x000000000000000000000000000000000000dEaD',
+            chainId: '0x1' as Hex,
+            decimals: 18,
+            image: '',
+            name: 'Suspicious Token',
+            symbol: 'SQUID',
+            securityData: { type: SecurityDataType.Warning },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithEmptyFeatures },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.objectContaining({
+          warningType: SecurityDataType.Warning,
+          features: [],
         }),
       });
     });
@@ -1312,7 +1361,7 @@ describe('SwapsConfirmButton', () => {
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
-        { state: mockState }, // tokenWarnings: [] by default
+        { state: mockState }, // no destToken securityData
       );
 
       await act(async () => {

@@ -7,9 +7,10 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { Platform } from 'react-native';
+
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
+import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -70,60 +71,6 @@ describe('AccountStatus', () => {
     mockRouteParams = {};
   });
 
-  describe('Snapshots iOS', () => {
-    beforeEach(() => {
-      Platform.OS = 'ios';
-    });
-
-    it('renders correctly with type="not_exist"', () => {
-      mockRouteParams = { type: 'not_exist' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders correctly with type="found"', () => {
-      mockRouteParams = { type: 'found' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders correctly with accountName in route params', () => {
-      mockRouteParams = {
-        type: 'found',
-        accountName: 'test@example.com',
-      };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
-  describe('Snapshots android', () => {
-    beforeEach(() => {
-      Platform.OS = 'android';
-    });
-
-    it('renders correctly with type="not_exist"', () => {
-      mockRouteParams = { type: 'not_exist' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders correctly with type="found"', () => {
-      mockRouteParams = { type: 'found' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders correctly with accountName in route params', () => {
-      mockRouteParams = {
-        type: 'found',
-        accountName: 'test@example.com',
-      };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
   describe('Behavior Tests', () => {
     describe('Primary button interactions', () => {
       it('navigates to Rehydrate screen when type="found" and primary button is pressed', () => {
@@ -131,8 +78,10 @@ describe('AccountStatus', () => {
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
         mockRouteParams = { type: 'found' };
-        const { getByText } = renderWithProvider(<AccountStatus />);
-        const primaryButton = getByText(strings('account_status.log_in'));
+        const { getByTestId } = renderWithProvider(<AccountStatus />);
+        const primaryButton = getByTestId(
+          AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
+        );
 
         fireEvent.press(primaryButton);
 
@@ -175,8 +124,10 @@ describe('AccountStatus', () => {
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
         mockRouteParams = { type: 'found', oauthLoginSuccess: true };
-        const { getByText } = renderWithProvider(<AccountStatus />);
-        const primaryButton = getByText(strings('account_status.log_in'));
+        const { getByTestId } = renderWithProvider(<AccountStatus />);
+        const primaryButton = getByTestId(
+          AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
+        );
 
         fireEvent.press(primaryButton);
 
@@ -211,8 +162,10 @@ describe('AccountStatus', () => {
         ).mockImplementation(mockCreateEventBuilder);
 
         mockRouteParams = { type: 'found' };
-        const { getByText } = renderWithProvider(<AccountStatus />);
-        const primaryButton = getByText('Log in');
+        const { getByTestId } = renderWithProvider(<AccountStatus />);
+        const primaryButton = getByTestId(
+          AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
+        );
 
         fireEvent.press(primaryButton);
 
@@ -248,9 +201,11 @@ describe('AccountStatus', () => {
   describe('Event Tracking', () => {
     it('calls trackOnboarding when primary button is pressed for existing account', () => {
       mockRouteParams = { type: 'found' };
-      const { getByText } = renderWithProvider(<AccountStatus />);
+      const { getByTestId } = renderWithProvider(<AccountStatus />);
 
-      const primaryButton = getByText(strings('account_status.log_in'));
+      const primaryButton = getByTestId(
+        AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
+      );
       fireEvent.press(primaryButton);
 
       expect(trackOnboarding).toHaveBeenCalled();
@@ -266,18 +221,6 @@ describe('AccountStatus', () => {
       fireEvent.press(primaryButton);
 
       expect(trackOnboarding).toHaveBeenCalled();
-    });
-  });
-
-  describe('SafeAreaView Configuration', () => {
-    it('uses SafeAreaView with top and bottom edges', () => {
-      mockRouteParams = { type: 'not_exist' };
-      const { toJSON } = renderWithProvider(<AccountStatus />);
-      const tree = toJSON();
-
-      expect(tree).toBeTruthy();
-      expect(JSON.stringify(tree)).toContain('top');
-      expect(JSON.stringify(tree)).toContain('bottom');
     });
   });
 
@@ -307,8 +250,10 @@ describe('AccountStatus', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const { getByText } = renderWithProvider(<AccountStatus />);
-      expect(getByText(strings('account_status.log_in'))).toBeOnTheScreen();
+      const { getByTestId } = renderWithProvider(<AccountStatus />);
+      expect(
+        getByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 });

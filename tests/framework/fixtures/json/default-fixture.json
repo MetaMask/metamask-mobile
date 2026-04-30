@@ -720,6 +720,7 @@
       "campaignsLoading": false,
       "candidateSubscriptionId": "pending",
       "currentTier": null,
+      "dismissedCampaignOutcomeToasts": {},
       "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,

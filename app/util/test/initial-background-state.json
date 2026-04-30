@@ -628,6 +628,7 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "tokenSecurityTypeDestination": null,
     "tokenWarnings": []
   },
   "BridgeStatusController": {

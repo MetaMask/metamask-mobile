@@ -122,6 +122,26 @@ describe('MoneyAccountWithdrawInfo', () => {
     ).toBeOnTheScreen();
   });
 
+  it('passes supportAccountSelection=true to CustomAmountInfo', () => {
+    render(<MoneyAccountWithdrawInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.supportAccountSelection).toBe(true);
+  });
+
+  it('passes hasMax=true to CustomAmountInfo so the last percentage button renders as Max', () => {
+    render(<MoneyAccountWithdrawInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.hasMax).toBe(true);
+  });
+
   it('renders empty balance when totalFiatFormatted is undefined', () => {
     const useMoneyAccountBalance = jest.requireMock(
       '../../../../../UI/Money/hooks/useMoneyAccountBalance',

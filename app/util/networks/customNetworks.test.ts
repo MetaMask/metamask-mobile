@@ -22,6 +22,7 @@ describe('popularNetwork', () => {
       Monad: toHex('143'),
       HyperEVM: toHex('999'),
       MegaETH: toHex('4326'),
+      Tempo: toHex('4217'),
     };
 
     PopularList.forEach((rpc) => {

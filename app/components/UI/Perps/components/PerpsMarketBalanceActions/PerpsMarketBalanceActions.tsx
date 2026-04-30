@@ -22,10 +22,7 @@ import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
-import {
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
+import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -49,7 +46,7 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 
   return (
     <Box
-      twClassName="mx-4 mt-4 mb-4 px-4 py-6 rounded-xl"
+      twClassName="mx-4 mb-4 px-4 py-6 rounded-xl"
       style={tw.style('bg-background-section')}
       testID={`${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`}
     >
@@ -204,7 +201,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mt-4 mb-4 rounded-xl' : 'mb-4'}
+        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : 'mb-4'}
       >
         <PerpsProgressBar
           progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
@@ -246,16 +243,16 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         {isBalanceEmpty ? (
           <PerpsEmptyBalance onAddFunds={handleAddFunds} />
         ) : (
-          <Box twClassName="px-4 pt-4 pb-4">
+          <Box twClassName="px-4 pt-2 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>
               <SensitiveText
-                variant={TextVariant.DisplayMD}
+                variant={TextVariant.DisplayLG}
                 color={TextColor.Default}
                 testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Medium}
               >
-                {formatPerpsFiat(totalBalance)}
+                {formatPerpsBalance(totalBalance)}
               </SensitiveText>
             </Animated.View>
             <Box
@@ -271,10 +268,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {formatPerpsFiat(availableBalance, {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  stripTrailingZeros: false,
-                })}
+                {formatPerpsBalance(availableBalance)}
               </SensitiveText>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {' '}

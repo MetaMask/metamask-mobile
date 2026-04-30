@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -128,13 +128,13 @@ describe('SDKSessionsManager', () => {
         'app_settings.manage_sdk_connections_title',
         mockNavigation,
         false,
-        expect.any(Object),
+        expect.anything(),
       );
     });
   });
 
   describe('User Actions', () => {
-    it('handles disconnect all button press', () => {
+    it('handles disconnect all button press', async () => {
       (useSelector as jest.Mock).mockReturnValue({
         connections: {
           conn1: { id: 'conn1', name: 'Connection 1' },
@@ -176,7 +176,7 @@ describe('SDKSessionsManager', () => {
           trigger: 123,
           connection: { id: 'conn1', name: 'Connection 1' },
         }),
-        expect.any(Object),
+        {},
       );
     });
   });
@@ -205,7 +205,7 @@ describe('SDKSessionsManager', () => {
         expect.objectContaining({
           trigger: undefined,
         }),
-        expect.any(Object),
+        {},
       );
     });
 

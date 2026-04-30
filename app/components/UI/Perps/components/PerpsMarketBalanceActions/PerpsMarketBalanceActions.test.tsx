@@ -132,8 +132,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    ...actual,
     Box: ({ children, testID, ...props }: MockComponentProps) => (
       <View testID={testID} {...props}>
         {children}
@@ -200,6 +202,7 @@ jest.mock('../../../../../images/image-icons', () => ({
 // Mock format utils
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((amount) => `$${amount}`),
+  formatPerpsBalance: jest.fn((amount) => `$${amount}`),
 }));
 
 // Mock PerpsBottomSheetTooltip to avoid SafeArea issues

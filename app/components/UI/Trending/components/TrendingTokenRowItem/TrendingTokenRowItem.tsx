@@ -22,17 +22,8 @@ import {
   isCaipChainId,
   parseCaipChainId,
 } from '@metamask/utils';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconSize,
-  Text as DesignSystemText,
-  TextVariant as DesignSystemTextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
-import { getSecurityBadgeConfig } from '../../../SecurityTrust/utils/securityUtils';
+import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
+import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
 
 /**
  * Converts CAIP chain ID to hex chain ID
@@ -235,8 +226,8 @@ const TrendingTokenRowItem = ({
   );
 
   const securityBadge = useMemo(
-    () => getSecurityBadgeConfig(token.securityData),
-    [token.securityData],
+    () => getResultTypeConfig(token.securityData?.resultType).badge,
+    [token.securityData?.resultType],
   );
 
   // Parse price change percentage from API (comes as string like "-3.44" or "+0.456")
@@ -355,35 +346,13 @@ const TrendingTokenRowItem = ({
           >
             {token?.name ?? token?.symbol}
           </Text>
-          {securityBadge && securityBadge.label === null && (
-            <Icon
-              name={securityBadge.icon}
-              size={IconSize.Sm}
-              color={securityBadge.iconColor}
-              testID="security-badge-icon"
+          {securityBadge && (
+            <SecurityTrustInlineBadge
+              badge={securityBadge}
+              iconTestID={
+                securityBadge.label === null ? 'security-badge-icon' : undefined
+              }
             />
-          )}
-          {securityBadge && securityBadge.label !== null && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName={`rounded min-w-[22px] px-1.5 gap-1 shrink-0 ${securityBadge.bg}`}
-            >
-              <Icon
-                name={securityBadge.icon}
-                size={IconSize.Sm}
-                color={securityBadge.iconColor}
-              />
-              <DesignSystemText
-                variant={DesignSystemTextVariant.BodySm}
-                color={securityBadge.textColor}
-                fontWeight={FontWeight.Medium}
-                numberOfLines={1}
-                twClassName="whitespace-nowrap"
-              >
-                {securityBadge.label}
-              </DesignSystemText>
-            </Box>
           )}
         </View>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>

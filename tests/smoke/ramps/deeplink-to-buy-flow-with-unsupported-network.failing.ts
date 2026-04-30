@@ -1,7 +1,7 @@
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeRamps } from '../../tags';
+import { SmokeMoney } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
 import Assertions from '../../framework/Assertions';
@@ -18,7 +18,7 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 
 // This test is failing because we do not have any UI related to navigating to an unsupported network
 // We shall update once there is a decision on what that UI looks like.
-describe(SmokeRamps('Buy Crypto Deeplinks - Unsupported Network'), () => {
+describe(SmokeMoney('Buy Crypto Deeplinks - Unsupported Network'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
