@@ -93,27 +93,6 @@ async function testSpecificMock(mockServer: Mockttp) {
 }
 
 async function mockPolygonTokenByAddress(mockServer: Mockttp) {
-  const knownPolygonTokens: Record<
-    string,
-    { symbol: string; decimals: number; name: string }
-  > = {
-    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb': {
-      symbol: 'pUSD',
-      decimals: 6,
-      name: 'Polymarket USD',
-    },
-    '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359': {
-      symbol: 'USDC',
-      decimals: 6,
-      name: 'USD Coin',
-    },
-    '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
-      symbol: 'USDC.e',
-      decimals: 6,
-      name: 'USD Coin (PoS)',
-    },
-  };
-
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -123,23 +102,15 @@ async function mockPolygonTokenByAddress(mockServer: Mockttp) {
     .thenCallback((request) => {
       const urlParam = new URL(request.url).searchParams.get('url') || '';
       const tokenUrl = new URL(urlParam);
-      const address = (
-        tokenUrl.searchParams.get('address') ?? ''
-      ).toLowerCase();
-      const knownToken = knownPolygonTokens[address];
+      const address = tokenUrl.searchParams.get('address') ?? '';
       return {
         statusCode: 200,
-        json: knownToken
-          ? {
-              address,
-              ...knownToken,
-            }
-          : {
-              address,
-              symbol: 'UNKNOWN',
-              decimals: 18,
-              name: 'Unknown Token',
-            },
+        json: {
+          address: address.toLowerCase(),
+          symbol: 'UNKNOWN',
+          decimals: 18,
+          name: 'Unknown Token',
+        },
       };
     });
 }
