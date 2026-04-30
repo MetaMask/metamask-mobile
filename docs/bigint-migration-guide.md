@@ -167,6 +167,12 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 
 - `app/components/UI/Notification/TransactionNotification/index.js`
 
+### @MetaMask/social-ai
+
+- `app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts`
+- `app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyQuotes.ts`
+- `app/components/Views/SocialLeaderboard/utils/formatters.ts`
+
 ### @MetaMask/swaps-engineers
 
 - `app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx`
