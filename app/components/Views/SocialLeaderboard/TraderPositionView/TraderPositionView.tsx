@@ -185,6 +185,7 @@ const TraderPositionView = () => {
               priceDiff={priceDiff}
               isPricesLoading={isPricesLoading}
               onChartIndexChange={handleChartIndexChange}
+              trades={trades}
             />
 
             <TraderTimePeriodSelector
