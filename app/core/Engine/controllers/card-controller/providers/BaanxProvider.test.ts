@@ -722,6 +722,27 @@ describe('BaanxProvider', () => {
       expect(result.primaryFundingAsset?.address).toBe(tokenA);
     });
 
+    it('reads card feature flags lazily when checking on-chain assets', async () => {
+      spendersMock.mockResolvedValue([limitedTuple('50'), limitedTuple('0')]);
+      let currentCardFeatureFlag: CardFeatureFlag | null = null;
+
+      const p = new BaanxProvider({
+        service,
+        getCardFeatureFlag: () => currentCardFeatureFlag,
+      });
+      currentCardFeatureFlag = cardFeatureFlag;
+
+      const result = await p.getOnChainAssets(ownerAddr);
+
+      expect(spendersMock).toHaveBeenCalledWith(
+        ownerAddr,
+        [tokenA, tokenB],
+        expect.any(Array),
+      );
+      expect(result.primaryFundingAsset?.symbol).toBe('USDC');
+      expect(result.primaryFundingAsset?.address).toBe(tokenA);
+    });
+
     it('uses #findLastApprovedToken when multiple tokens have non-zero allowance and prefers latest Approval log', async () => {
       spendersMock.mockResolvedValue([limitedTuple('10'), limitedTuple('20')]);
 
