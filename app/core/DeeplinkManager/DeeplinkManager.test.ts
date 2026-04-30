@@ -1,9 +1,11 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
+import { Linking, Platform } from 'react-native';
 import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
 import SharedDeeplinkManager, {
   DeeplinkManager,
+  isAndroidBranchStubUrl,
   rewriteBranchUri,
 } from './DeeplinkManager';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
@@ -557,5 +559,212 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({
       uri: 'https://link.metamask.io/swap/token',
     });
+  });
+
+  it('does not re-dispatch the deeplink when the subscription fires for a non-Branch click without uri', async () => {
+    // Simulates a `metamask://` URL warm start on Android: Linking has already
+    // delivered the URL, then branch.subscribe fires for the same intent with
+    // no uri and clicked=false (Branch stores it under +non_branch_link).
+    // We must not call handleDeeplink again from the subscribe path.
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': false,
+      '+non_branch_link': 'metamask://buy',
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    // Reset any handleDeeplink calls coming from the cold-start
+    // getBranchDeeplink() workaround (line ~252 in DeeplinkManager.ts).
+    (handleDeeplink as jest.Mock).mockClear();
+
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    callback({
+      uri: undefined,
+      params: { '+clicked_branch_link': false },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('does not re-dispatch the deeplink when the subscription fires with empty params (no uri, no click flag)', async () => {
+    // Defensive: subscribe sometimes fires with a bare `{}` (e.g. when Branch
+    // resolves an intent with no relevant data). Treat it as already-handled.
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+non_branch_link': 'metamask://buy',
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    (handleDeeplink as jest.Mock).mockClear();
+
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    callback({});
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).not.toHaveBeenCalled();
+  });
+});
+
+describe('isAndroidBranchStubUrl', () => {
+  const originalOS = Platform.OS;
+  afterEach(() => {
+    Platform.OS = originalOS;
+  });
+
+  it('returns true on Android for a metamask:// URL with _branch_referrer and no UTMs', () => {
+    Platform.OS = 'android';
+    const url =
+      'metamask://trending?_branch_referrer=H4sIAA&link_click_id=1515351622014093579';
+    expect(isAndroidBranchStubUrl(url)).toBe(true);
+  });
+
+  it('returns false on Android when the URL has no _branch_referrer', () => {
+    Platform.OS = 'android';
+    const url = 'https://link.metamask.io/swap?amount=100';
+    expect(isAndroidBranchStubUrl(url)).toBe(false);
+  });
+
+  it('returns false on iOS even when the URL matches the stub shape', () => {
+    Platform.OS = 'ios';
+    const url =
+      'metamask://trending?_branch_referrer=H4sIAA&link_click_id=1515351622014093579';
+    expect(isAndroidBranchStubUrl(url)).toBe(false);
+  });
+});
+
+describe('DeeplinkManager.start Android Branch stub deferral', () => {
+  const originalOS = Platform.OS;
+  let linkingListener: ((event: { url: string }) => void) | undefined;
+  let addEventListenerSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    Platform.OS = 'android';
+    linkingListener = undefined;
+    addEventListenerSpy = jest
+      .spyOn(Linking, 'addEventListener')
+      .mockImplementation(((event: string, listener: unknown) => {
+        if (event === 'url') {
+          linkingListener = listener as (event: { url: string }) => void;
+        }
+        return { remove: jest.fn() };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any);
+    // Quiet other start() side effects.
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    addEventListenerSpy.mockRestore();
+    Platform.OS = originalOS;
+  });
+
+  const stubUrl =
+    'metamask://trending?_branch_referrer=H4sIAA&link_click_id=1515351622014093579';
+
+  it('does not call handleDeeplink immediately for an Android Branch stub URL', () => {
+    DeeplinkManager.start();
+    expect(linkingListener).toBeDefined();
+
+    linkingListener?.({ url: stubUrl });
+
+    expect(handleDeeplink).not.toHaveBeenCalledWith({ uri: stubUrl });
+  });
+
+  it('cancels the deferred stub when branch.subscribe resolves the deeplink', async () => {
+    DeeplinkManager.start();
+    const branchCallback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    linkingListener?.({ url: stubUrl });
+
+    branchCallback({
+      uri: 'https://link.metamask.io/trending?utm_source=twitter&utm_medium=social',
+      params: { '+clicked_branch_link': true },
+    });
+    await Promise.resolve();
+
+    // Branch path delivers the resolved URL.
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/trending?utm_source=twitter&utm_medium=social',
+    });
+
+    // Advance past the fallback timeout — the stub must NOT fire.
+    jest.advanceTimersByTime(5000);
+    expect(handleDeeplink).not.toHaveBeenCalledWith({ uri: stubUrl });
+  });
+
+  it('falls back to the stub URL if branch.subscribe never fires within the timeout', () => {
+    DeeplinkManager.start();
+
+    linkingListener?.({ url: stubUrl });
+    expect(handleDeeplink).not.toHaveBeenCalledWith({ uri: stubUrl });
+
+    jest.advanceTimersByTime(3000);
+
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: stubUrl });
+  });
+
+  it('processes a non-stub URL on Android immediately', () => {
+    DeeplinkManager.start();
+    const resolvedUrl = 'https://link.metamask.io/trending?utm_source=twitter';
+
+    linkingListener?.({ url: resolvedUrl });
+
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: resolvedUrl });
+  });
+
+  it('processes the stub URL immediately on iOS (no deferral)', () => {
+    Platform.OS = 'ios';
+    DeeplinkManager.start();
+
+    linkingListener?.({ url: stubUrl });
+
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: stubUrl });
+  });
+
+  it('preserves the fallback timer when branch.subscribe fires with an error and no uri', () => {
+    // Regression: clearAndroidBranchStub() must NOT run when Branch fails
+    // (no uri, no click flag) — otherwise the 3-second safety-net is silently
+    // cancelled and the deeplink is lost.
+    DeeplinkManager.start();
+    const branchCallback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    linkingListener?.({ url: stubUrl });
+
+    // Branch fires with an error and no resolved URI (network failure scenario).
+    branchCallback({
+      error: 'Branch network timeout',
+      uri: undefined,
+      params: { '+clicked_branch_link': false },
+    });
+
+    // The stub must NOT have fired yet (timer still running).
+    expect(handleDeeplink).not.toHaveBeenCalledWith({ uri: stubUrl });
+
+    // After the fallback timeout the stub fires as the safety net.
+    jest.advanceTimersByTime(3000);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: stubUrl });
+  });
+
+  it('preserves the fallback timer when branch.subscribe fires with empty params (no uri, no click flag)', () => {
+    // Regression: a bare `{}` callback (non-Branch intent) must not cancel
+    // the pending stub timer — the deeplink must still be delivered via fallback.
+    DeeplinkManager.start();
+    const branchCallback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    linkingListener?.({ url: stubUrl });
+
+    branchCallback({
+      uri: undefined,
+      params: { '+clicked_branch_link': false },
+    });
+
+    expect(handleDeeplink).not.toHaveBeenCalledWith({ uri: stubUrl });
+
+    jest.advanceTimersByTime(3000);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: stubUrl });
   });
 });
