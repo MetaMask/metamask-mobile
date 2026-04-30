@@ -14,7 +14,10 @@ import {
   MetaMaskPayTokensFlags,
   selectMetaMaskPayTokensFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isQRHardwareAccount,
+} from '../../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
@@ -220,6 +223,71 @@ describe('useAutomaticTransactionPayToken', () => {
     });
 
     isHardwareAccountMock.mockReturnValue(true);
+
+    runHook();
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
+    });
+  });
+
+  it('selects first available token for hardware wallet on mUSD conversion', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.musdConversion,
+      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+    } as never);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    isHardwareAccountMock.mockReturnValue(true);
+
+    runHook();
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
+    });
+  });
+
+  it('selects target token for QR hardware wallet on mUSD conversion', () => {
+    const isQRHardwareAccountMock = jest.mocked(isQRHardwareAccount);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.musdConversion,
+      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+    } as never);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    isHardwareAccountMock.mockReturnValue(true);
+    isQRHardwareAccountMock.mockReturnValue(true);
 
     runHook();
 

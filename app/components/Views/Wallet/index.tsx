@@ -148,8 +148,6 @@ import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-import { selectHDKeyrings } from '../../../selectors/keyringController';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
@@ -624,7 +622,7 @@ const Wallet = ({
   );
 
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
@@ -770,8 +768,6 @@ const Wallet = ({
 
   const currentToast = toastRef?.current;
 
-  const hdKeyrings = useSelector(selectHDKeyrings);
-
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
 
@@ -865,12 +861,6 @@ const Wallet = ({
     isPredictGTMModalEnabled,
     checkAndNavigateToPredictGTM,
   ]);
-
-  useEffect(() => {
-    addTraitsToUser({
-      [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
-    });
-  }, [addTraitsToUser, hdKeyrings.length]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 

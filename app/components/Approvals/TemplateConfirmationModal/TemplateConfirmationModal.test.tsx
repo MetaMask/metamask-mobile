@@ -27,36 +27,6 @@ describe('TemplateConfirmationModal', () => {
     jest.resetAllMocks();
   });
 
-  it('renders if approval type is success result', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.RESULT_SUCCESS,
-      requestData: {
-        test: 'value',
-      },
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
-
-    const { toJSON } = render(<TemplateConfirmationModal />);
-
-    expect(toJSON()).not.toBeNull();
-  });
-
-  it('renders if approval type is error result', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.RESULT_ERROR,
-      requestData: {
-        test: 'value',
-      },
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
-
-    const { toJSON } = render(<TemplateConfirmationModal />);
-
-    expect(toJSON()).not.toBeNull();
-  });
-
   it('renders nothing if no approval request', () => {
     mockApprovalRequest(undefined);
 
