@@ -3,9 +3,9 @@ import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -39,7 +39,7 @@ import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 
 const TraderPositionView = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -97,8 +97,9 @@ const TraderPositionView = () => {
       // Normal flow: profile is already in the stack, goes back to it
       navigation.goBack();
     } else {
-      // Deeplink flow: position was opened directly, push the profile screen
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      // Deeplink flow: position was opened directly. Replace position with
+      // profile so pressing back from profile doesn't return to position.
+      navigation.replace(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
       });

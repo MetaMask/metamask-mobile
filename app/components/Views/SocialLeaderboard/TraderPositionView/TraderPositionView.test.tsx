@@ -11,6 +11,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
 const mockGetState = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
@@ -178,6 +179,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
+      replace: mockReplace,
       getState: mockGetState,
     }),
     useRoute: () => ({
@@ -233,7 +235,7 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
-  it('navigates to the trader profile when the back button is pressed and no profile is in the back stack (deeplink)', () => {
+  it('replaces the current screen with the trader profile when the back button is pressed and no profile is in the back stack (deeplink)', () => {
     // default mockGetState has no profile route behind the position screen
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -241,13 +243,14 @@ describe('TraderPositionView', () => {
       screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
+    expect(mockReplace).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.PROFILE,
       {
         traderId: 'trader-1',
         traderName: 'dutchiono',
       },
     );
+    expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
@@ -270,6 +273,7 @@ describe('TraderPositionView', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
