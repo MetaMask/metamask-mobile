@@ -13,6 +13,7 @@ import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
+import { analytics } from './analytics/analytics';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -557,8 +558,6 @@ let cachedConsent: boolean | null = null;
  */
 export async function hasMetricsConsent(): Promise<boolean> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const { analytics } = require('./analytics/analytics');
     const enabled = analytics.isEnabled();
     if (typeof enabled === 'boolean') {
       cachedConsent = enabled;
@@ -580,23 +579,6 @@ export async function hasMetricsConsent(): Promise<boolean> {
  */
 function getCachedConsent(): boolean | null {
   return cachedConsent;
-}
-
-/**
- * Live MetaMetrics participation for debugging (Settings → Participate). Prefer this over METRICS_OPT_IN alone.
- */
-export function getCachedMetricsConsent(): boolean | null {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const { analytics } = require('./analytics/analytics');
-    const enabled = analytics.isEnabled();
-    if (typeof enabled === 'boolean') {
-      return enabled;
-    }
-  } catch {
-    // fall through
-  }
-  return getCachedConsent();
 }
 
 /**
