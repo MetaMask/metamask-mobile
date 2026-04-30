@@ -3,6 +3,32 @@ import { store } from '../../../store';
 import { UserProfileProperty } from './UserProfileAnalyticsMetaData.types';
 import { getConfiguredCaipChainIds } from '../MultichainAPI/networkMetricUtils';
 import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
+import {
+  AccountType,
+  getSocialAccountType,
+} from '../../../constants/onboarding';
+
+// Resolves the user's account_type trait. Prefers the deterministic value
+// stored in onboarding redux. For users created before that field existed,
+// falls back to inferring the social-login variant from
+// SeedlessOnboardingController.authConnection (treated as an existing user
+// since the vault already exists). Legacy SRP users remain undefined —
+// we cannot distinguish Metamask vs Imported after the fact.
+const resolveAccountType = (
+  reduxState: ReturnType<typeof store.getState>,
+): AccountType | undefined => {
+  const stored = reduxState?.onboarding?.accountType;
+  if (stored) {
+    return stored;
+  }
+  const authConnection =
+    reduxState?.engine?.backgroundState?.SeedlessOnboardingController
+      ?.authConnection;
+  if (!authConnection) {
+    return undefined;
+  }
+  return getSocialAccountType(authConnection, true);
+};
 
 /**
  * Generate user profile analytics meta data
@@ -21,6 +47,8 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
     reduxState?.security?.dataCollectionForMarketing;
 
   const chainIds = getConfiguredCaipChainIds();
+
+  const accountType = resolveAccountType(reduxState);
 
   const traits: AnalyticsUserTraits = {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -47,6 +75,9 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
     ),
     [UserProfileProperty.CHAIN_IDS]: chainIds,
   };
+  if (accountType) {
+    traits[UserProfileProperty.ACCOUNT_TYPE] = accountType;
+  }
   return traits;
 };
 

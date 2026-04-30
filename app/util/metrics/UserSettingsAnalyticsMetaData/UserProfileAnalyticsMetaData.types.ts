@@ -1,4 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
+import { AccountType } from '../../../constants/onboarding';
 
 export enum UserProfileProperty {
   ENABLE_OPENSEA_API = 'Enable OpenSea API',
@@ -20,6 +21,7 @@ export enum UserProfileProperty {
   REWARDS_REFERRAL_CODE_USED = 'rewards_referral_code_used',
   REWARD_ENABLED_ACCOUNTS_COUNT = 'reward_enabled_accounts_count',
   CREATED_POLYMARKET_ACCOUNT_VIA_MM = 'created_polymarket_account_via_mm',
+  ACCOUNT_TYPE = 'account_type',
 }
 
 export interface UserProfileMetaData {
@@ -40,4 +42,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.REWARDS_REFERRAL_CODE_USED]?: string;
   [UserProfileProperty.REWARD_ENABLED_ACCOUNTS_COUNT]?: number;
   [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]?: boolean;
+  [UserProfileProperty.ACCOUNT_TYPE]?: AccountType;
 }
