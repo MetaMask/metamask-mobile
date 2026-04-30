@@ -2340,6 +2340,46 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
     });
 
+    it('runs user-signed unified account migration before withdrawing for dexAbstraction users', async () => {
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
+        }),
+      );
+
+      Object.defineProperty(provider, 'getAccountState', {
+        value: jest.fn().mockResolvedValue({
+          availableBalance: '5000',
+        }),
+        writable: true,
+      });
+
+      const withdrawParams = {
+        amount: '1000',
+        destination: '0x1234567890123456789012345678901234567890' as Hex,
+        assetId:
+          'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
+      };
+
+      const result = await provider.withdraw(withdrawParams);
+
+      expect(result.success).toBe(true);
+      expect(exchangeClient.userSetAbstraction).toHaveBeenCalledWith({
+        user: '0x1234567890123456789012345678901234567890',
+        abstraction: 'unifiedAccount',
+      });
+      expect(exchangeClient.withdraw3).toHaveBeenCalledWith({
+        destination: '0x1234567890123456789012345678901234567890',
+        amount: '1000',
+      });
+      expect(exchangeClient.approveBuilderFee).not.toHaveBeenCalled();
+      expect(exchangeClient.setReferrer).not.toHaveBeenCalled();
+    });
+
     it('handles withdrawal errors', async () => {
       mockValidateWithdrawalParams.mockReturnValueOnce({
         isValid: false,
