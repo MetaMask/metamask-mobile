@@ -1221,10 +1221,13 @@ export class HyperLiquidSubscriptionService {
             // its result instead of overwriting this fresher WS snapshot.
             this.#spotStateGeneration += 1;
             this.#cachedSpotState = event.spotState;
-            // Normalize to match REST path (stores lowercase) so the
-            // #ensureSpotState strict-equal check hits the cache regardless
-            // of whether HL returns a checksummed or lowercase user field.
-            this.#cachedSpotStateUserAddress = event.user.toLowerCase();
+            const normalizedUserAddress = userAddress.toLowerCase();
+            // Only seal the cache once abstraction mode is known. Otherwise a
+            // WS snapshot can make #ensureSpotState fast-return forever while
+            // #getSpotBalanceOptions treats the missing mode as Unified.
+            if (this.#abstractionModeByUser.has(normalizedUserAddress)) {
+              this.#cachedSpotStateUserAddress = normalizedUserAddress;
+            }
 
             if (this.#dexAccountCache.size > 0) {
               this.#aggregateAndNotifySubscribers();

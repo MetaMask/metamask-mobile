@@ -39,8 +39,11 @@ export const HL_UNIFIED_ACCOUNT_MODE = 'unifiedAccount' as const;
 
 /**
  * True when the given HL abstraction mode treats spot balances as perps
- * collateral. Missing mode is treated as Unified to avoid under-reporting
- * usable balance during a transient userAbstraction fetch failure.
+ * collateral. Fail-CLOSED on missing mode: until userAbstraction has been
+ * resolved we do not fold spot, because over-reporting withdrawable funds
+ * for Standard / dexAbstraction users (which `withdraw3` cannot actually
+ * draw) is worse than briefly under-reporting for Unified users during the
+ * initial subscription window or a transient REST outage.
  *
  * @param mode - Abstraction mode returned by HyperLiquid.
  * @returns Whether spot balances should fold into perps collateral.
@@ -49,7 +52,7 @@ export function hyperLiquidModeFoldsSpot(
   mode?: UserAbstractionResponse | null,
 ): boolean {
   if (mode === null || mode === undefined) {
-    return true;
+    return false;
   }
 
   return mode === 'unifiedAccount' || mode === 'portfolioMargin';
