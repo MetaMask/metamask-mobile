@@ -156,7 +156,7 @@ const OndoCampaignStatsView: React.FC = () => {
       : formatTierDisplayName(leaderboardPosition.projectedTier);
 
   const daysHeldValue = leaderboardPosition
-    ? `${leaderboardPosition.qualifiedDays}/${ONDO_GM_REQUIRED_QUALIFIED_DAYS}`
+    ? `${Math.min(leaderboardPosition.qualifiedDays, ONDO_GM_REQUIRED_QUALIFIED_DAYS)}/${ONDO_GM_REQUIRED_QUALIFIED_DAYS}`
     : '-';
 
   const tierMinDeposit = useMemo(
