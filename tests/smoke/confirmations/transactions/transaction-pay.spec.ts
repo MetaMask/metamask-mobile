@@ -15,6 +15,7 @@ import {
   mockRelayStatus,
 } from '../../../api-mocking/mock-responses/transaction-pay';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import { Gestures } from '../../../framework';
@@ -24,24 +25,52 @@ import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActions
 import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 
+const POLYGON_PUSD_TOKEN_ADDRESS = '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB';
+const POLYGON_NATIVE_USD_RATE = 1;
+
+function buildTransactionPayFixture() {
+  const fixture = new FixtureBuilder()
+    .withPolygon()
+    .withTokens(
+      [
+        {
+          address: POLYGON_PUSD_TOKEN_ADDRESS,
+          decimals: 6,
+          name: 'Polymarket USD',
+          symbol: 'pUSD',
+        },
+      ],
+      CHAIN_IDS.POLYGON,
+    )
+    // TransactionPayController still derives required-token pricing for
+    // Predict deposits from Polygon marketData/currencyRates. Seed explicit
+    // pUSD + Polygon native rates so the deposit amount is recognized as a
+    // priced required token instead of collapsing to a gas-only confirmation.
+    .withTokenRates(
+      CHAIN_IDS.POLYGON,
+      toChecksumHexAddress(POLYGON_PUSD_TOKEN_ADDRESS),
+      1 / POLYGON_NATIVE_USD_RATE,
+    )
+    .build();
+
+  fixture.state.engine.backgroundState.CurrencyRateController.currencyRates = {
+    ...fixture.state.engine.backgroundState.CurrencyRateController
+      .currencyRates,
+    MATIC: {
+      conversionDate: Date.now() / 1000,
+      conversionRate: POLYGON_NATIVE_USD_RATE,
+      usdConversionRate: POLYGON_NATIVE_USD_RATE,
+    },
+  };
+
+  return fixture;
+}
+
 describe(SmokeConfirmations('Transaction Pay'), () => {
   it('deposits to predict balance', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withPolygon()
-          .withTokens(
-            [
-              {
-                address: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
-                decimals: 6,
-                name: 'Polymarket USD',
-                symbol: 'pUSD',
-              },
-            ],
-            CHAIN_IDS.POLYGON,
-          )
-          .build(),
+        fixture: buildTransactionPayFixture(),
         restartDevice: true,
         testSpecificMock,
       },
