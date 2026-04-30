@@ -9,7 +9,10 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import PillToggleCardList from './PillToggleCardList';
 
-interface Row { id: string; label: string }
+interface Row {
+  id: string;
+  label: string;
+}
 
 const Skeleton = () => <Text testID="card-list-skeleton">sk</Text>;
 
