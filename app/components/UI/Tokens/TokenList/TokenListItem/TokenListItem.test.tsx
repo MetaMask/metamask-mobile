@@ -1207,6 +1207,60 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
+  describe('hideSecondaryPriceRow (Money Hub compact mUSD layout)', () => {
+    const musdAsset = {
+      ...defaultAsset,
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      isNative: false,
+      balance: '1280.34',
+      balanceFiat: '$1,280.34',
+    };
+
+    const musdAssetKey: FlashListAssetKey = {
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    it('renders the native balance in the compact layout for mUSD', () => {
+      prepareMocks({ asset: musdAsset });
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={musdAssetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+          hideSecondaryPriceRow
+        />,
+      );
+      expect(getByText('1280.34 mUSD')).toBeOnTheScreen();
+      expect(getByText('MetaMask USD')).toBeOnTheScreen();
+    });
+
+    it('does not affect non-mUSD rows', () => {
+      prepareMocks({ asset: defaultAsset });
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+          hideSecondaryPriceRow
+        />,
+      );
+      expect(getByText('Test Token')).toBeOnTheScreen();
+    });
+  });
+
   describe('mUSD Bonus Row', () => {
     const claimableAsset = {
       ...defaultAsset,

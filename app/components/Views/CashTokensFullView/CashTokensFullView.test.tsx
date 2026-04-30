@@ -8,11 +8,13 @@ import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags
 import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -40,8 +42,12 @@ jest.mock('../../UI/Earn/hooks/useMusdConversion', () => ({
     hasSeenConversionEducationScreen: true,
   }),
 }));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockUseMusdConversionTokens = jest.fn<{ tokens: any[] }, []>(() => ({
+  tokens: [],
+}));
 jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => ({ tokens: [] }),
+  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
   tokenFiatValue: () => 0,
 }));
 jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -51,11 +57,32 @@ jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
 jest.mock(
   '../../UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins',
   () => {
-    const { View } = jest.requireActual('react-native');
+    const { Pressable, Text, View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: (props: Record<string, unknown>) => (
-        <View testID="money-convert-stablecoins-container" {...props} />
+      default: ({
+        onMaxPress,
+        onEditPress,
+      }: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onMaxPress?: (token: any) => void;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onEditPress?: (token: any) => void;
+      }) => (
+        <View testID="money-convert-stablecoins-container">
+          <Pressable
+            testID="money-convert-stablecoins-max"
+            onPress={() => onMaxPress?.({ address: '0xabc', chainId: '0x1' })}
+          >
+            <Text>Max</Text>
+          </Pressable>
+          <Pressable
+            testID="money-convert-stablecoins-edit"
+            onPress={() => onEditPress?.({ address: '0xabc', chainId: '0x1' })}
+          >
+            <Text>Edit</Text>
+          </Pressable>
+        </View>
       ),
     };
   },
@@ -103,6 +130,36 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(() => false),
 }));
+jest.mock('../../UI/Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultApyQuery: { data: { apy: 4 }, isLoading: false },
+    totalFiatFormatted: '$0.00',
+    isAggregatedBalanceLoading: false,
+  }),
+}));
+jest.mock('../../UI/Money/components/MoneyHowItWorks', () => {
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onHeaderPress }: { onHeaderPress?: () => void }) => (
+      <Pressable testID="money-how-it-works" onPress={onHeaderPress}>
+        <Text>How it works</Text>
+      </Pressable>
+    ),
+  };
+});
+jest.mock('../../UI/Money/components/MoneyMusdEmptyBalanceRow', () => {
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onPress }: { onPress?: () => void }) => (
+      <Pressable testID="money-musd-empty-balance-row" onPress={onPress}>
+        <Text>MetaMask USD empty</Text>
+      </Pressable>
+    ),
+  };
+});
 jest.mock('./useCashTokensRefresh', () => ({
   useCashTokensRefresh: () => ({ refreshing: false, onRefresh: jest.fn() }),
 }));
@@ -233,5 +290,178 @@ describe('CashTokensFullView', () => {
         screen.getByTestId(CashTokensFullViewTestIds.YOUR_BALANCE_HEADING),
       ).toBeOnTheScreen();
     });
+  });
+
+  it('renders "Your balance" heading even when balance is empty (Money Hub on)', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(
+      screen.getByTestId(CashTokensFullViewTestIds.YOUR_BALANCE_HEADING),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders MoneyMusdEmptyBalanceRow in empty state when Money Hub is enabled', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(
+      screen.getByTestId('money-musd-empty-balance-row'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('cash-get-musd-empty-state'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('empty mUSD row press triggers navigation', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    fireEvent.press(screen.getByTestId('money-musd-empty-balance-row'));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({ symbol: 'mUSD' }),
+    );
+  });
+
+  it('renders MoneyHowItWorks block in empty state when Money Hub is enabled', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(screen.getByTestId('money-how-it-works')).toBeOnTheScreen();
+  });
+
+  it('How it works header press triggers navigation', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    fireEvent.press(screen.getByTestId('money-how-it-works'));
+    expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('Convert section Max and Edit handlers do not throw when invoked', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(() =>
+      fireEvent.press(screen.getByTestId('money-convert-stablecoins-max')),
+    ).not.toThrow();
+    expect(() =>
+      fireEvent.press(screen.getByTestId('money-convert-stablecoins-edit')),
+    ).not.toThrow();
+  });
+
+  it('renders Swap and Buy buttons when there are no convertible stablecoins', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(
+      screen.getByTestId(CashTokensFullViewTestIds.SWAP_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CashTokensFullViewTestIds.BUY_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('Swap button press does not throw', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(() =>
+      fireEvent.press(
+        screen.getByTestId(CashTokensFullViewTestIds.SWAP_BUTTON),
+      ),
+    ).not.toThrow();
+  });
+
+  it('Buy button press does not throw', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(() =>
+      fireEvent.press(screen.getByTestId(CashTokensFullViewTestIds.BUY_BUTTON)),
+    ).not.toThrow();
+  });
+
+  it('renders bonus + convert sections when Money Hub is enabled', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(screen.getByTestId('asset-overview-claim-bonus')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('money-convert-stablecoins-container'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders Convert to mUSD button when there are convertible stablecoins', () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    mockUseMusdConversionTokens.mockReturnValue({
+      tokens: [
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { address: '0xabc', chainId: '0x1', symbol: 'USDC' } as any,
+      ],
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(
+      screen.queryByTestId(CashTokensFullViewTestIds.SWAP_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText('Convert to mUSD')).toBeOnTheScreen();
+  });
+
+  it('Convert to mUSD button press does not throw', async () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceByChain: {},
+    });
+    mockUseMusdConversionTokens.mockReturnValue({
+      tokens: [
+        {
+          address: '0xabc',
+          chainId: '0x1',
+          symbol: 'USDC',
+          fiat: { balance: 100 },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
+      ],
+    });
+    renderWithProvider(<CashTokensFullView />);
+    expect(() =>
+      fireEvent.press(screen.getByText('Convert to mUSD')),
+    ).not.toThrow();
   });
 });
