@@ -162,6 +162,7 @@ describe('OndoLeaderboardView', () => {
     statusLabel: '',
     image: null,
     featured: false,
+    showUpcomingDate: false,
     details: {
       howItWorks: { title: '', description: '', steps: [] },
       tiers: [

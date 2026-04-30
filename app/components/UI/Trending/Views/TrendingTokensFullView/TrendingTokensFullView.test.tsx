@@ -6,6 +6,7 @@ import {
   act,
 } from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
   TrendingTokensData,
@@ -247,7 +248,7 @@ describe('TrendingTokensFullView', () => {
   it('renders header with title and buttons', () => {
     const { getByText, getByTestId } = renderTrendingFullView();
 
-    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(getByText('Trending')).toBeOnTheScreen();
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 
@@ -284,14 +285,17 @@ describe('TrendingTokensFullView', () => {
     const mocks = arrangeMocks();
     mocks.setTrendingSearchMock({ data: [] });
 
-    const { getByText, getByTestId } = renderTrendingFullView();
+    const { getByText, getByPlaceholderText, getByTestId } =
+      renderTrendingFullView();
 
     // Open search
     const searchToggle = getByTestId('trending-tokens-header-search-toggle');
     await userEvent.press(searchToggle);
 
     // Type search query
-    const searchInput = getByTestId('trending-tokens-header-search-bar');
+    const searchInput = getByPlaceholderText(
+      strings('trending.search_placeholder'),
+    );
     await userEvent.type(searchInput, 'nonexistenttoken');
 
     expect(getByTestId('empty-search-result-state')).toBeOnTheScreen();
@@ -432,13 +436,16 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByTestId, getByText } = renderTrendingFullView();
+      const { getByPlaceholderText, getByTestId, getByText } =
+        renderTrendingFullView();
 
       // Open search and type a query
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
       fireEvent.press(searchToggle);
 
-      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      const searchInput = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
       fireEvent.changeText(searchInput, 'eth');
 
       // Tokens should be displayed in original order (relevance), not sorted
@@ -546,7 +553,8 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByTestId, getByText } = renderTrendingFullView();
+      const { getByPlaceholderText, getByTestId, getByText } =
+        renderTrendingFullView();
 
       // First select a price change option
       const priceChangeButton = getByTestId('price-change-button');
@@ -559,7 +567,9 @@ describe('TrendingTokensFullView', () => {
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
       await userEvent.press(searchToggle);
 
-      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      const searchInput = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
       fireEvent.changeText(searchInput, 'eth');
 
       // Even with volume sort selected, search results should maintain relevance order
@@ -583,7 +593,7 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByTestId, getByText, queryByTestId } =
+      const { getByPlaceholderText, getByTestId, getByText, queryByTestId } =
         renderTrendingFullView();
 
       // Open search
@@ -591,7 +601,9 @@ describe('TrendingTokensFullView', () => {
       await userEvent.press(searchToggle);
 
       // Type search query
-      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      const searchInput = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
       fireEvent.changeText(searchInput, 'token');
 
       // Verify search is active
