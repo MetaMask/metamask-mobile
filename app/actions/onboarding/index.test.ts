@@ -103,10 +103,35 @@ describe('Onboarding actions', () => {
   });
 
   describe('setWalletHomeOnboardingStepsEligible', () => {
-    it('creates an action to set eligibility', () => {
+    it('creates an action to set eligibility with skipInitialBalanceWait true by default', () => {
       expect(setWalletHomeOnboardingStepsEligible(true)).toEqual({
         type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
         eligible: true,
+        skipInitialBalanceWait: true,
+      });
+    });
+
+    it('creates an action with skipInitialBalanceWait when eligible', () => {
+      expect(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
+      ).toEqual({
+        type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+        eligible: true,
+        skipInitialBalanceWait: true,
+      });
+    });
+
+    it('creates an action with skipInitialBalanceWait false when explicitly disabled', () => {
+      expect(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: false,
+        }),
+      ).toEqual({
+        type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+        eligible: true,
+        skipInitialBalanceWait: false,
       });
     });
   });

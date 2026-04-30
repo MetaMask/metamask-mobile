@@ -8,7 +8,7 @@ import OnboardingSuccess, {
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
@@ -153,7 +153,9 @@ describe('OnboardingSuccessComponent', () => {
 
     expect(mockDiscoverAccounts).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
-      setWalletHomeOnboardingStepsEligible(true),
+      setWalletHomeOnboardingStepsEligible(true, {
+        skipInitialBalanceWait: true,
+      }),
     );
   });
 
@@ -307,11 +309,15 @@ describe('OnboardingSuccess', () => {
       expect(mockDiscoverAccounts).toHaveBeenCalled();
 
       expect(mockDispatch).toHaveBeenCalledWith(
-        setWalletHomeOnboardingStepsEligible(true),
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
       );
-      expect(mockNavigationDispatch).toHaveBeenCalledWith(
-        ResetNavigationToHome,
-      );
+      await waitFor(() => {
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          ResetNavigationToHome,
+        );
+      });
     });
   });
 

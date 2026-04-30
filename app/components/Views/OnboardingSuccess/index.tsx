@@ -72,7 +72,11 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const handleOnDone = useCallback(() => {
     if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
-      dispatch(setWalletHomeOnboardingStepsEligible(true));
+      dispatch(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
+      );
     }
 
     const onOnboardingSuccess = async () => {
@@ -82,7 +86,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     };
     onOnboardingSuccess();
-    onDone();
+    queueMicrotask(() => {
+      onDone();
+    });
   }, [dispatch, onDone, successFlow]);
 
   const getTitleString = () => {
