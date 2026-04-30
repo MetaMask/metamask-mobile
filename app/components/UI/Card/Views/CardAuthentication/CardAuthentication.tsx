@@ -412,7 +412,7 @@ const CardAuthentication = () => {
               value={email}
               inputProps={{
                 autoCapitalize: 'none',
-                autoComplete: 'one-time-code',
+                autoComplete: 'username',
                 numberOfLines: 1,
                 returnKeyType: 'next',
                 keyboardType: 'email-address',
@@ -442,7 +442,7 @@ const CardAuthentication = () => {
               }
               inputProps={{
                 autoCapitalize: 'none',
-                autoComplete: 'one-time-code',
+                autoComplete: 'password',
                 numberOfLines: 1,
                 maxLength: 255,
                 returnKeyType: 'done',
@@ -458,7 +458,6 @@ const CardAuthentication = () => {
         </>
       ),
     [
-      autoComplete,
       confirmCode,
       email,
       error,
