@@ -731,9 +731,8 @@ describe('EngineService', () => {
 
       // Should subscribe to controllers that have persistent state
       // Based on the mock setup: KeyringController, PreferencesController, NetworkController
-      // (KeyringController appears twice due to test setup),
-      // plus one subscription for the money account override listener.
-      expect(mockSubscribe).toHaveBeenCalledTimes(5);
+      // (KeyringController appears twice due to test setup)
+      expect(mockSubscribe).toHaveBeenCalledTimes(4);
 
       // Should NOT subscribe to CronjobController
       const subscribedEvents = (mockSubscribe as jest.Mock).mock.calls.map(
@@ -771,9 +770,8 @@ describe('EngineService', () => {
         expect.any(Function),
       );
 
-      // Should only subscribe to controllers with persistent state plus the
-      // money account override listener.
-      expect(mockSubscribe).toHaveBeenCalledTimes(5); // KeyringController (2x), PreferencesController, NetworkController, money account override
+      // Should only subscribe to controllers with persistent state
+      expect(mockSubscribe).toHaveBeenCalledTimes(4); // KeyringController (2x), PreferencesController, NetworkController
     });
 
     it('persists controller state changes to filesystem', async () => {
@@ -1228,22 +1226,6 @@ describe('EngineService', () => {
       // Assert - Empty filtered state should NOT be persisted
       expect(Logger.log).not.toHaveBeenCalledWith(
         expect.stringContaining('state changed during init'),
-      );
-    });
-  });
-
-  describe('money account override listener', () => {
-    it('subscribes to TransactionController:unapprovedTransactionAdded on start', async () => {
-      await engineService.start();
-
-      const mockSubscribe = Engine.controllerMessenger
-        .subscribe as jest.MockedFunction<
-        typeof Engine.controllerMessenger.subscribe
-      >;
-
-      expect(mockSubscribe).toHaveBeenCalledWith(
-        'TransactionController:unapprovedTransactionAdded',
-        expect.any(Function),
       );
     });
   });
