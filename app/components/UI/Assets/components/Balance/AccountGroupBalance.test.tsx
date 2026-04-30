@@ -34,6 +34,7 @@ jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
 jest.mock('../../../../../selectors/onboarding', () => ({
   selectShouldShowWalletHomeOnboardingSteps: jest.fn(() => false),
   selectWalletHomeOnboardingStepsEligible: jest.fn(() => false),
+  selectWalletHomeOnboardingSkipInitialBalanceWait: jest.fn(() => false),
   selectWalletHomeOnboardingSteps: jest.fn(() => ({
     suppressedReason: null,
     stepIndex: 0,

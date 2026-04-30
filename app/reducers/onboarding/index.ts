@@ -48,6 +48,12 @@ export interface OnboardingState {
    */
   walletHomeOnboardingStepsEligible: boolean;
 
+  /**
+   * Session-only: show the first checklist step immediately without waiting for aggregated
+   * balance fetch (fresh-from-onboarding path). Not persisted — unlock/relaunch uses loading shell.
+   */
+  walletHomeOnboardingSkipInitialBalanceWait: boolean;
+
   /** Present after migration 133; absent only on partially rehydrated legacy state. */
   walletHomeOnboardingSteps?: WalletHomeOnboardingStepsState;
 }
@@ -58,6 +64,7 @@ export const initialOnboardingState: OnboardingState = {
   pendingSocialLoginMarketingConsentBackfill: null,
   iosGoogleWarningSheetLastDismissedAt: null,
   walletHomeOnboardingStepsEligible: false,
+  walletHomeOnboardingSkipInitialBalanceWait: false,
   walletHomeOnboardingSteps: { ...WALLET_HOME_ONBOARDING_STEPS_INITIAL },
 };
 
@@ -128,6 +135,8 @@ const onboardingReducer = (
       return {
         ...state,
         walletHomeOnboardingStepsEligible: action.eligible,
+        walletHomeOnboardingSkipInitialBalanceWait:
+          action.eligible && action.skipInitialBalanceWait === true,
       };
     case RESET_WALLET_HOME_ONBOARDING_STEPS:
       return {
@@ -156,6 +165,7 @@ const onboardingReducer = (
           ...stepsState,
           suppressedReason: action.reason,
         },
+        walletHomeOnboardingSkipInitialBalanceWait: false,
         ...(action.reason === 'account_funded'
           ? { walletHomeOnboardingStepsEligible: false }
           : {}),
