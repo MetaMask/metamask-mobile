@@ -21,11 +21,11 @@ import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
 import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
 import {
-  buildTronScopedPermissionsNamespace,
-  getCompatibleTronCaipChainIdsForWalletConnect as getCompatibleTronCaipChainIdsForWalletConnectFromMultichain,
-  normalizeCaipChainIdInboundForWalletConnectTron,
-  normalizeCaipChainIdOutboundForWalletConnectTron,
-} from './multichain/tron';
+  buildAdapterScopedPermissionsNamespaces,
+  getCompatibleCaipChainIdsForWalletConnect,
+  normalizeCaipChainIdInboundForWalletConnect as normalizeCaipChainIdInboundFromMultichain,
+  normalizeCaipChainIdOutboundForWalletConnect as normalizeCaipChainIdOutboundFromMultichain,
+} from './multichain';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -256,19 +256,18 @@ export const normalizeCaipChainIdOutbound = (caipChainId: string): string =>
 export function normalizeCaipChainIdInboundForWalletConnect(
   caipChainId: string,
 ): string {
-  return normalizeCaipChainIdInboundForWalletConnectTron(caipChainId);
+  return normalizeCaipChainIdInboundFromMultichain(caipChainId);
 }
 
 export function normalizeCaipChainIdOutboundForWalletConnect(
   caipChainId: string,
 ): string {
-  return normalizeCaipChainIdOutboundForWalletConnectTron(caipChainId);
+  return normalizeCaipChainIdOutboundFromMultichain(caipChainId);
 }
 
 export const getCompatibleTronCaipChainIdsForWalletConnect = (
   caipChainId: string,
-): string[] =>
-  getCompatibleTronCaipChainIdsForWalletConnectFromMultichain(caipChainId);
+): string[] => getCompatibleCaipChainIdsForWalletConnect(caipChainId);
 
 export const getScopedPermissions = async ({
   channelId,
@@ -302,17 +301,11 @@ export const getScopedPermissions = async ({
     ),
   };
 
-  const tronNamespace = buildTronScopedPermissionsNamespace({
+  const adapterNamespaces = buildAdapterScopedPermissionsNamespaces({
     channelId,
     permittedChains,
   });
-  if (tronNamespace) {
-    namespaces[KnownCaipNamespace.Tron] = tronNamespace;
-    DevLogger.log(`WC::getScopedPermissions added Tron namespace`, {
-      chains: tronNamespace.chains,
-      accountsCount: tronNamespace.accounts.length,
-    });
-  }
+  Object.assign(namespaces, adapterNamespaces);
 
   DevLogger.log(`WC::getScopedPermissions final namespaces`, namespaces);
   return namespaces;
