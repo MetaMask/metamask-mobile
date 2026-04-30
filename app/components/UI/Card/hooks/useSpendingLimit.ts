@@ -92,6 +92,24 @@ export interface UseSpendingLimitReturn {
   isFaucetCheckLoading: boolean;
 }
 
+const deriveLimitStateFromToken = (
+  token: CardFundingToken,
+): Pick<UseSpendingLimitReturn, 'limitType' | 'customLimit'> => {
+  if (token.fundingStatus !== FundingStatus.Limited) {
+    return {
+      limitType: 'full',
+      customLimit: '',
+    };
+  }
+
+  return {
+    limitType: 'restricted',
+    customLimit: sanitizeCustomLimit(
+      token.originalSpendingCap ?? token.spendingCap ?? '',
+    ),
+  };
+};
+
 /**
  * Simplified hook for spending limit management.
  * Combines form state and submission logic into a single hook.
@@ -115,12 +133,20 @@ const useSpendingLimit = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { sdk } = useCardSDK();
 
+  const initialLimitState = initialToken
+    ? deriveLimitStateFromToken(initialToken)
+    : { limitType: 'full' as const, customLimit: '' };
+
   // Form state
   const [selectedToken, setSelectedToken] = useState<CardFundingToken | null>(
     initialToken ?? null,
   );
-  const [limitType, setLimitType] = useState<LimitType>('full');
-  const [customLimit, setCustomLimitState] = useState('');
+  const [limitType, setLimitType] = useState<LimitType>(
+    initialLimitState.limitType,
+  );
+  const [customLimit, setCustomLimitState] = useState(
+    initialLimitState.customLimit,
+  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -174,6 +200,13 @@ const useSpendingLimit = ({
     [evmNetworkConfigs],
   );
   const allWalletTokens = useTokensWithBalance({ chainIds: allWalletChainIds });
+
+  const applySelectedToken = useCallback((token: CardFundingToken) => {
+    const nextLimitState = deriveLimitStateFromToken(token);
+    setSelectedToken(token);
+    setLimitType(nextLimitState.limitType);
+    setCustomLimitState(nextLimitState.customLimit);
+  }, []);
 
   // Returns 'network:symbol' (e.g. 'linea:musd', 'base:usdc') for analytics.
   // For card chains, uses the friendly network name from caipChainIdToNetwork.
@@ -266,13 +299,13 @@ const useSpendingLimit = ({
     if (hasInitialized) return;
 
     if (initialToken) {
-      setSelectedToken(initialToken);
+      applySelectedToken(initialToken);
       setHasInitialized(true);
       return;
     }
 
     if (!selectedToken && priorityToken) {
-      setSelectedToken(priorityToken);
+      applySelectedToken(priorityToken);
       setHasInitialized(true);
       return;
     }
@@ -322,7 +355,7 @@ const useSpendingLimit = ({
                 t.caipChainId === LINEA_CAIP_CHAIN_ID,
             ) ?? topEntry.token);
       if (defaultToken) {
-        setSelectedToken(defaultToken);
+        applySelectedToken(defaultToken);
         setHasInitialized(true);
       }
     }
@@ -335,6 +368,7 @@ const useSpendingLimit = ({
     walletTokens,
     delegationSettings,
     sdk,
+    applySelectedToken,
   ]);
 
   // Handle returned values from modal sheets
@@ -349,7 +383,7 @@ const useSpendingLimit = ({
         | undefined;
 
       if (params?.returnedSelectedToken) {
-        setSelectedToken(params.returnedSelectedToken);
+        applySelectedToken(params.returnedSelectedToken);
         setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
@@ -367,7 +401,7 @@ const useSpendingLimit = ({
           returnedCustomLimit: undefined,
         } as Record<string, unknown>);
       }
-    }, [routeParams, navigation]),
+    }, [routeParams, navigation, applySelectedToken]),
   );
 
   // Computed delegation amount

@@ -33,11 +33,18 @@ import { formatCents, getCashoutInfoText } from '../utils/format';
 import PredictPreviewSheet, {
   type PredictPreviewSheetRef,
 } from '../components/PredictPreviewSheet/PredictPreviewSheet';
-import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
+import Engine from '../../../../core/Engine';
+import PredictBuyPreview, {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
+  predictBuyPreviewSessionRef,
+} from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
+import { PredictDismissalMethod } from '../constants/eventNames';
+import { parseAnalyticsProperties } from '../utils/analytics';
 
 let _providerMounted = false;
 
@@ -259,9 +266,34 @@ export const PredictPreviewSheetProvider: React.FC<
     if (activeOrder?.error) {
       dismissedWithErrorRef.current = true;
     }
+
+    // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
+    // Skip if: the back-button handler already fired it, or the sheet is
+    // closing because the user confirmed an order (not a dismissal).
+    if (
+      !predictBuyPreviewDismissedViaBackRef.current &&
+      !predictBuyPreviewOrderInitiatedRef.current &&
+      buyParams
+    ) {
+      const dismissAnalyticsProperties = parseAnalyticsProperties(
+        buyParams.market,
+        buyParams.outcomeToken,
+        buyParams.entryPoint,
+      );
+      Engine.context.PredictController.trackBetslipDismissed({
+        analyticsProperties: dismissAnalyticsProperties,
+        dismissalMethod: PredictDismissalMethod.SWIPE,
+        hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+        timeOnScreenMs: Date.now() - predictBuyPreviewSessionRef.mountTimestamp,
+        activeAbTests: buyParams.transactionActiveAbTests,
+      });
+    }
+    predictBuyPreviewDismissedViaBackRef.current = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
+
     setBuyParams(null);
     clearOrderError();
-  }, [clearOrderError, activeOrder?.error]);
+  }, [clearOrderError, activeOrder?.error, buyParams]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(

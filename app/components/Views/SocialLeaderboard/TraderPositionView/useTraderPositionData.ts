@@ -108,7 +108,7 @@ export function useTraderPositionData(
   positionParam: Position | undefined,
   tokenSymbol?: string,
 ): TraderPositionData {
-  const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
+  const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1M');
 
   const caipChainId = useMemo(
     () => (positionParam ? chainNameToId(positionParam.chain) : undefined),
