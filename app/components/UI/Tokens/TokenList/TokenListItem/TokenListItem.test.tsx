@@ -54,6 +54,24 @@ jest.mock('../../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
+// CAIP resolution uses useQuery; these tests use renderWithProvider (no QueryClient).
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQuery: jest.fn(() => ({ data: undefined })),
+  };
+});
+
+// TokenListSecurityBadge uses TanStack Query; omit from these TokenList-focused tests.
+jest.mock(
+  '../../components/TokenListSecurityBadge/TokenListSecurityBadge',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
 // Mock StockBadge component to simplify testing
 jest.mock('../../../shared/StockBadge', () => {
   const { Text } = jest.requireActual('react-native');
