@@ -33,13 +33,11 @@ export async function submitSwapUnifiedUI(
   await QuoteView.tapDestinationToken();
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
-  const networkFeeLabelWaitStarted = Date.now();
+  const getQuoteStarted = Date.now();
   await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
     timeout: 60000,
   });
-  logger.debug(
-    `✅✅✅✅ network fee label visible after ${Date.now() - networkFeeLabelWaitStarted}ms`,
-  );
+  logger.debug(`⏳ Quote visible after ${Date.now() - getQuoteStarted}ms`);
 
   // Dismiss the keypad so quote details (slippage, confirm) are not obscured
   await QuoteView.dismissKeypad();
@@ -53,13 +51,7 @@ export async function submitSwapUnifiedUI(
     await QuoteView.verifySlippageDisplayed(DEFAULT_SLIPPAGE_VALUE);
   }
 
-  const confirmSwapWaitStarted = Date.now();
-  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap, {
-    timeout: 30000,
-  });
-  logger.debug(
-    `✅✅✅✅ confirm swap visible after ${Date.now() - confirmSwapWaitStarted}ms`,
-  );
+  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
 
   await QuoteView.tapConfirmSwap();
 }
