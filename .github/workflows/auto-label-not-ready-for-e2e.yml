@@ -1,3 +1,5 @@
+# Automatically applies the 'pr-not-ready-for-e2e' label to newly opened PRs,
+# but only if the PR is opened between 13:00 and 17:00 UTC (15:00–19:00 CEST).
 name: Auto-apply pr-not-ready-for-e2e label
 
 on:
@@ -16,7 +18,18 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      - name: Check current UTC hour
+        id: time-check
+        run: |
+          HOUR=$(date -u +%H)
+          echo "Current UTC hour: $HOUR"
+          if [[ $HOUR -ge 13 && $HOUR -lt 17 ]]; then
+            echo "in_window=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "in_window=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Add pr-not-ready-for-e2e label
+        if: steps.time-check.outputs.in_window == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
