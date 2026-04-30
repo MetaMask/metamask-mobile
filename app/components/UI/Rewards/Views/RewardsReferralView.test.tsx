@@ -19,7 +19,7 @@ jest.mock('react-native-share', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: () => ({}) }),
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
