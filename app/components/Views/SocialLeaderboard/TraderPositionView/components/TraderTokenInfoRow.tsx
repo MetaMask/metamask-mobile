@@ -159,21 +159,21 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
   onCopyTokenAddress,
   copyTokenAddressTestID,
 }) => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="px-4 py-3"
-    >
-      <TraderTokenIdentity
-        symbol={symbol}
-        position={position}
-        pricePercentChange={pricePercentChange}
-        activeTimePeriodLabel={activeTimePeriodLabel}
-        onCopyTokenAddress={onCopyTokenAddress}
-        copyTokenAddressTestID={copyTokenAddressTestID}
-      />
-      <TraderMarketCap marketCap={marketCap} />
-    </Box>
-  );
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="px-4 py-3"
+  >
+    <TraderTokenIdentity
+      symbol={symbol}
+      position={position}
+      pricePercentChange={pricePercentChange}
+      activeTimePeriodLabel={activeTimePeriodLabel}
+      onCopyTokenAddress={onCopyTokenAddress}
+      copyTokenAddressTestID={copyTokenAddressTestID}
+    />
+    <TraderMarketCap marketCap={marketCap} />
+  </Box>
+);
 
 export default TraderTokenInfoRow;
