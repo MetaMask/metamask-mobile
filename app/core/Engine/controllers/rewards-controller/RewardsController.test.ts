@@ -4571,7 +4571,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockClear();
       mockStoreSubscriptionToken.mockResolvedValue({ success: true });
       mockMessenger.call.mockImplementation(
-        (method: string, ..._args: unknown[]) => {
+        (method: string, ..._args: unknown[]): any => {
           if (method === 'AccountsController:listMultichainAccounts') {
             return [mockInternalAccount];
           }

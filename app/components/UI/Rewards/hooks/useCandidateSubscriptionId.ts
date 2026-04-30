@@ -21,7 +21,7 @@ export const useCandidateSubscriptionId = () => {
       );
       dispatch(setCandidateSubscriptionId(candidateId));
     } catch (error) {
-      captureException(error, {
+      captureException(error as Error, {
         tags: {
           feature: 'rewards',
           context: 'candidateSubscriptionId.fetch_failed',

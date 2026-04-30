@@ -951,7 +951,7 @@ export class RewardsController extends BaseController<
       try {
         await this.#reauthPromises.get(subscriptionId);
       } catch (reauthError) {
-        captureException(reauthError, {
+        captureException(reauthError as Error, {
           tags: { feature: 'rewards', context: 'withAuthRetry.reauth_failed' },
         });
         this.invalidateSubscriptionCache(subscriptionId);
@@ -1318,7 +1318,7 @@ export class RewardsController extends BaseController<
         // Unknown error
         subscription = null;
         authUnexpectedError = true;
-        captureException(error, {
+        captureException(error as Error, {
           tags: {
             feature: 'rewards',
             context: 'performSilentAuth.unexpected_error',
@@ -2552,7 +2552,7 @@ export class RewardsController extends BaseController<
         sessionId: optinResponse.sessionId,
       };
     } catch (error) {
-      captureException(error, {
+      captureException(error as Error, {
         tags: { feature: 'rewards', context: 'optIn.unexpected_error' },
         extra: { accountType: account.type },
       });
@@ -3074,7 +3074,7 @@ export class RewardsController extends BaseController<
 
       return true;
     } catch (error) {
-      captureException(error, {
+      captureException(error as Error, {
         tags: {
           feature: 'rewards',
           context: 'linkAccountToSubscriptionCandidate.failed',
@@ -3200,7 +3200,7 @@ export class RewardsController extends BaseController<
       );
       return false;
     } catch (error) {
-      captureException(error, {
+      captureException(error as Error, {
         tags: { feature: 'rewards', context: 'optOut.failed' },
       });
       Logger.log('RewardsController: Failed to opt out', error);
