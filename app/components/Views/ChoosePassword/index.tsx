@@ -31,7 +31,7 @@ import {
   Checkbox,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useStore } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet as passwordSetAction,
@@ -95,6 +95,8 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import { getWalletSetupCompletedAttributionProperties } from '../../../util/analytics/getWalletSetupCompletedAttributionProperties';
+import type { RootState } from '../../../reducers';
 
 interface KeyringState {
   type: string;
@@ -125,6 +127,7 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
+  const store = useStore<RootState>();
   const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
@@ -489,6 +492,7 @@ const ChoosePassword = () => {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
+        ...getWalletSetupCompletedAttributionProperties(store.getState()),
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
@@ -505,6 +509,7 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
+    store,
   ]);
 
   const onPasswordChange = useCallback(

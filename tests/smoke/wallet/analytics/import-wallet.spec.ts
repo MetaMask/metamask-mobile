@@ -23,6 +23,7 @@ import {
   importWalletMetricsOptOutExpectations,
   importWalletWithMetricsOptInExpectations,
 } from '../../../helpers/analytics/expectations/import-wallet.analytics';
+import { importWalletWithMetricsOptInAndAttributionExpectations } from '../../../helpers/analytics/expectations/wallet-setup-attribution.analytics';
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
@@ -35,6 +36,64 @@ const logger = createLogger({
 describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
+  });
+
+  it('includes persisted acquisition params on Wallet Setup Completed when marketing consent and attribution are preloaded', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withOnboardingFixture()
+          .withPreloadedMarketingAttributionForWalletSetupAnalytics()
+          .build(),
+        restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetails(),
+            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
+          });
+        },
+        analyticsExpectations:
+          importWalletWithMetricsOptInAndAttributionExpectations,
+      },
+      async ({ mockServer }) => {
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
+
+        const profileAccountsMatcher = {
+          method: 'PUT' as const,
+          urlSubstring: AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
+        };
+        const profileAccountsBaseline = await countProxiedRequestsMatching(
+          mockServer,
+          profileAccountsMatcher,
+        );
+
+        await importWalletWithRecoveryPhrase({
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+          optInToMetrics: true,
+        });
+
+        await waitForAdditionalProxiedRequestsMatching(
+          mockServer,
+          profileAccountsMatcher,
+          profileAccountsBaseline,
+          {
+            description:
+              'New PUT authentication.api.cx.metamask.io/api/v2/profile/accounts observed after wallet import',
+            timeout: PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
+            successLog: {
+              logger,
+              label:
+                'PUT authentication.api.cx.metamask.io/api/v2/profile/accounts after import',
+            },
+          },
+        );
+      },
+    );
   });
 
   it('tracks analytics events during wallet import flow', async () => {

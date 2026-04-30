@@ -8,6 +8,7 @@ import {
   newWalletWithMetricsOptInExpectations,
   newWalletMetricsOptOutExpectations,
 } from '../../../helpers/analytics/expectations/new-wallet.analytics';
+import { newWalletWithMetricsOptInAndAttributionExpectations } from '../../../helpers/analytics/expectations/wallet-setup-attribution.analytics';
 import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
@@ -15,6 +16,29 @@ import { Mockttp } from 'mockttp';
 describe(SmokeWalletPlatform('Analytics during new wallet flow'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
+  });
+
+  it('includes persisted acquisition params on Wallet Setup Completed when marketing consent and attribution are preloaded', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withOnboardingFixture()
+          .withPreloadedMarketingAttributionForWalletSetupAnalytics()
+          .build(),
+        restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeaturePredictGtmOnboardingModalDisabled(),
+          );
+        },
+        analyticsExpectations:
+          newWalletWithMetricsOptInAndAttributionExpectations,
+      },
+      async () => {
+        await CreateNewWallet();
+      },
+    );
   });
 
   it('tracks analytics events during new wallet flow', async () => {

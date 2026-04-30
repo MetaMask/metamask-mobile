@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useStore } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -97,6 +97,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import { getWalletSetupCompletedAttributionProperties } from '../../../util/analytics/getWalletSetupCompletedAttributionProperties';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -115,6 +116,8 @@ const ImportFromSecretRecoveryPhrase = ({
 }) => {
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
+  /** @type {import('redux').Store<import('../../../reducers').RootState>} */
+  const store = useStore();
 
   const confirmPasswordInput = useRef();
 
@@ -464,6 +467,7 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
+          ...getWalletSetupCompletedAttributionProperties(store.getState()),
         });
 
         fetchAccountsWithActivity();

@@ -818,6 +818,39 @@ class FixtureBuilder {
   }
 
   /**
+   * Preloads marketing consent and persisted acquisition data for E2E analytics tests
+   * that assert Wallet Setup Completed includes utm_* and attribution_id.
+   */
+  withPreloadedMarketingAttributionForWalletSetupAnalytics(
+    capturedAt: number = Date.now(),
+  ) {
+    if (!this.fixture.state) {
+      (this.fixture as Fixture).state = {} as Fixture['state'];
+    }
+    merge(this.fixture.state, {
+      security: {
+        allowLoginWithRememberMe: false,
+        dataCollectionForMarketing: true,
+        isNFTAutoDetectionModalViewed: false,
+        osAuthEnabled: true,
+      },
+      attribution: {
+        _persist: { version: -1, rehydrated: true },
+        attribution: {
+          utm_source: 'fixture_utm_source',
+          utm_medium: 'fixture_utm_medium',
+          utm_campaign: 'fixture_utm_campaign',
+          utm_term: 'fixture_utm_term',
+          utm_content: 'fixture_utm_content',
+          attribution_id: 'fixture_attribution_id',
+          capturedAt,
+        },
+      },
+    });
+    return this;
+  }
+
+  /**
    * @deprecated Use withNetworkController instead
    * @param chainId
    * @param port
