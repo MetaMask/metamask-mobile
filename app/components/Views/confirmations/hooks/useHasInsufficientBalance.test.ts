@@ -5,11 +5,15 @@ import { useHasInsufficientBalance } from './useHasInsufficientBalance';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { useAccountNativeBalance } from './useAccountNativeBalance';
+import { useTransactionAccountOverride } from './transactions/useTransactionAccountOverride';
+import { useTransactionPayIsPostQuote } from './pay/useTransactionPayData';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 jest.mock('./transactions/useTransactionMetadataRequest');
 jest.mock('../../../../selectors/networkController');
 jest.mock('./useAccountNativeBalance');
+jest.mock('./transactions/useTransactionAccountOverride');
+jest.mock('./pay/useTransactionPayData');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -24,6 +28,12 @@ describe('useHasInsufficientBalance', () => {
     selectNetworkConfigurations,
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
+  const mockUseTransactionAccountOverride = jest.mocked(
+    useTransactionAccountOverride,
+  );
+  const mockUseTransactionPayIsPostQuote = jest.mocked(
+    useTransactionPayIsPostQuote,
+  );
 
   const mockChainId = '0x1' as Hex;
   const mockFromAddress = '0xabc';
@@ -55,6 +65,38 @@ describe('useHasInsufficientBalance', () => {
     mockUseAccountNativeBalance.mockReturnValue({
       balanceWeiInHex: '0xA',
     } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    mockUseTransactionAccountOverride.mockReturnValue(undefined);
+    mockUseTransactionPayIsPostQuote.mockReturnValue(false);
+  });
+
+  it('uses accountOverride address when defined', () => {
+    const overrideAddress = '0xOverride' as Hex;
+    mockUseTransactionAccountOverride.mockReturnValue(overrideAddress);
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0xC',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    renderHook(() => useHasInsufficientBalance());
+
+    expect(mockUseAccountNativeBalance).toHaveBeenCalledWith(
+      mockChainId,
+      overrideAddress,
+    );
+  });
+
+  it('falls back to txParams.from when accountOverride is undefined', () => {
+    mockUseTransactionAccountOverride.mockReturnValue(undefined);
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0xC',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    renderHook(() => useHasInsufficientBalance());
+
+    expect(mockUseAccountNativeBalance).toHaveBeenCalledWith(
+      mockChainId,
+      mockFromAddress,
+    );
   });
 
   it('returns insufficient = false when balance is enough', () => {
@@ -177,5 +219,62 @@ describe('useHasInsufficientBalance', () => {
     const { result } = renderHook(() => useHasInsufficientBalance());
     expect(result.current.hasInsufficientBalance).toBe(false);
     expect(result.current.nativeCurrency).toBe('pathUSD');
+  });
+
+  // Money account withdraw and similar post-quote + account-override flows
+  // settle the token via the quote provider, so `txParams.value` is not
+  // spent from the overridden account's native balance.
+  it('excludes txParams.value from the check when accountOverride is set and isPostQuote is true', () => {
+    mockUseTransactionAccountOverride.mockReturnValue('0xOverride' as Hex);
+    mockUseTransactionPayIsPostQuote.mockReturnValue(true);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...baseTx,
+      txParams: {
+        ...baseTx.txParams,
+        value: '0x64',
+      },
+    } as unknown as TransactionMeta);
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0x8',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    const { result } = renderHook(() => useHasInsufficientBalance());
+    expect(result.current.hasInsufficientBalance).toBe(false);
+  });
+
+  it('includes txParams.value in the check when isPostQuote is true but accountOverride is unset', () => {
+    mockUseTransactionAccountOverride.mockReturnValue(undefined);
+    mockUseTransactionPayIsPostQuote.mockReturnValue(true);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...baseTx,
+      txParams: {
+        ...baseTx.txParams,
+        value: '0x64',
+      },
+    } as unknown as TransactionMeta);
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0x8',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    const { result } = renderHook(() => useHasInsufficientBalance());
+    expect(result.current.hasInsufficientBalance).toBe(true);
+  });
+
+  it('includes txParams.value in the check when accountOverride is set but isPostQuote is false', () => {
+    mockUseTransactionAccountOverride.mockReturnValue('0xOverride' as Hex);
+    mockUseTransactionPayIsPostQuote.mockReturnValue(false);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...baseTx,
+      txParams: {
+        ...baseTx.txParams,
+        value: '0x64',
+      },
+    } as unknown as TransactionMeta);
+    mockUseAccountNativeBalance.mockReturnValue({
+      balanceWeiInHex: '0x8',
+    } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
+    const { result } = renderHook(() => useHasInsufficientBalance());
+    expect(result.current.hasInsufficientBalance).toBe(true);
   });
 });

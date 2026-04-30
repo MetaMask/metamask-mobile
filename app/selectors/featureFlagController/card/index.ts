@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
-const defaultCardFeatureFlag: CardFeatureFlag = {
+export const defaultCardFeatureFlag: CardFeatureFlag = {
   chains: {
     'eip155:59144': {
       balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
@@ -147,14 +147,21 @@ export interface SupportedToken {
   symbol?: string | null;
 }
 
+export const resolveCardFeatureFlag = (
+  cardFeatureFlag?: CardFeatureFlag | null,
+): CardFeatureFlag =>
+  Object.keys(cardFeatureFlag ?? {}).length > 0
+    ? (cardFeatureFlag as CardFeatureFlag)
+    : defaultCardFeatureFlag;
+
 export const selectCardFeatureFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const cardFeatureFlag = remoteFeatureFlags?.cardFeature;
 
-    return Object.keys(cardFeatureFlag ?? {}).length > 0
-      ? cardFeatureFlag
-      : defaultCardFeatureFlag;
+    return resolveCardFeatureFlag(
+      cardFeatureFlag as CardFeatureFlag | undefined,
+    );
   },
 );
 

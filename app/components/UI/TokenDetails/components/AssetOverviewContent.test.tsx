@@ -388,7 +388,7 @@ describe('AssetOverviewContent', () => {
           onClose: expect.any(Function),
           contentKey: 'geo_block',
         }),
-        expect.anything(),
+        {},
       );
 
       // Extract onClose from the last render call and invoke it

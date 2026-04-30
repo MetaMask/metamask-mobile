@@ -1,7 +1,7 @@
 import type { Browser } from 'webdriverio';
-import type { ServiceProvider } from '../interfaces/ServiceProvider.ts';
-import type { ProjectConfig, CommonCapabilities } from '../types.ts';
-import { createLogger, type Logger } from '../../../logger.ts';
+import type { ServiceProvider } from '../interfaces/ServiceProvider';
+import type { ProjectConfig, CommonCapabilities } from '../types';
+import { createLogger, type Logger } from '../../../logger';
 
 /**
  * Base abstract class for service providers
@@ -43,7 +43,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
     return {
       'appium:deviceName': this.project.use.device?.name,
       'appium:autoGrantPermissions': true,
-      'appium:app': this.project.use.buildPath,
+      'appium:app': this.project.use.app?.buildPath,
       'appium:autoAcceptAlerts': true,
       'appium:fullReset': true,
       'appium:deviceOrientation': this.project.use.device?.orientation,
@@ -63,10 +63,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
    * Get build path from project config
    */
   protected getBuildPath(): string {
-    const buildPath = this.project.use.buildPath;
-    if (!buildPath) {
-      throw new Error('Build path is not configured');
-    }
+    const buildPath = this.project.use.app?.buildPath ?? '';
     return buildPath;
   }
 }

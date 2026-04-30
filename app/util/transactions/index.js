@@ -178,6 +178,12 @@ const reviewActionKeys = {
   [TransactionType.musdConversion]: strings(
     'transactions.tx_review_musd_conversion',
   ),
+  [TransactionType.moneyAccountDeposit]: strings(
+    'transactions.money_account_deposit',
+  ),
+  [TransactionType.moneyAccountWithdraw]: strings(
+    'transactions.money_account_withdraw',
+  ),
 };
 
 /**
@@ -239,6 +245,12 @@ const actionKeys = {
   ),
   [TransactionType.musdConversion]: strings(
     'transactions.tx_review_musd_conversion',
+  ),
+  [TransactionType.moneyAccountDeposit]: strings(
+    'transactions.money_account_deposit',
+  ),
+  [TransactionType.moneyAccountWithdraw]: strings(
+    'transactions.money_account_withdraw',
   ),
 };
 
@@ -572,6 +584,8 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.perpsDepositAndOrder,
       TransactionType.musdConversion,
       TransactionType.musdClaim,
+      TransactionType.moneyAccountDeposit,
+      TransactionType.moneyAccountWithdraw,
     ].includes(type)
   ) {
     return type;
@@ -607,6 +621,14 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (hasTransactionType(transaction, [TransactionType.perpsWithdraw])) {
     return TransactionType.perpsWithdraw;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    return TransactionType.moneyAccountDeposit;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return TransactionType.moneyAccountWithdraw;
   }
 
   if (!to) {

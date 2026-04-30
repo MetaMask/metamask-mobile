@@ -383,7 +383,10 @@ describe('MultichainPermissionsSummary', () => {
     });
 
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
-    expect(confirmButton.props.disabled).toBe(true);
+    expect(
+      confirmButton.props.accessibilityState?.disabled ??
+        confirmButton.props.disabled,
+    ).toBe(true);
   });
 
   it('displays account label for single connected account', () => {
@@ -509,7 +512,10 @@ describe('MultichainPermissionsSummary', () => {
     });
 
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
-    expect(confirmButton.props.disabled).toBe(true);
+    expect(
+      confirmButton.props.accessibilityState?.disabled ??
+        confirmButton.props.disabled,
+    ).toBe(true);
   });
 
   it('disables confirm button when no networks are selected', () => {
@@ -519,7 +525,10 @@ describe('MultichainPermissionsSummary', () => {
     });
 
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
-    expect(confirmButton.props.disabled).toBe(true);
+    expect(
+      confirmButton.props.accessibilityState?.disabled ??
+        confirmButton.props.disabled,
+    ).toBe(true);
   });
 
   it('enables confirm button when both accounts and networks are selected', () => {
@@ -529,7 +538,7 @@ describe('MultichainPermissionsSummary', () => {
     });
 
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
-    expect(confirmButton.props.disabled).toBe(false);
+    expect(confirmButton).toBeEnabled();
   });
 
   it('renders network avatars correctly', () => {
