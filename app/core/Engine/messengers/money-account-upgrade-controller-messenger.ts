@@ -32,8 +32,12 @@ export function getMoneyAccountUpgradeControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'ChompApiService:associateAddress',
+      'ChompApiService:createUpgrade',
       'ChompApiService:getServiceDetails',
+      'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',
+      'NetworkController:findNetworkClientIdByChainId',
+      'NetworkController:getNetworkClientById',
     ],
     events: [],
     messenger,

@@ -51,6 +51,7 @@ export const upgradeMoneyAccount =
 
     // TODO: remove this toast before general release. It only exists to make it
     // clear what's happening in testing
+    Logger.log(LOG_PREFIX, 'upgrading money account');
     showToast('Upgrading money account…', address);
 
     upgradesInFlight.add(address);
@@ -61,10 +62,11 @@ export const upgradeMoneyAccount =
       })
       .catch((error: unknown) => {
         if (error instanceof Error) {
-          Logger.error(error, `${LOG_PREFIX} failed`);
+          Logger.log(`${LOG_PREFIX} failed`, error);
           showToast('Money account upgrade failed', error.message);
         } else {
-          Logger.error(new Error(String(error)), `${LOG_PREFIX} failed`);
+          Logger.error(`${LOG_PREFIX} failed`, new Error(String(error)));
+          console.log(error);
           showToast('Money account upgrade failed', 'Unknown error');
         }
       })
