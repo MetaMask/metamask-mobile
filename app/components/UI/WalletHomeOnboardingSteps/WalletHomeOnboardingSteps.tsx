@@ -130,11 +130,16 @@ export interface WalletHomeOnboardingStepsProps {
   onCoordinatedFlowExit?: () => Promise<void>;
   /** Pauses checklist Rive while the Wallet parent finishes the coordinated exit handoff. */
   suspendRiveForCurtain?: boolean;
+  /** Trade step: invoked when user taps Primary (before advancing). Skip does not call this. */
+  onTradePrimaryPress?: () => void;
+  /** Notifications step: invoked when user taps Primary (before advancing). Skip does not call this. */
+  onNotificationsPrimaryPress?: () => void;
 }
 
 /**
  * Multi-step onboarding flow for newly onboarded users with zero aggregated balance.
- * Primary advances each step; Skip (steps 2–3 only) advances without committing to the primary action.
+ * Primary on trade/notifications runs optional commit handlers (e.g. navigate) then advances;
+ * Skip advances only.
  * Step 1 (fund) has no Skip — users must use Add to continue.
  */
 const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
@@ -142,6 +147,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   isAwaitingBalance = false,
   onCoordinatedFlowExit,
   suspendRiveForCurtain = false,
+  onTradePrimaryPress,
+  onNotificationsPrimaryPress,
 }) => {
   const tw = useTailwind();
   const checklistRiveRef = useRef<RiveRef>(null);
@@ -380,6 +387,21 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     checklistFadeOpacity,
   ]);
 
+  const handlePrimaryPress = useCallback(() => {
+    const kind = currentStep.kind;
+    if (kind === 'trade' && onTradePrimaryPress) {
+      onTradePrimaryPress();
+    } else if (kind === 'notifications' && onNotificationsPrimaryPress) {
+      onNotificationsPrimaryPress();
+    }
+    goNextOrComplete();
+  }, [
+    currentStep.kind,
+    goNextOrComplete,
+    onNotificationsPrimaryPress,
+    onTradePrimaryPress,
+  ]);
+
   const progressLabel = useMemo(
     () =>
       strings('wallet.home_onboarding_steps.progress_a11y', {
@@ -498,7 +520,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         {currentStep.buttonLayout === 'full_width_primary' ? (
           <Button
             size={ButtonSize.Lg}
-            onPress={goNextOrComplete}
+            onPress={handlePrimaryPress}
             isFullWidth
             isDisabled={isStepTransitioning || isAwaitingBalance}
             testID={primaryTestID}
@@ -524,7 +546,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             </Button>
             <Button
               size={ButtonSize.Lg}
-              onPress={goNextOrComplete}
+              onPress={handlePrimaryPress}
               twClassName="min-w-0 flex-1"
               isDisabled={isStepTransitioning || isAwaitingBalance}
               testID={primaryTestID}
