@@ -224,6 +224,28 @@ export interface NestedNavigationParams {
 
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
+type TraderPositionViewParams =
+  | {
+      traderId: string;
+      tokenSymbol: string;
+      /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
+      position: Position;
+      positionId?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
+      traderName?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
+      traderImageUrl?: string;
+    }
+  | {
+      /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
+      positionId: string;
+      traderId: string;
+      tokenSymbol?: never;
+      traderName?: never;
+      traderImageUrl?: never;
+      position?: never;
+    };
+
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
@@ -557,19 +579,8 @@ export interface RootStackParamList extends ParamListBase {
 
   // Social Leaderboard routes
   TopTradersView: undefined;
-  TraderProfileView: { traderId: string; traderName: string };
-  TraderPositionView: {
-    traderId: string;
-    tokenSymbol: string;
-    /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
-    position?: Position;
-    /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
-    positionId?: string;
-    /** Optional — fetched via useTraderProfile when absent. */
-    traderName?: string;
-    /** Optional — fetched via useTraderProfile when absent. */
-    traderImageUrl?: string;
-  };
+  TraderProfileView: { traderId: string; traderName: string; rank?: number };
+  TraderPositionView: TraderPositionViewParams;
 
   // Misc routes
   LockScreen: undefined;
@@ -646,13 +657,10 @@ export interface RootStackParamList extends ParamListBase {
 
   // Card routes
   CardScreens: undefined;
-  CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
   CardAuthentication: { showAuthPrompt?: boolean } | undefined;
   CardSpendingLimit: undefined;
-  CardChangeAsset: undefined;
-  VerifyingRegistration: undefined;
   ChooseYourCard: undefined;
   ReviewOrder: undefined;
   OrderCompleted:
@@ -671,7 +679,6 @@ export interface RootStackParamList extends ParamListBase {
   CardOnboardingVerifyingVeriffKYC: undefined;
   CardOnboardingPersonalDetails: undefined;
   CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingMailingAddress: undefined;
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;

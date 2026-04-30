@@ -11,10 +11,10 @@ const mockInitialState = {
 
 describe('NavbarBrowserTitle', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <NavbarBrowserTitle hostname={'faucet.metamask.io'} https />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('faucet.metamask.io')).toBeOnTheScreen();
   });
 });

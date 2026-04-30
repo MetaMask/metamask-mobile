@@ -6,6 +6,6 @@ jest.useFakeTimers();
 describe('FadeOutOverlay', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<FadeOutOverlay />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

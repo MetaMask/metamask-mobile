@@ -2,10 +2,9 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { QR_CONTINUE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { act } from '@testing-library/react-hooks';
 import {
   ACCOUNT_SELECTOR_FORGET_BUTTON,
   ACCOUNT_SELECTOR_NEXT_BUTTON,
@@ -15,6 +14,7 @@ import { QrKeyringBridge } from '@metamask/eth-qr-keyring';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { strings } from '../../../../locales/i18n';
 
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -120,6 +120,10 @@ const mockQrKeyring = {
       '0x4678901234567890123456789012345678901210',
       '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
     ]),
+  setAccountToUnlock: jest.fn(),
+  addAccounts: jest
+    .fn()
+    .mockResolvedValue(['0x4678901234567890123456789012345678901210']),
 };
 
 const mockQrKeyringBridge: QrKeyringBridge = {
@@ -136,6 +140,10 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../core/HardwareWallets/analytics', () => ({
+  getConnectedDevicesCount: jest.fn().mockResolvedValue(1),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -349,7 +357,7 @@ describe('ConnectQRHardware', () => {
   it('tracks hardware wallet add account event with QR device type when accounts are unlocked', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, getByText, getAllByRole } = renderWithProvider(
       <ConnectQRHardware navigation={mockedNavigate} />,
       { state: mockInitialState },
     );
@@ -360,16 +368,20 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(button);
     });
 
-    const checkbox = getByText(mockPage0Accounts[0].shortenedAddress);
-
+    // Pressing the address label does not toggle @react-native-community/checkbox; drive onValueChange.
+    const [firstRowCheckbox] = getAllByRole('checkbox');
     await act(async () => {
-      fireEvent.press(checkbox);
+      fireEvent(firstRowCheckbox, 'onValueChange', true);
     });
 
-    const unlockButton = getByText('Unlock');
+    const unlockButton = getByText(strings('account_selector.unlock'));
 
     await act(async () => {
       fireEvent.press(unlockButton);
+    });
+
+    await waitFor(() => {
+      expect(mockedNavigate.pop).toHaveBeenCalledWith(2);
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
