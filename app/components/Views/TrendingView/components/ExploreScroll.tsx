@@ -7,6 +7,11 @@ interface ExploreScrollProps {
   refreshing: boolean;
   onRefresh: () => void;
   testID?: string;
+  /**
+   * When false, omits top padding (legacy Explore V1 sits directly under the
+   * global search row; tabbed V2 uses default spacing).
+   */
+  includeTopPadding?: boolean;
   children: React.ReactNode;
 }
 
@@ -18,6 +23,7 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
   refreshing,
   onRefresh,
   testID,
+  includeTopPadding = true,
   children,
 }) => {
   const tw = useTailwind();
@@ -26,7 +32,7 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
   return (
     <ScrollView
       testID={testID}
-      style={tw.style('flex-1 px-4 pt-3')}
+      style={tw.style('flex-1 px-4', includeTopPadding && 'pt-3')}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl

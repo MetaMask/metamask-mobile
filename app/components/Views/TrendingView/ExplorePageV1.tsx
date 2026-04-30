@@ -174,6 +174,7 @@ const ExplorePageV1: React.FC<TabProps> = ({
         refreshing={refreshing}
         onRefresh={onRefresh}
         testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
+        includeTopPadding={false}
       >
         <QuickActions emptySections={quickActionsEmptySections} />
 
