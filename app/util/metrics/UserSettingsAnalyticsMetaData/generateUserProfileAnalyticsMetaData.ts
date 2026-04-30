@@ -40,9 +40,8 @@ export function getAccountCompositionTraits(
 
     // BIP44 multichain accounts share an entropy id and group index across all chains.
     // Deduplicating on that composite key counts account groups rather than individual addresses.
-    const entropy = (account.options as { entropy?: unknown })?.entropy as
-      | { type: string; id: string; groupIndex: number }
-      | undefined;
+    const entropy: InternalAccount['options']['entropy'] =
+      account.options?.entropy;
 
     if (
       entropy?.type === KeyringAccountEntropyTypeOption.Mnemonic &&

@@ -15,6 +15,10 @@ import { analytics } from '../../../../util/analytics/analytics';
 import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import Logger from '../../../../util/Logger';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
 type InternalAccounts = AccountsControllerState['internalAccounts']['accounts'];
 
@@ -116,20 +120,19 @@ function buildMockAccounts(
 ): InternalAccounts {
   return {
     'account-1': {
+      ...createMockInternalAccount('0x1234', 'Account 1', KeyringTypes.hd),
       id: 'account-1',
-      address: '0x1234',
-      type: 'eip155:eoa',
-      options: { entropy: { id: 'entropy-1', groupIndex: 0 } },
-      methods: [],
-      metadata: {
-        keyring: { type: 'HD Key Tree' },
-        importTime: 0,
-        name: 'Account 1',
-        nameLastUpdatedAt: 0,
-      },
+      options: {
+        entropy: {
+          type: KeyringAccountEntropyTypeOption.Mnemonic,
+          id: 'entropy-1',
+          derivationPath: "m/44'/60'/0'/0/0",
+          groupIndex: 0,
+        },
+      } as InternalAccount['options'],
     },
     ...overrides,
-  } as unknown as InternalAccounts;
+  };
 }
 
 describe('analyticsControllerInit', () => {
@@ -266,18 +269,13 @@ describe('analyticsControllerInit', () => {
 
       const accounts2 = buildMockAccounts({
         'account-2': {
+          ...createMockInternalAccount(
+            '0x5678',
+            'Account 2',
+            KeyringTypes.simple,
+          ),
           id: 'account-2',
-          address: '0x5678',
-          type: 'eip155:eoa',
-          options: {},
-          methods: [],
-          metadata: {
-            keyring: { type: 'Simple Key Pair' },
-            importTime: 0,
-            name: 'Account 2',
-            nameLastUpdatedAt: 0,
-          },
-        } as unknown as InternalAccounts[string],
+        },
       });
       callback(accounts2);
 
@@ -325,21 +323,16 @@ describe('analyticsControllerInit', () => {
       callback(buildMockAccounts());
       jest.clearAllMocks();
 
-      const accountsChanged = {
+      const accountsChanged: InternalAccounts = {
         'account-1': {
+          ...createMockInternalAccount(
+            '0x1234',
+            'Account 1',
+            KeyringTypes.simple,
+          ),
           id: 'account-1',
-          address: '0x1234',
-          type: 'eip155:eoa',
-          options: { entropy: { id: 'entropy-1', groupIndex: 0 } },
-          methods: [],
-          metadata: {
-            keyring: { type: 'Simple Key Pair' }, // changed
-            importTime: 0,
-            name: 'Account 1',
-            nameLastUpdatedAt: 0,
-          },
         },
-      } as unknown as InternalAccounts;
+      };
 
       callback(accountsChanged);
       expect(mockAnalyticsIdentify).toHaveBeenCalled();
@@ -350,21 +343,12 @@ describe('analyticsControllerInit', () => {
       analyticsControllerInit(getInitRequestMock({ initMessenger }));
       const callback = getAccountsSubscribeCallback(initMessenger);
 
-      const accountsNoEntropy = {
+      const accountsNoEntropy: InternalAccounts = {
         'account-1': {
+          ...createMockInternalAccount('0x1234', 'Account 1', KeyringTypes.hd),
           id: 'account-1',
-          address: '0x1234',
-          type: 'eip155:eoa',
-          options: {},
-          methods: [],
-          metadata: {
-            keyring: { type: 'HD Key Tree' },
-            importTime: 0,
-            name: 'Account 1',
-            nameLastUpdatedAt: 0,
-          },
         },
-      } as unknown as InternalAccounts;
+      };
 
       expect(() => callback(accountsNoEntropy)).not.toThrow();
       expect(mockAnalyticsIdentify).toHaveBeenCalled();
@@ -375,20 +359,16 @@ describe('analyticsControllerInit', () => {
       analyticsControllerInit(getInitRequestMock({ initMessenger }));
       const callback = getAccountsSubscribeCallback(initMessenger);
 
-      const accountsNoKeyring = {
+      const accountsNoKeyring: InternalAccounts = {
         'account-1': {
+          ...createMockInternalAccount('0x1234', 'Account 1', KeyringTypes.hd),
           id: 'account-1',
-          address: '0x1234',
-          type: 'eip155:eoa',
-          options: {},
-          methods: [],
           metadata: {
             importTime: 0,
             name: 'Account 1',
-            nameLastUpdatedAt: 0,
-          },
+          } as InternalAccount['metadata'],
         },
-      } as unknown as InternalAccounts;
+      };
 
       expect(() => callback(accountsNoKeyring)).not.toThrow();
     });
@@ -398,43 +378,25 @@ describe('analyticsControllerInit', () => {
       analyticsControllerInit(getInitRequestMock({ initMessenger }));
       const callback = getAccountsSubscribeCallback(initMessenger);
 
-      const accountsAB = {
+      const accountsAB: InternalAccounts = {
         'account-a': {
+          ...createMockInternalAccount('0xaaa', 'A', KeyringTypes.hd),
           id: 'account-a',
-          address: '0xaaa',
-          type: 'eip155:eoa',
-          options: {},
-          methods: [],
-          metadata: {
-            keyring: { type: 'HD Key Tree' },
-            importTime: 0,
-            name: 'A',
-            nameLastUpdatedAt: 0,
-          },
         },
         'account-b': {
+          ...createMockInternalAccount('0xbbb', 'B', KeyringTypes.simple),
           id: 'account-b',
-          address: '0xbbb',
-          type: 'eip155:eoa',
-          options: {},
-          methods: [],
-          metadata: {
-            keyring: { type: 'Simple Key Pair' },
-            importTime: 0,
-            name: 'B',
-            nameLastUpdatedAt: 0,
-          },
         },
-      } as unknown as InternalAccounts;
+      };
 
       callback(accountsAB);
       jest.clearAllMocks();
 
       // Same accounts, different insertion order — fingerprint should be identical (sorted)
-      const accountsBA = {
+      const accountsBA: InternalAccounts = {
         'account-b': accountsAB['account-b'],
         'account-a': accountsAB['account-a'],
-      } as unknown as InternalAccounts;
+      };
 
       callback(accountsBA);
       expect(mockAnalyticsIdentify).not.toHaveBeenCalled();

@@ -11,6 +11,7 @@ import { isE2E } from '../../../../util/test/utils';
 import { getBrazePlugin } from '../../../Braze';
 import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { analytics } from '../../../../util/analytics/analytics';
 import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import Logger from '../../../../util/Logger';
@@ -27,12 +28,12 @@ function getCompositionFingerprint(accounts: InternalAccounts): string {
   return Object.entries(accounts)
     .map(([id, acct]) => {
       const keyringType = acct.metadata?.keyring?.type ?? '';
-      const entropy = (
-        acct.options as {
-          entropy?: { type?: string; id?: string; groupIndex?: number };
-        }
-      )?.entropy;
-      return `${id}|${keyringType}|${entropy?.type ?? ''}|${entropy?.id ?? ''}|${entropy?.groupIndex ?? ''}`;
+      const entropy: InternalAccount['options']['entropy'] =
+        acct.options?.entropy;
+      const isMnemonic = entropy?.type === 'mnemonic';
+      const entropyId = isMnemonic ? entropy.id : '';
+      const entropyGroupIndex = isMnemonic ? entropy.groupIndex : '';
+      return `${id}|${keyringType}|${entropy?.type ?? ''}|${entropyId}|${entropyGroupIndex}`;
     })
     .sort((a, b) => a.localeCompare(b))
     .join(';');

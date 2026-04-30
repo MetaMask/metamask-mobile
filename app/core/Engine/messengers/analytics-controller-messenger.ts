@@ -4,10 +4,6 @@ import {
   MessengerEvents,
   MessengerActions,
 } from '@metamask/messenger';
-import type {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
 import type { AccountsControllerChangeEvent } from '@metamask/accounts-controller';
 import { RootMessenger } from '../types';
 
@@ -49,8 +45,8 @@ export function getAnalyticsControllerInitMessenger(
 ) {
   const messenger = new Messenger<
     'AnalyticsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
-    RemoteFeatureFlagControllerStateChangeEvent | AccountsControllerChangeEvent,
+    never,
+    AccountsControllerChangeEvent,
     RootMessenger
   >({
     namespace: 'AnalyticsControllerInit',
@@ -58,11 +54,8 @@ export function getAnalyticsControllerInitMessenger(
   });
 
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
-    events: [
-      'RemoteFeatureFlagController:stateChange',
-      'AccountsController:stateChange',
-    ],
+    actions: [],
+    events: ['AccountsController:stateChange'],
     messenger,
   });
 

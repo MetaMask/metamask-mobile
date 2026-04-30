@@ -6,6 +6,7 @@ import { Appearance } from 'react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 
 const mockGetState = jest.fn();
 jest.mock('../../../store', () => ({
@@ -33,8 +34,8 @@ function makeHdAccount(
   groupIndex: number,
 ): InternalAccount {
   return {
+    ...createMockInternalAccount(`0x${id}`, id, KeyringTypes.hd),
     id,
-    address: `0x${id}`,
     options: {
       entropy: {
         type: KeyringAccountEntropyTypeOption.Mnemonic,
@@ -42,25 +43,16 @@ function makeHdAccount(
         derivationPath: "m/44'/60'/0'/0/0",
         groupIndex,
       },
-    },
-    metadata: { name: id, importTime: 0, keyring: { type: KeyringTypes.hd } },
-    methods: [],
-    type: 'eip155:eoa',
-    scopes: ['eip155:0'],
-  } as unknown as InternalAccount;
+    } as InternalAccount['options'],
+  };
 }
 
 // Helper to create a non-HD account (imported, hardware, snap)
 function makeAccount(id: string, keyringType: KeyringTypes): InternalAccount {
   return {
+    ...createMockInternalAccount(`0x${id}`, id, keyringType),
     id,
-    address: `0x${id}`,
-    options: {},
-    metadata: { name: id, importTime: 0, keyring: { type: keyringType } },
-    methods: [],
-    type: 'eip155:eoa',
-    scopes: ['eip155:0'],
-  } as unknown as InternalAccount;
+  };
 }
 
 const mockState = {
@@ -306,19 +298,14 @@ describe('getAccountCompositionTraits', () => {
   });
 
   it('treats accounts without entropy structure as individual groups', () => {
-    const noEntropy: InternalAccount = {
+    const noEntropy = {
+      ...createMockInternalAccount(
+        '0xunknown1',
+        'unknown',
+        'Unknown Keyring Type' as KeyringTypes,
+      ),
       id: 'unknown1',
-      address: '0xunknown1',
-      options: {},
-      metadata: {
-        name: 'unknown',
-        importTime: 0,
-        keyring: { type: 'Unknown Keyring Type' as KeyringTypes },
-      },
-      methods: [],
-      type: 'eip155:eoa',
-      scopes: ['eip155:0'],
-    } as unknown as InternalAccount;
+    };
 
     const traits = getAccountCompositionTraits({ [noEntropy.id]: noEntropy });
     expect(traits[UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]).toBe(1);
