@@ -11,9 +11,20 @@
  */
 
 import { getAdapter } from './registry';
-import type { SnapMappedRequest } from './types';
-import { CaipAccountId, CaipChainId, Json } from '@metamask/utils';
+import type { NamespaceConfig, SnapMappedRequest } from './types';
+import {
+  CaipAccountId,
+  CaipChainId,
+  Json,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import Engine from '../../Engine';
+import {
+  buildTronScopedPermissionsNamespace,
+  getCompatibleTronCaipChainIdsForWalletConnect,
+  normalizeCaipChainIdInboundForWalletConnectTron,
+  normalizeCaipChainIdOutboundForWalletConnectTron,
+} from './tron';
 
 export {
   buildAdapterNamespaces,
@@ -35,6 +46,36 @@ export type {
 } from './types';
 
 const splitNamespace = (scope: string): string => scope.split(':')[0];
+
+export const buildAdapterScopedPermissionsNamespaces = ({
+  channelId,
+  permittedChains,
+}: {
+  channelId: string;
+  permittedChains: string[];
+}): Record<string, NamespaceConfig> => {
+  const namespaces: Record<string, NamespaceConfig> = {};
+  const tronNamespace = buildTronScopedPermissionsNamespace({
+    channelId,
+    permittedChains,
+  });
+  if (tronNamespace) {
+    namespaces[KnownCaipNamespace.Tron] = tronNamespace;
+  }
+  return namespaces;
+};
+
+export const normalizeCaipChainIdInboundForWalletConnect = (
+  caipChainId: string,
+): string => normalizeCaipChainIdInboundForWalletConnectTron(caipChainId);
+
+export const normalizeCaipChainIdOutboundForWalletConnect = (
+  caipChainId: string,
+): string => normalizeCaipChainIdOutboundForWalletConnectTron(caipChainId);
+
+export const getCompatibleCaipChainIdsForWalletConnect = (
+  caipChainId: string,
+): string[] => getCompatibleTronCaipChainIdsForWalletConnect(caipChainId);
 
 /**
  * Translate a WalletConnect request into the parameter shape the
