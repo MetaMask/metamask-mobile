@@ -113,6 +113,9 @@ export class AppStateEventListener {
         appOpenedEventBuilder.addProperties(attribution);
       }
       analytics.trackEvent(appOpenedEventBuilder.build());
+      // One-shot use for attribution: keeping currentDeeplink causes every
+      // background→active cycle to re-save and reset capturedAt (TTL).
+      this.currentDeeplink = null;
     } catch (error) {
       Logger.error(
         error as Error,

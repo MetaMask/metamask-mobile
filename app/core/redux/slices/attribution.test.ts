@@ -86,6 +86,28 @@ describe('attribution slice', () => {
         capturedAt: 9,
       });
     });
+
+    it('keeps capturedAt when save payload matches existing acquisition fields', () => {
+      dateNowSpy.mockReturnValue(1_000);
+      const withFirst = reducer(
+        emptyState,
+        saveAttribution({
+          utm_source: 'email',
+          utm_campaign: 'spring',
+        }),
+      );
+
+      dateNowSpy.mockReturnValue(9_000);
+      const next = reducer(
+        withFirst,
+        saveAttribution({
+          utm_source: 'email',
+          utm_campaign: 'spring',
+        }),
+      );
+
+      expect(next.attribution?.capturedAt).toBe(1_000);
+    });
   });
 
   describe('clearAttribution', () => {

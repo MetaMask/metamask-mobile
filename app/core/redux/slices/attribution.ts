@@ -29,6 +29,25 @@ const initialState: AttributionState = {
  */
 export type SaveAttributionPayload = Omit<AttributionRecord, 'capturedAt'>;
 
+function normalizedField(s: string | undefined): string {
+  return (s?.trim() ?? '') || '';
+}
+
+function savePayloadMatchesExistingRecord(
+  record: AttributionRecord,
+  p: SaveAttributionPayload,
+): boolean {
+  return (
+    normalizedField(record.attribution_id) ===
+      normalizedField(p.attribution_id) &&
+    normalizedField(record.utm_source) === normalizedField(p.utm_source) &&
+    normalizedField(record.utm_medium) === normalizedField(p.utm_medium) &&
+    normalizedField(record.utm_campaign) === normalizedField(p.utm_campaign) &&
+    normalizedField(record.utm_term) === normalizedField(p.utm_term) &&
+    normalizedField(record.utm_content) === normalizedField(p.utm_content)
+  );
+}
+
 const attributionSlice = createSlice({
   name: 'attribution',
   initialState,
@@ -46,6 +65,12 @@ const attributionSlice = createSlice({
         (p.utm_term?.trim() ?? '') !== '' ||
         (p.utm_content?.trim() ?? '') !== '';
       if (!hasAny) {
+        return;
+      }
+      if (
+        state.attribution !== null &&
+        savePayloadMatchesExistingRecord(state.attribution, p)
+      ) {
         return;
       }
       state.attribution = {

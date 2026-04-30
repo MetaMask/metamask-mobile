@@ -129,6 +129,40 @@ describe('AppStateEventListener', () => {
     expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       mockEventBuilder.build(),
     );
+    expect(appStateManager.currentDeeplink).toBeNull();
+  });
+
+  it('clears currentDeeplink after processing so a later resume does not re-save attribution', () => {
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+    (processAttribution as jest.Mock)
+      .mockReturnValueOnce({
+        attributionId: 'x',
+        utm_source: 'y',
+      })
+      .mockReturnValue(undefined);
+
+    appStateManager.setCurrentDeeplink('metamask://x');
+    mockAppStateListener('background');
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(appStateManager.currentDeeplink).toBeNull();
+    expect(mockStore.dispatch).toHaveBeenCalledWith(
+      saveAttribution({
+        attribution_id: 'x',
+        utm_source: 'y',
+      }),
+    );
+
+    mockStore.dispatch.mockClear();
+    mockAppStateListener('background');
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(mockStore.dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: saveAttribution.type }),
+    );
   });
 
   it('tracks event when app becomes active without attribution data', () => {
