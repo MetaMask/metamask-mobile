@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import BigNumber from 'bignumber.js';
 import {
   Box,
@@ -71,12 +71,22 @@ const YourBonusCard: React.FC = () => {
   const hasLifetimeBonus =
     !!lifetimeBonusClaimed && new BigNumber(lifetimeBonusClaimed).gt(0);
   const hasClaimable = !!claimableReward;
-  const isClaimDisabled = isClaiming || hasPendingClaim || !hasClaimable;
+  const isLoading = isClaiming || hasPendingClaim;
+  const isClaimDisabled = isLoading || !hasClaimable;
+
+  const isClaimPressedRef = useRef(false);
+  useEffect(() => {
+    if (!isLoading) {
+      isClaimPressedRef.current = false;
+    }
+  }, [isLoading]);
 
   const handleClaim = useCallback(() => {
+    if (isClaimPressedRef.current || isClaimDisabled) return;
+    isClaimPressedRef.current = true;
     trackClaimBonusClicked(MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB);
     claimRewards().catch(() => undefined);
-  }, [trackClaimBonusClicked, claimRewards]);
+  }, [isClaimDisabled, trackClaimBonusClicked, claimRewards]);
 
   // useMerklRewards returns '0.00' for eligible users with no history, so
   // the guard checks > 0 rather than null.

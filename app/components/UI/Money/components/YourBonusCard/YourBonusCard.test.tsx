@@ -125,6 +125,20 @@ describe('YourBonusCard', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
+  it('prevents duplicate claim presses via isClaimPressedRef guard', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      ...baseClaimData,
+      claimableReward: '3.65',
+      lifetimeBonusClaimed: '0.00',
+    });
+    const { getByTestId } = renderWithProvider(<YourBonusCard />);
+    const button = getByTestId(YourBonusCardTestIds.CLAIM_BUTTON);
+    fireEvent.press(button);
+    fireEvent.press(button);
+    expect(mockClaimRewards).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
   it('renders estimated annual bonus computed from balance × bonus APY', () => {
     mockUseMusdBalance.mockReturnValue(mockBalance('1000'));
     mockUseMerklBonusClaim.mockReturnValue({
