@@ -11,11 +11,11 @@ import {
   createScaffoldMiddleware,
 } from '@metamask/json-rpc-engine';
 import type { JsonRpcRequest } from '@metamask/utils';
+import { getPermittedAccounts } from '../Permissions';
 
 type JsonRpcRequestWithOrigin = JsonRpcRequest & { origin: string };
 
 export function createEip5792Middleware({
-  getPermittedAccounts,
   getCallsStatus,
   getCapabilities,
   processSendCalls,
@@ -29,16 +29,14 @@ export function createEip5792Middleware({
     wallet_getCapabilities: createAsyncMiddleware(async (req, res) => {
       const request = req as unknown as JsonRpcRequestWithOrigin;
       return walletGetCapabilities(request, res, {
-        getPermittedAccountsForOrigin: () =>
-          getPermittedAccounts(request.origin),
+        getAccounts: async () => getPermittedAccounts(request.origin),
         getCapabilities,
       });
     }),
     wallet_sendCalls: createAsyncMiddleware(async (req, res) => {
       const request = req as unknown as JsonRpcRequestWithOrigin;
       return walletSendCalls(request, res, {
-        getPermittedAccountsForOrigin: () =>
-          getPermittedAccounts(request.origin),
+        getAccounts: async () => getPermittedAccounts(request.origin),
         processSendCalls,
       });
     }),
