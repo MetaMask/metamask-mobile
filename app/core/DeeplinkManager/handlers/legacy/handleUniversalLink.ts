@@ -30,6 +30,7 @@ import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
+import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
@@ -84,6 +85,7 @@ const SUPPORTED_ACTIONS = {
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
   TRENDING: ACTIONS.TRENDING,
+  SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
@@ -101,6 +103,7 @@ type SUPPORTED_ACTIONS =
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.DAPP,
+  SUPPORTED_ACTIONS.SWAP,
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
@@ -108,10 +111,16 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.REWARDS,
+  SUPPORTED_ACTIONS.PREDICT,
   SUPPORTED_ACTIONS.BUY,
   SUPPORTED_ACTIONS.BUY_CRYPTO,
   SUPPORTED_ACTIONS.SELL,
   SUPPORTED_ACTIONS.SELL_CRYPTO,
+  SUPPORTED_ACTIONS.TRENDING,
+  SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
+  SUPPORTED_ACTIONS.SHIELD,
+  SUPPORTED_ACTIONS.EARN_MUSD,
 ];
 
 /**
@@ -623,6 +632,12 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.TRENDING: {
       handleTrendingUrl({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {
+      handleSocialTraderPositionUrl({
         actionPath: actionBasedRampPath,
       });
       break;
