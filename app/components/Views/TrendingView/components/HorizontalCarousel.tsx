@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Dimensions } from 'react-native';
 import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -37,7 +37,10 @@ function HorizontalCarousel<T>({
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<T | undefined>>(null);
 
-  const skeletonData = Array.from<T | undefined>({ length: skeletonCount });
+  const skeletonData = useMemo(
+    () => Array.from<T | undefined>({ length: skeletonCount }),
+    [skeletonCount],
+  );
   const displayData = isLoading ? skeletonData : data;
 
   return (
