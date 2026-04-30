@@ -304,6 +304,57 @@ describe('spot balance helpers', () => {
     expect(result.availableToTradeBalance).toBe('7');
   });
 
+  it('folds spot USDC into availableToTradeBalance when withdrawable=0 but freeSpot>0 (stale-cache fail-open guard)', () => {
+    // Simulates a Unified-mode user whose abstraction-mode cache was stale
+    // (foldIntoCollateral=false) but perps withdrawable is 0 because HL
+    // holds all collateral in spot for Unified accounts.
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '0',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [{ coin: 'USDC', total: '2500', hold: '0' }],
+      } as never,
+      { foldIntoCollateral: false },
+    );
+
+    // The fail-open guard detects available=0 + freeSpot>0 and forces folding,
+    // matching withdraw3's actual behaviour on Unified accounts.
+    expect(result.availableToTradeBalance).toBe('2500');
+    expect(result.totalBalance).toBe('2500');
+  });
+
+  it('does NOT apply fail-open guard when Standard mode has both perps and spot balances', () => {
+    // Standard mode: user has perps collateral AND separate spot holdings.
+    // foldIntoCollateral=false, but currentAvailable > 0 so the guard
+    // must NOT trigger — spot stays separate for Standard users.
+    const accountState: AccountState = {
+      availableBalance: '7',
+      totalBalance: '10',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [{ coin: 'USDC', total: '25', hold: '0' }],
+      } as never,
+      { foldIntoCollateral: false },
+    );
+
+    // Guard skipped because currentAvailable (7) > 0 → spot kept separate.
+    expect(result.availableToTradeBalance).toBe('7');
+    expect(result.totalBalance).toBe('35');
+  });
+
   it('returns the original account state when spot balance is zero', () => {
     const accountState: AccountState = {
       availableBalance: '1',

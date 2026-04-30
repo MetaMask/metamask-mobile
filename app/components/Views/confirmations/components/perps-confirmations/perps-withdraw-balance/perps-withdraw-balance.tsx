@@ -8,7 +8,11 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { usePerpsLiveAccount } from '../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount';
-import { formatPerpsBalance } from '../../../../../UI/Perps/utils/formatUtils';
+import {
+  formatPerpsBalance,
+  parseCurrencyString,
+  truncateToTwoDecimals,
+} from '../../../../../UI/Perps/utils/formatUtils';
 import styleSheet from './perps-withdraw-balance.styles';
 
 export function PerpsWithdrawBalance() {
@@ -18,17 +22,24 @@ export function PerpsWithdrawBalance() {
   // formatPerpsBalance truncates (ROUND_DOWN) to 2 decimals so the displayed
   // balance matches the Max button value and never overstates what the user
   // can actually withdraw.
-  const balanceFormatted = useMemo(
-    () => formatPerpsBalance(account?.availableBalance),
-    [account?.availableBalance],
-  );
+  // const balanceFormatted = useMemo(
+  //   () => formatPerpsBalance(account?.availableBalance),
+  //   [account?.availableBalance],
+  // );
+
+  const availableBalance = useMemo(() => {
+    const balance =
+      account?.availableToTradeBalance ?? account?.availableBalance;
+    if (!balance) return 0;
+    return truncateToTwoDecimals(parseCurrencyString(balance));
+  }, [account?.availableBalance, account?.availableToTradeBalance]);
 
   return (
     <Box alignItems={AlignItems.center} style={styles.container}>
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Alternative}
-      >{`${strings('confirm.available_balance')}${balanceFormatted}`}</Text>
+      >{`${strings('confirm.available_balance')}${availableBalance}`}</Text>
     </Box>
   );
 }

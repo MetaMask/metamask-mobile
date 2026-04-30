@@ -672,6 +672,9 @@ export class HyperLiquidProvider implements PerpsProvider {
           attempted: true,
           enabled: true,
         });
+        // Evict any stale pre-migration abstraction mode the subscription service
+        // may have cached so the next aggregation uses the correct fold behaviour.
+        this.#subscriptionService.invalidateUserAbstractionCache(userAddress);
         completeInFlight();
         return;
       }
@@ -732,6 +735,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         attempted: true,
         enabled: true,
       });
+      // Evict the pre-migration abstraction mode from the subscription service
+      // so it immediately re-aggregates with fold=true and surfaces the correct
+      // unified balance rather than waiting for the next #refreshSpotState.
+      this.#subscriptionService.invalidateUserAbstractionCache(userAddress);
       completeInFlight();
     } catch (error) {
       // If keyring is locked, don't cache so it retries when unlocked
