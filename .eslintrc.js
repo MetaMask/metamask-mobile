@@ -594,7 +594,7 @@ module.exports = {
       files: ['app/**/*.{ts,tsx,js,jsx}'],
       excludedFiles: [
         // Perps controller is exempt from importing itself.
-        'app/controllers/perps/**/*.{ts,tsx}',
+        'app/controllers/perps/**/*.{ts,tsx,js,jsx}',
         // Designated expo-haptics wrapper — only this tree may import expo-haptics.
         'app/util/haptics/**/*.{ts,tsx,js,jsx}',
         // Legacy number utils + parity tests.
