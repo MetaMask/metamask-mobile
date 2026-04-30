@@ -190,6 +190,19 @@ export const PopularList = [
       imageSource: require('../../images/megaeth-mainnet-logo.png'),
     },
   },
+  {
+    chainId: toHex('4217'),
+    nickname: 'Tempo',
+    rpcUrl: `https://rpc.tempo.xyz/`,
+    failoverRpcUrls: [],
+    ticker: 'USD',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explore.tempo.xyz/',
+      imageUrl: 'TEMPO',
+      imageSource: require('../../images/tempo.png'),
+    },
+  },
 ];
 
 /**
