@@ -751,7 +751,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPayTotalsLoading = true; // isTransactionDataUpdating still true
         mockQuotes = [{ id: 'q1' }]; // quotes present → Path A exit
       });
-      rerender();
+      rerender({});
 
       expect(result.current.isPaySystemSettling).toBe(false);
     });
@@ -776,7 +776,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPayTotalsLoading = false;
         mockQuotes = []; // no quotes → Path B (wait for isPayFeesLoading = false)
       });
-      rerender();
+      rerender({});
 
       expect(result.current.isPaySystemSettling).toBe(false);
     });
@@ -805,7 +805,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPayQuoteLoading = false;
         mockQuotes = [];
       });
-      rerender();
+      rerender({});
 
       // Settling must remain true — hasSeenLoadingRef was never set because
       // isPayQuoteLoading (the real controller flag) never went true.
@@ -816,7 +816,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPayQuoteLoading = true;
         mockIsPayTotalsLoading = true;
       });
-      rerender();
+      rerender({});
       expect(result.current.isPaySystemSettling).toBe(true);
 
       // Controller loading completes with quotes — now settles correctly
@@ -825,7 +825,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPayTotalsLoading = false;
         mockQuotes = [{ id: 'q1' }];
       });
-      rerender();
+      rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
     });
 
@@ -885,7 +885,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPayTotalsLoading = false;
         mockQuotes = [{ id: 'q1' }];
       });
-      rerender();
+      rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
 
       // User switches to DAI — immediately settling again (synchronous)
@@ -894,7 +894,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPayQuoteLoading = false; // gap: loading not yet active
         mockIsPayTotalsLoading = false;
       });
-      rerender();
+      rerender({});
 
       expect(result.current.isPaySystemSettling).toBe(true);
     });
@@ -930,7 +930,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPayTotalsLoading = false;
         mockQuotes = [{ id: 'q1' }];
       });
-      rerender();
+      rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
 
       // Switch back to Predict balance — resets lastSettledTokenAddress
@@ -938,7 +938,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPredictBalanceSelected = true;
         mockSelectedPaymentToken = null;
       });
-      rerender();
+      rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
 
       // Re-select USDC — must settle again (quotes may need re-fetching)
@@ -946,7 +946,7 @@ describe('usePredictBuyConditions', () => {
         mockIsPredictBalanceSelected = false;
         mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
       });
-      rerender();
+      rerender({});
       expect(result.current.isPaySystemSettling).toBe(true);
     });
   });
