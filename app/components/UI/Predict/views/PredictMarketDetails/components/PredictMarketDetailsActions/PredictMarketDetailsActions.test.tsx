@@ -128,6 +128,43 @@ describe('PredictMarketDetailsActions', () => {
     );
   });
 
+  it('formats payout estimates with fixed USD decimals', () => {
+    const props = createProps({
+      showPayoutEstimate: true,
+      openOutcomes: [
+        createOutcome({
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 0.65 },
+            { id: 'token-no', title: 'No', price: 0.004 },
+          ],
+        }),
+      ],
+    });
+
+    renderWithProvider(<PredictMarketDetailsActions {...props} />);
+
+    expect(screen.getByText('$100.00 -> $153.85')).toBeOnTheScreen();
+    expect(screen.getByText('$100.00 -> $25,000.00')).toBeOnTheScreen();
+  });
+
+  it('formats payout estimates for large USD values', () => {
+    const props = createProps({
+      showPayoutEstimate: true,
+      openOutcomes: [
+        createOutcome({
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 1 },
+            { id: 'token-no', title: 'No', price: 0.0012820513 },
+          ],
+        }),
+      ],
+    });
+
+    renderWithProvider(<PredictMarketDetailsActions {...props} />);
+
+    expect(screen.getByText('$100.00 -> $78,000.00')).toBeOnTheScreen();
+  });
+
   it('renders skeleton while market details are loading', () => {
     const props = createProps({
       isMarketLoading: true,

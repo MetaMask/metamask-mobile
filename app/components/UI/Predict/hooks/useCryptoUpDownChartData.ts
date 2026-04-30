@@ -72,7 +72,11 @@ export const useCryptoUpDownChartData = (
   const frozenRef = useRef(false);
 
   const prevMarketIdRef = useRef(market.id);
-  if (prevMarketIdRef.current !== market.id) {
+  useEffect(() => {
+    if (prevMarketIdRef.current === market.id) {
+      return;
+    }
+
     prevMarketIdRef.current = market.id;
     frozenRef.current = false;
     liveLoadingRef.current = true;
@@ -82,7 +86,7 @@ export const useCryptoUpDownChartData = (
     stableHistoricalDataRef.current = EMPTY_DATA;
     fallbackStartPointRef.current = EMPTY_DATA;
     chartRef?.current?.clearData();
-  }
+  }, [chartRef, market.id]);
 
   const handleLiveUpdate = useCallback(
     (update: CryptoPriceUpdate) => {

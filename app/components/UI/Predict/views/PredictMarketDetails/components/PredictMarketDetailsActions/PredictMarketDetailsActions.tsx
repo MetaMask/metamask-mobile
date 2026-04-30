@@ -24,6 +24,7 @@ import {
   type PredictOutcome,
   type PredictOutcomeToken,
 } from '../../../../types';
+import { formatPrice } from '../../../../utils/format';
 
 const LONG_OUTCOME_LABEL_THRESHOLD = 12;
 const TALL_ACTION_BUTTON_MIN_HEIGHT = 48;
@@ -32,10 +33,10 @@ const DEFAULT_PAYOUT_INVESTMENT_AMOUNT = 100;
 const shouldUseStackedActionButtonLabel = (title?: string) =>
   Boolean(title && title.length > LONG_OUTCOME_LABEL_THRESHOLD);
 
-const formatUsdAmount = (value: number) => {
-  const [whole, decimals] = value.toFixed(2).split('.');
-  return `$${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${decimals}`;
-};
+const formatUsdAmount = (value: number) => formatPrice(value, {
+    minimumDecimals: 2,
+    maximumDecimals: 2,
+  });
 
 const formatPayoutEstimate = (
   price: number | undefined,

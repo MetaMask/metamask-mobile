@@ -1,5 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, useWindowDimensions } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Image,
+  RefreshControl,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -11,6 +22,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../../../util/theme';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
 import {
@@ -20,7 +32,7 @@ import {
   type PredictOutcomeToken,
   type PredictSeries,
 } from '../../types';
-import { formatMarketEndDate } from '../../utils/format';
+import { formatMarketEndDate, formatPrice } from '../../utils/format';
 import usePredictShare from '../../hooks/usePredictShare';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -38,6 +50,7 @@ import PredictMarketDetailsActions from '../../views/PredictMarketDetails/compon
 
 const CHART_HEIGHT_MIN = 330;
 const CHART_HEIGHT_MAX = 430;
+const MARKET_ROLLOVER_TIMEOUT_MAX_MS = 2_147_483_647;
 const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
 const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
@@ -49,10 +62,10 @@ const formatUsdPrice = (price: number | undefined) => {
     return '--';
   }
 
-  const [whole, decimals] = Math.abs(price).toFixed(2).split('.');
-  const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const prefix = price < 0 ? '-$' : '$';
-  return `${prefix}${formattedWhole}.${decimals}`;
+  return formatPrice(price, {
+    minimumDecimals: 2,
+    maximumDecimals: 2,
+  });
 };
 
 const formatSignedUsdPrice = (price: number | undefined) => {
@@ -68,6 +81,20 @@ const getOpenOutcomes = (market: PredictMarket): PredictOutcome[] =>
   market.outcomes.filter(
     (outcome) => outcome.status === PredictMarketStatus.OPEN,
   );
+
+const getEndDateTime = (endDate?: string) => {
+  if (!endDate) {
+    return undefined;
+  }
+
+  const time = new Date(endDate).getTime();
+  return Number.isFinite(time) ? time : undefined;
+};
+
+const hasMarketEnded = (market: PredictMarket) => {
+  const endDateTime = getEndDateTime(market.endDate);
+  return typeof endDateTime === 'number' && Date.now() >= endDateTime;
+};
 
 const getYesPercentage = (
   market: PredictMarket,
@@ -109,12 +136,15 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   onBack,
   onBetPress,
   onClaimPress,
+  onRefresh,
+  refreshing = false,
   isClaimablePositionsLoading = false,
   hasPositivePnl = false,
   isMarketLoading = false,
   isClaimPending = false,
 }) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const chartAreaHeight = Math.min(
     CHART_HEIGHT_MAX,
@@ -123,6 +153,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const [selectedMarket, setSelectedMarket] = useState<
     PredictMarket & { series: PredictSeries }
   >(market);
+  const previousMarketIdRef = useRef(market.id);
   const [currentPrice, setCurrentPrice] = useState<number>();
 
   const { handleSharePress } = usePredictShare({
@@ -132,11 +163,19 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
   const recurrence = market.series.recurrence;
   const durationMs = (RECURRENCE_TO_DURATION_SECS[recurrence] ?? 5 * 60) * 1000;
-  const endDateMs = market.endDate
-    ? new Date(market.endDate).getTime()
-    : Date.now();
-  const endDateMin = new Date(endDateMs - 3 * durationMs).toISOString();
-  const endDateMax = new Date(endDateMs + 10 * durationMs).toISOString();
+  const marketEndDateMs = getEndDateTime(market.endDate);
+  const selectedEndDateMs = getEndDateTime(selectedMarket.endDate);
+  const seriesWindowAnchorMs = Math.max(
+    Date.now(),
+    marketEndDateMs ?? Number.NEGATIVE_INFINITY,
+    selectedEndDateMs ?? Number.NEGATIVE_INFINITY,
+  );
+  const endDateMin = new Date(
+    seriesWindowAnchorMs - 3 * durationMs,
+  ).toISOString();
+  const endDateMax = new Date(
+    seriesWindowAnchorMs + 10 * durationMs,
+  ).toISOString();
 
   const { data: seriesMarkets } = usePredictSeries({
     seriesId: market.series.id,
@@ -189,22 +228,86 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     setCurrentPrice(undefined);
   }, [selectedMarket.id]);
 
-  // Once the series markets load, auto-advance to the live slot if the current
-  // selectedMarket has a known endDate that has already passed
-  // (e.g. user tapped an expired card in the market list).
+  const attachSeries = useCallback(
+    (nextMarket: PredictMarket): PredictMarket & { series: PredictSeries } => ({
+      ...nextMarket,
+      series: nextMarket.series ?? market.series,
+    }),
+    [market.series],
+  );
+
+  useEffect(() => {
+    const propMarketChanged = previousMarketIdRef.current !== market.id;
+    previousMarketIdRef.current = market.id;
+
+    setSelectedMarket((currentMarket) => {
+      if (propMarketChanged || currentMarket.id === market.id) {
+        return market;
+      }
+
+      return currentMarket;
+    });
+  }, [market]);
+
+  // Keep the selected market fresh when the series query updates, and advance
+  // expired selections to the live slot when one exists.
   useEffect(() => {
     if (!seriesMarkets?.length) return;
-    const hasEnded =
-      selectedMarket.endDate &&
-      Date.now() >= new Date(selectedMarket.endDate).getTime();
-    if (!hasEnded) return;
-    const liveMarket = findLiveMarket(seriesMarkets);
-    if (liveMarket) {
-      setSelectedMarket(
-        liveMarket as PredictMarket & { series: PredictSeries },
+
+    setSelectedMarket((currentMarket) => {
+      const currentMarketFromSeries = seriesMarkets.find(
+        (seriesMarket) => seriesMarket.id === currentMarket.id,
       );
+      const marketToEvaluate = currentMarketFromSeries ?? currentMarket;
+      const liveMarket = findLiveMarket(seriesMarkets);
+
+      if (
+        hasMarketEnded(marketToEvaluate) &&
+        liveMarket &&
+        liveMarket.id !== marketToEvaluate.id
+      ) {
+        return attachSeries(liveMarket);
+      }
+
+      if (currentMarketFromSeries) {
+        return attachSeries(currentMarketFromSeries);
+      }
+
+      return currentMarket;
+    });
+  }, [attachSeries, seriesMarkets]);
+
+  const advanceExpiredSelection = useCallback(() => {
+    if (!seriesMarkets?.length || !hasMarketEnded(selectedMarket)) {
+      return;
     }
-  }, [seriesMarkets]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const liveMarket = findLiveMarket(seriesMarkets);
+    if (liveMarket && liveMarket.id !== selectedMarket.id) {
+      setSelectedMarket(attachSeries(liveMarket));
+    }
+  }, [attachSeries, selectedMarket, seriesMarkets]);
+
+  useEffect(() => {
+    const selectedEndDateTime = getEndDateTime(selectedMarket.endDate);
+    if (typeof selectedEndDateTime !== 'number' || !seriesMarkets?.length) {
+      return undefined;
+    }
+
+    if (Date.now() >= selectedEndDateTime) {
+      advanceExpiredSelection();
+      return undefined;
+    }
+
+    const delayMs = selectedEndDateTime - Date.now() + 1000;
+    if (delayMs > MARKET_ROLLOVER_TIMEOUT_MAX_MS) {
+      return undefined;
+    }
+
+    const timeout = setTimeout(advanceExpiredSelection, delayMs);
+
+    return () => clearTimeout(timeout);
+  }, [advanceExpiredSelection, selectedMarket.endDate, seriesMarkets?.length]);
 
   const title = selectedMarket.series.title;
   const subtitle = selectedMarket.endDate
@@ -243,89 +346,105 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         testID={PredictCryptoUpDownDetailsSelectorsIDs.HEADER}
       />
 
-      <Box testID={PredictCryptoUpDownDetailsSelectorsIDs.TITLE_SECTION}>
-        <TitleSubpage
-          startAccessory={
-            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-              {selectedMarket.image ? (
-                <Image
-                  source={{ uri: selectedMarket.image }}
-                  style={tw.style('w-full h-full')}
-                  resizeMode="cover"
-                />
-              ) : (
-                <Box twClassName="w-full h-full bg-muted" />
-              )}
-            </Box>
-          }
-          title={title}
-          bottomLabel={subtitle}
-          twClassName="px-4 pt-1 pb-3"
-        />
-      </Box>
-
-      <TimeSlotPicker
-        markets={seriesMarkets ?? []}
-        selectedMarketId={selectedMarket.id}
-        onMarketSelected={(m) =>
-          setSelectedMarket(m as PredictMarket & { series: PredictSeries })
+      <ScrollView
+        testID={PredictCryptoUpDownDetailsSelectorsIDs.SCROLL_VIEW}
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style('pb-4')}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary.default}
+            colors={[colors.primary.default]}
+          />
         }
-      />
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="px-4 pt-5 gap-4"
-        testID={PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY}
       >
-        <Box twClassName="flex-1">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            Price to beat
-          </Text>
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {formatUsdPrice(validatedTargetPrice)}
-          </Text>
+        <Box testID={PredictCryptoUpDownDetailsSelectorsIDs.TITLE_SECTION}>
+          <TitleSubpage
+            startAccessory={
+              <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+                {selectedMarket.image ? (
+                  <Image
+                    source={{ uri: selectedMarket.image }}
+                    style={tw.style('w-full h-full')}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Box twClassName="w-full h-full bg-muted" />
+                )}
+              </Box>
+            }
+            title={title}
+            bottomLabel={subtitle}
+            twClassName="px-4 pt-1 pb-3"
+          />
         </Box>
-        <Box twClassName="flex-1">
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+
+        <TimeSlotPicker
+          markets={seriesMarkets ?? []}
+          selectedMarketId={selectedMarket.id}
+          onMarketSelected={(m) => setSelectedMarket(attachSeries(m))}
+        />
+
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="px-4 pt-5 gap-4"
+          testID={PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY}
+        >
+          <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              style={tw.style({ color: currentPriceAccentColor })}
+              color={TextColor.TextAlternative}
             >
-              Current price
+              Price to beat
             </Text>
-            {currentPriceDelta !== undefined && (
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {formatUsdPrice(validatedTargetPrice)}
+            </Text>
+          </Box>
+          <Box twClassName="flex-1">
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                color={currentPriceDeltaColor}
+                style={tw.style({ color: currentPriceAccentColor })}
               >
-                {formatSignedUsdPrice(currentPriceDelta)}
+                Current price
               </Text>
-            )}
+              {currentPriceDelta !== undefined && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={currentPriceDeltaColor}
+                >
+                  {formatSignedUsdPrice(currentPriceDelta)}
+                </Text>
+              )}
+            </Box>
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Medium}
+              style={tw.style({ color: currentPriceAccentColor })}
+            >
+              {formatUsdPrice(currentPrice)}
+            </Text>
           </Box>
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Medium}
-            style={tw.style({ color: currentPriceAccentColor })}
-          >
-            {formatUsdPrice(currentPrice)}
-          </Text>
         </Box>
-      </Box>
 
-      <Box twClassName="px-4 pt-3">
-        <PredictCryptoUpDownChart
-          market={selectedMarket}
-          targetPrice={validatedTargetPrice}
-          onCurrentPriceChange={handleCurrentPriceChange}
-          height={chartAreaHeight}
-        />
-      </Box>
+        <Box twClassName="px-4 pt-3">
+          <PredictCryptoUpDownChart
+            market={selectedMarket}
+            targetPrice={validatedTargetPrice}
+            onCurrentPriceChange={handleCurrentPriceChange}
+            height={chartAreaHeight}
+          />
+        </Box>
+      </ScrollView>
 
       {onBetPress && (
         <Box twClassName="px-4 pb-4">

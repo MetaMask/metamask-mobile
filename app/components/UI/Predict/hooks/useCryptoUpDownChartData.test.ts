@@ -191,6 +191,44 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    it('clears live state and chart data after market id changes', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const nextMarket = createMarket({
+        id: 'market-2',
+        slug: 'eth-up-or-down-5m',
+      });
+      const chartRef = createMockChartRef();
+      historicalData = [];
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket, chartRef),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 100000,
+        });
+      });
+
+      expect(result.current.data).toEqual([{ time: 100, value: 51000 }]);
+
+      rerender({ activeMarket: nextMarket });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual([]);
+      });
+      expect(result.current.value).toBe(0);
+      expect(chartRef.current.clearData).toHaveBeenCalledTimes(1);
+    });
+
     it('seeds live mode with historical data before live updates arrive', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
