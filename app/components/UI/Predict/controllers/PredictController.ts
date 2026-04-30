@@ -143,7 +143,6 @@ export type PredictControllerState = {
       transactionId?: string;
       state: ActiveOrderState;
       error?: string;
-      paymentTokenAddress?: string;
     };
   };
 
@@ -1022,8 +1021,6 @@ export class PredictController extends BaseController<
             ActiveOrderState.DEPOSITING;
           state.activeBuyOrders[activeOrderAddress].transactionId =
             transactionId;
-          state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
-            state.selectedPaymentToken?.address;
         }
       });
 
@@ -1069,17 +1066,9 @@ export class PredictController extends BaseController<
         if (state.activeBuyOrders[activeOrderAddress]) {
           state.activeBuyOrders[activeOrderAddress].state =
             ActiveOrderState.PLACING_ORDER;
-          state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
-            state.activeBuyOrders[activeOrderAddress].paymentTokenAddress ??
-            state.selectedPaymentToken?.address;
         }
       });
     }
-
-    const paymentTokenAddress = isBuyWithAnyToken
-      ? (this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenAddress ??
-        this.state.selectedPaymentToken?.address)
-      : undefined;
 
     const startTime = performance.now();
     const { analyticsProperties, preview } = params;
@@ -1124,7 +1113,6 @@ export class PredictController extends BaseController<
         analyticsProperties,
         sharePrice,
         orderType: preview.orderType,
-        paymentTokenAddress,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1204,7 +1192,6 @@ export class PredictController extends BaseController<
         completionDuration,
         sharePrice: realSharePrice,
         orderType: preview.orderType,
-        paymentTokenAddress,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1225,7 +1212,6 @@ export class PredictController extends BaseController<
         completionDuration,
         failureReason: errorMessage,
         orderType: preview.orderType,
-        paymentTokenAddress,
       });
 
       // Update error state for Sentry integration
@@ -2158,17 +2144,6 @@ export class PredictController extends BaseController<
         : null;
       const marketId = pendingOrder?.analyticsProperties?.marketId;
       const outcomeTokenId = pendingOrder?.preview?.outcomeTokenId;
-
-      // Track deposit failure analytics with payment token
-      this.trackPredictOrderEvent({
-        status: PredictTradeStatus.FAILED,
-        analyticsProperties: pendingOrder?.analyticsProperties,
-        failureReason:
-          transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED,
-        paymentTokenAddress:
-          this.state.activeBuyOrders[address]?.paymentTokenAddress,
-        orderType: pendingOrder?.preview?.orderType,
-      });
 
       const isBackgroundOrder =
         transactionId !== undefined &&

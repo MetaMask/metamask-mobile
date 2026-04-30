@@ -22,6 +22,7 @@ let mockAvailableTokens: {
 }[] = [];
 
 let mockPredictBalance = 0;
+let mockQuotes: unknown[] = [];
 const mockResetSelectedPaymentToken = jest.fn();
 
 jest.mock('./usePredictBuyAvailableBalance', () => ({
@@ -65,6 +66,7 @@ jest.mock(
     useIsTransactionPayLoading: () => mockIsPayTotalsLoading,
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
     useTransactionPayRequiredTokens: () => mockRequiredTokens,
+    useTransactionPayQuotes: () => mockQuotes,
   }),
 );
 
@@ -109,6 +111,7 @@ describe('usePredictBuyConditions', () => {
     mockIsDepositPending = false;
     mockAvailableTokens = [];
     mockPredictBalance = 0;
+    mockQuotes = [];
   });
 
   afterEach(() => {
@@ -700,7 +703,9 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPaySystemSettling).toBe(false);
     });
 
-    it('is true immediately after an ERC20 token is selected (pre-loading gap)', () => {
+    it('is true immediately after an ERC20 token is selected (synchronous — no 1-frame gap)', () => {
+      // isPaySystemSettling is derived synchronously from lastSettledTokenAddress,
+      // so it is true from the very first render after the token identity changes.
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
       mockIsPayTotalsLoading = false;
@@ -716,6 +721,7 @@ describe('usePredictBuyConditions', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
       mockIsPayTotalsLoading = true;
+      mockIsPayQuoteLoading = true;
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
@@ -724,31 +730,150 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPaySystemSettling).toBe(true);
     });
 
-    it('becomes false after loading has started and completed', () => {
+    it('becomes false after loading started and completed with quotes (Path A)', () => {
+      // Path A: controller finishes AND quotes are present → exit immediately,
+      // even before isTransactionDataUpdating has cleared.
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayQuoteLoading = true;
       mockIsPayTotalsLoading = true;
+      mockQuotes = [];
 
       const { result, rerender } = renderHook(() =>
         usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
       );
 
-      // Settling entered, loading active
       expect(result.current.isPaySystemSettling).toBe(true);
 
-      // Loading completes
+      // Controller finishes loading and quotes arrive (isTransactionDataUpdating still active)
       act(() => {
-        mockIsPayTotalsLoading = false;
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = true; // isTransactionDataUpdating still true
+        mockQuotes = [{ id: 'q1' }]; // quotes present → Path A exit
       });
       rerender();
 
       expect(result.current.isPaySystemSettling).toBe(false);
     });
 
+    it('becomes false after loading completed with no quotes (Path B)', () => {
+      // Path B: no quotes arrived, but both isPayQuoteLoading and
+      // isPayFeesLoading (incl. isTransactionDataUpdating) are fully false.
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayQuoteLoading = true;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = []; // no quotes → Path B (wait for isPayFeesLoading = false)
+      });
+      rerender();
+
+      expect(result.current.isPaySystemSettling).toBe(false);
+    });
+
+    it('does not exit settling when only isTransactionDataUpdating cycles (Bug 3 regression)', () => {
+      // Regression: effect 1 previously used isPayFeesLoading which includes
+      // isTransactionDataUpdating. When updateTokenAmount fires,
+      // isTransactionDataUpdating briefly cycles true→false BEFORE the
+      // controller starts loading. This falsely marked hasSeenLoadingRef = true,
+      // and the subsequent isPayFeesLoading = false gap triggered a premature
+      // settling exit — causing the CTA flash.
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      mockIsPayQuoteLoading = false; // controller NOT yet loading
+      mockIsPayTotalsLoading = true; // only isTransactionDataUpdating is true
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      // isTransactionDataUpdating goes false while controller still hasn't started
+      act(() => {
+        mockIsPayTotalsLoading = false;
+        mockIsPayQuoteLoading = false;
+        mockQuotes = [];
+      });
+      rerender();
+
+      // Settling must remain true — hasSeenLoadingRef was never set because
+      // isPayQuoteLoading (the real controller flag) never went true.
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      // Now the controller starts loading for the new amount
+      act(() => {
+        mockIsPayQuoteLoading = true;
+        mockIsPayTotalsLoading = true;
+      });
+      rerender();
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      // Controller loading completes with quotes — now settles correctly
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
+      });
+      rerender();
+      expect(result.current.isPaySystemSettling).toBe(false);
+    });
+
+    it('remains settling when token selected with currentValue = 0 (Bug 2 regression)', () => {
+      // Regression: the old !shouldWaitForPayFees exit caused settling to clear
+      // immediately when currentValue = 0, so when the user typed an amount,
+      // "Change Payment Method" showed for the entire loading duration.
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      mockIsPayQuoteLoading = false;
+      mockQuotes = [];
+
+      const { result, rerender } = renderHook(
+        ({ currentValue }: { currentValue: number }) =>
+          usePredictBuyConditions({ ...defaultParams, currentValue }),
+        { initialProps: { currentValue: 0 } },
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      // User types $1 but loading hasn't started yet
+      rerender({ currentValue: 1 });
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      // Controller starts loading
+      act(() => {
+        mockIsPayQuoteLoading = true;
+        mockIsPayTotalsLoading = true;
+      });
+      rerender({ currentValue: 1 });
+      expect(result.current.isPaySystemSettling).toBe(true);
+
+      // Loading completes with quotes
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
+      });
+      rerender({ currentValue: 1 });
+      expect(result.current.isPaySystemSettling).toBe(false);
+    });
+
     it('resets to true when a different ERC20 token is selected mid-session', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      mockIsPayQuoteLoading = true;
       mockIsPayTotalsLoading = true;
+      mockQuotes = [];
 
       const { result, rerender } = renderHook(() =>
         usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
@@ -756,19 +881,21 @@ describe('usePredictBuyConditions', () => {
 
       // Complete the first loading cycle
       act(() => {
+        mockIsPayQuoteLoading = false;
         mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
       });
       rerender();
       expect(result.current.isPaySystemSettling).toBe(false);
 
-      // User switches to DAI
+      // User switches to DAI — immediately settling again (synchronous)
       act(() => {
         mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
-        mockIsPayTotalsLoading = false; // gap: loading not yet active
+        mockIsPayQuoteLoading = false; // gap: loading not yet active
+        mockIsPayTotalsLoading = false;
       });
       rerender();
 
-      // Should re-enter settling for the new token
       expect(result.current.isPaySystemSettling).toBe(true);
     });
 
@@ -786,23 +913,41 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.canPlaceBet).toBe(false);
     });
 
-    it('exits settling when amount drops to 0 (no quotes needed)', () => {
+    it('resets settling when switching back to Predict balance', () => {
       mockIsPredictBalanceSelected = false;
-      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
-      mockIsPayTotalsLoading = false;
+      mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      mockIsPayQuoteLoading = true;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
 
-      const { result, rerender } = renderHook(
-        ({ currentValue }: { currentValue: number }) =>
-          usePredictBuyConditions({ ...defaultParams, currentValue }),
-        { initialProps: { currentValue: 1 } },
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
       );
 
-      expect(result.current.isPaySystemSettling).toBe(true);
-
-      // Amount drops to 0 → shouldWaitForPayFees = false → exit settling
-      rerender({ currentValue: 0 });
-
+      // Complete settling for USDC
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
+      });
+      rerender();
       expect(result.current.isPaySystemSettling).toBe(false);
+
+      // Switch back to Predict balance — resets lastSettledTokenAddress
+      act(() => {
+        mockIsPredictBalanceSelected = true;
+        mockSelectedPaymentToken = null;
+      });
+      rerender();
+      expect(result.current.isPaySystemSettling).toBe(false);
+
+      // Re-select USDC — must settle again (quotes may need re-fetching)
+      act(() => {
+        mockIsPredictBalanceSelected = false;
+        mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      });
+      rerender();
+      expect(result.current.isPaySystemSettling).toBe(true);
     });
   });
 

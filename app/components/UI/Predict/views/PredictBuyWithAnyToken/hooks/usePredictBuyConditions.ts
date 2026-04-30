@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
+  useTransactionPayQuotes,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
 import { MINIMUM_BET } from '../../../constants/transactions';
@@ -37,6 +38,7 @@ export const usePredictBuyConditions = ({
     usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
+  const quotes = useTransactionPayQuotes();
   const { isDepositPending } = usePredictDeposit();
   const {
     isPredictBalanceSelected,
@@ -48,14 +50,29 @@ export const usePredictBuyConditions = ({
 
   const shouldWaitForPayFees = !isPredictBalanceSelected && currentValue > 0;
 
-  // Tracks the token address we last entered a settling cycle for, so we only
-  // reset `isPaySystemSettling` when the actual token identity changes.
-  const settlingTokenRef = useRef<string | null>(null);
-  // Becomes true once `isPayFeesLoading` has been observed as true for the
-  // current settling cycle, ensuring we only exit settling after loading has
-  // both started AND completed — not during the brief pre-loading gap.
+  // Becomes true once the controller's quote loading cycle (`isPayQuoteLoading`)
+  // has been observed as active for the current settling cycle. We use the raw
+  // controller flag (not the combined `isPayFeesLoading` which also includes
+  // `isTransactionDataUpdating`) so that transaction-data update cycles don't
+  // falsely mark a loading cycle as "seen" — which would cause a premature
+  // settling exit (Bug 3).
   const hasSeenLoadingRef = useRef(false);
-  const [isPaySystemSettling, setIsPaySystemSettling] = useState(false);
+
+  // Tracks the address of the last ERC20 token for which a full quote-loading
+  // cycle has completed. Compared synchronously each render to derive
+  // `isPaySystemSettling` — true from the very first render after the token
+  // identity changes, with no one-frame gap (Bug 1).
+  const [lastSettledTokenAddress, setLastSettledTokenAddress] = useState<
+    string | null
+  >(null);
+
+  // Synchronous derivation: true from the very first render after the selected
+  // token changes. No effects needed to flip a boolean flag, so there is no
+  // one-frame window where the CTA flashes incorrectly (Bug 1 fixed).
+  const isPaySystemSettling =
+    !isPredictBalanceSelected &&
+    selectedPaymentToken !== null &&
+    selectedPaymentToken?.address !== lastSettledTokenAddress;
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -92,55 +109,79 @@ export const usePredictBuyConditions = ({
     [shouldWaitForPayFees, isPayTotalsLoading, isPayQuoteLoading],
   );
 
-  // Enter settling whenever the selected ERC20 token identity changes.
-  // This covers the gap between the synchronous payToken update and the
-  // asynchronous isLoading = true dispatch — a window where stale quotes from
-  // the previous token would otherwise cause premature CTA state changes.
+  // Effect 1 — track when the controller starts a real quote-loading cycle.
+  // Uses `isPayQuoteLoading` (raw controller flag) rather than `isPayFeesLoading`
+  // so that `isTransactionDataUpdating` cycles (from `updateTokenAmount`) do not
+  // falsely set hasSeenLoadingRef. That false-positive caused a premature
+  // settling exit when isTransactionDataUpdating briefly cycled true→false
+  // BEFORE the controller started loading, resulting in the CTA flash (Bug 3).
   useEffect(() => {
-    if (!isPredictBalanceSelected && selectedPaymentToken) {
-      const key = selectedPaymentToken.address;
-      if (settlingTokenRef.current !== key) {
-        settlingTokenRef.current = key;
-        hasSeenLoadingRef.current = false;
-        setIsPaySystemSettling(true);
-      }
-    } else {
-      settlingTokenRef.current = null;
-      hasSeenLoadingRef.current = false;
-      setIsPaySystemSettling(false);
-    }
-  }, [isPredictBalanceSelected, selectedPaymentToken]);
-
-  // Mark that loading has become active for the current settling cycle.
-  useEffect(() => {
-    if (isPaySystemSettling && isPayFeesLoading) {
+    if (isPaySystemSettling && isPayQuoteLoading) {
       hasSeenLoadingRef.current = true;
     }
-  }, [isPaySystemSettling, isPayFeesLoading]);
+  }, [isPaySystemSettling, isPayQuoteLoading]);
 
-  // Exit settling only after loading has started AND completed, or when quote
-  // fetching is not expected (e.g. currentValue is 0, shouldWaitForPayFees
-  // becomes false). This prevents exiting during the pre-loading gap where
-  // isPayFeesLoading is momentarily false before the controller dispatches
-  // isLoading = true.
+  // Effect 2 — mark the current token as settled. Two exit paths:
+  //
+  // Path A (early, quotes present): controller finished AND quotes already
+  // arrived in Redux. Exit immediately without waiting for isTransactionDataUpdating
+  // to clear. At this point isPayFeesLoading is still true (isTransactionDataUpdating
+  // still active), so isCurrentTokenInsufficient stays blocked even though
+  // isPaySystemSettling just went false — no flash (Bug 4 fixed).
+  //
+  // Path B (late, no quotes): wait for the full isPayFeesLoading cycle (including
+  // isTransactionDataUpdating) to complete. Covers real "no-liquidity" cases where
+  // quotes never arrive — settling eventually exits and "Change Payment Method"
+  // correctly appears.
+  //
+  // Requiring hasSeenLoadingRef prevents exiting during the pre-loading gap
+  // (the window where isPayFeesLoading is momentarily false before the controller
+  // dispatches isLoading = true, and when currentValue = 0 at token-selection time
+  // so no loading cycle starts until the user types an amount — Bug 2 fixed).
   useEffect(() => {
     if (
-      isPaySystemSettling &&
-      !isPayFeesLoading &&
-      (hasSeenLoadingRef.current || !shouldWaitForPayFees)
+      !isPaySystemSettling ||
+      !hasSeenLoadingRef.current ||
+      isPayQuoteLoading
     ) {
-      setIsPaySystemSettling(false);
+      return;
     }
-  }, [isPaySystemSettling, isPayFeesLoading, shouldWaitForPayFees]);
+    const quotesPresent = (quotes?.length ?? 0) > 0;
+    if (quotesPresent || !isPayFeesLoading) {
+      hasSeenLoadingRef.current = false;
+      setLastSettledTokenAddress(selectedPaymentToken?.address ?? null);
+    }
+  }, [
+    isPaySystemSettling,
+    isPayQuoteLoading,
+    isPayFeesLoading,
+    quotes,
+    selectedPaymentToken,
+  ]);
 
-  // Only surface token-insufficiency once the pay system has fully settled:
-  // both the active-loading guard and the cross-token settling guard must pass.
+  // Effect 3 — reset when switching back to Predict balance so that returning
+  // to any ERC20 always requires a fresh settling cycle (quotes may need
+  // re-fetching).
+  useEffect(() => {
+    if (isPredictBalanceSelected) {
+      hasSeenLoadingRef.current = false;
+      setLastSettledTokenAddress(null);
+    }
+  }, [isPredictBalanceSelected]);
+
+  // Only surface token-insufficiency once the pay system has fully settled,
+  // the amount is above the minimum bet (a below-minimum amount should surface
+  // the minimum-bet error, not a payment CTA), and the amount is non-zero.
   const isCurrentTokenInsufficient = useMemo(
     () =>
+      currentValue > 0 &&
+      !isBelowMinimum &&
       !isPaySystemSettling &&
       !isPayFeesLoading &&
       (isInsufficientBalance || hasBlockingPayAlerts),
     [
+      currentValue,
+      isBelowMinimum,
       isPaySystemSettling,
       isPayFeesLoading,
       isInsufficientBalance,
