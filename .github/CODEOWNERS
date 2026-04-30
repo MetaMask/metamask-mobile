@@ -353,6 +353,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-performance-e2e.yml                       @MetaMask/qa
 .github/workflows/run-performance-e2e-experimental.yml          @MetaMask/qa
 .github/workflows/run-performance-e2e-release.yml               @MetaMask/qa
+.github/workflows/run-system-tests.yml                          @MetaMask/qa
 .github/scripts/e2e-*.mjs                                       @MetaMask/qa
 .github/scripts/collect-qa-stats.mjs                            @MetaMask/qa
 .github/scripts/generate-regression-slack-summary.mjs           @MetaMask/qa

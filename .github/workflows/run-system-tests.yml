@@ -11,6 +11,10 @@
 name: Nightly System Tests
 
 on:
+  # TODO: Remove push trigger before merging to main
+  push:
+    branches:
+      - run-system-tests
   schedule:
     - cron: '0 5 * * *' # 5 AM UTC daily
   workflow_dispatch:
@@ -40,18 +44,11 @@ concurrency:
   group: system-tests-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  # ─────────────────────────────────────────────────────────────────────────
-  # Phase 1 — Build apps via build.yml (same pipeline as nightly)
-  # Builds are skipped when ANY manual BrowserStack URL is provided — the
-  # user wants a quick test run with pre-built artifacts, not a 30 min build.
-  # ─────────────────────────────────────────────────────────────────────────
-
   build-with-srp:
     name: Build with-SRP (login tests)
     if: >-
-      github.event_name == 'schedule'
-        || (github.event_name == 'workflow_dispatch'
-            && !inputs.browserstack_app_url_android
+      github.event_name != 'workflow_dispatch'
+        || (!inputs.browserstack_app_url_android
             && !inputs.browserstack_app_url_ios
             && !inputs.browserstack_clean_app_url_android
             && !inputs.browserstack_clean_app_url_ios)
@@ -66,9 +63,8 @@ jobs:
   build-clean:
     name: Build clean RC (onboarding tests)
     if: >-
-      github.event_name == 'schedule'
-        || (github.event_name == 'workflow_dispatch'
-            && !inputs.browserstack_app_url_android
+      github.event_name != 'workflow_dispatch'
+        || (!inputs.browserstack_app_url_android
             && !inputs.browserstack_app_url_ios
             && !inputs.browserstack_clean_app_url_android
             && !inputs.browserstack_clean_app_url_ios)
@@ -96,28 +92,28 @@ jobs:
     steps:
       - name: Download Android APK (with-SRP)
         if: needs.build-with-srp.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: android-apk-main-rc-with-srp
           path: artifacts/android-with-srp
 
       - name: Download iOS IPA (with-SRP)
         if: needs.build-with-srp.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ios-ipa-main-rc-with-srp
           path: artifacts/ios-with-srp
 
       - name: Download Android APK (clean)
         if: needs.build-clean.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: android-apk-main-rc
           path: artifacts/android-clean
 
       - name: Download iOS IPA (clean)
         if: needs.build-clean.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ios-ipa-main-rc
           path: artifacts/ios-clean
@@ -208,10 +204,10 @@ jobs:
       BROWSERSTACK_ANDROID_APP_URL: ${{ needs.upload-to-browserstack.outputs.android-login-url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -237,7 +233,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -287,7 +283,7 @@ jobs:
         run: yarn run-system-tests:android-login
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v8
         if: always()
         with:
           name: system-test-report-android-login
@@ -306,10 +302,10 @@ jobs:
       BROWSERSTACK_ANDROID_CLEAN_APP_URL: ${{ needs.upload-to-browserstack.outputs.android-onboarding-url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -335,7 +331,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -385,7 +381,7 @@ jobs:
         run: yarn run-system-tests:android-onboarding
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v8
         if: always()
         with:
           name: system-test-report-android-onboarding
@@ -404,10 +400,10 @@ jobs:
       BROWSERSTACK_IOS_APP_URL: ${{ needs.upload-to-browserstack.outputs.ios-login-url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -433,7 +429,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -483,7 +479,7 @@ jobs:
         run: yarn run-system-tests:ios-login
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v8
         if: always()
         with:
           name: system-test-report-ios-login
@@ -502,10 +498,10 @@ jobs:
       BROWSERSTACK_IOS_CLEAN_APP_URL: ${{ needs.upload-to-browserstack.outputs.ios-onboarding-url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -531,7 +527,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -581,7 +577,7 @@ jobs:
         run: yarn run-system-tests:ios-onboarding
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v8
         if: always()
         with:
           name: system-test-report-ios-onboarding
@@ -600,7 +596,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all test reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: system-test-report-*
           path: all-reports
