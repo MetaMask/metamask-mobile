@@ -155,7 +155,7 @@ describe('AppStateEventListener', () => {
       }),
     );
 
-    mockStore.dispatch.mockClear();
+    (mockStore.dispatch as jest.Mock).mockClear();
     mockAppStateListener('background');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
