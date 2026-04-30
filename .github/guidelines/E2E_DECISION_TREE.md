@@ -10,8 +10,8 @@ flowchart TD
     GR -->|PR label: skip-e2e| HS[No E2E]
     GR -->|PR label: pr-not-ready-for-e2e| L2[No E2E]
     L2 -->|ignorable-only changes| NoBlock[No merge block]
-    L2 -->|non-ignorable changes| Skip2[Merge blocked]
-    GR -->|PR ignorable-only changes| Ignorable[No E2E - merge not blocked]
+    L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
+    GR -->|PR ignorable-only changes| Ignorable[No E2E]
     GR -->|PR has Android-only changes| Android[Android Build + Tests needed]
     GR -->|PR has iOS-only changes| iOS[iOS Build + Test needed]
     GR -->|PR other files changed| Both[Both Build + Tests needed]
@@ -41,9 +41,15 @@ Runs only when all of the following are true:
 - No hard E2E skip signal (label `skip-e2e`)
 - No `skip-smart-e2e-selection` label
 
+## (Exceptional) skip builds and all E2E tests
+
+- Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of infra issues.
+- Using this label should be exceptional in case of CI friction and urgencies. Verify new changes and regressions manually before merging.
+
 ## E2E flakiness detection in PRs
 
 Flakiness detection is applied to modified E2E test files in PRs:
 
 - Modified E2E test files run twice
-- It applies to existing test files as well as new test files
+- It applies to existing test files as well as new test files added in the PR
+- It can be disabled by adding the label `skip-e2e-flakiness-detection`. Useful when making large refactors or when changes don't pose flakiness risk.
