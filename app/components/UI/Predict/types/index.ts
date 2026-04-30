@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export enum Side {
   BUY = 'BUY',
@@ -576,6 +577,7 @@ export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
   transactionId?: string;
+  activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: {
     marketId?: string;
     marketTitle?: string;

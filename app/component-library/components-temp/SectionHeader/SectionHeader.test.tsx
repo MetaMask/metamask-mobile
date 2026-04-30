@@ -17,8 +17,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: () => ({}) }),
 }));
 
-// ButtonIcon's built-in testID from the design system
-const BUTTON_ICON_TEST_ID = 'button-icon';
+// Arrow icon testID
+const ARROW_ICON_TEST_ID = 'section-header-arrow-icon';
 const CONTAINER_TEST_ID = 'section-header-container';
 
 describe('SectionHeader', () => {
@@ -53,7 +53,7 @@ describe('SectionHeader', () => {
     it('does not render trailing icon when onPress is not provided', () => {
       const { queryByTestId } = render(<SectionHeader title="Tokens" />);
 
-      expect(queryByTestId(BUTTON_ICON_TEST_ID)).not.toBeOnTheScreen();
+      expect(queryByTestId(ARROW_ICON_TEST_ID)).not.toBeOnTheScreen();
     });
 
     it('renders trailing icon when onPress is provided', () => {
@@ -61,7 +61,7 @@ describe('SectionHeader', () => {
         <SectionHeader title="Tokens" onPress={jest.fn()} />,
       );
 
-      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
     });
 
     it('has button accessibilityRole when onPress is provided', () => {
@@ -136,7 +136,7 @@ describe('SectionHeader', () => {
         />,
       );
 
-      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
     });
 
     it('does not render the trailing icon when onPress is absent', () => {
@@ -144,7 +144,7 @@ describe('SectionHeader', () => {
         <SectionHeader title="NFTs" endIconName={IconName.Arrow2Right} />,
       );
 
-      expect(queryByTestId(BUTTON_ICON_TEST_ID)).not.toBeOnTheScreen();
+      expect(queryByTestId(ARROW_ICON_TEST_ID)).not.toBeOnTheScreen();
     });
   });
 
@@ -169,7 +169,7 @@ describe('SectionHeader', () => {
         <SectionHeader title="Tokens" onPress={jest.fn()} />,
       );
 
-      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
     });
 
     it('renders the trailing icon with a custom color', () => {
@@ -181,7 +181,7 @@ describe('SectionHeader', () => {
         />,
       );
 
-      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
     });
   });
 
@@ -199,7 +199,7 @@ describe('SectionHeader', () => {
 
       expect(getByText('Tokens')).toBeOnTheScreen();
       expect(getByText('Badge')).toBeOnTheScreen();
-      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
       expect(getByTestId(CONTAINER_TEST_ID)).toBeOnTheScreen();
     });
   });

@@ -29,6 +29,9 @@ export const PUSD_CONTRACT_ADDRESS =
   '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB';
 export const USDC_CONTRACT_ADDRESS =
   '0x2791bca1f2de4661ed88a30c99a7a9449aa84174';
+/** Polymarket USD (pUSD) on Polygon — predict collateral; must match app PolymarketProvider constants. */
+export const POLYGON_PUSD_TOKEN_ADDRESS =
+  '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
 export const MULTICALL_CONTRACT_ADDRESS =
   '0xca11bde05977b3631167028862be2a173976ca11';
 export const CONDITIONAL_TOKENS_CONTRACT_ADDRESS =

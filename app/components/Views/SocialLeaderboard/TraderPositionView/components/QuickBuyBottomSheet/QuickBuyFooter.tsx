@@ -2,13 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { type LayoutChangeEvent, TouchableOpacity, View } from 'react-native';
 import Animated, {
   Easing,
-  scrollTo,
-  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import type { QuickBuyScrollAnimatedRef } from './QuickBuyBottomSheet';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -30,9 +27,6 @@ import {
   IconSize as IconSizeDS,
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
-import QuickBuyConfirmButton, {
-  type ConfirmButtonState,
-} from './QuickBuyConfirmButton';
 import Icon, {
   IconName,
   IconSize,
@@ -69,18 +63,7 @@ interface QuickBuyFooterProps {
   >;
   sourceBalanceFiat: string | undefined;
   isTotalLoading: boolean;
-  isConfirmDisabled: boolean;
-  confirmButtonState: ConfirmButtonState;
-  getButtonLabel: () => string;
   onPresetPress: (preset: string) => void;
-  onConfirm: () => Promise<void>;
-  /**
-   * Animated ref to the parent ScrollView. Used by `useAnimatedReaction` to
-   * drive `scrollTo` on the UI thread in lockstep with the picker/total
-   * height animations, so the Buy button stays pinned at the bottom of the
-   * sheet while content grows above it.
-   */
-  scrollAnimatedRef?: QuickBuyScrollAnimatedRef;
   colors: { icon: { alternative: string } };
 }
 
@@ -101,12 +84,7 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   setSelectedSourceToken,
   sourceBalanceFiat,
   isTotalLoading,
-  isConfirmDisabled,
-  confirmButtonState,
-  getButtonLabel,
   onPresetPress,
-  onConfirm,
-  scrollAnimatedRef,
   colors,
 }) => {
   const tw = useTailwind();
@@ -191,27 +169,6 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
       },
     );
   }, [isTotalExpanded, totalBreakdownHeight]);
-
-  // Drive the parent ScrollView's offset on the UI thread, in lockstep with
-  // the picker/total height animations. Calling `scrollTo` from inside a
-  // worklet that depends on the height shared values means the scroll snaps
-  // to the new bottom on the same frame the content grows — eliminating the
-  // 1-frame snap that a JS-thread `onContentSizeChange` → `scrollToEnd` round
-  // trip produces. The large `y` value is clamped natively to the current
-  // max content offset, so we always land exactly at the bottom.
-  useAnimatedReaction(
-    () => pickerHeight.value + totalBreakdownHeight.value,
-    (sum, prev) => {
-      // Only follow when content is growing (or on the first run, e.g. when
-      // the breakdown starts open). Shrinking is handled implicitly: native
-      // ScrollViews clamp the offset to the new max, keeping us at the
-      // bottom without an explicit scroll command.
-      if (prev !== null && sum <= prev) return;
-      if (!scrollAnimatedRef) return;
-      scrollTo(scrollAnimatedRef, 0, Number.MAX_SAFE_INTEGER, false);
-    },
-    [scrollAnimatedRef],
-  );
 
   const handleSourcePickerToggle = useCallback(() => {
     setIsSourcePickerOpen((prev) => !prev);
@@ -496,15 +453,6 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
             </Animated.View>
           </Box>
         </Box>
-
-        {/* Buy button */}
-        <QuickBuyConfirmButton
-          state={confirmButtonState}
-          label={getButtonLabel()}
-          isDisabled={isConfirmDisabled}
-          onPress={onConfirm}
-          testID="quick-buy-confirm-button"
-        />
       </Box>
     </Box>
   );
