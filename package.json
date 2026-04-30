@@ -695,6 +695,16 @@
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0"
   },
+  "previewBuilds": {
+    "@metamask/tron-wallet-snap": {
+      "type": "non-breaking",
+      "previewVersion": "1.25.3-preview-779711e"
+    },
+    "@metamask/bitcoin-wallet-snap": {
+      "type": "non-breaking",
+      "previewVersion": "1.10.1-preview-fa702f3"
+    }
+  },
   "config": {
     "react-native-storybook-loader": {
       "searchDir": [
