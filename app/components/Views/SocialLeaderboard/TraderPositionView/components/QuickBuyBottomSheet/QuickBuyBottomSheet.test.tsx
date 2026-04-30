@@ -64,11 +64,19 @@ jest.mock('./QuickBuyHeader', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ position }: { position: Position }) =>
+    default: ({
+      position,
+      marketCap,
+    }: {
+      position: Position;
+      marketCap?: number;
+    }) =>
       ReactMock.createElement(
         Text,
         { testID: 'mock-header' },
-        position.tokenSymbol,
+        marketCap != null
+          ? `${position.tokenSymbol}:${marketCap}`
+          : position.tokenSymbol,
       ),
   };
 });
@@ -254,6 +262,19 @@ describe('QuickBuyBottomSheet', () => {
 
       expect(screen.getByTestId('mock-header')).toBeOnTheScreen();
       expect(screen.getByText('PEPE')).toBeOnTheScreen();
+    });
+
+    it('forwards the marketCap prop to the header', () => {
+      renderWithProvider(
+        <QuickBuyBottomSheet
+          isVisible
+          position={createPosition({ tokenSymbol: 'PEPE' })}
+          marketCap={2_300_000}
+          onClose={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByText('PEPE:2300000')).toBeOnTheScreen();
     });
 
     it('renders the skeleton body before deferred content becomes ready', () => {

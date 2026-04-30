@@ -6,7 +6,9 @@
 #   - pr_number: open PR number for the resolved branch (empty if none)
 #   - base_ref:  semver release tag derived from package.json version (e.g. v7.71.0)
 #   - ota_version: OTA_VERSION string exported from app/constants/ota.ts at the resolved ref
-#   - ota_bump:  "true" if OTA_VERSION differs from base_ref (or origin/main when tag missing)
+#   - ota_bump:  "true" if OTA_VERSION differs from base_ref (or origin/main when tag missing).
+#                Forced to "false" when OTA_VERSION is the sentinel (vX.XX.X) or when a git tag
+#                matching OTA_VERSION already exists (already-shipped / stale merge).
 #
 # Callers:
 #   - auto-rc-ota-build-core.yml (uses all outputs incl. ota_bump to decide OTA vs build)
@@ -36,7 +38,7 @@ on:
         description: 'OTA_VERSION exported from app/constants/ota.ts at the resolved ref'
         value: ${{ jobs.resolve.outputs.ota_version }}
       ota_bump:
-        description: 'true when OTA_VERSION differs from base_ref (or origin/main when tag missing)'
+        description: 'true when OTA_VERSION differs from base_ref (or origin/main when tag missing). Forced to false when OTA_VERSION is the sentinel (vX.XX.X) or a matching git tag already exists.'
         value: ${{ jobs.resolve.outputs.ota_bump }}
 
 permissions:
@@ -100,6 +102,21 @@ jobs:
           # OTA_VERSION from current ref
           CURRENT_OTA=$(extract_ota app/constants/ota.ts)
           echo "ota_version=${CURRENT_OTA}" >> "$GITHUB_OUTPUT"
+
+          # Early exit 1: sentinel means no OTA has been configured for this release
+          if [[ "$CURRENT_OTA" == "vX.XX.X" ]]; then
+            echo "ota_bump=false" >> "$GITHUB_OUTPUT"
+            echo "OTA_VERSION is sentinel ($CURRENT_OTA) → no OTA bump"
+            exit 0
+          fi
+
+          # Early exit 2: if a tag for this OTA_VERSION already exists, the OTA was
+          # already shipped (e.g. merged from a prior release branch) — treat as stale.
+          if git rev-parse "refs/tags/${CURRENT_OTA}" >/dev/null 2>&1; then
+            echo "ota_bump=false" >> "$GITHUB_OUTPUT"
+            echo "OTA tag ${CURRENT_OTA} already exists (already shipped) → stale, no OTA bump"
+            exit 0
+          fi
 
           # Ref to compare against for detecting bump: use release tag if it exists, else main
           if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
