@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -77,7 +77,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
         iconName: IconName.CheckBold,
         backgroundColor: theme.colors.accent03.normal,
         iconColor: theme.colors.accent03.dark,
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
         hasNoTimeout: false,
         labelOptions: message
           ? [
@@ -100,7 +100,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
         iconName: IconName.Warning,
         backgroundColor: theme.colors.accent01.light,
         iconColor: theme.colors.accent01.dark,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         hasNoTimeout: false,
         labelOptions: message
           ? [

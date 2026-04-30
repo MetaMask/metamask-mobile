@@ -6,8 +6,18 @@
 export interface TopTrader {
   /** Clicker profile ID. */
   id: string;
-  /** Rank position in the leaderboard (1-based). */
+  /**
+   * Displayed rank position (1-based). When the leaderboard is filtered by
+   * chain this is recomputed against the filtered slice — e.g. the #1 row in
+   * the Solana filter has `rank === 1` even if it sits much lower overall.
+   */
   rank: number;
+  /**
+   * Overall rank across all chains (1-based). Preserved through chain
+   * filtering so podium decorations (gold/silver/bronze treatments) only
+   * apply to true top-3 traders rather than the top of an arbitrary filter.
+   */
+  overallRank: number;
   /** Display username or truncated address. */
   username: string;
   /** Profile avatar URL. */

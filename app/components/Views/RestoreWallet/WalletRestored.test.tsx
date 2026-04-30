@@ -48,14 +48,6 @@ jest.mock('../../../util/theme', () => {
 });
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 jest.mock('../../../util/metrics');
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 describe('WalletRestored', () => {
   const mockNavigation = {
     replace: jest.fn(),

@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { Position } from '@metamask/social-controllers';
 import QuickBuyBottomSheet from './QuickBuyBottomSheet';
@@ -63,11 +64,19 @@ jest.mock('./QuickBuyHeader', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ position }: { position: Position }) =>
+    default: ({
+      position,
+      marketCap,
+    }: {
+      position: Position;
+      marketCap?: number;
+    }) =>
       ReactMock.createElement(
         Text,
         { testID: 'mock-header' },
-        position.tokenSymbol,
+        marketCap != null
+          ? `${position.tokenSymbol}:${marketCap}`
+          : position.tokenSymbol,
       ),
   };
 });
@@ -93,6 +102,16 @@ jest.mock('./QuickBuyFooter', () => {
     __esModule: true,
     default: () =>
       ReactMock.createElement(Text, { testID: 'mock-footer' }, 'footer'),
+  };
+});
+
+jest.mock('./QuickBuyBanners', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactMock.createElement(Text, { testID: 'mock-banners' }, 'banners'),
   };
 });
 
@@ -140,17 +159,23 @@ const buildHookResult = (
   usdAmount: '',
   estimatedReceiveAmount: undefined,
   sourceBalanceFiat: undefined,
+  formattedNetworkFee: '-',
+  formattedSlippage: '-',
+  formattedMinimumReceived: '-',
+  formattedPriceImpact: '-',
+  totalAmountUsd: '$0',
   isQuoteLoading: false,
   isSubmittingTx: false,
-  estimatedPoints: null,
-  isRewardsLoading: false,
-  shouldShowLiveRewardsEstimate: false,
-  shouldShowRewardsOptInCta: false,
-  shouldShowRewardsFallbackZero: false,
-  hasRewardsError: false,
-  accountOptedIn: false,
-  rewardsAccountScope: null,
-  hasError: false,
+  isTotalLoading: false,
+  isHardwareSolanaBlocked: false,
+  priceImpactViewData: {
+    textColor: TextColor.TextAlternative,
+    icon: undefined,
+    title: 'bridge.price_impact_info_title',
+    description: 'bridge.price_impact_info_description',
+  },
+  isPriceImpactError: false,
+  buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: true,
   confirmButtonState: 'idle',
@@ -237,6 +262,19 @@ describe('QuickBuyBottomSheet', () => {
 
       expect(screen.getByTestId('mock-header')).toBeOnTheScreen();
       expect(screen.getByText('PEPE')).toBeOnTheScreen();
+    });
+
+    it('forwards the marketCap prop to the header', () => {
+      renderWithProvider(
+        <QuickBuyBottomSheet
+          isVisible
+          position={createPosition({ tokenSymbol: 'PEPE' })}
+          marketCap={2_300_000}
+          onClose={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByText('PEPE:2300000')).toBeOnTheScreen();
     });
 
     it('renders the skeleton body before deferred content becomes ready', () => {

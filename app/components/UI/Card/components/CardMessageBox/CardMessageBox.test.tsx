@@ -24,6 +24,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.dismiss': 'Dismiss',
       'card.card_authentication.auth_prompt_info':
         'Log in to your card account to access this feature.',
+      'card.cashback_screen.funding_required.title': 'Set up Linea funding',
+      'card.cashback_screen.funding_required.description':
+        'You need at least one approved funding source on Linea before redeeming cashback.',
+      'card.cashback_screen.funding_required.confirm_button_label':
+        'Set up funding',
     };
     return mockStrings[key] || key;
   }),
@@ -186,6 +191,35 @@ describe('CardMessageBox', () => {
     });
   });
 
+  describe('CashbackFundingRequired warning', () => {
+    it('renders title and description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackFundingRequired}
+        />
+      ));
+
+      expect(getByText('Set up Linea funding')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'You need at least one approved funding source on Linea before redeeming cashback.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onConfirm when the funding setup button is pressed', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackFundingRequired}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByText('Set up funding'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('common behaviors', () => {
     it('renders dismiss button when onDismiss is provided', () => {
       const { getByTestId } = renderWithProvider(() => (
@@ -238,6 +272,7 @@ describe('CardMessageBox', () => {
         CardMessageBoxType.KYCPending,
         CardMessageBoxType.CardProvisioning,
         CardMessageBoxType.AuthPrompt,
+        CardMessageBoxType.CashbackFundingRequired,
       ];
 
       allMessageTypes.forEach((messageType) => {
