@@ -44,7 +44,8 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
-import AssetOverviewConvertSection from '../../Earn/components/AssetOverviewConvertSection';
+import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
+import { MONEY_EVENTS_CONSTANTS } from '../../Money/constants/moneyEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
 import {
@@ -763,7 +764,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {isTokenEligibleForMerklClaim && (
             <AssetOverviewClaimBonus asset={token} />
           )}
-          {showMusdConvertSection && <AssetOverviewConvertSection />}
+          {showMusdConvertSection && (
+            <MoneyConvertStablecoins
+              location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
+            />
+          )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             tronNativeToken && (

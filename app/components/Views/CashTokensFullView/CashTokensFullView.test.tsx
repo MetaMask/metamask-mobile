@@ -57,31 +57,12 @@ jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
 jest.mock(
   '../../UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins',
   () => {
-    const { Pressable, Text, View } = jest.requireActual('react-native');
+    const { View, Text } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({
-        onMaxPress,
-        onEditPress,
-      }: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onMaxPress?: (token: any) => void;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onEditPress?: (token: any) => void;
-      }) => (
+      default: ({ location }: { location: string }) => (
         <View testID="money-convert-stablecoins-container">
-          <Pressable
-            testID="money-convert-stablecoins-max"
-            onPress={() => onMaxPress?.({ address: '0xabc', chainId: '0x1' })}
-          >
-            <Text>Max</Text>
-          </Pressable>
-          <Pressable
-            testID="money-convert-stablecoins-edit"
-            onPress={() => onEditPress?.({ address: '0xabc', chainId: '0x1' })}
-          >
-            <Text>Edit</Text>
-          </Pressable>
+          <Text testID="money-convert-stablecoins-location">{location}</Text>
         </View>
       ),
     };
@@ -130,25 +111,6 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(() => false),
 }));
-jest.mock('../../UI/Money/hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: () => ({
-    vaultApyQuery: { data: { apy: 4 }, isLoading: false },
-    totalFiatFormatted: '$0.00',
-    isAggregatedBalanceLoading: false,
-  }),
-}));
-jest.mock('../../UI/Money/components/MoneyHowItWorks', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ onHeaderPress }: { onHeaderPress?: () => void }) => (
-      <Pressable testID="money-how-it-works" onPress={onHeaderPress}>
-        <Text>How it works</Text>
-      </Pressable>
-    ),
-  };
-});
 jest.mock('../../UI/Money/components/MoneyMusdEmptyBalanceRow', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
   return {
@@ -287,10 +249,10 @@ describe('CashTokensFullView', () => {
       });
     });
 
-    it('renders the empty Money Hub layout (heading, mUSD row, How it works, bonus + convert)', () => {
+    it('renders the empty Money Hub layout (heading, mUSD row, bonus + convert)', () => {
       renderWithProvider(<CashTokensFullView />);
       expect(
-        screen.getByTestId(CashTokensFullViewTestIds.YOUR_BALANCE_HEADING),
+        screen.getByTestId(CashTokensFullViewTestIds.HEADING),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId('money-musd-empty-balance-row'),
@@ -298,7 +260,6 @@ describe('CashTokensFullView', () => {
       expect(
         screen.queryByTestId('cash-get-musd-empty-state'),
       ).not.toBeOnTheScreen();
-      expect(screen.getByTestId('money-how-it-works')).toBeOnTheScreen();
       expect(
         screen.getByTestId('asset-overview-claim-bonus'),
       ).toBeOnTheScreen();
@@ -315,25 +276,21 @@ describe('CashTokensFullView', () => {
       renderWithProvider(<CashTokensFullView />);
       await waitFor(() => {
         expect(
-          screen.getByTestId(CashTokensFullViewTestIds.YOUR_BALANCE_HEADING),
+          screen.getByTestId(CashTokensFullViewTestIds.HEADING),
         ).toBeOnTheScreen();
       });
     });
 
-    it('press handlers wire to navigation and do not throw', () => {
+    it('press handlers wire to navigation and pass money_hub location to convert section', () => {
       renderWithProvider(<CashTokensFullView />);
       fireEvent.press(screen.getByTestId('money-musd-empty-balance-row'));
       expect(mockNavigate).toHaveBeenCalledWith(
         'Asset',
         expect.objectContaining({ symbol: 'mUSD' }),
       );
-      mockNavigate.mockClear();
-      fireEvent.press(screen.getByTestId('money-how-it-works'));
-      expect(mockNavigate).toHaveBeenCalled();
-      expect(() => {
-        fireEvent.press(screen.getByTestId('money-convert-stablecoins-max'));
-        fireEvent.press(screen.getByTestId('money-convert-stablecoins-edit'));
-      }).not.toThrow();
+      expect(
+        screen.getByTestId('money-convert-stablecoins-location'),
+      ).toHaveTextContent('money_hub');
     });
 
     it('renders Swap/Buy footer with no stablecoins; switches to Convert when stablecoins exist', () => {

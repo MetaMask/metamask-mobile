@@ -695,7 +695,6 @@ enum EVENT_NAME {
   MONEY_HUB_SCREEN_VIEWED = 'Money Hub Screen Viewed',
   MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED = 'Money Hub Token Row Convert Clicked',
   MONEY_HUB_CONVERT_BUTTON_CLICKED = 'Money Hub Convert Button Clicked',
-  MONEY_HUB_LEARN_MORE_PRESSED = 'Money Hub Learn More Pressed',
   MONEY_HUB_SWAP_BUTTON_CLICKED = 'Money Hub Swap Button Clicked',
   MONEY_HUB_BUY_BUTTON_CLICKED = 'Money Hub Buy Button Clicked',
 
@@ -1819,9 +1818,6 @@ const events = {
   ),
   MONEY_HUB_CONVERT_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MONEY_HUB_CONVERT_BUTTON_CLICKED,
-  ),
-  MONEY_HUB_LEARN_MORE_PRESSED: generateOpt(
-    EVENT_NAME.MONEY_HUB_LEARN_MORE_PRESSED,
   ),
   MONEY_HUB_SWAP_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MONEY_HUB_SWAP_BUTTON_CLICKED,
