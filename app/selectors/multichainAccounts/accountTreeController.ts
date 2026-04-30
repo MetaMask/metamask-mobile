@@ -17,7 +17,7 @@ import {
   AccountGroupObject,
   AccountTreeControllerState,
 } from '@metamask/account-tree-controller';
-import { CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { AccountGroupWithInternalAccounts } from './accounts.type';

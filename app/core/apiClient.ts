@@ -1,6 +1,5 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
 import Engine from './Engine';
-import ReactQueryService from './ReactQueryService/ReactQueryService';
 
 let apiClient: ReturnType<typeof createApiPlatformClient> | undefined;
 
@@ -15,7 +14,6 @@ export const getApiClient = () => {
           return undefined;
         }
       },
-      queryClient: ReactQueryService.queryClient,
     });
   }
 

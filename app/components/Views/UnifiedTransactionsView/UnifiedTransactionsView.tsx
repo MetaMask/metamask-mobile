@@ -58,6 +58,10 @@ import type { ConfirmedEvmTransaction } from './helpers/types';
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
 
+const isEvmTransaction = (
+  tx: TransactionMeta | SmartTransaction,
+): tx is EvmTransaction => 'id' in tx && typeof tx.id === 'string';
+
 const getTransactionId = (tx: EvmTransaction) => tx.id;
 
 const getEvmTransactionTime = (tx: EvmTransaction) => tx.time ?? 0;
@@ -179,7 +183,11 @@ const UnifiedTransactionsView = ({
   }>(() => {
     // Deduplicate submitted by (address + chain + nonce) and drop if already confirmed
     const seenSubmittedNonces = new Set<string>();
-    const submittedTxsFiltered = submittedTxs.filter((tx) => {
+    const submittedTxsFiltered = submittedTxs.filter((tx): tx is EvmTransaction => {
+      if (!isEvmTransaction(tx)) {
+        return false;
+      }
+
       const { chainId: _chainId, txParams, hash } = tx;
       const { from, nonce, actionId } = txParams || {};
       // Some txs don't have nonce, like intent based swaps
