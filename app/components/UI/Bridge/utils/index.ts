@@ -4,6 +4,7 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
+  formatAddressToAssetId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { ImageSourcePropType } from 'react-native';
@@ -58,6 +59,8 @@ export const getTokenIconUrl = (
  * @returns ImageSourcePropType - Either a local require() result or { uri: string }
  */
 export const getTokenImageSource = (
+  address: string,
+  chainId: Hex | CaipChainId,
   symbol: string | undefined,
   imageUrl: string | undefined,
 ): ImageSourcePropType | undefined => {
@@ -72,7 +75,18 @@ export const getTokenImageSource = (
 
   // Fall back to remote URL
   if (imageUrl) {
-    return { uri: imageUrl };
+    return {
+      uri: imageUrl,
+    };
+  }
+  const url = getTokenIconUrl(
+    formatAddressToAssetId(address, chainId),
+    isNonEvmChainId(chainId),
+  );
+  if (url) {
+    return {
+      uri: url,
+    };
   }
 
   return undefined;

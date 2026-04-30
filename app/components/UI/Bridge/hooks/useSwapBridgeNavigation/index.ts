@@ -39,6 +39,7 @@ import {
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { useInitialBridgeTokens } from '../useInitialBridgeTokens';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -152,6 +153,9 @@ export const useSwapBridgeNavigation = ({
     selectIsBridgeEnabledSourceFactory,
   );
   const currentNetworkInfo = useCurrentNetworkInfo();
+
+  // Pre-fetch popular tokens
+  useInitialBridgeTokens();
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
