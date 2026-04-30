@@ -11,6 +11,7 @@ import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perp
 import { useHomepageSparklines } from '../../../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
+import { TILE_CAROUSEL_DEFAULT_MAX_TILES } from '../../components/TileCarousel';
 import { fuseSearch, PERPS_FUSE_OPTIONS } from '../search-utils';
 
 const EMPTY_WATCHLIST_SYMBOLS: string[] = [];
@@ -111,8 +112,15 @@ export const usePerpsFeed = ({
     return variant === 'macro' ? [...fused].sort(sortByVolumeDesc) : fused;
   }, [connectionContext?.error, markets, variant, query]);
 
+  // Only visible carousel tiles need candle sparklines; each symbol is a stream
+  // subscription (Hyperliquid). TileCarousel caps display at TILE_CAROUSEL_DEFAULT_MAX_TILES.
   const symbols = useMemo(
-    () => (withTileExtras ? filtered.map((m) => m.symbol) : []),
+    () =>
+      withTileExtras
+        ? filtered
+            .slice(0, TILE_CAROUSEL_DEFAULT_MAX_TILES)
+            .map((m) => m.symbol)
+        : [],
     [filtered, withTileExtras],
   );
   const { sparklines } = useHomepageSparklines(symbols);

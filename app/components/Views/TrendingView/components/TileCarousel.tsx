@@ -4,7 +4,8 @@ import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ViewMoreCard from '../../Homepage/components/ViewMoreCard';
 
-const DEFAULT_MAX_TILES = 5;
+/** Default number of tiles shown; sparkline fetches in `usePerpsFeed` must match. */
+export const TILE_CAROUSEL_DEFAULT_MAX_TILES = 5;
 
 export interface TileCarouselProps<T> {
   data: T[];
@@ -37,7 +38,7 @@ function TileCarousel<T>({
   keyExtractor,
   Skeleton,
   onViewMore,
-  max = DEFAULT_MAX_TILES,
+  max = TILE_CAROUSEL_DEFAULT_MAX_TILES,
   testID,
   viewMoreTestID,
   compactSectionTail = false,
