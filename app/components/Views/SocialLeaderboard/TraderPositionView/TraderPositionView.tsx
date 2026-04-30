@@ -21,7 +21,6 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
-import Routes from '../../../../constants/navigation/Routes';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
@@ -90,16 +89,8 @@ const TraderPositionView = () => {
   } = positionData;
 
   const handleBack = useCallback(() => {
-    if (!traderId) {
-      navigation.goBack();
-      return;
-    }
-
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
-      traderId,
-      traderName,
-    });
-  }, [navigation, traderId, traderName]);
+    navigation.goBack();
+  }, [navigation]);
 
   const handleCopyTokenAddress = useCallback(async () => {
     if (!resolvedPosition?.tokenAddress) {
