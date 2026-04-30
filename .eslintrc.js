@@ -474,6 +474,8 @@ module.exports = {
       excludedFiles: [
         // Perps controller is exempt from importing itself.
         'app/controllers/perps/**/*.{ts,tsx}',
+        // Designated expo-haptics wrapper — only this tree may import expo-haptics.
+        'app/util/haptics/**/*.{ts,tsx,js,jsx}',
         // The legacy module + its tests intentionally import each other for
         // parity comparison.
         'app/util/number/**',
@@ -618,6 +620,8 @@ module.exports = {
                 ],
                 message:
                   'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
+              },
+              {
                 group: ['expo-haptics/*'],
                 message:
                   'Import from app/util/haptics instead of expo-haptics directly.',
