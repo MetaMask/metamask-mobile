@@ -7,6 +7,7 @@ import { MessengerEvents } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 
 import Engine from '../Engine';
+import { replaceAccountInNestedTransactions } from '../../components/Views/confirmations/utils/transaction-pay';
 import { RootMessenger } from './types';
 
 type RootEventType = MessengerEvents<RootMessenger>['type'];
@@ -60,6 +61,13 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
   if (!selectedAccount || !isEvmAccountType(selectedAccount.type)) {
     return;
   }
+
+  replaceAccountInNestedTransactions({
+    transactionId: transaction.id,
+    nestedTransactions: transaction.nestedTransactions,
+    oldAddress: transaction.txParams?.from,
+    newAddress: selectedAccount.address,
+  });
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
     config.accountOverride = selectedAccount.address as Hex;

@@ -172,9 +172,9 @@ const useMoneyAccountBalance = (
     isAggregatedBalanceLoading,
     musdFiatFormatted,
     musdSHFvdFiatFormatted,
-    tokenTotal,
-    totalFiatFormatted,
-    totalFiatRaw,
+    tokenTotal: new BigNumber(10),
+    totalFiatFormatted: '$10',
+    totalFiatRaw: 10,
   };
 };
 

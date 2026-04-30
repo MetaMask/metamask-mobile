@@ -31,7 +31,7 @@ import {
 import { usePerpsWithdrawConfirmation } from '../../../../../../components/UI/Perps/hooks/usePerpsWithdrawConfirmation';
 
 const POLYGON_USDCE_ADDRESS =
-  '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
+  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex;
 
 // Update as needed.
 const PROXY_ADDRESS = '0x13032833b30f3388208cda38971fdc839936b042' as Hex;
@@ -185,7 +185,7 @@ function useAddTransactionBatch() {
 
   const { networkClientId } =
     useSelector((state: RootState) =>
-      selectDefaultEndpointByChainId(state, CHAIN_IDS.POLYGON),
+      selectDefaultEndpointByChainId(state, CHAIN_IDS.MAINNET),
     ) ?? {};
 
   const transferData = generateTransferData('transfer', {

@@ -6,6 +6,7 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../Engine';
+import { replaceAccountInNestedTransactions } from '../../components/Views/confirmations/utils/transaction-pay';
 import {
   handleUnapprovedTransactionAddedForMoneyAccount,
   registerMoneyAccountOverrideListener,
@@ -27,6 +28,10 @@ jest.mock('../Engine', () => ({
       subscribe: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../components/Views/confirmations/utils/transaction-pay', () => ({
+  replaceAccountInNestedTransactions: jest.fn(),
 }));
 
 const TRANSACTION_ID_MOCK = 'tx-1';
@@ -59,6 +64,9 @@ const getSelectedAccountMock = jest.mocked(
   Engine.context.AccountsController.getSelectedAccount,
 );
 const subscribeMock = jest.mocked(Engine.controllerMessenger.subscribe);
+const replaceAccountInNestedTransactionsMock = jest.mocked(
+  replaceAccountInNestedTransactions,
+);
 
 describe('moneyAccountOverrideListener', () => {
   beforeEach(() => {
@@ -154,6 +162,41 @@ describe('moneyAccountOverrideListener', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
 
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+    });
+
+    it('rewrites nested transactions with txParams.from -> selected account before setting override', () => {
+      const nestedTransactions = [{ data: '0xabcd' }];
+
+      handleUnapprovedTransactionAddedForMoneyAccount(
+        buildTransactionMeta({
+          nestedTransactions,
+        } as never),
+      );
+
+      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID_MOCK,
+        nestedTransactions,
+        oldAddress: '0x123',
+        newAddress: EVM_ADDRESS_MOCK,
+      });
+
+      const replaceCallOrder =
+        replaceAccountInNestedTransactionsMock.mock.invocationCallOrder[0];
+      const setConfigCallOrder =
+        setTransactionConfigMock.mock.invocationCallOrder[0];
+      expect(replaceCallOrder).toBeLessThan(setConfigCallOrder);
+    });
+
+    it('still calls replaceAccountInNestedTransactions when there are no nested transactions', () => {
+      handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
+
+      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID_MOCK,
+        nestedTransactions: undefined,
+        oldAddress: '0x123',
+        newAddress: EVM_ADDRESS_MOCK,
+      });
     });
   });
 
