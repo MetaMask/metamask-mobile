@@ -390,6 +390,15 @@ const PerpsWithdrawView: React.FC = () => {
               alignItems={BoxAlignItems.Center}
               marginBottom={2}
             >
+              <Text
+                variant={TextVariant.DisplayMD}
+                style={tw.style(
+                  'text-[54px] leading-[70px] font-medium mb-2 text-default',
+                  withdrawAmount === '0' && 'text-alternative',
+                )}
+              >
+                {formatDisplayAmount}
+              </Text>
               <Animated.View
                 testID="cursor"
                 style={[
