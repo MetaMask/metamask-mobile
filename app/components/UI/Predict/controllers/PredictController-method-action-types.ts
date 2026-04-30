@@ -260,9 +260,9 @@ export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
-  | PredictControllerGetCryptoPriceHistoryAction
   | PredictControllerGetCryptoTargetPriceAction
   | PredictControllerGetPriceHistoryAction
+  | PredictControllerGetCryptoPriceHistoryAction
   | PredictControllerGetPricesAction
   | PredictControllerGetPositionsAction
   | PredictControllerGetActivityAction
