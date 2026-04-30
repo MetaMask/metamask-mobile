@@ -613,23 +613,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
           showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
         }
       >
-        {order.statusDescription && (
+        {order.statusDescription && isTerminal && (
           <Box twClassName={showCloseButton ? 'mb-4' : ''}>
             <TouchableOpacity onPress={handleInfoPress}>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-alternative text-center"
               >
-                {(order.status === RampsOrderStatus.Pending ||
-                  order.status === RampsOrderStatus.Created ||
-                  order.status === RampsOrderStatus.Precreated ||
-                  order.status === RampsOrderStatus.Unknown) &&
-                order.statusDescription.startsWith('Your order')
-                  ? order.statusDescription.replace(
-                      /^Your order.*?is processing\.\s*/,
-                      '',
-                    ) || order.statusDescription
-                  : order.statusDescription}{' '}
+                {order.statusDescription}{' '}
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}

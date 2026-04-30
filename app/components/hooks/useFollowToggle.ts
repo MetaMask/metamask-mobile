@@ -1,4 +1,4 @@
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { playImpact, ImpactMoment } from '../../util/haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
@@ -37,22 +37,20 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
 
   const toggleFollow = useCallback(
     async (addressOrId: string): Promise<void> => {
-      // Fire haptic on every user-initiated toggle so feedback is consistent
-      // across all Follow entry points (homepage carousel, leaderboard rows,
-      // trader profile). Placed before the inflight guard so a quick repeat
-      // tap still produces a tactile response even when the API call is
-      // debounced.
-      impactAsync(ImpactFeedbackStyle.Light);
+      const currentlyFollowing =
+        optimisticFollowState[addressOrId] ??
+        followingProfileIds.includes(addressOrId);
+      const nextValue = !currentlyFollowing;
+
+      // Follow-toggle catalog moment (Light impact). Fired before the
+      // inflight guard so a quick repeat tap still produces tactile feedback
+      // even when the API call is debounced.
+      playImpact(ImpactMoment.FollowToggle);
 
       if (inflightIdsRef.current.has(addressOrId)) {
         return;
       }
       inflightIdsRef.current.add(addressOrId);
-
-      const currentlyFollowing =
-        optimisticFollowState[addressOrId] ??
-        followingProfileIds.includes(addressOrId);
-      const nextValue = !currentlyFollowing;
 
       setOptimisticFollowState((prev) => ({
         ...prev,

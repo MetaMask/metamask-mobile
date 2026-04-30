@@ -3,7 +3,7 @@ import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTheme } from '../../../../../../util/theme';
-import { TOP_TRADER_CARD_HEIGHT, TOP_TRADER_CARD_WIDTH } from './TopTraderCard';
+import { TOP_TRADER_CARD_WIDTH } from './TopTraderCard';
 
 /**
  * TopTraderCardSkeleton -- loading placeholder that mirrors the TopTraderCard layout.
@@ -18,7 +18,7 @@ const TopTraderCardSkeleton: React.FC = () => {
   return (
     <View
       style={tw.style(
-        `w-[${TOP_TRADER_CARD_WIDTH}px] h-[${TOP_TRADER_CARD_HEIGHT}px] rounded-2xl bg-muted p-4`,
+        `w-[${TOP_TRADER_CARD_WIDTH}px] h-auto rounded-2xl bg-muted p-4`,
       )}
     >
       <SkeletonPlaceholder
