@@ -2,16 +2,34 @@ import {
   fetchTokenAssets,
   type TokenSecurityData,
 } from '@metamask/assets-controllers';
-import type { CaipAssetType } from '@metamask/utils';
+import {
+  KnownCaipNamespace,
+  parseCaipAssetType,
+  toCaipAssetType,
+  type CaipAssetType,
+} from '@metamask/utils';
 
 export function normalizeCaipAssetIdForTokenApi(
   assetId: CaipAssetType,
 ): CaipAssetType {
-  const match = /^eip155:(\d+)\/erc20:(0x[0-9a-fA-F]{40})$/.exec(assetId);
-  if (match) {
-    return `eip155:${match[1]}/erc20:${match[2].toLowerCase()}`;
+  try {
+    const parsed = parseCaipAssetType(assetId);
+    // Only ERC-20 on EIP-155: slip44 / other namespaces will pass through unchanged.
+    if (
+      parsed.chain.namespace !== KnownCaipNamespace.Eip155 ||
+      parsed.assetNamespace !== 'erc20'
+    ) {
+      return assetId;
+    }
+    return toCaipAssetType(
+      parsed.chain.namespace,
+      parsed.chain.reference,
+      parsed.assetNamespace,
+      parsed.assetReference.toLowerCase(),
+    );
+  } catch {
+    return assetId;
   }
-  return assetId;
 }
 
 interface Waiter {
