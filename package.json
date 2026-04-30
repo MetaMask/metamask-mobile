@@ -212,6 +212,20 @@
     "@metamask/keyring-api@npm:^22.0.0": "23.0.1",
     "@metamask/keyring-api@npm:^23.0.1": "23.0.1"
   },
+  "previewBuilds": {
+    "@metamask/json-rpc-engine": {
+      "type": "non-breaking",
+      "previewVersion": "10.2.4-preview-a1caffc9c"
+    },
+    "@metamask/permission-controller": {
+      "type": "breaking",
+      "previewVersion": "12.3.0-preview-a1caffc9c"
+    },
+    "@metamask/multichain-api-middleware": {
+      "type": "breaking",
+      "previewVersion": "2.0.0-preview-a1caffc9c"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@config-plugins/detox": "^9.0.0",

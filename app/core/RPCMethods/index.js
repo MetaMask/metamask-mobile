@@ -1,4 +1,4 @@
-import eth_sendTransaction from './eth_sendTransaction';
+import eth_sendTransaction from './eth_sendTransaction.ts';
 import { wallet_addEthereumChain } from './wallet_addEthereumChain.js';
 import { wallet_switchEthereumChain } from './wallet_switchEthereumChain.js';
 import { wallet_watchAsset } from './wallet_watchAsset.ts';

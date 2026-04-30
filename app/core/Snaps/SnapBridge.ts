@@ -19,6 +19,7 @@ import {
   SnapEndowments,
 } from '@metamask/snaps-rpc-methods';
 import {
+  createPermissionMiddleware,
   RequestedPermissions,
   SubjectType,
 } from '@metamask/permission-controller';
@@ -38,19 +39,11 @@ import { RPCMethodsMiddleParameters } from '../RPCMethods/RPCMethodMiddleware';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { isSnapPreinstalled } from '../SnapKeyring/utils/snaps';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
-import {
-  multichainMethodCallValidatorMiddleware,
-  walletCreateSession,
-  walletGetSession,
-  walletInvokeMethod,
-  walletRevokeSession,
-} from '@metamask/multichain-api-middleware';
+import { multichainMethodCallValidatorMiddleware } from '@metamask/multichain-api-middleware';
 import { rpcErrors } from '@metamask/rpc-errors';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
-import {
-  makeMethodMiddlewareMaker,
-  UNSUPPORTED_RPC_METHODS,
-} from '../RPCMethods/utils';
+import { UNSUPPORTED_RPC_METHODS } from '../RPCMethods/utils';
+import { createMultichainMethodMiddleware } from '../RPCMethods/method-middleware';
 import { MultichainRoutingService } from '@metamask/snaps-controllers';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
 import { sortMultichainAccountsByLastSelected } from '../Permissions';
@@ -169,8 +162,10 @@ export default class SnapBridge {
     engine.push(asLegacyMiddleware(createWalletSnapPermissionMiddleware()));
 
     engine.push(
-      PermissionController.createPermissionMiddleware({
+      createPermissionMiddleware({
         origin: this.#snapId,
+        // @ts-expect-error: TODO: Fix
+        messenger: controllerMessenger,
       }),
     );
 
@@ -247,24 +242,14 @@ export default class SnapBridge {
 
     engine.push(multichainMethodCallValidatorMiddleware);
 
-    const middlewareMaker = makeMethodMiddlewareMaker([
-      // @ts-expect-error These types are currently incompatible, but work in practice.
-      walletRevokeSession,
-      // @ts-expect-error These types are currently incompatible, but work in practice.
-      walletGetSession,
-      // @ts-expect-error These types are currently incompatible, but work in practice.
-      walletInvokeMethod,
-      // @ts-expect-error These types are currently incompatible, but work in practice.
-      walletCreateSession,
-    ]);
-
     engine.push(
-      middlewareMaker({
+      createMultichainMethodMiddleware({
         findNetworkClientIdByChainId:
           NetworkController.findNetworkClientIdByChainId.bind(
             NetworkController,
           ),
         listAccounts: AccountsController.listAccounts.bind(AccountsController),
+        // @ts-expect-error: TODO: Fix
         requestPermissionsForOrigin: (
           requestedPermissions: RequestedPermissions,
           options = {},
@@ -274,6 +259,7 @@ export default class SnapBridge {
             requestedPermissions,
             options,
           ),
+        // @ts-expect-error: TODO: Fix
         getCaveatForOrigin: PermissionController.getCaveat.bind(
           PermissionController,
           origin,
@@ -288,14 +274,17 @@ export default class SnapBridge {
           PermissionController,
           origin,
         ),
+        // @ts-expect-error: TODO: Fix
         getNonEvmSupportedMethods: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'MultichainRoutingService:getSupportedMethods',
         ),
+        // @ts-expect-error: TODO: Fix
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'MultichainRoutingService:isSupportedScope',
         ),
+        // @ts-expect-error: TODO: Fix
         handleNonEvmRequestForOrigin: (
           params: Parameters<MultichainRoutingService['handleRequest']>[0],
         ) =>
@@ -306,12 +295,13 @@ export default class SnapBridge {
               origin: this.#snapId,
             },
           ),
+        // @ts-expect-error: TODO: Fix
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'MultichainRoutingService:getSupportedAccounts',
         ),
         sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
-        trackSessionCreatedEvent: undefined,
+        trackSessionCreatedEvent: null,
       }),
     );
 

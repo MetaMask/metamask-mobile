@@ -26,6 +26,7 @@ import {
 import {
   Caveat,
   CaveatSpecificationConstraint,
+  createPermissionMiddleware,
   ExtractPermission,
   PermissionConstraint,
   PermissionController,
@@ -448,10 +449,10 @@ describe('getRpcMethodMiddleware', () => {
       },
       unrestrictedMethods,
     });
-    const permissionMiddleware =
-      permissionController.createPermissionMiddleware({
-        origin: hostMock,
-      });
+    const permissionMiddleware = createPermissionMiddleware({
+      origin: hostMock,
+      messenger: rootMessenger,
+    });
     engine.push(permissionMiddleware);
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);

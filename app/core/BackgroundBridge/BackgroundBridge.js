@@ -72,15 +72,13 @@ import {
   KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
 import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
-import {
-  makeMethodMiddlewareMaker,
-  UNSUPPORTED_RPC_METHODS,
-} from '../RPCMethods/utils';
+import { UNSUPPORTED_RPC_METHODS } from '../RPCMethods/utils';
 import {
   getChangedAuthorization,
   getRemovedAuthorization,
 } from '../../util/permissions';
 import { createEip5792Middleware } from '../RPCMethods/createEip5792Middleware';
+import { createMultichainMethodMiddleware } from '../RPCMethods/method-middleware';
 import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 import {
@@ -734,15 +732,8 @@ export class BackgroundBridge extends EventEmitter {
 
     engine.push(multichainMethodCallValidatorMiddleware);
 
-    const middlewareMaker = makeMethodMiddlewareMaker([
-      walletRevokeSession,
-      walletGetSession,
-      walletInvokeMethod,
-      walletCreateSession,
-    ]);
-
     engine.push(
-      middlewareMaker({
+      createMultichainMethodMiddleware({
         findNetworkClientIdByChainId:
           NetworkController.findNetworkClientIdByChainId.bind(
             NetworkController,
