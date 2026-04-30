@@ -1,81 +1,35 @@
-import {
-  InfiniteData,
-  QueryFunctionContext,
-  QueryFunction,
-  QueryKey,
-  useInfiniteQuery,
-} from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { V4MultiAccountTransactionsResponse } from '@metamask/core-backend';
-import { getApiClient } from '../../../../core/apiClient';
-import { selectAccountGroupEvmAccountAddresses } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
+import { apiClient } from '../../../../core/apiClient';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { selectEvmEnabledCaipNetworks } from '../../../../selectors/networkEnablementController';
-import { selectConfirmedTransactions } from '../helpers/mappers';
+import { selectTransactions } from '../helpers/transformations';
 import { MINUTE } from '../../../../constants/time';
-import type { ConfirmedEvmTransaction } from '../helpers/types';
-
-type ConfirmedEvmTransactionsPage = Omit<
-  V4MultiAccountTransactionsResponse,
-  'data'
-> & {
-  data: ConfirmedEvmTransaction[];
-};
 
 export const useTransactionsQuery = () => {
-  const accountAddresses = useSelector(selectAccountGroupEvmAccountAddresses);
+  const evmAddress = useSelector(selectEvmAddress) || '';
   const networks = useSelector(selectEvmEnabledCaipNetworks);
+  const accountAddresses = evmAddress
+    ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
+    : [];
+
+  const queryOptions =
+    apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions({
+      accountAddresses,
+      networks,
+      includeTxMetadata: true,
+    });
+
   const selectFn = useMemo(
-    () =>
-      selectConfirmedTransactions({
-        accountAddresses: [...accountAddresses],
-      }),
-    [accountAddresses],
+    () => selectTransactions({ address: evmAddress }),
+    [evmAddress],
   );
 
-  const queryOptions = useMemo(() => {
-    const options =
-      getApiClient().accounts.getV4MultiAccountTransactionsInfiniteQueryOptions(
-        {
-          accountAddresses: [...accountAddresses],
-          networks: [...networks],
-          includeTxMetadata: true,
-        },
-      );
-
-    return {
-      queryKey: options.queryKey as QueryKey,
-      queryFn: options.queryFn as QueryFunction<
-        V4MultiAccountTransactionsResponse,
-        QueryKey,
-        string | undefined
-      >,
-    };
-  }, [accountAddresses, networks]);
-
-  return useInfiniteQuery<
-    V4MultiAccountTransactionsResponse,
-    Error,
-    ConfirmedEvmTransactionsPage,
-    QueryKey
-  >({
-    queryKey: queryOptions.queryKey,
-    queryFn: (({
-      pageParam,
-      signal,
-    }: QueryFunctionContext<QueryKey, string | undefined>) =>
-      queryOptions.queryFn({
-        pageParam,
-        signal,
-        queryKey: queryOptions.queryKey,
-        meta: undefined,
-      })) as QueryFunction<
-      V4MultiAccountTransactionsResponse,
-      QueryKey,
-      string | undefined
-    >,
-    getNextPageParam: ({ pageInfo }) =>
-      pageInfo.hasNextPage ? pageInfo.endCursor : undefined,
+  // @ts-expect-error apiClient returns v5 types, repo still in v4
+  return useInfiniteQuery({
+    ...queryOptions,
     select: selectFn,
     enabled: accountAddresses.length > 0 && networks.length > 0,
     staleTime: 5 * MINUTE,

@@ -2,7 +2,6 @@ import { createSelector } from 'reselect';
 import { RootState } from '../../reducers';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccount,
   selectSelectedInternalAccountId,
 } from '../../selectors/accountsController';
 import {
@@ -17,9 +16,8 @@ import {
   AccountGroupObject,
   AccountTreeControllerState,
 } from '@metamask/account-tree-controller';
-import { CaipAccountId, CaipChainId } from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { isEvmAccountType } from '@metamask/keyring-api';
 import { AccountGroupWithInternalAccounts } from './accounts.type';
 import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
 
@@ -418,31 +416,6 @@ export const selectSelectedAccountGroupInternalAccounts = createSelector(
     );
 
     return (group?.accounts ?? EMPTY_ARR) as readonly InternalAccount[];
-  },
-);
-
-export const selectAccountGroupEvmInternalAccounts = createSelector(
-  [selectSelectedAccountGroupInternalAccounts],
-  (accounts) => accounts.filter((account) => isEvmAccountType(account.type)),
-);
-
-export const selectAccountGroupEvmAccountAddresses = createSelector(
-  [selectSelectedInternalAccount, selectAccountGroupEvmInternalAccounts],
-  (selectedInternalAccount, groupEvmAccounts) => {
-    const selectedEvmAccount =
-      selectedInternalAccount &&
-      isEvmAccountType(selectedInternalAccount.type)
-      ? selectedInternalAccount
-      : (groupEvmAccounts.find(
-          (account) =>
-            account.type === 'eip155:eoa' || account.type === 'eip155:erc4337',
-        ) ?? groupEvmAccounts[0]);
-
-    if (!selectedEvmAccount?.address) {
-      return EMPTY_ARR as readonly CaipAccountId[];
-    }
-
-    return [`eip155:0:${selectedEvmAccount.address}` as CaipAccountId];
   },
 );
 

@@ -5,12 +5,13 @@ import {
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
-import { selectSelectedAccountGroupInternalAccounts } from './multichainAccounts/accountTreeController';
+import { selectEvmAddress } from './accountsController';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { areAddressesEqual } from '../util/address';
 
 interface MetaMaskPayToken {
@@ -18,13 +19,43 @@ interface MetaMaskPayToken {
   chainId: Hex;
 }
 
-const PENDING_EVM_TRANSACTION_STATUSES = new Set([
+type LocalTransaction = TransactionMeta | SmartTransaction;
+
+const transactionPendingStatuses = new Set([
   'submitted',
   'signed',
   'unapproved',
   'approved',
   'pending',
 ]);
+
+// Extracted from UnifiedTransactionsView
+function dedupeTransactions(transactions: LocalTransaction[]) {
+  const seenTransactions = new Set<string>();
+
+  return transactions.filter((transaction) => {
+    const { chainId, txParams } = transaction;
+    const { from, nonce, actionId } = txParams || {};
+    const hasNonce = nonce !== undefined && nonce !== null;
+
+    if (!from) {
+      return false;
+    }
+
+    const dedupeKeyPrefix = `${chainId}-${String(from).toLowerCase()}`;
+    const dedupeKey = hasNonce
+      ? `${dedupeKeyPrefix}-${nonce}`
+      : `${dedupeKeyPrefix}-${actionId}`;
+
+    // Keep only the first local pending transaction for each dedupe key
+    if (seenTransactions.has(dedupeKey)) {
+      return false;
+    }
+
+    seenTransactions.add(dedupeKey);
+    return true;
+  });
+}
 
 function getNestedTransactionTypes(
   transaction: TransactionMeta,
@@ -139,37 +170,42 @@ export const selectLocalTransactions = createDeepEqualSelector(
   [
     selectNonReplacedTransactions,
     selectPendingSmartTransactionsForSelectedAccountGroup,
-    selectSelectedAccountGroupInternalAccounts,
+    selectEvmAddress,
   ],
-  (
-    nonReplacedTransactions,
-    pendingSmartTransactions,
-    selectedAccountGroupInternalAccounts,
-  ) => {
-    const selectedAddresses = selectedAccountGroupInternalAccounts
-      .map((account) => account.address)
-      .filter(Boolean);
-
+  (nonReplacedTransactions, pendingSmartTransactions, activeEvmAddress) => {
     const pendingTransactions = nonReplacedTransactions.filter(
       (transaction) => {
-        if (!PENDING_EVM_TRANSACTION_STATUSES.has(transaction.status)) {
+        // Only keep local EVM transactions that are pending-like
+        // Extracted from UnifiedTransactionsView submittedTxs filter
+        if (!transactionPendingStatuses.has(transaction.status)) {
           return false;
         }
 
         const fromAddress = transaction.txParams?.from;
-        if (!fromAddress) {
+        if (!fromAddress || !activeEvmAddress) {
           return false;
         }
 
-        return selectedAddresses.some((address) =>
-          areAddressesEqual(fromAddress, address),
-        );
+        // Only keep pending transactions sent from the active EVM account
+        return areAddressesEqual(fromAddress, activeEvmAddress);
       },
     );
 
-    return [...pendingTransactions, ...pendingSmartTransactions].sort(
-      (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
-    );
+    const pendingSmartTransactionsForActiveAddress =
+      pendingSmartTransactions.filter((transaction) => {
+        const fromAddress = transaction.txParams?.from;
+        if (!fromAddress || !activeEvmAddress) {
+          return false;
+        }
+
+        // Only keep pending transactions sent from the active EVM account
+        return areAddressesEqual(fromAddress, activeEvmAddress);
+      });
+
+    return dedupeTransactions([
+      ...pendingTransactions,
+      ...pendingSmartTransactionsForActiveAddress,
+    ]).sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
   },
 );
 

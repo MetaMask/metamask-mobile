@@ -4,7 +4,11 @@ import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { numberToHex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import {
+  FlashList,
+  type FlashListRef,
+  type ViewToken,
+} from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, RefreshControl, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -53,16 +57,18 @@ import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.t
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 import { useTransactionsQuery } from './hooks/useTransactionsQuery';
-import type { ConfirmedEvmTransaction } from './helpers/types';
+import type { TransactionViewModel } from './types';
+
+const confirmedEvmOverscan = 5;
+const visibilityConfig = { itemVisiblePercentThreshold: 1 };
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
 
-const isEvmTransaction = (
+const getTransactionId = (tx: EvmTransaction) => tx.id;
+const isTransactionMetaLike = (
   tx: TransactionMeta | SmartTransaction,
 ): tx is EvmTransaction => 'id' in tx && typeof tx.id === 'string';
-
-const getTransactionId = (tx: EvmTransaction) => tx.id;
 
 const getEvmTransactionTime = (tx: EvmTransaction) => tx.time ?? 0;
 
@@ -76,7 +82,7 @@ enum TransactionKind {
 
 type UnifiedItem =
   | { kind: TransactionKind.Evm; tx: EvmTransaction }
-  | { kind: TransactionKind.ConfirmedEvm; tx: ConfirmedEvmTransaction }
+  | { kind: TransactionKind.ConfirmedEvm; tx: TransactionViewModel }
   | { kind: TransactionKind.NonEvm; tx: NonEvmTransaction };
 
 const normalizeTimestamp = (item: UnifiedItem) => {
@@ -88,6 +94,18 @@ const normalizeTimestamp = (item: UnifiedItem) => {
     case TransactionKind.NonEvm:
       return (item.tx.timestamp ?? 0) * 1000;
   }
+};
+
+const generateKey = (item: UnifiedItem) => {
+  if (item.kind === TransactionKind.Evm) {
+    return getTransactionId(item.tx);
+  }
+
+  if (item.kind === TransactionKind.ConfirmedEvm) {
+    return getTransactionId(item.tx.transactionMeta);
+  }
+
+  return String(item.tx.id ?? `${item.tx.chain}-${item.tx.timestamp ?? '0'}`);
 };
 
 interface UnifiedTransactionsViewProps {
@@ -112,11 +130,12 @@ const UnifiedTransactionsView = ({
     data: evmTransactions,
     fetchNextPage,
     hasNextPage,
+    isInitialLoading,
     isFetchingNextPage,
     refetch,
   } = useTransactionsQuery();
 
-  const allConfirmedFiltered = useMemo<ConfirmedEvmTransaction[]>(
+  const allConfirmedFiltered = useMemo<TransactionViewModel[]>(
     () => evmTransactions?.pages.flatMap((page) => page.data) ?? [],
     [evmTransactions],
   );
@@ -138,8 +157,6 @@ const UnifiedTransactionsView = ({
   const selectedAccountGroupInternalAccounts = useSelector(
     selectSelectedAccountGroupInternalAccounts,
   );
-  const selectedAccountGroupInternalAccountsAddresses =
-    selectedAccountGroupInternalAccounts.map((account) => account.address);
   const selectedAccountGroupEvmAddress = useMemo(() => {
     const evmAccount = selectedAccountGroupInternalAccounts.find(
       (account) =>
@@ -181,52 +198,36 @@ const UnifiedTransactionsView = ({
     evmConfirmedItems: UnifiedItem[];
     chainFilteredNonEvmTransactionsForSelectedChain: NonEvmTransaction[];
   }>(() => {
-    // Deduplicate submitted by (address + chain + nonce) and drop if already confirmed
-    const seenSubmittedNonces = new Set<string>();
-    const submittedTxsFiltered = submittedTxs.filter((tx): tx is EvmTransaction => {
-      if (!isEvmTransaction(tx)) {
-        return false;
-      }
+    const submittedTxsFiltered = submittedTxs.filter(
+      (tx): tx is EvmTransaction => {
+        if (!isTransactionMetaLike(tx)) {
+          return false;
+        }
 
-      const { chainId: _chainId, txParams } = tx;
-      const hash = 'hash' in tx ? tx.hash : undefined;
-      const { from, nonce, actionId } = txParams || {};
-      // Some txs don't have nonce, like intent based swaps
-      const hasNonce = nonce !== undefined && nonce !== null;
-      if (
-        !selectedAccountGroupInternalAccountsAddresses.some((addr) =>
-          areAddressesEqual(from, addr),
-        )
-      ) {
-        return false;
-      }
-      const dedupeKeyPrefix = `${_chainId}-${String(from).toLowerCase()}`;
-      const dedupeKey = hasNonce
-        ? `${dedupeKeyPrefix}-${nonce}`
-        : `${dedupeKeyPrefix}-${actionId}`;
-      if (seenSubmittedNonces.has(dedupeKey)) {
-        return false;
-      }
+        const { chainId: _chainId, txParams } = tx;
+        const hash = 'hash' in tx ? tx.hash : undefined;
+        const { from, nonce } = txParams || {};
+        const hasNonce = nonce !== undefined && nonce !== null;
 
-      const alreadyConfirmed = allConfirmedFiltered.find(
-        (confirmedTx) =>
-          (typeof hash === 'string' &&
-            confirmedTx.hash.toLowerCase() === hash.toLowerCase() &&
-            confirmedTx.txChainId === _chainId) ||
-          (hasNonce &&
-            confirmedTx.nonce === nonce &&
-            confirmedTx.txChainId === _chainId &&
-            Boolean(from) &&
-            areAddressesEqual(confirmedTx.from, from)),
-      );
+        const alreadyConfirmed = allConfirmedFiltered.find(
+          (confirmedTx) =>
+            (typeof hash === 'string' &&
+              confirmedTx.hash.toLowerCase() === hash.toLowerCase() &&
+              confirmedTx.hexChainId === _chainId) ||
+            (hasNonce &&
+              confirmedTx.nonce === nonce &&
+              confirmedTx.hexChainId === _chainId &&
+              Boolean(from) &&
+              areAddressesEqual(confirmedTx.from, from)),
+        );
 
-      if (alreadyConfirmed) {
-        return false;
-      }
+        if (alreadyConfirmed) {
+          return false;
+        }
 
-      seenSubmittedNonces.add(dedupeKey);
-      return true;
-    });
+        return true;
+      },
+    );
 
     // EVM: pending/submitted first (desc), then confirmed (dedup outgoing)
     const evmPendingFirst = [...submittedTxsFiltered].sort(
@@ -271,7 +272,6 @@ const UnifiedTransactionsView = ({
     allConfirmedFiltered,
     submittedTxs,
     nonEvmTransactions,
-    selectedAccountGroupInternalAccountsAddresses,
     enabledEVMChainIds,
     enabledNonEVMChainIds,
     bridgeHistory,
@@ -513,31 +513,59 @@ const UnifiedTransactionsView = ({
     }
   }, [refetch]);
 
-  const onEndReached = useCallback(() => {
-    if (!hasNextPage || isFetchingNextPage) {
-      return;
+  const lastConfirmedEvmIndex = useMemo(() => {
+    for (let index = data.length - 1; index >= 0; index -= 1) {
+      if (data[index].kind === TransactionKind.ConfirmedEvm) {
+        return index;
+      }
     }
 
-    fetchNextPage().catch(() => undefined);
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    return -1;
+  }, [data]);
 
+  const lastConfirmedEvmKey =
+    lastConfirmedEvmIndex >= 0
+      ? generateKey(data[lastConfirmedEvmIndex])
+      : undefined;
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken<UnifiedItem>[] }) => {
+      if (
+        !hasNextPage ||
+        isFetchingNextPage ||
+        !lastConfirmedEvmKey ||
+        lastConfirmedEvmIndex < 0
+      ) {
+        return;
+      }
+
+      const prefetchIndex = Math.max(
+        lastConfirmedEvmIndex - confirmedEvmOverscan,
+        0,
+      );
+      const isNearPrefetchThreshold = viewableItems.some(
+        ({ index }) => typeof index === 'number' && index >= prefetchIndex,
+      );
+
+      if (!isNearPrefetchThreshold) {
+        return;
+      }
+
+      fetchNextPage();
+    },
+    [
+      fetchNextPage,
+      hasNextPage,
+      isFetchingNextPage,
+      lastConfirmedEvmIndex,
+      lastConfirmedEvmKey,
+    ],
+  );
   const listRef = useRef<FlashListRef<UnifiedItem>>(null);
 
   // Auto-scroll to top when new transactions are added
   const { handleScroll } = useTransactionAutoScroll(data, listRef, {
-    keyExtractor: (item: UnifiedItem) => {
-      if (item.kind === TransactionKind.Evm) {
-        return getTransactionId(item.tx) ?? null;
-      }
-      if (item.kind === TransactionKind.ConfirmedEvm) {
-        return item.tx.id;
-      }
-      // For non-EVM (Solana, Bitcoin, Tron, etc.)
-      // Use same fallback as keyExtractor to ensure consistency
-      return String(
-        item.tx?.id ?? `${item.tx?.chain}-${item.tx?.timestamp ?? '0'}`,
-      );
-    },
+    keyExtractor: generateKey,
   });
 
   const renderEmptyList = () => (
@@ -545,6 +573,15 @@ const UnifiedTransactionsView = ({
       <TabEmptyState description={strings('wallet.no_transactions')} />
     </View>
   );
+
+  const renderInitialLoading = () => (
+    <View style={styles.emptyList}>
+      <ActivityIndicator color={colors.icon.default} />
+    </View>
+  );
+
+  const shouldShowTransactionList = !isInitialLoading && data.length > 0;
+  const items = shouldShowTransactionList ? data : [];
 
   const renderItem = ({
     item,
@@ -588,13 +625,8 @@ const UnifiedTransactionsView = ({
           tx={item.tx.transactionMeta}
           i={index}
           navigation={navigation}
-          txChainId={item.tx.txChainId}
+          txChainId={item.tx.hexChainId}
           selectedAddress={selectedInternalAccount?.address}
-          signQRTransaction={signQRTransaction}
-          cancelUnsignedQRTransaction={cancelUnsignedQRTransaction}
-          isQRHardwareAccount={false}
-          isLedgerAccount={false}
-          signLedgerTransaction={signLedgerTransaction}
           currentCurrency={currentCurrency}
           showBottomBorder
           location={location}
@@ -635,24 +667,14 @@ const UnifiedTransactionsView = ({
           {({ isChartBeingTouched }) => (
             <FlashList
               ref={listRef}
-              data={data}
+              data={items}
               testID={UnifiedTransactionsViewSelectorsIDs.CONTAINER}
               renderItem={renderItem}
-              keyExtractor={(listItem) =>
-                listItem.kind === TransactionKind.Evm ||
-                listItem.kind === TransactionKind.ConfirmedEvm
-                  ? getTransactionId(
-                      listItem.kind === TransactionKind.ConfirmedEvm
-                        ? listItem.tx.transactionMeta
-                        : listItem.tx,
-                    )
-                  : String(
-                      listItem.tx.id ??
-                        `${listItem.tx.chain}-${listItem.tx.timestamp ?? '0'}`,
-                    )
-              }
+              keyExtractor={generateKey}
               ListHeaderComponent={header}
-              ListEmptyComponent={renderEmptyList}
+              ListEmptyComponent={
+                isInitialLoading ? renderInitialLoading : renderEmptyList
+              }
               ListFooterComponent={footerComponent}
               style={baseStyles.flexGrow}
               refreshControl={
@@ -664,8 +686,8 @@ const UnifiedTransactionsView = ({
                 />
               }
               onScroll={handleScroll}
-              onEndReached={onEndReached}
-              onEndReachedThreshold={0.5}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={visibilityConfig}
               scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
             />
