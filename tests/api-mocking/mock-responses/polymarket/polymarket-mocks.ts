@@ -44,6 +44,7 @@ import {
   USER_WALLET_ADDRESS,
   SAFE_FACTORY_ADDRESS,
   USDC_CONTRACT_ADDRESS,
+  POLYGON_SNX_COLLATERAL_ADDRESS,
   MULTICALL_CONTRACT_ADDRESS,
   CONDITIONAL_TOKENS_CONTRACT_ADDRESS,
   POST_CASH_OUT_USDC_BALANCE_WEI,
@@ -839,6 +840,24 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
       name: 'USD Coin',
       iconUrl:
         'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x2791bca1f2de4661ed88a30c99a7a9449aa84174.png',
+    },
+  });
+
+  // V2 Polymarket Polygon collateral (SNX) — same token API shape as USDC mock; keeps E2E off the live API.
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: new RegExp(
+      `^https://token\\.api\\.cx\\.metamask\\.io/token/137\\?.*address=${POLYGON_SNX_COLLATERAL_ADDRESS}`,
+      'i',
+    ),
+    responseCode: 200,
+    response: {
+      address: POLYGON_SNX_COLLATERAL_ADDRESS,
+      symbol: 'SNX',
+      decimals: 18,
+      name: 'Synthetix Network Token',
+      iconUrl:
+        'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb.png',
     },
   });
 
