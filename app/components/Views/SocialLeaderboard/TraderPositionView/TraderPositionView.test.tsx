@@ -11,6 +11,7 @@ const mockGoBack = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
+const mockTraderPriceChart = jest.fn();
 
 interface MockRouteParams {
   positionId?: string;
@@ -132,6 +133,16 @@ jest.mock('../../../UI/AssetOverview/PriceChart', () => {
     },
   };
 });
+jest.mock('./components/TraderPriceChart', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockTraderPriceChart(props);
+      return <View testID="trader-price-chart-mock" />;
+    },
+  };
+});
 jest.mock('../../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
   const ReactActual = jest.requireActual('react');
   return {
@@ -229,7 +240,7 @@ describe('TraderPositionView', () => {
       screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
     ).toBeOnTheScreen();
     // Price chart should not be rendered in the fallback state
-    expect(screen.queryByTestId('price-chart-mock')).toBeNull();
+    expect(screen.queryByTestId('trader-price-chart-mock')).toBeNull();
   });
 
   it('renders the skeleton while a positionId fetch is in flight', () => {
@@ -296,7 +307,9 @@ describe('TraderPositionView', () => {
 
     await waitFor(() => {
       const lastCall =
-        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
       expect(lastCall).toMatchObject({ isLoading: false });
     });
   });
@@ -307,6 +320,19 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('forwards the filtered trades to the chart component', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    await waitFor(() => {
+      const lastCall =
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
+      expect(lastCall).toHaveProperty('trades');
+      expect(Array.isArray(lastCall.trades)).toBe(true);
+    });
   });
 
   it('fires a medium impact haptic when the buy button is pressed', () => {
@@ -487,7 +513,9 @@ describe('TraderPositionView', () => {
 
     await waitFor(() => {
       const lastCall =
-        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
 
       expect(lastCall).toMatchObject({
         prices: weeklyPrices,

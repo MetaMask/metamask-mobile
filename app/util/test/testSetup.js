@@ -121,6 +121,12 @@ jest.mock('react-native', () => {
   // Mock unstable_batchedUpdates directly in the react-native module
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
 
+  // Shim: BackHandler.removeEventListener was removed in RN 0.75+.
+  // Libraries like @metamask/design-system-react-native still call it.
+  if (!originalModule.BackHandler.removeEventListener) {
+    originalModule.BackHandler.removeEventListener = jest.fn();
+  }
+
   return originalModule;
 });
 
