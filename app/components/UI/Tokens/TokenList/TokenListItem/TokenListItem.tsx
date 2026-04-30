@@ -229,7 +229,7 @@ export const TokenListItem = React.memo(
     );
 
     const isMusdAsset = !!asset && isMusdToken(asset.address);
-    const showMusdBonusRow =
+    const isMusdSurfaceEnabled =
       isMusdAsset && isMusdConversionFlowEnabled && isMusdGeoEligible;
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
@@ -392,16 +392,6 @@ export const TokenListItem = React.memo(
     });
 
     const secondaryBalanceDisplay = useMemo(() => {
-      if (showMusdBonusRow) {
-        return {
-          text: strings('earn.musd_conversion.percentage_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
-          color: CLTextColor.Success,
-          onPress: undefined,
-        };
-      }
-
       if (shouldShowConvertToMusdCta) {
         return {
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
@@ -444,7 +434,6 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
-      showMusdBonusRow,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
       earnToken?.experience?.type,
@@ -601,7 +590,7 @@ export const TokenListItem = React.memo(
             justifyContent={BoxJustifyContent.Between}
             twClassName="gap-2.5"
           >
-            {showMusdBonusRow ? (
+            {isMusdSurfaceEnabled && shouldShowConvertToMusdCta ? (
               <>
                 <Box twClassName="shrink min-w-0">
                   <SensitiveText

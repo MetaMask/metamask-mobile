@@ -44,8 +44,11 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
+import AssetOverviewConvertSection from '../../Earn/components/AssetOverviewConvertSection';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
-import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
+import { isMusdToken } from '../../Earn/constants/musd';
+import { selectIsMusdConversionFlowEnabledFlag , selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
@@ -340,6 +343,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       ),
     [isMerklClaimingEnabled, token.chainId, token.address],
   );
+
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
+  );
+  const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
+  const showMusdConvertSection =
+    isMusdToken(token.address) &&
+    isMusdConversionFlowEnabled &&
+    isMusdGeoEligible;
 
   const securityConfig = useMemo(
     () => getResultTypeConfig(securityData?.resultType),
@@ -748,6 +760,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {isTokenEligibleForMerklClaim && (
             <AssetOverviewClaimBonus asset={token} />
           )}
+          {showMusdConvertSection && <AssetOverviewConvertSection />}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             tronNativeToken && (

@@ -1220,14 +1220,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows green "3% bonus" on mUSD rows when conversion is enabled', () => {
+    it('does not render the "3% bonus" label on mUSD rows (MUSD-729)', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
         isMusdConversionEnabled: true,
       });
 
-      const { getByText, queryByText } = renderWithProvider(
+      const { queryByText, getByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -1238,15 +1238,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(
-        getByText(
+        queryByText(
           strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
         ),
-      ).toBeOnTheScreen();
-      expect(queryByText('+5.00%')).toBeNull();
-      // Price rail must stay hidden on mUSD bonus rows per Figma.
-      expect(queryByText(/\u2022/)).toBeNull();
+      ).toBeNull();
+      // Without the bonus label or a Convert CTA, the row falls back to the
+      // standard percentage-change rail.
+      expect(getByText('+5.00%')).toBeOnTheScreen();
     });
 
     it('shows normal percentage when mUSD but conversion flow is disabled', () => {

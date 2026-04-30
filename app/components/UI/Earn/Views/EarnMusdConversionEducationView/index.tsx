@@ -24,6 +24,10 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import {
   Button as DesignSystemButton,
   ButtonVariant as DesignSystemButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -428,6 +432,24 @@ const EarnMusdConversionEducationView = () => {
             {strings('earn.musd_conversion.education.terms_apply')}
           </Text>
         </Text>
+        <View style={styles.checklist}>
+          {[
+            'earn.musd_conversion.education.checklist.dollar_backed',
+            'earn.musd_conversion.education.checklist.no_lockups',
+            'earn.musd_conversion.education.checklist.daily_bonus',
+            'earn.musd_conversion.education.checklist.metamask_stablecoins',
+            'earn.musd_conversion.education.checklist.no_metamask_fee',
+          ].map((key) => (
+            <View key={key} style={styles.checklistItem}>
+              <Icon
+                name={IconName.CheckBold}
+                size={IconSize.Sm}
+                color={IconColor.SuccessDefault}
+              />
+              <Text variant={TextVariant.BodyMD}>{strings(key)}</Text>
+            </View>
+          ))}
+        </View>
       </View>
       <View style={styles.imageContainer}>
         <Image

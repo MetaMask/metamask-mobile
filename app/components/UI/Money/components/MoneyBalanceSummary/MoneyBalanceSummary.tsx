@@ -51,7 +51,7 @@ const MoneyBalanceSummary = ({
         fontWeight={FontWeight.Bold}
         testID={MoneyBalanceSummaryTestIds.TITLE}
       >
-        {strings('money.title')}
+        {strings('money.your_balance')}
       </Text>
     </Box>
 

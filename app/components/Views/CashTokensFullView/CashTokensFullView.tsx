@@ -53,7 +53,6 @@ import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
 import { useCashTokensRefresh } from './useCashTokensRefresh';
 import { AssetType } from '../confirmations/types/token';
 import Logger from '../../../util/Logger';
-import AppConstants from '../../../core/AppConstants';
 import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -280,19 +279,6 @@ const CashTokensFullView = () => {
     });
   }, [createEventBuilder, goToBuy, trackEvent]);
 
-  const handleLearnMorePress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MONEY_HUB_LEARN_MORE_PRESSED)
-        .addProperties({
-          location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
-          url: AppConstants.URLS.MUSD_LEARN_MORE,
-        })
-        .build(),
-    );
-
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
-  }, [createEventBuilder, trackEvent]);
-
   const bonusAndConvertSections = useMemo(
     () => (
       <>
@@ -305,7 +291,6 @@ const CashTokensFullView = () => {
           tokens={conversionTokens}
           onMaxPress={handleConvertMaxPress}
           onEditPress={handleConvertEditPress}
-          onLearnMorePress={handleLearnMorePress}
         />
       </>
     ),
@@ -313,7 +298,6 @@ const CashTokensFullView = () => {
       conversionTokens,
       handleConvertMaxPress,
       handleConvertEditPress,
-      handleLearnMorePress,
       handleRefetchReady,
     ],
   );

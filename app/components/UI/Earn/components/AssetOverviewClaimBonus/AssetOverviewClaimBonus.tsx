@@ -356,7 +356,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         {/* CTA Button */}
         <Button
           testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON}
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           twClassName="w-full mt-4 mb-3"
           onPress={handleClaimPress}

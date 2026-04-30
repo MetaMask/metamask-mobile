@@ -39,4 +39,15 @@ export const styleSheet = (_params: { theme: Theme }) =>
     termsText: {
       textDecorationLine: 'underline',
     },
+    checklist: {
+      paddingHorizontal: 32,
+      gap: 8,
+      marginTop: 24,
+      alignSelf: 'stretch',
+    },
+    checklistItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
   });

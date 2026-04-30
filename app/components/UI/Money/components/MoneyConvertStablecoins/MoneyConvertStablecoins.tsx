@@ -2,9 +2,6 @@ import React from 'react';
 import {
   Box,
   BoxFlexDirection,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -42,7 +39,6 @@ interface MoneyConvertStablecoinsProps {
   tokens: AssetType[];
   onMaxPress: (token: AssetType) => void;
   onEditPress: (token: AssetType) => void;
-  onLearnMorePress: () => void;
 }
 
 const FEATURE_TAGS = [
@@ -137,7 +133,6 @@ const MoneyConvertStablecoins = ({
   tokens,
   onMaxPress,
   onEditPress,
-  onLearnMorePress,
 }: MoneyConvertStablecoinsProps) => {
   const hasTokens = tokens.length > 0;
 
@@ -207,18 +202,6 @@ const MoneyConvertStablecoins = ({
           ))}
         </Box>
       )}
-
-      <Box twClassName="px-4 mt-3">
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={onLearnMorePress}
-          testID={MoneyConvertStablecoinsTestIds.LEARN_MORE_CTA}
-        >
-          {strings('money.convert_stablecoins.learn_more')}
-        </Button>
-      </Box>
     </Box>
   );
 };

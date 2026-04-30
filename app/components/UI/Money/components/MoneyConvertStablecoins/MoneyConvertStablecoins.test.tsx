@@ -107,7 +107,6 @@ const defaultProps = {
   tokens: mockTokens,
   onMaxPress: jest.fn(),
   onEditPress: jest.fn(),
-  onLearnMorePress: jest.fn(),
 };
 
 describe('MoneyConvertStablecoins', () => {
@@ -179,32 +178,6 @@ describe('MoneyConvertStablecoins', () => {
       expect(getByText('USDC')).toBeOnTheScreen();
       expect(getByText('USDT')).toBeOnTheScreen();
       expect(getByText('DAI')).toBeOnTheScreen();
-    });
-
-    it('renders the Learn more button', () => {
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins {...defaultProps} />,
-      );
-
-      expect(
-        getByTestId(MoneyConvertStablecoinsTestIds.LEARN_MORE_CTA),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls onLearnMorePress when Learn more is pressed', () => {
-      const mockLearnMore = jest.fn();
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins
-          {...defaultProps}
-          onLearnMorePress={mockLearnMore}
-        />,
-      );
-
-      fireEvent.press(
-        getByTestId(MoneyConvertStablecoinsTestIds.LEARN_MORE_CTA),
-      );
-
-      expect(mockLearnMore).toHaveBeenCalledTimes(1);
     });
 
     it('calls onMaxPress with token when Max is pressed', () => {
@@ -295,16 +268,6 @@ describe('MoneyConvertStablecoins', () => {
       );
 
       expect(queryByTestId(ConvertTokenRowTestIds.CONTAINER)).toBeNull();
-    });
-
-    it('renders Learn more button', () => {
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins {...infoProps} />,
-      );
-
-      expect(
-        getByTestId(MoneyConvertStablecoinsTestIds.LEARN_MORE_CTA),
-      ).toBeOnTheScreen();
     });
   });
 });
