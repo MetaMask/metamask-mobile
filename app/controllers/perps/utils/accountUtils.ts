@@ -195,23 +195,14 @@ export function addSpotBalanceToAccountState(
     };
   }
 
-  // Fail-open guard: a user with withdrawable=0 but free spot USDC is, by
-  // HL's own contract, in unifiedAccount / portfolioMargin (Standard mode
-  // keeps perps and spot independent, so Standard users always have a
-  // non-zero perps withdrawable when they have collateral). Folding is the
-  // only way to surface a non-zero balance, and withdraw3 will draw from
-  // the unified ledger directly, so this matches the API's actual behaviour.
-  // This catches the race where the abstraction-mode cache is stale
-  // (e.g. subscriptionService fetched it before migration completed).
-  const stuckOnPerpsOnly =
-    !foldIntoCollateral &&
-    Number.isFinite(currentAvailable) &&
-    currentAvailable === 0 &&
-    freeSpot > 0;
-  const effectiveFold = foldIntoCollateral || stuckOnPerpsOnly;
-
+  // Folding is gated strictly on the resolved abstraction mode. Standard /
+  // DEX-abstraction users keep perps and spot independent, so spot must NOT
+  // surface as a perps-withdrawable balance for them — withdraw3 only draws
+  // from the perps ledger in those modes. Unified / portfolio-margin users
+  // get the fold; if the mode hasn't been resolved yet, the caller defaults
+  // foldIntoCollateral=true.
   let availableToTrade = accountState.availableBalance;
-  if (effectiveFold) {
+  if (foldIntoCollateral) {
     availableToTrade = Number.isFinite(currentAvailable)
       ? (currentAvailable + freeSpot).toString()
       : freeSpot.toString();
