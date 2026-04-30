@@ -1219,18 +1219,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       balance: '1280.34',
       balanceFiat: '$1,280.34',
     };
-
-    const musdAssetKey: FlashListAssetKey = {
+    const musdKey: FlashListAssetKey = {
       address: MUSD_TOKEN_ADDRESS,
       chainId: '0x1',
       isStaked: false,
     };
-
-    it('renders the native balance in the compact layout for mUSD', () => {
-      prepareMocks({ asset: musdAsset });
-      const { getByText } = renderWithProvider(
+    const renderCompact = (key: FlashListAssetKey) =>
+      renderWithProvider(
         <TokenListItem
-          assetKey={musdAssetKey}
+          assetKey={key}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
@@ -1238,47 +1235,27 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           hideSecondaryPriceRow
         />,
       );
-      expect(getByText('1280.34 mUSD')).toBeOnTheScreen();
+
+    it('renders compact mUSD layout and navigates on press', () => {
+      prepareMocks({ asset: musdAsset });
+      const { getByText } = renderCompact(musdKey);
       expect(getByText('MetaMask USD')).toBeOnTheScreen();
-    });
-
-    it('does not affect non-mUSD rows', () => {
-      prepareMocks({ asset: defaultAsset });
-      const assetKey: FlashListAssetKey = {
-        address: '0x456',
-        chainId: '0x1',
-        isStaked: false,
-      };
-      const { getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-          hideSecondaryPriceRow
-        />,
-      );
-      expect(getByText('Test Token')).toBeOnTheScreen();
-    });
-
-    it('navigates to Asset details when the compact mUSD row is pressed', () => {
-      prepareMocks({ asset: musdAsset });
-      const { getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={musdAssetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-          hideSecondaryPriceRow
-        />,
-      );
+      expect(getByText('1280.34 mUSD')).toBeOnTheScreen();
       fireEvent.press(getByText('MetaMask USD'));
       expect(mockNavigate).toHaveBeenCalledWith(
         'Asset',
         expect.objectContaining({ symbol: 'mUSD' }),
       );
+    });
+
+    it('does not affect non-mUSD rows', () => {
+      prepareMocks({ asset: defaultAsset });
+      const { getByText } = renderCompact({
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      });
+      expect(getByText('Test Token')).toBeOnTheScreen();
     });
   });
 
