@@ -26,6 +26,7 @@ describe('useBrowserFavoritesSites', () => {
         name: 'Uniswap',
         url: 'https://uniswap.org',
         displayUrl: 'uniswap.org',
+        storedBookmarkUrl: 'uniswap.org',
       }),
     );
   });

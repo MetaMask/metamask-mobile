@@ -20,6 +20,7 @@ const toSiteData = (entry: BookmarkEntry, index: number): SiteData => {
     name: entry.name?.trim() || extractDisplayUrl(url),
     url,
     displayUrl: extractDisplayUrl(url),
+    storedBookmarkUrl: entry.url,
   };
 };
 

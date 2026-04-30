@@ -14,7 +14,10 @@ import SitesList from '../../UI/Sites/components/SitesList/SitesList';
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import SitesSearchFooter from '../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { removeBookmark } from '../../../actions/bookmarks';
-import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import {
+  bookmarkUrlForRemoval,
+  type SiteData,
+} from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import { strings } from '../../../../locales/i18n';
 import ListHeaderWithSearch from '../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch';
 
@@ -143,7 +146,12 @@ const SitesFullView: React.FC = () => {
             onRemoveFavorite={
               isFavorites
                 ? (site: SiteData) =>
-                    dispatch(removeBookmark({ url: site.url, name: site.name }))
+                    dispatch(
+                      removeBookmark({
+                        url: bookmarkUrlForRemoval(site),
+                        name: site.name,
+                      }),
+                    )
                 : undefined
             }
             refreshControl={
