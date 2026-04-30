@@ -1,7 +1,6 @@
 // TODO: Replace this temporary dependency once Telegram auth flow is finalized.
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import { openAuthSessionAsync } from 'expo-web-browser';
-import { Alert, Linking } from 'react-native';
 import {
   AuthConnection,
   AuthRequestParams,
@@ -23,7 +22,6 @@ import {
   TelegramHydraTokenUrl,
   TelegramHydraClientId,
 } from '../constants';
-import Logger from '../../../../util/Logger';
 
 export interface TelegramLoginHandlerParams extends BaseHandlerOptions {
   appRedirectUri: string;
@@ -101,42 +99,8 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     initiateUrl.searchParams.set('app_redirect_uri', this.redirectUri);
     initiateUrl.searchParams.set('code_challenge', challenge);
 
-    Logger.log(
-      '[TelegramLogin] opening auth session:',
-      JSON.stringify({
-        authorizationUrl: initiateUrl.toString(),
-        redirectUri: this.redirectUri,
-        codeChallenge: challenge,
-        expectedState: this.nonce,
-      }),
-    );
+    await this.loginWithAuthSession(initiateUrl.toString());
 
-    const initialUrl = await Linking.getInitialURL();
-    Logger.log('[TelegramLogin] current initial url before auth:', initialUrl);
-
-    const callbackUrl = await this.loginWithAuthSession(initiateUrl.toString());
-
-    Logger.log('[TelegramLogin] expected redirect uri:', this.redirectUri);
-    Logger.log('[TelegramLogin] auth session callback url:', callbackUrl);
-
-    const callbackParams = Object.fromEntries(
-      new URL(callbackUrl).searchParams.entries(),
-    );
-
-    Logger.log(
-      '[TelegramLogin] auth session callback params:',
-      JSON.stringify(callbackParams),
-    );
-    Alert.alert(
-      'Telegram Callback',
-      `URL:\n${callbackUrl}\n\nParams:\n${JSON.stringify(
-        callbackParams,
-        null,
-        2,
-      )}`,
-    );
-
-    Logger.log('TelegramLoginHandler: success');
     return {
       authConnection: this.authConnection,
       code: challenge,
@@ -147,10 +111,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   }
 
   async loginWithAuthSession(authorizationUrl: string): Promise<string> {
-    const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
-      Logger.log('[TelegramLogin] raw incoming app url:', url);
-    });
-
     const result = await openAuthSessionAsync(
       authorizationUrl,
       this.redirectUri,
@@ -161,20 +121,11 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       },
     );
 
-    linkingSubscription.remove();
-
-    Logger.log(
-      '[TelegramLogin] raw auth session result:',
-      JSON.stringify(result),
-    );
-    Logger.log('[TelegramLogin] raw auth session result type:', result.type);
-
     if (result.type === 'success') {
       return result.url;
     }
 
     if (result.type === 'cancel') {
-      Logger.log('TelegramLoginHandler: cancel');
       throw new OAuthError(
         'TelegramLoginHandler: User cancelled the login process',
         OAuthErrorType.UserCancelled,
@@ -182,14 +133,12 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     }
 
     if (result.type === 'dismiss') {
-      Logger.log('TelegramLoginHandler: dismiss');
       throw new OAuthError(
         'TelegramLoginHandler: User dismissed the login process',
         OAuthErrorType.UserDismissed,
       );
     }
 
-    Logger.log('TelegramLoginHandler: unknown error');
     throw new OAuthError(
       'TelegramLoginHandler: Unknown error',
       OAuthErrorType.TelegramLoginError,
@@ -210,8 +159,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     authServerUrl: string,
   ): Promise<AuthResponse> {
     if (!('codeVerifier' in params) || !params.codeVerifier) {
-      Logger.log('TelegramLoginHandler: Missing code_verifier');
-      Logger.log('TelegramLoginHandler: params', params);
       throw new OAuthError(
         'TelegramLoginHandler: Missing code_verifier',
         OAuthErrorType.InvalidGetAuthTokenParams,
@@ -219,8 +166,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     }
 
     const verifyUrl = `${TelegramAuthServerUrl || authServerUrl}${TelegramAuthServerVerifyPath}`;
-
-    Logger.log('[TelegramLogin] verify request:', verifyUrl);
 
     const verifyResponse = await fetch(verifyUrl, {
       method: 'POST',
@@ -234,7 +179,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
     if (!verifyResponse.ok) {
       const errorText = await verifyResponse.text();
-      Logger.log('[TelegramLogin] verify error:', errorText);
       throw new OAuthError(
         `Telegram verify failed with status ${verifyResponse.status}: ${errorText}`,
         OAuthErrorType.AuthServerError,
@@ -242,8 +186,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     }
 
     const verifyData = (await verifyResponse.json()) as TelegramVerifyResponse;
-    Logger.log('TelegramLoginHandler: authResponse', verifyData);
-    Logger.log('[TelegramLogin] verify success');
 
     if (!verifyData.token) {
       throw new OAuthError(
@@ -264,11 +206,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     hydraFormData.append('client_id', TelegramHydraClientId);
     hydraFormData.append('assertion', verifyData.token);
 
-    Logger.log(
-      '[TelegramLogin] hydra token exchange request:',
-      TelegramHydraTokenUrl,
-    );
-
     const hydraResponse = await fetch(TelegramHydraTokenUrl, {
       method: 'POST',
       body: hydraFormData,
@@ -276,7 +213,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
     if (!hydraResponse.ok) {
       const errorText = await hydraResponse.text();
-      Logger.log('[TelegramLogin] hydra token exchange error:', errorText);
       throw new OAuthError(
         `Telegram hydra token exchange failed with status ${hydraResponse.status}: ${errorText}`,
         OAuthErrorType.AuthServerError,
@@ -285,7 +221,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
     const hydraData =
       (await hydraResponse.json()) as TelegramHydraTokenResponse;
-    Logger.log('[TelegramLogin] hydra token exchange success');
 
     if (!hydraData.access_token) {
       throw new OAuthError(
@@ -306,16 +241,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       ? `Telegram ${verifyTokenPayload.idp_sub}`
       : 'Telegram account';
 
-    Logger.log(
-      '[TelegramLogin] mint success:',
-      JSON.stringify({
-        hasIdToken: Boolean(mintResponse.id_token),
-        hasAccessToken: Boolean(mintResponse.access_token),
-        hasRefreshToken: Boolean(mintResponse.refresh_token),
-        hasRevokeToken: Boolean(mintResponse.revoke_token),
-        hasMetadataAccessToken: Boolean(mintResponse.metadata_access_token),
-      }),
-    );
     return mintResponse;
   }
 

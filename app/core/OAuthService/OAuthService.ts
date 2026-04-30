@@ -447,6 +447,9 @@ export class OAuthService {
         : 'false';
     }
 
+    const oauthErrorCode =
+      error instanceof OAuthError ? String(error.code) : undefined;
+
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
@@ -459,6 +462,9 @@ export class OAuthService {
           is_rehydration: userClickedRehydration,
           failure_type: isUserCancelled ? 'user_cancelled' : 'error',
           error_category: errorCategory,
+          ...(oauthErrorCode !== undefined && {
+            oauth_error_code: oauthErrorCode,
+          }),
         })
         .build(),
     );
