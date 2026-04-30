@@ -7,6 +7,159 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.76.0]
+
+### Uncategorized
+
+- Enabled Suspicious and Malicious security badges on tokens in the Swaps/Bridge asset picker (#29570)
+- No-changelog (#29476)
+- No-changelog (#29417)
+- Updated the description under the "Smart account requests from dapps" setting to clarify that MetaMask will only upgrade (#29211)
+  to our audited smart account.
+- chore(release): sync stable to main for version 7.73.2 (#29318)
+- Hid token warnings in Swaps asset picker temporarily (#29278)
+- chore(release): sync stable to main for version 7.73.0 (#29245)
+- chore: update homepage codeowners (#29166)
+- No-changelog (#29108)
+- No-changelog (#29165)
+- Adds #29510 agentic workflows separately from cherry pick branch (#29203)
+- Add security page events. (#28800)
+- chore(homepage): scaffold Hub Page Discovery Tabs A/B test (#29069)
+- No-changelog (#29103)
+- Bump assets controller v6 0 0 (#28898)
+- Added UTM parameters to mobile app links for improved analytics tracking (#27331)
+- Remove tokensChainsCache from assets selectors, transactions utils, and test fixtures (#28925)
+
+### Added
+
+- Add Tempo chain to the additional networks list (#29515)
+- Adds security trust badges in tokenlist (#29509)
+- Update metrics to track wallet composition (number of accounts, number of hardware wallets etc). (#29015)
+- Added developer options button to clear dismissed mUSD conversion asset details CTAs. (#29510)
+- Updated Predict confirmations to display pUSD as the Predict token. (#29450)
+- Added bigint API to codebase (#29075)
+- Added a General Settings toggle for haptic feedback and centralized in-app haptics behind a single module, with an optional (#28975)
+  remote kill switch.
+- Added support for additional sports market types (spreads, totals, halftime result, exact score, player props) on (#29216)
+  prediction market event detail screens
+- Added quickbuy smart default (#29472)
+- Added haptic feedback across Top Traders surfaces (Follow, Buy, notification preferences, per-trader notifications) so (#29467)
+  primary actions feel weightier than subordinate settings.
+- Removed outdated **Enzyme** for a default **react-native-testing-library**. _This is required with React 19 and (#29254)
+  latest RN versions_
+- Added SOL as Pay with option on Quickbuy (#29424)
+- Polished the social leaderboard with podium decorations on the top 3 traders, a tighter loading skeleton, and a chain icon (#29408)
+  overlay on token avatars in the trader position and quick buy views.
+- No-changelog (#29403)
+- Added tx fees expandable section to Quickbuy (#29321)
+- QR wallet shares the signing flow with Ledger now. (#29087)
+- Renamed request_platform to remote_request_platform in analytics for signature/transaction/permission events (#28995)
+- Added an "Add money" bottom sheet to the Money Account homepage offering Convert crypto, Deposit funds, Move mUSD, and Receive (#29336)
+  from external wallet options; wired the "Add" header pill, onboarding
+  CTA, mUSD row Add button, and full-width "Add money" footer to it.
+- In-app browser sessions opened from MetaMask Card (manage card and travel) now return to Card Home on close instead of the (#29218)
+  Explore tab.
+- Added inline error banners in the Predict buy bottom sheet for price-changed and order-failed scenarios, replacing the (#29184)
+  secondary retry sheet and failure toast when the predictBottomSheet flag
+  is enabled.
+- Card spending-limit delegation challenge and post-approval HTTP go through `CardController` / `BaanxProvider`; ERC-20 (#29346)
+  approve calldata encoding moved to `encodeErc20ApproveCalldata` in
+  card-controller; `useCardDelegation` uses Engine APIs instead of Card
+  SDK for those steps; removed unused `WalletOperations` /
+  `#buildWalletOperations` funding path and SDK
+  `encodeApproveTransaction`.
+- Updated Bridge/Swaps token warning modal to match new design and fixed swapped warning/malicious icons in the token selector (#29197)
+- Merges QR Signing Context with Hardware Wallet Context (#29086)
+- Implements new trust security token details design specs (#29230)
+- No-changelog (#29279)
+- Updated the account selector to use the full-page list for all users and removed the dropdown arrow from the wallet account (#28701)
+  picker.
+- Migration to reset native balance to 0 on tempo chains (#28869)
+- Replaced the static loading spinner with a Rive-based animated fox splash screen for a smoother app launch experience (#29003)
+- Added support for ENS v2 (#29258)
+- Hid multichain Activity entries that involve tokens flagged as malicious by security scanning, consistent with how malicious (#29239)
+  tokens are handled on the assets overview.
+- Improved MetaMask Card login fields to use the design-system `TextField` with correct username/password autocomplete (#29215)
+  hints for accessibility and password managers.
+- Card Home: Cashback action moved directly under Change asset; Change asset row no longer shows a trailing chevron (bottom (#29219)
+  sheet).
+- Inject real data into position view (#29018)
+- Show error sheet on auth server and seedless login errors (#29227)
+- Fixed transient UI flashes on the Buy screen (stale "Powered by" text, brief quote-fetch error banner, and a (#29178)
+  disabled-looking Continue button) when the selected token isn't
+  supported by the current provider and the app is silently switching to a
+  supporting one.
+- Update tempo native token logo (#29105)
+- Extend notification account toggles to all wallet keyrings (#27254)
+- Enable Card Cashback for US users (#29138)
+- Adds security badges to trending tokens list. (#29112)
+- Added Suspicious and Malicious security badges to tokens in the Swaps/Bridge asset picker (#29070)
+- Added live mUSD and Veda vault USD balance display on the Money Account homepage (#28889)
+- Unified Buy users who use Transak native only see the verify-identity policy screen once; later visits skip to email entry (#28952)
+  when not logged in to Transak.
+- Added quickly half sheet (#28863)
+- Add new hardware connection page. (#28019)
+- Added an A/B-tested homepage layout that separates trending sections and tracks swap analytics attribution for actions (#28085)
+  launched from homepage trending sections.
+- N/a (#28742)
+- Wired up follow/unfollow functionality (#28843)
+- No-changelog (#28919)
+- Added hold time to trader profile view (#28873)
+
+### Fixed
+
+- Fixed a bug where the -1%/-2% limit price preset buttons only applied on the first press. (#29373)
+- Fixed Card Home flickering during refresh and kept Add funds available for frozen cards (#29513)
+- Refine section and header styles for Perps (#29009)
+- Fixed a bug that caused the MetaMask Card spending limit screen to default to full access when a custom limit was already (#29517)
+  set
+- Hide sponsored label on cross-chain bridge with insufficient balance (#29490)
+- Fixed cashback redemption to require an approved Linea funding source. (#29489)
+- Fixed UB2 Transak order details to hide interim provider messages during processing states. (#29131)
+- Refine explore page design patterns (#29396)
+- Fixed a bug where a stale secondary minimum purchase message could briefly appear after entering a valid buy amount. (#29365)
+- Fixed a bug that was causing live Predict sports scores to appear in reverse order for some leagues. (#29453)
+- Adjust spacing for money activity filers (#29463)
+- Fixed Ledger BLE transport that prevented reconnecting to a Ledger device after a timeout or completed signing flow (#29367)
+- Fixes bug related to chart re-rendering and flickering (#29344)
+- Fixed excessive red flashing while entering buy amounts near minimum and maximum provider limits. (#29360)
+- Card — **`CardController`** listens for **`RemoteFeatureFlagController:stateChange`** and refetches card home (#29350)
+  data when **`cardFeature`** changes; **`BaanxProvider`** resolves card
+  feature flags lazily; shared **`resolveCardFeatureFlag`**;
+  **`submitCredentials`** invalidates in-flight fetches and resets card
+  home state to avoid stale unauthenticated data after login.
+- Prevent invalid bridge tx hashes from being persisted in txHistory (#29136)
+- Fixed WalletConnect sign requests occasionally displaying a garbled string in the "Request from" field instead of the (#29102)
+  dapp's domain.
+- Fixed Perps Withdraw Max so users actually withdraw their full HyperLiquid balance; replaced 90% with a Max button; Perps (#29257)
+  home and Withdraw now show the same balance.
+- Added a warning flow in bridge quotes when token price data is unavailable. (#29250)
+- Fixed featured carousel showing secondary markets instead of the match winner for sports events (#29001)
+- Fixed featured carousel showing sports games that had already ended (#29000)
+- Tempo fallback to classic transaction if contract deployment (#29078)
+- Add new `isGaslessLoading` guard to Confirmation button - consistently with Extension. (#29188)
+- Fixed a bug where rapid market switching could trigger Hyperliquid rate-limit errors. (#29056)
+- Fixed musd logo not displayed when opening musd swap from rewards (#29194)
+- Fixed MetaMask Card home showing zero balance for token balances when the user is not authenticated with the card provider. (#29146)
+- Fixed a perps position size formatting bug that stripped valid trailing zeros on whole-unit assets (szDecimals=0), e.g. (#29016)
+  displaying "1" instead of "100".
+- Updated perps chart volume bars to use 30% opacity, matching the transparency style of the spot token details chart (#29132)
+- Fixed SRP reveal QR code styling to display consistently across light and dark themes (#28969)
+- Fixed a visual alignment issue in the Top Traders list where double-digit ranks appeared to be missing their trailing dot. (#29099)
+- No-changelog (#29094)
+- Fixed an iOS-only bug where the header and web content overlapped in the in-app web view screen (#29020)
+- Stop quote polling timer and block interactions while a quote is being processed (#28862)
+- Fixed `wallet_watchAsset` failing with `"Expected a value of type JSON, but received: [object Object]"` when a dapp (#29030)
+  requested the wallet to watch a token.
+- Fixed bridge quotes showing a misleading 0% price impact when quote price data was unavailable (#28931)
+- Updated Settings copy so the IPFS gateway is described under Security and privacy instead of Advanced. (#29045)
+- Fixed incorrect TRX "locked for" value (#29038)
+- fix(analytics): track social login iOS interstitial events [TO-667] (#28406)
+- Fixed a layout shift that happened when following/unfollowing traders with high PNL (#29021)
+- Fixed NFT ownership status not refreshing across all enabled networks when pulling to refresh (#28655)
+- Fixed noisy Sentry error reports from expected candle fetch cancellations during navigation (#28953)
+- fix(predict): add home_section entrypoint to Predict Feed Viewed event (#28944)
+
 ## [7.74.0]
 
 ### Added
@@ -11288,7 +11441,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.0...HEAD
+[7.76.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.0...v7.76.0
 [7.74.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.2...v7.74.0
 [7.73.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.1...v7.73.2
 [7.73.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.73.0...v7.73.1
