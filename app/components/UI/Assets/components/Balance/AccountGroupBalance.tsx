@@ -56,11 +56,17 @@ export interface AccountGroupBalanceProps {
    * While true, pauses checklist Rive during the coordinated Wallet exit (reduces jank).
    */
   suspendRiveForCurtain?: boolean;
+  /** Trade checklist step: Primary invokes this (e.g. open Swaps) before advancing. */
+  onTradePrimaryPress?: () => void;
+  /** Notifications checklist step: Primary invokes this (e.g. open settings) before advancing. */
+  onNotificationsPrimaryPress?: () => void;
 }
 
 const AccountGroupBalance = ({
   onCoordinatedFlowExit,
   suspendRiveForCurtain = false,
+  onTradePrimaryPress,
+  onNotificationsPrimaryPress,
 }: AccountGroupBalanceProps) => {
   const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
@@ -241,7 +247,9 @@ const AccountGroupBalance = ({
     !isCurrentNetworkTestnet;
 
   const inWalletHomePostOnboardingFlow =
-    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
+    isHomepageSectionsV1Enabled &&
+    isWalletHomeOnboardingStepsEnabled &&
+    shouldShowWalletHomeOnboardingSteps;
 
   /** While the flow is active, always use the checklist surface — never the balance row (avoids a flash before loading/empty state is known). */
   const showWalletHomeOnboardingStepsTile = inWalletHomePostOnboardingFlow;
@@ -289,6 +297,8 @@ const AccountGroupBalance = ({
           isAwaitingBalance={awaitBalanceForPostOnboardingSteps}
           onCoordinatedFlowExit={onCoordinatedFlowExit}
           suspendRiveForCurtain={suspendRiveForCurtain}
+          onTradePrimaryPress={onTradePrimaryPress}
+          onNotificationsPrimaryPress={onNotificationsPrimaryPress}
           testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
         />
       ) : (

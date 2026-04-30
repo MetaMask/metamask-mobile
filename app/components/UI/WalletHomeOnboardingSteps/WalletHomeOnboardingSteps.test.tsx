@@ -117,6 +117,80 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
+  it('invokes trade primary commit when Primary is pressed on trade step', async () => {
+    const onTradePrimaryPress = jest.fn();
+    const { getByTestId, store } = renderWithProvider(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onTradePrimaryPress={onTradePrimaryPress}
+      />,
+      {
+        state: {
+          onboarding: {
+            ...baseOnboarding,
+            walletHomeOnboardingSteps: {
+              suppressedReason: null,
+              stepIndex: 1,
+            },
+          },
+          engine: { backgroundState },
+        },
+      },
+    );
+
+    fireEvent.press(
+      getByTestId(
+        `steps-root-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`,
+      ),
+    );
+
+    expect(onTradePrimaryPress).toHaveBeenCalledTimes(1);
+
+    await flushWalletHomeStepTransition();
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 2 }),
+      );
+    });
+  });
+
+  it('does not invoke trade primary commit when Skip is pressed on trade step', async () => {
+    const onTradePrimaryPress = jest.fn();
+    const { getByTestId, store } = renderWithProvider(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onTradePrimaryPress={onTradePrimaryPress}
+      />,
+      {
+        state: {
+          onboarding: {
+            ...baseOnboarding,
+            walletHomeOnboardingSteps: {
+              suppressedReason: null,
+              stepIndex: 1,
+            },
+          },
+          engine: { backgroundState },
+        },
+      },
+    );
+
+    fireEvent.press(
+      getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+    );
+
+    expect(onTradePrimaryPress).not.toHaveBeenCalled();
+
+    await flushWalletHomeStepTransition();
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 2 }),
+      );
+    });
+  });
+
   it('completes flow when primary is pressed on last step', async () => {
     const { getByTestId, store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
