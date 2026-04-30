@@ -157,6 +157,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
       recyclingKey={uri}
       onLoad={onImageLoad}
       onError={onError}
+      accessible={false}
     />
   );
 

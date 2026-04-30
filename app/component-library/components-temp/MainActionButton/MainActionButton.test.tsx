@@ -139,8 +139,8 @@ describe('MainActionButton', () => {
       />,
     );
 
-    expect(getByTestId(MAINACTIONBUTTON_TEST_ID).props.style).toContainEqual(
-      expect.objectContaining(customStyle),
+    expect(getByTestId(MAINACTIONBUTTON_TEST_ID).props.style).toMatchObject(
+      customStyle,
     );
   });
 });
