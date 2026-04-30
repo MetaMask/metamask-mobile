@@ -3838,36 +3838,37 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     it('triggers a re-aggregation and notifies account subscribers when dex cache is populated', async () => {
+      // Prime the abstraction cache with 'default' (fold=false) BEFORE the
+      // initial subscribe so the cached aggregated state does NOT include
+      // folded spot. After invalidation the cache becomes empty, which
+      // defaults to fold=true (null → fold), causing spot to fold in.
+      // That state change flips the account hash and triggers a callback —
+      // which is what we want to assert.
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction: jest.fn().mockResolvedValue('default'),
+      })) as never;
+
       const accountCallback = jest.fn();
       const unsubscribe = service.subscribeToAccount({
         callback: accountCallback,
       });
       await jest.runAllTimersAsync();
 
-      // Clear call history so we can count fresh notifications.
+      // Sanity: initial subscribe primed the dex cache and notified once.
+      expect(accountCallback).toHaveBeenCalled();
       accountCallback.mockClear();
 
-      // Override userAbstraction to return 'default' so the cache holds a
-      // pre-migration value, then invalidate — the re-aggregation should
-      // fire the callback since the hash will change (fold toggled).
-      mockClientService.getInfoClient = jest.fn(() => ({
-        spotClearinghouseState: mockSpotClearinghouseState,
-        userAbstraction: jest.fn().mockResolvedValue('default'),
-      })) as never;
-
-      // Force a spot refresh with the stale 'default' mode so the cache
-      // is in a pre-migration state (foldIntoCollateral=false while spot>0).
-      // We do this by triggering a second subscribeToAccount which calls
-      // #ensureSpotState again (cache miss for new address pattern would work
-      // but we can verify via the notification path instead).
+      // Invalidate — should re-aggregate (#dexAccountCache.size > 0) and
+      // notify subscribers because the fold behavior flipped.
       service.invalidateUserAbstractionCache('0x123');
-
       await jest.runAllTimersAsync();
 
-      // After invalidation the dex cache is populated, so #aggregateAndNotify
-      // is called, which may or may not produce a new callback depending on
-      // whether the hash changed. The important thing is no error is thrown.
-      expect(accountCallback).toBeDefined();
+      expect(accountCallback).toHaveBeenCalled();
+      const lastCall = accountCallback.mock.calls.at(-1)?.[0];
+      // After fold flips to true, availableToTradeBalance should reflect
+      // the perps withdrawable plus folded spot USDC.
+      expect(lastCall?.availableToTradeBalance).toBeDefined();
 
       unsubscribe();
     });
