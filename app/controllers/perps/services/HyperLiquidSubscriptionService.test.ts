@@ -3756,29 +3756,23 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe();
     });
 
-    it('does not seal the spot cache when WS arrives before abstraction mode is cached', async () => {
-      let resolveFirstAbstraction: (mode: 'dexAbstraction') => void = jest.fn();
-      const firstAbstraction = new Promise<'dexAbstraction'>((resolve) => {
-        resolveFirstAbstraction = resolve;
+    it('preserves the abstraction REST result when WS spot push arrives first, and re-aggregates with the correct fold', async () => {
+      // Setup: first userAbstraction call hangs until we manually resolve it.
+      // This simulates a slow REST response while the WS spot subscription
+      // pushes a snapshot first, bumping #spotStateGeneration so the in-flight
+      // refresh would otherwise discard the abstraction result.
+      let resolveAbstraction: (mode: 'unifiedAccount') => void = jest.fn();
+      const abstractionPromise = new Promise<'unifiedAccount'>((resolve) => {
+        resolveAbstraction = resolve;
       });
-      let resolveFirstAbstractionStarted: () => void = jest.fn();
-      const firstAbstractionStarted = new Promise<void>((resolve) => {
-        resolveFirstAbstractionStarted = resolve;
+      let resolveAbstractionStarted: () => void = jest.fn();
+      const abstractionStarted = new Promise<void>((resolve) => {
+        resolveAbstractionStarted = resolve;
       });
-      let resolveSecondAbstractionStarted: () => void = jest.fn();
-      const secondAbstractionStarted = new Promise<void>((resolve) => {
-        resolveSecondAbstractionStarted = resolve;
+      const userAbstractionMock = jest.fn().mockImplementationOnce(() => {
+        resolveAbstractionStarted();
+        return abstractionPromise;
       });
-      const userAbstractionMock = jest
-        .fn()
-        .mockImplementationOnce(() => {
-          resolveFirstAbstractionStarted();
-          return firstAbstraction;
-        })
-        .mockImplementationOnce(() => {
-          resolveSecondAbstractionStarted();
-          return Promise.resolve('dexAbstraction');
-        });
 
       let spotListener: ((event: any) => void) | undefined;
       let resolveSpotStateSubscribed: () => void = jest.fn();
@@ -3800,15 +3794,17 @@ describe('HyperLiquidSubscriptionService', () => {
         userAbstraction: userAbstractionMock,
       })) as never;
 
-      const unsubscribe1 = service.subscribeToAccount({
-        callback: jest.fn(),
+      const accountCallback = jest.fn();
+      const unsubscribe = service.subscribeToAccount({
+        callback: accountCallback,
       });
-
-      await Promise.all([firstAbstractionStarted, spotStateSubscribed]);
-
+      await Promise.all([abstractionStarted, spotStateSubscribed]);
       expect(userAbstractionMock).toHaveBeenCalledTimes(1);
-      expect(mockSubscriptionClient.spotState).toHaveBeenCalledTimes(1);
 
+      // Simulate the WS spot push arriving before REST userAbstraction
+      // resolves. The WS callback bumps #spotStateGeneration so the
+      // in-flight refresh's spot result would be discarded by the
+      // generation guard.
       expect(spotListener).toBeDefined();
       spotListener?.({
         user: '0x123',
@@ -3824,19 +3820,32 @@ describe('HyperLiquidSubscriptionService', () => {
           ],
         },
       });
-
-      resolveFirstAbstraction('dexAbstraction');
       await jest.runAllTimersAsync();
 
-      const unsubscribe2 = service.subscribeToAccount({
-        callback: jest.fn(),
-      });
-      await secondAbstractionStarted;
+      // Resolve the REST userAbstraction. The refresh path must record the
+      // mode (it's user-keyed, independent of spot generation) and trigger
+      // a re-aggregation so the active subscriber sees folded balance —
+      // not wait for another subscribe/action to repair the state.
+      accountCallback.mockClear();
+      resolveAbstraction('unifiedAccount');
+      await jest.runAllTimersAsync();
 
-      expect(userAbstractionMock).toHaveBeenCalledTimes(2);
+      expect(accountCallback).toHaveBeenCalled();
+      const recoveredCall = accountCallback.mock.calls.at(-1)?.[0];
+      // unifiedAccount → fold=true → spot USDC ($123.45) folds into
+      // availableToTradeBalance (default $1000 perps + $123.45 spot ≈ $1123.45).
+      expect(parseFloat(recoveredCall?.availableToTradeBalance)).toBeCloseTo(
+        1123.45,
+        2,
+      );
 
-      unsubscribe1();
-      unsubscribe2();
+      // A subsequent subscribe must take the fast path — the cache is now
+      // sealed for this user, so no redundant userAbstraction REST round-trip.
+      service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
     });
 
     it('ignores spotState events for a different user', async () => {

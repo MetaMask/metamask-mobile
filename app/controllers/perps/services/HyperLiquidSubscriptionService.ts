@@ -1153,15 +1153,17 @@ export class HyperLiquidSubscriptionService {
         infoClient.userAbstraction({ user: userAddress }),
       ]);
 
-      // Drop stale results: cleanUp/clearAll or a newer fetch bumped generation.
-      // Writing here would re-populate the cache with a different user's data.
-      if (generation !== this.#spotStateGeneration) {
-        return;
-      }
+      const lowerUserAddress = userAddress.toLowerCase();
 
+      // Record the abstraction mode regardless of generation. The mode is
+      // user-keyed (independent of the spot snapshot generation) so a WS
+      // push that bumped generation while we awaited cannot make this
+      // result wrong for this user. Discarding it would strand
+      // Unified / Portfolio Margin users at fail-closed until another
+      // subscribe runs — exactly the race the WS-vs-REST guard creates.
       if (abstractionResult.status === 'fulfilled') {
         this.#abstractionModeByUser.set(
-          userAddress.toLowerCase(),
+          lowerUserAddress,
           abstractionResult.value,
         );
       } else {
@@ -1176,6 +1178,27 @@ export class HyperLiquidSubscriptionService {
         );
       }
 
+      if (generation !== this.#spotStateGeneration) {
+        // A WS push superseded our spot snapshot. The earlier WS-driven
+        // aggregation ran with a null mode (fail-closed), so subscribers
+        // may currently be under-reported. If we just resolved the mode,
+        // seal the cache for this user and re-aggregate now so the active
+        // subscribers immediately see the correct fold instead of waiting
+        // for another subscribe/action.
+        if (
+          abstractionResult.status === 'fulfilled' &&
+          this.#cachedSpotState &&
+          (!this.#cachedSpotStateUserAddress ||
+            this.#cachedSpotStateUserAddress === lowerUserAddress)
+        ) {
+          this.#cachedSpotStateUserAddress = lowerUserAddress;
+          if (this.#dexAccountCache.size > 0) {
+            this.#aggregateAndNotifySubscribers();
+          }
+        }
+        return;
+      }
+
       if (spotResult.status === 'rejected') {
         throw spotResult.reason;
       }
@@ -1187,7 +1210,7 @@ export class HyperLiquidSubscriptionService {
       // under-reporting their balance until cleanup or account switch.
       // Leaving #cachedSpotStateUserAddress unset forces the next
       // #ensureSpotState() to re-run both fetches.
-      if (this.#abstractionModeByUser.has(userAddress.toLowerCase())) {
+      if (this.#abstractionModeByUser.has(lowerUserAddress)) {
         this.#cachedSpotStateUserAddress = userAddress;
       }
 
