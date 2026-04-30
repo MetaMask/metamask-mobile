@@ -87,17 +87,19 @@ export const useInitialBridgeTokens = (
   );
 
   useEffect(() => {
-    Engine.context.AuthenticationController.getBearerToken()
-      .then((token) => {
-        setBearerToken(token);
-      })
-      .catch((error) => {
-        console.warn(
-          'Failed to get bearer token for /getTokens/popular',
-          error,
-        );
-      });
-  }, []);
+    if (isBasicFunctionalityEnabled) {
+      Engine.context.AuthenticationController.getBearerToken()
+        .then((token) => {
+          setBearerToken(token);
+        })
+        .catch((error) => {
+          console.warn(
+            'Failed to get bearer token for /getTokens/popular',
+            error,
+          );
+        });
+    }
+  }, [isBasicFunctionalityEnabled]);
 
   const cachedEntry = useMemo(() => {
     const cacheKey = getCacheKey(chainIdsToFetch, includeAssetsObject);
