@@ -439,6 +439,14 @@ describe('OndoLeaderboard', () => {
       }),
     );
 
+    const twentyFiveEntries = Array.from({ length: 25 }, (_, i) =>
+      createMockEntry({
+        rank: i + 1,
+        referralCode: `T${String(i + 1).padStart(3, '0')}`,
+        rateOfReturn: 0.12,
+      }),
+    );
+
     it('renders normally when no userPosition is provided', () => {
       const { queryByTestId } = render(
         <OndoLeaderboard
@@ -618,6 +626,99 @@ describe('OndoLeaderboard', () => {
         />,
       );
 
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
+    });
+
+    it('in full view renders 18 top rows when user rank is 21', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={twentyFiveEntries}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 21,
+            neighbors: [
+              createMockEntry({ rank: 20, referralCode: 'N20' }),
+              createMockEntry({ rank: 21, referralCode: 'USER' }),
+              createMockEntry({ rank: 22, referralCode: 'N22' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-18`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-19`),
+      ).toBeNull();
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-20`),
+      ).toBeDefined();
+    });
+
+    it('in full view renders 18 top rows when user rank is 22', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={twentyFiveEntries}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 22,
+            neighbors: [
+              createMockEntry({ rank: 21, referralCode: 'N21' }),
+              createMockEntry({ rank: 22, referralCode: 'USER' }),
+              createMockEntry({ rank: 23, referralCode: 'N23' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-18`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-19`),
+      ).toBeNull();
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
+    });
+
+    it('in full view renders 20 top rows when user rank is 23 (not 21 or 22)', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={twentyFiveEntries}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 23,
+            neighbors: [
+              createMockEntry({ rank: 22, referralCode: 'N22' }),
+              createMockEntry({ rank: 23, referralCode: 'USER' }),
+              createMockEntry({ rank: 24, referralCode: 'N24' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-20`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-21`),
+      ).toBeNull();
       expect(
         getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
       ).toBeDefined();

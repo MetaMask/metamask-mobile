@@ -125,7 +125,7 @@ jobs:
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
-          ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}
+          ALL_CHANGES_FILES: ${{ github.event_name == 'pull_request' && steps.filter.outputs.all_changes_files || '' }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
           E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_relevant_workflows_count }}
           ANDROID_COUNT: ${{ steps.filter.outputs.android_count }}

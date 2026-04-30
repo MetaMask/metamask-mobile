@@ -6,7 +6,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { SmokeTrade } from '../../tags';
+import { SmokeSwap } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { asDetoxElement } from '../../framework';
 import QuoteView from '../../page-objects/swaps/QuoteView';
@@ -19,7 +19,7 @@ const SWAP_DEEPLINK_BASE = 'https://metamask.app.link/swap';
 const SWAP_DEEPLINK_FULL = `${SWAP_DEEPLINK_BASE}?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000`;
 
 describe(
-  SmokeTrade('Swap Deep Link Tests - Unified Bridge Experience'),
+  SmokeSwap('Swap Deep Link Tests - Unified Bridge Experience'),
   (): void => {
     const chainId = '0x1';
 

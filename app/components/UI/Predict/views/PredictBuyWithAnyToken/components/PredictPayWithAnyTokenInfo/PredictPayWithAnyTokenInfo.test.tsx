@@ -184,7 +184,10 @@ describe('PredictPayWithAnyTokenInfo', () => {
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
-    it('computes the remaining amount needed after predict balance is applied', () => {
+    it('deposits the full order amount from the selected ERC20, ignoring Predict balance', () => {
+      // When an ERC20 token is selected the payment only uses that token —
+      // Predict balance is never used first, so the full totalPayForPredictBalance
+      // (currentValue + protocol fees) is deposited regardless of existing balance.
       mockPredictBalance = 80;
       mockActiveTransactionMeta = { id: 'tx-1' };
 
@@ -204,8 +207,8 @@ describe('PredictPayWithAnyTokenInfo', () => {
         />,
       );
 
-      // totalPay = 100 + 3 + 2 = 105, remaining = 105 - 80 = 25
-      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('25');
+      // totalPay = 100 + 3 + 2 = 105, full amount deposited (no predict balance deduction)
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('105');
     });
 
     it('rounds the remaining amount up to 2 decimals when a deposit is still needed', () => {
@@ -256,7 +259,9 @@ describe('PredictPayWithAnyTokenInfo', () => {
       expect(mockUpdatePendingAmount).toHaveBeenCalledWith('2.08');
     });
 
-    it('rounds a tiny positive shortfall up to the minimum cent instead of zero', () => {
+    it('deposits full amount even when predict balance nearly covers the total', () => {
+      // Predict balance is never deducted — the full totalPay is always deposited
+      // from the selected ERC20, regardless of existing Predict balance.
       mockPredictBalance = 2.075889;
       mockActiveTransactionMeta = { id: 'tx-1' };
 
@@ -276,8 +281,8 @@ describe('PredictPayWithAnyTokenInfo', () => {
         />,
       );
 
-      // totalPay = 2.08, remaining = 2.08 - 2.075889 ≈ 0.004111, ROUND_UP → 0.01
-      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('0.01');
+      // totalPay = 2 + 0.04 + 0.04 = 2.08, deposited in full
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('2.08');
     });
 
     it('computes the full preview total when predict balance already covers the bet', () => {
