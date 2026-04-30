@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import SectionHeader from './SectionHeader';
@@ -39,7 +40,7 @@ describe('SectionHeader', () => {
       { state: initialState },
     );
 
-    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
   });
 
   it('renders title for perps section', () => {

@@ -96,7 +96,9 @@ import {
   getBalance,
   getContractConfig,
   getL2Headers,
+  fetchChildEventsFromGammaApi,
   getMarketDetailsFromGammaApi,
+  mergeChildEventsIntoParent,
   getOrderTypedData,
   getPolymarketEndpoints,
   parsePolymarketActivity,
@@ -108,6 +110,7 @@ import {
 import { PredictFeatureFlags } from '../../types/flags';
 import {
   extractNeededTeamsFromEvents,
+  getEventLeague,
   isLiveSportsEvent,
 } from '../../utils/gameParser';
 import { GameCache } from './GameCache';
@@ -191,10 +194,6 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().extendedSportsMarketsLeagues;
   }
 
-  #hasExtendedMarketsForLeague(league: string): boolean {
-    return this.#getExtendedSportsMarketsLeagues().includes(league);
-  }
-
   #createTeamLookup(
     enabled: boolean,
   ):
@@ -228,6 +227,47 @@ export class PolymarketProvider implements PredictProvider {
         TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
       ),
     );
+  }
+
+  /**
+   * Extended sports positions can point to child events like player props or
+   * halftime markets, but the details view should resolve back to the parent
+   * game and merge the child markets into that game when the league supports it.
+   */
+  async #resolveSportMarketFromPolymarket({
+    event,
+    extendedSportsMarketsLeagues,
+  }: {
+    event: PolymarketApiEvent;
+    extendedSportsMarketsLeagues: string[];
+  }): Promise<{
+    resolvedEvent: PolymarketApiEvent;
+    childMarketIds?: string[];
+  }> {
+    const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
+    if (!eventLeague || !extendedSportsMarketsLeagues.includes(eventLeague)) {
+      return { resolvedEvent: event };
+    }
+
+    const resolvedEventId = event.parentEventId ?? event.id;
+
+    try {
+      const allEvents = await fetchChildEventsFromGammaApi({
+        parentEventId: resolvedEventId,
+      });
+      return {
+        resolvedEvent: mergeChildEventsIntoParent(allEvents),
+        childMarketIds: allEvents.map(
+          (resolvedChildEvent) => resolvedChildEvent.id,
+        ),
+      };
+    } catch (childFetchError) {
+      DevLogger.log(
+        'Failed to fetch child events, using resolved event only:',
+        childFetchError,
+      );
+      return { resolvedEvent: event };
+    }
   }
 
   /**
@@ -688,19 +728,36 @@ export class PolymarketProvider implements PredictProvider {
 
       const supportedLeagues = this.#getSupportedLeagues();
       const liveSportsEnabled = supportedLeagues.length > 0;
+      const extendedSportsMarketsLeagues =
+        this.#getExtendedSportsMarketsLeagues();
       const isSportsEvent =
-        liveSportsEnabled && isLiveSportsEvent(event, supportedLeagues);
+        liveSportsEnabled &&
+        isLiveSportsEvent(
+          event,
+          supportedLeagues,
+          extendedSportsMarketsLeagues,
+        );
 
+      let mergedEvent = event;
+      let childMarketIds: string[] | undefined;
       if (isSportsEvent) {
-        await this.#ensureTeamsLoadedForEvents([event], supportedLeagues);
+        const resolvedSportMarket =
+          await this.#resolveSportMarketFromPolymarket({
+            event,
+            extendedSportsMarketsLeagues,
+          });
+        mergedEvent = resolvedSportMarket.resolvedEvent;
+        childMarketIds = resolvedSportMarket.childMarketIds;
+
+        await this.#ensureTeamsLoadedForEvents([mergedEvent], supportedLeagues);
       }
 
       const teamLookup = this.#createTeamLookup(isSportsEvent);
 
-      const [parsedMarket] = parsePolymarketEvents([event], {
+      const [parsedMarket] = parsePolymarketEvents([mergedEvent], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        extendedSportsMarketsLeagues,
       });
 
       if (!parsedMarket) {
@@ -710,6 +767,10 @@ export class PolymarketProvider implements PredictProvider {
       const result = isSportsEvent
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
+
+      if (childMarketIds) {
+        result.childMarketIds = childMarketIds;
+      }
 
       return result;
     } catch (error) {

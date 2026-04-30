@@ -271,4 +271,104 @@ describe('usePredictPositions', () => {
 
     expect(result.current.data).toEqual([claimableTargetMarket]);
   });
+
+  describe('childMarketIds filtering', () => {
+    it('filters positions by childMarketIds when provided', async () => {
+      const { Wrapper } = createWrapper();
+      const parentPosition = createPosition('parent-1', {
+        marketId: 'parent-1',
+      });
+      const child1Position = createPosition('child-1', {
+        marketId: 'child-1',
+      });
+      const child2Position = createPosition('child-2', {
+        marketId: 'child-2',
+      });
+      const unrelatedPosition = createPosition('unrelated-3', {
+        marketId: 'unrelated-3',
+      });
+      mockGetPositions.mockResolvedValue([
+        parentPosition,
+        child1Position,
+        child2Position,
+        unrelatedPosition,
+      ]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'parent-1',
+            childMarketIds: ['parent-1', 'child-1', 'child-2'],
+          }),
+        {
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([
+        parentPosition,
+        child1Position,
+        child2Position,
+      ]);
+    });
+
+    it('falls back to marketId filtering when childMarketIds is empty', async () => {
+      const { Wrapper } = createWrapper();
+      const parentPosition = createPosition('parent-1', {
+        marketId: 'parent-1',
+      });
+      const childPosition = createPosition('child-1', {
+        marketId: 'child-1',
+      });
+      mockGetPositions.mockResolvedValue([parentPosition, childPosition]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'parent-1',
+            childMarketIds: [],
+          }),
+        {
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([parentPosition]);
+    });
+
+    it('falls back to marketId filtering when childMarketIds is undefined', async () => {
+      const { Wrapper } = createWrapper();
+      const parentPosition = createPosition('parent-1', {
+        marketId: 'parent-1',
+      });
+      const childPosition = createPosition('child-1', {
+        marketId: 'child-1',
+      });
+      mockGetPositions.mockResolvedValue([parentPosition, childPosition]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'parent-1',
+          }),
+        {
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([parentPosition]);
+    });
+  });
 });

@@ -7,6 +7,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
   Icon,
   IconName,
   IconSize,
@@ -105,7 +106,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         justifyContent={BoxJustifyContent.Between}
         twClassName="py-2 bg-default"
       >
-        <Text variant={TextVariant.HeadingSm} twClassName="text-alternative">
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-alternative"
+        >
           {item.title}
         </Text>
         {item.hasMore && (
