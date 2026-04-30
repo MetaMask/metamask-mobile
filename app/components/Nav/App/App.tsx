@@ -57,6 +57,7 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
+import ConnectTangem from '../../Views/ConnectTangem';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
@@ -69,6 +70,7 @@ import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal'
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import QRSigningTransactionModal from '../../UI/QRHardware/QRSigningTransactionModal';
+import TangemSigningModal from '../../UI/TangemModals/TangemSigningModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
@@ -729,6 +731,21 @@ const LedgerConnectFlow = () => {
   );
 };
 
+const TangemConnectFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+      initialRouteName={Routes.HW.TANGEM_CONNECT}
+    >
+      <Stack.Screen name={Routes.HW.TANGEM_CONNECT} component={ConnectTangem} />
+    </Stack.Navigator>
+  );
+};
+
 const ConnectHardwareWalletFlow = () => {
   const { colors } = useTheme();
   return (
@@ -1002,6 +1019,10 @@ const AppFlow = () => {
         component={LedgerConnectFlow}
       />
       <Stack.Screen
+        name={Routes.HW.CONNECT_TANGEM}
+        component={TangemConnectFlow}
+      />
+      <Stack.Screen
         name={Routes.HW.CONNECT}
         component={ConnectHardwareWalletFlow}
       />
@@ -1124,6 +1145,19 @@ const AppFlow = () => {
         }}
         name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
         component={LedgerMessageSignModal}
+      />
+      <Stack.Screen
+        options={{
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.transparent },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
+        }}
+        name={Routes.TANGEM_SIGNING_MODAL}
+        component={TangemSigningModal}
       />
       <Stack.Screen
         name={Routes.OPTIONS_SHEET}

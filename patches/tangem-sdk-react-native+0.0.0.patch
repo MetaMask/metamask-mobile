@@ -1,0 +1,42 @@
+diff --git a/android/src/main/java/com/tangem/TangemSdkReactNative/TangemSdkReactNativeModule.kt b/android/src/main/java/com/tangem/TangemSdkReactNative/TangemSdkReactNativeModule.kt
+index 1234567..abcdefg 100644
+--- a/android/src/main/java/com/tangem/TangemSdkReactNative/TangemSdkReactNativeModule.kt
++++ b/android/src/main/java/com/tangem/TangemSdkReactNative/TangemSdkReactNativeModule.kt
+@@ -17,6 +17,9 @@ import com.tangem.TangemSdk
+ import com.tangem.common.CompletionResult
+ import com.tangem.common.core.Config
++import com.tangem.common.card.EllipticCurve
++import com.tangem.crypto.hdWallet.DerivationPath
++import com.tangem.operations.attestation.AttestationTask
+ import com.tangem.common.core.TangemSdkError
+ import com.tangem.common.extensions.hexToBytes
+ import com.tangem.common.json.MoshiJsonConverter
+@@ -51,9 +54,13 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
+ 
+         nfcManager = NfcManager().apply { setCurrentActivity(activity) }
+         val componentActivity = activity as? ComponentActivity ?: return
++        handler.post { componentActivity.lifecycle.addObserver(nfcManager) }
+         val delegate = DefaultSessionViewDelegate(nfcManager, componentActivity)
+         val storage = SecureStorage.create(activity)
+         val nfcProvider = AndroidNfcAvailabilityProvider(activity)
+         val wordlist = BIP39Wordlist()
+-        sdk = TangemSdk(nfcManager.reader, delegate, nfcProvider, storage, wordlist, Config())
++        val config = Config(attestationMode = AttestationTask.Mode.Offline)
++        config.defaultDerivationPaths = mutableMapOf(
++            EllipticCurve.Secp256k1 to listOf(DerivationPath("m/44'/60'/0'/0/0"))
++        )
++        sdk = TangemSdk(nfcManager.reader, delegate, nfcProvider, storage, wordlist, config)
+ 
+         nfcManagerStarted = true
+@@ -62,7 +69,10 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
+     }
+ 
+     override fun onHostResume() {
+-        if (!::nfcManager.isInitialized) return
++        if (!::nfcManager.isInitialized) {
++            initialize()
++            return
++        }
+         val activity = wActivity.get() ?: return
+ 
+         if (activity.isDestroyed() || activity.isFinishing()) {

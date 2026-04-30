@@ -27,6 +27,7 @@ buildscript {
 	}
 	allprojects {
     repositories {
+        mavenLocal()
         maven {
           url("$rootDir/../node_modules/detox/Detox-android")
         }
@@ -51,10 +52,11 @@ buildscript {
 // Other subprojects (react-native, expo, firebase, etc.) are left untouched.
 def brazeKotlinStdlibVersion = "1.9.25"
 def brazeKotlinxSerializationVersion = "1.6.3"
+def kotlinCompatCoroutinesVersion = "1.7.3"
 subprojects { subproject ->
 	subproject.afterEvaluate {
 		def name = subproject.name.toLowerCase()
-		if (name != 'app' && !name.contains('braze')) return
+		if (name != 'app' && !name.contains('braze') && !name.contains('tangem')) return
 
 		subproject.configurations.configureEach { configuration ->
 			configuration.resolutionStrategy {
@@ -65,6 +67,9 @@ subprojects { subproject ->
 				force "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${brazeKotlinxSerializationVersion}"
 				force "org.jetbrains.kotlinx:kotlinx-serialization-json:${brazeKotlinxSerializationVersion}"
 				force "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${brazeKotlinxSerializationVersion}"
+				force "org.jetbrains.kotlinx:kotlinx-coroutines-core:${kotlinCompatCoroutinesVersion}"
+				force "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:${kotlinCompatCoroutinesVersion}"
+				force "org.jetbrains.kotlinx:kotlinx-coroutines-android:${kotlinCompatCoroutinesVersion}"
 			}
 		}
 	}

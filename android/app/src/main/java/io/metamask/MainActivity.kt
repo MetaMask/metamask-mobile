@@ -1,6 +1,7 @@
 package io.metamask
 
 import android.content.Intent
+import android.nfc.NfcAdapter
 import android.os.Build
 import android.os.Bundle
 import com.facebook.react.ReactActivity
@@ -37,6 +38,13 @@ class MainActivity : ReactActivity() {
     }
 
     override fun onNewIntent(intent: Intent) {
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action ||
+            NfcAdapter.ACTION_TECH_DISCOVERED == intent.action ||
+            NfcAdapter.ACTION_TAG_DISCOVERED == intent.action) {
+            super.onNewIntent(intent)
+            return
+        }
+
         // Capture New Notification Intent
         NotificationModule.saveNotificationIntent(intent)
 

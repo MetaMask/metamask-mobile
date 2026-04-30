@@ -21,6 +21,8 @@ import {
   LEGACY_DERIVATION_OPTIONS,
   pbkdf2,
 } from '../../../Encryptor';
+import { TangemKeyring } from '../../../Tangem/TangemKeyring';
+import { TangemNfcBridge } from '../../../Tangem/TangemNfcBridge';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -110,6 +112,12 @@ export const keyringControllerInit: ControllerInitFunction<
     moneyKeyringBuilder.type = MoneyKeyring.type;
     additionalKeyrings.push(moneyKeyringBuilder);
   }
+
+  const tangemBridge = new TangemNfcBridge();
+  const tangemKeyringBuilder = () =>
+    new TangemKeyring({ bridge: tangemBridge });
+  tangemKeyringBuilder.type = TangemKeyring.type;
+  additionalKeyrings.push(tangemKeyringBuilder);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringBuilder = getController('SnapKeyringBuilder');

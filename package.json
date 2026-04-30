@@ -514,6 +514,7 @@
     "semver": "^7.7.3",
     "socket.io-client": "^4.5.3",
     "stream-browserify": "3.0.0",
+    "tangem-sdk-react-native": "https://github.com/tangem/tangem-sdk-react-native.git",
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
     "uri-js": "^4.4.1",

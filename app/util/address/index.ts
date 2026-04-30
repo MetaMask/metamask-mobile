@@ -284,7 +284,11 @@ export function getKeyringByAddress(address: string) {
  */
 export function isHardwareAccount(
   address: string,
-  accountTypes = [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger],
+  accountTypes = [
+    ExtendedKeyringTypes.qr,
+    ExtendedKeyringTypes.ledger,
+    ExtendedKeyringTypes.tangem,
+  ],
 ) {
   const keyring = getKeyringByAddress(address);
   return keyring && accountTypes.includes(keyring.type as ExtendedKeyringTypes);

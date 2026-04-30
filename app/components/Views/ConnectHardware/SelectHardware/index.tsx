@@ -30,11 +30,9 @@ const createStyle = (colors: any) =>
     screen: { justifyContent: 'center' },
     container: {
       flex: 1,
-      justifyContent: 'center',
     },
     buttonsContainer: {
       width: '100%',
-      flex: 1,
       flexDirection: 'row',
       paddingHorizontal: 16,
       gap: 12,
@@ -57,6 +55,12 @@ const createStyle = (colors: any) =>
     subtitle: {
       marginTop: 4,
     },
+    secondRowContainer: {
+      marginTop: 12,
+    },
+    buttonSpacer: {
+      flex: 1,
+    },
   });
 
 // Ledger Logo
@@ -72,6 +76,13 @@ const qrHardwareLogoLight = require(qrHardwareLogoLightImgPath);
 
 const qrHardwareLogoDarkImgPath = '../../../../images/qrhardware-dark.png';
 const qrHardwareLogoDark = require(qrHardwareLogoDarkImgPath);
+
+// Tangem Logo
+const tangemLogoLightImgPath = '../../../../images/tangem-light.png';
+const tangemLogoLight = require(tangemLogoLightImgPath);
+
+const tangemLogoDarkImgPath = '../../../../images/tangem-dark.png';
+const tangemLogoDark = require(tangemLogoDarkImgPath);
 
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
@@ -122,6 +133,24 @@ const SelectHardwareWallet = () => {
     navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };
 
+  const navigateToConnectTangem = async () => {
+    try {
+      const connectedDeviceCount = await getConnectedDevicesCount();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+          .addProperties({
+            device_type: HardwareDeviceTypes.TANGEM,
+            connected_device_count: connectedDeviceCount.toString(),
+          })
+          .build(),
+      );
+    } catch (error) {
+      console.error('[SelectHardware] Failed to track analytics:', error);
+    }
+
+    navigation.navigate(Routes.HW.CONNECT_TANGEM);
+  };
+
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderHardwareButton = (image: any, onPress: any, testID?: string) => (
@@ -155,6 +184,15 @@ const SelectHardwareWallet = () => {
     );
   };
 
+  const TangemButton = () => {
+    const tangemLogo = useAssetFromTheme(tangemLogoLight, tangemLogoDark);
+    return renderHardwareButton(
+      tangemLogo,
+      navigateToConnectTangem,
+      'tangem-hardware-button',
+    );
+  };
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
       <HeaderCompactStandard includesTopInset onBack={navigation.goBack} />
@@ -174,6 +212,10 @@ const SelectHardwareWallet = () => {
       <View style={styles.buttonsContainer}>
         <LedgerButton />
         <QRButton />
+      </View>
+      <View style={[styles.buttonsContainer, styles.secondRowContainer]}>
+        <TangemButton />
+        <View style={styles.buttonSpacer} />
       </View>
     </SafeAreaView>
   );

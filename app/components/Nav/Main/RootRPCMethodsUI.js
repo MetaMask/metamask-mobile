@@ -19,6 +19,7 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import { createTangemSigningModalNavDetails } from '../../UI/TangemModals/TangemSigningModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -47,8 +48,13 @@ const RootRPCMethodsUI = (props) => {
           ExtendedKeyringTypes.qr,
         ]);
 
-        // Only auto-sign for Ledger or QR accounts
-        if (!isLedgerAccount && !isQRAccount) {
+        const isTangemAccount = isHardwareAccount(
+          transactionMeta.txParams.from,
+          [ExtendedKeyringTypes.tangem],
+        );
+
+        // Only auto-sign for hardware wallet accounts
+        if (!isLedgerAccount && !isQRAccount && !isTangemAccount) {
           return;
         }
 
@@ -73,6 +79,14 @@ const RootRPCMethodsUI = (props) => {
         } else if (isQRAccount) {
           props.navigation.navigate(
             ...createQRSigningTransactionModalNavDetails({
+              transactionId: transactionMeta.id,
+              // eslint-disable-next-line no-empty-function
+              onConfirmationComplete: () => {},
+            }),
+          );
+        } else if (isTangemAccount) {
+          props.navigation.navigate(
+            ...createTangemSigningModalNavDetails({
               transactionId: transactionMeta.id,
               // eslint-disable-next-line no-empty-function
               onConfirmationComplete: () => {},

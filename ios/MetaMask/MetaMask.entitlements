@@ -28,5 +28,9 @@
 	</array>
 	<key>com.apple.developer.payment-pass-provisioning</key>
 	<true/>
+	<key>com.apple.developer.nfc.readersession.formats</key>
+	<array>
+		<string>TAG</string>
+	</array>
 </dict>
 </plist>

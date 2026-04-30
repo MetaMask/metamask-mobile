@@ -142,6 +142,94 @@ post_install do |installer|
     :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
   )
 
+  # Fix TangemSdk ambiguous ActivityIndicatorView init for newer Swift compilers
+  tangem_file = installer.sandbox.root + "TangemSdk/TangemSdk/TangemSdk/UI/Views/Common/RoundedButtonStyle.swift"
+  if File.exist?(tangem_file)
+    begin
+      system "chmod +w #{tangem_file}"
+      contents = File.read(tangem_file)
+      modified_contents = contents.gsub(
+        'ActivityIndicatorView()',
+        'ActivityIndicatorView(color: Color.white)'
+      )
+      File.write(tangem_file, modified_contents)
+      system "chmod -w #{tangem_file}"
+    rescue => e
+      Pod::UI.warn "Failed to patch TangemSdk RoundedButtonStyle.swift: #{e.message}"
+    end
+  end
+
+  # Add TangemSdk_secp256k1 C module to the CocoaPods-generated modulemap so
+  # the Swift compiler can resolve `import TangemSdk_secp256k1` inside TangemSdk.
+  tangem_modulemap = installer.sandbox.root + "Headers/Public/TangemSdk/TangemSdk.modulemap"
+  tangem_secp_header_dir = installer.sandbox.root + "TangemSdk/TangemSdk/TangemSdk/Crypto/secp256k1/src/include"
+  if File.exist?(tangem_modulemap) && Dir.exist?(tangem_secp_header_dir)
+    begin
+      system "chmod +w #{tangem_modulemap}"
+      contents = File.read(tangem_modulemap)
+      unless contents.include?('TangemSdk_secp256k1')
+        secp_module = <<~MODULEMAP
+
+          module TangemSdk_secp256k1 [system] {
+            header "#{tangem_secp_header_dir}/tangem_secp256k1.h"
+            header "#{tangem_secp_header_dir}/secp256k1_ecdh.h"
+            header "#{tangem_secp_header_dir}/secp256k1_recovery.h"
+            header "#{tangem_secp_header_dir}/secp256k1_preallocated.h"
+            export *
+          }
+        MODULEMAP
+        File.write(tangem_modulemap, contents + secp_module)
+      end
+    rescue => e
+      Pod::UI.warn "Failed to patch TangemSdk modulemap: #{e.message}"
+    end
+  end
+
+  # Fix secp256k1 duplicate symbol collision: NativeUtils and TangemSdk both
+  # compile their own secp256k1.c with identical public API symbols. At runtime
+  # the linker silently resolves duplicates, but version mismatches between the
+  # two implementations corrupt quick-crypto's symmetric key operations.
+  #
+  # Solution: enable ECDH + recovery modules in NativeUtils' secp256k1 (which
+  # already ships the source but doesn't compile them), then remove TangemSdk's
+  # duplicate secp256k1.c so it links against NativeUtils' single implementation.
+  installer.pods_project.targets.each do |target|
+    if target.name == 'NativeUtils'
+      target.build_configurations.each do |config|
+        defs = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || '$(inherited)'
+        unless defs.include?('ENABLE_MODULE_ECDH')
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = "#{defs} ENABLE_MODULE_ECDH=1 ENABLE_MODULE_RECOVERY=1"
+        end
+      end
+    end
+    if target.name == 'TangemSdk'
+      target.source_build_phase.files.each do |build_file|
+        if build_file.file_ref&.path&.end_with?('secp256k1.c')
+          target.source_build_phase.remove_build_file(build_file)
+          Pod::UI.message "Removed duplicate secp256k1.c from TangemSdk sources"
+        end
+      end
+    end
+  end
+
+  # Point SWIFT_INCLUDE_PATHS at the TangemSdk secp256k1 modulemap dir for all
+  # targets that depend on TangemSdk.
+  installer.pods_project.targets.each do |target|
+    if ['TangemSdk', 'tangem-sdk-react-native'].include?(target.name)
+      target.build_configurations.each do |config|
+        secp_path = "#{installer.sandbox.root}/TangemSdk/TangemSdk/TangemSdk/Crypto/secp256k1/src/include"
+        existing = config.build_settings['SWIFT_INCLUDE_PATHS'] || '$(inherited)'
+        unless existing.include?(secp_path)
+          config.build_settings['SWIFT_INCLUDE_PATHS'] = "#{existing} \"#{secp_path}\""
+        end
+        existing_hdr = config.build_settings['HEADER_SEARCH_PATHS'] || '$(inherited)'
+        unless existing_hdr.include?(secp_path)
+          config.build_settings['HEADER_SEARCH_PATHS'] = "#{existing_hdr} \"#{secp_path}\""
+        end
+      end
+    end
+  end
+
   # Modify RCT-Folly Portability.h to disable coroutines
   Dir.glob(installer.sandbox.root + "RCT-Folly/folly/Portability.h") do |file|
     begin

@@ -1,0 +1,26 @@
+diff --git a/node_modules/@metamask/accounts-controller/dist/utils.cjs b/node_modules/@metamask/accounts-controller/dist/utils.cjs
+index 1234567..abcdefg 100644
+--- a/node_modules/@metamask/accounts-controller/dist/utils.cjs
++++ b/node_modules/@metamask/accounts-controller/dist/utils.cjs
+@@ -33,6 +33,9 @@ function keyringTypeToName(keyringType) {
+             return 'Money';
+         }
++        case 'Tangem Hardware': {
++            return 'Tangem';
++        }
+         default: {
+             throw new Error(`Unknown keyring ${keyringType}`);
+         }
+diff --git a/node_modules/@metamask/accounts-controller/dist/utils.mjs b/node_modules/@metamask/accounts-controller/dist/utils.mjs
+index 1234567..abcdefg 100644
+--- a/node_modules/@metamask/accounts-controller/dist/utils.mjs
++++ b/node_modules/@metamask/accounts-controller/dist/utils.mjs
+@@ -33,6 +33,9 @@ export function keyringTypeToName(keyringType) {
+             return 'Money';
+         }
++        case 'Tangem Hardware': {
++            return 'Tangem';
++        }
+         default: {
+             throw new Error(`Unknown keyring ${keyringType}`);
+         }

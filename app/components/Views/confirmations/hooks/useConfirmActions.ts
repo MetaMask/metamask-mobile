@@ -11,6 +11,7 @@ import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
+import { useIsConfirmationFromTangemAccount } from './useIsConfirmationFromTangemAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
 
 export const useConfirmActions = () => {
@@ -30,6 +31,7 @@ export const useConfirmActions = () => {
     approvalType && approvalType === ApprovalType.Transaction;
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
+  const isTangemAccount = useIsConfirmationFromTangemAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -106,6 +108,18 @@ export const useConfirmActions = () => {
       return;
     }
 
+    // Tangem NFC signing is triggered automatically by the SDK bridge
+    // when KeyringController delegates to TangemKeyring.signTransaction.
+    // The native NFC prompt appears during the approval flow.
+    if (isTangemAccount) {
+      if (isTransactionReq) {
+        await onTransactionConfirm();
+      } else {
+        await executeApproval();
+      }
+      return;
+    }
+
     if (isTransactionReq) {
       await onTransactionConfirm();
       return;
@@ -114,6 +128,7 @@ export const useConfirmActions = () => {
     await executeApproval();
   }, [
     isLedgerAccount,
+    isTangemAccount,
     isSigningQRObject,
     isTransactionReq,
     setScannerVisible,

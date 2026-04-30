@@ -3007,6 +3007,10 @@ PODS:
   - SocketRocket (0.7.1)
   - sovran-react-native (1.0.4):
     - React-Core
+  - tangem-sdk-react-native (0.7.0):
+    - React-Core
+    - TangemSdk (= 3.3.4)
+  - TangemSdk (3.3.4)
   - VeriffSDK (8.12.0)
   - VisionCamera (4.6.4):
     - VisionCamera/Core (= 4.6.4)
@@ -3180,6 +3184,7 @@ DEPENDENCIES:
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - "segment-analytics-react-native (from `../node_modules/@segment/analytics-react-native`)"
   - "sovran-react-native (from `../node_modules/@segment/sovran-react-native`)"
+  - tangem-sdk-react-native (from `../node_modules/tangem-sdk-react-native`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -3217,6 +3222,7 @@ SPEC REPOS:
     - SDWebImageSVGCoder
     - Sentry
     - SocketRocket
+    - TangemSdk
     - VeriffSDK
     - YttriumWrapper
 
@@ -3534,6 +3540,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@segment/analytics-react-native"
   sovran-react-native:
     :path: "../node_modules/@segment/sovran-react-native"
+  tangem-sdk-react-native:
+    :path: "../node_modules/tangem-sdk-react-native"
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
   Yoga:
@@ -3728,11 +3736,13 @@ SPEC CHECKSUMS:
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
+  tangem-sdk-react-native: 2d5a0d5e48c92cfd0c378b65fccdf03559fec5f5
+  TangemSdk: 9ea2c230bd616787bdccc5fb3ab36925d06199d4
   VeriffSDK: 4323cc7d0152c107f40795881c92a41cf5a80f29
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: 3debf6fbed3b6fecab16001c02c028737e11786c
+PODFILE CHECKSUM: c25bab36d9f9848a86833a8e0d8246566bce8823
 
 COCOAPODS: 1.16.2

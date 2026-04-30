@@ -4,16 +4,28 @@ import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { strings } from '../../../locales/i18n';
 
 /**
+ * Hardware wallet type for Tangem NFC cards.
+ * Not yet in @metamask/hw-wallet-sdk, so defined locally.
+ */
+export const TANGEM_WALLET_TYPE = 'tangem' as const;
+
+export type ExtendedHardwareWalletType =
+  | HardwareWalletType
+  | typeof TANGEM_WALLET_TYPE;
+
+/**
  * Helper to get wallet type display name
  */
 export const getHardwareWalletTypeName = (
-  walletType?: HardwareWalletType | null,
+  walletType?: ExtendedHardwareWalletType | null,
 ): string => {
   switch (walletType) {
     case HardwareWalletType.Ledger:
       return strings('hardware_wallet.device_names.ledger');
     case HardwareWalletType.Qr:
       return strings('hardware_wallet.device_names.qr');
+    case TANGEM_WALLET_TYPE:
+      return 'Tangem';
     default:
       return strings('hardware_wallet.device_names.hardware_wallet');
   }
@@ -23,16 +35,19 @@ export const getHardwareWalletTypeName = (
  * Get the hardware wallet type for a given address.
  *
  * @param address - The wallet address to check
- * @returns The HardwareWalletType if it's a hardware wallet, undefined otherwise
+ * @returns The hardware wallet type if it's a hardware wallet, undefined otherwise
  */
 export function getHardwareWalletTypeForAddress(
   address: string,
-): HardwareWalletType | undefined {
+): ExtendedHardwareWalletType | undefined {
   if (isHardwareAccount(address, [ExtendedKeyringTypes.ledger])) {
     return HardwareWalletType.Ledger;
   }
   if (isHardwareAccount(address, [ExtendedKeyringTypes.qr])) {
     return HardwareWalletType.Qr;
+  }
+  if (isHardwareAccount(address, [ExtendedKeyringTypes.tangem])) {
+    return TANGEM_WALLET_TYPE;
   }
   return undefined;
 }
@@ -41,7 +56,7 @@ export function getHardwareWalletTypeForAddress(
  * Returns i18n keys for connection tips based on the wallet type.
  */
 export function getConnectionTipsForWalletType(
-  walletType: HardwareWalletType | null,
+  walletType: ExtendedHardwareWalletType | null,
 ): string[] {
   switch (walletType) {
     case HardwareWalletType.Ledger:
@@ -50,6 +65,8 @@ export function getConnectionTipsForWalletType(
         'hardware_wallet.connecting.tip_open_app',
         'hardware_wallet.connecting.tip_enable_bluetooth',
       ];
+    case TANGEM_WALLET_TYPE:
+      return ['hardware_wallet.connecting.tip_enable_nfc'];
     default:
       return [];
   }

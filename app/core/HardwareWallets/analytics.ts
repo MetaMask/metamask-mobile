@@ -1,6 +1,7 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../Engine';
 import { Json, Keyring } from '@metamask/utils';
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
 export const getConnectedDevicesCount = async (): Promise<number> => {
   const { KeyringController } = Engine.context;
@@ -11,6 +12,7 @@ export const getConnectedDevicesCount = async (): Promise<number> => {
     KeyringController.getKeyringsByType(KeyringTypes.lattice),
     KeyringController.getKeyringsByType(KeyringTypes.trezor),
     KeyringController.getKeyringsByType(KeyringTypes.oneKey),
+    KeyringController.getKeyringsByType(ExtendedKeyringTypes.tangem),
   ]);
 
   let count = 0;

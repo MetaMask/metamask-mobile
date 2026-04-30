@@ -35866,6 +35866,7 @@ __metadata:
     socket.io-client: "npm:^4.5.3"
     stream-browserify: "npm:3.0.0"
     tailwindcss: "npm:^3.4.0"
+    tangem-sdk-react-native: "https://github.com/tangem/tangem-sdk-react-native.git"
     through2: "npm:3.0.1"
     ts-node: "npm:^10.9.2"
     typescript: "npm:~5.4.5"
@@ -44597,6 +44598,16 @@ __metadata:
     tailwind: lib/cli.js
     tailwindcss: lib/cli.js
   checksum: 10/b0e00533ae3800223b5b71af9cb1dd9bfea5ef5ffa01300f1ced99de9511487aa41e03106173e4168c56c8f6600ee21c98c1d75a5def23cddf9b39b4ad71210d
+  languageName: node
+  linkType: hard
+
+"tangem-sdk-react-native@https://github.com/tangem/tangem-sdk-react-native.git":
+  version: 0.7.0
+  resolution: "tangem-sdk-react-native@https://github.com/tangem/tangem-sdk-react-native.git#commit=0bc5164acdef3d32e37c00db03e73adf6030432a"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/f4a1a1f022d8d568ca5b21cacb277be47da2fe87c7162a2b6c4c826a5926bf1e22dd43514521f05fb09ea35ed9d8a4f4f41eb326ccc2a9f0035f4012bf3a0ddb
   languageName: node
   linkType: hard
 

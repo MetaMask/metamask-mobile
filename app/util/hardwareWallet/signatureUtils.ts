@@ -1,12 +1,14 @@
 import { handleSignatureAction } from '../confirmation/signatureUtils';
 import { getKeyringByAddress } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
+import { signModalNavDetail as tangemSignModalNavDetail } from './hardwareWallets/tangem';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const navMethodFactory = new Map<ExtendedKeyringTypes, any>();
 navMethodFactory.set(ExtendedKeyringTypes.ledger, signModalNavDetail);
+navMethodFactory.set(ExtendedKeyringTypes.tangem, tangemSignModalNavDetail);
 
 export default async (
   onReject: () => void,

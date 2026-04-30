@@ -26,6 +26,10 @@
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
   <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/>
 
+  <!-- NFC permission for Tangem hardware wallet -->
+  <uses-permission android:name="android.permission.NFC" />
+  <uses-feature android:name="android.hardware.nfc" android:required="false" />
+
 	<uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
 
 	<queries>
@@ -85,6 +89,24 @@
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+			<!-- NFC intent filters for Tangem hardware wallet.
+			     Prevents Android from dispatching Tangem card NDEF URLs to store apps. -->
+			<intent-filter>
+				<action android:name="android.nfc.action.NDEF_DISCOVERED" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="https" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.nfc.action.TECH_DISCOVERED" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+			<meta-data
+				android:name="android.nfc.action.TECH_DISCOVERED"
+				android:resource="@xml/nfc_tech_filter" />
+			<intent-filter>
+				<action android:name="android.nfc.action.TAG_DISCOVERED" />
+				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 			<!-- Branch App Links -->
 			<!-- autoVerify links should be at the top of the intent-filter list -->
