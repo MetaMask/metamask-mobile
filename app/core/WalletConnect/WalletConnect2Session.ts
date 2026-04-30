@@ -323,16 +323,20 @@ class WalletConnect2Session {
     const fallbackEvmHex = Number.isFinite(numericChainId)
       ? `0x${numericChainId.toString(16)}`
       : String(data);
-    const chainChangedEmission =
-      eventName === 'chainChanged'
-        ? getChainChangedEmissionForWalletConnect({
-            namespaces: this.session.namespaces,
-            fallbackEvmDecimal: numericChainId,
-            fallbackEvmHex,
-          })
-        : undefined;
-    const chainIdForEvent = chainChangedEmission?.chainId ?? `eip155:${data}`;
-    const eventDataForEvent = chainChangedEmission?.data ?? data;
+    let chainIdForEvent = `eip155:${data}`;
+    let eventDataForEvent = data;
+    if (eventName === 'chainChanged') {
+      const eip155ChainId = `eip155:${numericChainId}`;
+      const emitDecision = shouldEmitChainChangedForWalletConnect({
+        chainId: eip155ChainId,
+        namespaces: this.session.namespaces,
+      });
+      if (!emitDecision.shouldEmit) {
+        return;
+      }
+      chainIdForEvent = eip155ChainId;
+      eventDataForEvent = fallbackEvmHex;
+    }
 
     await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
@@ -743,8 +747,20 @@ class WalletConnect2Session {
     }
 
     const method = requestEvent.params.request.method;
+    const rawRequestChainId = requestEvent.params.chainId;
+    if (typeof rawRequestChainId !== 'string') {
+      this._isHandlingRequest = false;
+      return this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestEvent.id,
+          jsonrpc: '2.0',
+          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
+        },
+      });
+    }
     const requestChainId = normalizeCaipChainIdInbound(
-      requestEvent.params.chainId,
+      rawRequestChainId,
     ) as CaipChainId;
     let requestNamespace: string | undefined;
     try {
