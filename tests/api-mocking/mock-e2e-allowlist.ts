@@ -22,15 +22,7 @@ export const ALLOWLISTED_HOSTS = [
 
 export const ALLOWLISTED_URLS = [
   // Temporarily allow existing live requests during migration
-  'https://clients3.google.com/generate_204',
   'https://api.avax.network/ext/bc/C/rpc',
-  // Token SVGs in notifications list
-  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdc.svg',
-  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/shib.svg',
-  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdt.svg',
-  'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
-  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/stETH.svg',
-  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/rETH.svg',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
   'https://mainnet.era.zksync.io/',
   'https://rpc.atlantischain.network/',
