@@ -16,5 +16,8 @@ export function useTokenListSecurityBadgeQuery(caipAssetId: CaipAssetType) {
     queryKey: tokenListSecurityBadgeKeys.byAsset(caipAssetId),
     queryFn: async () => requestTokenSecurityForAsset(caipAssetId),
     staleTime: STALE_TIME_MS,
+    // Keep inactive cache entries at least as long as `staleTime` so virtualized
+    // list rows that unmount are not garbage-collected while data is still fresh.
+    cacheTime: STALE_TIME_MS,
   });
 }
