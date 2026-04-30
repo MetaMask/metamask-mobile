@@ -1,5 +1,8 @@
 import { ethers } from 'ethers';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
@@ -160,6 +163,25 @@ export async function buildMoneyAccountDepositBatch({
       type: TransactionType.moneyAccountDeposit,
     },
   };
+}
+
+export interface MoneyAccountDepositTokenAmountUpdate {
+  nestedTransactionIndex: number;
+  transactionData: Hex;
+}
+
+/**
+ * Returns the per-nested-call data updates required when the user changes
+ * the deposit amount on a Money Account deposit confirmation.
+ *
+ * Stub implementation — real encoding will replace this once the deposit
+ * batch re-encoding logic is wired in.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function updateMoneyAccountDepositTokenAmount(
+  _transactionMeta: TransactionMeta,
+): MoneyAccountDepositTokenAmountUpdate[] {
+  return [];
 }
 
 // -- Withdrawal helpers ----------------------------------------------------

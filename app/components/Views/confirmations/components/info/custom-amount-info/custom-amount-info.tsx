@@ -17,6 +17,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import { useUpdateCustomTokenAmount } from '../../../hooks/transactions/useUpdateCustomTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
   SetPayTokenRequest,
@@ -161,6 +162,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
+    const { updateCustomTokenAmount } = useUpdateCustomTokenAmount();
+
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
       isKeyboardVisible,
@@ -175,7 +178,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             fp.amountFiat = amountFiat;
           },
         });
-      } else if (!isMoneyAccountDeposit) {
+      } else if (isMoneyAccountDeposit) {
+        updateCustomTokenAmount();
+      } else {
         updateTokenAmount();
       }
 
@@ -188,6 +193,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
+      updateCustomTokenAmount,
       updateTokenAmount,
     ]);
 
