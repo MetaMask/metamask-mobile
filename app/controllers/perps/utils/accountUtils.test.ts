@@ -304,6 +304,52 @@ describe('spot balance helpers', () => {
     expect(result.availableToTradeBalance).toBe('7');
   });
 
+  it('keeps spot USDC separate from availableToTradeBalance even when withdrawable=0 in Standard mode', () => {
+    // Standard / DEX-abstraction users with $0 perps withdrawable but free
+    // spot USDC must NOT see spot fold into availableToTradeBalance —
+    // withdraw3 only draws from the perps ledger in those modes. Folding
+    // would surface a withdrawable amount the API can't actually fulfill.
+    const accountState: AccountState = {
+      availableBalance: '0',
+      totalBalance: '0',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [{ coin: 'USDC', total: '2500', hold: '0' }],
+      } as never,
+      { foldIntoCollateral: false },
+    );
+
+    expect(result.availableToTradeBalance).toBe('0');
+    expect(result.totalBalance).toBe('2500');
+  });
+
+  it('keeps spot separate when Standard mode has both perps and spot balances', () => {
+    const accountState: AccountState = {
+      availableBalance: '7',
+      totalBalance: '10',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [{ coin: 'USDC', total: '25', hold: '0' }],
+      } as never,
+      { foldIntoCollateral: false },
+    );
+
+    expect(result.availableToTradeBalance).toBe('7');
+    expect(result.totalBalance).toBe('35');
+  });
+
   it('returns the original account state when spot balance is zero', () => {
     const accountState: AccountState = {
       availableBalance: '1',

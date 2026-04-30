@@ -168,6 +168,12 @@ export function addSpotBalanceToAccountState(
     };
   }
 
+  // Folding is gated strictly on the resolved abstraction mode. Standard /
+  // DEX-abstraction users keep perps and spot independent, so spot must NOT
+  // surface as a perps-withdrawable balance for them — withdraw3 only draws
+  // from the perps ledger in those modes. Unified / portfolio-margin users
+  // get the fold; if the mode hasn't been resolved yet, the caller defaults
+  // foldIntoCollateral=true.
   let availableToTrade = accountState.availableBalance;
   if (foldIntoCollateral) {
     availableToTrade = Number.isFinite(currentAvailable)

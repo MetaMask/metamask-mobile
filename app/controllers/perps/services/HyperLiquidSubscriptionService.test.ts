@@ -3800,6 +3800,80 @@ describe('HyperLiquidSubscriptionService', () => {
     });
   });
 
+  describe('invalidateUserAbstractionCache', () => {
+    it('evicts the cached abstraction mode for the given address', async () => {
+      // Prime the cache via #refreshSpotState (called inside subscribeToAccount)
+      const unsubscribe = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+
+      // The mock resolves userAbstraction as 'unifiedAccount' — confirm fold
+      // is active by checking that the cached account includes a non-zero
+      // availableToTradeBalance (spot was folded in).
+      const callbackAfterSubscribe = jest.fn();
+      service.subscribeToAccount({ callback: callbackAfterSubscribe });
+      await jest.runAllTimersAsync();
+      const before = callbackAfterSubscribe.mock.calls.at(-1)?.[0];
+      expect(before?.availableToTradeBalance).not.toBeUndefined();
+
+      // Invalidate — should not throw, even for an address with no cached entry.
+      expect(() =>
+        service.invalidateUserAbstractionCache('0x123'),
+      ).not.toThrow();
+
+      unsubscribe();
+    });
+
+    it('is case-insensitive (checksummed address matches cached lowercase key)', async () => {
+      const unsubscribe = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+
+      // Should not throw regardless of casing
+      expect(() =>
+        service.invalidateUserAbstractionCache(
+          '0xABCDEF1234567890ABCDEF1234567890ABCDEF12',
+        ),
+      ).not.toThrow();
+
+      unsubscribe();
+    });
+
+    it('triggers a re-aggregation and notifies account subscribers when dex cache is populated', async () => {
+      // Prime the abstraction cache with 'default' (fold=false) BEFORE the
+      // initial subscribe so the cached aggregated state does NOT include
+      // folded spot. After invalidation the cache becomes empty, which
+      // defaults to fold=true (null → fold), causing spot to fold in.
+      // That state change flips the account hash and triggers a callback —
+      // which is what we want to assert.
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction: jest.fn().mockResolvedValue('default'),
+      })) as never;
+
+      const accountCallback = jest.fn();
+      const unsubscribe = service.subscribeToAccount({
+        callback: accountCallback,
+      });
+      await jest.runAllTimersAsync();
+
+      // Sanity: initial subscribe primed the dex cache and notified once.
+      expect(accountCallback).toHaveBeenCalled();
+      accountCallback.mockClear();
+
+      // Invalidate — should re-aggregate (#dexAccountCache.size > 0) and
+      // notify subscribers because the fold behavior flipped.
+      service.invalidateUserAbstractionCache('0x123');
+      await jest.runAllTimersAsync();
+
+      expect(accountCallback).toHaveBeenCalled();
+      const lastCall = accountCallback.mock.calls.at(-1)?.[0];
+      // After fold flips to true, availableToTradeBalance should reflect
+      // the perps withdrawable plus folded spot USDC.
+      expect(lastCall?.availableToTradeBalance).toBeDefined();
+
+      unsubscribe();
+    });
+  });
+
   describe('spot-adjusted account balance parity', () => {
     it('includes spot balance exactly once in streamed totalBalance across multiple DEXs', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
