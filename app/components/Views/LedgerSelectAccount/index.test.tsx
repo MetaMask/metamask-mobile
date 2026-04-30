@@ -163,16 +163,9 @@ const defaultHardwareWalletValues = {
   },
   ensureDeviceReady: mockEnsureDeviceReady,
   setTargetWalletType: mockSetTargetWalletType,
-  setPendingOperationAddress: jest.fn(),
   showHardwareWalletError: mockShowHardwareWalletError,
   showAwaitingConfirmation: mockShowAwaitingConfirmation,
   hideAwaitingConfirmation: mockHideAwaitingConfirmation,
-  qr: {
-    isSigningQRObject: false,
-    setRequestCompleted: jest.fn(),
-    isRequestCompleted: false,
-    cancelQRScanRequestIfPresent: jest.fn(),
-  },
 };
 
 describe('LedgerSelectAccount', () => {

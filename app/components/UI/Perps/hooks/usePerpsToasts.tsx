@@ -6,11 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
-import {
-  playNotification,
-  NotificationMoment,
-  type HapticNotificationMoment,
-} from '../../../../util/haptics';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
@@ -36,7 +32,7 @@ import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
-  hapticsType: HapticNotificationMoment;
+  hapticsType: NotificationFeedbackType;
   // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
   labelOptions?: {
     label: string | React.ReactNode;
@@ -246,7 +242,7 @@ const usePerpsToasts = (): {
         iconName: IconName.CheckBold,
         iconColor: theme.colors.accent03.dark,
         backgroundColor: theme.colors.accent03.normal,
-        hapticsType: NotificationMoment.Success,
+        hapticsType: NotificationFeedbackType.Success,
       },
       // Intentional duplication for now to avoid coupling with success options.
       inProgress: {
@@ -255,7 +251,7 @@ const usePerpsToasts = (): {
         iconName: IconName.Loading,
         iconColor: theme.colors.accent04.dark,
         backgroundColor: theme.colors.accent04.normal,
-        hapticsType: NotificationMoment.Warning,
+        hapticsType: NotificationFeedbackType.Warning,
         startAccessory: (
           <View style={toastStyles.spinnerContainer}>
             <Spinner
@@ -271,7 +267,7 @@ const usePerpsToasts = (): {
         iconName: IconName.Info,
         iconColor: theme.colors.icon.default,
         backgroundColor: theme.colors.background.alternative,
-        hapticsType: NotificationMoment.Warning,
+        hapticsType: NotificationFeedbackType.Warning,
       },
       error: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
@@ -279,7 +275,7 @@ const usePerpsToasts = (): {
         iconName: IconName.Warning,
         iconColor: theme.colors.accent01.dark,
         backgroundColor: theme.colors.accent01.light,
-        hapticsType: NotificationMoment.Error,
+        hapticsType: NotificationFeedbackType.Error,
       },
       warning: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
@@ -287,7 +283,7 @@ const usePerpsToasts = (): {
         iconName: IconName.Warning,
         iconColor: theme.colors.warning.default,
         backgroundColor: theme.colors.warning.muted,
-        hapticsType: NotificationMoment.Warning,
+        hapticsType: NotificationFeedbackType.Warning,
       },
     }),
     [theme],
@@ -349,7 +345,7 @@ const usePerpsToasts = (): {
     (config: PerpsToastOptions) => {
       const { hapticsType, ...toastOptions } = config;
       toastRef?.current?.showToast(toastOptions as ToastOptions);
-      playNotification(hapticsType);
+      notificationAsync(hapticsType);
     },
     [toastRef],
   );
@@ -440,7 +436,7 @@ const usePerpsToasts = (): {
             iconName: IconName.Warning,
             iconColor: theme.colors.error.default,
             backgroundColor: theme.colors.error.muted,
-            hapticsType: NotificationMoment.Warning,
+            hapticsType: NotificationFeedbackType.Warning,
             labelOptions: getPerpsToastLabels(
               strings('perps.deposit.trade_canceled'),
             ),

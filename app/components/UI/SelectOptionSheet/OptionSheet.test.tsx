@@ -99,7 +99,7 @@ describe('OptionSheet', () => {
 
   it('render matches snapshot', () => {
     const { toJSON } = render(OptionsSheet);
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows all available options', () => {

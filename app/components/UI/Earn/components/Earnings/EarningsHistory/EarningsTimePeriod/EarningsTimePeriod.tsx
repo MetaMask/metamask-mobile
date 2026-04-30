@@ -47,19 +47,21 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
     );
 
     const buttonSelectedStyle = !isSelected ? {} : styles.selectedButton;
-    const buttonStyle = { ...styles.button, width, ...buttonSelectedStyle };
+    const buttonStyle = { ...styles.button, ...buttonSelectedStyle };
 
     return (
-      <TouchableOpacity
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={buttonStyle}
-      >
-        <Text variant={TextVariant.BodyMD} style={styles.buttonLabel}>
-          {labelElement}
-        </Text>
-      </TouchableOpacity>
+      <View style={{ ...styles.buttonContainer, width }}>
+        <TouchableOpacity
+          onPress={handlePress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          style={buttonStyle}
+        >
+          <Text variant={TextVariant.BodyMD} style={styles.buttonLabel}>
+            {labelElement}
+          </Text>
+        </TouchableOpacity>
+      </View>
     );
   };
 

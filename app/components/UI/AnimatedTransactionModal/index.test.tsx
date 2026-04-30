@@ -18,6 +18,6 @@ describe('AnimatedTransactionModal', () => {
         </AnimatedTransactionModal>
       </ThemeContext.Provider>,
     );
-    expect(screen.toJSON()).not.toBeNull();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

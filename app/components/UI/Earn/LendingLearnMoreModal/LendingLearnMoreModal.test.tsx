@@ -178,25 +178,24 @@ describe('LendingLearnMoreModal', () => {
   });
 
   it('render lending history apy chart', async () => {
-    const { getByTestId } = renderWithProvider(
+    const { toJSON, getByTestId } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <LendingLearnMoreModal />
       </SafeAreaProvider>,
       { state: mockInitialState },
     );
 
-    await waitFor(() => {
+    await waitFor(async () => {
       const chartContainer = getByTestId(
         INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
       );
-      expect(chartContainer).toBeOnTheScreen();
-
       const areaChart = chartContainer.find(
         (child) => child.type === AreaChart,
       );
-      expect(areaChart).toBeDefined();
 
       fireLayoutEvent(areaChart);
+
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

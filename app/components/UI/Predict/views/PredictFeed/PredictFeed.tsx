@@ -8,7 +8,9 @@ import React, {
 import { useSelector } from 'react-redux';
 import {
   View,
+  Pressable,
   RefreshControl,
+  TextInput,
   Platform,
   LayoutChangeEvent,
 } from 'react-native';
@@ -20,6 +22,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Icon,
   IconColor,
   IconName,
@@ -85,9 +89,6 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import HeaderSearch, {
-  HeaderSearchVariant,
-} from '../../../../../component-library/components-temp/HeaderSearch';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -544,31 +545,54 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         backgroundColor: colors.background.default,
       })}
     >
-      <Box twClassName="w-full py-2">
-        <HeaderSearch
-          variant={HeaderSearchVariant.Inline}
-          onPressCancelButton={onClose}
-          cancelButtonProps={{
-            // ButtonBase applies self-start when not full width, which top-aligns the
-            // Cancel control vs. the centered TextFieldSearch row.
-            style: { alignSelf: 'center' },
-          }}
-          textFieldSearchProps={{
-            value: searchQuery,
-            onChangeText: onSearchChange,
-            onPressClearButton: () => onSearchChange(''),
-            placeholder: strings('predict.search_placeholder'),
-            autoFocus: true,
-            clearButtonProps: {
-              testID: PredictSearchSelectorsIDs.CLEAR_BUTTON,
-            },
-          }}
-        />
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="w-full py-2 px-4 gap-3"
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="flex-1 bg-muted rounded-lg px-3 py-2"
+        >
+          <Icon
+            testID={PredictFeedSelectorsIDs.SEARCH_ICON}
+            name={IconName.Search}
+            size={IconSize.Sm}
+            color={IconColor.IconMuted}
+            style={tw.style('mr-2')}
+          />
+          <TextInput
+            placeholder={strings('predict.search_placeholder')}
+            placeholderTextColor={colors.text.muted}
+            value={searchQuery}
+            onChangeText={onSearchChange}
+            style={tw.style('flex-1 text-base text-default')}
+            autoFocus
+          />
+          {searchQuery.length > 0 && (
+            <Pressable
+              testID={PredictSearchSelectorsIDs.CLEAR_BUTTON}
+              onPress={() => onSearchChange('')}
+            >
+              <Icon
+                name={IconName.CircleX}
+                size={IconSize.Md}
+                color={IconColor.IconMuted}
+              />
+            </Pressable>
+          )}
+        </Box>
+        <Pressable onPress={onClose}>
+          <Text variant={TextVariant.BodyMd} style={tw.style('font-medium')}>
+            {strings('predict.search_cancel')}
+          </Text>
+        </Pressable>
       </Box>
 
       <Box twClassName="flex-1">
         {isSearchLoading ? (
-          <Box twClassName="px-4">
+          <Box twClassName="px-4 pt-4">
             <PredictMarketSkeleton
               testID={getPredictFeedSelector.searchSkeleton(1)}
             />
@@ -595,7 +619,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             data={marketData}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
-            contentContainerStyle={tw.style('px-4 pb-4')}
+            contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
             showsVerticalScrollIndicator={false}
           />
         )}

@@ -35,6 +35,7 @@ interface ManageCardOptionsProps {
   onManageSpendingLimit: () => void;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
+  onNavigateToCardPage: () => void;
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
   onCashback: () => void;
@@ -64,6 +65,7 @@ const ManageCardOptions = ({
   isSpendingLimitActive,
   onChangeAsset,
   hasPriorityTokenBalance,
+  onNavigateToCardPage,
   onCashback,
   onTravel,
 }: ManageCardOptionsProps) => {
@@ -210,6 +212,15 @@ const ManageCardOptions = ({
       </Box>
       {((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
         <>
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.manage_card')}
+            description={strings(
+              'card.card_home.manage_card_options.advanced_card_management_description',
+            )}
+            rightIcon={IconName.Export}
+            onPress={onNavigateToCardPage}
+            testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
+          />
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.travel_title')}
             description={strings(

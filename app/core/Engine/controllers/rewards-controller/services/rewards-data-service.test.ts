@@ -4331,7 +4331,6 @@ describe('RewardsDataService', () => {
         excludedRegions: [],
         details: null,
         featured: false,
-        showUpcomingDate: false,
       },
     ];
 

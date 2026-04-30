@@ -79,6 +79,6 @@ describe('SwitchCustomNetwork', () => {
       />,
       { state: mockInitialState },
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

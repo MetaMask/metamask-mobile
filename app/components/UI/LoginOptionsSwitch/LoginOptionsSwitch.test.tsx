@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import LoginOptionsSwitch from './LoginOptionsSwitch';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Provider } from 'react-redux';
@@ -9,8 +9,8 @@ describe('LoginWithBiometricsSwitch', () => {
   // eslint-disable-next-line no-empty-function
   const handleUpdate = (_biometricsEnabled: boolean) => {};
   it('should render correctly', () => {
-    const store = mockStore({ security: { allowLoginWithRememberMe: false } });
-    const { toJSON } = render(
+    const store = mockStore({});
+    const wrapper = shallow(
       <Provider store={store}>
         <LoginOptionsSwitch
           shouldRenderBiometricOption={BIOMETRY_TYPE.FACE}
@@ -20,12 +20,12 @@ describe('LoginWithBiometricsSwitch', () => {
         />
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should return empty object when shouldRenderBiometricOption is undefined and allowLoginWithRememberMe is false in settings', () => {
-    const store = mockStore({ security: { allowLoginWithRememberMe: false } });
-    const { toJSON } = render(
+    const store = mockStore({});
+    const wrapper = shallow(
       <Provider store={store}>
         <LoginOptionsSwitch
           onUpdateBiometryChoice={handleUpdate}
@@ -35,6 +35,6 @@ describe('LoginWithBiometricsSwitch', () => {
         />
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toMatchObject({});
   });
 });

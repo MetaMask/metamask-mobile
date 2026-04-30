@@ -28,8 +28,6 @@ import { TransactionDetailsAccountRow } from '../transaction-details-account-row
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
   TransactionType.musdConversion,
-  TransactionType.moneyAccountDeposit,
-  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
 ];
@@ -80,18 +78,6 @@ export function TransactionDetails() {
 }
 
 function getTitle(transactionMeta: TransactionMeta) {
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
-  ) {
-    return strings('transaction_details.title.money_account_deposit');
-  }
-
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
-  ) {
-    return strings('transaction_details.title.money_account_withdraw');
-  }
-
   if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
     return strings('transaction_details.title.predict_claim');
   }

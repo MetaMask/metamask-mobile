@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
-  formatAddressToAssetId,
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
@@ -53,22 +52,14 @@ export const useQuickBuySetup = (
     destChainId,
   );
 
-  // Build destination token (the token the user wants to buy).
-  //
-  // For non-EVM chains (e.g. Solana) we store the CAIP-19 assetId
-  // (`solana:.../token:<addr>`) in `address`, matching the convention
-  // `getNativeSourceToken` uses for source tokens. The bridge-controller's
-  // returned quotes carry `destAsset.assetId` in this same CAIP form, so
-  // `useQuickBuyQuotes.isActiveQuoteForCurrentTokenPair` can compare the
-  // two without format mismatches.
+  // Build destination token (the token the user wants to buy)
   const destToken = useMemo<BridgeToken | undefined>(() => {
     if (!position || !destChainId) return undefined;
 
     if (assetMetadata) {
       return {
         address: isNonEvmChainId(destChainId)
-          ? (formatAddressToAssetId(assetMetadata.address, destChainId) ??
-            assetMetadata.address)
+          ? assetMetadata.address
           : position.tokenAddress,
         symbol: position.tokenSymbol,
         name: position.tokenName,

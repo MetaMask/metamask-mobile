@@ -50,7 +50,7 @@ describe('NetworkSelectorList', () => {
         onSelectNetwork={mockOnSelectNetwork}
       />,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders all networks in the list', () => {

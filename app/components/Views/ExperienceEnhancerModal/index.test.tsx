@@ -34,6 +34,10 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+}));
+
 describe('ExperienceEnhancerModal', () => {
   const dispatchMock = jest.fn();
 

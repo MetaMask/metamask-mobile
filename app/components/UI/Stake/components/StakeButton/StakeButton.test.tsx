@@ -241,7 +241,7 @@ describe('StakeButton', () => {
     });
   });
 
-  it('renders stake button', () => {
+  it('renders correctly', () => {
     const { getByTestId } = renderComponent();
 
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();

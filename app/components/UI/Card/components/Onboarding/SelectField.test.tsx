@@ -128,7 +128,7 @@ describe('SelectField', () => {
       />,
     );
     const touchable = getByTestId('select-field');
-    expect(touchable).toBeDisabled();
+    expect(touchable.props.disabled).toBe(true);
   });
 
   it('applies opacity-50 class when disabled', () => {

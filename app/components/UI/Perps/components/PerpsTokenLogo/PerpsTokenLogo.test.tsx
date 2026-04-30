@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, fireEvent } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
 import { Image } from 'expo-image';
 import PerpsTokenLogo from './PerpsTokenLogo';
 
@@ -106,7 +106,7 @@ describe('PerpsTokenLogo', () => {
 
     // Simulate primary URL error
     await act(async () => {
-      fireEvent(image, 'error');
+      image.props.onError();
     });
 
     // Get updated image after error
@@ -127,7 +127,7 @@ describe('PerpsTokenLogo', () => {
 
     // First error - switches to fallback URL
     await act(async () => {
-      fireEvent(image, 'error');
+      image.props.onError();
     });
 
     // Get image with fallback URL
@@ -135,7 +135,7 @@ describe('PerpsTokenLogo', () => {
 
     // Second error - both URLs failed, show text fallback
     await act(async () => {
-      fireEvent(fallbackImage, 'error');
+      fallbackImage.props.onError();
     });
 
     // Verify text fallback is shown
@@ -219,7 +219,7 @@ describe('PerpsTokenLogo', () => {
 
     // Trigger error to switch to fallback
     await act(async () => {
-      fireEvent(image, 'error');
+      image.props.onError();
     });
 
     // Verify fallback is being used

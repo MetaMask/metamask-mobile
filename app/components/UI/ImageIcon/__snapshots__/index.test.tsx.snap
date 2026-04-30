@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ImageIcon should render correctly 1`] = `
+<Image
+  source={1}
+  style={{}}
+/>
+`;

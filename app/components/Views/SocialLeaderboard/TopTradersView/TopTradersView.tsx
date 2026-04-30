@@ -1,47 +1,51 @@
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
   RefreshControl,
-  Text as RNText,
   ScrollView,
   StyleSheet,
-  useWindowDimensions,
+  Text as RNText,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Text,
+  TextVariant,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { useTheme } from '../../../../util/theme';
+import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
+import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import {
+  TraderRow,
+  TraderRowSkeleton,
+} from '../../Homepage/Sections/TopTraders/components';
+import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   BASE_DISPLAY_NAME,
   MAINNET_DISPLAY_NAME,
   SOLANA_DISPLAY_NAME,
 } from '../../../../core/Engine/constants';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { fontStyles } from '../../../../styles/common';
-import Logger from '../../../../util/Logger';
-import { useTheme } from '../../../../util/theme';
-import {
-  TraderRow,
-  TraderRowSkeleton,
-} from '../../Homepage/Sections/TopTraders/components';
-import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
-import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
-import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+
+const SKELETON_COUNT = 5;
+const SKELETON_KEYS = Array.from(
+  { length: SKELETON_COUNT },
+  (_, i) => `top-trader-skeleton-${i}`,
+);
 
 type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
 
@@ -56,10 +60,6 @@ const getChainFilters = (): { key: ChainFilter; label: string }[] => [
 ];
 
 const styles = StyleSheet.create({
-  filterScrollView: {
-    flexGrow: 0,
-    flexShrink: 0,
-  },
   filterRow: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -70,16 +70,19 @@ const styles = StyleSheet.create({
   },
   pill: {
     borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 8,
-    marginRight: 8,
+    marginRight: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 40,
+    minHeight: 38,
+  },
+  pillBorder: {
+    borderWidth: 1,
   },
   pillText: {
-    ...fontStyles.medium,
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: FontWeight.Medium,
   },
 });
 
@@ -107,7 +110,7 @@ const ChainPill: React.FC<ChainPillProps> = ({
         styles.pill,
         isSelected
           ? { backgroundColor: colors.icon.default }
-          : { backgroundColor: colors.background.muted },
+          : [styles.pillBorder, { borderColor: colors.border.muted }],
       ]}
     >
       <RNText
@@ -126,18 +129,10 @@ const TopTradersView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { colors } = useTheme();
-  const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
 
   const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
-
-  // Render enough skeleton rows to cover the visible list area. Add a couple of
-  // extras so users can see the shimmer continue past the fold while scrolling.
-  const skeletonKeys = useMemo(() => {
-    const count = Math.ceil(windowHeight / TRADER_ROW_HEIGHT) + 2;
-    return Array.from({ length: count }, (_, i) => `top-trader-skeleton-${i}`);
-  }, [windowHeight]);
 
   const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
     limit: 250,
@@ -156,12 +151,7 @@ const TopTradersView = () => {
         ? traders
         : traders.filter((t) => (t.pnlPerChain[selectedChain] ?? 0) !== 0);
 
-    // Re-number the displayed rank to reflect the trader's position within the
-    // filtered slice, but keep `overallRank` pointing at the unfiltered rank
-    // so podium decorations only apply to true top-3 traders.
-    return filtered
-      .slice(0, 50)
-      .map((t, i) => ({ ...t, rank: i + 1, overallRank: t.overallRank }));
+    return filtered.slice(0, 50).map((t, i) => ({ ...t, rank: i + 1 }));
   }, [traders, selectedChain]);
 
   const handleBack = useCallback(() => {
@@ -187,11 +177,10 @@ const TopTradersView = () => {
   }, [refresh]);
 
   const handleTraderPress = useCallback(
-    (traderId: string, traderName: string, rank: number) => {
+    (traderId: string, traderName: string) => {
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
-        rank,
       });
     },
     [navigation],
@@ -222,8 +211,12 @@ const TopTradersView = () => {
         />
       </Box>
 
-      <Box twClassName="px-4 pt-2 pb-3">
-        <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
+      <Box twClassName="px-4 pt-2 pb-3 mb-2">
+        <Text
+          variant={TextVariant.HeadingLg}
+          color={TextColor.TextDefault}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('social_leaderboard.top_traders_view.title')}
         </Text>
       </Box>
@@ -231,10 +224,6 @@ const TopTradersView = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        // `flexGrow: 0` + `flexShrink: 0` pin the ScrollView's height to
-        // its content so neither the FlatList nor the loading ScrollView
-        // below can stretch or compress it.
-        style={styles.filterScrollView}
         contentContainerStyle={styles.filterRow}
       >
         {getChainFilters().map(({ key, label }) => (
@@ -250,9 +239,6 @@ const TopTradersView = () => {
 
       {isLoading ? (
         <ScrollView
-          // `flex-1` matches FlatList's default behavior so the list area sits
-          // directly under the filters and skeletons render top-aligned.
-          style={tw.style('flex-1')}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           refreshControl={
@@ -264,7 +250,7 @@ const TopTradersView = () => {
             />
           }
         >
-          {skeletonKeys.map((key) => (
+          {SKELETON_KEYS.map((key) => (
             <TraderRowSkeleton key={key} />
           ))}
         </ScrollView>

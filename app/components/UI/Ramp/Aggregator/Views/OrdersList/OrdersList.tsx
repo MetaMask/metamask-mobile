@@ -309,10 +309,9 @@ function OrdersList() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row gap-2')}
+            contentContainerStyle={tw.style('flex-row gap-3')}
           >
             <ButtonFilter
-              twClassName="min-w-0"
               onPress={() => setCurrentFilter('ALL')}
               isActive={currentFilter === 'ALL'}
               size={ButtonBaseSize.Md}
@@ -321,7 +320,6 @@ function OrdersList() {
               {strings('fiat_on_ramp_aggregator.All')}
             </ButtonFilter>
             <ButtonFilter
-              twClassName="min-w-0"
               onPress={() => setCurrentFilter('PURCHASE')}
               isActive={currentFilter === 'PURCHASE'}
               size={ButtonBaseSize.Md}
@@ -330,7 +328,6 @@ function OrdersList() {
               {strings('fiat_on_ramp_aggregator.Purchased')}
             </ButtonFilter>
             <ButtonFilter
-              twClassName="min-w-0"
               onPress={() => setCurrentFilter('SELL')}
               isActive={currentFilter === 'SELL'}
               size={ButtonBaseSize.Md}

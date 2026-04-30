@@ -324,9 +324,5 @@ The other three spec files (`connection-evm`, `connection-multichain`,
 Playground dApp in Chrome. These tests do not require a separate APK — the dApp
 server is started automatically in `test.beforeAll`.
 
-On **BrowserStack**, the tunnel (**BrowserStack Local**) must be running and
-`BROWSERSTACK_LOCAL=true` must be set so devices can reach that server (see the
-parent README). CI enables the tunnel **only** for mm-connect performance jobs.
-
 See the [parent README](../README.md) for details on BrowserStack Local setup
 and other run configurations.

@@ -137,6 +137,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     searchBarRow: {
       paddingHorizontal: 16,
+      paddingTop: 12,
       paddingBottom: 8,
     },
     searchContainer: {

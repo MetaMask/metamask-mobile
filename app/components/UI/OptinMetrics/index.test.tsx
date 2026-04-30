@@ -124,7 +124,7 @@ describe('OptinMetrics', () => {
         { name: 'OptinMetrics' },
         { state: {} },
       );
-      expect(toJSON()).not.toBeNull();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -139,7 +139,7 @@ describe('OptinMetrics', () => {
         { name: 'OptinMetrics' },
         { state: {} },
       );
-      expect(toJSON()).not.toBeNull();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('render matches snapshot with status bar height to zero', () => {
@@ -152,7 +152,7 @@ describe('OptinMetrics', () => {
         { name: 'OptinMetrics' },
         { state: {} },
       );
-      expect(toJSON()).not.toBeNull();
+      expect(toJSON()).toMatchSnapshot();
 
       StatusBar.currentHeight = originalCurrentHeight;
     });

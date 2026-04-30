@@ -87,10 +87,8 @@ describe('getTransactionTypeValue', () => {
     );
   });
 
-  it('returns a value for undefined type', () => {
-    // When transactionType is undefined, function returns based on switch fallthrough
-    const result = getTransactionTypeValue(undefined);
-    expect(typeof result).toBe('string');
+  it('returns "unknown" for undefined type', () => {
+    expect(getTransactionTypeValue(undefined)).toBe('unknown');
   });
 
   it('returns "unknown" for unhandled transaction type', () => {

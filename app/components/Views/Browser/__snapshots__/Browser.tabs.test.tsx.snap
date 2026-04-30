@@ -8,8 +8,7 @@ exports[`Browser - Tab Operations closeTabsView behavior renders Browser compone
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -355,6 +354,6 @@ exports[`Browser - Tab Operations closeTabsView behavior renders Browser compone
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

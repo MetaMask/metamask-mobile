@@ -47,6 +47,12 @@ jest.mock('../../../core', () => ({
   },
 }));
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+}));
+
 const mockError = new Error('Test social login error');
 
 describe('SocialLoginErrorSheet', () => {

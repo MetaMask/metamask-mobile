@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useState,
-  useEffect,
-  useRef,
-  FC,
-} from 'react';
+import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -56,16 +49,6 @@ export interface V2OtpCodeParams {
   amount?: string;
   currency?: string;
   assetId?: string;
-  /**
-   * Set when the OTP loop is part of a headless buy flow. Drives two things:
-   * (1) `useTransakRouting` is configured with `baseRoute = HEADLESS_HOST`
-   * so post-OTP `navigation.reset` calls land back on the Host screen
-   * (which carries the live `headlessSessionId`) instead of dropping
-   * the user onto BuildQuote. (2) On routing failure, we navigate back
-   * to the Host with `nativeFlowError` so the Host can surface the
-   * error to the headless consumer.
-   */
-  headlessSessionId?: string;
 }
 
 export const createV2OtpCodeNavDetails =
@@ -94,7 +77,7 @@ const ResendButton: FC<{
 const V2OtpCode = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { email, stateToken, amount, currency, assetId, headlessSessionId } =
+  const { email, stateToken, amount, currency, assetId } =
     useParams<V2OtpCodeParams>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -108,19 +91,7 @@ const V2OtpCode = () => {
   const { selectedToken, userRegion, selectedPaymentMethod } =
     useRampsController();
 
-  // For headless buy flows, post-auth resets must land back on the Host
-  // (which carries the live `headlessSessionId`) instead of BuildQuote.
-  const transakRoutingConfig = useMemo(
-    () =>
-      headlessSessionId
-        ? {
-            baseRoute: Routes.RAMP.HEADLESS_HOST,
-            baseRouteParams: { headlessSessionId },
-          }
-        : undefined,
-    [headlessSessionId],
-  );
-  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
+  const { routeAfterAuthentication } = useTransakRouting();
 
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
@@ -278,25 +249,13 @@ const V2OtpCode = () => {
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            const nativeFlowError = parseUserFacingError(
-              routeError,
-              strings('deposit.otp_code.error'),
-            );
-            if (headlessSessionId) {
-              navigation.navigate(Routes.RAMP.HEADLESS_HOST, {
-                headlessSessionId,
-                nativeFlowError,
-              });
-            } else {
-              navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
-                nativeFlowError,
-              });
-            }
+            navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
+              nativeFlowError: parseUserFacingError(
+                routeError,
+                strings('deposit.otp_code.error'),
+              ),
+            });
           }
-        } else if (headlessSessionId) {
-          navigation.navigate(Routes.RAMP.HEADLESS_HOST, {
-            headlessSessionId,
-          });
         } else {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
         }
@@ -333,7 +292,6 @@ const V2OtpCode = () => {
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
     routeAfterAuthentication,
-    headlessSessionId,
   ]);
 
   const handleValueChange = useCallback(

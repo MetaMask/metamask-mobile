@@ -6,7 +6,7 @@ import React, {
   useMemo,
   ReactNode,
 } from 'react';
-import { playWarningNotification } from '../../../../util/haptics';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -40,7 +40,7 @@ export const AccessRestrictedProvider = ({
   const { track } = usePerpsEventTracking();
 
   const showAccessRestrictedModal = useCallback(() => {
-    playWarningNotification();
+    notificationAsync(NotificationFeedbackType.Warning);
     setIsVisible(true);
     track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:

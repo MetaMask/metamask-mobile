@@ -405,7 +405,7 @@ describe('OAuthRehydration', () => {
       expect(() => getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toThrow();
     });
 
-    it('clears password field on error', async () => {
+    it('clears password field after login attempt', async () => {
       mockUnlockWallet.mockRejectedValue(new Error('Invalid password'));
       const { getByTestId, queryByDisplayValue } = renderWithProvider(
         <OAuthRehydration />,
@@ -543,31 +543,8 @@ describe('OAuthRehydration', () => {
         );
       });
     });
-  });
 
-  describe('Error Handling and Validation', () => {
-    it('handles DoCipher error for Android', async () => {
-      // Arrange
-      mockUnlockWallet.mockRejectedValue(
-        new Error('Error: Error: Error: DoCipher'),
-      );
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-      });
-    });
-
-    it('handles generic seedless error and sanitizes message', async () => {
-      // Arrange
+    it('sanitizes seedless error message by removing controller prefix', async () => {
       const seedlessError = new Error(
         'SeedlessOnboardingController - Something went wrong',
       );
@@ -618,91 +595,6 @@ describe('OAuthRehydration', () => {
             tags: expect.objectContaining({ view: 'Re-login' }),
           }),
         );
-      });
-    });
-
-    it('tracks analytics for wrong password errors', async () => {
-      // Arrange
-      mockUnlockWallet.mockRejectedValue(new Error('Error: Wrong password'));
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      mockTrackOnboarding.mockClear();
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'wrongPassword');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(mockTrackOnboarding).toHaveBeenCalled();
-      });
-    });
-
-    it('handles seedless error with zero remainingTime', async () => {
-      // Arrange
-      const tooManyAttemptsError =
-        new SeedlessOnboardingControllerRecoveryError(
-          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
-          { numberOfAttempts: 0, remainingTime: 0 },
-        );
-      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      mockTrackOnboarding.mockClear();
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(mockTrackOnboarding).toHaveBeenCalled();
-      });
-    });
-
-    it('tracks metrics when login is attempted', async () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      mockTrackOnboarding.mockClear();
-
-      // Act
-      fireEvent.changeText(passwordInput, 'validPassword123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(mockTrackOnboarding).toHaveBeenCalled();
-      });
-    });
-
-    it('formats countdown timer with hours and minutes', async () => {
-      // Arrange
-      const tooManyAttemptsError =
-        new SeedlessOnboardingControllerRecoveryError(
-          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
-          { numberOfAttempts: 5, remainingTime: 3661 },
-        );
-      mockUnlockWallet.mockRejectedValue(tooManyAttemptsError);
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      mockTrackOnboarding.mockClear();
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(mockTrackOnboarding).toHaveBeenCalled();
       });
     });
   });

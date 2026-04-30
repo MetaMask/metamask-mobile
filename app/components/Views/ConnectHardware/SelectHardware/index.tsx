@@ -187,7 +187,11 @@ const SelectHardwareWallet = () => {
         backgroundColor: colors.background.default,
       })}
     >
-      <HeaderCompactStandard includesTopInset onBack={navigation.goBack} />
+      <HeaderCompactStandard
+        includesTopInset
+        onBack={navigation.goBack}
+        twClassName="px-3"
+      />
       <TitleStandard
         title={strings('connect_hardware.title_select_hardware')}
         twClassName="px-4 pb-6"

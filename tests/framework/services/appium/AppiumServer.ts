@@ -1,8 +1,8 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { spawn, exec, type ChildProcess } from 'child_process';
-import { createLogger, LogLevel } from '../../logger';
+import { createLogger } from '../../logger.ts';
 
-const logger = createLogger({ name: 'AppiumServer', level: LogLevel.DEBUG });
+const logger = createLogger({ name: 'AppiumServer' });
 
 // Track the current exit handler to prevent listener accumulation
 let currentExitHandler: (() => void) | null = null;

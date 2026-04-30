@@ -112,7 +112,7 @@ describe('FLipQuoteButton', () => {
       const { getByTestId } = renderFlipQuoteButton(true);
       const button = getByTestId('arrow-button');
 
-      expect(button).toBeDisabled();
+      expect(button.props.disabled).toBe(true);
     });
   });
 
@@ -163,7 +163,7 @@ describe('FLipQuoteButton', () => {
       const button = getByTestId('arrow-button');
 
       expect(button.props.accessible).toBe(true);
-      expect(button).toBeDisabled();
+      expect(button.props.disabled).toBe(true);
     });
 
     it('has testID for test identification', () => {
@@ -211,7 +211,7 @@ describe('FLipQuoteButton', () => {
       expect(button.props.onPress).toBeUndefined();
       expect(button.props.onPressIn).toBeUndefined();
       expect(button.props.onPressOut).toBeUndefined();
-      expect(button).toBeDisabled();
+      expect(button.props.disabled).toBe(true);
     });
   });
 
@@ -242,7 +242,7 @@ describe('FLipQuoteButton', () => {
       const { getByTestId } = renderFlipQuoteButton(true);
       const button = getByTestId('arrow-button');
 
-      expect(button).toBeDisabled();
+      expect(button.props.disabled).toBe(true);
       expect(button.props.onPress).toBeUndefined();
     });
   });

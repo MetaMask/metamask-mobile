@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useValidateReferralCode } from './useValidateReferralCode';
 import Engine from '../../../../core/Engine';
 
@@ -31,12 +31,14 @@ describe('useValidateReferralCode', () => {
   it('initializes with custom initial value and validates immediately', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
 
-    const { result } = renderHook(() => useValidateReferralCode('ABCDEF'));
+    const { result, waitForNextUpdate } = renderHook(() =>
+      useValidateReferralCode('ABCDEF'),
+    );
 
-    await waitFor(() => {
-      expect(result.current.isValid).toBe(true);
-    });
+    await waitForNextUpdate();
+
     expect(result.current.referralCode).toBe('ABCDEF');
+    expect(result.current.isValid).toBe(true);
   });
 
   it('validates code directly via validateCode', async () => {

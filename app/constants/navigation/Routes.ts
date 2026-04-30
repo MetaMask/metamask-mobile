@@ -21,7 +21,6 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     HEADLESS_PLAYGROUND: 'RampHeadlessPlayground',
-    HEADLESS_HOST: 'RampHeadlessHost',
     AMOUNT_INPUT: 'RampAmountInput',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
@@ -309,7 +308,6 @@ const Routes = {
       MARKET_CLOSED_MODAL: 'MarketClosedModal',
       NETWORK_LIST_MODAL: 'NetworkListModal',
       PRICE_IMPACT_MODAL: 'PriceImpactModal',
-      MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
@@ -420,10 +418,6 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
-    MODALS: {
-      ROOT: 'MoneyModals',
-      ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
-    },
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
@@ -444,7 +438,7 @@ const Routes = {
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',

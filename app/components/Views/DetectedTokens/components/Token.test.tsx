@@ -71,14 +71,18 @@ describe('Token Component', () => {
     );
 
   it('renders correctly', () => {
-    const { getByText } = renderComponent();
+    const { getByText, toJSON } = renderComponent();
 
+    // Verifying key elements render
     expect(getByText('0 ABC')).toBeTruthy();
     expect(getByText('Token address:')).toBeTruthy();
+
+    // Snapshot test
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with token chainId', () => {
-    const { getByText } = render(
+    const { getByText, toJSON } = render(
       <Token
         token={
           {
@@ -95,8 +99,12 @@ describe('Token Component', () => {
       />,
     );
 
+    // Verifying key elements render
     expect(getByText('0 ABC')).toBeTruthy();
     expect(getByText('Token address:')).toBeTruthy();
+
+    // Snapshot test
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('expands token aggregator list on "show more" press', () => {
@@ -110,18 +118,16 @@ describe('Token Component', () => {
     ).toBeTruthy();
   });
 
-  it('renders checkbox as checked when token is selected', () => {
-    const { getByTestId } = renderComponent(true);
+  it('matches snapshot when token is selected', () => {
+    const { toJSON } = renderComponent(true);
 
-    const checkbox = getByTestId('token-select-checkbox');
-    expect(checkbox.props.accessibilityState.checked).toBe(true);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders checkbox as unchecked when token is not selected', () => {
-    const { getByTestId } = renderComponent(false);
+  it('matches snapshot when token is not selected', () => {
+    const { toJSON } = renderComponent(false);
 
-    const checkbox = getByTestId('token-select-checkbox');
-    expect(checkbox.props.accessibilityState.checked).toBe(false);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('copies address to clipboard and triggers alert', async () => {

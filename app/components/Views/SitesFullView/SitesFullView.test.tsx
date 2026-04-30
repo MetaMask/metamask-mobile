@@ -401,9 +401,9 @@ describe('SitesFullView', () => {
 
       expect(refreshControl).toBeDefined();
 
-      // Simulate refresh by calling onRefresh directly
+      // Simulate refresh
       await act(async () => {
-        refreshControl.props.onRefresh();
+        await refreshControl.props.onRefresh();
       });
 
       await waitFor(() => {

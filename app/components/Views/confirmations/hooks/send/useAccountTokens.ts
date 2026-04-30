@@ -18,8 +18,8 @@ import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import type { RootState } from '../../../../../reducers';
-import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 export interface EnrichTokenRequest {
   chainId: Hex;
@@ -28,20 +28,22 @@ export interface EnrichTokenRequest {
 
 const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
 
-function useAccountGroupAssets(accountAddress?: string | null) {
+function useFromAccountGroupAssets() {
+  const transactionMeta = useTransactionMetadataRequest();
+  const fromAddress = transactionMeta?.txParams?.from as string | undefined;
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
 
   const accountGroupId = useMemo(() => {
-    if (!accountAddress) return undefined;
+    if (!fromAddress) return undefined;
     const internalAccountId = Object.keys(internalAccountsById).find(
       (id) =>
         internalAccountsById[id].address.toLowerCase() ===
-        accountAddress.toLowerCase(),
+        fromAddress.toLowerCase(),
     );
     if (!internalAccountId) return undefined;
     return accountToGroupMap[internalAccountId]?.id;
-  }, [accountAddress, internalAccountsById, accountToGroupMap]);
+  }, [fromAddress, internalAccountsById, accountToGroupMap]);
 
   const selectOverrideAssets = useCallback(
     (state: RootState) => selectAssetsByAccountGroupId(state, accountGroupId),
@@ -61,10 +63,9 @@ export function useAccountTokens({
   tokenFilter?: (chainId: string, address: string) => boolean;
   enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
-  const accountOverride = useTransactionAccountOverride();
   const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
-  const accountAssets = useAccountGroupAssets(accountOverride);
-  const assets = accountAssets ?? globalAssets;
+  const fromAccountAssets = useFromAccountGroupAssets();
+  const assets = fromAccountAssets ?? globalAssets;
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   const assetIds = useMemo(

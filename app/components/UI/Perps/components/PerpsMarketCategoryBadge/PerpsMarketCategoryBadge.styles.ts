@@ -20,10 +20,11 @@ export const styleSheet = (params: {
       justifyContent: 'center',
       paddingHorizontal: 12,
       paddingVertical: 8,
-      borderRadius: 12,
+      borderRadius: 8,
       backgroundColor: isSelected
         ? theme.colors.icon.default
         : theme.colors.background.muted,
+      gap: 4,
     },
     badgePressed: {
       opacity: 0.7,

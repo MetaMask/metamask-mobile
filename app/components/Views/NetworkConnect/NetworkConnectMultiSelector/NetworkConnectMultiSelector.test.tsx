@@ -100,9 +100,19 @@ describe('NetworkConnectMultiSelector', () => {
     const updateButton = getByTestId(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
-    // Update button is disabled when isLoading is true, so onSubmit should not be called
-    fireEvent.press(updateButton);
-    expect(defaultProps.onSubmit).not.toHaveBeenCalled();
+    expect(updateButton).toBeDisabled();
+
+    // Re-render without loading to verify select all was a no-op
+    rerender(
+      <NetworkConnectMultiSelector {...defaultProps} isLoading={false} />,
+    );
+
+    const enabledUpdateButton = getByTestId(
+      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+    );
+    fireEvent.press(enabledUpdateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
   });
 
   it('handles the select all button when not loading', () => {

@@ -46,16 +46,9 @@ jest.mock('../../../util/analytics/analytics', () => ({
 }));
 
 // allows runAfterInteractions to return immediately
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
-  const interactionManager = {
-    runAfterInteractions: (callback: () => Promise<void>) => callback(),
-  };
-  return {
-    __esModule: true,
-    default: interactionManager,
-    ...interactionManager,
-  };
-});
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+  runAfterInteractions: (callback: () => Promise<void>) => callback(),
+}));
 
 const expectedDataDeletionTaskResponse = {
   status: DataDeleteResponseStatus.ok,

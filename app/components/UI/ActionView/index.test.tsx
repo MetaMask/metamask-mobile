@@ -14,6 +14,6 @@ const ActionViewComponent = () => (
 describe('ActionView', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<ActionViewComponent />);
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

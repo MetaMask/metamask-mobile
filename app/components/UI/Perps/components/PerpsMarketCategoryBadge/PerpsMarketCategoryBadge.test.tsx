@@ -21,7 +21,7 @@ describe('PerpsMarketCategoryBadge', () => {
     expect(getByText('Crypto')).toBeTruthy();
   });
 
-  it('calls onPress when pressed', () => {
+  it('calls onPress when pressed and not showing dismiss', () => {
     const onPress = jest.fn();
     const { getByText } = render(
       <PerpsMarketCategoryBadge {...defaultProps} onPress={onPress} />,
@@ -29,6 +29,50 @@ describe('PerpsMarketCategoryBadge', () => {
 
     fireEvent.press(getByText('Crypto'));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show dismiss icon when showDismiss is false', () => {
+    const { queryByTestId } = render(
+      <PerpsMarketCategoryBadge
+        {...defaultProps}
+        testID="badge"
+        showDismiss={false}
+      />,
+    );
+
+    expect(queryByTestId('badge-dismiss')).toBeNull();
+  });
+
+  it('shows dismiss icon when showDismiss is true', () => {
+    const { getByTestId } = render(
+      <PerpsMarketCategoryBadge
+        {...defaultProps}
+        testID="badge"
+        showDismiss
+        isSelected
+      />,
+    );
+
+    expect(getByTestId('badge-dismiss')).toBeTruthy();
+  });
+
+  it('calls onDismiss when pressed with showDismiss true', () => {
+    const onDismiss = jest.fn();
+    const onPress = jest.fn();
+    const { getByTestId } = render(
+      <PerpsMarketCategoryBadge
+        {...defaultProps}
+        testID="badge"
+        showDismiss
+        isSelected
+        onPress={onPress}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    fireEvent.press(getByTestId('badge'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
   });
 
   it('has correct accessibility properties', () => {

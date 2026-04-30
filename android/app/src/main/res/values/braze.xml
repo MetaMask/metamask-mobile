@@ -22,4 +22,5 @@
 
   <!-- Push notification icons -->
   <drawable name="com_braze_push_small_notification_icon">@mipmap/ic_notification_small</drawable>
+  <drawable name="com_braze_push_large_notification_icon">@mipmap/ic_notification</drawable>
 </resources>

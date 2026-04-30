@@ -38,9 +38,7 @@ describeForPlatforms('Wallet', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
-        includeHiddenElements: true,
-      }),
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toBeOnTheScreen();
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),

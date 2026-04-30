@@ -24,33 +24,29 @@ describe('UpsellBanner', () => {
   };
 
   describe('UpsellBannerHeader variant', () => {
-    it('renders header variant content', () => {
+    it('render matches screenshot', () => {
       const props: UpsellBannerProps = {
         variant: UPSELL_BANNER_VARIANTS.HEADER,
         ...baseProps,
       };
 
-      const { getByText } = renderWithProvider(<UpsellBanner {...props} />);
+      const { toJSON } = renderWithProvider(<UpsellBanner {...props} />);
 
-      expect(getByText(baseProps.primaryText)).toBeOnTheScreen();
-      expect(getByText(baseProps.secondaryText)).toBeOnTheScreen();
-      expect(getByText(baseProps.tertiaryText)).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
   describe('UpsellBannerBody variant', () => {
-    it('renders body variant content', () => {
+    it('render matches screenshot', () => {
       const props: UpsellBannerProps = {
         variant: UPSELL_BANNER_VARIANTS.BODY,
         onTooltipPress: jest.fn(),
         ...baseProps,
       };
 
-      const { getByText } = renderWithProvider(<UpsellBanner {...props} />);
+      const { toJSON } = renderWithProvider(<UpsellBanner {...props} />);
 
-      expect(getByText(baseProps.primaryText)).toBeOnTheScreen();
-      expect(getByText(baseProps.secondaryText)).toBeOnTheScreen();
-      expect(getByText(baseProps.tertiaryText)).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

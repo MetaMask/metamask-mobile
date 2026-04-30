@@ -4217,7 +4217,7 @@ describe('RewardsController', () => {
     });
 
     it('formats and convert authentication message to hex correctly', async () => {
-      const hexFormatAuthAccount = {
+      const mockInternalAccount = {
         address: '0x1234567890abcdef',
         type: 'eip155:eoa' as const,
         id: 'test-id',
@@ -4232,7 +4232,7 @@ describe('RewardsController', () => {
       };
 
       const mockTimestamp = 1609459200; // Fixed timestamp for predictable testing
-      const expectedMessage = `rewards,${hexFormatAuthAccount.address},${mockTimestamp}`;
+      const expectedMessage = `rewards,${mockInternalAccount.address},${mockTimestamp}`;
       const expectedHexMessage =
         '0x' + Buffer.from(expectedMessage, 'utf8').toString('hex');
 
@@ -4241,7 +4241,7 @@ describe('RewardsController', () => {
 
       // Mock the AccountTreeController:getAccountsFromSelectedAccountGroup call
       mockMessenger.call
-        .mockReturnValueOnce([hexFormatAuthAccount]) // Return accounts for handleAuthenticationTrigger
+        .mockReturnValueOnce([mockInternalAccount]) // Return accounts for handleAuthenticationTrigger
         .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
         .mockResolvedValueOnce({
           sessionId: 'session123',
@@ -4249,13 +4249,13 @@ describe('RewardsController', () => {
         }); // RewardsDataService:login
 
       // Trigger authentication via account group change
-      const authHexSubscribeCallback = mockMessenger.subscribe.mock.calls.find(
+      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
         (call) =>
           call[0] === 'AccountTreeController:selectedAccountGroupChange',
       )?.[1];
 
-      if (authHexSubscribeCallback) {
-        await authHexSubscribeCallback(undefined, undefined);
+      if (subscribeCallback) {
+        await subscribeCallback(undefined, undefined);
       }
 
       // Verify the message was formatted and converted to hex correctly
@@ -4263,7 +4263,7 @@ describe('RewardsController', () => {
         'KeyringController:signPersonalMessage',
         {
           data: expectedHexMessage,
-          from: hexFormatAuthAccount.address,
+          from: mockInternalAccount.address,
         },
       );
     });
@@ -4483,7 +4483,7 @@ describe('RewardsController', () => {
 
     it('proceeds with silent auth when account has opted in', async () => {
       // Arrange
-      const optedInAuthAccount = {
+      const mockInternalAccount = {
         address: '0x123',
         type: 'eip155:eoa' as const,
         id: 'test-id',
@@ -4520,10 +4520,10 @@ describe('RewardsController', () => {
             method ===
             'AccountTreeController:getAccountsFromSelectedAccountGroup'
           ) {
-            return [optedInAuthAccount];
+            return [mockInternalAccount];
           }
           if (method === 'AccountsController:listMultichainAccounts') {
-            return [optedInAuthAccount];
+            return [mockInternalAccount];
           }
           if (method === 'RewardsDataService:getOptInStatus') {
             return Promise.resolve(mockOptInStatusResponse);
@@ -10674,9 +10674,9 @@ describe('RewardsController', () => {
       const mockError = new AccountAlreadyRegisteredError(
         'Account already registered',
       );
-      const recoveredSubscriptionId = 'recovered-sub-123';
+      const mockSubscriptionId = 'recovered-sub-123';
       const mockSubscription = {
-        id: recoveredSubscriptionId,
+        id: mockSubscriptionId,
         referralCode: 'REF789',
         accounts: [{ address: mockEvmInternalAccount.address, chainId: 1 }],
       };
@@ -10686,7 +10686,7 @@ describe('RewardsController', () => {
         state: {
           ...getRewardsControllerDefaultState(),
           subscriptions: {
-            [recoveredSubscriptionId]: mockSubscription,
+            [mockSubscriptionId]: mockSubscription,
           },
         },
       });
@@ -10694,7 +10694,7 @@ describe('RewardsController', () => {
       // Spy on performSilentAuth to mock its behavior
       const performSilentAuthSpy = jest
         .spyOn(testController, 'performSilentAuth')
-        .mockResolvedValue(recoveredSubscriptionId);
+        .mockResolvedValue(mockSubscriptionId);
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
         if (method === 'KeyringController:signPersonalMessage') {
@@ -10724,7 +10724,7 @@ describe('RewardsController', () => {
       const result = await testController.optIn(mockAccounts);
 
       // Assert
-      expect(result).toBe(recoveredSubscriptionId);
+      expect(result).toBe(mockSubscriptionId);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:mobileOptin',
         expect.objectContaining({
@@ -13813,6 +13813,7 @@ describe('RewardsController', () => {
           methods: [],
         },
       ];
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
 
       // Mock both messenger calls to succeed
       mockMessenger.call
@@ -13913,6 +13914,7 @@ describe('RewardsController', () => {
 
     it('uses cached data when account state has hasOptedIn defined', async () => {
       // Arrange
+      const mockParams = { addresses: ['0x123', '0x456'] };
       const mockAccounts = [
         {
           address: '0x123',
@@ -13993,7 +13995,7 @@ describe('RewardsController', () => {
 
     it('updates existing account state when fresh data is fetched', async () => {
       // Arrange
-      const singleAddressOptInParams = { addresses: ['0x123'] };
+      const mockParams = { addresses: ['0x123'] };
       const mockAccounts = [
         {
           address: '0x123',
@@ -14009,10 +14011,7 @@ describe('RewardsController', () => {
           methods: [],
         },
       ];
-      const freshSingleAccountOptInResponse = {
-        ois: [true],
-        sids: ['fresh_sub_123'],
-      };
+      const mockResponse = { ois: [true], sids: ['fresh_sub_123'] };
 
       // Set up controller with existing account state that has undefined hasOptedIn
       // This will force a fresh API call instead of using cached data
@@ -14038,15 +14037,13 @@ describe('RewardsController', () => {
       mockMessenger.call.mockClear();
       mockMessenger.call
         .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
-        .mockResolvedValueOnce(freshSingleAccountOptInResponse); // RewardsDataService:getOptInStatus
+        .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
 
       // Act
-      const result = await testController.getOptInStatus(
-        singleAddressOptInParams,
-      );
+      const result = await testController.getOptInStatus(mockParams);
 
       // Assert
-      expect(result).toEqual(freshSingleAccountOptInResponse);
+      expect(result).toEqual(mockResponse);
 
       // Verify that the existing account state was updated (not created new)
       const updatedAccountState =
@@ -14059,9 +14056,7 @@ describe('RewardsController', () => {
 
     it('uses cached results in final combination loop', async () => {
       // Arrange
-      const tripleAddressOptInParams = {
-        addresses: ['0x123', '0x456', '0x789'],
-      };
+      const mockParams = { addresses: ['0x123', '0x456', '0x789'] };
       const mockAccounts = [
         {
           address: '0x123',
@@ -14143,9 +14138,7 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce(mockFreshResponse); // RewardsDataService:getOptInStatus (only for 0x789)
 
       // Act
-      const result = await testController.getOptInStatus(
-        tripleAddressOptInParams,
-      );
+      const result = await testController.getOptInStatus(mockParams);
 
       // Assert
       expect(result).toEqual({
@@ -14162,6 +14155,7 @@ describe('RewardsController', () => {
 
     it('updates activeAccount when it matches an account being checked', async () => {
       // Arrange
+      const mockParams = { addresses: ['0x123', '0x456'] };
       const mockAccounts = [
         {
           address: '0x123',
@@ -14190,6 +14184,7 @@ describe('RewardsController', () => {
           methods: [],
         },
       ] as any;
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
 
       // Set up controller with an active account that matches 0x456
       const testController = new TestableRewardsController({
@@ -14234,7 +14229,7 @@ describe('RewardsController', () => {
 
     it('does not update activeAccount when it does not match any account being checked', async () => {
       // Arrange
-      const activeAccountMismatchParams = { addresses: ['0x123', '0x999'] };
+      const mockParams = { addresses: ['0x123', '0x999'] };
       const mockAccounts = [
         {
           address: '0x123',
@@ -14263,6 +14258,7 @@ describe('RewardsController', () => {
           methods: [],
         },
       ] as any;
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
 
       // Set up controller with an active account that does NOT match any account being checked
       const originalActiveAccount = {
@@ -14287,9 +14283,7 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce(mockResponse);
 
       // Act
-      const result = await testController.getOptInStatus(
-        activeAccountMismatchParams,
-      );
+      const result = await testController.getOptInStatus(mockParams);
 
       // Assert
       expect(result).toEqual(mockResponse);
@@ -14305,11 +14299,11 @@ describe('RewardsController', () => {
   });
 
   describe('getActivePointsBoosts', () => {
-    let activePointsBoostsController: RewardsController;
-    let activePointsBoostsMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let controller: RewardsController;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
 
     beforeEach(() => {
-      activePointsBoostsMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -14321,8 +14315,8 @@ describe('RewardsController', () => {
         unsubscribe: jest.fn(),
       } as unknown as jest.Mocked<RewardsControllerMessenger>;
 
-      activePointsBoostsController = new RewardsController({
-        messenger: activePointsBoostsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
     });
@@ -14359,16 +14353,16 @@ describe('RewardsController', () => {
       ];
 
       const mockResponse = { boosts: mockBoosts };
-      activePointsBoostsMessenger.call.mockResolvedValue(mockResponse);
+      mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await activePointsBoostsController.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
 
       // Assert
-      expect(activePointsBoostsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         seasonId,
         subscriptionId,
@@ -14386,10 +14380,10 @@ describe('RewardsController', () => {
       const mockEmptyBoosts: any[] = [];
       const mockResponse = { boosts: mockEmptyBoosts };
 
-      activePointsBoostsMessenger.call.mockResolvedValue(mockResponse);
+      mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await activePointsBoostsController.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14405,17 +14399,14 @@ describe('RewardsController', () => {
       const subscriptionId = 'sub-456';
       const mockError = new Error('Data service error');
 
-      activePointsBoostsMessenger.call.mockRejectedValue(mockError);
+      mockMessenger.call.mockRejectedValue(mockError);
 
       // Act & Assert
       await expect(
-        activePointsBoostsController.getActivePointsBoosts(
-          seasonId,
-          subscriptionId,
-        ),
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
       ).rejects.toThrow('Data service error');
 
-      expect(activePointsBoostsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         seasonId,
         subscriptionId,
@@ -14428,14 +14419,11 @@ describe('RewardsController', () => {
       const subscriptionId = 'sub-456';
       const timeoutError = new Error('Request timeout after 10000ms');
 
-      activePointsBoostsMessenger.call.mockRejectedValue(timeoutError);
+      mockMessenger.call.mockRejectedValue(timeoutError);
 
       // Act & Assert
       await expect(
-        activePointsBoostsController.getActivePointsBoosts(
-          seasonId,
-          subscriptionId,
-        ),
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
       ).rejects.toThrow('Request timeout after 10000ms');
     });
 
@@ -14445,14 +14433,11 @@ describe('RewardsController', () => {
       const subscriptionId = 'sub-456';
       const authError = new Error('Authentication failed');
 
-      activePointsBoostsMessenger.call.mockRejectedValue(authError);
+      mockMessenger.call.mockRejectedValue(authError);
 
       // Act & Assert
       await expect(
-        activePointsBoostsController.getActivePointsBoosts(
-          seasonId,
-          subscriptionId,
-        ),
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
       ).rejects.toThrow('Authentication failed');
     });
 
@@ -14475,16 +14460,16 @@ describe('RewardsController', () => {
       ];
 
       const mockResponse = { boosts: mockBoosts };
-      activePointsBoostsMessenger.call.mockResolvedValue(mockResponse);
+      mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await activePointsBoostsController.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
 
       // Assert
-      expect(activePointsBoostsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         seasonId,
         subscriptionId,
@@ -14496,7 +14481,7 @@ describe('RewardsController', () => {
     it('returns empty array when rewards feature is disabled', async () => {
       // Arrange
       const disabledController = new RewardsController({
-        messenger: activePointsBoostsMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -14511,7 +14496,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result).toEqual([]);
-      expect(activePointsBoostsMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         expect.anything(),
         expect.anything(),
@@ -14555,8 +14540,8 @@ describe('RewardsController', () => {
         lastFetched: recentTime,
       };
 
-      activePointsBoostsController = new RewardsController({
-        messenger: activePointsBoostsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           activeAccount: null,
           accounts: {},
@@ -14572,7 +14557,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await activePointsBoostsController.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14584,7 +14569,7 @@ describe('RewardsController', () => {
       expect(result[0].boostBips).toBe(1200);
       expect(result[1].id).toBe('cached-boost-2');
       expect(result[1].seasonLong).toBe(false);
-      expect(activePointsBoostsMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         expect.anything(),
         expect.anything(),
@@ -14593,7 +14578,7 @@ describe('RewardsController', () => {
 
     it('fetches fresh active boosts when cache is stale', async () => {
       // Arrange
-      activePointsBoostsMessenger.call.mockClear();
+      mockMessenger.call.mockClear();
       const seasonId = 'season-123';
       const subscriptionId = 'sub-456';
       const staleTime = Date.now() - 4000000; // 66+ minutes ago (beyond 60 minute threshold)
@@ -14643,8 +14628,8 @@ describe('RewardsController', () => {
         },
       ];
 
-      activePointsBoostsController = new RewardsController({
-        messenger: activePointsBoostsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           activeAccount: null,
           accounts: {},
@@ -14659,20 +14644,20 @@ describe('RewardsController', () => {
         },
       });
 
-      // Clear any calls made during activePointsBoostsController initialization
-      activePointsBoostsMessenger.call.mockClear();
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
 
       const mockResponse = { boosts: mockFreshBoosts };
-      activePointsBoostsMessenger.call.mockResolvedValue(mockResponse);
+      mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await activePointsBoostsController.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
 
       // Assert
-      expect(activePointsBoostsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         seasonId,
         subscriptionId,
@@ -14716,8 +14701,8 @@ describe('RewardsController', () => {
         },
       ];
 
-      activePointsBoostsController = new RewardsController({
-        messenger: activePointsBoostsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           activeAccount: null,
           accounts: {},
@@ -14731,10 +14716,10 @@ describe('RewardsController', () => {
       });
 
       const mockResponse = { boosts: mockFreshBoosts };
-      activePointsBoostsMessenger.call.mockResolvedValue(mockResponse);
+      mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await activePointsBoostsController.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
@@ -14748,8 +14733,7 @@ describe('RewardsController', () => {
       expect(result[1].seasonLong).toBe(false);
 
       // Check that state was updated with cached boosts
-      const cachedBoosts =
-        activePointsBoostsController.state.activeBoosts[compositeKey];
+      const cachedBoosts = controller.state.activeBoosts[compositeKey];
       expect(cachedBoosts).toBeDefined();
       expect(cachedBoosts.boosts).toHaveLength(2);
       expect(cachedBoosts.boosts[0].id).toBe('state-boost-1');
@@ -14779,8 +14763,8 @@ describe('RewardsController', () => {
         },
       ];
 
-      activePointsBoostsController = new RewardsController({
-        messenger: activePointsBoostsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           activeAccount: null,
           accounts: {},
@@ -14794,16 +14778,16 @@ describe('RewardsController', () => {
       });
 
       const mockResponse = { boosts: mockBoosts };
-      activePointsBoostsMessenger.call.mockResolvedValue(mockResponse);
+      mockMessenger.call.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await activePointsBoostsController.getActivePointsBoosts(
+      const result = await controller.getActivePointsBoosts(
         seasonId,
         subscriptionId,
       );
 
       // Assert
-      expect(activePointsBoostsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         seasonId,
         subscriptionId,
@@ -14813,8 +14797,7 @@ describe('RewardsController', () => {
 
       // Verify cache was populated
       const compositeKey = `${seasonId}:${subscriptionId}`;
-      const cachedBoosts =
-        activePointsBoostsController.state.activeBoosts[compositeKey];
+      const cachedBoosts = controller.state.activeBoosts[compositeKey];
       expect(cachedBoosts).toBeDefined();
       expect(cachedBoosts.boosts[0].id).toBe('new-boost');
       expect(cachedBoosts.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -14822,7 +14805,7 @@ describe('RewardsController', () => {
 
     it('handles different composite keys for different season/subscription combinations', async () => {
       // Arrange
-      activePointsBoostsMessenger.call.mockClear();
+      mockMessenger.call.mockClear();
       const seasonId1 = 'season-A';
       const subscriptionId1 = 'sub-X';
       const seasonId2 = 'season-B';
@@ -14858,8 +14841,8 @@ describe('RewardsController', () => {
         },
       ];
 
-      activePointsBoostsController = new RewardsController({
-        messenger: activePointsBoostsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           activeAccount: null,
           accounts: {},
@@ -14889,20 +14872,20 @@ describe('RewardsController', () => {
         },
       });
 
-      // Clear any calls made during activePointsBoostsController initialization
-      activePointsBoostsMessenger.call.mockClear();
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
 
       const mockResponse2 = { boosts: mockBoosts2 };
-      activePointsBoostsMessenger.call.mockResolvedValue(mockResponse2);
+      mockMessenger.call.mockResolvedValue(mockResponse2);
 
       // Act - First call should use cache
-      const result1 = await activePointsBoostsController.getActivePointsBoosts(
+      const result1 = await controller.getActivePointsBoosts(
         seasonId1,
         subscriptionId1,
       );
 
       // Act - Second call should fetch fresh data
-      const result2 = await activePointsBoostsController.getActivePointsBoosts(
+      const result2 = await controller.getActivePointsBoosts(
         seasonId2,
         subscriptionId2,
       );
@@ -14914,28 +14897,22 @@ describe('RewardsController', () => {
       expect(result2[0].id).toBe('boost-B-Y');
 
       // Verify first call used cache (no API call)
-      expect(activePointsBoostsMessenger.call).toHaveBeenCalledTimes(1);
-      expect(activePointsBoostsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         seasonId2,
         subscriptionId2,
       );
 
       // Verify both composite keys exist in state
-      expect(
-        activePointsBoostsController.state.activeBoosts[compositeKey1],
-      ).toBeDefined();
-      expect(
-        activePointsBoostsController.state.activeBoosts[compositeKey2],
-      ).toBeDefined();
-      expect(
-        activePointsBoostsController.state.activeBoosts[compositeKey1].boosts[0]
-          .id,
-      ).toBe('boost-A-X');
-      expect(
-        activePointsBoostsController.state.activeBoosts[compositeKey2].boosts[0]
-          .id,
-      ).toBe('boost-B-Y');
+      expect(controller.state.activeBoosts[compositeKey1]).toBeDefined();
+      expect(controller.state.activeBoosts[compositeKey2]).toBeDefined();
+      expect(controller.state.activeBoosts[compositeKey1].boosts[0].id).toBe(
+        'boost-A-X',
+      );
+      expect(controller.state.activeBoosts[compositeKey2].boosts[0].id).toBe(
+        'boost-B-Y',
+      );
     });
 
     it('reauthenticates and retries after 403 error on active boosts', async () => {
@@ -15055,30 +15032,27 @@ describe('RewardsController', () => {
       const subscriptionId = 'sub-456';
       const genericError = new Error('Network error');
 
-      activePointsBoostsMessenger.call.mockRejectedValue(genericError);
+      mockMessenger.call.mockRejectedValue(genericError);
 
       await expect(
-        activePointsBoostsController.getActivePointsBoosts(
-          seasonId,
-          subscriptionId,
-        ),
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
       ).rejects.toThrow('Network error');
 
       // Should NOT attempt reauth for non-403 errors
-      expect(activePointsBoostsMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'AccountsController:getSelectedMultichainAccount',
       );
     });
   });
 
   describe('getUnlockedRewards', () => {
-    let unlockedRewardsController: RewardsController;
-    let unlockedRewardsMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let controller: RewardsController;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSeasonId = 'season123';
     const mockSubscriptionId = 'sub123';
 
     beforeEach(() => {
-      unlockedRewardsMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -15093,7 +15067,7 @@ describe('RewardsController', () => {
 
     it('returns empty array when feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -15104,7 +15078,7 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual([]);
-      expect(unlockedRewardsMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         expect.anything(),
         expect.anything(),
@@ -15128,8 +15102,8 @@ describe('RewardsController', () => {
         },
       ];
 
-      unlockedRewardsController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           activeAccount: null,
           accounts: {},
@@ -15148,7 +15122,7 @@ describe('RewardsController', () => {
         },
       });
 
-      const result = await unlockedRewardsController.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
@@ -15159,7 +15133,7 @@ describe('RewardsController', () => {
       expect(result[0].claimStatus).toBe(RewardClaimStatus.CLAIMED);
       expect(result[1].id).toBe('reward-2');
       expect(result[1].claimStatus).toBe(RewardClaimStatus.UNCLAIMED);
-      expect(unlockedRewardsMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         expect.anything(),
         expect.anything(),
@@ -15196,8 +15170,8 @@ describe('RewardsController', () => {
         },
       ];
 
-      unlockedRewardsController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           activeAccount: null,
           accounts: {},
@@ -15216,14 +15190,14 @@ describe('RewardsController', () => {
         },
       });
 
-      unlockedRewardsMessenger.call.mockResolvedValue(mockFreshRewards);
+      mockMessenger.call.mockResolvedValue(mockFreshRewards);
 
-      const result = await unlockedRewardsController.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
 
-      expect(unlockedRewardsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         mockSeasonId,
         mockSubscriptionId,
@@ -15235,8 +15209,7 @@ describe('RewardsController', () => {
       expect(result[2].claimStatus).toBe(RewardClaimStatus.CLAIMED);
 
       // Verify state was updated with fresh data
-      const updatedCache =
-        unlockedRewardsController.state.unlockedRewards[compositeKey];
+      const updatedCache = controller.state.unlockedRewards[compositeKey];
       expect(updatedCache).toBeDefined();
       expect(updatedCache.rewards).toEqual(mockFreshRewards);
       expect(updatedCache.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -15256,19 +15229,19 @@ describe('RewardsController', () => {
         },
       ];
 
-      unlockedRewardsController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      unlockedRewardsMessenger.call.mockResolvedValue(mockApiRewards);
+      mockMessenger.call.mockResolvedValue(mockApiRewards);
 
-      const result = await unlockedRewardsController.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
 
-      expect(unlockedRewardsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         mockSeasonId,
         mockSubscriptionId,
@@ -15280,29 +15253,25 @@ describe('RewardsController', () => {
 
       // Verify state was updated with cached data
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const cachedData =
-        unlockedRewardsController.state.unlockedRewards[compositeKey];
+      const cachedData = controller.state.unlockedRewards[compositeKey];
       expect(cachedData).toBeDefined();
       expect(cachedData.rewards).toEqual(mockApiRewards);
       expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
     it('throws error when API fails', async () => {
-      unlockedRewardsController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      unlockedRewardsMessenger.call.mockRejectedValue(new Error('API error'));
+      mockMessenger.call.mockRejectedValue(new Error('API error'));
 
       await expect(
-        unlockedRewardsController.getUnlockedRewards(
-          mockSeasonId,
-          mockSubscriptionId,
-        ),
+        controller.getUnlockedRewards(mockSeasonId, mockSubscriptionId),
       ).rejects.toThrow('API error');
 
-      expect(unlockedRewardsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         mockSeasonId,
         mockSubscriptionId,
@@ -15310,14 +15279,14 @@ describe('RewardsController', () => {
     });
 
     it('handles null API response', async () => {
-      unlockedRewardsController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      unlockedRewardsMessenger.call.mockResolvedValue(null);
+      mockMessenger.call.mockResolvedValue(null);
 
-      const result = await unlockedRewardsController.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
@@ -15326,21 +15295,20 @@ describe('RewardsController', () => {
 
       // Verify state was updated with empty array
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const cachedData =
-        unlockedRewardsController.state.unlockedRewards[compositeKey];
+      const cachedData = controller.state.unlockedRewards[compositeKey];
       expect(cachedData).toBeDefined();
       expect(cachedData.rewards).toEqual([]);
     });
 
     it('handles empty rewards array from API', async () => {
-      unlockedRewardsController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      unlockedRewardsMessenger.call.mockResolvedValue([]);
+      mockMessenger.call.mockResolvedValue([]);
 
-      const result = await unlockedRewardsController.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         mockSeasonId,
         mockSubscriptionId,
       );
@@ -15350,8 +15318,7 @@ describe('RewardsController', () => {
 
       // Verify state was updated
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const cachedData =
-        unlockedRewardsController.state.unlockedRewards[compositeKey];
+      const cachedData = controller.state.unlockedRewards[compositeKey];
       expect(cachedData).toBeDefined();
       expect(cachedData.rewards).toEqual([]);
       expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -15386,8 +15353,8 @@ describe('RewardsController', () => {
         },
       ];
 
-      unlockedRewardsController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           activeAccount: null,
           accounts: {},
@@ -15406,18 +15373,18 @@ describe('RewardsController', () => {
         },
       });
 
-      // Clear any calls made during unlockedRewardsController initialization
-      unlockedRewardsMessenger.call.mockClear();
-      unlockedRewardsMessenger.call.mockResolvedValue(mockRewards2);
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockResolvedValue(mockRewards2);
 
       // Act - First call should use cache
-      const result1 = await unlockedRewardsController.getUnlockedRewards(
+      const result1 = await controller.getUnlockedRewards(
         seasonId1,
         subscriptionId1,
       );
 
       // Act - Second call should fetch fresh data
-      const result2 = await unlockedRewardsController.getUnlockedRewards(
+      const result2 = await controller.getUnlockedRewards(
         seasonId2,
         subscriptionId2,
       );
@@ -15431,23 +15398,19 @@ describe('RewardsController', () => {
       expect(result2[1].claimStatus).toBe(RewardClaimStatus.CLAIMED);
 
       // Verify API was called only once (for the second request)
-      expect(unlockedRewardsMessenger.call).toHaveBeenCalledTimes(1);
-      expect(unlockedRewardsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         seasonId2,
         subscriptionId2,
       );
 
       // Verify both caches exist
-      expect(
-        unlockedRewardsController.state.unlockedRewards[compositeKey1],
-      ).toBeDefined();
-      expect(
-        unlockedRewardsController.state.unlockedRewards[compositeKey2],
-      ).toBeDefined();
-      expect(
-        unlockedRewardsController.state.unlockedRewards[compositeKey2].rewards,
-      ).toEqual(mockRewards2);
+      expect(controller.state.unlockedRewards[compositeKey1]).toBeDefined();
+      expect(controller.state.unlockedRewards[compositeKey2]).toBeDefined();
+      expect(controller.state.unlockedRewards[compositeKey2].rewards).toEqual(
+        mockRewards2,
+      );
     });
 
     it('uses current season ID as default', async () => {
@@ -15460,19 +15423,19 @@ describe('RewardsController', () => {
         },
       ];
 
-      unlockedRewardsController = new RewardsController({
-        messenger: unlockedRewardsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      unlockedRewardsMessenger.call.mockResolvedValue(mockRewards);
+      mockMessenger.call.mockResolvedValue(mockRewards);
 
-      const result = await unlockedRewardsController.getUnlockedRewards(
+      const result = await controller.getUnlockedRewards(
         currentSeasonId,
         mockSubscriptionId,
       );
 
-      expect(unlockedRewardsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         currentSeasonId,
         mockSubscriptionId,
@@ -16004,7 +15967,7 @@ describe('RewardsController', () => {
           controller.metadata,
           'includeInDebugSnapshot',
         ),
-      ).toEqual({});
+      ).toMatchSnapshot();
     });
   });
 
@@ -16015,54 +15978,13 @@ describe('RewardsController', () => {
         controller.metadata,
         'includeInStateLogs',
       ),
-    ).toEqual({
-      accounts: {},
-      activeAccount: null,
-      activeBoosts: {},
-      campaignParticipantStatus: {},
-      campaigns: {},
-      offDeviceSubscriptionAccounts: {},
-      ondoCampaignActivity: {},
-      ondoCampaignDeposits: {},
-      ondoCampaignLeaderboard: {},
-      ondoCampaignLeaderboardPositions: {},
-      ondoCampaignPortfolio: {},
-      pointsEstimateHistory: [],
-      pointsEvents: {},
-      seasonStatuses: {},
-      seasons: {},
-      subscriptionBenefits: {},
-      subscriptionReferralDetails: {},
-      subscriptions: {},
-      unlockedRewards: {},
-    });
+    ).toMatchSnapshot();
   });
 
   it('persists expected state', () => {
     expect(
       deriveStateFromMetadata(controller.state, controller.metadata, 'persist'),
-    ).toEqual({
-      accounts: {},
-      activeAccount: null,
-      activeBoosts: {},
-      campaignParticipantStatus: {},
-      campaigns: {},
-      offDeviceSubscriptionAccounts: {},
-      ondoCampaignActivity: {},
-      ondoCampaignDeposits: {},
-      ondoCampaignLeaderboard: {},
-      ondoCampaignLeaderboardPositions: {},
-      ondoCampaignPortfolio: {},
-      pointsEstimateHistory: [],
-      pointsEvents: {},
-      rewardsEnvUrl: null,
-      seasonStatuses: {},
-      seasons: {},
-      subscriptionBenefits: {},
-      subscriptionReferralDetails: {},
-      subscriptions: {},
-      unlockedRewards: {},
-    });
+    ).toMatchSnapshot();
   });
 
   it('exposes expected state to UI', () => {
@@ -16072,27 +15994,7 @@ describe('RewardsController', () => {
         controller.metadata,
         'usedInUi',
       ),
-    ).toEqual({
-      accounts: {},
-      activeAccount: null,
-      activeBoosts: {},
-      campaignParticipantStatus: {},
-      campaigns: {},
-      offDeviceSubscriptionAccounts: {},
-      ondoCampaignActivity: {},
-      ondoCampaignDeposits: {},
-      ondoCampaignLeaderboard: {},
-      ondoCampaignLeaderboardPositions: {},
-      ondoCampaignPortfolio: {},
-      pointsEvents: {},
-      rewardsEnvUrl: null,
-      seasonStatuses: {},
-      seasons: {},
-      subscriptionBenefits: {},
-      subscriptionReferralDetails: {},
-      subscriptions: {},
-      unlockedRewards: {},
-    });
+    ).toMatchSnapshot();
   });
 
   describe('#signRewardsMessage', () => {
@@ -16749,37 +16651,24 @@ describe('RewardsController', () => {
       const initialState = getRewardsControllerDefaultState();
 
       // Create a controller with empty state
-      const emptyStateInvalidateController = new RewardsController({
+      const controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
       });
 
       // Act - should not throw error even when cache is empty
       expect(() =>
-        emptyStateInvalidateController.invalidateSubscriptionCache(
-          subscriptionId,
-          seasonId,
-        ),
+        controller.invalidateSubscriptionCache(subscriptionId, seasonId),
       ).not.toThrow();
 
       // Assert - state should remain empty
+      expect(Object.keys(controller.state.seasonStatuses)).toHaveLength(0);
+      expect(Object.keys(controller.state.unlockedRewards)).toHaveLength(0);
+      expect(Object.keys(controller.state.activeBoosts)).toHaveLength(0);
       expect(
-        Object.keys(emptyStateInvalidateController.state.seasonStatuses),
+        Object.keys(controller.state.subscriptionReferralDetails),
       ).toHaveLength(0);
-      expect(
-        Object.keys(emptyStateInvalidateController.state.unlockedRewards),
-      ).toHaveLength(0);
-      expect(
-        Object.keys(emptyStateInvalidateController.state.activeBoosts),
-      ).toHaveLength(0);
-      expect(
-        Object.keys(
-          emptyStateInvalidateController.state.subscriptionReferralDetails,
-        ),
-      ).toHaveLength(0);
-      expect(
-        Object.keys(emptyStateInvalidateController.state.pointsEvents),
-      ).toHaveLength(0);
+      expect(Object.keys(controller.state.pointsEvents)).toHaveLength(0);
     });
 
     it('handles empty state gracefully when invalidating all seasons', async () => {
@@ -16790,45 +16679,24 @@ describe('RewardsController', () => {
       const initialState = getRewardsControllerDefaultState();
 
       // Create a controller with empty state
-      const emptyStateInvalidateAllSeasonsController = new RewardsController({
+      const controller = new RewardsController({
         messenger: mockMessenger,
         state: initialState,
       });
 
       // Act - should not throw error even when cache is empty
       expect(() =>
-        emptyStateInvalidateAllSeasonsController.invalidateSubscriptionCache(
-          subscriptionId,
-        ),
+        controller.invalidateSubscriptionCache(subscriptionId),
       ).not.toThrow();
 
       // Assert - state should remain empty
+      expect(Object.keys(controller.state.seasonStatuses)).toHaveLength(0);
+      expect(Object.keys(controller.state.unlockedRewards)).toHaveLength(0);
+      expect(Object.keys(controller.state.activeBoosts)).toHaveLength(0);
       expect(
-        Object.keys(
-          emptyStateInvalidateAllSeasonsController.state.seasonStatuses,
-        ),
+        Object.keys(controller.state.subscriptionReferralDetails),
       ).toHaveLength(0);
-      expect(
-        Object.keys(
-          emptyStateInvalidateAllSeasonsController.state.unlockedRewards,
-        ),
-      ).toHaveLength(0);
-      expect(
-        Object.keys(
-          emptyStateInvalidateAllSeasonsController.state.activeBoosts,
-        ),
-      ).toHaveLength(0);
-      expect(
-        Object.keys(
-          emptyStateInvalidateAllSeasonsController.state
-            .subscriptionReferralDetails,
-        ),
-      ).toHaveLength(0);
-      expect(
-        Object.keys(
-          emptyStateInvalidateAllSeasonsController.state.pointsEvents,
-        ),
-      ).toHaveLength(0);
+      expect(Object.keys(controller.state.pointsEvents)).toHaveLength(0);
     });
 
     it('only invalidate data for the specified subscription when invalidating all seasons', async () => {
@@ -17116,7 +16984,6 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
-            showUpcomingDate: false,
           },
         ],
         lastFetched: Date.now(),
@@ -17191,7 +17058,6 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
-            showUpcomingDate: false,
           },
           {
             id: campaignId2,
@@ -17205,7 +17071,6 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
-            showUpcomingDate: false,
           },
         ],
         lastFetched: Date.now(),
@@ -18213,11 +18078,11 @@ describe('RewardsController', () => {
     const ADDRESS_1 = '0x1234567890123456789012345678901234567890';
     const ADDRESS_2 = '0x2345678901234567890123456789012345678901';
     const ADDRESS_3 = '0x3456789012345678901234567890123456789012';
-    const cacheCheckCaipAccount1 =
+    const CAIP_ACCOUNT_1 =
       'eip155:1:0x1234567890123456789012345678901234567890';
-    const cacheCheckCaipAccount2 =
+    const CAIP_ACCOUNT_2 =
       'eip155:1:0x2345678901234567890123456789012345678901';
-    const cacheCheckCaipAccount3 =
+    const CAIP_ACCOUNT_3 =
       'eip155:1:0x3456789012345678901234567890123456789012';
 
     const mockInternalAccount1: InternalAccount = {
@@ -18270,9 +18135,9 @@ describe('RewardsController', () => {
       jest
         .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockImplementation((account: InternalAccount) => {
-          if (account.address === ADDRESS_1) return cacheCheckCaipAccount1;
-          if (account.address === ADDRESS_2) return cacheCheckCaipAccount2;
-          if (account.address === ADDRESS_3) return cacheCheckCaipAccount3;
+          if (account.address === ADDRESS_1) return CAIP_ACCOUNT_1;
+          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
+          if (account.address === ADDRESS_3) return CAIP_ACCOUNT_3;
           return null;
         });
     });
@@ -18287,7 +18152,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: cacheCheckCaipAccount1,
+        account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -18296,7 +18161,7 @@ describe('RewardsController', () => {
       };
 
       const accountState2: RewardsAccountState = {
-        account: cacheCheckCaipAccount2,
+        account: CAIP_ACCOUNT_2,
         hasOptedIn: false,
         subscriptionId: null,
         perpsFeeDiscount: 0,
@@ -18305,7 +18170,7 @@ describe('RewardsController', () => {
       };
 
       const accountState3: RewardsAccountState = {
-        account: cacheCheckCaipAccount3,
+        account: CAIP_ACCOUNT_3,
         hasOptedIn: true,
         subscriptionId: 'sub-3',
         perpsFeeDiscount: 1000,
@@ -18318,9 +18183,9 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [cacheCheckCaipAccount1]: accountState1,
-            [cacheCheckCaipAccount2]: accountState2,
-            [cacheCheckCaipAccount3]: accountState3,
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+            [CAIP_ACCOUNT_3]: accountState3,
           },
           subscriptions: {},
         },
@@ -18384,7 +18249,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: cacheCheckCaipAccount1,
+        account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -18397,7 +18262,7 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [cacheCheckCaipAccount1]: accountState1,
+            [CAIP_ACCOUNT_1]: accountState1,
           },
           subscriptions: {},
         },
@@ -18425,7 +18290,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: cacheCheckCaipAccount1,
+        account: CAIP_ACCOUNT_1,
         hasOptedIn: undefined as any, // Explicitly undefined
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -18433,7 +18298,7 @@ describe('RewardsController', () => {
       };
 
       const accountState2: RewardsAccountState = {
-        account: cacheCheckCaipAccount2,
+        account: CAIP_ACCOUNT_2,
         hasOptedIn: false,
         subscriptionId: null,
         perpsFeeDiscount: 0,
@@ -18446,8 +18311,8 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [cacheCheckCaipAccount1]: accountState1,
-            [cacheCheckCaipAccount2]: accountState2,
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
           },
           subscriptions: {},
         },
@@ -18474,7 +18339,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: cacheCheckCaipAccount1,
+        account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -18486,7 +18351,7 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [cacheCheckCaipAccount1]: accountState1,
+            [CAIP_ACCOUNT_1]: accountState1,
           },
           subscriptions: {},
         },
@@ -18534,12 +18399,12 @@ describe('RewardsController', () => {
         .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockImplementation((account: InternalAccount) => {
           if (account.address === ADDRESS_1) return null;
-          if (account.address === ADDRESS_2) return cacheCheckCaipAccount2;
+          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
           return null;
         });
 
       const accountState2: RewardsAccountState = {
-        account: cacheCheckCaipAccount2,
+        account: CAIP_ACCOUNT_2,
         hasOptedIn: true,
         subscriptionId: 'sub-2',
         perpsFeeDiscount: 750,
@@ -18551,7 +18416,7 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [cacheCheckCaipAccount2]: accountState2,
+            [CAIP_ACCOUNT_2]: accountState2,
           },
           subscriptions: {},
         },
@@ -18579,7 +18444,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: cacheCheckCaipAccount1,
+        account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -18588,7 +18453,7 @@ describe('RewardsController', () => {
       };
 
       const accountState2: RewardsAccountState = {
-        account: cacheCheckCaipAccount2,
+        account: CAIP_ACCOUNT_2,
         hasOptedIn: false,
         subscriptionId: null,
         perpsFeeDiscount: 0,
@@ -18597,7 +18462,7 @@ describe('RewardsController', () => {
       };
 
       const accountState3: RewardsAccountState = {
-        account: cacheCheckCaipAccount3,
+        account: CAIP_ACCOUNT_3,
         hasOptedIn: true,
         subscriptionId: 'sub-3',
         perpsFeeDiscount: 1000,
@@ -18610,23 +18475,13 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [cacheCheckCaipAccount1]: accountState1,
-            [cacheCheckCaipAccount2]: accountState2,
-            [cacheCheckCaipAccount3]: accountState3,
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+            [CAIP_ACCOUNT_3]: accountState3,
           },
           subscriptions: {},
         },
       });
-
-      // Re-apply spy on the newly created controller instance
-      jest
-        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
-        .mockImplementation((account: InternalAccount) => {
-          if (account.address === ADDRESS_1) return cacheCheckCaipAccount1;
-          if (account.address === ADDRESS_2) return cacheCheckCaipAccount2;
-          if (account.address === ADDRESS_3) return cacheCheckCaipAccount3;
-          return null;
-        });
 
       // Act
       const result = controller.checkOptInStatusAgainstCache(
@@ -19038,8 +18893,8 @@ describe('RewardsController', () => {
   });
 
   describe('getCampaigns', () => {
-    let campaignsController: RewardsController;
-    let campaignsMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let controller: RewardsController;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSubscriptionId = 'sub123';
 
     const createTestCampaign = (
@@ -19054,7 +18909,6 @@ describe('RewardsController', () => {
         statusLabel: string;
         details: null;
         featured: boolean;
-        showUpcomingDate: boolean;
       }> = {},
     ) => ({
       id: 'campaign-1',
@@ -19067,12 +18921,11 @@ describe('RewardsController', () => {
       statusLabel: 'Active',
       details: null,
       featured: false,
-      showUpcomingDate: false,
       ...overrides,
     });
 
     beforeEach(() => {
-      campaignsMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -19087,7 +18940,7 @@ describe('RewardsController', () => {
 
     it('returns empty array when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: campaignsMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -19095,33 +18948,33 @@ describe('RewardsController', () => {
       const result = await disabledController.getCampaigns(mockSubscriptionId);
 
       expect(result).toEqual([]);
-      expect(campaignsMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getCampaigns',
         expect.anything(),
       );
     });
 
     it('fetches campaigns when rewards is enabled', async () => {
-      campaignsController = new RewardsController({
-        messenger: campaignsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
       const mockCampaigns = [createTestCampaign({ id: 'campaign-flag-test' })];
-      campaignsMessenger.call.mockResolvedValue(mockCampaigns);
+      mockMessenger.call.mockResolvedValue(mockCampaigns);
 
-      const result = await campaignsController.getCampaigns(mockSubscriptionId);
+      const result = await controller.getCampaigns(mockSubscriptionId);
 
       expect(result).toEqual(mockCampaigns);
-      expect(campaignsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getCampaigns',
         mockSubscriptionId,
       );
     });
 
     it('fetches campaigns from API and caches result', async () => {
-      campaignsController = new RewardsController({
-        messenger: campaignsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
@@ -19129,18 +18982,18 @@ describe('RewardsController', () => {
         createTestCampaign({ id: 'campaign-1' }),
         createTestCampaign({ id: 'campaign-2', name: 'Another Campaign' }),
       ];
-      campaignsMessenger.call.mockResolvedValue(mockCampaigns);
+      mockMessenger.call.mockResolvedValue(mockCampaigns);
 
-      const result = await campaignsController.getCampaigns(mockSubscriptionId);
+      const result = await controller.getCampaigns(mockSubscriptionId);
 
-      expect(campaignsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getCampaigns',
         mockSubscriptionId,
       );
       expect(result).toEqual(mockCampaigns);
       expect(result).toHaveLength(2);
 
-      const cached = campaignsController.state.campaigns.CAMPAIGNS_CACHE_KEY;
+      const cached = controller.state.campaigns.CAMPAIGNS_CACHE_KEY;
       expect(cached).toBeDefined();
       expect(cached.campaigns).toEqual(mockCampaigns);
       expect(cached.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -19150,8 +19003,8 @@ describe('RewardsController', () => {
       const recentTime = Date.now() - 60000; // 1 minute ago (within 5 minute threshold)
       const mockCachedCampaign = createTestCampaign({ id: 'cached-campaign' });
 
-      campaignsController = new RewardsController({
-        messenger: campaignsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           campaigns: {
@@ -19163,10 +19016,10 @@ describe('RewardsController', () => {
         },
       });
 
-      const result = await campaignsController.getCampaigns(mockSubscriptionId);
+      const result = await controller.getCampaigns(mockSubscriptionId);
 
       expect(result).toEqual([{ ...mockCachedCampaign, image: null }]);
-      expect(campaignsMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches fresh campaigns when cache is stale', async () => {
@@ -19174,8 +19027,8 @@ describe('RewardsController', () => {
       const staleCampaign = createTestCampaign({ id: 'stale-campaign' });
       const freshCampaigns = [createTestCampaign({ id: 'fresh-campaign' })];
 
-      campaignsController = new RewardsController({
-        messenger: campaignsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           campaigns: {
@@ -19187,27 +19040,27 @@ describe('RewardsController', () => {
         },
       });
 
-      campaignsMessenger.call.mockResolvedValue(freshCampaigns);
+      mockMessenger.call.mockResolvedValue(freshCampaigns);
 
-      const result = await campaignsController.getCampaigns(mockSubscriptionId);
+      const result = await controller.getCampaigns(mockSubscriptionId);
 
       expect(result).toEqual(freshCampaigns);
-      expect(campaignsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getCampaigns',
         mockSubscriptionId,
       );
     });
 
     it('logs when fetching fresh campaigns data', async () => {
-      campaignsController = new RewardsController({
-        messenger: campaignsMessenger,
+      controller = new RewardsController({
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      campaignsMessenger.call.mockResolvedValue([]);
+      mockMessenger.call.mockResolvedValue([]);
       mockLogger.log.mockClear();
 
-      await campaignsController.getCampaigns(mockSubscriptionId);
+      await controller.getCampaigns(mockSubscriptionId);
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching fresh campaigns data via API call',
@@ -19216,13 +19069,13 @@ describe('RewardsController', () => {
   });
 
   describe('optInToCampaign', () => {
-    let optInToCampaignMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSubscriptionId = 'sub123';
     const mockCampaignId = 'campaign-456';
     const mockStatus = { optedIn: true, participantCount: 42 };
 
     beforeEach(() => {
-      optInToCampaignMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -19237,7 +19090,7 @@ describe('RewardsController', () => {
 
     it('returns { optedIn: false, participantCount: 0 } when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: optInToCampaignMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -19248,7 +19101,7 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual({ optedIn: false, participantCount: 0 });
-      expect(optInToCampaignMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:optInToCampaign',
         expect.anything(),
         expect.anything(),
@@ -19257,18 +19110,18 @@ describe('RewardsController', () => {
 
     it('calls data service and returns status on success', async () => {
       const ctrl = new RewardsController({
-        messenger: optInToCampaignMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+      mockMessenger.call.mockResolvedValue(mockStatus);
 
       const result = await ctrl.optInToCampaign(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      expect(optInToCampaignMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:optInToCampaign',
         mockSubscriptionId,
         mockCampaignId,
@@ -19278,11 +19131,11 @@ describe('RewardsController', () => {
 
     it('logs when opting in', async () => {
       const ctrl = new RewardsController({
-        messenger: optInToCampaignMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+      mockMessenger.call.mockResolvedValue(mockStatus);
       mockLogger.log.mockClear();
 
       await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
@@ -19296,7 +19149,7 @@ describe('RewardsController', () => {
     it('invalidates the participant status cache after a successful opt-in', async () => {
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
-        messenger: optInToCampaignMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           campaignParticipantStatus: {
@@ -19309,7 +19162,7 @@ describe('RewardsController', () => {
         },
       });
 
-      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+      mockMessenger.call.mockResolvedValue(mockStatus);
 
       expect(ctrl.state.campaignParticipantStatus[cacheKey]).toBeDefined();
       await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
@@ -19319,7 +19172,7 @@ describe('RewardsController', () => {
     it('clears cached portfolio for the campaign on opt-in', async () => {
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
-        messenger: optInToCampaignMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           ondoCampaignPortfolio: {
@@ -19341,7 +19194,7 @@ describe('RewardsController', () => {
         },
       });
 
-      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+      mockMessenger.call.mockResolvedValue(mockStatus);
 
       await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
 
@@ -19350,15 +19203,15 @@ describe('RewardsController', () => {
 
     it('publishes portfolioPositionInvalidated on first opt-in', async () => {
       const ctrl = new RewardsController({
-        messenger: optInToCampaignMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+      mockMessenger.call.mockResolvedValue(mockStatus);
 
       await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
 
-      expect(optInToCampaignMessenger.publish).toHaveBeenCalledWith(
+      expect(mockMessenger.publish).toHaveBeenCalledWith(
         'RewardsController:portfolioPositionInvalidated',
         {
           campaignId: mockCampaignId,
@@ -19369,13 +19222,13 @@ describe('RewardsController', () => {
   });
 
   describe('getCampaignParticipantStatus', () => {
-    let campaignParticipantMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSubscriptionId = 'sub123';
     const mockCampaignId = 'campaign-456';
     const mockStatus = { optedIn: true, participantCount: 42 };
 
     beforeEach(() => {
-      campaignParticipantMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -19390,7 +19243,7 @@ describe('RewardsController', () => {
 
     it('returns { optedIn: false, participantCount: 0 } when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: campaignParticipantMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -19401,23 +19254,23 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual({ optedIn: false, participantCount: 0 });
-      expect(campaignParticipantMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches status from API and caches result', async () => {
       const ctrl = new RewardsController({
-        messenger: campaignParticipantMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      campaignParticipantMessenger.call.mockResolvedValue(mockStatus);
+      mockMessenger.call.mockResolvedValue(mockStatus);
 
       const result = await ctrl.getCampaignParticipantStatus(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      expect(campaignParticipantMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getCampaignParticipantStatus',
         mockSubscriptionId,
         mockCampaignId,
@@ -19436,7 +19289,7 @@ describe('RewardsController', () => {
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
 
       const ctrl = new RewardsController({
-        messenger: campaignParticipantMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           campaignParticipantStatus: {
@@ -19455,7 +19308,7 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual({ optedIn: false, participantCount: 10 });
-      expect(campaignParticipantMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches fresh status when cache is stale', async () => {
@@ -19463,7 +19316,7 @@ describe('RewardsController', () => {
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
 
       const ctrl = new RewardsController({
-        messenger: campaignParticipantMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           campaignParticipantStatus: {
@@ -19476,7 +19329,7 @@ describe('RewardsController', () => {
         },
       });
 
-      campaignParticipantMessenger.call.mockResolvedValue(mockStatus);
+      mockMessenger.call.mockResolvedValue(mockStatus);
 
       const result = await ctrl.getCampaignParticipantStatus(
         mockCampaignId,
@@ -19484,7 +19337,7 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual(mockStatus);
-      expect(campaignParticipantMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getCampaignParticipantStatus',
         mockSubscriptionId,
         mockCampaignId,
@@ -19493,11 +19346,11 @@ describe('RewardsController', () => {
 
     it('logs when fetching fresh status', async () => {
       const ctrl = new RewardsController({
-        messenger: campaignParticipantMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      campaignParticipantMessenger.call.mockResolvedValue(mockStatus);
+      mockMessenger.call.mockResolvedValue(mockStatus);
       mockLogger.log.mockClear();
 
       await ctrl.getCampaignParticipantStatus(
@@ -19512,7 +19365,7 @@ describe('RewardsController', () => {
   });
 
   describe('getOndoCampaignLeaderboard', () => {
-    let ondoLeaderboardMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-ondo-123';
     const mockLeaderboard = {
       campaignId: mockCampaignId,
@@ -19523,7 +19376,7 @@ describe('RewardsController', () => {
     };
 
     beforeEach(() => {
-      ondoLeaderboardMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -19538,7 +19391,7 @@ describe('RewardsController', () => {
 
     it('returns empty leaderboard when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: ondoLeaderboardMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -19551,20 +19404,20 @@ describe('RewardsController', () => {
         computedAt: '',
         tiers: {},
       });
-      expect(ondoLeaderboardMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches leaderboard from API and caches result', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoLeaderboardMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoLeaderboardMessenger.call.mockResolvedValue(mockLeaderboard);
+      mockMessenger.call.mockResolvedValue(mockLeaderboard);
 
       const result = await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
 
-      expect(ondoLeaderboardMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getOndoCampaignLeaderboard',
         mockCampaignId,
       );
@@ -19575,7 +19428,7 @@ describe('RewardsController', () => {
     it('returns cached leaderboard when cache is fresh', async () => {
       const recentTime = Date.now() - 60000;
       const ctrl = new RewardsController({
-        messenger: ondoLeaderboardMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           ondoCampaignLeaderboard: {
@@ -19590,16 +19443,16 @@ describe('RewardsController', () => {
       const result = await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
 
       expect(result).toEqual(mockLeaderboard);
-      expect(ondoLeaderboardMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('logs when fetching fresh leaderboard', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoLeaderboardMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoLeaderboardMessenger.call.mockResolvedValue(mockLeaderboard);
+      mockMessenger.call.mockResolvedValue(mockLeaderboard);
       mockLogger.log.mockClear();
 
       await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
@@ -19611,7 +19464,7 @@ describe('RewardsController', () => {
   });
 
   describe('getOndoCampaignLeaderboardPosition', () => {
-    let ondoLeaderboardPositionMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-ondo-456';
     const mockSubscriptionId = 'sub-789';
     const mockPosition = {
@@ -19644,7 +19497,7 @@ describe('RewardsController', () => {
     };
 
     beforeEach(() => {
-      ondoLeaderboardPositionMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -19659,7 +19512,7 @@ describe('RewardsController', () => {
 
     it('returns null when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: ondoLeaderboardPositionMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -19671,23 +19524,23 @@ describe('RewardsController', () => {
         );
 
       expect(result).toBeNull();
-      expect(ondoLeaderboardPositionMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches position from API and caches result', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoLeaderboardPositionMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoLeaderboardPositionMessenger.call.mockResolvedValue(mockPosition);
+      mockMessenger.call.mockResolvedValue(mockPosition);
 
       const result = await ctrl.getOndoCampaignLeaderboardPosition(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      expect(ondoLeaderboardPositionMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getOndoCampaignLeaderboardPosition',
         mockCampaignId,
         mockSubscriptionId,
@@ -19703,7 +19556,7 @@ describe('RewardsController', () => {
       const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
-        messenger: ondoLeaderboardPositionMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           ondoCampaignLeaderboardPositions: {
@@ -19721,16 +19574,16 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual(mockPosition);
-      expect(ondoLeaderboardPositionMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('returns null and caches a not-found sentinel when API returns null (user not on leaderboard)', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoLeaderboardPositionMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoLeaderboardPositionMessenger.call.mockResolvedValue(null);
+      mockMessenger.call.mockResolvedValue(null);
 
       const result = await ctrl.getOndoCampaignLeaderboardPosition(
         mockCampaignId,
@@ -19750,7 +19603,7 @@ describe('RewardsController', () => {
     it('does not re-fetch when a fresh not-found sentinel is cached (TTL respected)', async () => {
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
-        messenger: ondoLeaderboardPositionMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           ondoCampaignLeaderboardPositions: {
@@ -19768,16 +19621,16 @@ describe('RewardsController', () => {
       );
 
       expect(result).toBeNull();
-      expect(ondoLeaderboardPositionMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('logs when fetching fresh position', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoLeaderboardPositionMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoLeaderboardPositionMessenger.call.mockResolvedValue(mockPosition);
+      mockMessenger.call.mockResolvedValue(mockPosition);
       mockLogger.log.mockClear();
 
       await ctrl.getOndoCampaignLeaderboardPosition(
@@ -19792,7 +19645,7 @@ describe('RewardsController', () => {
   });
 
   describe('getOndoCampaignPortfolioPosition', () => {
-    let ondoPortfolioMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-ondo-portfolio';
     const mockSubscriptionId = 'sub-portfolio-1';
     const mockPortfolio = {
@@ -19824,7 +19677,7 @@ describe('RewardsController', () => {
     };
 
     beforeEach(() => {
-      ondoPortfolioMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -19839,7 +19692,7 @@ describe('RewardsController', () => {
 
     it('returns null when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: ondoPortfolioMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -19850,23 +19703,23 @@ describe('RewardsController', () => {
       );
 
       expect(result).toBeNull();
-      expect(ondoPortfolioMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches portfolio from API and caches result', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoPortfolioMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoPortfolioMessenger.call.mockResolvedValue(mockPortfolio);
+      mockMessenger.call.mockResolvedValue(mockPortfolio);
 
       const result = await ctrl.getOndoCampaignPortfolioPosition(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      expect(ondoPortfolioMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getOndoCampaignPortfolioPosition',
         mockCampaignId,
         mockSubscriptionId,
@@ -19880,7 +19733,7 @@ describe('RewardsController', () => {
       const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
-        messenger: ondoPortfolioMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           ondoCampaignPortfolio: {
@@ -19898,16 +19751,16 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual(mockPortfolio);
-      expect(ondoPortfolioMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('returns null when API returns null and does not cache', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoPortfolioMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoPortfolioMessenger.call.mockResolvedValue(null);
+      mockMessenger.call.mockResolvedValue(null);
 
       const result = await ctrl.getOndoCampaignPortfolioPosition(
         mockCampaignId,
@@ -19921,11 +19774,11 @@ describe('RewardsController', () => {
 
     it('logs when fetching fresh portfolio', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoPortfolioMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoPortfolioMessenger.call.mockResolvedValue(mockPortfolio);
+      mockMessenger.call.mockResolvedValue(mockPortfolio);
       mockLogger.log.mockClear();
 
       await ctrl.getOndoCampaignPortfolioPosition(
@@ -19995,7 +19848,7 @@ describe('RewardsController', () => {
   });
 
   describe('getOndoCampaignActivity', () => {
-    let ondoActivityMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-ondo-activity';
     const mockSubscriptionId = 'sub-activity-1';
     const mockActivity = {
@@ -20018,7 +19871,7 @@ describe('RewardsController', () => {
     };
 
     beforeEach(() => {
-      ondoActivityMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -20033,7 +19886,7 @@ describe('RewardsController', () => {
 
     it('returns empty result when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: ondoActivityMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -20045,16 +19898,16 @@ describe('RewardsController', () => {
       });
 
       expect(result).toEqual({ has_more: false, cursor: null, results: [] });
-      expect(ondoActivityMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches activity from API and caches result', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoActivityMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoActivityMessenger.call.mockResolvedValue(mockActivity as any);
+      mockMessenger.call.mockResolvedValue(mockActivity as any);
 
       const result = await ctrl.getOndoCampaignActivity({
         campaignId: mockCampaignId,
@@ -20069,11 +19922,11 @@ describe('RewardsController', () => {
 
     it('fetches directly without cache when cursor is provided', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoActivityMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoActivityMessenger.call.mockResolvedValue(mockActivity as any);
+      mockMessenger.call.mockResolvedValue(mockActivity as any);
 
       await ctrl.getOndoCampaignActivity({
         campaignId: mockCampaignId,
@@ -20081,7 +19934,7 @@ describe('RewardsController', () => {
         cursor: 'page-2',
       });
 
-      expect(ondoActivityMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getOndoCampaignActivity',
         mockCampaignId,
         mockSubscriptionId,
@@ -20093,7 +19946,7 @@ describe('RewardsController', () => {
       const recentTime = Date.now() - 30000;
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
-        messenger: ondoActivityMessenger,
+        messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           ondoCampaignActivity: {
@@ -20112,7 +19965,7 @@ describe('RewardsController', () => {
       });
 
       expect(result).toEqual(mockActivity);
-      expect(ondoActivityMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
   });
 
@@ -20155,12 +20008,12 @@ describe('RewardsController', () => {
   });
 
   describe('getOndoCampaignDeposits', () => {
-    let ondoDepositsMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-deposits-123';
     const mockDeposits = { totalUsdDeposited: '1250000.000000' };
 
     beforeEach(() => {
-      ondoDepositsMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -20175,7 +20028,7 @@ describe('RewardsController', () => {
 
     it('returns zero deposits when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: ondoDepositsMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -20184,20 +20037,20 @@ describe('RewardsController', () => {
         await disabledController.getOndoCampaignDeposits(mockCampaignId);
 
       expect(result).toEqual({ totalUsdDeposited: '0' });
-      expect(ondoDepositsMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches deposits from API and caches result', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoDepositsMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoDepositsMessenger.call.mockResolvedValue(mockDeposits);
+      mockMessenger.call.mockResolvedValue(mockDeposits);
 
       const result = await ctrl.getOndoCampaignDeposits(mockCampaignId);
 
-      expect(ondoDepositsMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getOndoCampaignDeposits',
         mockCampaignId,
       );
@@ -20217,19 +20070,19 @@ describe('RewardsController', () => {
         },
       };
       const ctrl = new RewardsController({
-        messenger: ondoDepositsMessenger,
+        messenger: mockMessenger,
         state,
       });
 
       const result = await ctrl.getOndoCampaignDeposits(mockCampaignId);
 
       expect(result).toEqual(mockDeposits);
-      expect(ondoDepositsMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
   });
 
   describe('getOndoCampaignParticipantOutcome', () => {
-    let ondoParticipantOutcomeMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-outcome-123';
     const mockSubscriptionId = 'sub-outcome-1';
     const mockOutcome = {
@@ -20241,7 +20094,7 @@ describe('RewardsController', () => {
     };
 
     beforeEach(() => {
-      ondoParticipantOutcomeMessenger = {
+      mockMessenger = {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
@@ -20256,7 +20109,7 @@ describe('RewardsController', () => {
 
     it('returns null when rewards feature flag is disabled', async () => {
       const disabledController = new RewardsController({
-        messenger: ondoParticipantOutcomeMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
       });
@@ -20267,23 +20120,23 @@ describe('RewardsController', () => {
       );
 
       expect(result).toBeNull();
-      expect(ondoParticipantOutcomeMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches outcome from API and caches result', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoParticipantOutcomeMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+      mockMessenger.call.mockResolvedValue(mockOutcome);
 
       const result = await ctrl.getOndoCampaignParticipantOutcome(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      expect(ondoParticipantOutcomeMessenger.call).toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getOndoCampaignParticipantOutcome',
         mockCampaignId,
         mockSubscriptionId,
@@ -20293,18 +20146,18 @@ describe('RewardsController', () => {
 
     it('returns cached outcome on second call within TTL', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoParticipantOutcomeMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+      mockMessenger.call.mockResolvedValue(mockOutcome);
 
       await ctrl.getOndoCampaignParticipantOutcome(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      ondoParticipantOutcomeMessenger.call.mockClear();
+      mockMessenger.call.mockClear();
 
       const result = await ctrl.getOndoCampaignParticipantOutcome(
         mockCampaignId,
@@ -20312,16 +20165,16 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual(mockOutcome);
-      expect(ondoParticipantOutcomeMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('returns null when API returns null and does not cache', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoParticipantOutcomeMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoParticipantOutcomeMessenger.call.mockResolvedValue(null);
+      mockMessenger.call.mockResolvedValue(null);
 
       const result = await ctrl.getOndoCampaignParticipantOutcome(
         mockCampaignId,
@@ -20331,25 +20184,23 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
 
       // A second call must re-fetch because null is not cached
-      ondoParticipantOutcomeMessenger.call.mockClear();
-      ondoParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockResolvedValue(mockOutcome);
       const second = await ctrl.getOndoCampaignParticipantOutcome(
         mockCampaignId,
         mockSubscriptionId,
       );
-      expect(ondoParticipantOutcomeMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
       expect(second).toEqual(mockOutcome);
     });
 
     it('returns null and logs on API error', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoParticipantOutcomeMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoParticipantOutcomeMessenger.call.mockRejectedValue(
-        new Error('API error'),
-      );
+      mockMessenger.call.mockRejectedValue(new Error('API error'));
       mockLogger.log.mockClear();
 
       const result = await ctrl.getOndoCampaignParticipantOutcome(
@@ -20366,11 +20217,11 @@ describe('RewardsController', () => {
 
     it('logs when fetching fresh outcome', async () => {
       const ctrl = new RewardsController({
-        messenger: ondoParticipantOutcomeMessenger,
+        messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      ondoParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+      mockMessenger.call.mockResolvedValue(mockOutcome);
       mockLogger.log.mockClear();
 
       await ctrl.getOndoCampaignParticipantOutcome(

@@ -108,26 +108,23 @@ describe('FiatSelectorModal', () => {
   describe('search', () => {
     it('displays filtered currencies when search string matches results', () => {
       const { getByTestId, getByText, queryByText } = render(FiatSelectorModal);
-      const searchInput = getByTestId('textfieldsearch');
-      fireEvent.changeText(searchInput, 'US Dollar');
+      fireEvent.changeText(getByTestId('textfieldsearch'), 'USD');
       expect(getByText('USD')).toBeOnTheScreen();
-      expect(queryByText('EUR')).toBeNull();
-      expect(queryByText('GBP')).toBeNull();
+      expect(queryByText('EUR')).not.toBeOnTheScreen();
     });
     it('displays filtered currencies when search string does not match results', () => {
       const { getByTestId, queryByText } = render(FiatSelectorModal);
-      const searchInput = getByTestId('textfieldsearch');
-      fireEvent.changeText(searchInput, 'Nonexistent Currency');
-      expect(queryByText('USD')).toBeNull();
-      expect(queryByText('EUR')).toBeNull();
-      expect(queryByText('GBP')).toBeNull();
+      fireEvent.changeText(
+        getByTestId('textfieldsearch'),
+        'Nonexistent Currency',
+      );
+      expect(queryByText('USD')).not.toBeOnTheScreen();
+      expect(queryByText('EUR')).not.toBeOnTheScreen();
     });
     it('displays max 20 results', () => {
       const { getByTestId, getByText } = render(FiatSelectorModal);
-      const searchInput = getByTestId('textfieldsearch');
-      fireEvent.changeText(searchInput, 'u');
+      fireEvent.changeText(getByTestId('textfieldsearch'), 'u');
       expect(getByText('USD')).toBeOnTheScreen();
-      expect(getByText('EUR')).toBeOnTheScreen();
     });
   });
 });

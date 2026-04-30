@@ -69,7 +69,7 @@ describe('TransactionHeader', () => {
       true,
       false,
     );
-    expect(wrapper.toJSON()).not.toBeNull();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it.each([

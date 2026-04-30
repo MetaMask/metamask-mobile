@@ -1,9 +1,5 @@
 /* eslint-disable import-x/prefer-default-export */
 import type { SupportedCurve } from '@metamask/key-tree';
-import { isTest } from '../util/test/utils';
-
-export const CAN_INSTALL_THIRD_PARTY_SNAPS =
-  process.env.METAMASK_BUILD_TYPE === 'flask' || isTest;
 
 export type SnapsDerivationPathType = ['m', ...string[]];
 

@@ -13,6 +13,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectSourceToken: jest.fn(),
   selectDestToken: jest.fn(),
   selectSourceAmount: jest.fn(),
+  selectDestTokenWarning: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
@@ -49,6 +50,10 @@ describe('useUnifiedSwapBridgeContext', () => {
     '../../../../../core/redux/slices/bridge',
   ).selectSourceAmount;
 
+  const mockSelectDestTokenWarning = jest.requireMock(
+    '../../../../../core/redux/slices/bridge',
+  ).selectDestTokenWarning;
+
   const mockSelectCurrencyRates = jest.requireMock(
     '../../../../../selectors/currencyRateController',
   ).selectCurrencyRates;
@@ -69,6 +74,7 @@ describe('useUnifiedSwapBridgeContext', () => {
     jest.clearAllMocks();
     // Set default mock values
     mockSelectSourceAmount.mockReturnValue(undefined);
+    mockSelectDestTokenWarning.mockReturnValue(undefined);
     mockSelectCurrencyRates.mockReturnValue({});
     mockSelectTokenMarketData.mockReturnValue({});
     mockSelectNetworkConfigurations.mockReturnValue({});

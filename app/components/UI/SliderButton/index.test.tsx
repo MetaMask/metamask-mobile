@@ -10,6 +10,6 @@ describe('SliderButton', () => {
         completeText="Complete Text"
       />,
     );
-    expect(screen.toJSON()).not.toBeNull();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
+import { AccountBalanceProps } from './AccountBalance.types';
 import AccountBalance from './AccountBalance';
 import {
   ACCOUNT_BALANCE_TEST_ID,
@@ -9,7 +10,7 @@ import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 
 describe('AccountBalance', () => {
   it('should render AccountBalance', () => {
-    render(
+    const wrapper = shallow<AccountBalanceProps>(
       <AccountBalance
         accountBalance={0}
         accountNativeCurrency={''}
@@ -21,6 +22,9 @@ describe('AccountBalance', () => {
         avatarAccountType={AvatarAccountType.Maskicon}
       />,
     );
-    expect(screen.getByTestId('account-balance')).toBeTruthy();
+    const singleSelectComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === 'account-balance',
+    );
+    expect(singleSelectComponent.exists()).toBe(true);
   });
 });

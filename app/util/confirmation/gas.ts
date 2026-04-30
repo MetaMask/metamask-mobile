@@ -40,11 +40,6 @@ interface ReplacementGasFeeParamsInput {
   } | null;
 }
 
-export type ReplacementGasFeeValues =
-  | GasPriceValue
-  | FeeMarketEIP1559Values
-  | undefined;
-
 /**
  * Extracts the medium-level gas fee estimate from various possible shapes of gas fee estimates.
  */
@@ -192,7 +187,7 @@ export function gasEstimateGreaterThanGasUsedPlusTenPercent(
  */
 export function normalizeReplacementGasFeeParams(
   replacementParams?: ReplacementGasFeeParamsInput | null,
-): ReplacementGasFeeValues {
+): GasPriceValue | FeeMarketEIP1559Values | undefined {
   if (replacementParams?.legacyGasFee?.gasPrice) {
     return {
       gasPrice: replacementParams.legacyGasFee.gasPrice,
@@ -232,10 +227,10 @@ export interface PreviousGasParams {
  * @returns Gas values safe for replacement, or the input unchanged when previousGas is absent.
  */
 export function getGasValuesForReplacement(
-  gasValues: ReplacementGasFeeValues,
+  gasValues: GasPriceValue | FeeMarketEIP1559Values | undefined,
   previousGas: PreviousGasParams | undefined | null,
   rate: number,
-): ReplacementGasFeeValues {
+): GasPriceValue | FeeMarketEIP1559Values | undefined {
   if (!previousGas || !gasValues) {
     return gasValues;
   }

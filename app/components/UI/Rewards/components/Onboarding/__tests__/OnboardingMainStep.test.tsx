@@ -600,10 +600,7 @@ describe('OnboardingMainStep', () => {
       renderWithProviders(<OnboardingMainStep />);
 
       const nextButton = screen.getByTestId('next-button');
-      expect(
-        nextButton.props.accessibilityState?.disabled ??
-          nextButton.props.disabled,
-      ).toBe(true);
+      expect(nextButton.props.disabled).toBe(true);
     });
 
     it('disables next button when referral has unknown error', () => {
@@ -613,10 +610,7 @@ describe('OnboardingMainStep', () => {
       renderWithProviders(<OnboardingMainStep />);
 
       const nextButton = screen.getByTestId('next-button');
-      expect(
-        nextButton.props.accessibilityState?.disabled ??
-          nextButton.props.disabled,
-      ).toBe(true);
+      expect(nextButton.props.disabled).toBe(true);
     });
   });
 

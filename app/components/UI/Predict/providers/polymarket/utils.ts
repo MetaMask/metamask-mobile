@@ -31,7 +31,6 @@ import {
 } from '../../utils/gameParser';
 import {
   isDrawCapableLeague,
-  isMoneylineLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
 import type {
@@ -628,9 +627,8 @@ export function buildOutcomeGroups(
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
-const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
-  isMoneylineLikeMarketType(market.sportsMarketType);
-
+export const isMoneylineMarket = (market: PolymarketApiMarket): boolean =>
+  market.sportsMarketType?.toLowerCase() === 'moneyline';
 /**
  * Sort markets within a sports market type group by liquidity + volume (descending)
  */
@@ -650,7 +648,7 @@ const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
     return market.groupItemTitle.replace(/-(?=\d)/, '');
   }
 
-  if (isMoneylineLikeMarket(market)) {
+  if (isMoneylineMarket(market)) {
     return market.groupItemTitle || market.question;
   }
   return market.groupItemTitle;
@@ -752,11 +750,7 @@ const sortOutcomeTokens = (
 const getNegRiskYesTokenTitle = (
   market: PolymarketApiMarket,
 ): string | undefined => {
-  if (
-    !market.negRisk ||
-    !isMoneylineLikeMarket(market) ||
-    !market.groupItemTitle
-  ) {
+  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
     return undefined;
   }
   return market.groupItemTitle.toLowerCase().startsWith('draw')
@@ -768,11 +762,7 @@ const resolveNegRiskShortTitles = (
   market: PolymarketApiMarket,
   game: PredictMarketGame,
 ): { yesShort?: string; noShort?: string } => {
-  if (
-    !market.negRisk ||
-    !isMoneylineLikeMarket(market) ||
-    !market.groupItemTitle
-  ) {
+  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
     return {};
   }
 
@@ -993,7 +983,7 @@ export const parsePolymarketEvents = (
   const parsedMarkets: PredictMarket[] = events.map(
     (event: PolymarketApiEvent) => {
       const tags = Array.isArray(event.tags) ? event.tags : [];
-      const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
+      const eventLeague = getEventLeague(event);
 
       const predictTeamLookup: TeamLookup | undefined = teamLookup
         ? (league, abbr) => {
@@ -1328,46 +1318,6 @@ export const getMarketDetailsFromGammaApi = async ({
 
   const responseData = await response.json();
   return responseData as PolymarketApiEvent;
-};
-
-export const fetchChildEventsFromGammaApi = async ({
-  parentEventId,
-}: {
-  parentEventId: string | number;
-}): Promise<PolymarketApiEvent[]> => {
-  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(
-    `${GAMMA_API_ENDPOINT}/events?parent_event_id=${parentEventId}&include_children=true`,
-  );
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch child events');
-  }
-
-  const responseData = await response.json();
-  return responseData as PolymarketApiEvent[];
-};
-
-export const mergeChildEventsIntoParent = (
-  events: PolymarketApiEvent[],
-): PolymarketApiEvent => {
-  if (events.length === 0) {
-    throw new Error('No events to merge');
-  }
-
-  const parent = events.find((e) => !e.parentEventId) ?? events[0];
-  const children = events.filter((e) => e !== parent);
-
-  if (children.length === 0) {
-    return parent;
-  }
-
-  const childMarkets = children.flatMap((child) => child.markets ?? []);
-
-  return {
-    ...parent,
-    markets: [...(parent.markets ?? []), ...childMarkets],
-  };
 };
 
 export const getPredictPositionStatus = ({

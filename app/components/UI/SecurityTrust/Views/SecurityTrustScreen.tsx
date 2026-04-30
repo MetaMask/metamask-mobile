@@ -16,7 +16,6 @@ import {
   IconName,
   IconSize,
   IconColor,
-  IconAlert,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
@@ -120,7 +119,8 @@ const SecurityTrustScreen: React.FC = () => {
     label: resultLabel,
     textColor: resultTextColor,
     subtitle: resultSubtitle,
-    iconAlertSeverity,
+    icon: tagIcon,
+    iconColor: tagIconColor,
   } = getResultTypeConfig(securityData?.resultType);
   const financialStats = securityData?.financialStats ?? null;
   const metadata = securityData?.metadata ?? null;
@@ -281,10 +281,11 @@ const SecurityTrustScreen: React.FC = () => {
                   twClassName="w-full"
                   gap={3}
                 >
-                  {iconAlertSeverity && (
-                    <IconAlert
-                      severity={iconAlertSeverity}
+                  {tagIcon && tagIconColor && (
+                    <Icon
+                      name={tagIcon}
                       size={IconSize.Md}
+                      color={tagIconColor}
                     />
                   )}
                   <Text

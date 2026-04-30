@@ -1,7 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow, import-x/no-extraneous-dependencies
 import { WebSocket } from 'ws';
-// eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock from 'nock';
 import LocalWebSocketServer from './server.ts';
 import { ServerStatus } from '../framework/types.ts';
 
@@ -27,9 +25,6 @@ describe('LocalWebSocketServer', () => {
   const clients: WebSocket[] = [];
 
   beforeEach(() => {
-    // Guard against nock.disableNetConnect() leaking from other test suites
-    // that share the same Jest worker process.
-    nock.enableNetConnect('localhost');
     testPort = 50000 + Math.floor(Math.random() * 10000);
     jest.clearAllMocks();
   });

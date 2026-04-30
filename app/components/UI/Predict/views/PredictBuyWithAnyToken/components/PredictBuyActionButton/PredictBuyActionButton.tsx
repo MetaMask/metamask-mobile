@@ -25,7 +25,6 @@ interface PredictBuyActionButtonProps {
   outcomeTokenTitle: string;
   sharePrice: number;
   isSheetMode?: boolean;
-  isRetry?: boolean;
   testID?: string;
 }
 
@@ -37,7 +36,6 @@ const PredictBuyActionButton = ({
   outcomeTokenTitle,
   sharePrice,
   isSheetMode = false,
-  isRetry = false,
   testID,
 }: PredictBuyActionButtonProps) => {
   const tw = useTailwind();
@@ -80,11 +78,9 @@ const PredictBuyActionButton = ({
         variant={TextVariant.BodyMd}
         style={tw.style('text-white font-medium')}
       >
-        {isRetry
-          ? strings('predict.order.retry')
-          : isSheetMode
-            ? strings('predict.order.confirm')
-            : `${outcomeTokenTitle} · ${formatCents(sharePrice)}`}
+        {isSheetMode
+          ? strings('predict.order.confirm')
+          : `${outcomeTokenTitle} · ${formatCents(sharePrice)}`}
       </Text>
     </ButtonHero>
   );

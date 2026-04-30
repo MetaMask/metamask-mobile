@@ -127,7 +127,6 @@ function buildCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
     excludedRegions: [],
     details: null,
     featured: true,
-    showUpcomingDate: false,
     ...overrides,
   };
 }
@@ -186,8 +185,8 @@ describe('OndoCampaignCTA', () => {
       expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
-    it('renders nothing when campaign is complete and user is not opted in', () => {
-      const { queryByTestId } = render(
+    it('renders "Entries closed" button when campaign is complete', () => {
+      const { getByTestId, getByText } = render(
         <OndoCampaignCTA
           campaign={buildCampaign({
             startDate: '2024-01-01T00:00:00.000Z',
@@ -198,7 +197,29 @@ describe('OndoCampaignCTA', () => {
         />,
       );
 
-      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
+      expect(getByText('Entries closed')).toBeOnTheScreen();
+    });
+
+    it('shows the entries-closed toast when the button is pressed on a complete campaign', () => {
+      const { getByTestId } = render(
+        <OndoCampaignCTA
+          campaign={buildCampaign({
+            startDate: '2024-01-01T00:00:00.000Z',
+            endDate: '2025-01-01T00:00:00.000Z',
+          })}
+          participantStatus={notOptedIn}
+          {...defaultProps}
+        />,
+      );
+
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+      expect(mockEntriesClosed).toHaveBeenCalledWith(
+        'Entries closed',
+        'You missed the opt-in window. Check back for more campaigns in the future.',
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -521,29 +521,6 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
-    it('closes transport when opening Ethereum app times out', async () => {
-      jest.useFakeTimers();
-      jest.mocked(connectLedgerHardware).mockResolvedValue('BOLOS');
-      const { openEthereumAppOnLedger } = jest.requireMock(
-        '../../Ledger/Ledger',
-      ) as { openEthereumAppOnLedger: jest.Mock };
-      openEthereumAppOnLedger.mockImplementationOnce(
-        // eslint-disable-next-line no-empty-function
-        () => new Promise(() => {}),
-      );
-
-      const resultPromise = adapter.ensureDeviceReady('device-123');
-      await jest.advanceTimersByTimeAsync(11000);
-
-      await expect(resultPromise).resolves.toBe(false);
-      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
-        'device-123',
-      );
-      expect(adapter.isConnected()).toBe(false);
-
-      jest.useRealTimers();
-    });
-
     it('returns false when wrong app open and closeRunningAppOnLedger rejects', async () => {
       jest.mocked(connectLedgerHardware).mockResolvedValue('Bitcoin');
       const { closeRunningAppOnLedger } = jest.requireMock(
@@ -554,29 +531,6 @@ describe('LedgerBluetoothAdapter', () => {
       const result = await adapter.ensureDeviceReady('device-123');
 
       expect(result).toBe(false);
-    });
-
-    it('closes transport when closing the current app times out', async () => {
-      jest.useFakeTimers();
-      jest.mocked(connectLedgerHardware).mockResolvedValue('Bitcoin');
-      const { closeRunningAppOnLedger } = jest.requireMock(
-        '../../Ledger/Ledger',
-      ) as { closeRunningAppOnLedger: jest.Mock };
-      closeRunningAppOnLedger.mockImplementationOnce(
-        // eslint-disable-next-line no-empty-function
-        () => new Promise(() => {}),
-      );
-
-      const resultPromise = adapter.ensureDeviceReady('device-123');
-      await jest.advanceTimersByTimeAsync(11000);
-
-      await expect(resultPromise).resolves.toBe(false);
-      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
-        'device-123',
-      );
-      expect(adapter.isConnected()).toBe(false);
-
-      jest.useRealTimers();
     });
 
     it('emits DeviceLocked and throws when connectLedgerHardware throws device locked', async () => {
@@ -660,30 +614,6 @@ describe('LedgerBluetoothAdapter', () => {
         name: 'LedgerTimeoutError',
         message: 'Device unresponsive',
       });
-      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
-        'device-123',
-      );
-      expect(adapter.isConnected()).toBe(false);
-
-      jest.useRealTimers();
-    });
-
-    it('closes transport when device verification times out', async () => {
-      jest.useFakeTimers();
-      jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
-      mockGetAddress.mockImplementation(
-        // eslint-disable-next-line no-empty-function
-        () => new Promise(() => {}),
-      );
-
-      const resultPromise = adapter.ensureDeviceReady('device-123');
-      await jest.advanceTimersByTimeAsync(11000);
-
-      await expect(resultPromise).resolves.toBe(false);
-      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
-        'device-123',
-      );
-      expect(adapter.isConnected()).toBe(false);
 
       jest.useRealTimers();
     });

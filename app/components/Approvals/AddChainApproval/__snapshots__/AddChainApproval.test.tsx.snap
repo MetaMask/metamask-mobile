@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddChainApproval renders 1`] = `
+<ForwardRef
+  onClose={[Function]}
+  shouldNavigateBack={false}
+>
+  <NetworkVerificationInfo
+    customNetworkInformation={{}}
+  />
+</ForwardRef>
+`;
+
+exports[`AddChainApproval returns null if incorrect approval request type 1`] = `""`;
+
+exports[`AddChainApproval returns null if no approval request 1`] = `""`;

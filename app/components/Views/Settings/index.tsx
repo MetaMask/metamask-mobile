@@ -10,9 +10,8 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
-import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
@@ -106,7 +105,7 @@ const Settings = () => {
     navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
@@ -164,16 +163,14 @@ const Settings = () => {
           />
         )}
         {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+          ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
         }
-        {CAN_INSTALL_THIRD_PARTY_SNAPS && (
-          <SettingsDrawer
-            title={strings('app_settings.snaps.title')}
-            description={strings('app_settings.snaps.description')}
-            onPress={onPressSnaps}
-            testID={SettingsViewSelectorsIDs.SNAPS}
-          />
-        )}
+        <SettingsDrawer
+          title={strings('app_settings.snaps.title')}
+          description={strings('app_settings.snaps.description')}
+          onPress={onPressSnaps}
+          testID={SettingsViewSelectorsIDs.SNAPS}
+        />
         {
           ///: END:ONLY_INCLUDE_IF
         }

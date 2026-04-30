@@ -33,14 +33,9 @@ export function useUpdateTokenAmount() {
   } = (transactionMeta && getTokenTransferData(transactionMeta)) ?? {};
 
   const { decimals } =
-    useSelector((state: RootState) => {
-      if (!to) return { decimals: undefined };
-      return selectSingleTokenByAddressAndChainId(
-        state,
-        to as Hex,
-        chainId as Hex,
-      );
-    }) ?? {};
+    useSelector((state: RootState) =>
+      selectSingleTokenByAddressAndChainId(state, to as Hex, chainId as Hex),
+    ) ?? {};
 
   const amountRaw = useMemo(() => {
     const transactionData = parseStandardTokenTransactionData(data);

@@ -23,6 +23,10 @@ type DeepPartial<BaseType> = {
 jest.mock('react-native-inappbrowser-reborn');
 jest.mocked(InAppBrowser.isAvailable).mockResolvedValue(true);
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+}));
+
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -51,7 +55,7 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-const mockCallbackBaseDeeplink = 'test://test-callback-base-deeplink/';
+const testCallbackBaseDeeplink = 'test://test-callback-base-deeplink/';
 
 jest.mock('../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
@@ -61,9 +65,7 @@ jest.mock('../sdk', () => ({
       getSellOrderFromCallback: jest.fn(),
     }),
   },
-  get callbackBaseDeeplink() {
-    return mockCallbackBaseDeeplink;
-  },
+  callbackBaseDeeplink: testCallbackBaseDeeplink,
 }));
 
 const defaultState = merge({}, initialRootState, {
@@ -95,7 +97,7 @@ describe('useInAppBrowser', () => {
     };
   });
 
-  it('returns render in app browser function', () => {
+  it('returns render in app browser function', async () => {
     const { result } = renderHookWithProvider(() => useInAppBrowser(), {
       state: defaultState,
     });
@@ -117,7 +119,7 @@ describe('useInAppBrowser', () => {
       const testFiatSymbol = 'TEST';
       await result.current(buyAction, testProvider, testAmount, testFiatSymbol);
       expect(buyAction.createWidget).toHaveBeenCalledWith(
-        `${mockCallbackBaseDeeplink}on-ramp${testProvider.id}`,
+        `${testCallbackBaseDeeplink}on-ramp${testProvider.id}`,
       );
     });
 
@@ -262,8 +264,11 @@ describe('useInAppBrowser', () => {
     });
 
     it('calls Linking.openURL if device is android', async () => {
-      const Device = jest.requireActual('../../../../../util/device').default;
-      const spy = jest.spyOn(Device, 'isAndroid').mockReturnValue(true);
+      // mock Platform.OS to be android
+      jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+        ...jest.requireActual('react-native/Libraries/Utilities/Platform'),
+        OS: 'android',
+      }));
 
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
         state: defaultState,
@@ -271,7 +276,6 @@ describe('useInAppBrowser', () => {
 
       await result.current(buyAction, testProvider);
       expect(Linking.openURL).toHaveBeenCalledWith('test-url');
-      spy.mockRestore();
     });
 
     it('calls Linking.openURL if InAppBrowser.isAvailable is false', async () => {

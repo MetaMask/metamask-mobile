@@ -8,19 +8,17 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { mockTheme } from '../../../../../../../util/theme';
 
 describe('ChartTimespanButtonGroup', () => {
-  it('renders timespan buttons', () => {
+  it('render matches snapshot', () => {
     const props: ChartTimespanButtonGroupProps = {
       buttons: CHART_BUTTONS,
       onPress: noop,
     };
 
-    const { getByText } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <ChartTimespanButtonGroup {...props} />,
     );
 
-    expect(
-      getByText(strings('stake.interactive_chart.timespan_buttons.1M')),
-    ).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('updates active timespan button onPress', async () => {

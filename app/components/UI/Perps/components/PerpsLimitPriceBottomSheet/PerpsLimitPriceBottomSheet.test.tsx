@@ -3,6 +3,10 @@ import React from 'react';
 import PerpsLimitPriceBottomSheet from './PerpsLimitPriceBottomSheet';
 
 // Mock dependencies - only what's absolutely necessary
+jest.mock('react-native-reanimated', () =>
+  jest.requireActual('react-native-reanimated/mock'),
+);
+
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',

@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ModalNavbarTitle should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flex": 1,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "fontFamily": "Geist-Regular",
+        "fontSize": 18,
+      }
+    }
+  >
+    Test
+  </Text>
+</View>
+`;

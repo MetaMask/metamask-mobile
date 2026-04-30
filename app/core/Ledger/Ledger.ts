@@ -20,16 +20,6 @@ import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { isEthAppNotOpenError } from './ledgerErrors';
 
-const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
-  if (!abortSignal?.aborted) {
-    return;
-  }
-
-  const error = new Error('Ledger operation aborted');
-  error.name = 'LedgerOperationAbortedError';
-  throw error;
-};
-
 /**
  * Perform an operation with the Ledger keyring.
  *
@@ -68,23 +58,16 @@ export const withLedgerKeyring = async <CallbackResult = void>(
 export const connectLedgerHardware = async (
   transport: BleTransport,
   deviceId: string,
-  abortSignal?: AbortSignal,
 ): Promise<string> => {
-  throwIfLedgerOperationAborted(abortSignal);
-
-  const bridge = await withLedgerKeyring(async ({ keyring }) => {
+  const appAndVersion = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setHdPath(LEDGER_LIVE_PATH);
     keyring.setDeviceId(deviceId);
 
-    const ledgerBridge = keyring.bridge as LedgerMobileBridge;
-    await ledgerBridge.updateTransportMethod(transport);
-    return ledgerBridge;
+    const bridge = keyring.bridge as LedgerMobileBridge;
+    await bridge.updateTransportMethod(transport);
+    return await bridge.getAppNameAndVersion();
   });
 
-  // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
-  // flows are serialized at the adapter/provider layer.
-  throwIfLedgerOperationAborted(abortSignal);
-  const appAndVersion = await bridge.getAppNameAndVersion();
   return appAndVersion.appName;
 };
 
@@ -92,20 +75,20 @@ export const connectLedgerHardware = async (
  * Automatically opens the Ethereum app on the Ledger device.
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
-  const bridge = await withLedgerKeyring(
-    async ({ keyring }) => keyring.bridge as LedgerMobileBridge,
-  );
-  await bridge.openEthApp();
+  await withLedgerKeyring(async ({ keyring }) => {
+    const bridge = keyring.bridge as LedgerMobileBridge;
+    await bridge.openEthApp();
+  });
 };
 
 /**
  * Automatically closes the current app on the Ledger device.
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
-  const bridge = await withLedgerKeyring(
-    async ({ keyring }) => keyring.bridge as LedgerMobileBridge,
-  );
-  await bridge.closeApps();
+  await withLedgerKeyring(async ({ keyring }) => {
+    const bridge = keyring.bridge as LedgerMobileBridge;
+    await bridge.closeApps();
+  });
 };
 
 /**

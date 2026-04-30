@@ -755,7 +755,7 @@ describe('FeatureFlagOverride', () => {
       const versionSwitch = switches.find(
         (switchElement) => switchElement.props.value === true,
       );
-      expect(versionSwitch).toHaveProp('disabled', true);
+      expect(versionSwitch?.props.disabled).toBe(true);
     });
 
     it('handles toggle for boolean with minimumVersion flag', () => {
@@ -904,7 +904,7 @@ describe('FeatureFlagOverride', () => {
       );
 
       const switches = screen.getAllByRole('switch');
-      expect(switches[0]).toBeEnabled();
+      expect(switches[0].props.disabled).toBe(false);
     });
   });
 

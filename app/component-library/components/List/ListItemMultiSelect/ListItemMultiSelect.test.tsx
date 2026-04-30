@@ -35,7 +35,7 @@ describe('ListItemMultiSelect', () => {
 
     const component = getByTestId('list-item-multi-select');
     expect(component).toBeOnTheScreen();
-    expect(component).toBeDisabled();
+    expect(component.props.disabled).toBe(true);
   });
 
   it('calls onPress when pressed', () => {
@@ -69,7 +69,7 @@ describe('ListItemMultiSelect', () => {
 
     const component = getByTestId('list-item-multi-select');
     expect(component).toBeOnTheScreen();
-    expect(component).toBeDisabled();
+    expect(component.props.disabled).toBe(true);
   });
 
   it('renders with selected state', () => {
@@ -206,6 +206,6 @@ describe('ListItemMultiSelect', () => {
 
     const component = getByTestId('list-item-multi-select');
     expect(component).toBeOnTheScreen();
-    expect(component).toBeDisabled();
+    expect(component.props.disabled).toBe(true);
   });
 });

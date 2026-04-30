@@ -213,32 +213,6 @@ describe('GameCache', () => {
       expect(result.game?.turn).toBe('DEN');
     });
 
-    it('normalizes cached scores for home-first leagues', () => {
-      const cache = GameCache.getInstance();
-      const update = createMockGameUpdate({
-        gameId: 'game-123',
-        score: '2-1',
-        status: 'ended',
-        period: 'FT',
-      });
-      const market = createMockMarketWithGame();
-
-      if (!market.game) {
-        throw new Error('Expected market.game to exist');
-      }
-
-      cache.updateGame('game-123', update);
-      const result = cache.overlayOnMarket({
-        ...market,
-        game: {
-          ...market.game,
-          league: 'ucl',
-        },
-      });
-
-      expect(result.game?.score).toEqual({ away: 1, home: 2, raw: '2-1' });
-    });
-
     it('preserves non-overlaid game properties', () => {
       const cache = GameCache.getInstance();
       const update = createMockGameUpdate({ gameId: 'game-123' });

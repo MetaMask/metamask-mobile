@@ -73,7 +73,6 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
   excludedRegions: [],
   details: null,
   featured: true,
-  showUpcomingDate: false,
   ...overrides,
 });
 
@@ -162,14 +161,14 @@ describe('CampaignTile', () => {
       );
     });
 
-    it('renders date label for upcoming campaign when showUpcomingDate is true', () => {
+    it('renders date label for upcoming campaign', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
         statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });
-      const campaign = createTestCampaign({ showUpcomingDate: true });
+      const campaign = createTestCampaign();
 
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
 
@@ -186,64 +185,6 @@ describe('CampaignTile', () => {
         dateLabelIcon: 'Confirmation',
       });
       const campaign = createTestCampaign();
-
-      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
-
-      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
-        'December 31',
-      );
-    });
-  });
-
-  describe('showUpcomingDate', () => {
-    it('hides date label and bullet for upcoming campaign when showUpcomingDate is false', () => {
-      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
-        status: 'upcoming',
-        statusLabel: 'Coming soon',
-        dateLabel: 'Starts June 1',
-        dateLabelIcon: 'Speed',
-      });
-      const campaign = createTestCampaign({ showUpcomingDate: false });
-
-      const { queryByTestId } = render(<CampaignTile campaign={campaign} />);
-
-      expect(queryByTestId('campaign-tile-date-info')).toBeNull();
-    });
-
-    it('shows date label for upcoming campaign when showUpcomingDate is true', () => {
-      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
-        status: 'upcoming',
-        statusLabel: 'Coming soon',
-        dateLabel: 'Starts June 1',
-        dateLabelIcon: 'Speed',
-      });
-      const campaign = createTestCampaign({ showUpcomingDate: true });
-
-      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
-
-      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
-        'Starts June 1',
-      );
-    });
-
-    it('always shows date label for active campaign regardless of showUpcomingDate', () => {
-      const campaign = createTestCampaign({ showUpcomingDate: false });
-
-      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
-
-      expect(getByTestId('campaign-tile-date-info')).toHaveTextContent(
-        'Ends Mar 15, 2:30 PM',
-      );
-    });
-
-    it('always shows date label for complete campaign regardless of showUpcomingDate', () => {
-      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
-        status: 'complete',
-        statusLabel: 'Complete',
-        dateLabel: 'December 31',
-        dateLabelIcon: 'Confirmation',
-      });
-      const campaign = createTestCampaign({ showUpcomingDate: false });
 
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
 

@@ -2,18 +2,10 @@ import React from 'react';
 import DiscoveryTab from './DiscoveryTab';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { processUrlForBrowser } from '../../../util/browser';
 import Device from '../../../util/device';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
-
-jest.mock(
-  'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
-  () => ({
-    __esModule: true,
-    default: jest.requireActual('react-native').View,
-  }),
-);
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -160,8 +152,6 @@ jest.mock('react-native', () => {
       OS: 'ios',
       select: jest.fn((options) => options.ios),
     },
-    KeyboardAvoidingView: ({ children }: { children: React.ReactNode }) =>
-      children,
   };
 });
 
@@ -393,7 +383,7 @@ describe('DiscoveryTab', () => {
   });
 
   describe('onSelect callback', () => {
-    it('hides URL bar and calls onSubmitEditing when selecting site from autocomplete', () => {
+    it('hides URL bar and calls onSubmitEditing when selecting site from autocomplete', async () => {
       const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
       mockProcessUrlForBrowser.mockReturnValue('https://processed-site.com');
 
@@ -506,7 +496,7 @@ describe('DiscoveryTab', () => {
       expect(BrowserBottomBarMock).not.toHaveBeenCalled();
     });
 
-    it('does not render BrowserBottomBar when URL bar is focused', async () => {
+    it('does not render BrowserBottomBar when URL bar is focused', () => {
       const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
       BrowserBottomBarMock.mockClear();
 
@@ -522,9 +512,7 @@ describe('DiscoveryTab', () => {
 
       // Focus the URL bar
       const urlBar = getByTestId('browser-url-bar');
-      await act(async () => {
-        fireEvent.press(urlBar);
-      });
+      fireEvent.press(urlBar);
 
       // After focusing, BrowserBottomBar should not be rendered
       // We verify this by checking that setIsUrlBarFocused was called

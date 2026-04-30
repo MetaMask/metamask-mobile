@@ -8,8 +8,7 @@ exports[`TransactionsView Basic Rendering renders correctly and matches snapshot
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -350,6 +349,6 @@ exports[`TransactionsView Basic Rendering renders correctly and matches snapshot
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

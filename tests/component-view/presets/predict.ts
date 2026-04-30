@@ -11,7 +11,6 @@ const defaultPredictControllerState = {
   pendingDeposits: {},
   claimablePositions: {},
   accountMeta: {},
-  activeBuyOrders: {},
   withdrawTransaction: null,
 };
 

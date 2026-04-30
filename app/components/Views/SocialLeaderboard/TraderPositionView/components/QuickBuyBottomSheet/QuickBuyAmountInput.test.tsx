@@ -25,6 +25,7 @@ const defaultProps = {
   estimatedReceiveAmount: undefined as string | undefined,
   isQuoteLoading: false,
   hasValidAmount: false,
+  hasError: false,
   hiddenInputRef: createHiddenInputRef(),
   onAmountAreaPress: jest.fn(),
   onAmountChange: jest.fn(),
@@ -101,12 +102,19 @@ describe('QuickBuyAmountInput', () => {
     expect(screen.getByText('1.23 BTC')).toBeOnTheScreen();
   });
 
-  it('falls back to "0 ${symbol}" when there is no receive amount and not loading', () => {
+  it('renders the no-quotes error when hasError is true without a receive amount', () => {
     renderWithProvider(
-      <QuickBuyAmountInput {...defaultProps} usdAmount="50" hasValidAmount />,
+      <QuickBuyAmountInput
+        {...defaultProps}
+        usdAmount="50"
+        hasValidAmount
+        hasError
+      />,
     );
 
-    expect(screen.getByText('0 BTC')).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.no_quotes'),
+    ).toBeOnTheScreen();
   });
 
   it('fires onAmountAreaPress when the amount area is tapped', () => {

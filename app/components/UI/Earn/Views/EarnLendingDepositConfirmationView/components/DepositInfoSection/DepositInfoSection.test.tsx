@@ -64,8 +64,8 @@ describe('DepositInfoSection', () => {
     jest.clearAllMocks();
   });
 
-  it('renders deposit info rows with network fee, APR, and protocol', () => {
-    const { getByText } = renderWithProvider(
+  it('renders correctly', () => {
+    const { toJSON, getByText } = renderWithProvider(
       <DepositInfoSection {...defaultProps} />,
       { state: mockInitialState },
     );
@@ -83,7 +83,9 @@ describe('DepositInfoSection', () => {
     ];
 
     expectedDefinedStrings.forEach((str) => {
-      expect(getByText(str)).toBeOnTheScreen();
+      expect(getByText(str)).toBeDefined();
     });
+
+    expect(toJSON()).toMatchSnapshot();
   });
 });

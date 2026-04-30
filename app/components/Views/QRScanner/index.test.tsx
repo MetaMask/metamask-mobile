@@ -111,12 +111,17 @@ jest.mock('eth-url-parser', () => ({
   }),
 }));
 
-jest.mock('react-native/Libraries/Alert/Alert', () => {
-  const alert = {
-    alert: jest.fn(),
-  };
-  return { __esModule: true, default: alert, ...alert };
-});
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeEventListener: jest.fn(),
+  canOpenURL: jest.fn().mockResolvedValue(true),
+  getInitialURL: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock('react-native/Libraries/Alert/Alert', () => ({
+  alert: jest.fn(),
+}));
 
 const { InteractionManager } = jest.requireActual('react-native');
 

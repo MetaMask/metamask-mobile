@@ -61,7 +61,7 @@ describe('PushNotificationToggle', () => {
     const switchElement = container.getByTestId(
       NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
     );
-    expect(switchElement).toBeEnabled();
+    expect(switchElement.props.disabled).toBe(false);
 
     // Act/Assert - Toggle Clicked
     fireEvent(switchElement, 'onChange', { nativeEvent: { value: true } });
@@ -81,7 +81,7 @@ describe('PushNotificationToggle', () => {
     const switchElement = container.getByTestId(
       NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
     );
-    expect(switchElement).toHaveProp('disabled', true);
+    expect(switchElement.props.disabled).toBe(true);
 
     // Act/Assert - Toggle Clicked
     fireEvent(switchElement, 'valueChange', true);

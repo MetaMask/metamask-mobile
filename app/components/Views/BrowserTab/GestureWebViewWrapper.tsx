@@ -8,11 +8,7 @@ import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
-import {
-  playImpact,
-  ImpactMoment,
-  type HapticImpactMoment,
-} from '../../../util/haptics';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -128,8 +124,11 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
     [isTabActive, isUrlBarFocused, firstUrlLoaded],
   );
 
-  const triggerHapticFeedback = useCallback((moment: HapticImpactMoment) => {
-    playImpact(moment);
+  /**
+   * Trigger haptic feedback
+   */
+  const triggerHapticFeedback = useCallback((style: ImpactFeedbackStyle) => {
+    impactAsync(style);
   }, []);
 
   // Note: resetSwipeAnimation and resetPullAnimation are inlined directly in worklets
@@ -150,7 +149,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             })
             .build(),
         );
-        triggerHapticFeedback(ImpactMoment.PageNavigation);
+        triggerHapticFeedback(ImpactFeedbackStyle.Medium);
       } else if (direction === 'forward' && forwardEnabled) {
         onGoForward();
         trackEvent(
@@ -161,7 +160,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             })
             .build(),
         );
-        triggerHapticFeedback(ImpactMoment.PageNavigation);
+        triggerHapticFeedback(ImpactFeedbackStyle.Medium);
       }
     },
     [
@@ -183,7 +182,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
 
     isRefreshing.value = true;
     onReload();
-    playImpact(ImpactMoment.PullToRefresh);
+    impactAsync(ImpactFeedbackStyle.Medium);
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_PULL_REFRESH)
@@ -241,14 +240,14 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             swipeProgress.value = 0;
             swipeStartTime.current = Date.now();
             stateManager.activate();
-            runOnJS(triggerHapticFeedback)(ImpactMoment.EdgeGestureEngage);
+            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
           } else if (isRightEdge) {
             gestureType.value = 'forward';
             swipeDirection.value = 'forward';
             swipeProgress.value = 0;
             swipeStartTime.current = Date.now();
             stateManager.activate();
-            runOnJS(triggerHapticFeedback)(ImpactMoment.EdgeGestureEngage);
+            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
           } else if (canPullToRefresh) {
             gestureType.value = 'pending_refresh';
             initialTouchY.value = y;
@@ -325,7 +324,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
 
             if (!pullHapticTriggered.value && event.translationY > 10) {
               pullHapticTriggered.value = true;
-              runOnJS(triggerHapticFeedback)(ImpactMoment.PullToRefreshEngage);
+              runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
             }
 
             pullProgress.value = Math.min(

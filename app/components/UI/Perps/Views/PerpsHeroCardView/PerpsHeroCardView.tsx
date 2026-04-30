@@ -16,12 +16,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
   ButtonSize,
-  IconName as DSIconName,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import {
   IconName,
   IconColor,
@@ -520,17 +519,16 @@ const PerpsHeroCardView: React.FC = () => {
       {/* Footer Button */}
       <View style={styles.footerButtonContainer}>
         <Button
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
-          isFullWidth
-          startIconName={isSharing ? undefined : DSIconName.Share}
+          width={ButtonWidthTypes.Full}
+          label={strings('perps.pnl_hero_card.share_button')}
+          startIconName={isSharing ? undefined : IconName.Share}
           onPress={handleShare}
-          isLoading={isSharing}
+          loading={isSharing}
           isDisabled={isSharing}
           testID={PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON}
-        >
-          {strings('perps.pnl_hero_card.share_button')}
-        </Button>
+        />
       </View>
     </SafeAreaView>
   );

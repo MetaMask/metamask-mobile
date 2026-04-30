@@ -1,4 +1,3 @@
-import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import TokensFullView from './TokensFullView';
 import { useNavigation } from '@react-navigation/native';
@@ -77,7 +76,7 @@ describe('TokensFullView', () => {
 
     // Act
     const backButton = getByTestId('back-button');
-    fireEvent.press(backButton);
+    backButton.props.onPress();
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);

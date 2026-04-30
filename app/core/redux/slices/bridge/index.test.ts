@@ -8,7 +8,6 @@ import reducer, {
   setSlippage,
   setBridgeViewMode,
   selectBridgeViewMode,
-  setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
   selectIsDestTokenManuallySet,
@@ -21,12 +20,14 @@ import reducer, {
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
   selectSelectedQuoteRequestId,
+  selectDestTokenWarning,
 } from '.';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { TokenFeatureType } from '@metamask/bridge-controller';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 
@@ -51,15 +52,6 @@ describe('bridge slice', () => {
     name: 'USDC',
     balance: '100',
     balanceFiat: '100',
-  };
-
-  const polygonNativeToken: BridgeToken = {
-    address: '0x0000000000000000000000000000000000001010',
-    symbol: 'POL',
-    decimals: 18,
-    image: '',
-    chainId: '0x89' as Hex,
-    name: 'POL',
   };
 
   describe('initial state', () => {
@@ -195,14 +187,6 @@ describe('bridge slice', () => {
   });
 
   describe('setDestToken', () => {
-    it('normalizes Polygon native token address', () => {
-      const state = reducer(initialState, setDestToken(polygonNativeToken));
-
-      expect(state.destToken?.address).toBe(
-        '0x0000000000000000000000000000000000000000',
-      );
-    });
-
     it('sets the destination token and updates selectedDestChainId', () => {
       const action = setDestToken(mockDestToken);
       const state = reducer(initialState, action);
@@ -221,16 +205,6 @@ describe('bridge slice', () => {
       const state = reducer(stateWithManualFlag, action);
 
       expect(state.isDestTokenManuallySet).toBe(true);
-    });
-  });
-
-  describe('setSourceToken', () => {
-    it('normalizes Polygon native token address', () => {
-      const state = reducer(initialState, setSourceToken(polygonNativeToken));
-
-      expect(state.sourceToken?.address).toBe(
-        '0x0000000000000000000000000000000000000000',
-      );
     });
   });
 
@@ -780,6 +754,57 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithSelection, resetBridgeState());
 
       expect(newState.selectedQuoteRequestId).toBeUndefined();
+    });
+  });
+
+  describe('selectDestTokenWarning', () => {
+    const buildStateWithWarnings = (tokenWarnings: unknown[]) => {
+      const state = cloneDeep(mockRootState);
+      state.engine.backgroundState.BridgeController = {
+        ...state.engine.backgroundState.BridgeController,
+        tokenWarnings,
+      } as any;
+      return state as unknown as RootState;
+    };
+
+    it('returns undefined when there are no token warnings', () => {
+      const state = buildStateWithWarnings([]);
+      expect(selectDestTokenWarning(state)).toBeUndefined();
+    });
+
+    it('returns the first warning regardless of type', () => {
+      const first = {
+        type: TokenFeatureType.WARNING,
+        feature_id: 'warn-1',
+        description: 'First warning',
+      };
+      const second = {
+        type: TokenFeatureType.MALICIOUS,
+        feature_id: 'mal-1',
+        description: 'Malicious token',
+      };
+      const state = buildStateWithWarnings([first, second]);
+      expect(selectDestTokenWarning(state)).toEqual(first);
+    });
+
+    it('returns a MALICIOUS warning when it is first', () => {
+      const malicious = {
+        type: TokenFeatureType.MALICIOUS,
+        feature_id: 'mal-1',
+        description: 'Malicious token',
+      };
+      const state = buildStateWithWarnings([malicious]);
+      expect(selectDestTokenWarning(state)).toEqual(malicious);
+    });
+
+    it('returns a WARNING when it is first', () => {
+      const warning = {
+        type: TokenFeatureType.WARNING,
+        feature_id: 'warn-1',
+        description: 'Suspicious token',
+      };
+      const state = buildStateWithWarnings([warning]);
+      expect(selectDestTokenWarning(state)).toEqual(warning);
     });
   });
 

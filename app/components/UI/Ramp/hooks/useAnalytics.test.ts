@@ -10,16 +10,9 @@ jest.mock('../../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
-  const interactionManager = {
-    runAfterInteractions: jest.fn((cb) => cb()),
-  };
-  return {
-    __esModule: true,
-    default: interactionManager,
-    ...interactionManager,
-  };
-});
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+  runAfterInteractions: jest.fn((cb) => cb()),
+}));
 
 describe('useAnalytics', () => {
   beforeEach(() => {

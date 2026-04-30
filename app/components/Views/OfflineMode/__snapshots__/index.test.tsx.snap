@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OfflineMode should render correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "#ffffff",
@@ -144,43 +136,13 @@ exports[`OfflineMode should render correctly 1`] = `
         }
       }
     >
-      <View
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
         accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        activeOpacity={0.2}
+        onPress={[Function]}
         style={
-          {
-            "opacity": 1,
-          }
-        }
-      >
-        <View
-          style={
+          [
             [
               {
                 "borderRadius": 12,
@@ -191,11 +153,21 @@ exports[`OfflineMode should render correctly 1`] = `
                 "backgroundColor": "#4459ff",
               },
               undefined,
-            ]
-          }
-        >
-          <Text
-            style={
+            ],
+            null,
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#007aff",
+                "fontSize": 17,
+                "fontWeight": "500",
+                "textAlign": "center",
+              },
+              null,
               [
                 {
                   "fontFamily": "Geist-SemiBold",
@@ -206,14 +178,15 @@ exports[`OfflineMode should render correctly 1`] = `
                   "color": "#ffffff",
                 },
                 undefined,
-              ]
-            }
-          >
-            Try again
-          </Text>
-        </View>
-      </View>
+              ],
+              null,
+            ]
+          }
+        >
+          Try again
+        </Text>
+      </TouchableOpacity>
     </View>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

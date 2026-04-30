@@ -8,6 +8,7 @@ import {
   ButtonVariant,
   IconName,
   IconSize,
+  IconColor,
   TextColor,
 } from '@metamask/design-system-react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
@@ -31,7 +32,6 @@ import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
 import { useTokenActions } from '../hooks/useTokenActions';
-import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 
 const styles = StyleSheet.create({
   footer: {
@@ -183,20 +183,47 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
       const resultType = securityData?.resultType;
 
-      // Only show warning sheet for Warning, Spam, or Malicious tokens
-      if (!resultType || resultType === 'Verified' || resultType === 'Benign') {
-        action();
-        return;
-      }
+      const configMap: Record<
+        string,
+        {
+          icon: IconName;
+          iconColor: IconColor;
+          title: string;
+          description: string;
+        }
+      > = {
+        Warning: {
+          icon: IconName.Warning,
+          iconColor: IconColor.WarningDefault,
+          title: strings('security_trust.risky_token_title'),
+          description: strings('security_trust.risky_token_description', {
+            symbol: token.symbol,
+          }),
+        },
+        Spam: {
+          icon: IconName.Warning,
+          iconColor: IconColor.WarningDefault,
+          title: strings('security_trust.risky_token_title'),
+          description: strings('security_trust.risky_token_description', {
+            symbol: token.symbol,
+          }),
+        },
+        Malicious: {
+          icon: IconName.Danger,
+          iconColor: IconColor.ErrorDefault,
+          title: strings('security_trust.malicious_token_title'),
+          description: strings(
+            'security_trust.malicious_token_sheet_description',
+            {
+              symbol: token.symbol,
+            },
+          ),
+        },
+      };
 
-      const config = getResultTypeConfig(resultType);
+      const config = resultType ? configMap[resultType] : undefined;
 
-      if (
-        !config.icon ||
-        !config.iconColor ||
-        !config.sheetTitle ||
-        !config.getSheetDescription
-      ) {
+      if (!config) {
         action();
         return;
       }
@@ -204,24 +231,20 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
         params: {
-          icon: config.icon,
-          iconColor: config.iconColor,
-          title: config.sheetTitle,
-          description: config.getSheetDescription(token.symbol),
+          ...config,
           onProceed: action,
           source,
-          severity: securityData?.resultType,
+          severity: resultType,
           tokenAddress: token.address,
           tokenSymbol: token.symbol,
           chainId: token.chainId,
-          features: securityData?.features,
         },
       });
     },
     [
       isRwaGeoRestricted,
       navigation,
-      securityData,
+      securityData?.resultType,
       token.symbol,
       token.address,
       token.chainId,

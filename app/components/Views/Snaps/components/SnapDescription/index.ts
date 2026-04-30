@@ -1,4 +1,6 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 /* eslint-disable import-x/prefer-default-export */
-export { default as SnapDescription } from './SnapDescription';
+import SnapDescription from './SnapDescription';
+
+export { SnapDescription };
 ///: END:ONLY_INCLUDE_IF

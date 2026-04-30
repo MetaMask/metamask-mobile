@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  StyleProp,
-  StyleSheet,
-  TouchableOpacity,
-  ViewStyle,
-} from 'react-native';
+import { StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -13,20 +8,11 @@ import {
   IconSize,
   Text,
   TextVariant,
+  type BoxProps,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
-
-// TODO: @MetaMask/design-system-engineers
-// Use the concrete Box component props here instead of BoxProps.
-// In MetaMask Mobile, extending BoxProps in forwarding wrappers can fail TS checks
-// because consumer code may resolve older @types/react-native callback types while
-// MMDS Box resolves React Native bundled types. Deriving props from the component
-// keeps wrapper props aligned with the actual JSX contract until the library-level
-// typing story is unified.
-// https://github.com/MetaMask/metamask-design-system/issues/1115
-type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -47,7 +33,7 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-interface KeypadContainerProps extends BoxComponentProps {
+interface KeypadContainerProps extends BoxProps {
   children?: React.ReactNode;
 }
 
@@ -55,7 +41,7 @@ const KeypadContainer: React.FC<KeypadContainerProps> = (props) => (
   <Box gap={3} {...props} />
 );
 
-interface KeypadRowProps extends BoxComponentProps {
+interface KeypadRowProps {
   children?: React.ReactNode;
 }
 
@@ -69,11 +55,11 @@ const KeypadRow: React.FC<KeypadRowProps> = (props) => (
 );
 
 interface KeypadButtonProps {
-  style?: StyleProp<ViewStyle>;
+  style?: ViewStyle | ViewStyle[];
   children?: React.ReactNode;
   onPress?: () => void;
   isDisabled?: boolean;
-  boxWrapperProps?: BoxComponentProps;
+  boxWrapperProps?: BoxProps;
   testID?: string;
 }
 
@@ -110,12 +96,12 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 };
 
 interface KeypadDeleteButtonProps {
-  style?: StyleProp<ViewStyle>;
+  style?: ViewStyle | ViewStyle[];
   onPress?: () => void;
   onLongPress?: () => void;
   delayLongPress?: number;
   testID?: string;
-  boxWrapperProps?: BoxComponentProps;
+  boxWrapperProps?: BoxProps;
 }
 
 const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({

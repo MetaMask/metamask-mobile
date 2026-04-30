@@ -1,20 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
-
-// FlashList v2 mock – see app/util/test/mockFlashList.ts
-jest.mock('@shopify/flash-list', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { flashListMock } = require('../../../../util/test/mockFlashList');
-  return flashListMock();
-});
-
-jest.mock('react-native-gesture-handler', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...jest.requireActual('react-native-gesture-handler'),
-    ScrollView: RN.ScrollView,
-  };
-});
+import '@shopify/flash-list/jestSetup';
 import {
   AccountGroupObject,
   AccountWalletObject,
@@ -998,8 +984,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // After scroll, the selected account should be visible
       expect(queryByText(`Account ${selectedIdx + 1}`)).toBeTruthy();
-      // Note: FlashList mock renders all items (no virtualization),
-      // so we cannot assert that 'Account 1' is off-screen
+      expect(queryByText('Account 1')).toBeFalsy();
     });
   });
 

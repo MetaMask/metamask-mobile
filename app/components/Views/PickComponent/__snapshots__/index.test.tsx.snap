@@ -16,34 +16,9 @@ exports[`PickComponent should render correctly 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -90,7 +65,7 @@ exports[`PickComponent should render correctly 1`] = `
           Text First
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -99,34 +74,9 @@ exports[`PickComponent should render correctly 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
       style={
         {
           "alignItems": "center",
@@ -185,7 +135,7 @@ exports[`PickComponent should render correctly 1`] = `
           Text Second
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;

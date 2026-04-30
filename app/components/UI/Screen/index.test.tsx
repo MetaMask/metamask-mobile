@@ -10,6 +10,6 @@ describe('Screen', () => {
         <View>Foobar</View>
       </Screen>,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

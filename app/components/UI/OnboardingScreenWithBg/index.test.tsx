@@ -10,7 +10,7 @@ describe('OnboardingScreenWithBg', () => {
         <Text>Test</Text>
       </OnboardingScreenWithBg>,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with background color and image', () => {
@@ -19,6 +19,6 @@ describe('OnboardingScreenWithBg', () => {
         <Text>Test</Text>
       </OnboardingScreenWithBg>,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -109,11 +109,11 @@ jobs:
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Set up E2E environment
-        timeout-minutes: 25
+        timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ${{ inputs.platform }}
-          setup-simulator: true
+          setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
           android-api-level: 36
           configure-keystores: false

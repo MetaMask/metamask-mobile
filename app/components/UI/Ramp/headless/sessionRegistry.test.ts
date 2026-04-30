@@ -1,39 +1,13 @@
 import {
   __resetSessionRegistryForTests,
-  closeSession,
   createSession,
   endSession,
-  getActiveSessionId,
   getSession,
   setStatus,
 } from './sessionRegistry';
 import type { HeadlessBuyCallbacks, HeadlessBuyParams } from './types';
-import type { Quote } from '../types';
-
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn(), log: jest.fn() },
-}));
-
-const mockLoggerError = jest.requireMock('../../../../util/Logger').default
-  .error as jest.Mock;
-
-const mockQuote = {
-  provider: '/providers/transak-native',
-  quote: {
-    amountIn: 25,
-    amountOut: 0.01,
-    paymentMethod: '/payments/debit-credit-card',
-  },
-  providerInfo: {
-    id: '/providers/transak-native',
-    name: 'Transak',
-    type: 'native' as const,
-  },
-} as unknown as Quote;
 
 const baseParams: HeadlessBuyParams = {
-  quote: mockQuote,
   assetId: 'eip155:1/erc20:0xabc',
   amount: 25,
   paymentMethodId: '/payments/debit-credit-card',
@@ -49,7 +23,6 @@ function buildCallbacks(): HeadlessBuyCallbacks {
 
 beforeEach(() => {
   __resetSessionRegistryForTests();
-  jest.clearAllMocks();
   jest.useRealTimers();
 });
 
@@ -147,42 +120,6 @@ describe('sessionRegistry', () => {
       expect(stored?.callbacks).toBe(callbacks);
       stored?.callbacks.onOrderCreated('order-1');
       expect(callbacks.onOrderCreated).toHaveBeenCalledWith('order-1');
-    });
-  });
-
-  describe('closeSession', () => {
-    it('logs when onClose throws after removing the session from the map', () => {
-      const onClose = jest.fn(() => {
-        throw new Error('consumer onClose boom');
-      });
-      const session = createSession(baseParams, {
-        ...buildCallbacks(),
-        onClose,
-      });
-      closeSession(session.id, { reason: 'unknown' });
-      expect(getSession(session.id)).toBeUndefined();
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.any(Error),
-        'headless sessionRegistry: onClose callback threw',
-      );
-    });
-
-    it('sets terminal status to failed when terminalStatus option is failed', () => {
-      const session = createSession(baseParams, buildCallbacks());
-      setStatus(session.id, 'continued');
-      closeSession(
-        session.id,
-        { reason: 'unknown' },
-        { terminalStatus: 'failed' },
-      );
-      expect(session.status).toBe('failed');
-      expect(getSession(session.id)).toBeUndefined();
-    });
-
-    it('treats failed sessions as inactive for getActiveSessionId', () => {
-      const s = createSession(baseParams, buildCallbacks());
-      setStatus(s.id, 'failed');
-      expect(getActiveSessionId()).toBeUndefined();
     });
   });
 });

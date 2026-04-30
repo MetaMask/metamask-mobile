@@ -29,19 +29,20 @@ describe('ProgressStepper', () => {
     steps,
   });
 
-  it('renders approve and deposit step labels', () => {
-    const { getByText } = renderWithProvider(
+  it('renders correctly', () => {
+    const { toJSON, getByText } = renderWithProvider(
       <ProgressStepper {...defaultProps} />,
     );
 
-    expect(getByText(strings('earn.approve'))).toBeOnTheScreen();
-    expect(getByText(strings('earn.deposit'))).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('earn.approve'))).toBeDefined();
+    expect(getByText(strings('earn.deposit'))).toBeDefined();
   });
 
   it('renders first step pending state when active step is 0', () => {
     const firstStepPendingProps = getProps({ activeStep: 0 });
 
-    const { queryAllByTestId, queryByTestId } = renderWithProvider(
+    const { toJSON, queryAllByTestId, queryByTestId } = renderWithProvider(
       <ProgressStepper {...firstStepPendingProps} />,
     );
 
@@ -60,12 +61,14 @@ describe('ProgressStepper', () => {
     expect(
       queryAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED).length,
     ).toBe(0);
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders first step complete and second step pending state when active step is 1', () => {
     const firstStepPendingProps = getProps({ activeStep: 1 });
 
-    const { queryAllByTestId, queryByTestId } = renderWithProvider(
+    const { toJSON, queryAllByTestId, queryByTestId } = renderWithProvider(
       <ProgressStepper {...firstStepPendingProps} />,
     );
 
@@ -84,12 +87,14 @@ describe('ProgressStepper', () => {
     expect(
       queryAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED).length,
     ).toBe(1);
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders first and second step complete state when active step is 2', () => {
     const firstStepPendingProps = getProps({ activeStep: 2 });
 
-    const { queryAllByTestId, queryByTestId } = renderWithProvider(
+    const { toJSON, queryAllByTestId, queryByTestId } = renderWithProvider(
       <ProgressStepper {...firstStepPendingProps} />,
     );
 
@@ -108,6 +113,8 @@ describe('ProgressStepper', () => {
     expect(
       queryAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED).length,
     ).toBe(2);
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders first step loading when isLoading prop set to true for firt step', () => {
@@ -119,7 +126,7 @@ describe('ProgressStepper', () => {
       steps: [firstStepLoading, secondStep],
     });
 
-    const { queryAllByTestId, queryByTestId } = renderWithProvider(
+    const { toJSON, queryAllByTestId, queryByTestId } = renderWithProvider(
       <ProgressStepper {...firstStepPendingProps} />,
     );
 
@@ -138,5 +145,7 @@ describe('ProgressStepper', () => {
     expect(
       queryAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED).length,
     ).toBe(0);
+
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EnterPasswordSimple should render correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<View
   style={
     {
       "backgroundColor": "white",
@@ -111,43 +103,14 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
               }
             }
           >
-            <View
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={0.2}
+              disabled={false}
+              onPress={[Function]}
               style={
-                {
-                  "opacity": 1,
-                }
-              }
-            >
-              <View
-                style={
+                [
                   [
                     {
                       "borderRadius": 12,
@@ -158,11 +121,21 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
                       "backgroundColor": "blue",
                     },
                     undefined,
-                  ]
-                }
-              >
-                <Text
-                  style={
+                  ],
+                  null,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
                     [
                       {
                         "fontFamily": "Geist-SemiBold",
@@ -173,17 +146,18 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
                         "color": undefined,
                       },
                       undefined,
-                    ]
-                  }
-                >
-                  Confirm
-                </Text>
-              </View>
-            </View>
+                    ],
+                    null,
+                  ]
+                }
+              >
+                Confirm
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
     </RCTScrollView>
   </View>
-</RNCSafeAreaView>
+</View>
 `;

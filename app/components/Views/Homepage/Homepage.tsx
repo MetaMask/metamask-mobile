@@ -111,12 +111,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       const sections: { name: HomeSectionName; enabled: boolean }[] = [
         { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
-        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         {
           name: HomeSectionNames.TOP_TRADERS,
           enabled: isTopTradersEnabled,
         },
+        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
       ];
 
@@ -151,12 +151,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
     return [
       { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
       { name: HomeSectionNames.TOKENS, enabled: true },
-      { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-      { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
       {
         name: HomeSectionNames.TOP_TRADERS,
         enabled: isTopTradersEnabled,
       },
+      { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+      { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
       {
         name: HomeSectionNames.WHATS_HAPPENING,
         enabled: isWhatsHappeningEnabled,
@@ -216,13 +216,6 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           totalSectionsLoaded={totalSectionsLoaded}
           mode={sectionMode}
         />
-        {isTopTradersEnabled && (
-          <TopTradersSection
-            ref={topTradersSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
-        )}
         {isDeFiEnabled && (
           <DeFiSection
             ref={defiSectionRef}
@@ -310,6 +303,13 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isTopTradersEnabled && (
+            <TopTradersSection
+              ref={topTradersSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isPerpsEnabled && (
             <PerpsConnectionProvider suppressErrorView>
               <PerpsStreamProvider>
@@ -350,6 +350,13 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           totalSectionsLoaded={totalSectionsLoaded}
           mode={sectionMode}
         />
+        {isTopTradersEnabled && (
+          <TopTradersSection
+            ref={topTradersSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
         <PerpsSectionWithProvider
           ref={perpsSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
@@ -362,13 +369,6 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           totalSectionsLoaded={totalSectionsLoaded}
           mode={sectionMode}
         />
-        {isTopTradersEnabled && (
-          <TopTradersSection
-            ref={topTradersSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
-        )}
         <WhatsHappeningSection
           ref={whatsHappeningSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}

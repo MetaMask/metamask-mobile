@@ -1,7 +1,5 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
-
-const EXTRA_ANDROID_BOTTOM_PADDING = 56;
 
 const styleSheet = (_params: { theme: Theme }) =>
   StyleSheet.create({
@@ -16,11 +14,6 @@ const styleSheet = (_params: { theme: Theme }) =>
       justifyContent: 'center',
       alignItems: 'center',
       gap: 14,
-    },
-
-    extraBottomPadding: {
-      paddingBottom:
-        Platform.OS === 'android' ? EXTRA_ANDROID_BOTTOM_PADDING : 0,
     },
 
     disabledButton: {

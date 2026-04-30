@@ -10,6 +10,6 @@ describe('BlockingActionModal', () => {
         <Text>{'Please wait'}</Text>
       </BlockingActionModal>,
     );
-    expect(screen.toJSON()).not.toBeNull();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

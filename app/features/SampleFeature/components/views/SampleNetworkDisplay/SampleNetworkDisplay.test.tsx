@@ -16,13 +16,13 @@ describe('SampleNetworkDisplay', () => {
    *
    * @test
    */
-  it('renders network name', () => {
-    const { getByText } = renderWithProvider(
+  it('matches rendered snapshot', () => {
+    const { toJSON } = renderWithProvider(
       <SampleNetworkDisplay
         name={'My test network'}
         imageSource={networkImage}
       />,
     );
-    expect(getByText('My test network')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

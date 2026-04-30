@@ -4,7 +4,7 @@ import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 import Engine from '../../Engine';
 import type { RootState } from '../../../reducers';
-import type { HardwareWalletQRState } from '../contexts/HardwareWalletContext';
+import type { QRSigningContextValue } from '../contexts/QRSigningContext';
 
 /**
  * Manages all QR signing state for the HardwareWalletProvider.
@@ -13,7 +13,7 @@ import type { HardwareWalletQRState } from '../contexts/HardwareWalletContext';
  * awaiting-confirmation bottom-sheet content manages its own internal phase
  * (QR display vs. camera) as local component state.
  */
-export const useQRSigningState = (): HardwareWalletQRState => {
+export const useQRSigningState = (): QRSigningContextValue => {
   const qrState = useSelector((state: RootState) => state.qrKeyringScanner);
   const pendingScanRequest = qrState?.pendingScanRequest;
 

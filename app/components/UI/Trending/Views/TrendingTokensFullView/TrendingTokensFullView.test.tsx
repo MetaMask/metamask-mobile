@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  render,
-  userEvent,
-  fireEvent,
-  act,
-} from '@testing-library/react-native';
+import { render, userEvent, fireEvent } from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
   TrendingTokensData,
@@ -241,8 +235,8 @@ describe('TrendingTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     const mocks = arrangeMocks();
-    mocks.setTrendingRequestMock({ results: [createMockToken()] });
-    mocks.setTrendingSearchMock({ data: [createMockToken()] });
+    mocks.setTrendingRequestMock({ results: [] });
+    mocks.setTrendingSearchMock({ data: [] });
   });
 
   it('renders header with title and buttons', () => {
@@ -285,17 +279,14 @@ describe('TrendingTokensFullView', () => {
     const mocks = arrangeMocks();
     mocks.setTrendingSearchMock({ data: [] });
 
-    const { getByText, getByPlaceholderText, getByTestId } =
-      renderTrendingFullView();
+    const { getByText, getByTestId } = renderTrendingFullView();
 
     // Open search
     const searchToggle = getByTestId('trending-tokens-header-search-toggle');
     await userEvent.press(searchToggle);
 
     // Type search query
-    const searchInput = getByPlaceholderText(
-      strings('trending.search_placeholder'),
-    );
+    const searchInput = getByTestId('trending-tokens-header-search-bar');
     await userEvent.type(searchInput, 'nonexistenttoken');
 
     expect(getByTestId('empty-search-result-state')).toBeOnTheScreen();
@@ -436,16 +427,13 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByPlaceholderText, getByTestId, getByText } =
-        renderTrendingFullView();
+      const { getByTestId, getByText } = renderTrendingFullView();
 
       // Open search and type a query
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
       fireEvent.press(searchToggle);
 
-      const searchInput = getByPlaceholderText(
-        strings('trending.search_placeholder'),
-      );
+      const searchInput = getByTestId('trending-tokens-header-search-bar');
       fireEvent.changeText(searchInput, 'eth');
 
       // Tokens should be displayed in original order (relevance), not sorted
@@ -553,8 +541,7 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByPlaceholderText, getByTestId, getByText } =
-        renderTrendingFullView();
+      const { getByTestId, getByText } = renderTrendingFullView();
 
       // First select a price change option
       const priceChangeButton = getByTestId('price-change-button');
@@ -567,9 +554,7 @@ describe('TrendingTokensFullView', () => {
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
       await userEvent.press(searchToggle);
 
-      const searchInput = getByPlaceholderText(
-        strings('trending.search_placeholder'),
-      );
+      const searchInput = getByTestId('trending-tokens-header-search-bar');
       fireEvent.changeText(searchInput, 'eth');
 
       // Even with volume sort selected, search results should maintain relevance order
@@ -593,7 +578,7 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByPlaceholderText, getByTestId, getByText, queryByTestId } =
+      const { getByTestId, getByText, queryByTestId } =
         renderTrendingFullView();
 
       // Open search
@@ -601,9 +586,7 @@ describe('TrendingTokensFullView', () => {
       await userEvent.press(searchToggle);
 
       // Type search query
-      const searchInput = getByPlaceholderText(
-        strings('trending.search_placeholder'),
-      );
+      const searchInput = getByTestId('trending-tokens-header-search-bar');
       fireEvent.changeText(searchInput, 'token');
 
       // Verify search is active

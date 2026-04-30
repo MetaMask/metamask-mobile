@@ -414,49 +414,6 @@ describe('PersonalDetails Component', () => {
     (useSelector as jest.Mock).mockImplementation(
       (selector: (state: unknown) => unknown) => selector(defaultCardState),
     );
-
-    // Restore mockSetOnValueChange implementation (cleared by jest.clearAllMocks)
-    mockSetOnValueChange.mockImplementation(
-      (callback: (region: { key: string }) => void) => {
-        callback({ key: 'US' });
-      },
-    );
-
-    // Restore module-level mock return values (cleared by jest.clearAllMocks)
-    (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
-      registerPersonalDetails: mockRegisterPersonalDetails,
-      isLoading: false,
-      isError: false,
-      error: null,
-      reset: jest.fn(),
-    });
-
-    (useRegions as jest.Mock).mockReturnValue({
-      allRegions: mockAllRegions,
-      userCountry: mockUserCountryUS,
-      getRegionByCode: mockGetRegionByCode,
-    });
-
-    (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-      reset: mockReset,
-    });
-
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-
-    (useCardSDK as jest.Mock).mockReturnValue({
-      sdk: null,
-      isLoading: false,
-      user: null,
-      setUser: mockSetUser,
-      fetchUserData: mockFetchUserData,
-      logoutFromProvider: jest.fn(),
-    });
-
-    (useAnalytics as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    });
   });
 
   describe('Initial Render', () => {
@@ -473,7 +430,7 @@ describe('PersonalDetails Component', () => {
       const { getByTestId } = render(<PersonalDetails />);
 
       const continueButton = getByTestId('personal-details-continue-button');
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
 
     it('does not show error messages initially', () => {
@@ -970,7 +927,7 @@ describe('PersonalDetails Component', () => {
 
       const continueButton = getByTestId('personal-details-continue-button');
 
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
 
     it('does not call registerPersonalDetails when onboardingId is missing', () => {
@@ -1035,14 +992,6 @@ describe('PersonalDetails Component', () => {
         new CardError(CardErrorType.UNKNOWN_ERROR, 'Onboarding ID not found'),
       );
 
-      (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
-        registerPersonalDetails: mockRegisterPersonalDetails,
-        isLoading: false,
-        isError: false,
-        error: null,
-        reset: jest.fn(),
-      });
-
       const { getByTestId } = render(<PersonalDetails />);
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
@@ -1089,7 +1038,7 @@ describe('PersonalDetails Component', () => {
       fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
 
       const continueButton = getByTestId('personal-details-continue-button');
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
 
     it('includes dateOfBirth in registration payload when provided', async () => {
@@ -1349,7 +1298,7 @@ describe('PersonalDetails Component', () => {
       );
 
       const continueButton = getByTestId('personal-details-continue-button');
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
   });
 });

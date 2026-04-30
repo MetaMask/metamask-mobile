@@ -10,21 +10,22 @@ import {
   IconName as DsIconName,
   BoxFlexDirection,
   BoxAlignItems,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { strings } from '../../../../../../../locales/i18n';
-import { formatCompactUsd } from '../../../../../UI/Rewards/utils/formatUtils';
-import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
 
 interface QuickBuyHeaderProps {
   position: Position;
-  marketCap?: number;
+  destToken: BridgeToken | undefined;
   onClose: () => void;
 }
 
 const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
   position,
-  marketCap,
+  destToken,
   onClose,
 }) => (
   <Box
@@ -33,8 +34,12 @@ const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
     gap={4}
     twClassName="h-20 px-4"
   >
-    <Box twClassName="pb-1">
-      <PositionTokenAvatar position={position} showChainBadge />
+    <Box twClassName="w-12 h-12 rounded-xl overflow-hidden">
+      <AvatarToken
+        name={position.tokenSymbol}
+        src={destToken?.image ? { uri: destToken.image } : undefined}
+        size={AvatarTokenSize.Lg}
+      />
     </Box>
     <Box twClassName="flex-1">
       <Text
@@ -51,9 +56,7 @@ const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
       >
-        {marketCap != null
-          ? `${formatCompactUsd(marketCap)} ${strings('social_leaderboard.quick_buy.market_cap_label')}`
-          : strings('social_leaderboard.quick_buy.market_cap_label')}
+        {strings('social_leaderboard.quick_buy.market_cap_label')}
       </Text>
     </Box>
     <ButtonIcon

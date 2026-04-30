@@ -12,6 +12,6 @@ describe('AssetList', () => {
         selectedAsset={{ address: '0xABC', symbol: 'ABC', decimals: 0 }}
       />,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

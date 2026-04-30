@@ -37,7 +37,6 @@ import {
   type PaymentMethod,
   type QuotesResponse,
 } from '../../headless';
-import type { Quote } from '../../types';
 
 import styleSheet from './HeadlessPlayground.styles';
 
@@ -478,81 +477,72 @@ function HeadlessPlayground() {
     ]);
   }, []);
 
-  const fiatCurrency = userRegion?.country?.currency;
-
-  // Per-quote start: each successful row in the quotes list renders a
-  // "Start headless buy" action that calls back here with the actual
-  // Quote object. The hook itself enforces the single-live-session
-  // policy (auto-cancels any prior active session), so this UI only has
-  // to wire callbacks + log events.
-  const handleStartHeadlessBuyForQuote = useCallback(
-    (quote: Quote) => {
-      if (!headlessAmountIsValid) {
-        return;
-      }
-      const params = {
-        quote,
-        assetId: effectiveAssetId,
-        amount: headlessAmountAsNumber,
-        currency: fiatCurrency,
-      };
-      const session = startHeadlessBuy(params, {
-        onOrderCreated: (orderId) => {
-          appendEvent(
-            strings(
-              'app_settings.fiat_on_ramp.headless_playground.event_log_order_created',
-              { orderId },
-            ),
-          );
-          setActiveSession(null);
+  const handleStartHeadlessBuy = useCallback(() => {
+    if (!headlessAmountIsValid) {
+      return;
+    }
+    const params = {
+      assetId: effectiveAssetId,
+      amount: headlessAmountAsNumber,
+      paymentMethodId: effectivePaymentMethodId,
+      providerId: effectiveProviderId,
+    };
+    const session = startHeadlessBuy(params, {
+      onOrderCreated: (orderId) => {
+        appendEvent(
+          strings(
+            'app_settings.fiat_on_ramp.headless_playground.event_log_order_created',
+            { orderId },
+          ),
+        );
+        setActiveSession(null);
+      },
+      onError: (error) => {
+        appendEvent(
+          strings(
+            'app_settings.fiat_on_ramp.headless_playground.event_log_error',
+            {
+              code: error.code,
+              messageSuffix: error.message ? ` (${error.message})` : '',
+            },
+          ),
+        );
+        setActiveSession(null);
+      },
+      onClose: (info) => {
+        appendEvent(
+          strings(
+            'app_settings.fiat_on_ramp.headless_playground.event_log_close',
+            { reason: info.reason },
+          ),
+        );
+        setActiveSession(null);
+      },
+    });
+    appendEvent(
+      strings(
+        'app_settings.fiat_on_ramp.headless_playground.event_log_started',
+        {
+          sessionId: session.sessionId,
+          assetId: params.assetId,
+          amount: params.amount,
+          paymentMethodId: params.paymentMethodId,
+          providerSuffix: params.providerId
+            ? `, provider=${params.providerId}`
+            : '',
         },
-        onError: (error) => {
-          appendEvent(
-            strings(
-              'app_settings.fiat_on_ramp.headless_playground.event_log_error',
-              {
-                code: error.code,
-                messageSuffix: error.message ? ` (${error.message})` : '',
-              },
-            ),
-          );
-          setActiveSession(null);
-        },
-        onClose: (info) => {
-          appendEvent(
-            strings(
-              'app_settings.fiat_on_ramp.headless_playground.event_log_close',
-              { reason: info.reason },
-            ),
-          );
-          setActiveSession(null);
-        },
-      });
-      appendEvent(
-        strings(
-          'app_settings.fiat_on_ramp.headless_playground.event_log_started',
-          {
-            sessionId: session.sessionId,
-            assetId: params.assetId,
-            amount: params.amount,
-            paymentMethodId: quote.quote.paymentMethod ?? '',
-            providerSuffix: quote.providerInfo?.id
-              ? `, provider=${quote.providerInfo.id}`
-              : `, provider=${quote.provider}`,
-          },
-        ),
-      );
-      setActiveSession(session);
-    },
-    [
-      appendEvent,
-      effectiveAssetId,
-      fiatCurrency,
-      headlessAmountAsNumber,
-      headlessAmountIsValid,
-      startHeadlessBuy,
-    ],
-  );
+      ),
+    );
+    setActiveSession(session);
+  }, [
+    appendEvent,
+    effectiveAssetId,
+    effectivePaymentMethodId,
+    effectiveProviderId,
+    headlessAmountAsNumber,
+    headlessAmountIsValid,
+    startHeadlessBuy,
+  ]);
 
   const handleCancelHeadlessSession = useCallback(() => {
     if (!activeSession) {
@@ -1035,18 +1025,18 @@ function HeadlessPlayground() {
                   ) : null}
                 </View>
 
-                {activeSession ? (
-                  <View style={styles.actionsRow}>
-                    <Text
-                      variant={TextVariant.BodyXs}
-                      color={TextColor.TextAlternative}
-                      style={styles.actionsHint}
-                    >
-                      {strings(
-                        'app_settings.fiat_on_ramp.headless_playground.active_session_hint',
-                        { sessionId: activeSession.sessionId },
-                      )}
-                    </Text>
+                <View style={styles.actionsRow}>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    onPress={handleStartHeadlessBuy}
+                    isDisabled={!canGetQuotes || activeSession !== null}
+                    testID={HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}
+                  >
+                    {strings(
+                      'app_settings.fiat_on_ramp.headless_playground.start_headless_buy',
+                    )}
+                  </Button>
+                  {activeSession ? (
                     <Pressable
                       onPress={handleCancelHeadlessSession}
                       style={styles.sandboxParamReset}
@@ -1063,8 +1053,19 @@ function HeadlessPlayground() {
                         )}
                       </Text>
                     </Pressable>
-                  </View>
-                ) : null}
+                  ) : null}
+                  {!canGetQuotes ? (
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.TextAlternative}
+                      style={styles.actionsHint}
+                    >
+                      {strings(
+                        'app_settings.fiat_on_ramp.headless_playground.start_headless_buy_disabled_hint',
+                      )}
+                    </Text>
+                  ) : null}
+                </View>
 
                 <View
                   style={styles.eventLogSection}
@@ -1155,10 +1156,7 @@ function HeadlessPlayground() {
                             quotes={headlessQuotesResult}
                             paymentMethods={paymentMethods}
                             cryptoSymbol={headlessResolvedToken?.symbol}
-                            fiatCurrency={fiatCurrency?.toUpperCase()}
-                            canStart={canGetQuotes}
-                            hasActiveSession={activeSession !== null}
-                            onStartHeadlessBuy={handleStartHeadlessBuyForQuote}
+                            fiatCurrency={userRegion?.country?.currency?.toUpperCase()}
                             styles={styles}
                           />
                         ) : null}
@@ -1180,9 +1178,6 @@ interface QuotesListProps {
   paymentMethods: PaymentMethod[];
   cryptoSymbol?: string;
   fiatCurrency?: string;
-  canStart: boolean;
-  hasActiveSession: boolean;
-  onStartHeadlessBuy: (quote: Quote) => void;
   styles: ReturnType<typeof styleSheet>;
 }
 
@@ -1191,12 +1186,9 @@ function QuotesList({
   paymentMethods,
   cryptoSymbol,
   fiatCurrency,
-  canStart,
-  hasActiveSession,
-  onStartHeadlessBuy,
   styles,
 }: QuotesListProps) {
-  const successList = (quotes?.success ?? []) as Quote[];
+  const successList = quotes?.success ?? [];
   const errorList = quotes?.error ?? [];
 
   if (successList.length === 0 && errorList.length === 0) {
@@ -1219,9 +1211,6 @@ function QuotesList({
           paymentMethods={paymentMethods}
           cryptoSymbol={cryptoSymbol}
           fiatCurrency={fiatCurrency}
-          canStart={canStart}
-          hasActiveSession={hasActiveSession}
-          onStartHeadlessBuy={onStartHeadlessBuy}
           styles={styles}
         />
       ))}
@@ -1259,14 +1248,11 @@ function QuotesList({
 }
 
 interface QuoteRowProps {
-  entry: Quote;
+  entry: unknown;
   index: number;
   paymentMethods: PaymentMethod[];
   cryptoSymbol?: string;
   fiatCurrency?: string;
-  canStart: boolean;
-  hasActiveSession: boolean;
-  onStartHeadlessBuy: (quote: Quote) => void;
   styles: ReturnType<typeof styleSheet>;
 }
 
@@ -1276,9 +1262,6 @@ function QuoteRow({
   paymentMethods,
   cryptoSymbol,
   fiatCurrency,
-  canStart,
-  hasActiveSession,
-  onStartHeadlessBuy,
   styles,
 }: QuoteRowProps) {
   const provider = readQuoteProvider(entry);
@@ -1390,24 +1373,6 @@ function QuoteRow({
           styles={styles}
         />
       ) : null}
-
-      <View style={styles.quoteRowAction}>
-        <Button
-          variant={ButtonVariant.Primary}
-          isFullWidth
-          isDisabled={!canStart}
-          onPress={() => onStartHeadlessBuy(entry)}
-          testID={`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-${index}`}
-        >
-          {hasActiveSession
-            ? strings(
-                'app_settings.fiat_on_ramp.headless_playground.replace_and_start_headless_buy',
-              )
-            : strings(
-                'app_settings.fiat_on_ramp.headless_playground.start_headless_buy',
-              )}
-        </Button>
-      </View>
     </View>
   );
 }

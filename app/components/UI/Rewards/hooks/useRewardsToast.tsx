@@ -9,14 +9,10 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import {
-  playNotification,
-  NotificationMoment,
-  type HapticNotificationMoment,
-} from '../../../../util/haptics';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 
 export type RewardsToastOptions = ToastOptions & {
-  hapticsType: HapticNotificationMoment;
+  hapticsType: NotificationFeedbackType;
 };
 
 export interface RewardsToastConfig {
@@ -58,9 +54,8 @@ const useRewardsToast = (): {
 
   const showToast = useCallback(
     (config: RewardsToastOptions) => {
-      const { hapticsType, ...toastOptions } = config;
-      toastRef?.current?.showToast(toastOptions as ToastOptions);
-      playNotification(hapticsType);
+      toastRef?.current?.showToast(config);
+      notificationAsync(config.hapticsType);
     },
     [toastRef],
   );
@@ -73,7 +68,7 @@ const useRewardsToast = (): {
         iconName: IconName.Confirmation,
         iconColor: theme.colors.success.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Success,
+        hapticsType: NotificationFeedbackType.Success,
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,
@@ -91,7 +86,7 @@ const useRewardsToast = (): {
         iconName: IconName.Danger,
         iconColor: theme.colors.error.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Error,
+        hapticsType: NotificationFeedbackType.Error,
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,
@@ -110,7 +105,7 @@ const useRewardsToast = (): {
         iconName: IconName.Lock,
         iconColor: theme.colors.icon.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Warning,
+        hapticsType: NotificationFeedbackType.Warning,
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
         hasNoTimeout: false,

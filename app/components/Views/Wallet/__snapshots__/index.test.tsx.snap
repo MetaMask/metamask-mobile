@@ -8,8 +8,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,15 +333,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -376,12 +367,25 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               fill="currentColor"
                               height={32}
                               name="Danger"
-                              style={[Object]}
+                              style={
+                                {
+                                  "height": 32,
+                                  "width": 32,
+                                }
+                              }
                               width={32}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-SemiBold",
+                                  "fontSize": 24,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                }
+                              }
                             >
                               An error occurred
                             </Text>
@@ -401,14 +405,47 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#4459ff"
+                                fill="currentColor"
+                                height={24}
+                                name="Info"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                              </Text>
                             </View>
                           </View>
                           <View
@@ -426,14 +463,65 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#9a6300"
+                                fill="currentColor"
+                                height={24}
+                                name="Danger"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                If you keep getting this error,
+                                 
+                                <Text
+                                  accessibilityRole="text"
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Save your Secret Recovery Phrase
+                                </Text>
+                                 
+                                and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                              </Text>
                             </View>
                           </View>
                           <Text
@@ -453,15 +541,98 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           </Text>
                           <View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                }
+                              }
                             >
-                              <Text … />
-                              <View … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Error message:
+                              </Text>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "columnGapgap": 4,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                              >
+                                <SvgMock
+                                  color="#4459ff"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="Copy"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Copy
+                                </Text>
+                              </TouchableOpacity>
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "backgroundColor": "#ca35421a",
+                                  "borderRadius": 8,
+                                  "flexShrink": 1,
+                                  "marginTop": 8,
+                                  "padding": 16,
+                                }
+                              }
                             >
-                              <RCTScrollView … />
+                              <RCTScrollView>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ca3542",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    View: Wallet
+TypeError: Cannot read properties of undefined (reading 'key')
+                                  </Text>
+                                </View>
+                              </RCTScrollView>
                             </View>
                           </View>
                           <View
@@ -474,63 +645,121 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               }
                             }
                           >
-                            <View
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#131416",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Describe what happened
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Contact support
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Try again
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -540,7 +769,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -552,8 +781,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -878,15 +1106,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -920,12 +1140,25 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               fill="currentColor"
                               height={32}
                               name="Danger"
-                              style={[Object]}
+                              style={
+                                {
+                                  "height": 32,
+                                  "width": 32,
+                                }
+                              }
                               width={32}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-SemiBold",
+                                  "fontSize": 24,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                }
+                              }
                             >
                               An error occurred
                             </Text>
@@ -945,14 +1178,47 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#4459ff"
+                                fill="currentColor"
+                                height={24}
+                                name="Info"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                              </Text>
                             </View>
                           </View>
                           <View
@@ -970,14 +1236,65 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#9a6300"
+                                fill="currentColor"
+                                height={24}
+                                name="Danger"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                If you keep getting this error,
+                                 
+                                <Text
+                                  accessibilityRole="text"
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Save your Secret Recovery Phrase
+                                </Text>
+                                 
+                                and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                              </Text>
                             </View>
                           </View>
                           <Text
@@ -997,15 +1314,98 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           </Text>
                           <View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                }
+                              }
                             >
-                              <Text … />
-                              <View … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Error message:
+                              </Text>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "columnGapgap": 4,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                              >
+                                <SvgMock
+                                  color="#4459ff"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="Copy"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Copy
+                                </Text>
+                              </TouchableOpacity>
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "backgroundColor": "#ca35421a",
+                                  "borderRadius": 8,
+                                  "flexShrink": 1,
+                                  "marginTop": 8,
+                                  "padding": 16,
+                                }
+                              }
                             >
-                              <RCTScrollView … />
+                              <RCTScrollView>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ca3542",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    View: Wallet
+TypeError: Cannot read properties of undefined (reading 'key')
+                                  </Text>
+                                </View>
+                              </RCTScrollView>
                             </View>
                           </View>
                           <View
@@ -1018,63 +1418,121 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               }
                             }
                           >
-                            <View
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#131416",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Describe what happened
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Contact support
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Try again
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1084,7 +1542,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1096,8 +1554,7 @@ exports[`Wallet should render correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1422,15 +1879,7 @@ exports[`Wallet should render correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -1464,12 +1913,25 @@ exports[`Wallet should render correctly 1`] = `
                               fill="currentColor"
                               height={32}
                               name="Danger"
-                              style={[Object]}
+                              style={
+                                {
+                                  "height": 32,
+                                  "width": 32,
+                                }
+                              }
                               width={32}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-SemiBold",
+                                  "fontSize": 24,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                }
+                              }
                             >
                               An error occurred
                             </Text>
@@ -1489,14 +1951,47 @@ exports[`Wallet should render correctly 1`] = `
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#4459ff"
+                                fill="currentColor"
+                                height={24}
+                                name="Info"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                              </Text>
                             </View>
                           </View>
                           <View
@@ -1514,14 +2009,65 @@ exports[`Wallet should render correctly 1`] = `
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#9a6300"
+                                fill="currentColor"
+                                height={24}
+                                name="Danger"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                If you keep getting this error,
+                                 
+                                <Text
+                                  accessibilityRole="text"
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Save your Secret Recovery Phrase
+                                </Text>
+                                 
+                                and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                              </Text>
                             </View>
                           </View>
                           <Text
@@ -1541,15 +2087,98 @@ exports[`Wallet should render correctly 1`] = `
                           </Text>
                           <View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                }
+                              }
                             >
-                              <Text … />
-                              <View … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Error message:
+                              </Text>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "columnGapgap": 4,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                              >
+                                <SvgMock
+                                  color="#4459ff"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="Copy"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Copy
+                                </Text>
+                              </TouchableOpacity>
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "backgroundColor": "#ca35421a",
+                                  "borderRadius": 8,
+                                  "flexShrink": 1,
+                                  "marginTop": 8,
+                                  "padding": 16,
+                                }
+                              }
                             >
-                              <RCTScrollView … />
+                              <RCTScrollView>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ca3542",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    View: Wallet
+TypeError: Cannot read properties of undefined (reading 'key')
+                                  </Text>
+                                </View>
+                              </RCTScrollView>
                             </View>
                           </View>
                           <View
@@ -1562,63 +2191,121 @@ exports[`Wallet should render correctly 1`] = `
                               }
                             }
                           >
-                            <View
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#131416",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Describe what happened
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Contact support
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Try again
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1628,7 +2315,7 @@ exports[`Wallet should render correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -1640,8 +2327,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -1966,15 +2652,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -2008,12 +2686,25 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               fill="currentColor"
                               height={32}
                               name="Danger"
-                              style={[Object]}
+                              style={
+                                {
+                                  "height": 32,
+                                  "width": 32,
+                                }
+                              }
                               width={32}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-SemiBold",
+                                  "fontSize": 24,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                }
+                              }
                             >
                               An error occurred
                             </Text>
@@ -2033,14 +2724,47 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#4459ff"
+                                fill="currentColor"
+                                height={24}
+                                name="Info"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                              </Text>
                             </View>
                           </View>
                           <View
@@ -2058,14 +2782,65 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#9a6300"
+                                fill="currentColor"
+                                height={24}
+                                name="Danger"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                If you keep getting this error,
+                                 
+                                <Text
+                                  accessibilityRole="text"
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Save your Secret Recovery Phrase
+                                </Text>
+                                 
+                                and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                              </Text>
                             </View>
                           </View>
                           <Text
@@ -2085,15 +2860,98 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           </Text>
                           <View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                }
+                              }
                             >
-                              <Text … />
-                              <View … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Error message:
+                              </Text>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "columnGapgap": 4,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                              >
+                                <SvgMock
+                                  color="#4459ff"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="Copy"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Copy
+                                </Text>
+                              </TouchableOpacity>
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "backgroundColor": "#ca35421a",
+                                  "borderRadius": 8,
+                                  "flexShrink": 1,
+                                  "marginTop": 8,
+                                  "padding": 16,
+                                }
+                              }
                             >
-                              <RCTScrollView … />
+                              <RCTScrollView>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ca3542",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    View: Wallet
+TypeError: Cannot read properties of undefined (reading 'key')
+                                  </Text>
+                                </View>
+                              </RCTScrollView>
                             </View>
                           </View>
                           <View
@@ -2106,63 +2964,121 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               }
                             }
                           >
-                            <View
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#131416",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Describe what happened
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Contact support
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Try again
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2172,7 +3088,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;
 
@@ -2184,8 +3100,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -2510,15 +3425,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
+                      <View
                         style={
                           {
                             "backgroundColor": "#ffffff",
@@ -2552,12 +3459,25 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               fill="currentColor"
                               height={32}
                               name="Danger"
-                              style={[Object]}
+                              style={
+                                {
+                                  "height": 32,
+                                  "width": 32,
+                                }
+                              }
                               width={32}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-SemiBold",
+                                  "fontSize": 24,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                }
+                              }
                             >
                               An error occurred
                             </Text>
@@ -2577,14 +3497,47 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#4459ff"
+                                fill="currentColor"
+                                height={24}
+                                name="Info"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                              </Text>
                             </View>
                           </View>
                           <View
@@ -2602,14 +3555,65 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             testID="banneralert"
                           >
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "marginRight": 8,
+                                }
+                              }
                             >
-                              <SvgMock … />
+                              <SvgMock
+                                color="#9a6300"
+                                fill="currentColor"
+                                height={24}
+                                name="Danger"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
-                              <Text … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                If you keep getting this error,
+                                 
+                                <Text
+                                  accessibilityRole="text"
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Save your Secret Recovery Phrase
+                                </Text>
+                                 
+                                and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                              </Text>
                             </View>
                           </View>
                           <Text
@@ -2629,15 +3633,98 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           </Text>
                           <View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                }
+                              }
                             >
-                              <Text … />
-                              <View … />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Error message:
+                              </Text>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "columnGapgap": 4,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                              >
+                                <SvgMock
+                                  color="#4459ff"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="Copy"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Copy
+                                </Text>
+                              </TouchableOpacity>
                             </View>
                             <View
-                              style={[Object]}
+                              style={
+                                {
+                                  "backgroundColor": "#ca35421a",
+                                  "borderRadius": 8,
+                                  "flexShrink": 1,
+                                  "marginTop": 8,
+                                  "padding": 16,
+                                }
+                              }
                             >
-                              <RCTScrollView … />
+                              <RCTScrollView>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ca3542",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    View: Wallet
+TypeError: Cannot read properties of undefined (reading 'key')
+                                  </Text>
+                                </View>
+                              </RCTScrollView>
                             </View>
                           </View>
                           <View
@@ -2650,63 +3737,121 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               }
                             }
                           >
-                            <View
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#131416",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Describe what happened
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
-                            <View
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Contact support
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               accessibilityRole="button"
-                              accessibilityState={[Object]}
-                              accessibilityValue={[Object]}
                               accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              style={[Object]}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
                             >
-                              <Text … />
-                            </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Try again
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2716,6 +3861,6 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

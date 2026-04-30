@@ -1,5 +1,4 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
@@ -32,12 +31,10 @@ describe('AccountNetworkInfoCollapsed', () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfoCollapsed />, {
       state: personalSignatureConfirmationState,
     });
-    await waitFor(() => {
-      expect(getByText('0x935E7...05477')).toBeOnTheScreen();
-    });
+    expect(getByText('0x935E7...05477')).toBeOnTheScreen();
   });
 
-  it('displays accountGroupName when available instead of accountName', async () => {
+  it('displays accountGroupName when available instead of accountName', () => {
     mockUseAccountInfo.mockReturnValue({
       accountName: '0x935E7...05477',
       walletName: undefined,
@@ -51,13 +48,11 @@ describe('AccountNetworkInfoCollapsed', () => {
       },
     );
 
-    await waitFor(() => {
-      expect(getByText('My Account Group')).toBeOnTheScreen();
-    });
+    expect(getByText('My Account Group')).toBeOnTheScreen();
     expect(queryByText('0x935E7...05477')).toBeNull();
   });
 
-  it('displays accountName when accountGroupName is not available', async () => {
+  it('displays accountName when accountGroupName is not available', () => {
     mockUseAccountInfo.mockReturnValue({
       accountName: '0x935E7...05477',
       walletName: undefined,
@@ -68,12 +63,10 @@ describe('AccountNetworkInfoCollapsed', () => {
       state: personalSignatureConfirmationState,
     });
 
-    await waitFor(() => {
-      expect(getByText('0x935E7...05477')).toBeOnTheScreen();
-    });
+    expect(getByText('0x935E7...05477')).toBeOnTheScreen();
   });
 
-  it('displays walletName when there are multiple wallets', async () => {
+  it('displays walletName when there are multiple wallets', () => {
     mockUseAccountInfo.mockReturnValue({
       accountName: '0x935E7...05477',
       walletName: 'My Wallet',
@@ -103,9 +96,7 @@ describe('AccountNetworkInfoCollapsed', () => {
       state: stateWithMultipleWallets,
     });
 
-    await waitFor(() => {
-      expect(getByText('My Account Group')).toBeOnTheScreen();
-      expect(getByText('My Wallet')).toBeOnTheScreen();
-    });
+    expect(getByText('My Account Group')).toBeOnTheScreen();
+    expect(getByText('My Wallet')).toBeOnTheScreen();
   });
 });

@@ -1,48 +1,29 @@
 import React from 'react';
+import { shallow } from 'enzyme';
 import WatchAssetRequest from '.';
-import { AssetWatcherSelectorsIDs } from './AssetWatcher.testIds';
+import configureMockStore from 'redux-mock-store';
+import { Provider } from 'react-redux';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 
-// Mock ApproveTransactionHeader to avoid deep render tree accessing Engine.context
-jest.mock('../ApproveTransactionHeader', () => {
-  const MockReact = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: () => MockReact.createElement('View'),
-  };
-});
-
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    AssetsContractController: {
-      getERC20BalanceOf: jest.fn().mockResolvedValue(null),
-    },
-  },
-}));
-
+const mockStore = configureMockStore();
 const initialState = {
-  settings: {},
   engine: {
     backgroundState,
   },
 };
+const store = mockStore(initialState);
 
 describe('WatchAssetRequest', () => {
   it('should render correctly', () => {
-    const { getByTestId } = renderWithProvider(
-      <WatchAssetRequest
-        suggestedAssetMeta={{
-          asset: {
-            address: '0x0000000000000000000000000000000000000002',
-            symbol: 'TKN',
-            decimals: 0,
-          },
-          interactingAddress: '0x0000000000000000000000000000000000000001',
-        }}
-      />,
-      { state: initialState },
+    const wrapper = shallow(
+      <Provider store={store}>
+        <WatchAssetRequest
+          suggestedAssetMeta={{
+            asset: { address: '0x2', symbol: 'TKN', decimals: 0 },
+          }}
+        />
+      </Provider>,
     );
-    expect(getByTestId(AssetWatcherSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
   });
 });

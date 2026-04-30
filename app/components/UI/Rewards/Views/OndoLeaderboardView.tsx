@@ -23,7 +23,6 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 import { getCurrentPrize } from '../components/Campaigns/OndoPrizePool';
 import { formatPercentChange, formatUsd } from '../utils/formatUtils';
 import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
-import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -73,9 +72,6 @@ const OndoLeaderboardView: React.FC = () => {
 
   const { deposits, isLoading: isDepositsLoading } =
     useGetOndoCampaignDeposits(campaignId);
-
-  const isCampaignComplete =
-    campaign != null && getCampaignStatus(campaign) === 'complete';
 
   const isPending = position != null && !position.qualified;
   const isQualified = position != null && position.qualified;
@@ -172,9 +168,9 @@ const OndoLeaderboardView: React.FC = () => {
                   rank={rankValue}
                   tier={tierValue}
                   isLoading={isPositionLoading}
-                  isPending={!isCampaignComplete && isPending}
+                  isPending={isPending}
                   isQualified={isQualified}
-                  isIneligible={!isCampaignComplete && isIneligible}
+                  isIneligible={isIneligible}
                   showReturn
                   returnValue={returnValue}
                   returnColor={returnColor}
@@ -201,7 +197,6 @@ const OndoLeaderboardView: React.FC = () => {
               currentUserReferralCode={referralCode}
               userPosition={leaderboardUserPosition}
               campaignId={campaignId}
-              isCampaignComplete={isCampaignComplete}
             />
           </Box>
         </ScrollView>

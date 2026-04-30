@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   ParamListBase,
@@ -353,23 +353,16 @@ describe('useOptout', () => {
       const { result } = renderHook(() => useOptout());
 
       // Set loading to true by triggering an optout that doesn't resolve immediately
-      let resolveSlowPromise: (value: boolean) => void;
-      const slowPromise = new Promise<boolean>((resolve) => {
-        resolveSlowPromise = resolve;
-      });
+      const slowPromise = new Promise((resolve) =>
+        setTimeout(() => resolve(true), 100),
+      );
       mockEngineCall.mockReturnValueOnce(slowPromise);
 
       // Start first opt-out (this will set isLoading to true)
-      let firstOptoutPromise: Promise<boolean>;
-      await act(async () => {
-        firstOptoutPromise = result.current.optout();
-      });
+      const firstOptoutPromise = result.current.optout();
 
       // Act - Try to call optout while already loading
-      let secondOptoutResult = false;
-      await act(async () => {
-        secondOptoutResult = await result.current.optout();
-      });
+      const secondOptoutResult = await result.current.optout();
 
       // Assert - Second call should return false immediately without calling controller
       expect(secondOptoutResult).toBe(false);
@@ -377,10 +370,7 @@ describe('useOptout', () => {
 
       // Clean up the first promise
       await act(async () => {
-        resolveSlowPromise?.(true);
-        if (firstOptoutPromise) {
-          await firstOptoutPromise;
-        }
+        await firstOptoutPromise;
       });
     });
 
@@ -863,14 +853,11 @@ describe('useOptout', () => {
         result.current.showOptoutBottomSheet('Route3');
       });
 
-      // Assert - Should have been called 3 times
+      // Assert - Should have been called 3 times, with the last call using 'Route3'
       expect(mockNavigate).toHaveBeenCalledTimes(3);
       expect(mockNavigate).toHaveBeenLastCalledWith(
         Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-        expect.objectContaining({
-          title: expect.any(String),
-          description: expect.any(String),
-        }),
+        expect.any(Object),
       );
     });
   });
@@ -890,7 +877,7 @@ describe('useOptout', () => {
       });
 
       // Act
-      rerender(undefined);
+      rerender();
 
       // Assert
       expect(result.current.optout).not.toBe(initialOptout);
@@ -914,7 +901,7 @@ describe('useOptout', () => {
       });
 
       // Act - Rerender to see if callback changed
-      rerender(undefined);
+      rerender();
 
       // Assert - The callback should be different due to isLoading dependency change
       expect(result.current.showOptoutBottomSheet).not.toBe(

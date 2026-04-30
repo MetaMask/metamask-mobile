@@ -31,6 +31,7 @@ perfTest.describe(PerformancePredict, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       // Login to the app
       await loginToAppPlaywright();
+
       // Timer 1: Navigate to Predict tab
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Predict Market List is displayed',
@@ -49,7 +50,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 2: Open deposit screen
       const timer2 = new TimerHelper(
         'Time since user taps Add Funds button until Predict Deposit screen is visible',
-        { ios: 1000, android: 4500 },
+        { ios: 1000, android: 1500 },
         currentDeviceDetails.platform,
       );
 
@@ -75,14 +76,14 @@ perfTest.describe(PerformancePredict, () => {
       });
 
       await TransactionPayConfirmation.searchToken('USDC');
-      await TransactionPayConfirmation.tapByNetworkFilter('Arbitrum');
+      await TransactionPayConfirmation.tapEthereumFilter();
       await TransactionPayConfirmation.tapFirstUsdc('USDC');
       await TransactionPayConfirmation.tapKeyboardAmount('1');
 
       // Timer 4: Proceed to confirmation screen
       const timer4 = new TimerHelper(
         'Time since user taps Continue button until quote is displayed on confirmation page',
-        { ios: 4000, android: 12000 },
+        { ios: 4000, android: 3500 },
         currentDeviceDetails.platform,
       );
 

@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import { usePredictMarketsForHomepage } from './usePredictMarketsForHomepage';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 
@@ -57,12 +57,10 @@ describe('usePredictMarketsForHomepage', () => {
     };
   });
 
-  it('fetches markets on mount when predict is enabled', async () => {
+  it('returns markets from usePredictMarketData', () => {
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
-    await waitFor(() => {
-      expect(result.current.markets).toHaveLength(3);
-    });
+    expect(result.current.markets).toHaveLength(3);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
   });
