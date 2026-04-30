@@ -139,6 +139,7 @@ describe('persistConfig', () => {
         'engine',
         'qrKeyringScanner',
         'securityAlerts',
+        'attribution',
       ]);
     });
 

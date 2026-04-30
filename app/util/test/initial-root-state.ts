@@ -75,6 +75,10 @@ const initialRootState: RootState = {
   card: initialCardState,
   rewards: initialRewardsState,
   networkConnectionBanner: initialNetworkConnectionBannerState,
+  attribution: {
+    attribution: null,
+    _persist: { version: 0, rehydrated: true },
+  },
 };
 
 if (isTest) {

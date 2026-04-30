@@ -19,6 +19,7 @@ import networkOnboardReducer from './networkSelector';
 import securityReducer, { SecurityState } from './security';
 import accountsReducer, { iAccountEvent as AccountsState } from './accounts';
 import { combineReducers, Reducer } from 'redux';
+import { persistReducer } from 'redux-persist';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
 import rpcEventReducer from './rpcEvents';
@@ -44,6 +45,8 @@ import sampleCounterReducer from '../features/SampleFeature/reducers/sample-coun
 import cardReducer from '../core/redux/slices/card';
 import rewardsReducer, { RewardsState } from './rewards';
 import { isTest } from '../util/test/utils';
+import attributionReducer from '../core/redux/slices/attribution';
+import attributionPersistConfig from '../store/attributionPersistConfig';
 
 /**
  * Infer state from a reducer
@@ -59,6 +62,11 @@ export type StateFromReducer<reducer> =
   >
     ? State
     : never;
+
+const persistedAttributionReducer = persistReducer(
+  attributionPersistConfig,
+  attributionReducer,
+);
 
 // TODO: Convert all reducers to valid TypeScript Redux reducers, and add them
 // to this type. Once that is complete, we can automatically generate this type
@@ -132,6 +140,7 @@ export interface RootState {
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   networkConnectionBanner: NetworkConnectionBannerState;
+  attribution: StateFromReducer<typeof persistedAttributionReducer>;
 }
 
 const baseReducers = {
@@ -185,6 +194,9 @@ if (isTest) {
 // TypeScript reducers have invalid actions
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rootReducer = combineReducers<RootState, any>(baseReducers);
+const rootReducer = combineReducers<RootState, any>({
+  ...baseReducers,
+  attribution: persistedAttributionReducer,
+});
 
 export default rootReducer;

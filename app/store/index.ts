@@ -15,6 +15,7 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
+import { expireAttributionIfStale } from '../core/redux/slices/attribution';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -74,6 +75,8 @@ const createStoreAndPersistor = async () => {
     store.dispatch(
       setBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
     );
+
+    store.dispatch(expireAttributionIfStale());
   };
 
   persistor = persistStore(store, null, onPersistComplete);

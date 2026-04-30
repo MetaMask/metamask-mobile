@@ -189,6 +189,7 @@ const persistConfig = {
     'engine',
     'qrKeyringScanner',
     'securityAlerts',
+    'attribution',
   ],
   storage: MigratedStorage,
   transforms: [persistUserTransform, persistOnboardingTransform],
