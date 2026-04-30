@@ -8,7 +8,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import { useNetworkName } from '../../../hooks/useNetworkName';
-import { POLYGON_USDCE } from '../../../constants/predict';
+import { POLYGON_PUSD } from '../../../constants/predict';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
@@ -118,7 +118,7 @@ describe('ReceiveSummaryLine', () => {
     expect(
       getByText(
         strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: POLYGON_USDCE.symbol,
+          targetSymbol: POLYGON_PUSD.symbol,
           targetChain: 'Arbitrum',
         }),
       ),

@@ -657,13 +657,10 @@ export interface RootStackParamList extends ParamListBase {
 
   // Card routes
   CardScreens: undefined;
-  CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
   CardAuthentication: { showAuthPrompt?: boolean } | undefined;
   CardSpendingLimit: undefined;
-  CardChangeAsset: undefined;
-  VerifyingRegistration: undefined;
   ChooseYourCard: undefined;
   ReviewOrder: undefined;
   OrderCompleted:
@@ -682,7 +679,6 @@ export interface RootStackParamList extends ParamListBase {
   CardOnboardingVerifyingVeriffKYC: undefined;
   CardOnboardingPersonalDetails: undefined;
   CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingMailingAddress: undefined;
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
