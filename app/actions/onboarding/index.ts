@@ -75,6 +75,11 @@ export interface ClearOnboardingAction {
 export interface SetWalletHomeOnboardingStepsEligibleAction {
   type: typeof SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE;
   eligible: boolean;
+  /**
+   * When true with `eligible`, skip the first-step balance-loading shell for this session
+   * (user just finished onboarding). Never persisted.
+   */
+  skipInitialBalanceWait: boolean;
 }
 
 export interface ResetWalletHomeOnboardingStepsAction {
@@ -191,10 +196,19 @@ export function clearOnboarding(): ClearOnboardingAction {
 
 export function setWalletHomeOnboardingStepsEligible(
   eligible: boolean,
+  options?: { skipInitialBalanceWait?: boolean },
 ): SetWalletHomeOnboardingStepsEligibleAction {
   return {
     type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
     eligible,
+    /**
+     * Default `true` when becoming eligible: user just completed primary onboarding and we do not
+     * need to block the first checklist step on aggregated balance. Pass `false` when the user is
+     * returning (e.g. unlock) and we must confirm zero balance before enabling the step.
+     */
+    skipInitialBalanceWait: Boolean(
+      eligible && (options?.skipInitialBalanceWait ?? true),
+    ),
   };
 }
 
