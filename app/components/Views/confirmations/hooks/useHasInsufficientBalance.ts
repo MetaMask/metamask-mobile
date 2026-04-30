@@ -49,8 +49,11 @@ export function useHasInsufficientBalance(): {
   const totalTransactionValue = addHexes(maxFeeNativeInHex, transactionValue);
   const totalTransactionInHex = add0x(totalTransactionValue as string);
 
-  const balanceWeiInHexBN = new BigNumber(balanceWeiInHex ?? '0x0');
-  const totalTransactionValueBN = new BigNumber(totalTransactionInHex ?? '0x0');
+  const balanceWeiInHexBN = new BigNumber(balanceWeiInHex ?? '0x0', 16);
+  const totalTransactionValueBN = new BigNumber(
+    totalTransactionInHex ?? '0x0',
+    16,
+  );
 
   const hasNoNativeAsset = chainId && NO_NATIVE_ASSET_CHAIN_IDS.has(chainId);
   /**
