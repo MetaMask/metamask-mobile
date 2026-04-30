@@ -25,9 +25,7 @@ import {
   CaveatConstraint,
   PermissionDoesNotExistError,
 } from '@metamask/permission-controller';
-import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
-import { areAddressesEqual } from '../../util/address';
 import Logger from '../../util/Logger';
 
 const INTERNAL_ORIGINS = [
