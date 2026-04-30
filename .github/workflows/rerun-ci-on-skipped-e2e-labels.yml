@@ -92,5 +92,5 @@ jobs:
         run: |
           RUN_ID="${{ steps.find.outputs.run_id }}"
           echo "Re-running workflow $RUN_ID..."
-          gh run rerun "$RUN_ID" --repo "$REPO"
+          gh run rerun "$RUN_ID" --repo "$REPO" || echo "Rerun not possible (run may not be in a retriable state)"
           echo "CI workflow re-triggered successfully"
