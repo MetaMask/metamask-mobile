@@ -3,13 +3,9 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
-import { MessengerEvents } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 
-import Engine from '../Engine';
-import { RootMessenger } from './types';
-
-type RootEventType = MessengerEvents<RootMessenger>['type'];
+import Engine from '../../../../Engine';
 
 const MONEY_ACCOUNT_TRANSACTION_TYPES: readonly TransactionType[] = [
   TransactionType.moneyAccountDeposit,
@@ -64,11 +60,4 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
     config.accountOverride = selectedAccount.address as Hex;
   });
-}
-
-export function registerMoneyAccountOverrideListener(): void {
-  Engine.controllerMessenger.subscribe(
-    'TransactionController:unapprovedTransactionAdded' as RootEventType,
-    handleUnapprovedTransactionAddedForMoneyAccount as never,
-  );
 }

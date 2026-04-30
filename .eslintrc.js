@@ -467,16 +467,31 @@ module.exports = {
     },
     {
       files: ['app/**/*.{ts,tsx}'],
-      excludedFiles: ['app/controllers/perps/**/*.{ts,tsx}'],
+      excludedFiles: [
+        'app/controllers/perps/**/*.{ts,tsx}',
+        'app/util/haptics/**/*.{ts,tsx}',
+      ],
       rules: {
         'no-restricted-imports': [
           'error',
           {
+            paths: [
+              {
+                name: 'expo-haptics',
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
+              },
+            ],
             patterns: [
               {
                 group: ['**/controllers/perps', '**/controllers/perps/**'],
                 message:
                   'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
+              },
+              {
+                group: ['expo-haptics/*'],
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
               },
             ],
           },

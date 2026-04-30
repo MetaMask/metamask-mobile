@@ -6,6 +6,7 @@ import OndoCampaignDetailsView, {
 import { CAMPAIGN_STATS_SUMMARY_TEST_IDS } from '../components/Campaigns/CampaignStatsSummary';
 import { ONDO_PRIZE_POOL_TEST_IDS } from '../components/Campaigns/OndoPrizePool';
 import { CAMPAIGN_CTA_TEST_IDS } from '../components/Campaigns/CampaignOptInCta';
+import { CAMPAIGN_ENDED_STATS_TEST_IDS } from '../components/Campaigns/CampaignEndedStats';
 import {
   type CampaignDto,
   CampaignType,
@@ -133,6 +134,22 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
     __esModule: true,
     default: () =>
       ReactActual.createElement(View, { testID: 'ondo-leaderboard' }),
+  };
+});
+
+jest.mock('../components/Campaigns/CampaignEndedStats', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const { CAMPAIGN_ENDED_STATS_TEST_IDS: actualTestIds } = jest.requireActual(
+    '../components/Campaigns/CampaignEndedStats',
+  );
+  return {
+    __esModule: true,
+    CAMPAIGN_ENDED_STATS_TEST_IDS: actualTestIds,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: actualTestIds.CONTAINER,
+      }),
   };
 });
 
@@ -519,6 +536,7 @@ const createTestCampaign = (
     excludedRegions: [],
     details: null,
     featured: true,
+    showUpcomingDate: false,
     ...overrides,
   };
 };
@@ -901,7 +919,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
     });
 
-    it('renders the entries-closed CTA when campaign is complete and user is not opted in', () => {
+    it('does not render the CTA when campaign is complete and user is not opted in', () => {
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       const yesterday = new Date();
@@ -916,8 +934,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
   });
 
@@ -1100,7 +1118,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
     });
 
-    it('does not render OndoPrizePool when campaign is complete', () => {
+    it('renders OndoPrizePool when campaign is complete', () => {
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       const yesterday = new Date();
@@ -1115,8 +1133,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(ONDO_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeDefined();
     });
   });
 
@@ -1471,6 +1489,62 @@ describe('OndoCampaignDetailsView', () => {
         Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
         { campaignId: 'campaign-1', campaignName: 'Ended Ondo' },
       );
+    });
+  });
+
+  describe('CampaignEndedStats visibility', () => {
+    const setupCompleteCampaign = () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+    };
+
+    it('shows CampaignEndedStats when campaign is complete and user is confirmed not opted in', () => {
+      setupCompleteCampaign();
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: false, participantCount: 0 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(
+        getByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+    });
+
+    it('does not show CampaignEndedStats while participant status is still loading', () => {
+      setupCompleteCampaign();
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: null,
+        isLoading: true,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER)).toBeNull();
+    });
+
+    it('does not show CampaignEndedStats when campaign is complete and user is opted in', () => {
+      setupCompleteCampaign();
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER)).toBeNull();
     });
   });
 

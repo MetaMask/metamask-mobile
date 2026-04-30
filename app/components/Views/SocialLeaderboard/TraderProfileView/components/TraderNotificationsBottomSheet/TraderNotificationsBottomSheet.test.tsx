@@ -1,7 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { screen, fireEvent, act } from '@testing-library/react-native';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import {
+  ImpactFeedbackStyle,
+  ImpactMoment,
+  playImpact,
+} from '../../../../../../util/haptics';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TraderNotificationsBottomSheet, {
   type TraderNotificationsBottomSheetRef,
@@ -32,7 +36,20 @@ jest.mock('expo-haptics', () => ({
   },
 }));
 
-const mockImpactAsync = impactAsync as jest.MockedFunction<typeof impactAsync>;
+jest.mock('../../../../../../util/haptics', () => {
+  const actual = jest.requireActual<
+    typeof import('../../../../../../util/haptics')
+  >('../../../../../../util/haptics');
+  return {
+    ...actual,
+    playImpact: jest.fn(),
+  };
+});
+
+const { impactAsync: mockImpactAsync } = jest.requireMock('expo-haptics') as {
+  impactAsync: jest.Mock;
+};
+const mockPlayImpact = jest.mocked(playImpact);
 
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
@@ -414,6 +431,7 @@ describe('TraderNotificationsBottomSheet', () => {
         false,
       );
       mockImpactAsync.mockClear();
+      mockPlayImpact.mockClear();
 
       act(() => {
         fireEvent.press(
@@ -423,8 +441,8 @@ describe('TraderNotificationsBottomSheet', () => {
         );
       });
 
-      expect(mockImpactAsync).toHaveBeenCalledTimes(1);
-      expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('fires a medium impact when pressing save even if the value did not change', () => {
@@ -444,8 +462,8 @@ describe('TraderNotificationsBottomSheet', () => {
         );
       });
 
-      expect(mockImpactAsync).toHaveBeenCalledTimes(1);
-      expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
       expect(mockToggleTraderNotification).not.toHaveBeenCalled();
     });
 
@@ -484,6 +502,7 @@ describe('TraderNotificationsBottomSheet', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
     });
 
     it('does not fire a haptic when toggling the local switch while the global toggle is off', () => {
@@ -502,6 +521,7 @@ describe('TraderNotificationsBottomSheet', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
     });
 
     it('does not fire a haptic when pressing the close button', () => {
@@ -514,6 +534,7 @@ describe('TraderNotificationsBottomSheet', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
     });
 
     it('does not fire a haptic when pressing the manage traders row', () => {
@@ -526,6 +547,7 @@ describe('TraderNotificationsBottomSheet', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
     });
   });
 });

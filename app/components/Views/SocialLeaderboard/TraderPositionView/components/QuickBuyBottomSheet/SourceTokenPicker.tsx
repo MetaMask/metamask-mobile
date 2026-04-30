@@ -1,29 +1,29 @@
-import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   AvatarToken,
   AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import React, { useCallback } from 'react';
+import { TouchableOpacity } from 'react-native';
 import Icon, {
-  IconSize,
   IconName,
+  IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { getTokenKey } from './sourceTokenCandidates';
 import { useTheme } from '../../../../../../util/theme';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import { getBridgeTokenImageSource } from './getBridgeTokenImageSource';
+import { getTokenKey } from './sourceTokenCandidates';
 
 interface SourceTokenPickerProps {
   options: BridgeToken[];
@@ -78,23 +78,26 @@ const SourceTokenPicker: React.FC<SourceTokenPickerProps> = ({
                 alignItems={BoxAlignItems.Center}
                 gap={3}
               >
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    <BadgeNetwork
+                <Box twClassName="pb-0.5">
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.BottomRight}
+                    badge={
+                      <BadgeNetwork
+                        name={item.symbol}
+                        src={getNetworkImageSource({
+                          chainId: item.chainId,
+                        })}
+                        twClassName="scale-75"
+                      />
+                    }
+                  >
+                    <AvatarToken
                       name={item.symbol}
-                      imageSource={getNetworkImageSource({
-                        chainId: item.chainId,
-                      })}
+                      src={getBridgeTokenImageSource(item)}
+                      size={AvatarTokenSize.Sm}
                     />
-                  }
-                >
-                  <AvatarToken
-                    name={item.symbol}
-                    src={item.image ? { uri: item.image } : undefined}
-                    size={AvatarTokenSize.Sm}
-                  />
-                </BadgeWrapper>
+                  </BadgeWrapper>
+                </Box>
                 <Box>
                   <Text
                     variant={TextVariant.BodyMd}
