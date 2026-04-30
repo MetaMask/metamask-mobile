@@ -54,6 +54,15 @@ jest.mock('../../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
+// TokenListSecurityBadge uses TanStack Query; omit from these TokenList-focused tests.
+jest.mock(
+  '../../components/TokenListSecurityBadge/TokenListSecurityBadge',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
 // Mock StockBadge component to simplify testing
 jest.mock('../../../shared/StockBadge', () => {
   const { Text } = jest.requireActual('react-native');
