@@ -617,6 +617,9 @@ const Wallet = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
   const remoteWalletHomeOnboardingStepsEnabled = useSelector(
     selectWalletHomeOnboardingStepsEnabled,
   );
@@ -628,7 +631,9 @@ const Wallet = ({
     remoteWalletHomeOnboardingStepsEnabled;
 
   const inWalletHomePostOnboardingFlow =
-    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
+    isHomepageSectionsV1Enabled &&
+    isWalletHomeOnboardingStepsEnabled &&
+    shouldShowWalletHomeOnboardingSteps;
 
   const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
 
@@ -715,6 +720,12 @@ const Wallet = ({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
   });
+
+  const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.NOTIFICATIONS,
+    });
+  }, [navigation]);
 
   // Hook for handling non-EVM asset sending
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1087,10 +1098,6 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-  const isHomepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
-
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
@@ -1397,6 +1404,10 @@ const Wallet = ({
           <AccountGroupBalance
             onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
             suspendRiveForCurtain={postOnboardingExitAnimating}
+            onTradePrimaryPress={goToSwaps}
+            onNotificationsPrimaryPress={
+              handleWalletHomeOnboardingNotificationsPrimary
+            }
           />
 
           {showWalletHomeMainActions ? (
