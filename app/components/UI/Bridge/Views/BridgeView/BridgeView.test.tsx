@@ -854,7 +854,7 @@ describe('BridgeView', () => {
   });
 
   describe('RWA same-chain EVM swap', () => {
-    it('should set slippage to undefined when stock RWA swap and RWA flag on', async () => {
+    it('sets slippage to undefined for stock RWA swap with RWA flag enabled', async () => {
       const mockQuote = mockQuoteWithMetadata;
       const ethChainId = '0x1' as const;
       const testState = createBridgeTestState(
