@@ -151,6 +151,15 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Download build environment artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-env-main-rc-*
+          path: build-env-artifacts
+          merge-multiple: false
+
       - name: Post RC Build Comment with Test Plan
         run: node -r esbuild-register scripts/build-announce/index.ts
         timeout-minutes: 8
