@@ -2446,6 +2446,12 @@
         }
       }
     },
+    "payment": {
+      "change_payment_method": "Change Payment Method",
+      "add_funds": "Add Funds",
+      "add": "Add",
+      "predict_balance": "Predict balance"
+    },
     "order": {
       "available": "Available",
       "cashed_out": "Cashed out",
@@ -8072,7 +8078,8 @@
     "title": "Select payment method",
     "title_receive": "Select receive token",
     "no_gas": "No native balance for gas",
-    "not_supported": "Not supported"
+    "not_supported": "Not supported",
+    "crypto": "Crypto"
   },
   "connection_removed_modal": {
     "title": "Connections removed",
