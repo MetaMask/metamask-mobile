@@ -11,10 +11,6 @@
 name: Nightly System Tests
 
 on:
-  # TODO: Remove push trigger before merging to main
-  push:
-    branches:
-      - run-system-tests
   schedule:
     - cron: '0 5 * * *' # 5 AM UTC daily
   workflow_dispatch:
