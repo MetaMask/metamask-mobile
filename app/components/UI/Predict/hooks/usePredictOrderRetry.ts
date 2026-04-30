@@ -15,6 +15,11 @@ interface UsePredictOrderRetryParams {
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
+  /**
+   * When true, suppresses the dedicated PredictOrderRetrySheet overlay so the
+   * inline buy-sheet error banner can handle the retry UX instead.
+   */
+  isSheetMode?: boolean;
 }
 
 export function usePredictOrderRetry({
@@ -23,6 +28,7 @@ export function usePredictOrderRetry({
   analyticsProperties,
   isOrderNotFilled,
   resetOrderNotFilled,
+  isSheetMode = false,
 }: UsePredictOrderRetryParams) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retrySheetVariant, setRetrySheetVariant] =
@@ -59,11 +65,19 @@ export function usePredictOrderRetry({
       throw new Error('Order not successful');
     } catch {
       setRetrySheetVariant('failed');
-      retrySheetRef.current?.onOpenBottomSheet();
+      if (!isSheetMode) {
+        retrySheetRef.current?.onOpenBottomSheet();
+      }
     } finally {
       setIsRetrying(false);
     }
-  }, [preview, placeOrder, analyticsProperties, resetOrderNotFilled]);
+  }, [
+    preview,
+    placeOrder,
+    analyticsProperties,
+    resetOrderNotFilled,
+    isSheetMode,
+  ]);
 
   const isRetryingRef = useRef(false);
   isRetryingRef.current = isRetrying;
@@ -78,7 +92,11 @@ export function usePredictOrderRetry({
 
     if (becameNotFilled) {
       setRetrySheetVariant('busy');
-      retrySheetRef.current?.onOpenBottomSheet();
+
+      // Sheet mode renders an inline banner instead of opening the overlay.
+      if (!isSheetMode) {
+        retrySheetRef.current?.onOpenBottomSheet();
+      }
 
       Engine.context.PredictController.trackPredictOrderEvent({
         status: PredictTradeStatus.RETRY_PROMPTED,
@@ -88,7 +106,7 @@ export function usePredictOrderRetry({
     }
 
     wasOrderNotFilledRef.current = isOrderNotFilled;
-  }, [isOrderNotFilled, analyticsProperties, preview?.sharePrice]);
+  }, [isOrderNotFilled, analyticsProperties, preview?.sharePrice, isSheetMode]);
 
   return {
     retrySheetRef,

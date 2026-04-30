@@ -24,11 +24,19 @@ import AvatarGroup from '../../../../../component-library/components/Avatars/Ava
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
 import { buildTokenIconUrl } from '../../../Card/util/buildTokenIconUrl';
 import ConvertTokenRow from '../../../Earn/components/Musd/ConvertTokenRow';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
 import { CaipChainId } from '@metamask/utils';
+import { useSelector } from 'react-redux';
+import {
+  createTokenChainKey,
+  selectHasInFlightMusdConversion,
+  selectHasUnapprovedMusdConversion,
+  selectMusdConversionStatuses,
+} from '../../../Earn/selectors/musdConversionStatus';
 
 interface MoneyConvertStablecoinsProps {
   tokens: AssetType[];
@@ -67,34 +75,43 @@ const STABLECOIN_AVATAR_PROPS = [
   },
 ];
 
-const FeatureTags = () => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    twClassName="flex-wrap gap-2 mt-4"
-    testID={MoneyConvertStablecoinsTestIds.FEATURE_TAGS}
-  >
-    {FEATURE_TAGS.map((tag) => (
-      <TagBase
-        key={tag}
-        shape={TagShape.Rectangle}
-        severity={TagSeverity.Neutral}
-        gap={4}
-        startAccessory={
-          <Icon
-            name={IconName.CheckBold}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        }
-        textProps={{
-          variant: ComponentTextVariant.BodySMMedium,
-        }}
-      >
-        {strings(tag)}
-      </TagBase>
-    ))}
-  </Box>
-);
+const FeatureTags = () => {
+  const { themeAppearance } = useTheme();
+  const tagBackgroundColor =
+    themeAppearance === 'dark'
+      ? 'rgba(255, 255, 255, 0.04)'
+      : 'rgba(0, 0, 0, 0.04)';
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      twClassName="flex-wrap gap-2 mt-4"
+      testID={MoneyConvertStablecoinsTestIds.FEATURE_TAGS}
+    >
+      {FEATURE_TAGS.map((tag) => (
+        <TagBase
+          key={tag}
+          style={{ backgroundColor: tagBackgroundColor }}
+          shape={TagShape.Rectangle}
+          severity={TagSeverity.Neutral}
+          gap={4}
+          startAccessory={
+            <Icon
+              name={IconName.CheckBold}
+              size={IconSize.Sm}
+              color={IconColor.SuccessDefault}
+            />
+          }
+          textProps={{
+            variant: ComponentTextVariant.BodySMMedium,
+          }}
+        >
+          {strings(tag)}
+        </TagBase>
+      ))}
+    </Box>
+  );
+};
 
 const Description = () => (
   <Text
@@ -124,9 +141,36 @@ const MoneyConvertStablecoins = ({
 }: MoneyConvertStablecoinsProps) => {
   const hasTokens = tokens.length > 0;
 
+  const hasUnapprovedMusdConversion = useSelector(
+    selectHasUnapprovedMusdConversion,
+  );
+  const hasInFlightMusdConversion = useSelector(
+    selectHasInFlightMusdConversion,
+  );
+
+  const conversionStatusesByTokenChainKey = useSelector(
+    selectMusdConversionStatuses,
+  );
+
+  const isConversionPending = (token: AssetType) => {
+    const tokenAddress = token.address;
+    const tokenChainId = token.chainId;
+
+    const tokenChainKey =
+      tokenAddress && tokenChainId
+        ? createTokenChainKey(tokenAddress, tokenChainId)
+        : undefined;
+
+    const txStatusInfo = tokenChainKey
+      ? conversionStatusesByTokenChainKey[tokenChainKey]
+      : undefined;
+
+    return Boolean(txStatusInfo?.isPending);
+  };
+
   return (
     <Box testID={MoneyConvertStablecoinsTestIds.CONTAINER}>
-      <Box twClassName="px-4">
+      <Box twClassName="px-4 pt-3">
         {!hasTokens && (
           <Box
             twClassName="mb-4"
@@ -154,6 +198,10 @@ const MoneyConvertStablecoins = ({
                 token={token}
                 onMaxPress={onMaxPress}
                 onEditPress={onEditPress}
+                areActionsDisabled={
+                  hasUnapprovedMusdConversion || hasInFlightMusdConversion
+                }
+                isConversionPending={isConversionPending(token)}
               />
             </Box>
           ))}

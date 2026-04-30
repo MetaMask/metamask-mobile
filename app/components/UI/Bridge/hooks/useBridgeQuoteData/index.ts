@@ -351,5 +351,7 @@ export const useBridgeQuoteData = ({
     shouldShowPriceImpactWarning,
     validQuotes,
     needsNewQuote,
+    isActiveQuoteForCurrentTokenPair:
+      isQuoteSourceTokenMatch && isQuoteDestTokenMatch,
   };
 };

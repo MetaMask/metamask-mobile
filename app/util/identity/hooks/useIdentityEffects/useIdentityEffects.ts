@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAccountSyncing } from '../useAccountSyncing';
 import { useContactSyncing } from '../useContactSyncing';
 import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
-import { useBrazeIdentity } from '../../../../core/Braze/useBrazeIdentity';
+import { useBrazeIdentity } from '../useBrazeIdentity';
 
 /**
  * Takes care of various identity effects.

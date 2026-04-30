@@ -190,6 +190,19 @@ export const PopularList = [
       imageSource: require('../../images/megaeth-mainnet-logo.png'),
     },
   },
+  {
+    chainId: toHex('4217'),
+    nickname: 'Tempo',
+    rpcUrl: `https://rpc.tempo.xyz/`,
+    failoverRpcUrls: [],
+    ticker: 'USD',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explore.tempo.xyz/',
+      imageUrl: 'TEMPO',
+      imageSource: require('../../images/tempo.png'),
+    },
+  },
 ];
 
 /**
@@ -488,4 +501,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.TEMPO_MAINNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
   [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
+  [NETWORK_CHAIN_ID.MANTLE]: require('../../images/mantle.png'),
 };

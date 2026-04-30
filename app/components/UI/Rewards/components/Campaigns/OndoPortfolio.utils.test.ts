@@ -2,6 +2,7 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
+  sanitizeOndoTokenName,
 } from './OndoPortfolio.utils';
 
 describe('groupPortfolioPositionsByAsset', () => {
@@ -109,5 +110,47 @@ describe('isPnlNonNegative', () => {
 
   it('returns false for non-parseable value (BigNumber NaN is not >= 0)', () => {
     expect(isPnlNonNegative('—')).toBe(false);
+  });
+});
+
+describe('sanitizeOndoTokenName', () => {
+  it('strips "(Ondo Tokenized)" suffix and trims', () => {
+    expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
+      'US Dollar',
+    );
+  });
+
+  it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
+    expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
+  });
+
+  it('is case-insensitive', () => {
+    expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
+  });
+
+  it('truncates to 28 characters with ellipsis', () => {
+    expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
+      'A Very Long Token Name That...',
+    );
+  });
+
+  it('strips then truncates with ellipsis', () => {
+    const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
+    const result = sanitizeOndoTokenName(long);
+    expect(result).toBe('Extremely Long Name Here Tha...');
+  });
+
+  it('does not add ellipsis when exactly 28 characters', () => {
+    expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
+      '1234567890123456789012345678',
+    );
+  });
+
+  it('returns the name unchanged when no stripping or truncation is needed', () => {
+    expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
+  });
+
+  it('handles empty string', () => {
+    expect(sanitizeOndoTokenName('')).toBe('');
   });
 });

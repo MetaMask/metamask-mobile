@@ -8,6 +8,10 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
 import { Alert } from 'react-native';
+import {
+  IMPORT_WALLET_PRIVATE_KEY_URL,
+  IMPORT_WALLET_GUIDE_URL,
+} from '../../../constants/urls';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -44,9 +48,12 @@ jest.mock('../../../core', () => ({
 }));
 
 // Mock Alert
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 // Cast Alert.alert as a mock for better TypeScript support
 const mockAlert = Alert.alert as jest.MockedFunction<typeof Alert.alert>;
@@ -83,53 +90,6 @@ describe('ImportPrivateKey', () => {
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: initialState },
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('displays SRP warning description when user has no social auth connection', () => {
-    const { getByText, getByPlaceholderText } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: srpState },
-    );
-
-    expect(getByText(strings('import_private_key.title'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.description_srp'), {
-        exact: false,
-      }),
-    ).toBeTruthy();
-    expect(
-      getByPlaceholderText(strings('import_private_key.subtitle')),
-    ).toBeTruthy();
-    expect(getByText(strings('import_private_key.cta_text'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.or_scan_a_qr_code')),
-    ).toBeTruthy();
-  });
-
-  it('displays Apple/Google auth description when user has social auth connection', () => {
-    const { getByText, getByPlaceholderText } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: initialState },
-    );
-
-    expect(getByText(strings('import_private_key.title'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.description_one')),
-    ).toBeTruthy();
-    expect(
-      getByPlaceholderText(strings('import_private_key.subtitle')),
-    ).toBeTruthy();
-  });
-
   it('calls dismiss function when close button is pressed', () => {
     // Arrange
     const { getByTestId } = renderScreen(
@@ -162,7 +122,7 @@ describe('ImportPrivateKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
+        url: IMPORT_WALLET_PRIVATE_KEY_URL,
         title: strings('drawer.metamask_support'),
       },
     });
@@ -183,7 +143,7 @@ describe('ImportPrivateKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
+        url: IMPORT_WALLET_GUIDE_URL,
         title: strings('drawer.metamask_support'),
       },
     });

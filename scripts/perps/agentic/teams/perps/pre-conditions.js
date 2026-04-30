@@ -173,29 +173,6 @@ const REGISTRY = {
     },
   },
 
-  'ui.homepage_redesign_v1_enabled': {
-    description: 'Homepage redesign V1 feature flag is ON',
-    async: false,
-    expression: '(function(){ var f=Engine.context.RemoteFeatureFlagController.state.remoteFeatureFlags.homepageRedesignV1; var enabled=f===true||(f&&f.enabled===true); return JSON.stringify({enabled:!!enabled}); })()',
-    assert: { operator: 'eq', field: 'enabled', value: true },
-    hint: 'Enable homepageRedesignV1: Settings → Experimental → Feature Flags → homepageRedesignV1.',
-    fixtures: {
-      pass: '{"enabled":true}',
-      fail: '{"enabled":false}',
-    },
-  },
-
-  'ui.homepage_redesign_v1_disabled': {
-    description: 'Homepage redesign V1 feature flag is OFF (classic PerpsTabView layout)',
-    async: false,
-    expression: '(function(){ var f=Engine.context.RemoteFeatureFlagController.state.remoteFeatureFlags.homepageRedesignV1; var enabled=f===true||(f&&f.enabled===true); return JSON.stringify({enabled:!!enabled}); })()',
-    assert: { operator: 'eq', field: 'enabled', value: false },
-    hint: 'Disable homepageRedesignV1: Settings → Experimental → Feature Flags → homepageRedesignV1.',
-    fixtures: {
-      pass: '{"enabled":false}',
-      fail: '{"enabled":true}',
-    },
-  },
 };
 
 module.exports = REGISTRY;

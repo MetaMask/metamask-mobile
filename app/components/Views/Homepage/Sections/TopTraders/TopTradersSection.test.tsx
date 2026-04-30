@@ -12,6 +12,7 @@ const mockTraders = [
   {
     id: 'trader-1',
     rank: 1,
+    overallRank: 1,
     username: 'alice',
     percentageChange: 96.2,
     pnlValue: 963000,
@@ -121,8 +122,21 @@ describe('TopTradersSection', () => {
 
   it('navigates to the Top Traders view when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
+
     fireEvent.press(screen.getByText('Top Traders'));
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+  });
+
+  it('navigates to the trader profile with correct params when a card is tapped', () => {
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      { traderId: 'trader-1', traderName: 'alice', rank: 1 },
+    );
   });
 
   it('exposes refresh via ref and resolves when called', async () => {

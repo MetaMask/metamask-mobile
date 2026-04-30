@@ -20,31 +20,26 @@ Image.getSize = jest
   );
 
 describe('TokenValueStack', () => {
-  it('render matches snapshot', () => {
+  it('renders token amount and fiat value', () => {
     const props: TokenValueStackProps = {
       amountWei: '3210000000000000',
       amountFiat: '7.46',
       tokenSymbol: 'wETH',
     };
 
-    const { getByText, toJSON } = renderWithProvider(
-      <TokenValueStack {...props} />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-            },
+    const { getByText } = renderWithProvider(<TokenValueStack {...props} />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
           },
         },
       },
-    );
+    });
 
     expect(
       getByText(`${renderFromWei(props.amountWei)} ${props.tokenSymbol}`),
-    ).toBeDefined(); // 0.00321 wETH
-    expect(getByText(props.amountFiat)).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    ).toBeOnTheScreen(); // 0.00321 wETH
+    expect(getByText(props.amountFiat)).toBeOnTheScreen();
   });
 });

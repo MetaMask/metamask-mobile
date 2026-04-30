@@ -151,8 +151,15 @@ const renderComponent = ({
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    renderComponent({ state: initialState });
+    renderComponent({ state: initialState, txParams: { nonce: '0x1a' } });
     expect(screen.getByText('Nonce')).toBeOnTheScreen();
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
+    expect(screen.getByText('Date')).toBeOnTheScreen();
+  });
+
+  it('should render correctly without nonce', () => {
+    renderComponent({ state: initialState, txParams: { nonce: undefined } });
+    expect(screen.queryByText('Nonce')).not.toBeOnTheScreen();
     expect(screen.getByText('Total amount')).toBeOnTheScreen();
     expect(screen.getByText('Date')).toBeOnTheScreen();
   });
@@ -485,5 +492,23 @@ describe('TransactionDetails', () => {
     });
 
     expect(getByText('Batched transactions')).toBeTruthy();
+  });
+
+  it('passes isGasFeeSponsored to TransactionSummary when true', () => {
+    renderComponent({
+      state: initialState,
+      transactionObj: { isGasFeeSponsored: true },
+    });
+
+    expect(screen.getByTestId('paid-by-metamask')).toBeOnTheScreen();
+    expect(screen.getByText('Paid by MetaMask')).toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" when isGasFeeSponsored is false', () => {
+    renderComponent({
+      state: initialState,
+    });
+
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
   });
 });

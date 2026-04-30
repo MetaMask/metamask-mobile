@@ -3,7 +3,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
-import { setOnboardingReferralCode } from '../../../../reducers/rewards';
+import {
+  setOnboardingReferralCode,
+  setPendingDeeplink,
+} from '../../../../reducers/rewards';
 
 interface HandleRewardsUrlParams {
   rewardsPath: string;
@@ -14,6 +17,8 @@ interface HandleRewardsUrlParams {
  */
 interface RewardsNavigationParams {
   referral?: string;
+  page?: 'campaigns' | 'musd' | 'benefits';
+  campaign?: 'ondo' | 'season1';
 }
 
 /**
@@ -28,10 +33,19 @@ const parseRewardsNavigationParams = (
     rewardsPath.includes('?') ? rewardsPath.split('?')[1] : '',
   );
 
+  const pageParam = urlParams.get('page');
+  const campaignParam = urlParams.get('campaign');
+
   return {
     referral:
       (urlParams.get('referral') as RewardsNavigationParams['referral']) ||
       undefined,
+    page: (['campaigns', 'musd', 'benefits'].includes(pageParam ?? '')
+      ? pageParam
+      : undefined) as RewardsNavigationParams['page'],
+    campaign: (['ondo', 'season1'].includes(campaignParam ?? '')
+      ? campaignParam
+      : undefined) as RewardsNavigationParams['campaign'],
   };
 };
 
@@ -43,6 +57,11 @@ const parseRewardsNavigationParams = (
  * Supported URL formats:
  * - https://link.metamask.io/rewards
  * - https://link.metamask.io/rewards?referral=code
+ * - https://link.metamask.io/rewards?page=campaigns
+ * - https://link.metamask.io/rewards?page=musd
+ * - https://link.metamask.io/rewards?page=benefits
+ * - https://link.metamask.io/rewards?campaign=ondo
+ * - https://link.metamask.io/rewards?campaign=season1
  */
 export const handleRewardsUrl = async ({
   rewardsPath,
@@ -65,6 +84,21 @@ export const handleRewardsUrl = async ({
     } else {
       // Clear any existing referral code
       ReduxService.store.dispatch(setOnboardingReferralCode(null));
+    }
+    if (urlParams.page || urlParams.campaign) {
+      // Store the deeplink intent in Redux rather than passing it as navigation
+      // params. RewardsHome uses UnmountOnBlur, so the navigator is not mounted
+      // when the user is on another tab — nested navigation params would be lost.
+      // Redux state is always available regardless of mount status, so
+      // RewardsNavigator can read and act on it once it mounts.
+      ReduxService.store.dispatch(
+        setPendingDeeplink({
+          page: urlParams.page,
+          campaign: urlParams.campaign,
+        }),
+      );
+    } else {
+      ReduxService.store.dispatch(setPendingDeeplink(null));
     }
     NavigationService.navigation.navigate(Routes.REWARDS_VIEW);
   } catch (error) {

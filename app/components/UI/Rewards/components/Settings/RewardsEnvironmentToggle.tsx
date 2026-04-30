@@ -94,68 +94,69 @@ const RewardsEnvironmentToggle: React.FC = () => {
   if (canChangeEnv === null || !canChangeEnv) return null;
 
   return (
-    <Box
-      testID="rewards-environment-toggle"
-      twClassName="gap-4 flex-col py-4 px-4 border-t border-muted"
-    >
-      <Text variant={TextVariant.HeadingSm}>
-        {strings('rewards.settings.environment_selector')}
-      </Text>
-      <Button
-        testID="rewards-environment-toggle-trigger"
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Md}
-        isFullWidth
-        onPress={() => setIsSheetOpen(true)}
-        accessibilityLabel={`${strings('rewards.settings.environment_selector')}: ${currentEnv ?? '...'}`}
-      >
-        {currentEnv ?? '...'}
-      </Button>
-
-      {isSheetOpen && (
-        <BottomSheet
-          shouldNavigateBack={false}
-          ref={sheetRef}
-          onClose={() => setIsSheetOpen(false)}
+    <>
+      {/* Divider */}
+      <Box twClassName="mt-1 border-b border-border-muted" />
+      <Box testID="rewards-environment-toggle" twClassName="gap-4 flex-col p-4">
+        <Text variant={TextVariant.HeadingSm}>
+          {strings('rewards.settings.environment_selector')}
+        </Text>
+        <Button
+          testID="rewards-environment-toggle-trigger"
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          isFullWidth
+          onPress={() => setIsSheetOpen(true)}
+          accessibilityLabel={`${strings('rewards.settings.environment_selector')}: ${currentEnv ?? '...'}`}
         >
-          <HeaderCompactStandard
-            title={strings('rewards.settings.environment_selector')}
-            onClose={() => sheetRef.current?.onCloseBottomSheet()}
-            closeButtonProps={{ testID: 'environment-sheet-close-button' }}
-          />
-          {ENV_OPTIONS.map((env) => (
-            <ListItemSelect
-              key={env}
-              testID={`environment-option-${env}`}
-              onPress={() => handleEnvSelect(env)}
-              isSelected={env === currentEnv}
-              isDisabled={false}
-              gap={8}
-              verticalAlignment={VerticalAlignment.Center}
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-                twClassName="flex-1"
+          {currentEnv ?? '...'}
+        </Button>
+
+        {isSheetOpen && (
+          <BottomSheet
+            shouldNavigateBack={false}
+            ref={sheetRef}
+            onClose={() => setIsSheetOpen(false)}
+          >
+            <HeaderCompactStandard
+              title={strings('rewards.settings.environment_selector')}
+              onClose={() => sheetRef.current?.onCloseBottomSheet()}
+              closeButtonProps={{ testID: 'environment-sheet-close-button' }}
+            />
+            {ENV_OPTIONS.map((env) => (
+              <ListItemSelect
+                key={env}
+                testID={`environment-option-${env}`}
+                onPress={() => handleEnvSelect(env)}
+                isSelected={env === currentEnv}
+                isDisabled={false}
+                gap={8}
+                verticalAlignment={VerticalAlignment.Center}
               >
-                <Text variant={TextVariant.BodyMd}>{env}</Text>
-                {env === defaultEnv && (
-                  <Box twClassName="px-2 py-0.5 rounded bg-muted">
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('rewards.settings.environment_default')}
-                    </Text>
-                  </Box>
-                )}
-              </Box>
-            </ListItemSelect>
-          ))}
-        </BottomSheet>
-      )}
-    </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Between}
+                  twClassName="flex-1"
+                >
+                  <Text variant={TextVariant.BodyMd}>{env}</Text>
+                  {env === defaultEnv && (
+                    <Box twClassName="px-2 py-0.5 rounded bg-muted">
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings('rewards.settings.environment_default')}
+                      </Text>
+                    </Box>
+                  )}
+                </Box>
+              </ListItemSelect>
+            ))}
+          </BottomSheet>
+        )}
+      </Box>
+    </>
   );
 };
 

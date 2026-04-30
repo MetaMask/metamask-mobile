@@ -16,7 +16,6 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
 
 // Mock homepage feature flags (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageRedesignV1Enabled: jest.fn(() => true),
   selectHomepageSectionsV1Enabled: jest.fn(() => true),
 }));
 
@@ -226,7 +225,9 @@ describe('AccountGroupBalance', () => {
     rerender(<AccountGroupBalance />);
 
     // Balance should display immediately without waiting for timeout
-    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
+      includeHiddenElements: true,
+    });
     expect(el).toBeOnTheScreen();
   });
 
@@ -287,7 +288,9 @@ describe('AccountGroupBalance', () => {
 
     // Should show balance immediately after update (hasChanged condition)
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
+        includeHiddenElements: true,
+      }),
     ).toBeOnTheScreen();
   });
 });

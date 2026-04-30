@@ -41,6 +41,7 @@ import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictT
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
+import AddWallet from '../../../components/Views/AddWallet';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import NetworkManager from '../../../components/UI/NetworkManager';
@@ -474,6 +475,19 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       }}
     />
     <Stack.Screen
+      name={Routes.SHEET.ADD_WALLET}
+      component={AddWallet}
+      options={{
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+        detachPreviousScreen: false,
+      }}
+    />
+    <Stack.Screen
       name={Routes.SHEET.ADDRESS_SELECTOR}
       component={AddressSelector}
     />
@@ -703,7 +717,11 @@ const ImportSRPView = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => {
+const ConnectQRHardwareFlow = ({
+  route,
+}: {
+  route: { params?: { hideMarketingContent?: boolean } };
+}) => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
@@ -712,7 +730,11 @@ const ConnectQRHardwareFlow = () => {
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+      <Stack.Screen
+        name="ConnectQRHardware"
+        component={ConnectQRHardware}
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 };
@@ -916,7 +938,12 @@ const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: true,
+      }}
+    >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainAccountPrivateKeyList}
@@ -984,7 +1011,7 @@ const AppFlow = () => {
         component={RootModalFlow as ScreenComponent}
       />
       <Stack.Screen
-        name="ImportPrivateKeyView"
+        name={Routes.IMPORT_PRIVATE_KEY_VIEW}
         component={ImportPrivateKeyView}
         options={{
           animationEnabled: true,
@@ -1086,7 +1113,20 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainPrivateKeyList}
         options={{
-          presentation: 'transparentModal',
+          animationEnabled: true,
+          cardStyle: { backgroundColor: colors.background.default },
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
         }}
       />
       <Stack.Screen

@@ -394,6 +394,7 @@
   },
   "SocialController": {
     "followingAddresses": [],
+    "followingProfileIds": [],
     "leaderboardEntries": []
   },
   "SubjectMetadataController": {
@@ -630,6 +631,7 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "tokenSecurityTypeDestination": null,
     "tokenWarnings": []
   },
   "BridgeStatusController": {
@@ -638,9 +640,14 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "cardHomeData": null,
+    "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
+  },
+  "ClientController": {
+    "isUiOpen": false
   },
   "ComplianceController": {},
   "ConnectivityController": {
@@ -699,7 +706,8 @@
         }
       ],
       "isEligible": false
-    }
+    },
+    "tron_staking": null
   },
   "DeFiPositionsController": {
     "allDeFiPositions": {},
@@ -725,6 +733,7 @@
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
+    "subscriptionBenefits": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null

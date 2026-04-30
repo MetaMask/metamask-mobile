@@ -147,11 +147,12 @@ jest.mock('../../../hooks/useRampsQuotes', () => ({
 
 let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -165,9 +166,9 @@ jest.mock(
         capturedOnClose = onClose;
         return <>{children}</>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -214,6 +215,7 @@ describe('ProviderSelectionModal', () => {
         amount: 100,
         walletAddress: '0x123',
         assetId: 'eip155:1/slip44:60',
+        redirectUrl: expect.stringContaining('/regions/fake-callback'),
         providers: ['/providers/transak', '/providers/moonpay'],
         paymentMethods: ['/payments/debit-credit-card-1'],
       }),
