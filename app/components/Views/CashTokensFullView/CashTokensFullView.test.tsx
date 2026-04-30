@@ -4,6 +4,8 @@ import { InteractionManager } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CashTokensFullView from './CashTokensFullView';
 import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
+import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
 
 const mockGoBack = jest.fn();
 
@@ -217,5 +219,19 @@ describe('CashTokensFullView', () => {
     renderWithProvider(<CashTokensFullView />);
     fireEvent.press(screen.getByTestId('cash-tokens-full-view-back-button'));
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('renders "Your balance" heading when Money Hub is enabled and user has mUSD', async () => {
+    (selectMoneyHubEnabledFlag as unknown as jest.Mock).mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceByChain: { '0x1': '1000' },
+    });
+    renderWithProvider(<CashTokensFullView />);
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(CashTokensFullViewTestIds.YOUR_BALANCE_HEADING),
+      ).toBeOnTheScreen();
+    });
   });
 });

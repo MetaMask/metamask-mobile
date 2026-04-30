@@ -24,7 +24,10 @@ import {
   HeaderBase,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
   IconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Tokens from '../../UI/Tokens';
@@ -45,6 +48,10 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import MoneyConvertStablecoins from '../../UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
+import MoneyHowItWorks from '../../UI/Money/components/MoneyHowItWorks';
+import MoneyMusdEmptyBalanceRow from '../../UI/Money/components/MoneyMusdEmptyBalanceRow';
+import useMoneyAccountBalance from '../../UI/Money/hooks/useMoneyAccountBalance';
+import Routes from '../../../constants/navigation/Routes';
 import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import CashGetMusdEmptyState from '../Homepage/Sections/Cash/CashGetMusdEmptyState';
@@ -72,6 +79,17 @@ const CashTokensFullView = () => {
   const { hasMusdBalanceOnAnyChain, tokenBalanceByChain } = useMusdBalance();
 
   const numChainsWithMusdBalance = Object.keys(tokenBalanceByChain).length;
+
+  const { vaultApyQuery } = useMoneyAccountBalance();
+  const handleHowItWorksPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
+  }, [navigation]);
+
+  const handleEmptyMusdRowPress = useCallback(() => {
+    navigation.navigate('Asset', {
+      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+    });
+  }, [navigation]);
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
 
@@ -316,8 +334,21 @@ const CashTokensFullView = () => {
         style={tw`p-4`}
         twClassName="h-auto"
       >
-        {strings('homepage.sections.cash')}
+        {isMoneyHubEnabled
+          ? strings('money.title')
+          : strings('homepage.sections.cash')}
       </HeaderBase>
+      {isMoneyHubEnabled && (
+        <Box twClassName="px-4 pt-2 pb-3">
+          <Text
+            variant={TextVariant.HeadingLg}
+            fontWeight={FontWeight.Bold}
+            testID={CashTokensFullViewTestIds.YOUR_BALANCE_HEADING}
+          >
+            {strings('money.your_balance')}
+          </Text>
+        </Box>
+      )}
       {hasMusdBalanceOnAnyChain ? (
         isTokenListReady ? (
           <Tokens
@@ -325,6 +356,7 @@ const CashTokensFullView = () => {
             showOnlyMusd
             hideLoadingSkeleton
             hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+            hideSecondaryPriceRow={isMoneyHubEnabled}
             listFooterComponent={
               isMoneyHubEnabled ? bonusAndConvertSections : undefined
             }
@@ -347,13 +379,24 @@ const CashTokensFullView = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          <SectionRow>
-            <CashGetMusdEmptyState
-              isFullView
-              hideClaimButton={isMoneyHubEnabled}
-            />
-          </SectionRow>
+          {isMoneyHubEnabled ? (
+            <MoneyMusdEmptyBalanceRow onPress={handleEmptyMusdRowPress} />
+          ) : (
+            <SectionRow>
+              <CashGetMusdEmptyState isFullView />
+            </SectionRow>
+          )}
           {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
+          {isMoneyHubEnabled && (
+            <>
+              <Box twClassName="h-px bg-border-muted my-5" />
+              <MoneyHowItWorks
+                apy={vaultApyQuery.data?.apy}
+                isLoading={vaultApyQuery.isLoading}
+                onHeaderPress={handleHowItWorksPress}
+              />
+            </>
+          )}
         </ScrollView>
       )}
       {isMoneyHubEnabled &&

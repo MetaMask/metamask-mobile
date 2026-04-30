@@ -69,6 +69,11 @@ interface TokensProps {
    * already handles its own loading state (e.g. CashTokensFullView).
    */
   hideLoadingSkeleton?: boolean;
+  /**
+   * When true, mUSD rows render only the native balance on the secondary row
+   * (no token price / 24h change). Used by the Money Hub.
+   */
+  hideSecondaryPriceRow?: boolean;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -80,6 +85,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       listFooterComponent,
       refreshControl,
       hideLoadingSkeleton = false,
+      hideSecondaryPriceRow = false,
     },
     ref,
   ) => {
@@ -271,6 +277,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               isFullView={isFullView}
               listFooterComponent={listFooterComponent}
               refreshControl={refreshControl}
+              hideSecondaryPriceRow={hideSecondaryPriceRow}
             />
           </>
         );
@@ -324,6 +331,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       isGeoEligible,
       listFooterComponent,
       refreshControl,
+      hideSecondaryPriceRow,
     ]);
 
     return (

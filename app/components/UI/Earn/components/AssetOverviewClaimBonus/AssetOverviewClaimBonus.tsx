@@ -129,8 +129,8 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     [balance],
   );
   const formattedAnnualBonus = hasBalance
-    ? `+$${estimatedAnnualBonus.toFixed(2)}`
-    : '+$0.00';
+    ? `$${estimatedAnnualBonus.toFixed(2)}`
+    : '$0.00';
 
   // Lifetime bonus: white $0.00 until first claim, then green +$X.
   const hasLifetimeBonus = Number(lifetimeBonusClaimed) > 0;
