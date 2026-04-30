@@ -11,6 +11,7 @@ import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
+import { setupSwapSocialAndComplianceMocks } from '../../helpers/swap/swap-mocks';
 import { GET_QUOTE_ETH_USDC_RESPONSE } from '../../helpers/swap/constants';
 import { getDecodedProxiedURL } from '../notifications/utils/helpers';
 import { SmokeSwap } from '../../tags';
@@ -62,8 +63,6 @@ const TRENDING_ALL_NETWORKS_RESPONSE = [
 
 const TRENDING_BASE_ONLY_RESPONSE = [TRENDING_ALL_NETWORKS_RESPONSE[1]];
 
-const SOCIAL_LEADERBOARD_EMPTY_RESPONSE = { traders: [] };
-
 const setupSwapsTrendingTokensMock = async (mockServer: Mockttp) => {
   const { response } = createRemoteFeatureFlagsMock({
     swapsTrendingTokens: true,
@@ -80,48 +79,7 @@ const setupSwapsTrendingTokensMock = async (mockServer: Mockttp) => {
     1001,
   );
 
-  await setupMockRequest(
-    mockServer,
-    {
-      requestMethod: 'GET',
-      url: /social\.api\.cx\.metamask\.io\/api\/v1\/leaderboard/,
-      response: SOCIAL_LEADERBOARD_EMPTY_RESPONSE,
-      responseCode: 200,
-    },
-    1001,
-  );
-
-  await mockServer
-    .forPost('/proxy')
-    .matching((request) => {
-      try {
-        const decodedUrl = getDecodedProxiedURL(request.url);
-        return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
-          decodedUrl,
-        );
-      } catch {
-        return false;
-      }
-    })
-    .asPriority(1001)
-    .thenCallback(async (request) => {
-      let addresses: string[] = [];
-      try {
-        const text = await request.body.getText();
-        if (text) {
-          const parsed = JSON.parse(text) as unknown;
-          if (Array.isArray(parsed)) {
-            addresses = parsed.filter(
-              (a): a is string => typeof a === 'string',
-            );
-          }
-        }
-      } catch {
-        /* ignore malformed body */
-      }
-      const json = addresses.map((address) => ({ address, blocked: false }));
-      return { statusCode: 200, json };
-    });
+  await setupSwapSocialAndComplianceMocks(mockServer);
 };
 
 const setupTrendingTokensMock = async (mockServer: Mockttp) => {
