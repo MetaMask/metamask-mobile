@@ -3314,6 +3314,8 @@
     "invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Hide tokens without balance",
     "hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
+    "haptic_feedback_title": "Haptic feedback",
+    "haptic_feedback_desc": "Feel subtle vibrations for confirmations, errors, and interactions. Disable to reduce haptic stimuli.",
     "token_detection_title": "Autodetect tokens",
     "token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
     "theme_button_text": "Change theme",
@@ -3572,6 +3574,39 @@
         "title": "Card",
         "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
         "reset_onboarding_button": "Reset Onboarding State"
+      },
+      "haptics": {
+        "title": "Haptics",
+        "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
+        "catalog_impacts_heading": "Catalog impact moments",
+        "notifications_heading": "Notification patterns",
+        "selection_heading": "Selection",
+        "notification_success_button": "Notification — Success",
+        "notification_error_button": "Notification — Error",
+        "notification_warning_button": "Notification — Warning",
+        "selection_button": "Selection",
+        "raw_impacts_heading": "Raw Expo impact styles",
+        "raw_impacts_desc": "Direct expo-haptics impact styles for comparison with the mapped catalog moments above.",
+        "impacts": {
+          "quick_amount_selection": "Impact — Quick amount selection",
+          "slider_tick": "Impact — Slider tick",
+          "edge_gesture_engage": "Impact — Edge gesture engage",
+          "page_navigation": "Impact — Page navigation",
+          "slider_grip": "Impact — Slider grip",
+          "tab_change": "Impact — Tab change",
+          "primary_cta": "Impact — Primary CTA",
+          "pull_to_refresh_engage": "Impact — Pull to refresh (engage)",
+          "pull_to_refresh": "Impact — Pull to refresh (release)",
+          "chart_crosshair": "Impact — Chart crosshair",
+          "follow_toggle": "Impact — Follow toggle"
+        },
+        "raw_styles": {
+          "light": "Raw impact — Light",
+          "medium": "Raw impact — Medium",
+          "heavy": "Raw impact — Heavy",
+          "rigid": "Raw impact — Rigid",
+          "soft": "Raw impact — Soft"
+        }
       }
     },
     "feature_flag_override": {
@@ -6939,7 +6974,7 @@
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
       },
       "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "We'll swap your tokens for pUSD on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "perps_withdraw": {
         "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
@@ -7927,7 +7962,12 @@
       "withdrawal_success": "Withdrawal completed successfully",
       "withdrawal_failed": "Withdrawal failed. Please try again.",
       "no_cashback": "No cashback available",
-      "loading_error": "Failed to load cashback. Please try again."
+      "loading_error": "Failed to load cashback. Please try again.",
+      "funding_required": {
+        "title": "Set up Linea funding",
+        "description": "You need at least one approved funding source on Linea before redeeming cashback.",
+        "confirm_button_label": "Set up funding"
+      }
     },
     "change_asset": {
       "title": "Change token and network",
@@ -8479,7 +8519,11 @@
       "qualified_title": "You're qualified",
       "qualified_description": "Increase your net inflows to reach a higher tier and have a chance at a larger payout.",
       "not_eligible_title": "Not eligible",
-      "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier."
+      "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier.",
+      "completed_label_total_participants": "Total participants",
+      "completed_label_total_tvl": "Total TVL",
+      "completed_label_top_return": "Top return",
+      "completed_label_winners": "Winners"
     },
     "ondo_campaign_activity": {
       "title": "All activity",
@@ -8659,7 +8703,7 @@
   },
   "trending": {
     "title": "Explore",
-    "trending_tokens": "Trending tokens",
+    "trending_tokens": "Trending",
     "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",
@@ -8816,7 +8860,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "Trending tokens",
+      "trending_tokens": "Trending",
       "trending_perpetuals": "Trending perpetuals",
       "trending_predictions": "Trending predictions",
       "import_nfts": "Import NFTs",
