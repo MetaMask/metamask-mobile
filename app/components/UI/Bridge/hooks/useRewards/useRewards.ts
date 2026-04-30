@@ -22,6 +22,7 @@ import {
 } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import usePrevious from '../../../../hooks/usePrevious';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
@@ -267,6 +268,12 @@ export const useRewards = ({
       setEstimatedPoints(result.pointsEstimate);
     } catch (error) {
       Logger.error(error as Error, 'useRewards: Error estimating points');
+      captureException(error, {
+        tags: {
+          feature: 'rewards',
+          context: 'useRewards.estimate_points_failed',
+        },
+      });
       setEstimatedPoints(null);
       setHasError(true);
     } finally {

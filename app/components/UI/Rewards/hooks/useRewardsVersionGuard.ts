@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { captureException } from '@sentry/react-native';
 import { useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -38,8 +39,14 @@ const useRewardsVersionGuard = (): UseRewardsVersionGuardReturn => {
           requirements.minimumMobileVersion ?? null,
         ),
       );
-    } catch {
+    } catch (error) {
       dispatch(setVersionGuardError(true));
+      captureException(error, {
+        tags: {
+          feature: 'rewards',
+          context: 'useRewardsVersionGuard.fetch_failed',
+        },
+      });
     } finally {
       isLoadingRef.current = false;
       dispatch(setVersionGuardLoading(false));

@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { captureException } from '@sentry/react-native';
 import { Hex } from '@metamask/utils';
 import {
   isTokenEligibleForMerklRewards,
@@ -323,6 +324,12 @@ describe('useMerklRewards', () => {
 
     // Should remain null on error
     expect(result.current.claimableReward).toBe(null);
+    expect(captureException).toHaveBeenCalledWith(error, {
+      tags: {
+        feature: 'rewards',
+        context: 'useMerklRewards.fetch_claimable_failed',
+      },
+    });
   });
 
   it('returns null claimableReward when API returns non-OK response', async () => {

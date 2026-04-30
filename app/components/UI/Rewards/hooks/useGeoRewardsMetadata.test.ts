@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
+import { captureException } from '@sentry/react-native';
 import { useGeoRewardsMetadata } from './useGeoRewardsMetadata';
 import Engine from '../../../../core/Engine';
 import {
@@ -170,6 +171,12 @@ describe('useGeoRewardsMetadata', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         mockSetGeoRewardsMetadataLoading(false),
       );
+      expect(captureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          feature: 'rewards',
+          context: 'useGeoRewardsMetadata.fetch_failed',
+        },
+      });
       expect(result.current).toEqual({
         fetchGeoRewardsMetadata: expect.any(Function),
       });

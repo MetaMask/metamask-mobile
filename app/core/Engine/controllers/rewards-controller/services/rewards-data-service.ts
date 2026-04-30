@@ -38,6 +38,7 @@ import type {
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import {
   canChangeRewardsEnvUrl,
   getDefaultRewardsApiBaseUrlForMetaMaskEnv,
@@ -627,6 +628,9 @@ export class RewardsDataService {
     } catch (error) {
       // Continue without client header if version retrieval fails
       console.warn('Failed to retrieve app version for client header:', error);
+      captureException(error, {
+        tags: { feature: 'rewards', context: 'makeRequest.app_version_failed' },
+      });
     }
 
     // Add bearer token for authenticated requests
@@ -640,6 +644,12 @@ export class RewardsDataService {
     } catch (error) {
       // Continue without bearer token if retrieval fails
       console.warn('Failed to retrieve bearer token:', error);
+      captureException(error, {
+        tags: {
+          feature: 'rewards',
+          context: 'makeRequest.bearer_token_failed',
+        },
+      });
     }
 
     // Add locale header for internationalization

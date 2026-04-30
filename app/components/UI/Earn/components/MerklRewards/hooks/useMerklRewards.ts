@@ -14,6 +14,7 @@ import {
   getClaimedAmountFromContract,
 } from '../merkl-client';
 import Logger from '../../../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
@@ -191,6 +192,12 @@ export const useMerklRewards = ({
           error as Error,
           'useMerklRewards: Error fetching claimable rewards',
         );
+        captureException(error, {
+          tags: {
+            feature: 'rewards',
+            context: 'useMerklRewards.fetch_claimable_failed',
+          },
+        });
       } finally {
         if (!controller.signal.aborted) {
           setRewardsFetchVersion((version) => version + 1);

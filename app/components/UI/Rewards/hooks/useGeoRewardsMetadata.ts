@@ -4,6 +4,7 @@
 
 import { useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { useDispatch } from 'react-redux';
 import {
@@ -48,6 +49,12 @@ export const useGeoRewardsMetadata = ({
       dispatch(setGeoRewardsMetadata(metadata));
     } catch (err) {
       dispatch(setGeoRewardsMetadataError(true));
+      captureException(err, {
+        tags: {
+          feature: 'rewards',
+          context: 'useGeoRewardsMetadata.fetch_failed',
+        },
+      });
     } finally {
       isLoadingRef.current = false;
       dispatch(setGeoRewardsMetadataLoading(false));

@@ -5,6 +5,7 @@ import { getUsdPricePerToken, useRewards } from './useRewards';
 import Engine from '../../../../../core/Engine';
 import { waitFor } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine', () => ({
@@ -733,6 +734,12 @@ describe('useRewards', () => {
           hasError: true,
           accountOptedIn: null,
           rewardsAccountScope: expect.any(Object),
+        });
+        expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+          tags: {
+            feature: 'rewards',
+            context: 'useRewards.estimate_points_failed',
+          },
         });
       });
     });

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { captureException } from '@sentry/react-native';
 import {
   RewardsController,
   getRewardsControllerDefaultState,
@@ -3873,12 +3874,19 @@ describe('RewardsController', () => {
     });
 
     it('returns 0 on data service error', async () => {
-      mockMessenger.call.mockRejectedValue(new Error('Network error'));
+      const networkError = new Error('Network error');
+      mockMessenger.call.mockRejectedValue(networkError);
 
       const result =
         await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
 
       expect(result).toBe(0);
+      expect(captureException).toHaveBeenCalledWith(networkError, {
+        tags: {
+          feature: 'rewards',
+          context: 'getPerpsFeeDiscountData.fetch_failed',
+        },
+      });
     });
 
     describe('CAIP account ID coercion', () => {
@@ -4560,6 +4568,44 @@ describe('RewardsController', () => {
         expect.anything(),
       );
     });
+
+    it('captures exception via Sentry for non-401 login errors', async () => {
+      const unexpectedError = new Error('Network timeout');
+
+      mockMessenger.call.mockImplementation(((method: string) => {
+        if (method === 'RewardsDataService:getOptInStatus') {
+          return Promise.resolve({ ois: [true], sids: ['sub123'] });
+        }
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        if (method === 'RewardsDataService:login') {
+          return Promise.reject(unexpectedError);
+        }
+        return Promise.resolve(undefined);
+      }) as any);
+
+      // Use a fresh controller bound to the current mockMessenger (beforeEach rebinds it)
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      const result = await testController.performSilentAuth(
+        mockInternalAccount,
+        false,
+        false,
+      );
+
+      expect(result).toBeNull();
+      expect(captureException).toHaveBeenCalledWith(unexpectedError, {
+        tags: {
+          feature: 'rewards',
+          context: 'performSilentAuth.unexpected_error',
+        },
+      });
+    });
   });
 
   describe('getSeasonStatus', () => {
@@ -5229,6 +5275,17 @@ describe('RewardsController', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Attempting reauth with active account after 403',
+      );
+      expect(captureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Reauth failed'),
+        }),
+        {
+          tags: {
+            feature: 'rewards',
+            context: 'withAuthRetry.reauth_failed',
+          },
+        },
       );
     });
 
@@ -7543,6 +7600,12 @@ describe('RewardsController', () => {
         'RewardsController: Silent authentication failed:',
         'Messaging system error',
       );
+      expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+        tags: {
+          feature: 'rewards',
+          context: 'handleAuthenticationTrigger.failed',
+        },
+      });
     });
 
     it('handles non-Error objects thrown', async () => {
