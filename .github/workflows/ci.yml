@@ -748,7 +748,7 @@ jobs:
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    if: ${{ needs.build-ios-apps.result == 'success' }}
+    if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
     needs: [build-ios-apps]
     steps:
       - name: iOS build complete
