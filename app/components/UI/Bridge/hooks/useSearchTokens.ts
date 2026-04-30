@@ -21,7 +21,7 @@ interface SearchTokensResponse {
 
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
-  includeAssets: string; // Stringified array to prevent unnecessary re-renders
+  includeAssets: IncludeAsset[];
 }
 
 interface UseSearchTokensResult {
@@ -44,9 +44,7 @@ export const useSearchTokens = ({
   chainIds,
   includeAssets,
 }: UseSearchTokensParams): UseSearchTokensResult => {
-  const [searchResults, setSearchResults] = useState<
-    (PopularToken | IncludeAsset)[]
-  >([]);
+  const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -97,17 +95,13 @@ export const useSearchTokens = ({
       const isPagination =
         cursor && currentSearchQueryRef.current === query.trim();
 
-      const parsedIncludeAssets: IncludeAsset[] = isPagination
-        ? []
-        : JSON.parse(includeAssetsRef.current);
-
       if (isPagination) {
         setIsLoadingMore(true);
       } else {
         setIsSearchLoading(true);
         currentSearchQueryRef.current = query.trim();
         setCurrentSearchQuery(query.trim());
-        setSearchResults(parsedIncludeAssets);
+        setSearchResults([]);
       }
 
       try {
@@ -125,8 +119,8 @@ export const useSearchTokens = ({
           requestBody.after = cursor;
         }
 
-        if (parsedIncludeAssets) {
-          requestBody.includeAssets = parsedIncludeAssets;
+        if (includeAssetsRef.current) {
+          requestBody.includeAssets = includeAssetsRef.current;
         }
 
         const response = await fetch(
@@ -191,21 +185,18 @@ export const useSearchTokens = ({
 
   // Create debounced search function
   // Only triggers search when query meets minimum length requirement
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((query: string) => {
-        const queryLength = query.trim().length;
-        // Only search if query meets minimum length
-        if (queryLength >= MIN_SEARCH_LENGTH) {
-          searchTokens(query);
-        } else if (queryLength === 0) {
-          // Reset search if query is empty
-          resetSearch();
-        }
-        // If query is below minimum length but not empty, do nothing (don't search or reset)
-      }, 300),
-    [searchTokens, resetSearch],
-  );
+  const debouncedSearch = useMemo(() => debounce((query: string) => {
+      setSearchResults([]);
+      const queryLength = query.trim().length;
+      // Only search if query meets minimum length
+      if (queryLength >= MIN_SEARCH_LENGTH) {
+        searchTokens(query);
+      } else if (queryLength === 0) {
+        // Reset search if query is empty
+        resetSearch();
+      }
+      // If query is below minimum length but not empty, do nothing (don't search or reset)
+    }, 300), [searchTokens, resetSearch]);
 
   // Cleanup debounce on unmount
   useEffect(
@@ -216,7 +207,7 @@ export const useSearchTokens = ({
   );
 
   return {
-    searchResults,
+    searchResults: searchResults.length > 0 ? searchResults : includeAssets,
     isSearchLoading,
     isLoadingMore,
     searchCursor,

@@ -25,9 +25,11 @@ import {
   formatChainIdToHex,
   type QuoteStreamCompleteData,
 } from '@metamask/bridge-controller';
-import {
+import type {
   BridgeToken,
   BridgeViewMode,
+  IncludeAsset,
+  PopularToken,
 } from '../../../../components/UI/Bridge/types';
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
@@ -37,6 +39,12 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import {
+  CACHE_TTL_MS,
+  type CacheEntry,
+  CLEANUP_INTERVAL_MS,
+  getCacheKey,
+} from '../../../../components/UI/Bridge/utils/cacheUtils';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -82,6 +90,14 @@ export interface BridgeState {
    * When undefined, the recommended quote (best quote) is used.
    */
   selectedQuoteRequestId: string | undefined;
+  /**
+   * Cache for popular tokens with 15-minute TTL.
+   */
+  popularTokensCache: Record<string, CacheEntry>;
+  /**
+   * Timestamp of the last cleanup of the popular tokens cache.
+   */
+  lastCleanupTime: number;
 }
 
 export const initialState: BridgeState = {
@@ -105,6 +121,8 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  popularTokensCache: {},
+  lastCleanupTime: 0,
 };
 
 const name = 'bridge';
@@ -166,9 +184,12 @@ const slice = createSlice({
     ) => {
       state.selectedDestChainId = action.payload;
     },
-    resetBridgeState: () => ({
-      ...initialState,
-    }),
+    resetBridgeState: (state) => ({
+        ...initialState,
+        // Preserve the cache and last cleanup time when resetting the bridge state
+        popularTokensCache: state.popularTokensCache,
+        lastCleanupTime: state.lastCleanupTime,
+      }),
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = normalizeBridgeToken(action.payload);
     },
@@ -236,6 +257,46 @@ const slice = createSlice({
       action: PayloadAction<string | undefined>,
     ) => {
       state.selectedQuoteRequestId = action.payload;
+    },
+    /**
+     * Removes expired entries from the cache (throttled to once every 5 minutes).
+     * With a 15-minute TTL, this ensures stale entries are cleaned up 3 times per
+     * cache lifetime while minimizing unnecessary iterations.
+     */
+    cleanupExpiredEntries: (state): void => {
+      const now = Date.now();
+
+      // Skip if cleaned up within the last 5 minutes
+      if (now - state.lastCleanupTime < CLEANUP_INTERVAL_MS) {
+        return;
+      }
+
+      state.lastCleanupTime = now;
+
+      for (const [key, entry] of Object.entries(state.popularTokensCache)) {
+        if (now - entry.timestamp >= CACHE_TTL_MS) {
+          delete state.popularTokensCache[key];
+        }
+      }
+    },
+    /**
+     * Adds a new entry or updates an existing entry in the popular tokens cache.
+     */
+    setPopularTokensCache: (
+      state,
+      action: PayloadAction<{
+        includeAssets: IncludeAsset[];
+        chainIds: CaipChainId[];
+        popularTokens: PopularToken[];
+      }>,
+    ) => {
+      state.popularTokensCache = {
+        ...state.popularTokensCache,
+        [getCacheKey(action.payload.chainIds, action.payload.includeAssets)]: {
+          data: action.payload.popularTokens,
+          timestamp: Date.now(),
+        },
+      };
     },
   },
   extraReducers: (builder) => {
@@ -696,6 +757,11 @@ export const selectQuoteStreamComplete = (
 ): QuoteStreamCompleteData | null =>
   state.engine.backgroundState.BridgeController.quoteStreamComplete ?? null;
 
+export const selectPopularTokensCache = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.popularTokensCache,
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -719,4 +785,6 @@ export const {
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
+  cleanupExpiredEntries,
+  setPopularTokensCache,
 } = actions;

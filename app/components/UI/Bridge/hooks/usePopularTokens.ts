@@ -1,47 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { type CaipAssetType } from '@metamask/utils';
-
-export enum SecurityDataType {
-  Info = 'Info',
-  Benign = 'Benign',
-  Verified = 'Verified',
-  Warning = 'Warning',
-  Spam = 'Spam',
-  Malicious = 'Malicious',
-}
-
-export interface SecurityFeature {
-  featureId: string;
-  type: SecurityDataType;
-  description: string;
-}
-
-export interface SecurityData {
-  type: SecurityDataType;
-  metadata?: { features: SecurityFeature[] };
-}
-
-export interface PopularToken {
-  assetId: CaipAssetType;
-  decimals: number;
-  iconUrl: string;
-  name: string;
-  symbol: string;
-  isVerified?: boolean;
-  noFee?: {
-    isSource: boolean;
-    isDestination: boolean;
-  };
-  securityData?: SecurityData;
-}
+import type { IncludeAsset, PopularToken } from '../types';
 
 interface UsePopularTokensParams {
-  includeAssets: string; // Stringified array to prevent unnecessary re-renders
-  fetchTokens: () => Promise<PopularToken[]>;
+  includeAssets: IncludeAsset[];
+  fetchTokens: (signal?: AbortSignal) => Promise<PopularToken[] | undefined>;
 }
 
 interface UsePopularTokensResult {
-  popularTokens: PopularToken[];
+  popularTokens: (PopularToken | IncludeAsset)[];
   isLoading: boolean;
 }
 
@@ -54,31 +20,20 @@ export const usePopularTokens = ({
   includeAssets,
   fetchTokens,
 }: UsePopularTokensParams): UsePopularTokensResult => {
-  const [popularTokens, setPopularTokens] = useState<PopularToken[]>([]);
+  const [popularTokens, setPopularTokens] = useState<
+    PopularToken[] | undefined
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const parsedIncludeAssets = useMemo(() => {
-    try {
-      return JSON.parse(includeAssets);
-    } catch (error) {
-      console.error('Error parsing include assets:', error);
-      return [];
-    }
-  }, [includeAssets]);
 
   useEffect(() => {
     const abortController = new AbortController();
 
-    setPopularTokens(parsedIncludeAssets);
+    setPopularTokens(undefined);
 
     setIsLoading(true);
-    fetchTokens()
-      .then((tokens: PopularToken[]) => {
+    fetchTokens(abortController.signal)
+      .then((tokens?: PopularToken[]) => {
         setPopularTokens(tokens);
-      })
-      .catch((error) => {
-        console.error('Error fetching popular tokens:', error);
-        setPopularTokens(parsedIncludeAssets);
       })
       .finally(() => {
         setIsLoading(false);
@@ -88,8 +43,7 @@ export const usePopularTokens = ({
     return () => {
       abortController.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTokens, JSON.stringify(parsedIncludeAssets)]);
+  }, [fetchTokens, includeAssets]);
 
-  return { popularTokens, isLoading };
+  return { popularTokens: popularTokens ?? includeAssets, isLoading };
 };

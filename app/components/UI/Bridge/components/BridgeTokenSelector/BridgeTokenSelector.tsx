@@ -184,8 +184,8 @@ export const BridgeTokenSelector: React.FC = () => {
     includeAssets,
     fetchPopularTokens,
     balancesByAssetId,
-    tokensWithBalance,
-  } = useInitialBridgeTokens(chainIdsToFetch);
+    searchIncludeAssets,
+  } = useInitialBridgeTokens(chainIdsToFetch, searchString);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
@@ -193,21 +193,6 @@ export const BridgeTokenSelector: React.FC = () => {
       includeAssets,
       fetchTokens: fetchPopularTokens,
     },
-  );
-
-  const searchQuery = searchString.trim();
-  const searchIncludeAssets = useMemo(
-    () =>
-      JSON.stringify(
-        tokensWithBalance
-          .map((token) =>
-            tokenMatchesQuery(token, searchQuery)
-              ? tokenToIncludeAsset(token)
-              : null,
-          )
-          .filter((asset): asset is IncludeAsset => asset !== null),
-      ),
-    [tokensWithBalance, searchQuery],
   );
 
   // Search tokens
