@@ -89,7 +89,7 @@ describe('SnapUIRenderer', () => {
     );
 
     const button = getByText('Cancel');
-    expect(button).toBeDefined();
+    expect(button).toBeOnTheScreen();
 
     fireEvent.press(button);
     expect(onCancel).toHaveBeenCalled();
@@ -133,7 +133,7 @@ describe('SnapUIRenderer', () => {
     );
 
     const input = getByTestId('input-snap-ui-input');
-    expect(input).toBeDefined();
+    expect(input).toBeOnTheScreen();
     expect(input.props.value).toStrictEqual('bar');
   });
 
@@ -143,7 +143,7 @@ describe('SnapUIRenderer', () => {
     );
 
     const inputs = getByTestId('input-snap-ui-input');
-    expect(inputs).toBeTruthy();
+    expect(inputs).toBeOnTheScreen();
 
     updateInterface(
       Box({
@@ -171,8 +171,8 @@ describe('SnapUIRenderer', () => {
     );
     const input1AfterRerender = getByTestId('input-snap-ui-input');
     const input2AfterRerender = getByTestId('input2-snap-ui-input');
-    expect(input1AfterRerender).toBeDefined();
-    expect(input2AfterRerender).toBeDefined();
+    expect(input1AfterRerender).toBeOnTheScreen();
+    expect(input2AfterRerender).toBeOnTheScreen();
     expect(input1AfterRerender.props.value).toStrictEqual('bar');
     expect(input2AfterRerender.props.value).toStrictEqual('foo');
     expect(getRenderCount()).toBe(2);

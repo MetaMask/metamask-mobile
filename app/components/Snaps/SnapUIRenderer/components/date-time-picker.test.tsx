@@ -26,7 +26,7 @@ describe('SnapUIDateTimePicker', () => {
       }),
     );
 
-    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
+    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeOnTheScreen();
   });
 
   it('renders a date picker', () => {
@@ -39,7 +39,7 @@ describe('SnapUIDateTimePicker', () => {
       }),
     );
 
-    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
+    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeOnTheScreen();
   });
 
   it('renders a time picker', () => {
@@ -52,7 +52,7 @@ describe('SnapUIDateTimePicker', () => {
       }),
     );
 
-    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
+    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeOnTheScreen();
   });
 
   it('can select a date and time', async () => {
@@ -210,8 +210,8 @@ describe('SnapUIDateTimePicker', () => {
       }),
     );
 
-    expect(getByText('Select date and time')).toBeTruthy();
-    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
+    expect(getByText('Select date and time')).toBeOnTheScreen();
+    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeOnTheScreen();
   });
 
   it('can show an error', () => {
@@ -227,8 +227,8 @@ describe('SnapUIDateTimePicker', () => {
       }),
     );
 
-    expect(getByText('Select date and time')).toBeTruthy();
-    expect(getByText('This is an error')).toBeTruthy();
-    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeTruthy();
+    expect(getByText('Select date and time')).toBeOnTheScreen();
+    expect(getByText('This is an error')).toBeOnTheScreen();
+    expect(getByTestId('snap-ui-renderer__date-time-picker')).toBeOnTheScreen();
   });
 });

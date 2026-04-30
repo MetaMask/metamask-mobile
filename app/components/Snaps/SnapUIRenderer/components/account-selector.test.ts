@@ -93,7 +93,7 @@ describe('SnapUIAccountSelector', () => {
   };
 
   it('renders an account selector', () => {
-    const { getByTestId } = renderInterface(
+    const { getByTestId, getByText } = renderInterface(
       Box({
         children: AccountSelector({
           name: 'account-selector',
@@ -111,7 +111,8 @@ describe('SnapUIAccountSelector', () => {
       },
     );
 
-    expect(getByTestId('snap-ui-renderer__selector')).toBeTruthy();
+    expect(getByTestId('snap-ui-renderer__selector')).toBeOnTheScreen();
+    expect(getByText('Account 1')).toBeOnTheScreen();
   });
 
   it('can switch account', async () => {
@@ -147,7 +148,7 @@ describe('SnapUIAccountSelector', () => {
       fireEvent.press(accountOptions[1]);
     });
 
-    expect(getByText('Solana Account 1')).toBeTruthy();
+    expect(getByText('Solana Account 1')).toBeOnTheScreen();
   });
 
   it('can filter accounts owned by the snap', async () => {
@@ -237,8 +238,9 @@ describe('SnapUIAccountSelector', () => {
       },
     );
 
-    expect(getByText('Account Selector')).toBeTruthy();
-    expect(getByTestId('snap-ui-renderer__selector')).toBeTruthy();
+    expect(getByText('Account Selector')).toBeOnTheScreen();
+    expect(getByTestId('snap-ui-renderer__selector')).toBeOnTheScreen();
+    expect(getByText('Account 1')).toBeOnTheScreen();
   });
 
   it('can show an error', () => {
@@ -266,6 +268,6 @@ describe('SnapUIAccountSelector', () => {
 
     expect(getAllByTestId('snap-ui-renderer__selector')).toHaveLength(1);
 
-    expect(getByText('This is an error')).toBeTruthy();
+    expect(getByText('This is an error')).toBeOnTheScreen();
   });
 });

@@ -32,7 +32,7 @@ const mockEngine = jest.mocked(Engine);
 
 describe('SnapUIForm', () => {
   it('will render', () => {
-    const { getByText } = renderInterface(
+    const { getByText, getByTestId } = renderInterface(
       Box({
         children: Form({
           name: 'form',
@@ -44,7 +44,8 @@ describe('SnapUIForm', () => {
       }),
     );
 
-    expect(getByText('Submit')).toBeTruthy();
+    expect(getByTestId('input-snap-ui-input')).toBeOnTheScreen();
+    expect(getByText('Submit')).toBeOnTheScreen();
   });
 
   it('will render with fields', () => {

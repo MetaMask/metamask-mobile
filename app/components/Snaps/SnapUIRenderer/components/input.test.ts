@@ -143,7 +143,7 @@ describe('SnapUIInput', () => {
       { testInput: 'updated value' },
     );
 
-    expect(getByDisplayValue('updated value')).toBeTruthy();
+    expect(getByDisplayValue('updated value')).toBeOnTheScreen();
   });
 
   it('maintains focus state when re-rendered', () => {
