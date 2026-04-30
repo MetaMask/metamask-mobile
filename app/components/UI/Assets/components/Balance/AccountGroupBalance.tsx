@@ -4,7 +4,6 @@ import React, {
   useState,
   useRef,
   useEffect,
-  useLayoutEffect,
 } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -48,17 +47,7 @@ import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
  */
 const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 3000;
 
-export type PostOnboardingStepsSurfaceChangeSource = 'state' | 'unmount';
-
 export interface AccountGroupBalanceProps {
-  /**
-   * Fires when the wallet home post-onboarding steps tile is the active empty-balance surface
-   * (same moment `WalletHomeOnboardingSteps` is mounted). Parent may hide redundant CTAs (e.g. buy/swap/send/receive).
-   */
-  onPostOnboardingStepsSurfaceActiveChange?: (
-    active: boolean,
-    source?: PostOnboardingStepsSurfaceChangeSource,
-  ) => void;
   /**
    * When set, the last post-onboarding step awaits this handler after the checklist fade.
    */
@@ -70,7 +59,6 @@ export interface AccountGroupBalanceProps {
 }
 
 const AccountGroupBalance = ({
-  onPostOnboardingStepsSurfaceActiveChange,
   onCoordinatedFlowExit,
   suspendRiveForCurtain = false,
 }: AccountGroupBalanceProps) => {
@@ -257,28 +245,6 @@ const AccountGroupBalance = ({
 
   /** While the flow is active, always use the checklist surface — never the balance row (avoids a flash before loading/empty state is known). */
   const showWalletHomeOnboardingStepsTile = inWalletHomePostOnboardingFlow;
-
-  const postOnboardingStepsSurfaceActive = showWalletHomeOnboardingStepsTile;
-
-  const onPostOnboardingStepsSurfaceActiveChangeRef = useRef(
-    onPostOnboardingStepsSurfaceActiveChange,
-  );
-  onPostOnboardingStepsSurfaceActiveChangeRef.current =
-    onPostOnboardingStepsSurfaceActiveChange;
-
-  useLayoutEffect(() => {
-    onPostOnboardingStepsSurfaceActiveChangeRef.current?.(
-      postOnboardingStepsSurfaceActive,
-      'state',
-    );
-  }, [postOnboardingStepsSurfaceActive]);
-
-  useLayoutEffect(
-    () => () => {
-      onPostOnboardingStepsSurfaceActiveChangeRef.current?.(false, 'unmount');
-    },
-    [],
-  );
 
   const renderBalanceOrEmpty = () =>
     !isLoading && shouldShowEmptyState ? (
