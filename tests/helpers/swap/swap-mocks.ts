@@ -77,6 +77,15 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
   });
 }
 
+export const mockSwapPopularTokens = async (
+  mockServer: Mockttp,
+): Promise<void> => await setupMockRequest(mockServer, {
+    requestMethod: 'POST',
+    url: /getTokens\/popular/i,
+    response: GET_POPULAR_TOKENS_MAINNET_RESPONSE,
+    responseCode: 200,
+  });
+
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
@@ -158,12 +167,7 @@ export const testSpecificMock: TestSpecificMock = async (
   });
 
   // Mock popular tokens (POST - for token selector)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'POST',
-    url: /getTokens\/popular/i,
-    response: GET_POPULAR_TOKENS_MAINNET_RESPONSE,
-    responseCode: 200,
-  });
+  await mockSwapPopularTokens(mockServer);
 
   // Mock API tokens for USDC
   await setupMockRequest(mockServer, {
