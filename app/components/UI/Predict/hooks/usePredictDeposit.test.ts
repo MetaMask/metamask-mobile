@@ -2,7 +2,6 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { PredictTradeStatus } from '../constants/eventNames';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 const mockGoBack = jest.fn();
@@ -174,7 +173,7 @@ describe('usePredictDeposit', () => {
     expect(mockDepositWithConfirmation).toHaveBeenCalledWith({});
   });
 
-  it('tracks order event when analytics properties are provided', async () => {
+  it('does not fire initiated event (removed to fix double-fire — INITIATED is now only fired from PredictBuyPreview mount)', async () => {
     // Arrange
     const { result } = renderHook(() => usePredictDeposit());
     const analyticsParams = {
@@ -187,31 +186,11 @@ describe('usePredictDeposit', () => {
     // Act
     await act(async () => {
       await result.current.deposit(analyticsParams);
-      // Allow fire-and-forget operations to be called
       await Promise.resolve();
     });
 
-    // Assert
-    expect(
-      Engine.context.PredictController.trackPredictOrderEvent,
-    ).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: PredictTradeStatus.INITIATED,
-        amountUsd: 100,
-      }),
-    );
-  });
-
-  it('does not track order event when analytics properties are not provided', async () => {
-    // Arrange
-    const { result } = renderHook(() => usePredictDeposit());
-
-    // Act
-    await act(async () => {
-      await result.current.deposit();
-    });
-
-    // Assert
+    // Assert — deposit no longer fires INITIATED; it was causing a double-fire
+    // with the PredictBuyPreview mount effect which is the single source of truth.
     expect(
       Engine.context.PredictController.trackPredictOrderEvent,
     ).not.toHaveBeenCalled();
