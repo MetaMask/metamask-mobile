@@ -26,6 +26,18 @@ class AppDelegate: ExpoAppDelegate {
   private var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   private var reactNativeFactory: RCTReactNativeFactory?
 
+  // Detox's `+[ReactNativeSupport reloadApp]` does
+  // `[appDelegate valueForKey:@"rootViewFactory"]` to grab RN's RootViewFactory
+  // for hot-reload. In older RN, `RCTAppDelegate` exposed `rootViewFactory`
+  // directly; in RN 0.81 + Expo's `ExpoAppDelegate` it now lives inside
+  // `RCTReactNativeFactory` (which we hold privately above). Without this
+  // forwarding accessor, `device.reloadReactNative()` between tests crashes
+  // with `NSUnknownKeyException ... rootViewFactory`. Tracked upstream in
+  // wix/Detox#4849. Remove this once Detox uses the new key path.
+  @objc var rootViewFactory: NSObject? {
+    return reactNativeFactory?.value(forKey: "rootViewFactory") as? NSObject
+  }
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
