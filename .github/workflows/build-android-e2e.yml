@@ -25,6 +25,11 @@ on:
         required: false
         default: 'qa'
         type: string
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 jobs:
   build-android-apks:

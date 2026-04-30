@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: ''
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 permissions:
   contents: read

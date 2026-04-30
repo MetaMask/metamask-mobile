@@ -58,6 +58,11 @@ on:
         required: false
         type: number
         default: 1
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
     outputs:
       artifact-name:
         description: 'The actual artifact name used'

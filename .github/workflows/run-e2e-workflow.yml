@@ -53,6 +53,11 @@ on:
         required: false
         type: string
         default: 'main-'
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 jobs:
   test-e2e-mobile:
