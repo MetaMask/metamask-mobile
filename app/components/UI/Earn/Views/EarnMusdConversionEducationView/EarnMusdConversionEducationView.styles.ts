@@ -31,6 +31,7 @@ export const styleSheet = (_params: { theme: Theme }) =>
       textAlign: 'center',
       paddingHorizontal: 30,
       marginTop: 16,
+      marginBottom: 24,
     },
     buttonsContainer: {
       marginHorizontal: 32,
@@ -44,7 +45,7 @@ export const styleSheet = (_params: { theme: Theme }) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'center',
-      gap: 8,
+      gap: 4,
       paddingHorizontal: 16,
       marginTop: 16,
     },
