@@ -25,8 +25,7 @@ describe('ApprovalResult', () => {
   it('renders approval result with success type', () => {
     const wrapper = render(<TemplateConfirmation {...mockProps} />);
 
-    expect(wrapper.getByText('Success message')).toBeOnTheScreen();
-    expect(wrapper.getByTestId('bottomsheetfooter-button')).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders approval result with error type', () => {
@@ -44,7 +43,6 @@ describe('ApprovalResult', () => {
 
     const wrapper = render(<TemplateConfirmation {...errorMockProps} />);
 
-    expect(wrapper.getByText('Error message')).toBeOnTheScreen();
-    expect(wrapper.getByTestId('bottomsheetfooter-button')).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
   });
 });

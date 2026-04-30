@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -28,8 +28,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { NotificationPreferencesViewSelectorsIDs } from './NotificationPreferencesView.testIds';
 import {
   useNotificationPreferences,
@@ -133,7 +131,6 @@ interface TraderNotificationRowProps {
   isEnabled: boolean;
   isDisabled: boolean;
   onToggle: (traderId: string) => void;
-  onPress: (traderId: string, username: string) => void;
 }
 
 const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
@@ -143,7 +140,6 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
   isEnabled,
   isDisabled,
   onToggle,
-  onPress,
 }) => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
@@ -156,11 +152,11 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
       twClassName={`px-4 py-3${isDisabled ? ' opacity-50' : ''}`}
       testID={NotificationPreferencesViewSelectorsIDs.TRADER_ROW(traderId)}
     >
-      <TouchableOpacity
-        onPress={() => onPress(traderId, username)}
-        accessibilityRole="button"
-        style={tw.style('flex-row items-center gap-3 flex-1 min-w-0 mr-3')}
-        testID={NotificationPreferencesViewSelectorsIDs.TRADER_PRESS(traderId)}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={3}
+        twClassName="flex-1 min-w-0 mr-3"
       >
         {avatarUri ? (
           <Image
@@ -186,7 +182,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
         >
           {username}
         </Text>
-      </TouchableOpacity>
+      </Box>
 
       <Switch
         value={isEnabled}
@@ -248,7 +244,7 @@ const formatThreshold = (
  * through `AuthenticatedUserStorageService` (via `useNotificationPreferences`).
  */
 const NotificationPreferencesView = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation();
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -273,16 +269,6 @@ const NotificationPreferencesView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
-
-  const handleTraderPress = useCallback(
-    (traderId: string, traderName: string) => {
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
-        traderId,
-        traderName,
-      });
-    },
-    [navigation],
-  );
 
   // On a cold (re)entry the GET is in flight, `preferences` falls back to
   // defaults (`enabled: false`), and binding that straight into the Switch
@@ -456,7 +442,6 @@ const NotificationPreferencesView = () => {
               isEnabled={isTraderNotificationEnabled(trader.id)}
               isDisabled={globalOff}
               onToggle={toggleTraderNotification}
-              onPress={handleTraderPress}
             />
           ))
         )}

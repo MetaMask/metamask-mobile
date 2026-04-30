@@ -41,7 +41,7 @@ describe('EarningsHistoryButton', () => {
     jest.clearAllMocks();
   });
 
-  it('renders earnings history button', () => {
+  it('renders correctly', () => {
     const { getByTestId } = renderComponent();
     expect(
       getByTestId(WalletViewSelectorsIDs.EARN_EARNINGS_HISTORY_BUTTON),

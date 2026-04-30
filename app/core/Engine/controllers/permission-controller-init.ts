@@ -11,7 +11,7 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from '../../Permissions/specifications';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { getSnapPermissionSpecifications } from '../../Snaps/permissions/specifications';
 ///: END:ONLY_INCLUDE_IF
 import { CaipChainId } from '@metamask/utils';
@@ -36,7 +36,7 @@ export const permissionControllerInit: MessengerClientInitFunction<
   persistedState,
   getMessengerClient,
 }) => {
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   const keyringController = getMessengerClient('KeyringController');
   ///: END:ONLY_INCLUDE_IF
 
@@ -64,7 +64,7 @@ export const permissionControllerInit: MessengerClientInitFunction<
     }),
     permissionSpecifications: {
       ...getPermissionSpecifications(),
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       ...getSnapPermissionSpecifications(initMessenger, {
         addNewKeyring: keyringController.addNewKeyring.bind(keyringController),
       }),

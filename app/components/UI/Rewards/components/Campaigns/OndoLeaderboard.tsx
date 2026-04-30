@@ -69,7 +69,6 @@ interface CampaignLeaderboardProps {
   userPosition?: UserPosition | null;
   /** Campaign ID used for analytics tracking. */
   campaignId?: string;
-  isCampaignComplete?: boolean;
 }
 
 /**
@@ -79,13 +78,7 @@ const LeaderboardEntryRow: React.FC<{
   entry: CampaignLeaderboardEntry;
   isCurrentUser?: boolean;
   showCrown?: boolean;
-  isCampaignComplete?: boolean;
-}> = ({
-  entry,
-  isCurrentUser = false,
-  showCrown = false,
-  isCampaignComplete = false,
-}) => {
+}> = ({ entry, isCurrentUser = false, showCrown = false }) => {
   const isPositiveReturn = entry.rateOfReturn >= 0;
   const textColor = isCurrentUser
     ? isPositiveReturn
@@ -129,7 +122,7 @@ const LeaderboardEntryRow: React.FC<{
             <CrownIcon name="crown" width={14} height={14} />
           )}
         </Box>
-        {isCurrentUser && isPending && !isCampaignComplete && (
+        {isCurrentUser && isPending && (
           <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
         )}
       </Box>
@@ -217,7 +210,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   maxEntries,
   userPosition,
   campaignId,
-  isCampaignComplete = false,
 }) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -378,7 +370,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               entry={entry}
               isCurrentUser={isCurrentUser(entry)}
               showCrown={!isPreview}
-              isCampaignComplete={isCampaignComplete}
             />
           ))}
           {showSplitView && userPosition && (
@@ -390,7 +381,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
                   entry={entry}
                   isCurrentUser={isCurrentUser(entry)}
                   showCrown={!isPreview}
-                  isCampaignComplete={isCampaignComplete}
                 />
               ))}
             </>
