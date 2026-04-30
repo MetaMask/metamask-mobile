@@ -5,6 +5,7 @@ import { View, Image, useColorScheme, Linking } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Button, {
@@ -462,12 +463,17 @@ const EarnMusdConversionEducationView = () => {
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
         />
       </View>
-      <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.bodyText}
+      >
         {strings('earn.musd_conversion.education.description', {
           percentage: MUSD_CONVERSION_APY,
         })}{' '}
         <Text
           variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
           style={styles.termsText}
           onPress={handleTermsOfUsePressed}
         >
