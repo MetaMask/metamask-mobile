@@ -277,7 +277,11 @@ const HomepageDiscoveryTabs = forwardRef<
             onChangeTab={handleChangeTab}
             tabsListContentTwClassName="px-0"
             style={tw.style('mt-2')}
-            tabsBarProps={{ fillWidth: true, collapseAnim: tabBarCollapseAnim }}
+            tabsBarProps={{
+              fillWidth: true,
+              collapseAnim: tabBarCollapseAnim,
+              style: { zIndex: 2 },
+            }}
           >
             <DiscoveryTabView tabLabel="Portfolio" tabIcon={IconName.Portfolio}>
               <Reanimated.ScrollView
@@ -308,7 +312,11 @@ const HomepageDiscoveryTabs = forwardRef<
               </PerpsConnectionProvider>
             </DiscoveryTabView>
 
-            <DiscoveryTabView tabLabel="Predictions" tabIcon={IconName.Predict}>
+            <DiscoveryTabView
+              tabLabel="Predictions"
+              tabIcon={IconName.Predict}
+              keepMounted={false}
+            >
               <PredictPreviewSheetProvider>
                 <PredictFeed hideHeader onHeaderHiddenChange={animateIcons} />
               </PredictPreviewSheetProvider>

@@ -830,6 +830,216 @@ describe('TabsList', () => {
     });
   });
 
+  describe('keepMounted', () => {
+    it('keeps inactive tab mounted with display:none by default (keepMounted=true)', async () => {
+      let unmountCount = 0;
+      const TrackedContent = () => {
+        React.useEffect(
+          () => () => {
+            unmountCount += 1;
+          },
+          [],
+        );
+        return <Text>Content 2</Text>;
+      };
+
+      const { getAllByText, getByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <TrackedContent />
+          </View>
+        </TabsList>,
+      );
+
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+      expect(getByText('Content 2')).toBeOnTheScreen();
+
+      // Switch back to Tab 1 — Tab 2 should stay mounted (keepMounted=true default)
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 1')[0]);
+      });
+
+      expect(getByText('Content 1')).toBeOnTheScreen();
+      expect(unmountCount).toBe(0);
+    });
+
+    it('unmounts inactive tab when keepMounted={false}', async () => {
+      let unmountCount = 0;
+      const TrackedContent = () => {
+        React.useEffect(
+          () => () => {
+            unmountCount += 1;
+          },
+          [],
+        );
+        return <Text>Content 2</Text>;
+      };
+
+      const { getAllByText, getByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View
+            {...({ tabLabel: 'Tab 2', keepMounted: false } as TabViewProps)}
+          >
+            <TrackedContent />
+          </View>
+        </TabsList>,
+      );
+
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+      expect(getByText('Content 2')).toBeOnTheScreen();
+      expect(unmountCount).toBe(0);
+
+      // Switch back to Tab 1 — Tab 2 should unmount
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 1')[0]);
+      });
+
+      expect(getByText('Content 1')).toBeOnTheScreen();
+      expect(unmountCount).toBe(1);
+    });
+
+    it('remounts keepMounted={false} tab each time it becomes active', async () => {
+      const mountCount = { count: 0 };
+      const TrackedContent = () => {
+        React.useEffect(() => {
+          mountCount.count += 1;
+        }, []);
+        return <Text>Content 2</Text>;
+      };
+
+      const { getAllByText, getByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View
+            {...({ tabLabel: 'Tab 2', keepMounted: false } as TabViewProps)}
+          >
+            <TrackedContent />
+          </View>
+        </TabsList>,
+      );
+
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+      expect(getByText('Content 2')).toBeOnTheScreen();
+      expect(mountCount.count).toBe(1);
+
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 1')[0]);
+      });
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+
+      expect(getByText('Content 2')).toBeOnTheScreen();
+      expect(mountCount.count).toBe(2);
+    });
+
+    it('does not remount keepMounted={true} tab on repeated switches', async () => {
+      const mountCount = { count: 0 };
+      const TrackedContent = () => {
+        React.useEffect(() => {
+          mountCount.count += 1;
+        }, []);
+        return <Text>Content 2</Text>;
+      };
+
+      const { getAllByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <TrackedContent />
+          </View>
+        </TabsList>,
+      );
+
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+      expect(mountCount.count).toBe(1);
+
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 1')[0]);
+      });
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+
+      // Still 1 — component was never unmounted
+      expect(mountCount.count).toBe(1);
+    });
+
+    it('mixed keepMounted: mounted tab survives switch, non-mounted tab is destroyed', async () => {
+      let tab2UnmountCount = 0;
+      let tab3UnmountCount = 0;
+
+      const Tab2Content = () => {
+        React.useEffect(
+          () => () => {
+            tab2UnmountCount += 1;
+          },
+          [],
+        );
+        return <Text>Content 2</Text>;
+      };
+      const Tab3Content = () => {
+        React.useEffect(
+          () => () => {
+            tab3UnmountCount += 1;
+          },
+          [],
+        );
+        return <Text>Content 3</Text>;
+      };
+
+      const { getAllByText, getByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Tab2Content />
+          </View>
+          <View
+            {...({ tabLabel: 'Tab 3', keepMounted: false } as TabViewProps)}
+          >
+            <Tab3Content />
+          </View>
+        </TabsList>,
+      );
+
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 3')[0]);
+      });
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 1')[0]);
+      });
+
+      expect(getByText('Content 1')).toBeOnTheScreen();
+      // keepMounted=true: Tab 2 was never unmounted
+      expect(tab2UnmountCount).toBe(0);
+      // keepMounted=false: Tab 3 was unmounted when Tab 1 became active
+      expect(tab3UnmountCount).toBe(1);
+    });
+  });
+
   describe('Edge Cases', () => {
     it('handles non-React element children with default values', () => {
       // Arrange

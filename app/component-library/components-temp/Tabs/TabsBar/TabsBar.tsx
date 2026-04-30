@@ -330,7 +330,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
             {activeIndex >= 0 && isInitialized && (
               <Animated.View
                 style={tw.style(
-                  `absolute ${hasIcons ? '-bottom-px' : 'bottom-0'} h-0.5 bg-icon-default z-1`,
+                  `absolute ${hasIcons ? '-bottom-2px h-1' : 'bottom-0 h-0.5'} bg-icon-default z-1`,
                   {
                     width: underlineWidth,
                     transform: [{ translateX: underlineAnimated }],
@@ -374,7 +374,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           {activeIndex >= 0 && isInitialized && (
             <Animated.View
               style={tw.style(
-                `absolute ${hasIcons ? '-bottom-px' : 'bottom-0'} h-0.5 bg-icon-default`,
+                `absolute ${hasIcons ? '-bottom-2px h-1' : 'bottom-0 h-0.5'} bg-icon-default z-1`,
                 {
                   width: underlineWidth,
                   transform: [{ translateX: underlineAnimated }],
