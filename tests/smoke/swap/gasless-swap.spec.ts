@@ -3,7 +3,7 @@ import { LocalNode, LocalNodeType } from '../../framework/types';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { SmokeTrade } from '../../tags';
+import { SmokeSwap } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
@@ -21,7 +21,7 @@ import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTest
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 import { Gestures } from '../../framework';
 
-describe(SmokeTrade('Gasless Swap - '), (): void => {
+describe(SmokeSwap('Gasless Swap - '), (): void => {
   const chainId = '0x1';
 
   beforeEach(async (): Promise<void> => {
