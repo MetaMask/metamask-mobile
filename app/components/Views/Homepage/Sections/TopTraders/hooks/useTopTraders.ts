@@ -37,11 +37,10 @@ export const useTopTraders = (
     fetchOptions,
   ];
 
-  const { data, isLoading, isFetching, error, refetch } =
-    useQuery<LeaderboardResponse>({
-      queryKey,
-      enabled: (options?.enabled ?? true) && isUnlocked,
-    });
+  const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
+    queryKey,
+    enabled: (options?.enabled ?? true) && isUnlocked,
+  });
 
   const { isFollowing, toggleFollow } = useFollowToggleMany();
 
