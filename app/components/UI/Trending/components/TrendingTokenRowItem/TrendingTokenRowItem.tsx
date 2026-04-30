@@ -15,17 +15,6 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { isCaipChainId } from '@metamask/utils';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconAlert,
-  IconSize,
-  Text as DesignSystemText,
-  TextVariant as DesignSystemTextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 import {
   caipChainIdToHex,
