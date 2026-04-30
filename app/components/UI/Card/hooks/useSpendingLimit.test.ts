@@ -9,7 +9,7 @@ import { SolScope } from '@metamask/keyring-api';
 import useSpendingLimit, { UseSpendingLimitParams } from './useSpendingLimit';
 import { useCardDelegation } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import { FundingStatus, CardFundingToken } from '../types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -131,15 +131,15 @@ const mockUseSelector = useSelector as jest.Mock;
 
 // Helper functions
 const createMockToken = (
-  overrides: Partial<CardTokenAllowance> = {},
-): CardTokenAllowance => ({
+  overrides: Partial<CardFundingToken> = {},
+): CardFundingToken => ({
   address: '0x1234567890123456789012345678901234567890',
   caipChainId: LINEA_CAIP_CHAIN_ID,
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',
-  allowanceState: AllowanceState.Enabled,
-  allowance: '1000',
+  fundingStatus: FundingStatus.Enabled,
+  spendableBalance: '1000',
   walletAddress: '0xwallet1',
   delegationContract: '0xdelegation123',
   ...overrides,
@@ -304,6 +304,65 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken).toEqual(initialToken);
     });
 
+    it('initializes restricted limit from limited initialToken originalSpendingCap', () => {
+      const initialToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '250',
+        originalSpendingCap: '500',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ initialToken })),
+      );
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('500');
+    });
+
+    it('initializes restricted limit from limited priorityToken originalSpendingCap', () => {
+      const priorityToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '300',
+        originalSpendingCap: '750',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ priorityToken })),
+      );
+
+      expect(result.current.selectedToken).toEqual(priorityToken);
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('750');
+    });
+
+    it('falls back to spendingCap for limited tokens without originalSpendingCap', () => {
+      const initialToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '275',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ initialToken })),
+      );
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('275');
+    });
+
+    it.each([FundingStatus.Enabled, FundingStatus.NotEnabled])(
+      'initializes %s token as full limit with empty custom limit',
+      (fundingStatus) => {
+        const initialToken = createMockToken({ fundingStatus });
+
+        const { result } = renderHook(() =>
+          useSpendingLimit(createDefaultParams({ initialToken })),
+        );
+
+        expect(result.current.limitType).toBe('full');
+        expect(result.current.customLimit).toBe('');
+      },
+    );
+
     it('initializes with priorityToken when no initialToken', () => {
       const priorityToken = createMockToken({ symbol: 'USDC' });
       const { result } = renderHook(() =>
@@ -331,17 +390,17 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const musdToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const enabledToken = createMockToken({
         symbol: 'DAI',
         address: '0xdai',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([
@@ -365,12 +424,12 @@ describe('useSpendingLimit', () => {
       const enabledToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
       const notEnabledToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([
@@ -392,12 +451,12 @@ describe('useSpendingLimit', () => {
         symbol: 'mUSD',
         address: '0xmusd',
         caipChainId: LINEA_CAIP_CHAIN_ID,
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([]);
@@ -415,7 +474,7 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([]);
@@ -430,7 +489,7 @@ describe('useSpendingLimit', () => {
     it('uses initialToken when provided, bypassing balance logic', () => {
       const initialToken = createMockToken({
         symbol: 'USDC',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
 
       const { result } = renderHook(() =>
@@ -606,12 +665,12 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const musdToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       // USDC has highest balance → becomes selectedToken by default
@@ -1120,6 +1179,40 @@ describe('useSpendingLimit', () => {
       });
     });
 
+    it('sets restricted limit from returned limited token', () => {
+      const returnedToken = createMockToken({
+        symbol: 'ETH',
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '125',
+        originalSpendingCap: '425',
+      });
+
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        if (!focusCallback) {
+          focusCallback = callback;
+        }
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedSelectedToken: returnedToken },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) {
+          focusCallback();
+        }
+      });
+
+      expect(result.current.selectedToken).toEqual(returnedToken);
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('425');
+    });
+
     it('does not overwrite user selection when allTokens loads after returning from bottom sheet', () => {
       const userSelectedToken = createMockToken({
         symbol: 'ETH',
@@ -1390,7 +1483,7 @@ describe('useSpendingLimit', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(
           createDefaultParams({
-            routeParams: { returnedSelectedToken: createMockToken() },
+            routeParams: {},
           }),
         ),
       );

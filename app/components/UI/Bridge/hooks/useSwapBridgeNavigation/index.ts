@@ -29,6 +29,7 @@ import {
   setAbTestContext,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import Engine from '../../../../../core/Engine';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
@@ -60,6 +61,11 @@ export interface BridgeRouteParams {
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
   scrollToTopOnNav?: boolean;
+  /**
+   * Homepage / explicit flow `active_ab_tests` carried on the route and bound
+   * to transactions when the user submits (not stored in Redux).
+   */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export enum SwapBridgeNavigationLocation {
@@ -109,6 +115,7 @@ export const useSwapBridgeNavigation = ({
   sourceToken: sourceTokenBase,
   destToken: destTokenBase,
   abTestContext,
+  transactionActiveAbTests,
   skipLocationUpdate = false,
   swapButtonEventLocationOverride,
 }: {
@@ -116,10 +123,12 @@ export const useSwapBridgeNavigation = ({
   sourcePage: string;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
-  /** Analytics context for A/B test attribution on page-viewed events */
-  abTestContext?: {
-    assetsASSETS2493AbtestTokenDetailsLayout?: string;
-  };
+  abTestContext?: Record<string, string>;
+  /**
+   * A/B test assignments for Transaction Added — passed through to the Bridge
+   * route and stashed only when the user submits a transaction.
+   */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /**
    * When true, skip calling setLocation on the bridge controller.
    * Use this when re-entering the bridge flow from a page that was opened
@@ -270,8 +279,12 @@ export const useSwapBridgeNavigation = ({
       }
 
       // Check if user is in an active trending session for analytics
-      const isFromTrending =
+      const isFromTrendingSession =
         TrendingFeedSessionManager.getInstance().isFromTrending;
+      const isFromTrendingAsset =
+        isAssetFromTrending(effectiveSourceTokenBase) ||
+        isAssetFromTrending(effectiveDestTokenBase);
+      const isFromTrending = isFromTrendingSession || isFromTrendingAsset;
 
       // Set the location on the bridge controller once so all internally-fired
       // events (InputChanged, QuotesRequested, QuotesReceived, etc.) carry it.
@@ -292,6 +305,7 @@ export const useSwapBridgeNavigation = ({
         bridgeViewMode,
         location: mappedLocation,
         ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
+        ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
       navigation.navigate(Routes.BRIDGE.ROOT, {
@@ -348,6 +362,7 @@ export const useSwapBridgeNavigation = ({
       getIsBridgeEnabledSource,
       skipLocationUpdate,
       swapButtonEventLocationOverride,
+      transactionActiveAbTests,
     ],
   );
   const { networkModal } = useAddNetwork();

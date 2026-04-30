@@ -9,7 +9,6 @@ import {
   selectEvmTicker,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
-import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -79,9 +78,6 @@ const mockDAI = {
   isETH: false,
   hasBalanceError: false,
   chainId: '0x1',
-};
-const mockAssets = {
-  '0x6b175474e89094c44da98b954eedeac495271d0f': mockDAI,
 };
 const mockExchangeRate = 2712.15;
 const mockCurrentCurrency = 'usd';
@@ -172,8 +168,6 @@ describe('TokenDetails', () => {
       }
 
       switch (selectorOrCallback) {
-        case selectTokenList:
-          return mockAssets;
         case selectContractExchangeRates:
           return {};
         case selectConversionRate:
@@ -249,8 +243,6 @@ describe('TokenDetails', () => {
       }
 
       switch (selectorOrCallback) {
-        case selectTokenList:
-          return mockAssets;
         case selectContractExchangeRates:
           return {};
         case selectConversionRate:

@@ -193,10 +193,6 @@ export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
   trendingTokens: enabled,
 });
 
-export const remoteFeatureFlagExtensionUxPna25 = (enabled = true) => ({
-  extensionUxPna25: enabled,
-});
-
 export const remoteFeatureFlagTronAccounts = (enabled = true) => ({
   tronAccounts: {
     enabled,

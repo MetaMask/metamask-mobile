@@ -124,8 +124,9 @@ export interface CardFundingAsset {
   walletAddress: string;
   decimals: number;
   chainId: CaipChainId;
-  balance: string;
-  allowance: string;
+  spendableBalance: string;
+  spendingCap: string;
+  originalSpendingCap?: string;
   priority: number;
   status: FundingAssetStatus;
   stagingTokenAddress?: string;
@@ -193,15 +194,14 @@ export interface CardAlert {
 
 export type CardAction =
   | { type: 'add_funds'; enabled: boolean }
-  | { type: 'change_asset' }
   | { type: 'enable_card' };
 
 // -- Card Home Data --
 
 export interface CardHomeData {
-  primaryAsset: CardFundingAsset | null;
-  assets: CardFundingAsset[];
-  supportedTokens: CardFundingAsset[];
+  primaryFundingAsset: CardFundingAsset | null;
+  fundingAssets: CardFundingAsset[];
+  availableFundingAssets: CardFundingAsset[];
   card: CardDetails | null;
   account: CardAccountStatus | null;
   alerts: CardAlert[];
@@ -211,9 +211,9 @@ export interface CardHomeData {
 
 export function emptyCardHomeData(): CardHomeData {
   return {
-    primaryAsset: null,
-    assets: [],
-    supportedTokens: [],
+    primaryFundingAsset: null,
+    fundingAssets: [],
+    availableFundingAssets: [],
     card: null,
     account: null,
     alerts: [],
@@ -224,20 +224,22 @@ export function emptyCardHomeData(): CardHomeData {
 
 // -- Funding --
 
-export interface WalletOperations {
-  signMessage(address: string, message: string): Promise<string>;
-  submitTransaction(
-    params: { to: string; data: string; from: string },
-    chainId: CaipChainId,
-  ): Promise<string>;
-}
-
 export interface FundingApprovalParams {
   address: string;
   amount: string;
   currency: string;
   network: string;
-  faucet?: boolean;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
+}
+
+/** Response from initiating a delegation session (GET `/v1/delegation/token`). */
+export interface DelegationChallengeResponse {
+  delegationToken: string;
+  nonce: string;
+  expiresAt: string;
 }
 
 export interface CardFundingOption {
@@ -325,7 +327,6 @@ export interface RegistrationStatus {
 export interface ICardProvider {
   readonly id: CardProviderId;
   readonly capabilities: CardProviderCapabilities;
-  resolveCapabilities?(location: string): CardProviderCapabilities;
 
   initiateAuth(country: string): Promise<CardAuthSession>;
   submitCredentials(
@@ -361,10 +362,17 @@ export interface ICardProvider {
   ): Promise<void>;
   getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
 
+  /**
+   * Fetches a short-lived delegation session (nonce + JWT) before SIWE + on-chain approve.
+   */
+  fetchDelegationChallenge?(
+    params: { network: string; address: string; faucet?: boolean },
+    tokens: CardAuthTokens,
+  ): Promise<DelegationChallengeResponse>;
+
   approveFunding?(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
-    wallet: WalletOperations,
   ): Promise<void>;
 
   getCashbackWallet?(tokens: CardAuthTokens): Promise<CashbackWalletResponse>;

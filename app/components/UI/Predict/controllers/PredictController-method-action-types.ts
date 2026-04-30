@@ -23,6 +23,11 @@ export type PredictControllerGetMarketSeriesAction = {
   handler: PredictController['getMarketSeries'];
 };
 
+export type PredictControllerGetCryptoTargetPriceAction = {
+  type: `PredictController:getCryptoTargetPrice`;
+  handler: PredictController['getCryptoTargetPrice'];
+};
+
 export type PredictControllerGetPriceHistoryAction = {
   type: `PredictController:getPriceHistory`;
   handler: PredictController['getPriceHistory'];
@@ -87,6 +92,16 @@ export type PredictControllerTrackFeedViewedAction = {
 export type PredictControllerTrackShareActionAction = {
   type: `PredictController:trackShareAction`;
   handler: PredictController['trackShareAction'];
+};
+
+/**
+ * Track Predict Betslip Dismissed analytics event
+ *
+ * @public
+ */
+export type PredictControllerTrackBetslipDismissedAction = {
+  type: `PredictController:trackBetslipDismissed`;
+  handler: PredictController['trackBetslipDismissed'];
 };
 
 export type PredictControllerPreviewOrderAction = {
@@ -250,6 +265,7 @@ export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
+  | PredictControllerGetCryptoTargetPriceAction
   | PredictControllerGetPriceHistoryAction
   | PredictControllerGetPricesAction
   | PredictControllerGetPositionsAction
@@ -262,6 +278,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackShareActionAction
+  | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction
   | PredictControllerClaimWithConfirmationAction

@@ -46,10 +46,8 @@ const inlineHeaderStyles = (params: {
 
 export const TokenDetailsInlineHeader = ({
   onBackPress,
-  onOptionsPress,
 }: {
   onBackPress: () => void;
-  onOptionsPress: (() => void) | undefined;
 }) => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(inlineHeaderStyles, { insets });
@@ -63,15 +61,7 @@ export const TokenDetailsInlineHeader = ({
           testID="back-arrow-button"
         />
       </View>
-      {onOptionsPress ? (
-        <ButtonIcon
-          onPress={onOptionsPress}
-          size={ButtonIconSize.Lg}
-          iconName={IconName.MoreVertical}
-        />
-      ) : (
-        <View style={styles.rightPlaceholder} />
-      )}
+      <View style={styles.rightPlaceholder} />
     </View>
   );
 };

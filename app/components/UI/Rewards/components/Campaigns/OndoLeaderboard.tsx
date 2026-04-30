@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   Box,
   BoxFlexDirection,
@@ -21,6 +23,7 @@ import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/contro
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import CrownIcon from '../../../../../images/rewards/crown.svg';
 import { PendingTag } from './CampaignStatsSummary';
 import {
   formatRateOfReturn,
@@ -28,7 +31,6 @@ import {
 } from './OndoLeaderboard.utils';
 
 export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
-  QUALIFIED_CHECK: 'campaign-leaderboard-qualified-check',
   CONTAINER: 'campaign-leaderboard-container',
   TIER_TOGGLE: 'campaign-leaderboard-tier-toggle',
   LIST: 'campaign-leaderboard-list',
@@ -42,19 +44,14 @@ export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
 } as const;
 
 const MAX_ENTRIES_LIMIT = 20;
-const SPLIT_VIEW_TOP_COUNT = 3;
+const SPLIT_VIEW_TOP_COUNT_PREVIEW = 3;
+/** Ranks just below the first page: show one fewer top rows to keep split view from crowding the neighbor block. */
+const FULL_SPLIT_TOP_REDUCED_AT_RANKS: readonly number[] = [21, 22];
 
 interface UserPosition {
   projectedTier: string;
   rank: number;
   neighbors: CampaignLeaderboardEntry[];
-}
-
-interface PendingSheetPosition {
-  tier: string;
-  netDeposit: number;
-  qualifiedDays: number;
-  tierMinDeposit: number;
 }
 
 interface CampaignLeaderboardProps {
@@ -72,8 +69,9 @@ interface CampaignLeaderboardProps {
   maxEntries?: number;
   /** User's leaderboard position; enables neighbor display in preview mode. */
   userPosition?: UserPosition | null;
-  /** Current user's position data; enables pending sheet on Pending tag tap. */
-  pendingSheetPosition?: PendingSheetPosition | null;
+  /** Campaign ID used for analytics tracking. */
+  campaignId?: string;
+  isCampaignComplete?: boolean;
 }
 
 /**
@@ -82,52 +80,71 @@ interface CampaignLeaderboardProps {
 const LeaderboardEntryRow: React.FC<{
   entry: CampaignLeaderboardEntry;
   isCurrentUser?: boolean;
-  onPendingPress?: () => void;
-}> = ({ entry, isCurrentUser = false, onPendingPress }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    twClassName={`py-1 px-4 ${isCurrentUser ? 'bg-background-muted' : ''}`}
-    testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
-  >
+  showCrown?: boolean;
+  isCampaignComplete?: boolean;
+}> = ({
+  entry,
+  isCurrentUser = false,
+  showCrown = false,
+  isCampaignComplete = false,
+}) => {
+  const isPositiveReturn = entry.rateOfReturn >= 0;
+  const textColor = isCurrentUser
+    ? isPositiveReturn
+      ? TextColor.SuccessDefault
+      : TextColor.ErrorDefault
+    : TextColor.TextDefault;
+  const isPending = !entry.qualified;
+  const rowBg = isCurrentUser
+    ? isPending
+      ? 'bg-muted'
+      : isPositiveReturn
+        ? 'bg-success-muted'
+        : 'bg-error-muted'
+    : '';
+
+  return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      justifyContent={BoxJustifyContent.Between}
+      twClassName={`py-2 px-4 ${rowBg}`}
+      testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
     >
-      <Text variant={TextVariant.BodyMd} twClassName="w-8">
-        #{String(entry.rank).padStart(2, '0')}
-      </Text>
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {entry.referralCode}
-      </Text>
-      {!entry.qualified ? (
-        onPendingPress ? (
-          <Pressable onPress={onPendingPress}>
-            <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
-          </Pressable>
-        ) : (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-3"
+      >
+        <Text variant={TextVariant.BodyMd} color={textColor} twClassName="w-8">
+          {String(entry.rank).padStart(2, '0')}
+        </Text>
+        <Box twClassName="flex-row items-center gap-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={textColor}
+          >
+            {entry.referralCode}
+          </Text>
+          {showCrown && entry.rank <= 5 && (
+            <CrownIcon name="crown" width={14} height={14} />
+          )}
+        </Box>
+        {isCurrentUser && isPending && !isCampaignComplete && (
           <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
-        )
-      ) : isCurrentUser ? (
-        <Icon
-          name={IconName.Check}
-          size={IconSize.Sm}
-          color={IconColor.SuccessDefault}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.QUALIFIED_CHECK}
-        />
-      ) : null}
+        )}
+      </Box>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={textColor}
+      >
+        {formatRateOfReturn(entry.rateOfReturn)}
+      </Text>
     </Box>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={isCurrentUser ? TextColor.SuccessDefault : TextColor.TextDefault}
-    >
-      {formatRateOfReturn(entry.rateOfReturn)}
-    </Text>
-  </Box>
-);
+  );
+};
 
 /**
  * LeaderboardSkeleton displays loading skeleton for the leaderboard section
@@ -201,30 +218,48 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   currentUserReferralCode,
   maxEntries,
   userPosition,
-  pendingSheetPosition,
+  campaignId,
+  isCampaignComplete = false,
 }) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const isPreview = maxEntries != null;
+
+  const effectiveMaxEntries =
+    maxEntries != null && maxEntries <= MAX_ENTRIES_LIMIT
+      ? maxEntries
+      : MAX_ENTRIES_LIMIT;
+
+  /** Top rows above the neighbor separator in split view (preview: 3; full: 18 for rank 21–22, else 20). */
+  const splitViewTopCount = useMemo(() => {
+    if (isPreview) {
+      return SPLIT_VIEW_TOP_COUNT_PREVIEW;
+    }
+    const rank = userPosition?.rank;
+    if (rank == null) {
+      return MAX_ENTRIES_LIMIT;
+    }
+    return FULL_SPLIT_TOP_REDUCED_AT_RANKS.includes(rank)
+      ? MAX_ENTRIES_LIMIT - 2
+      : MAX_ENTRIES_LIMIT;
+  }, [isPreview, userPosition?.rank]);
 
   const showSplitView = useMemo(() => {
-    if (!userPosition || maxEntries == null || maxEntries > MAX_ENTRIES_LIMIT) {
-      return false;
-    }
+    if (!userPosition) return false;
     return (
       userPosition.projectedTier === selectedTier &&
-      userPosition.rank > maxEntries &&
+      userPosition.rank > effectiveMaxEntries &&
       userPosition.neighbors.length > 0
     );
-  }, [userPosition, maxEntries, selectedTier]);
+  }, [userPosition, effectiveMaxEntries, selectedTier]);
 
   const visibleEntries = useMemo(() => {
     if (showSplitView) {
-      return entries.slice(0, SPLIT_VIEW_TOP_COUNT);
+      return entries.slice(0, splitViewTopCount);
     }
-    if (maxEntries != null && maxEntries <= MAX_ENTRIES_LIMIT) {
-      return entries.slice(0, maxEntries);
-    }
-    return entries;
-  }, [entries, maxEntries, showSplitView]);
+    return entries.slice(0, effectiveMaxEntries);
+  }, [showSplitView, entries, effectiveMaxEntries, splitViewTopCount]);
 
   const selectedTierLabel = selectedTier
     ? formatTierDisplayName(selectedTier)
@@ -241,44 +276,33 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   );
 
   const openTierSelector = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: 'ondo_campaign_leaderboard_tier_select',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.MODAL.REWARDS_SELECT_SHEET, {
       title: strings('rewards.ondo_campaign_leaderboard.select_tier'),
       options: tierOptions,
       selectedValue: selectedTier,
       onSelect: onTierChange,
     });
-  }, [navigation, tierOptions, selectedTier, onTierChange]);
+  }, [
+    navigation,
+    tierOptions,
+    selectedTier,
+    onTierChange,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const isCurrentUser = useCallback(
     (entry: CampaignLeaderboardEntry) =>
       !!currentUserReferralCode &&
       entry.referralCode === currentUserReferralCode,
     [currentUserReferralCode],
-  );
-
-  const buildOnPendingPress = useCallback(
-    (entry: CampaignLeaderboardEntry) => {
-      if (!entry.qualified) {
-        if (isCurrentUser(entry) && pendingSheetPosition) {
-          return () => {
-            navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
-              variant: 'own',
-              tier: pendingSheetPosition.tier,
-              netDeposit: pendingSheetPosition.netDeposit,
-              qualifiedDays: pendingSheetPosition.qualifiedDays,
-              tierMinDeposit: pendingSheetPosition.tierMinDeposit,
-            });
-          };
-        }
-        return () => {
-          navigation.navigate(Routes.MODAL.REWARDS_ONDO_PENDING_SHEET, {
-            variant: 'other',
-          });
-        };
-      }
-      return undefined;
-    },
-    [isCurrentUser, navigation, pendingSheetPosition],
   );
 
   if (isLoading && entries.length === 0) {
@@ -335,59 +359,49 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 
   return (
     <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER}>
-      {/* Tier selector */}
-      {tierNames.length > 1 ? (
+      {/* Participants + tier subtitle */}
+      {(totalParticipants > 0 || Boolean(selectedTierLabel)) && (
         <Pressable
-          onPress={openTierSelector}
+          onPress={tierNames.length > 1 ? openTierSelector : undefined}
           testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1 mb-2 self-start px-4"
+            twClassName="gap-2 mb-2 px-4"
           >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {selectedTierLabel}
-            </Text>
-            <Icon
-              name={IconName.SwapVertical}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
+            {totalParticipants > 0 && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.SuccessDefault}
+              >
+                {strings(
+                  'rewards.ondo_campaign_leaderboard.total_participants',
+                  {
+                    count: totalParticipants.toLocaleString(),
+                  },
+                )}
+              </Text>
+            )}
+            {selectedTierLabel ? (
+              <>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {selectedTierLabel}
+                </Text>
+                {tierNames.length > 1 && (
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                )}
+              </>
+            ) : null}
           </Box>
         </Pressable>
-      ) : null}
-
-      {/* Error banner when has error but no data to display */}
-      {hasError && !isLoading && entries.length === 0 && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            twClassName="flex-1"
-          >
-            {strings('rewards.ondo_campaign_leaderboard.error_loading')}
-          </Text>
-          {onRetry && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              fontWeight={FontWeight.Medium}
-              onPress={onRetry}
-              twClassName="ml-2"
-            >
-              {strings('rewards.ondo_campaign_leaderboard.retry')}
-            </Text>
-          )}
-        </Box>
       )}
 
       {/* Leaderboard list */}
@@ -398,7 +412,8 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               key={`${entry.rank}-${entry.referralCode}`}
               entry={entry}
               isCurrentUser={isCurrentUser(entry)}
-              onPendingPress={buildOnPendingPress(entry)}
+              showCrown={!isPreview}
+              isCampaignComplete={isCampaignComplete}
             />
           ))}
           {showSplitView && userPosition && (
@@ -409,7 +424,8 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
                   key={`neighbor-${entry.rank}-${entry.referralCode}`}
                   entry={entry}
                   isCurrentUser={isCurrentUser(entry)}
-                  onPendingPress={buildOnPendingPress(entry)}
+                  showCrown={!isPreview}
+                  isCampaignComplete={isCampaignComplete}
                 />
               ))}
             </>
@@ -423,17 +439,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
             twClassName="text-center"
           >
             {strings('rewards.ondo_campaign_leaderboard.no_entries_in_tier')}
-          </Text>
-        </Box>
-      )}
-
-      {/* Total participants */}
-      {totalParticipants > 0 && (
-        <Box twClassName="mt-2 px-4">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('rewards.ondo_campaign_leaderboard.total_participants', {
-              count: totalParticipants.toLocaleString(),
-            })}
           </Text>
         </Box>
       )}

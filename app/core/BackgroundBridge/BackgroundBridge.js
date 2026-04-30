@@ -25,7 +25,7 @@ import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
@@ -643,7 +643,7 @@ export class BackgroundBridge extends EventEmitter {
     // Sentry tracing middleware
     engine.push(createTracingMiddleware());
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // These Snaps RPC methods are disabled in WalletConnect and SDK for now
     if (this.isMMSDK || this.isWalletConnect) {
       engine.push((req, _res, next, end) => {
@@ -657,7 +657,7 @@ export class BackgroundBridge extends EventEmitter {
     }
     ///: END:ONLY_INCLUDE_IF
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // The Snaps middleware is disabled in WalletConnect and SDK for now.
     if (!this.isMMSDK && !this.isWalletConnect) {
       engine.push(
@@ -1239,11 +1239,26 @@ export class BackgroundBridge extends EventEmitter {
         // The former issue mainly affects Extension, not Mobile, but to keep both in sync, we'll keep the setTimeout for now.
         // The latter issue is what requires the setTimeout below.
         setTimeout(() => {
-          this.notifyCaipAuthorizationChange(caip25Caveat.value);
+          // We refetch the caip25Caveat to get the latest value in case it
+          // has changed since we first fetched it.
+          const caip25CaveatRefetched =
+            Engine.context.PermissionController.getCaveat(
+              this.channelIdOrOrigin,
+              Caip25EndowmentPermissionName,
+              Caip25CaveatType,
+            );
+          if (caip25CaveatRefetched) {
+            this.notifyCaipAuthorizationChange(caip25CaveatRefetched.value);
+          }
         }, 1000);
       }
     } catch (err) {
-      // noop - origin may not have the permission
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+      } else {
+        throw err;
+      }
     }
   };
 

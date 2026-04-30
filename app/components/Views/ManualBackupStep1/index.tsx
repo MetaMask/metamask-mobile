@@ -419,8 +419,9 @@ const ManualBackupStep1 = () => {
                       variant={TextVariant.BodyMd}
                       color={TextColor.TextDefault}
                       key={index}
-                      ellipsizeMode="tail"
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
                       style={tw.style('flex-1')}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                       maxFontSizeMultiplier={1}

@@ -28,6 +28,7 @@ import {
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
   type OndoGmCampaignDepositsDto,
+  type OndoGmCampaignParticipantOutcomeDto,
   type PaginatedOndoGmActivityDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
@@ -43,6 +44,7 @@ import {
   type ClientVersionRequirementDto,
   type CampaignState,
   type CampaignDtoState,
+  type SubscriptionBenefitsState,
   BASE32_REGEX,
   CampaignType,
 } from './types';
@@ -54,6 +56,7 @@ import {
   getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isHardwareAccount } from '../../../../util/address';
@@ -98,6 +101,9 @@ const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
+// Benefits details cache threshold
+const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
+
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
@@ -118,19 +124,22 @@ const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minut
 const ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaign leaderboard position cache threshold
-const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Campaign portfolio position cache threshold
-const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Campaign deposits cache threshold
-const ONDO_CAMPAIGN_DEPOSITS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_DEPOSITS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 // Campaign activity cache threshold (first page only)
 const ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
+
+// Campaign participant outcome cache threshold
+const ONDO_CAMPAIGN_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -256,6 +265,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  subscriptionBenefits: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -265,6 +280,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeAccount: null,
   accounts: {},
   subscriptions: {},
+  subscriptionBenefits: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
@@ -377,6 +393,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getActivityIfChanged',
   'getActivityLastUpdated',
   'getActualSubscriptionId',
+  'getBenefits',
   'getCampaignParticipantStatus',
   'getCampaigns',
   'getCandidateSubscriptionId',
@@ -391,6 +408,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getOndoCampaignLeaderboardPosition',
   'getOndoCampaignActivity',
   'getOndoCampaignPortfolioPosition',
+  'getOndoCampaignParticipantOutcome',
   'getOptInStatus',
   'getPerpsDiscountForAccount',
   'getPointsEvents',
@@ -418,6 +436,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'optInToCampaign',
   'optOut',
   'performSilentAuth',
+  'postBenefitImpression',
   'resetAll',
   'resetState',
   'setActiveAccountFromCandidate',
@@ -438,6 +457,10 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #participantOutcomeCache: Map<
+    string,
+    { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
+  > = new Map();
   #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
@@ -503,7 +526,6 @@ export class RewardsController extends BaseController<
       tiers: season.tiers,
       activityTypes: season.activityTypes,
       waysToEarn: season.waysToEarn,
-      shouldInstallNewVersion: season.shouldInstallNewVersion,
     };
   }
 
@@ -523,7 +545,6 @@ export class RewardsController extends BaseController<
         tiers: seasonMetadata.tiers,
         activityTypes: seasonMetadata.activityTypes,
         waysToEarn: seasonMetadata.waysToEarn,
-        shouldInstallNewVersion: seasonMetadata.shouldInstallNewVersion,
       },
       balance: {
         total: seasonState.balance,
@@ -930,6 +951,9 @@ export class RewardsController extends BaseController<
       try {
         await this.#reauthPromises.get(subscriptionId);
       } catch (reauthError) {
+        captureException(reauthError as Error, {
+          tags: { feature: 'rewards', context: 'withAuthRetry.reauth_failed' },
+        });
         this.invalidateSubscriptionCache(subscriptionId);
         await this.invalidateSubscriptionAndAccounts(subscriptionId);
         throw reauthError;
@@ -1294,6 +1318,13 @@ export class RewardsController extends BaseController<
         // Unknown error
         subscription = null;
         authUnexpectedError = true;
+        captureException(error as Error, {
+          tags: {
+            feature: 'rewards',
+            context: 'performSilentAuth.unexpected_error',
+          },
+          extra: { accountType: internalAccount.type },
+        });
       }
     } finally {
       // Update state
@@ -2098,8 +2129,6 @@ export class RewardsController extends BaseController<
             tiers: seasonMetadata.tiers,
             activityTypes: seasonMetadata.activityTypes,
             waysToEarn: seasonMetadata.waysToEarn,
-            shouldInstallNewVersion:
-              seasonMetadata.shouldInstallNewVersion?.mobile,
           });
 
           // Add lastFetched timestamp
@@ -2523,6 +2552,10 @@ export class RewardsController extends BaseController<
         sessionId: optinResponse.sessionId,
       };
     } catch (error) {
+      captureException(error as Error, {
+        tags: { feature: 'rewards', context: 'optIn.unexpected_error' },
+        extra: { accountType: account.type },
+      });
       Logger.log(
         'RewardsController: Opt-in failed for account',
         account.address,
@@ -3041,6 +3074,13 @@ export class RewardsController extends BaseController<
 
       return true;
     } catch (error) {
+      captureException(error as Error, {
+        tags: {
+          feature: 'rewards',
+          context: 'linkAccountToSubscriptionCandidate.failed',
+        },
+        extra: { accountType: account.type },
+      });
       Logger.log(
         'RewardsController: Failed to link account to subscription',
         caipAccount,
@@ -3160,6 +3200,9 @@ export class RewardsController extends BaseController<
       );
       return false;
     } catch (error) {
+      captureException(error as Error, {
+        tags: { feature: 'rewards', context: 'optOut.failed' },
+      });
       Logger.log('RewardsController: Failed to opt out', error);
       return false;
     }
@@ -3700,6 +3743,48 @@ export class RewardsController extends BaseController<
     return result;
   }
 
+  async getOndoCampaignParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmCampaignParticipantOutcomeDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+    const key = `${subscriptionId}:${campaignId}`;
+    try {
+      return await wrapWithCache<OndoGmCampaignParticipantOutcomeDto | null>({
+        key,
+        ttl: ONDO_CAMPAIGN_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS,
+        readCache: (k) => this.#participantOutcomeCache.get(k) ?? undefined,
+        fetchFresh: async () =>
+          this.#withAuthRetry(async () => {
+            Logger.log(
+              'RewardsController: Fetching Ondo campaign participant outcome',
+            );
+            return this.messenger.call(
+              'RewardsDataService:getOndoCampaignParticipantOutcome',
+              campaignId,
+              subscriptionId,
+            );
+          }, subscriptionId),
+        writeCache: (k, payload) => {
+          if (payload !== null) {
+            this.#participantOutcomeCache.set(k, {
+              payload,
+              lastFetched: Date.now(),
+            });
+          }
+        },
+      });
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get Ondo campaign participant outcome:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return null;
+    }
+  }
+
   /**
    * Get the current user's Ondo GM portfolio for a campaign.
    * This is an authenticated endpoint.
@@ -4019,6 +4104,99 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get Season 1 Linea reward tokens:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get benefits details with caching
+   * @param subscriptionId - The subscription ID for authentication
+   * @param limit - The maximum number of items requested
+   * @returns Promise<SubscriptionBenefitsState> - The benefits data
+   */
+  async getBenefits(
+    subscriptionId: string,
+    limit: number,
+  ): Promise<SubscriptionBenefitsState> {
+    return await wrapWithCache<SubscriptionBenefitsState>({
+      key: `${subscriptionId}`,
+      ttl: BENEFITS_DETAILS_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.subscriptionBenefits[key] || undefined;
+        if (!cached) return;
+        return {
+          payload: cached,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh benefits details data via API call for',
+            { subscriptionId, limit },
+          );
+          const benefits = await this.#withAuthRetry(
+            () =>
+              this.messenger.call(
+                'RewardsDataService:getBenefits',
+                subscriptionId,
+                limit,
+              ),
+            subscriptionId,
+          );
+          return {
+            benefits,
+            limit,
+            lastFetched: Date.now(),
+          };
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get benefits details:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state) => {
+          state.subscriptionBenefits[key] = payload;
+        });
+      },
+    });
+  }
+
+  /**
+   * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
+   * @param subscriptionId - The subscription ID for authentication
+   * @param benefitId - The specific benefit ID that was impressed
+   * @param benefitType - The type of the benefit that was impressed
+   * @returns Promise<SubscriptionBenefitsState> - The benefits data
+   */
+  async postBenefitImpression(
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number,
+  ): Promise<void> {
+    try {
+      Logger.log(
+        'RewardsController: Posting benefit impression via API call for',
+        { subscriptionId, benefitId },
+      );
+      await this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:postBenefitImpression',
+            subscriptionId,
+            benefitId,
+            benefitType,
+          ),
+        subscriptionId,
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to post benefit impression:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

@@ -4,6 +4,17 @@ import OndoLeaderboard, {
   CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './OndoLeaderboard';
 import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -109,6 +120,12 @@ const defaultProps = {
 describe('OndoLeaderboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   describe('loading state', () => {
@@ -224,14 +241,21 @@ describe('OndoLeaderboard', () => {
       ).toBeDefined();
     });
 
-    it('does not render tier selector when single tier', () => {
-      const { queryByTestId } = render(
-        <OndoLeaderboard {...defaultProps} tierNames={['STARTER']} />,
+    it('renders subtitle row with single tier but does not open selector on press', () => {
+      const onTierChange = jest.fn();
+      const { getByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          tierNames={['STARTER']}
+          onTierChange={onTierChange}
+        />,
       );
 
       expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE),
-      ).toBeNull();
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE),
+      ).toBeDefined();
+      fireEvent.press(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE));
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('displays the selected tier display name in the selector', () => {
@@ -291,15 +315,15 @@ describe('OndoLeaderboard', () => {
         getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
       ).toBeDefined();
 
-      expect(getByText('#01')).toBeDefined();
+      expect(getByText('01')).toBeDefined();
       expect(getByText('AAA111')).toBeDefined();
       expect(getByText('+20.00%')).toBeDefined();
 
-      expect(getByText('#02')).toBeDefined();
+      expect(getByText('02')).toBeDefined();
       expect(getByText('BBB222')).toBeDefined();
       expect(getByText('+15.00%')).toBeDefined();
 
-      expect(getByText('#03')).toBeDefined();
+      expect(getByText('03')).toBeDefined();
       expect(getByText('CCC333')).toBeDefined();
       expect(getByText('-5.00%')).toBeDefined();
     });
@@ -412,6 +436,14 @@ describe('OndoLeaderboard', () => {
         rank: i + 1,
         referralCode: `STR${String(i + 1).padStart(3, '0')}`,
         rateOfReturn: 0.2 - i * 0.01,
+      }),
+    );
+
+    const twentyFiveEntries = Array.from({ length: 25 }, (_, i) =>
+      createMockEntry({
+        rank: i + 1,
+        referralCode: `T${String(i + 1).padStart(3, '0')}`,
+        rateOfReturn: 0.12,
       }),
     );
 
@@ -575,8 +607,8 @@ describe('OndoLeaderboard', () => {
       ).toBeNull();
     });
 
-    it('does not show split view in full leaderboard (no maxEntries)', () => {
-      const { queryByTestId } = render(
+    it('shows split view in full leaderboard (no maxEntries) when rank exceeds limit', () => {
+      const { getByTestId } = render(
         <OndoLeaderboard
           {...defaultProps}
           entries={tenEntries}
@@ -595,38 +627,135 @@ describe('OndoLeaderboard', () => {
       );
 
       expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
+    });
+
+    it('in full view renders 18 top rows when user rank is 21', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={twentyFiveEntries}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 21,
+            neighbors: [
+              createMockEntry({ rank: 20, referralCode: 'N20' }),
+              createMockEntry({ rank: 21, referralCode: 'USER' }),
+              createMockEntry({ rank: 22, referralCode: 'N22' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-18`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-19`),
       ).toBeNull();
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-20`),
+      ).toBeDefined();
+    });
+
+    it('in full view renders 18 top rows when user rank is 22', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={twentyFiveEntries}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 22,
+            neighbors: [
+              createMockEntry({ rank: 21, referralCode: 'N21' }),
+              createMockEntry({ rank: 22, referralCode: 'USER' }),
+              createMockEntry({ rank: 23, referralCode: 'N23' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-18`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-19`),
+      ).toBeNull();
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
+    });
+
+    it('in full view renders 20 top rows when user rank is 23 (not 21 or 22)', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={twentyFiveEntries}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 23,
+            neighbors: [
+              createMockEntry({ rank: 22, referralCode: 'N22' }),
+              createMockEntry({ rank: 23, referralCode: 'USER' }),
+              createMockEntry({ rank: 24, referralCode: 'N24' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-20`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-21`),
+      ).toBeNull();
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
     });
   });
 
-  describe('pending tag and qualified check', () => {
-    it('renders Pending tag when entry is not qualified', () => {
+  describe('pending tag', () => {
+    it('renders Pending tag when entry is not qualified and is current user', () => {
+      const entries = [
+        createMockEntry({
+          rank: 1,
+          referralCode: 'MYCODE',
+          qualified: false,
+          qualifiedDays: 3,
+        }),
+      ];
+      const { getByTestId, getByText } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={entries}
+          currentUserReferralCode="MYCODE"
+        />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toBeDefined();
+      expect(getByText('Pending')).toBeDefined();
+    });
+
+    it('does not render Pending tag when entry is not qualified but not current user', () => {
       const entries = [
         createMockEntry({
           rank: 1,
           referralCode: 'USR001',
           qualified: false,
           qualifiedDays: 3,
-        }),
-      ];
-      const { getAllByTestId, getByText } = render(
-        <OndoLeaderboard {...defaultProps} entries={entries} />,
-      );
-
-      expect(
-        getAllByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
-      ).toHaveLength(1);
-      expect(getByText('Pending')).toBeDefined();
-    });
-
-    it('does not render Pending tag or check when entry is qualified but not current user', () => {
-      const entries = [
-        createMockEntry({
-          rank: 1,
-          referralCode: 'USR001',
-          qualified: true,
-          qualifiedDays: 10,
         }),
       ];
       const { queryByTestId } = render(
@@ -636,12 +765,9 @@ describe('OndoLeaderboard', () => {
       expect(
         queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
       ).toBeNull();
-      expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.QUALIFIED_CHECK),
-      ).toBeNull();
     });
 
-    it('renders green check when entry is qualified and is current user', () => {
+    it('does not render any tag when entry is qualified', () => {
       const entries = [
         createMockEntry({
           rank: 1,
@@ -650,7 +776,7 @@ describe('OndoLeaderboard', () => {
           qualifiedDays: 10,
         }),
       ];
-      const { getByTestId, queryByTestId } = render(
+      const { queryByTestId } = render(
         <OndoLeaderboard
           {...defaultProps}
           entries={entries}
@@ -659,31 +785,31 @@ describe('OndoLeaderboard', () => {
       );
 
       expect(
-        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.QUALIFIED_CHECK),
-      ).toBeDefined();
-      expect(
         queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
       ).toBeNull();
     });
 
-    it('renders Pending tag only for unqualified entries in a mixed list', () => {
+    it('does not render Pending tag when isCampaignComplete is true, even if entry is not qualified and is current user', () => {
       const entries = [
-        createMockEntry({ rank: 1, referralCode: 'USR001', qualified: true }),
         createMockEntry({
-          rank: 2,
-          referralCode: 'USR002',
+          rank: 1,
+          referralCode: 'MYCODE',
           qualified: false,
-          qualifiedDays: 2,
+          qualifiedDays: 3,
         }),
-        createMockEntry({ rank: 3, referralCode: 'USR003', qualified: true }),
       ];
-      const { getAllByTestId } = render(
-        <OndoLeaderboard {...defaultProps} entries={entries} />,
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={entries}
+          currentUserReferralCode="MYCODE"
+          isCampaignComplete
+        />,
       );
 
       expect(
-        getAllByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
-      ).toHaveLength(1);
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toBeNull();
     });
   });
 

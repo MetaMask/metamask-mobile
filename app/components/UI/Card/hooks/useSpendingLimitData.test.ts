@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import useSpendingLimitData from './useSpendingLimitData';
 import { useCardSDK } from '../sdk';
 import useGetDelegationSettings from './useGetDelegationSettings';
-import { AllowanceState, DelegationSettingsResponse } from '../types';
+import { FundingStatus, DelegationSettingsResponse } from '../types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -396,19 +396,19 @@ describe('useSpendingLimitData', () => {
       expect(result.current.availableTokens[0].name).toBe('USD Coin');
     });
 
-    it('sets allowanceState to NotEnabled for all tokens', () => {
+    it('sets fundingStatus to NotEnabled for all tokens', () => {
       const { result } = renderHook(() => useSpendingLimitData());
 
       result.current.availableTokens.forEach((token) => {
-        expect(token.allowanceState).toBe(AllowanceState.NotEnabled);
+        expect(token.fundingStatus).toBe(FundingStatus.NotEnabled);
       });
     });
 
-    it('sets allowance to 0 for all tokens', () => {
+    it('sets spendableBalance to 0 for all tokens', () => {
       const { result } = renderHook(() => useSpendingLimitData());
 
       result.current.availableTokens.forEach((token) => {
-        expect(token.allowance).toBe('0');
+        expect(token.spendableBalance).toBe('0');
       });
     });
 

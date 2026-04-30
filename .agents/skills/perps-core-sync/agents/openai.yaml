@@ -1,0 +1,4 @@
+interface:
+  display_name: "Core Sync"
+  short_description: "Sync perps controller from mobile to core monorepo."
+  default_prompt: "Use $perps-core-sync to detect changes and sync app/controllers/perps/ to core."

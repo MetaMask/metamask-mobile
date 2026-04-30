@@ -203,6 +203,7 @@ export enum TraceName {
   PredictGetPriceHistory = 'Predict Get Price History',
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
+  PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',

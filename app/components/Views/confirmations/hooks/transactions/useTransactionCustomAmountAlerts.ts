@@ -8,15 +8,17 @@ const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
+  AlertKeys.InsufficientMoneyAccountBalance,
 ];
 
 const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.SignedOrSubmitted,
-  AlertKeys.PerpsHardwareAccount,
+  AlertKeys.MMPayHardwareAccount,
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
+  AlertKeys.InsufficientMoneyAccountBalance,
 ];
 
 const ON_CHANGE_ALERTS = [
@@ -24,6 +26,7 @@ const ON_CHANGE_ALERTS = [
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
+  AlertKeys.InsufficientMoneyAccountBalance,
 ];
 
 export function useTransactionCustomAmountAlerts({

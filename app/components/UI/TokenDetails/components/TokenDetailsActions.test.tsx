@@ -90,7 +90,7 @@ describe('TokenDetailsActions', () => {
       );
 
       const { Skeleton } = jest.requireActual(
-        '../../../../component-library/components/Skeleton',
+        '../../../../component-library/components-temp/Skeleton',
       );
       const skeletons = UNSAFE_queryAllByType(Skeleton);
       expect(skeletons).toHaveLength(4);

@@ -28,7 +28,7 @@ const ReferralStatsSummary = ({
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
   const referralDetailsError = useSelector(selectReferralDetailsError);
 
-  const { fetchReferralDetails } = useReferralDetails();
+  const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
 
   return (
     <Box twClassName="w-full">

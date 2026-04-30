@@ -147,10 +147,6 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock('../../../selectors/tokenListController', () => ({
-  selectTokenList: jest.fn().mockReturnValue([]),
-}));
-
 jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -518,7 +514,7 @@ describe('TradeWalletActions', () => {
 
     // Verify button exists and is enabled for returning users
     expect(perpsButton).toBeDefined();
-    expect(perpsButton.props.accessibilityState?.disabled).toBeFalsy();
+    expect(perpsButton).toBeEnabled();
   });
 
   it('should set up perps navigation to tutorial for first-time users', () => {

@@ -212,6 +212,7 @@ describe('useSubmitBridgeTx', () => {
       undefined,
       undefined,
       undefined,
+      null,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -261,7 +262,14 @@ describe('useSubmitBridgeTx', () => {
       undefined,
       undefined,
       undefined,
-      [{ key: expect.any(String), value: 'treatment' }],
+      [
+        expect.objectContaining({
+          key: expect.any(String),
+          value: 'treatment',
+          key_value_pair: expect.stringMatching(/[=]treatment$/u),
+        }),
+      ],
+      null,
     );
   });
 
@@ -301,6 +309,7 @@ describe('useSubmitBridgeTx', () => {
       undefined,
       undefined,
       undefined,
+      null,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -502,6 +511,7 @@ describe('useSubmitBridgeTx', () => {
       location: undefined,
       abTests: undefined,
       activeAbTests: undefined,
+      tokenSecurityTypeDestination: null,
     });
 
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
@@ -527,9 +537,63 @@ describe('useSubmitBridgeTx', () => {
       accountAddress: '0x1234567890123456789012345678901234567890',
       location: undefined,
       abTests: undefined,
-      activeAbTests: [{ key: expect.any(String), value: 'treatment' }],
+      activeAbTests: [
+        expect.objectContaining({
+          key: expect.any(String),
+          value: 'treatment',
+          key_value_pair: expect.stringMatching(/[=]treatment$/u),
+        }),
+      ],
+      tokenSecurityTypeDestination: null,
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
+  });
+
+  it('forwards tokenSecurityTypeDestination from destination token securityData', async () => {
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper({
+        bridge: {
+          abTestContext: undefined,
+          destToken: {
+            symbol: 'SCAM',
+            securityData: {
+              type: 'Malicious',
+            },
+          },
+        },
+      }),
+    });
+
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
+
+    mockSubmitTx.mockResolvedValueOnce({
+      chainId: '0x1',
+      id: '1',
+      networkClientId: '1',
+      status: 'submitted',
+      time: Date.now(),
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+      },
+    } as TransactionMeta);
+
+    await result.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+    });
+
+    expect(mockSubmitTx).toHaveBeenCalledWith(
+      '0x1234567890123456789012345678901234567890',
+      expect.any(Object),
+      expect.any(Boolean),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'Malicious',
+    );
   });
 });

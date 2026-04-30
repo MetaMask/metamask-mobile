@@ -229,4 +229,39 @@ describe('SpendingLimitProgressBar', () => {
 
     expect(getByText(`99/100 ${USDC}`)).toBeOnTheScreen();
   });
+
+  it('hides values when privacy mode is enabled', () => {
+    const { getByText, queryByText } = renderWithProvider(() => (
+      <SpendingLimitProgressBar
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="150"
+        symbol={USDC}
+        privacyMode
+      />
+    ));
+
+    expect(getByText('Spending Limit')).toBeOnTheScreen();
+    // SensitiveTextLength.Short renders 6 dots
+    expect(getByText('••••••')).toBeOnTheScreen();
+    expect(queryByText(`50/200 ${USDC}`)).not.toBeOnTheScreen();
+  });
+
+  it('shows values when privacy mode is disabled', () => {
+    const { getByText, queryByText } = renderWithProvider(() => (
+      <SpendingLimitProgressBar
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="150"
+        symbol={USDC}
+        privacyMode={false}
+      />
+    ));
+
+    expect(getByText('Spending Limit')).toBeOnTheScreen();
+    expect(getByText(`50/200 ${USDC}`)).toBeOnTheScreen();
+    expect(queryByText('••••••')).not.toBeOnTheScreen();
+  });
 });

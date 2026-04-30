@@ -127,7 +127,7 @@ const EarnRewardsPreview: React.FC = () => {
 
   return (
     <Box
-      twClassName="gap-3 p-4 -mt-2"
+      twClassName="gap-3 px-4 pb-3"
       testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW}
     >
       <Box

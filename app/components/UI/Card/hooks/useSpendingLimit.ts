@@ -19,10 +19,9 @@ import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector'
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
 import {
-  AllowanceState,
-  CardTokenAllowance,
+  FundingStatus,
+  CardFundingToken,
   DelegationSettingsResponse,
-  CardExternalWalletDetailsResponse,
 } from '../types';
 import {
   BAANX_MAX_LIMIT,
@@ -31,7 +30,7 @@ import {
   cardNetworkInfos,
 } from '../constants';
 import {
-  buildTokenListFromSettings,
+  buildDelegationTokenList,
   LINEA_CAIP_CHAIN_ID,
 } from '../util/buildTokenList';
 import { sanitizeCustomLimit } from '../util/sanitizeCustomLimit';
@@ -58,34 +57,22 @@ export type LimitType = 'full' | 'restricted';
 
 export interface UseSpendingLimitParams {
   flow: 'manage' | 'enable' | 'onboarding';
-  initialToken?: CardTokenAllowance | null;
-  priorityToken?: CardTokenAllowance | null;
-  allTokens: CardTokenAllowance[];
+  initialToken?: CardFundingToken | null;
+  priorityToken?: CardFundingToken | null;
+  allTokens: CardFundingToken[];
   delegationSettings: DelegationSettingsResponse | null;
-  externalWalletDetailsData?:
-    | {
-        walletDetails: never[];
-        mappedWalletDetails: never[];
-        priorityWalletDetail: null;
-      }
-    | {
-        walletDetails: CardExternalWalletDetailsResponse;
-        mappedWalletDetails: CardTokenAllowance[];
-        priorityWalletDetail: CardTokenAllowance | undefined;
-      }
-    | null;
   routeParams?: Record<string, unknown>;
 }
 
 export interface UseSpendingLimitReturn {
   // State
-  selectedToken: CardTokenAllowance | null;
+  selectedToken: CardFundingToken | null;
   limitType: LimitType;
   customLimit: string;
   isLoading: boolean;
 
   // Handlers
-  setSelectedToken: (token: CardTokenAllowance | null) => void;
+  setSelectedToken: (token: CardFundingToken | null) => void;
   handleAccountSelect: () => void;
   handleOtherSelect: () => void;
   handleLimitSelect: () => void;
@@ -105,6 +92,24 @@ export interface UseSpendingLimitReturn {
   isFaucetCheckLoading: boolean;
 }
 
+const deriveLimitStateFromToken = (
+  token: CardFundingToken,
+): Pick<UseSpendingLimitReturn, 'limitType' | 'customLimit'> => {
+  if (token.fundingStatus !== FundingStatus.Limited) {
+    return {
+      limitType: 'full',
+      customLimit: '',
+    };
+  }
+
+  return {
+    limitType: 'restricted',
+    customLimit: sanitizeCustomLimit(
+      token.originalSpendingCap ?? token.spendingCap ?? '',
+    ),
+  };
+};
+
 /**
  * Simplified hook for spending limit management.
  * Combines form state and submission logic into a single hook.
@@ -120,7 +125,6 @@ const useSpendingLimit = ({
   priorityToken,
   allTokens,
   delegationSettings,
-  externalWalletDetailsData,
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
   const navigation = useNavigation();
@@ -129,12 +133,20 @@ const useSpendingLimit = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { sdk } = useCardSDK();
 
+  const initialLimitState = initialToken
+    ? deriveLimitStateFromToken(initialToken)
+    : { limitType: 'full' as const, customLimit: '' };
+
   // Form state
-  const [selectedToken, setSelectedToken] = useState<CardTokenAllowance | null>(
+  const [selectedToken, setSelectedToken] = useState<CardFundingToken | null>(
     initialToken ?? null,
   );
-  const [limitType, setLimitType] = useState<LimitType>('full');
-  const [customLimit, setCustomLimitState] = useState('');
+  const [limitType, setLimitType] = useState<LimitType>(
+    initialLimitState.limitType,
+  );
+  const [customLimit, setCustomLimitState] = useState(
+    initialLimitState.customLimit,
+  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -188,6 +200,13 @@ const useSpendingLimit = ({
     [evmNetworkConfigs],
   );
   const allWalletTokens = useTokensWithBalance({ chainIds: allWalletChainIds });
+
+  const applySelectedToken = useCallback((token: CardFundingToken) => {
+    const nextLimitState = deriveLimitStateFromToken(token);
+    setSelectedToken(token);
+    setLimitType(nextLimitState.limitType);
+    setCustomLimitState(nextLimitState.customLimit);
+  }, []);
 
   // Returns 'network:symbol' (e.g. 'linea:musd', 'base:usdc') for analytics.
   // For card chains, uses the friendly network name from caipChainIdToNetwork.
@@ -280,19 +299,19 @@ const useSpendingLimit = ({
     if (hasInitialized) return;
 
     if (initialToken) {
-      setSelectedToken(initialToken);
+      applySelectedToken(initialToken);
       setHasInitialized(true);
       return;
     }
 
     if (!selectedToken && priorityToken) {
-      setSelectedToken(priorityToken);
+      applySelectedToken(priorityToken);
       setHasInitialized(true);
       return;
     }
 
     const notEnabledTokens = allTokens.filter(
-      (t) => t.allowanceState === AllowanceState.NotEnabled,
+      (t) => t.fundingStatus === FundingStatus.NotEnabled,
     );
 
     const getSdkTokens = sdk
@@ -307,7 +326,7 @@ const useSpendingLimit = ({
     const tokensToSearch =
       notEnabledTokens.length > 0
         ? notEnabledTokens
-        : buildTokenListFromSettings({
+        : buildDelegationTokenList({
             delegationSettings,
             getSupportedTokensByChainId: getSdkTokens,
           });
@@ -336,7 +355,7 @@ const useSpendingLimit = ({
                 t.caipChainId === LINEA_CAIP_CHAIN_ID,
             ) ?? topEntry.token);
       if (defaultToken) {
-        setSelectedToken(defaultToken);
+        applySelectedToken(defaultToken);
         setHasInitialized(true);
       }
     }
@@ -349,6 +368,7 @@ const useSpendingLimit = ({
     walletTokens,
     delegationSettings,
     sdk,
+    applySelectedToken,
   ]);
 
   // Handle returned values from modal sheets
@@ -356,14 +376,14 @@ const useSpendingLimit = ({
     useCallback(() => {
       const params = routeParams as
         | {
-            returnedSelectedToken?: CardTokenAllowance;
+            returnedSelectedToken?: CardFundingToken;
             returnedLimitType?: LimitType;
             returnedCustomLimit?: string;
           }
         | undefined;
 
       if (params?.returnedSelectedToken) {
-        setSelectedToken(params.returnedSelectedToken);
+        applySelectedToken(params.returnedSelectedToken);
         setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
@@ -381,7 +401,7 @@ const useSpendingLimit = ({
           returnedCustomLimit: undefined,
         } as Record<string, unknown>);
       }
-    }, [routeParams, navigation]),
+    }, [routeParams, navigation, applySelectedToken]),
   );
 
   // Computed delegation amount
@@ -421,25 +441,13 @@ const useSpendingLimit = ({
 
     navigation.navigate(
       ...createAssetSelectionModalNavigationDetails({
-        tokensWithAllowances: allTokens ?? [],
-        delegationSettings,
-        cardExternalWalletDetails: externalWalletDetailsData,
         selectionOnly: true,
         excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
         callerParams: restParams as Record<string, unknown>,
       }),
     );
-  }, [
-    navigation,
-    allTokens,
-    delegationSettings,
-    externalWalletDetailsData,
-    selectedToken,
-    trackEvent,
-    createEventBuilder,
-    routeParams,
-  ]);
+  }, [navigation, selectedToken, trackEvent, createEventBuilder, routeParams]);
 
   const handleLimitSelect = useCallback(() => {
     navigation.navigate(
