@@ -63,6 +63,7 @@ on:
           - main-e2e
           - main-exp
           - main-dev
+          - main-dev-expo
           - flask-prod
           - flask-test
           - flask-e2e
