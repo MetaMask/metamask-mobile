@@ -203,5 +203,41 @@ describe('TooltipModal', () => {
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     });
+
+    it('invokes onButtonPress and closes the sheet by default', () => {
+      const onButtonPress = jest.fn();
+      arrangeParams({ onButtonPress });
+
+      const { getByText } = renderTooltipModal();
+
+      fireEvent.press(getByText(strings('browser.got_it')));
+
+      expect(onButtonPress).toHaveBeenCalledTimes(1);
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('invokes onButtonPress and closes the sheet when dismissOnButtonPress is explicitly true', () => {
+      const onButtonPress = jest.fn();
+      arrangeParams({ onButtonPress, dismissOnButtonPress: true });
+
+      const { getByText } = renderTooltipModal();
+
+      fireEvent.press(getByText(strings('browser.got_it')));
+
+      expect(onButtonPress).toHaveBeenCalledTimes(1);
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT close the sheet after onButtonPress when dismissOnButtonPress is false', () => {
+      const onButtonPress = jest.fn();
+      arrangeParams({ onButtonPress, dismissOnButtonPress: false });
+
+      const { getByText } = renderTooltipModal();
+
+      fireEvent.press(getByText(strings('browser.got_it')));
+
+      expect(onButtonPress).toHaveBeenCalledTimes(1);
+      expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    });
   });
 });
