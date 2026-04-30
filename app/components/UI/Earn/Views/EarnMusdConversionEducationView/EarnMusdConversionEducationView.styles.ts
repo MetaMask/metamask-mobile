@@ -29,12 +29,12 @@ export const styleSheet = (_params: { theme: Theme }) =>
     },
     bodyText: {
       textAlign: 'center',
-      paddingHorizontal: 30,
+      paddingHorizontal: 16,
       marginTop: 16,
       marginBottom: 24,
     },
     buttonsContainer: {
-      marginHorizontal: 32,
+      marginHorizontal: 16,
       gap: 8,
       marginBottom: 16,
     },
