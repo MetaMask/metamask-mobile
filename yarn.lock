@@ -8671,18 +8671,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-simple-keyring@npm:^11.0.0":
-  version: 11.1.2
-  resolution: "@metamask/eth-simple-keyring@npm:11.1.2"
+"@metamask/eth-simple-keyring@npm:11.0.0":
+  version: 11.0.0
+  resolution: "@metamask/eth-simple-keyring@npm:11.0.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/keyring-api": "npm:^22.0.0"
-    "@metamask/keyring-sdk": "npm:^1.2.0"
-    "@metamask/utils": "npm:^11.10.0"
+    "@metamask/utils": "npm:^11.1.0"
     ethereum-cryptography: "npm:^2.1.2"
     randombytes: "npm:^2.1.0"
-  checksum: 10/edf916c1a419a31c2dfa2d9048124fb7fc87120f16a6adb6e2525b4ec63eac3cb470897a7345cc468980ea7a8951080772fc7e69c2819d0bfba3bafa74ae3d61
+  checksum: 10/fba27f2db11ad7ee3aceea6746e32f2875a692bd12a31a18ed63f6c637a9ecd990ed1b55423d6c010380a8539b39d627c72ffedbdc44b88512778426df71d26d
   languageName: node
   linkType: hard
 
