@@ -7,8 +7,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useUpdateTokenAmount } from './useUpdateTokenAmount';
-import { useUpdateMoneyAccountDepositAmount } from '../money/useUpdateMoneyAccountDepositAmount';
+import { useUpdateTransactionPayData } from './useUpdateTransactionPayData';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
@@ -25,7 +24,6 @@ import {
 } from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
-import Logger from '../../../../../util/Logger';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -60,17 +58,12 @@ export function useTransactionCustomAmount({
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
   const { updateTokenAmount: updateTokenAmountCallback } =
-    useUpdateTokenAmount();
-  const { updateMoneyAccountDepositAmount } =
-    useUpdateMoneyAccountDepositAmount();
+    useUpdateTransactionPayData();
 
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
@@ -188,20 +181,9 @@ export function useTransactionCustomAmount({
   );
 
   const updateTokenAmount = useCallback(() => {
-    if (isMoneyAccountDeposit) {
-      updateMoneyAccountDepositAmount(amountHuman).catch((error) => {
-        Logger.error(error, 'Failed to update money account deposit amount');
-      });
-    } else {
-      updateTokenAmountCallback(amountHuman);
-    }
+    updateTokenAmountCallback(amountHuman);
     setIsTokenAmountUpdated(true);
-  }, [
-    amountHuman,
-    isMoneyAccountDeposit,
-    updateMoneyAccountDepositAmount,
-    updateTokenAmountCallback,
-  ]);
+  }, [amountHuman, updateTokenAmountCallback]);
 
   useEffect(() => {
     if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {

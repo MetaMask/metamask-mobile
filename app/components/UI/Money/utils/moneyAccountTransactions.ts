@@ -2,8 +2,12 @@ import { ethers } from 'ethers';
 import { TransactionType } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
+import { calcTokenValue } from '../../../../util/transactions';
+import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import type { MoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 
 const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
@@ -269,4 +273,49 @@ export async function buildMoneyAccountWithdraw({
       type: TransactionType.moneyAccountWithdraw,
     },
   };
+}
+
+// -- Deposit amount util for confirmation dispatcher -------------------------
+
+/** Decimals for USDC (the deposit asset). */
+const USDC_DECIMALS = 6;
+
+/**
+ * Pure async util that, given a human-readable amount and vault config,
+ * builds the approve + deposit calldata for a Money Account deposit and
+ * returns the indexed calls ready for `updateAtomicBatchData`.
+ *
+ * Designed to be consumed by the confirmations dispatcher
+ * (`useUpdateTransactionPayData`) without any React dependencies.
+ */
+export async function getMoneyAccountDepositCallsForAmount({
+  amountHuman,
+  vaultConfig,
+}: {
+  amountHuman: string;
+  vaultConfig: MoneyAccountVaultConfig;
+}): Promise<{ transactionIndex: number; transactionData: Hex }[]> {
+  const chainIdHex = vaultConfig.chainId as Hex;
+  const provider = getProviderByChainId(chainIdHex);
+  if (!provider) {
+    throw new Error(`No provider for chain ${vaultConfig.chainId}`);
+  }
+  const amount = BigInt(
+    calcTokenValue(amountHuman, USDC_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+    amount,
+    chainId: chainIdHex,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
+    provider,
+  });
+  return [
+    { transactionIndex: 0, transactionData: approveTx.params.data },
+    { transactionIndex: 1, transactionData: depositTx.params.data },
+  ];
 }
