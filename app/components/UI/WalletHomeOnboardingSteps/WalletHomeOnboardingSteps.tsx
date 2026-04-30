@@ -434,9 +434,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const heroContainerClassName =
     'relative h-52 w-full rounded-2xl overflow-hidden';
 
-  /** Last step with coordinated Wallet exit — no inner slide (fade happens before parent completes). */
+  /** Last step with coordinated Wallet exit — no inner slide once settled (fade handles exit). While `isStepTransitioning`, keep the animated wrapper so the slide-in from step N−1 still runs after `stepIndex` updates. */
   const useStaticStepBody =
-    Boolean(onCoordinatedFlowExit) && stepIndex >= VISIBLE_STEPS.length - 1;
+    Boolean(onCoordinatedFlowExit) &&
+    stepIndex >= VISIBLE_STEPS.length - 1 &&
+    !isStepTransitioning;
 
   const renderChecklistStepBody = () => (
     <>
