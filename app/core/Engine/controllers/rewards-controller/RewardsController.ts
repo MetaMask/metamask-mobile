@@ -2551,6 +2551,9 @@ export class RewardsController extends BaseController<
         sessionId: optinResponse.sessionId,
       };
     } catch (error) {
+      captureException(error, {
+        tags: { feature: 'rewards', context: 'optIn.unexpected_error' },
+      });
       Logger.log(
         'RewardsController: Opt-in failed for account',
         account.address,
@@ -3069,6 +3072,12 @@ export class RewardsController extends BaseController<
 
       return true;
     } catch (error) {
+      captureException(error, {
+        tags: {
+          feature: 'rewards',
+          context: 'linkAccountToSubscriptionCandidate.failed',
+        },
+      });
       Logger.log(
         'RewardsController: Failed to link account to subscription',
         caipAccount,
@@ -3188,6 +3197,9 @@ export class RewardsController extends BaseController<
       );
       return false;
     } catch (error) {
+      captureException(error, {
+        tags: { feature: 'rewards', context: 'optOut.failed' },
+      });
       Logger.log('RewardsController: Failed to opt out', error);
       return false;
     }

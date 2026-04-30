@@ -10291,6 +10291,10 @@ describe('RewardsController', () => {
       await expect(controller.optIn(mockAccounts)).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Optin service error' }),
+        { tags: { feature: 'rewards', context: 'optIn.unexpected_error' } },
+      );
     });
 
     it('handles signature generation errors', async () => {
@@ -11319,6 +11323,35 @@ describe('RewardsController', () => {
       // Verify that the other subscription remains intact
       expect(newState.subscriptions[subscriptionId2]).toBeDefined();
       expect(newState.subscriptions[subscriptionId2].id).toBe(subscriptionId2);
+    });
+
+    it('reports unexpected opt-out failures to Sentry', async () => {
+      // Arrange — a non-403 server error is unexpected and should be captured
+      const unexpectedError = new Error('Internal server error');
+      mockMessenger.call.mockRejectedValue(unexpectedError);
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            sub123: {
+              id: 'sub123',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut('sub123');
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockCaptureException).toHaveBeenCalledWith(unexpectedError, {
+        tags: { feature: 'rewards', context: 'optOut.failed' },
+      });
     });
   });
 
@@ -13186,6 +13219,12 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result).toBe(false);
+      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          feature: 'rewards',
+          context: 'linkAccountToSubscriptionCandidate.failed',
+        },
+      });
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to link account to subscription',
         CAIP_ACCOUNT_1,
