@@ -33,6 +33,7 @@ import {
   handleTransactionRejectedEventForMetrics,
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
+import { handleShowNotification } from './event-handlers/notification';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from './event-handlers/money-account-override';
 import { TransactionControllerInit } from './transaction-controller-init';
 import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
@@ -43,6 +44,7 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
+jest.mock('./event-handlers/notification');
 jest.mock('./event-handlers/money-account-override');
 jest.mock('../../../../util/transactions/account-supports-7702');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
@@ -798,8 +800,15 @@ describe('Transaction Controller Init', () => {
     const handleUnapprovedTransactionAddedForMoneyAccountMock = jest.mocked(
       handleUnapprovedTransactionAddedForMoneyAccount,
     );
+    const handleShowNotificationMock = jest.mocked(handleShowNotification);
 
     const eventHandlerMap = [
+      {
+        event: 'TransactionController:transactionApproved',
+        handler: handleShowNotificationMock,
+        payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta],
+      },
       {
         event: 'TransactionController:transactionApproved',
         handler: handleTransactionApprovedEventForMetricsMock,
