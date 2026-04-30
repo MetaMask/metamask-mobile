@@ -311,7 +311,7 @@ jobs:
 
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - confirmations-ios-smoke

@@ -37,7 +37,7 @@ jobs:
 
   check-diff:
     name: Check diff
-    runs-on: macos-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'macos-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -88,7 +88,7 @@ jobs:
 
   dedupe:
     name: Dedupe
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -124,7 +124,7 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -153,7 +153,7 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -196,7 +196,7 @@ jobs:
 
   js-bundle-size-check:
     name: JS bundle size check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -406,7 +406,7 @@ jobs:
 
   ship-js-bundle-size-check:
     name: Ship JS bundle size check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     needs: [js-bundle-size-check]
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
@@ -444,7 +444,7 @@ jobs:
 
   check-workflows:
     name: Check workflows
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -460,7 +460,7 @@ jobs:
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -515,7 +515,7 @@ jobs:
   # We need to merge both unit and component view tests into a single coverage report so the PR coverage
   # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     needs: [unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
@@ -623,7 +623,7 @@ jobs:
 
   component-view-tests:
     name: Component view tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -670,7 +670,7 @@ jobs:
 
   smart-e2e-selection:
     name: 'Smart E2E Selection'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.run_smart_e2e_selection == 'true' }}
     needs:
       - get_requirements
@@ -761,7 +761,7 @@ jobs:
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
     needs: [build-ios-apps]
     steps:
@@ -808,7 +808,7 @@ jobs:
 
   report-fixture-validation:
     name: 'Report Fixture Validation'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
@@ -835,7 +835,7 @@ jobs:
 
   sonar-cloud:
     name: SonarCloud analysis
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
@@ -880,7 +880,7 @@ jobs:
 
   sonar-cloud-quality-gate-status:
     name: SonarCloud quality gate status
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     needs: sonar-cloud
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
@@ -937,7 +937,7 @@ jobs:
 
   all-jobs-pass:
     name: All jobs pass
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     if: ${{ !cancelled() }}
     needs:
       [
@@ -993,7 +993,7 @@ jobs:
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     needs:
       - get_requirements
       - all-jobs-pass
@@ -1042,7 +1042,7 @@ jobs:
 
   log-merge-group-failure:
     name: Log merge group failure
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
     # Only run this job if the merge group event fails, skip on forks
     if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:
