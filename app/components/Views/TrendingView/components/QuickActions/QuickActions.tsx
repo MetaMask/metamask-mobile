@@ -3,48 +3,14 @@ import { ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
-  Icon as DSIcon,
-  IconColor as DSIconColor,
-  IconSize as DSIconSize,
+  FontWeight,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import LocalIcon, {
-  IconColor as LocalIconColor,
-  IconSize as LocalIconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  SectionId,
-  type SectionIcon,
-  useQuickActionsSectionsArray,
-} from '../../sections.config';
+import { SectionId, useQuickActionsSectionsArray } from '../../sections.config';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 import { AppNavigationProp } from '../../../../../core/NavigationService/types';
-
-const SectionIconRenderer: React.FC<{
-  icon: SectionIcon;
-  style?: object;
-}> = ({ icon, style }) => {
-  if (icon.source === 'design-system') {
-    return (
-      <DSIcon
-        name={icon.name}
-        size={DSIconSize.Md}
-        color={DSIconColor.IconAlternative}
-        style={style}
-      />
-    );
-  }
-  return (
-    <LocalIcon
-      name={icon.name}
-      size={LocalIconSize.Md}
-      color={LocalIconColor.Alternative}
-      style={style}
-    />
-  );
-};
 
 interface QuickActionsProps {
   /** Set of section IDs that have empty data and should be hidden */
@@ -64,7 +30,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const visibleSections = sectionsArray.filter((s) => !emptySections.has(s.id));
 
   return (
-    <Box twClassName="mt-1 mb-4 -mx-4">
+    <Box twClassName="mb-7 -mx-4">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -78,14 +44,12 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
               onPress={() => section.viewAllAction(navigation)}
               testID={`quick-action-${section.id}`}
               style={tw.style(
-                'flex-row items-center justify-center gap-1 rounded-xl bg-background-section px-3 py-2',
+                'flex-row items-center justify-center rounded-xl bg-background-section py-2 pl-4 pr-3',
               )}
             >
-              <SectionIconRenderer
-                icon={section.icon}
-                style={tw.style('-ml-1')}
-              />
-              <Text variant={TextVariant.BodySm}>{section.title}</Text>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {section.title}
+              </Text>
             </TouchableOpacity>
           ))}
         </Box>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
@@ -10,11 +11,13 @@ const mockGoBack = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
+const mockTraderPriceChart = jest.fn();
 
 interface MockRouteParams {
+  positionId?: string;
   traderId: string;
-  traderName: string;
-  tokenSymbol: string;
+  traderName?: string;
+  tokenSymbol?: string;
   position?: Position;
 }
 
@@ -38,6 +41,7 @@ const makeMockTrades = (): Trade[] => [
 ];
 
 const makeDefaultPosition = (): Position => ({
+  positionId: 'pepe-base',
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
   tokenAddress: '0x1234567890123456789012345678901234567890',
@@ -79,6 +83,39 @@ jest.mock('@metamask/controller-utils', () => ({
   handleFetch: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('../../../../util/haptics', () => {
+  const actual = jest.requireActual<typeof import('../../../../util/haptics')>(
+    '../../../../util/haptics',
+  );
+  return {
+    ...actual,
+    playImpact: jest.fn(),
+  };
+});
+
+const mockPlayImpact = jest.mocked(playImpact);
+
+// New hooks added for deep-link self-sufficiency. Existing tests pass `position`
+// via route params, so these are effectively no-ops in the existing flow.
+jest.mock('./hooks/useTraderPosition', () => ({
+  useTraderPosition: jest.fn(() => ({
+    position: undefined,
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('../TraderProfileView/hooks/useTraderProfile', () => ({
+  useTraderProfile: jest.fn(() => ({
+    profile: null,
+    isLoading: false,
+    error: null,
+    isFollowing: false,
+    toggleFollow: jest.fn(),
+    refresh: jest.fn(),
+  })),
+}));
+
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
   const { createMockUseAnalyticsHook } = jest.requireActual(
     '../../../../util/test/analyticsMock',
@@ -93,6 +130,16 @@ jest.mock('../../../UI/AssetOverview/PriceChart', () => {
     default: (props: unknown) => {
       mockPriceChart(props);
       return <View testID="price-chart-mock" />;
+    },
+  };
+});
+jest.mock('./components/TraderPriceChart', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockTraderPriceChart(props);
+      return <View testID="trader-price-chart-mock" />;
     },
   };
 });
@@ -173,35 +220,80 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
-  it('calls goBack when the close button is pressed', () => {
+  it('calls goBack when the back button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
-      screen.getByTestId(TraderPositionViewSelectorsIDs.CLOSE_BUTTON),
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to the route tokenSymbol when position is undefined', () => {
+  it('renders the fallback when position is undefined and no positionId is provided', () => {
     mockRouteParams.position = undefined;
     mockRouteParams.tokenSymbol = 'DOGE';
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    expect(screen.getAllByText('DOGE').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+    ).toBeOnTheScreen();
+    // Price chart should not be rendered in the fallback state
+    expect(screen.queryByTestId('trader-price-chart-mock')).toBeNull();
   });
 
-  it('does not leave price chart in loading state when position is undefined', async () => {
+  it('renders the skeleton while a positionId fetch is in flight', () => {
+    const { useTraderPosition } = jest.requireMock('./hooks/useTraderPosition');
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: true,
+      error: null,
+    });
+
     mockRouteParams.position = undefined;
-    mockRouteParams.tokenSymbol = 'DOGE';
+    (mockRouteParams as { positionId?: string }).positionId = 'position-uuid-1';
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    await waitFor(() => {
-      const lastCall =
-        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
-      expect(lastCall).toMatchObject({ isLoading: false });
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+    ).toBeOnTheScreen();
+
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('renders content when position is fetched via positionId', () => {
+    const { useTraderPosition } = jest.requireMock('./hooks/useTraderPosition');
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: makeDefaultPosition(),
+      isLoading: false,
+      error: null,
+    });
+
+    mockRouteParams.position = undefined;
+    (mockRouteParams as { positionId?: string }).positionId = 'position-uuid-1';
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+    ).toBeNull();
+
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: false,
+      error: null,
     });
   });
 
@@ -215,7 +307,9 @@ describe('TraderPositionView', () => {
 
     await waitFor(() => {
       const lastCall =
-        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
       expect(lastCall).toMatchObject({ isLoading: false });
     });
   });
@@ -226,6 +320,46 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('forwards the filtered trades to the chart component', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    await waitFor(() => {
+      const lastCall =
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
+      expect(lastCall).toHaveProperty('trades');
+      expect(Array.isArray(lastCall.trades)).toBe(true);
+    });
+  });
+
+  it('fires a medium impact haptic when the buy button is pressed', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    );
+
+    expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('does not fire a haptic when the buy button is pressed without a resolved position', () => {
+    mockRouteParams.position = undefined;
+    (mockRouteParams as { positionId?: string }).positionId = 'unresolved-id';
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const buyButton = screen.queryByTestId(
+      TraderPositionViewSelectorsIDs.BUY_BUTTON,
+    );
+    if (buyButton) {
+      fireEvent.press(buyButton);
+    }
+
+    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 
   it('builds the token image URL when the position chain is supported', () => {
@@ -334,12 +468,12 @@ describe('TraderPositionView', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
-    expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('1W'));
+    fireEvent.press(screen.getByText('1H'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();
+      expect(screen.queryByTestId('trade-row-0xolder')).not.toBeOnTheScreen();
     });
 
     dateNowSpy.mockRestore();
@@ -379,7 +513,9 @@ describe('TraderPositionView', () => {
 
     await waitFor(() => {
       const lastCall =
-        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
 
       expect(lastCall).toMatchObject({
         prices: weeklyPrices,

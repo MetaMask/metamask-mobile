@@ -110,7 +110,7 @@ describe('SearchTokenResults', () => {
       ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
     );
 
-    expect(listItem).toHaveProp('disabled', true);
+    expect(listItem).toBeDisabled();
 
     fireEvent.press(listItem);
     expect(mockHandleSelectAsset).not.toHaveBeenCalled();

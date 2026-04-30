@@ -168,7 +168,7 @@ describe('AddNewAccount', () => {
     ).toBeDefined();
   });
 
-  it('handles SRP selection', async () => {
+  it('handles SRP selection', () => {
     const { getByText, queryByText } = render(initialState, {});
 
     const srpSelector = getByText(
@@ -188,7 +188,7 @@ describe('AddNewAccount', () => {
     expect(queryByText('Secret Recovery Phrase 1')).toBeNull();
   });
 
-  it('handles account creation', async () => {
+  it('handles account creation', () => {
     const { getByText } = render(initialState, {});
 
     const addButton = getByText(strings('accounts.add'));
@@ -296,7 +296,7 @@ describe('AddNewAccount', () => {
       },
     );
 
-    it('disables buttons while loading', async () => {
+    it('disables buttons while loading', () => {
       const { getByTestId } = render(initialState, {
         scope: MultichainNetwork.Solana,
         clientType: WalletClientType.Solana,
@@ -305,7 +305,7 @@ describe('AddNewAccount', () => {
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
       fireEvent.press(addButton);
 
-      expect(addButton.props.disabled).toBe(true);
+      expect(addButton).toBeDisabled();
     });
 
     it.each([
