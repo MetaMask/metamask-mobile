@@ -304,6 +304,65 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken).toEqual(initialToken);
     });
 
+    it('initializes restricted limit from limited initialToken originalSpendingCap', () => {
+      const initialToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '250',
+        originalSpendingCap: '500',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ initialToken })),
+      );
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('500');
+    });
+
+    it('initializes restricted limit from limited priorityToken originalSpendingCap', () => {
+      const priorityToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '300',
+        originalSpendingCap: '750',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ priorityToken })),
+      );
+
+      expect(result.current.selectedToken).toEqual(priorityToken);
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('750');
+    });
+
+    it('falls back to spendingCap for limited tokens without originalSpendingCap', () => {
+      const initialToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '275',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ initialToken })),
+      );
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('275');
+    });
+
+    it.each([FundingStatus.Enabled, FundingStatus.NotEnabled])(
+      'initializes %s token as full limit with empty custom limit',
+      (fundingStatus) => {
+        const initialToken = createMockToken({ fundingStatus });
+
+        const { result } = renderHook(() =>
+          useSpendingLimit(createDefaultParams({ initialToken })),
+        );
+
+        expect(result.current.limitType).toBe('full');
+        expect(result.current.customLimit).toBe('');
+      },
+    );
+
     it('initializes with priorityToken when no initialToken', () => {
       const priorityToken = createMockToken({ symbol: 'USDC' });
       const { result } = renderHook(() =>
@@ -1120,6 +1179,40 @@ describe('useSpendingLimit', () => {
       });
     });
 
+    it('sets restricted limit from returned limited token', () => {
+      const returnedToken = createMockToken({
+        symbol: 'ETH',
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '125',
+        originalSpendingCap: '425',
+      });
+
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        if (!focusCallback) {
+          focusCallback = callback;
+        }
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedSelectedToken: returnedToken },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) {
+          focusCallback();
+        }
+      });
+
+      expect(result.current.selectedToken).toEqual(returnedToken);
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('425');
+    });
+
     it('does not overwrite user selection when allTokens loads after returning from bottom sheet', () => {
       const userSelectedToken = createMockToken({
         symbol: 'ETH',
@@ -1390,7 +1483,7 @@ describe('useSpendingLimit', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(
           createDefaultParams({
-            routeParams: { returnedSelectedToken: createMockToken() },
+            routeParams: {},
           }),
         ),
       );
