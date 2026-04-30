@@ -1634,9 +1634,7 @@ describe('Wallet post-onboarding checklist coordination', () => {
 
   it('does not mount main action buttons while wallet-home post-onboarding is active', () => {
     const state = mockStateWalletHomePostOnboardingActive;
-    jest
-      .mocked(useSelector)
-      .mockImplementation((callback) => callback(state));
+    jest.mocked(useSelector).mockImplementation((callback) => callback(state));
     renderWalletWithRootState(state);
     expect(mockAssetDetailsActions).not.toHaveBeenCalled();
   });
