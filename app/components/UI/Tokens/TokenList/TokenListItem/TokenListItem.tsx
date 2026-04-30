@@ -1,6 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
@@ -204,31 +205,19 @@ export const TokenListItem = React.memo(
       isTokenListSecurityBadgesEnabled &&
       !skipTokenListSecurityBadge;
 
-    const [caipAssetIdForSecurity, setCaipAssetIdForSecurity] =
-      useState<CaipAssetType | null>(null);
-
-    useEffect(() => {
-      if (!shouldResolveCaipForSecurityBadge) {
-        setCaipAssetIdForSecurity(null);
-        return;
-      }
-
-      let cancelled = false;
-      getCaipAssetIdForToken(asset)
-        .then((id) => {
-          if (!cancelled) {
-            setCaipAssetIdForSecurity(id);
-          }
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setCaipAssetIdForSecurity(null);
-          }
-        });
-      return () => {
-        cancelled = true;
-      };
-    }, [asset, shouldResolveCaipForSecurityBadge]);
+    const { data: caipAssetIdForSecurity } = useQuery({
+      queryKey: [
+        'tokenList',
+        'caipAssetIdForSecurityBadge',
+        asset?.chainId,
+        asset?.address,
+        asset?.isNative,
+        asset?.isETH,
+      ],
+      queryFn: () => getCaipAssetIdForToken(asset),
+      enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
+      staleTime: Infinity,
+    });
 
     const chainId = asset?.chainId as Hex;
 
