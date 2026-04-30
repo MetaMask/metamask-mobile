@@ -501,7 +501,8 @@
     "unapprovedTypedMessagesCount": 0
   },
   "AuthenticationController": {
-    "isSignedIn": false
+    "isSignedIn": false,
+    "needsProfilePairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,

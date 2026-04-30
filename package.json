@@ -170,6 +170,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/keyring-controller": "25.2.0",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
@@ -306,7 +307,7 @@
     "@metamask/preferences-controller": "^23.0.0",
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^3.1.0",
-    "@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@28.0.2-preview-ae9b6b322",
+    "@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@28.0.2-preview-684720652",
     "@metamask/ramps-controller": "^13.2.0",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "1.2.0",

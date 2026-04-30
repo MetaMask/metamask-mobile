@@ -10,17 +10,17 @@ export const performSignIn = async () => {
   }
 };
 
-export const performProfilePairing = async () => {
+export const performSignOut = () => {
   try {
-    await Engine.context.AuthenticationController.performProfilePairing();
+    Engine.context.AuthenticationController.performSignOut();
   } catch (error) {
     return getErrorMessage(error);
   }
 };
 
-export const performSignOut = () => {
+export const requestProfilePairing = () => {
   try {
-    Engine.context.AuthenticationController.performSignOut();
+    Engine.context.AuthenticationController.requestProfilePairing();
   } catch (error) {
     return getErrorMessage(error);
   }
