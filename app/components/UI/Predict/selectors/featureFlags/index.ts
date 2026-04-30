@@ -57,7 +57,8 @@ export type PredictHomeFeaturedVariant = 'carousel' | 'list';
  * Feature flag interface for Predict home featured variant
  * Extends VersionGatedFeatureFlag to include version gating
  */
-export interface PredictHomeFeaturedVariantFlag extends VersionGatedFeatureFlag {
+export interface PredictHomeFeaturedVariantFlag
+  extends VersionGatedFeatureFlag {
   variant: PredictHomeFeaturedVariant;
 }
 
