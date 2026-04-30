@@ -98,6 +98,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
+import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
@@ -207,14 +208,12 @@ export const TokenListItem = React.memo(
       !skipTokenListSecurityBadge;
 
     const { data: caipAssetIdForSecurity } = useQuery({
-      queryKey: [
-        'tokenList',
-        'caipAssetIdForSecurityBadge',
-        asset?.chainId,
-        asset?.address,
-        asset?.isNative,
-        asset?.isETH,
-      ],
+      queryKey: tokenListSecurityBadgeKeys.caipFromToken({
+        chainId: asset?.chainId,
+        address: asset?.address,
+        isNative: asset?.isNative,
+        isETH: asset?.isETH,
+      }),
       queryFn: () => getCaipAssetIdForToken(asset),
       enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
       staleTime: Infinity,

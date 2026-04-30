@@ -37,4 +37,26 @@ describe('useTokenListSecurityBadgeQuery (query keys)', () => {
       tokenListSecurityBadgeKeys.byAsset(ERC20_ETHEREUM_USDC),
     );
   });
+
+  it('caipFromToken prefixes all and includes token identity fields', () => {
+    const key = tokenListSecurityBadgeKeys.caipFromToken({
+      chainId: '0x1',
+      address: '0xabc',
+      isNative: false,
+      isETH: false,
+    });
+
+    expect(key).toEqual([
+      'tokenList',
+      'securityBadge',
+      'caipFromToken',
+      '0x1',
+      '0xabc',
+      false,
+      false,
+    ]);
+    expect(key).toHaveLength(7);
+    expect(key[0]).toBe(tokenListSecurityBadgeKeys.all()[0]);
+    expect(key[1]).toBe(tokenListSecurityBadgeKeys.all()[1]);
+  });
 });
