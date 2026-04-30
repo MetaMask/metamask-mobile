@@ -44,8 +44,12 @@ project(':react-native-gesture-handler').projectDir = new File(rootProject.proje
 
 // Build React Native from source but use prebuilt Hermes from Maven Central.
 // This speeds up build significantly by avoiding Hermes engine compilation.
-// The react-native package is patched via .yarn/patches/react-native-patch-d76d50a92f.patch
-// to use com.facebook.react:hermes-android:0.76.9 instead of building hermes-engine from source.
+// The react-native package is patched via .yarn/patches/react-native-npm-0.81.5-d8232ef145.patch
+// to use com.facebook.react:hermes-android:0.81.5 instead of building hermes-engine from source.
+// When upgrading React Native, regenerate this patch with:
+//   yarn patch react-native@npm:<new-version>
+//   <apply the same three edits>
+//   yarn patch-commit -s <temp-dir>
 includeBuild('../node_modules/react-native') {
     dependencySubstitution {
         substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))

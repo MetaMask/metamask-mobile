@@ -189,6 +189,12 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=4096'
           # Limit Metro workers to prevent OOM (each worker uses ~3GB)
           METRO_MAX_WORKERS: '4'
+          # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
+          # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
+          # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-
+          # download missing components, causing CXX1300. RN's CMakeLists.txt files
+          # only require >= 3.13, so 3.22.1 is fully sufficient.
+          CMAKE_VERSION: '3.22.1'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
