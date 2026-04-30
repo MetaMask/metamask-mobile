@@ -7,6 +7,14 @@ on:
         description: 'Send Slack notification even when all tests pass'
         type: boolean
         default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: read
