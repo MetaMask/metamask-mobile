@@ -31,6 +31,8 @@ jobs:
       contents: read
       id-token: write
     uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-confirmations-ios:
@@ -47,6 +49,7 @@ jobs:
       test_suite_tag: 'RegressionConfirmations'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-trade-ios:
@@ -63,6 +66,7 @@ jobs:
       test_suite_tag: 'RegressionTrade'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-wallet-platform-ios:
@@ -79,6 +83,7 @@ jobs:
       test_suite_tag: 'RegressionWalletPlatform'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-accounts-ios:
@@ -95,6 +100,7 @@ jobs:
       test_suite_tag: 'RegressionAccounts'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-network-abstraction-ios:
@@ -111,6 +117,7 @@ jobs:
       test_suite_tag: 'RegressionNetworkAbstractions'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-network-expansion-ios:
@@ -127,6 +134,7 @@ jobs:
       test_suite_tag: 'RegressionNetworkExpansion'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-assets-ios:
@@ -143,6 +151,7 @@ jobs:
       test_suite_tag: 'RegressionAssets'
       split_number: ${{ matrix.split }}
       total_splits: 2
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-ux-ios:
@@ -159,6 +168,7 @@ jobs:
       test_suite_tag: 'RegressionWalletUX'
       split_number: ${{ matrix.split }}
       total_splits: 1
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-ios-regression-tests:

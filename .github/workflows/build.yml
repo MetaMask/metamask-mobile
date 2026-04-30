@@ -176,6 +176,7 @@ jobs:
       upload-artifact: true
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
+      runner_provider: ${{ inputs.runner_provider }}
 
   # Build
   build:

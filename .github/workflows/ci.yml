@@ -721,6 +721,7 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       keystore_target: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -738,6 +739,7 @@ jobs:
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   build-ios-apps:
@@ -753,6 +755,8 @@ jobs:
       id-token: write
     needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   ios-tests-ready:
@@ -779,6 +783,7 @@ jobs:
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -798,6 +803,7 @@ jobs:
       total_splits: 1
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-fixture-validation:

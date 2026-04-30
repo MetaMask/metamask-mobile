@@ -40,4 +40,5 @@ jobs:
       build_name: main-dev
       platform: both
       skip_version_bump: true
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
