@@ -1461,30 +1461,43 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
         const body = bodyText ? JSON.parse(bodyText) : {};
         const order = body?.order;
 
-        // Verify the request matches cash-out order structure
-        // Only check consistent fields - allow variable values for dynamic fields (salt, tokenId, amounts, signature, owner)
-        return (
-          order &&
-          (body.orderType === 'FOK' || body.orderType === 'FAK') &&
-          order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase() &&
-          order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase() &&
-          order.taker === '0x0000000000000000000000000000000000000000' &&
-          order.expiration === '0' &&
-          order.nonce === '0' &&
-          typeof order.feeRateBps === 'string' &&
-          order.side === 'SELL' &&
-          order.signatureType === 2 &&
-          typeof order.salt === 'number' &&
-          typeof order.tokenId === 'string' &&
-          order.tokenId.length > 0 &&
-          typeof order.makerAmount === 'string' &&
-          order.makerAmount.length > 0 &&
-          typeof order.takerAmount === 'string' &&
-          order.takerAmount.length > 0 &&
-          typeof order.signature === 'string' &&
-          order.signature.startsWith('0x') &&
-          order.signature.length > 10
-        );
+        // Flexible matching: require SELL order to relayer endpoint.
+        // CLOB v2 cash-out payloads no longer include some legacy fields
+        // (for example taker/nonce/feeRateBps), so only validate stable fields.
+        if (!order || order.side !== 'SELL') {
+          return false;
+        }
+
+        if (
+          body.orderType !== undefined &&
+          body.orderType !== 'FOK' &&
+          body.orderType !== 'FAK'
+        ) {
+          return false;
+        }
+
+        if (order.maker !== undefined && order.signer !== undefined) {
+          const makerMatch =
+            order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase();
+          const signerMatch =
+            order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase();
+
+          if (!makerMatch || !signerMatch) {
+            return false;
+          }
+        }
+
+        if (order.signature !== undefined) {
+          if (
+            typeof order.signature !== 'string' ||
+            !order.signature.startsWith('0x') ||
+            order.signature.length < 10
+          ) {
+            return false;
+          }
+        }
+
+        return true;
       } catch {
         return false;
       }

@@ -275,13 +275,12 @@ export const RELAY_QUOTE_MOCK = {
         inputCurrency: {
           currency: {
             chainId: 137,
-            address: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
-            symbol: 'pUSD',
-            name: 'Polymarket USD',
+            address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+            symbol: 'USDC',
+            name: 'USD Coin',
             decimals: 6,
             metadata: {
-              logoURI:
-                'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb.png',
+              logoURI: 'https://ethereum-optimism.github.io/data/USDC/logo.png',
               verified: true,
             },
           },
