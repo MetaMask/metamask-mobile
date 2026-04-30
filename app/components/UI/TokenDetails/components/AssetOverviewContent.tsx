@@ -47,7 +47,10 @@ import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBon
 import AssetOverviewConvertSection from '../../Earn/components/AssetOverviewConvertSection';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
-import { selectIsMusdConversionFlowEnabledFlag , selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
+import {
+  selectIsMusdConversionFlowEnabledFlag,
+  selectMerklCampaignClaimingEnabledFlag,
+} from '../../Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
