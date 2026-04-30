@@ -19,14 +19,6 @@ export function PerpsWithdrawBalance() {
   const { styles } = useStyles(styleSheet, {});
   const { account } = usePerpsLiveAccount();
 
-  // formatPerpsBalance truncates (ROUND_DOWN) to 2 decimals so the displayed
-  // balance matches the Max button value and never overstates what the user
-  // can actually withdraw.
-  // const balanceFormatted = useMemo(
-  //   () => formatPerpsBalance(account?.availableBalance),
-  //   [account?.availableBalance],
-  // );
-
   const availableBalance = useMemo(() => {
     const balance =
       account?.availableToTradeBalance ?? account?.availableBalance;
@@ -39,7 +31,7 @@ export function PerpsWithdrawBalance() {
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Alternative}
-      >{`${strings('confirm.available_balance')}${availableBalance}`}</Text>
+      >{`${strings('confirm.available_balance')}${formatPerpsBalance(availableBalance)}`}</Text>
     </Box>
   );
 }

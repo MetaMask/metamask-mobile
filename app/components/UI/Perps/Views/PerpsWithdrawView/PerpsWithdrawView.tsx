@@ -374,16 +374,16 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        {/* <HeaderCompactStandard
+        <HeaderCompactStandard
           title={strings('perps.withdrawal.title')}
           onBack={handleBack}
           backButtonProps={{
             testID: PerpsWithdrawViewSelectorsIDs.BACK_BUTTON,
           }}
-        /> */}
+        />
 
         {/* Amount Display */}
-        {/* <Pressable onPress={handleAmountPress}>
+        <Pressable onPress={handleAmountPress}>
           <Box alignItems={BoxAlignItems.Center} twClassName="py-12 px-4">
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -410,7 +410,7 @@ const PerpsWithdrawView: React.FC = () => {
               })}
             </Text>
           </Box>
-        </Pressable> */}
+        </Pressable>
 
         {/* Receive Section */}
         <Box
@@ -424,9 +424,9 @@ const PerpsWithdrawView: React.FC = () => {
             alignItems={BoxAlignItems.Center}
             twClassName="gap-2"
           >
-            {/* <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.withdrawal.receive')}
-            </Text> */}
+            </Text>
             <Pressable
               onPress={() =>
                 handleTooltipPress('receive' as PerpsTooltipContentKey)
