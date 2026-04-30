@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { CaipAssetType } from '@metamask/utils';
 
+import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
 import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 import { useTokenListSecurityBadgeQuery } from '../../hooks/useTokenListSecurityBadgeQuery';
@@ -9,6 +10,15 @@ import { useTokenListSecurityBadgeQuery } from '../../hooks/useTokenListSecurity
 export interface TokenListSecurityBadgeProps {
   caipAssetId: CaipAssetType;
 }
+
+const loadingSkeletonStyle = StyleSheet.create({
+  placeholder: {
+    width: 52,
+    height: 20,
+    padding: 0,
+    borderRadius: 6,
+  },
+});
 
 /** Inline security badge for the main token list (shared markup with trending rows). */
 const TokenListSecurityBadge = ({
@@ -27,8 +37,8 @@ const TokenListSecurityBadge = ({
 
   if (isLoading && !securityData && !isError) {
     return (
-      <View accessibilityLabel="Token security loading">
-        <ActivityIndicator size="small" />
+      <View accessibilityLabel="Token security loading" accessible>
+        <SkeletonText thin style={loadingSkeletonStyle.placeholder} />
       </View>
     );
   }

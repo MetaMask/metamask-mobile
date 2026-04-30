@@ -61,7 +61,7 @@ describe('TokenListSecurityBadge', () => {
     jest.clearAllMocks();
   });
 
-  it('renders a loading indicator when the query is loading without data or error', () => {
+  it('renders a loading skeleton when the query is loading without data or error', () => {
     mockUseTokenListSecurityBadgeQuery.mockReturnValue(
       mockQueryResult({
         data: undefined,
