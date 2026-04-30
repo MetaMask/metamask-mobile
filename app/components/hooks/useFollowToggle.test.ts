@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { playImpact, ImpactMoment } from '../../util/haptics';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { useFollowToggle, useFollowToggleMany } from './useFollowToggle';
@@ -24,7 +25,15 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../util/haptics', () => ({
+  ...jest.requireActual<typeof import('../../util/haptics')>(
+    '../../util/haptics',
+  ),
+  playImpact: jest.fn().mockResolvedValue(undefined),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockPlayImpact = jest.mocked(playImpact);
 
 describe('useFollowToggle', () => {
   beforeEach(() => {
@@ -120,6 +129,62 @@ describe('useFollowToggle', () => {
         expect.any(Error),
         'useFollowToggle: toggleFollow failed',
       );
+    });
+
+    it('fires follow toggle haptic when following a new trader', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
+    });
+
+    it('fires follow toggle haptic when unfollowing a currently followed trader', async () => {
+      mockUseSelector.mockReturnValue(['trader-1']);
+
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
+    });
+
+    it('still fires haptic feedback when a toggle is debounced as in-flight', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledTimes(2);
+      expect(mockPlayImpact).toHaveBeenNthCalledWith(
+        1,
+        ImpactMoment.FollowToggle,
+      );
+      expect(mockPlayImpact).toHaveBeenNthCalledWith(
+        2,
+        ImpactMoment.FollowToggle,
+      );
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
     });
 
     it('ignores concurrent toggle calls while one is in flight', async () => {

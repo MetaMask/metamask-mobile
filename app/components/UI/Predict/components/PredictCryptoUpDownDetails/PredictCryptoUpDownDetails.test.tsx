@@ -61,10 +61,19 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 jest.mock('react-native-reanimated', () => {
-  const { ScrollView } = jest.requireActual('react-native');
+  const { ScrollView, View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('react-native-reanimated');
+  // The component uses `import Animated from 'react-native-reanimated'` (default export)
+  // and then accesses `Animated.ScrollView`. The default export must include ScrollView.
+  const MockAnimated = {
+    ...actual.default,
+    ScrollView,
+    View,
+  };
   return {
-    ...jest.requireActual('react-native-reanimated'),
-    Animated: { ScrollView },
+    __esModule: true,
+    ...actual,
+    default: MockAnimated,
     useSharedValue: jest.fn((initialValue: number) => ({
       value: initialValue,
     })),

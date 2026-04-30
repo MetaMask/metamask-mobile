@@ -440,6 +440,12 @@ describe('ERROR_NAME_MAPPINGS', () => {
     );
   });
 
+  it('maps LedgerOperationAbortedError to DeviceUnresponsive', () => {
+    expect(ERROR_NAME_MAPPINGS.LedgerOperationAbortedError).toBe(
+      ErrorCode.DeviceUnresponsive,
+    );
+  });
+
   it('maps TransportOpenUserCancelled to UserCancelled', () => {
     expect(ERROR_NAME_MAPPINGS.TransportOpenUserCancelled).toBe(
       ErrorCode.UserCancelled,

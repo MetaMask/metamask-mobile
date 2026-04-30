@@ -1,9 +1,23 @@
 import { createContext, useContext } from 'react';
+import { QrScanRequest } from '@metamask/eth-qr-keyring';
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
 import { DeviceSelectionState } from '../types';
+
+export interface HardwareWalletQRState {
+  /** The pending QR scan request from the keyring, if any. */
+  pendingScanRequest?: QrScanRequest;
+  /** Whether the pending request is a SIGN-type QR object. */
+  isSigningQRObject: boolean;
+  /** Mark the current QR scan request as completed (suppresses cancel-on-navigate). */
+  setRequestCompleted: () => void;
+  /** Whether the request has been completed. */
+  isRequestCompleted: boolean;
+  /** Reject the pending QR scan request if one exists. */
+  cancelQRScanRequestIfPresent: () => Promise<void>;
+}
 
 export interface HardwareWalletContextValue {
   /** The type of hardware wallet (Ledger, QR, etc.) */
@@ -22,7 +36,9 @@ export interface HardwareWalletContextValue {
    */
   ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
   /** Set the target wallet type for "Add Hardware Wallet" flows (no account yet). */
-  setTargetWalletType: (walletType: HardwareWalletType | null) => void;
+  setTargetWalletType: (walletType: HardwareWalletType) => void;
+  /** Set the pending operation address so the provider can auto-derive the wallet type during signing. */
+  setPendingOperationAddress: (address: string | null) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
   /** Show "awaiting confirmation" bottom sheet. */
@@ -32,6 +48,8 @@ export interface HardwareWalletContextValue {
   ) => void;
   /** Hide the "awaiting confirmation" bottom sheet. */
   hideAwaitingConfirmation: () => void;
+  /** QR-specific signing request state. */
+  qr: HardwareWalletQRState;
 }
 
 const HardwareWalletContext = createContext<

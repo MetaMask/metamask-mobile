@@ -48,7 +48,7 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets) ?? [];
 
   return (
-    <Box twClassName="-mx-4 mb-6">
+    <Box twClassName="-mx-4 mb-9">
       {isLoading ? (
         <Box twClassName="px-4">
           <PerpsMarketTileCardSkeleton />
