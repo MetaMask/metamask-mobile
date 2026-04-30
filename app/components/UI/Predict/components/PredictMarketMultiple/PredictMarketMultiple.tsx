@@ -3,6 +3,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -14,11 +17,6 @@ import { Image, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
@@ -249,44 +247,42 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   twClassName={isCarousel ? 'gap-1' : 'gap-2'}
                 >
                   <Button
-                    variant={ButtonVariants.Secondary}
+                    variant={ButtonVariant.Secondary}
                     size={ButtonSize.Sm}
-                    label={
-                      <Text
-                        variant={
-                          isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
-                        }
-                        style={tw.style('font-medium')}
-                        color={TextColor.SuccessDefault}
-                        numberOfLines={1}
-                        ellipsizeMode="clip"
-                      >
-                        {truncateLabel(outcomeLabels[0])}
-                      </Text>
-                    }
                     onPress={() => handleBuy(outcome, outcome.tokens[0])}
                     style={styles.buttonYes}
-                  />
+                  >
+                    <Text
+                      variant={
+                        isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
+                      }
+                      style={tw.style('font-medium')}
+                      color={TextColor.SuccessDefault}
+                      numberOfLines={1}
+                      ellipsizeMode="clip"
+                    >
+                      {truncateLabel(outcomeLabels[0])}
+                    </Text>
+                  </Button>
                   <Button
-                    variant={ButtonVariants.Secondary}
+                    variant={ButtonVariant.Secondary}
                     size={ButtonSize.Sm}
-                    width={ButtonWidthTypes.Full}
-                    label={
-                      <Text
-                        variant={
-                          isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
-                        }
-                        style={tw.style('font-medium')}
-                        color={TextColor.ErrorDefault}
-                        numberOfLines={1}
-                        ellipsizeMode="clip"
-                      >
-                        {truncateLabel(outcomeLabels[1])}
-                      </Text>
-                    }
+                    isFullWidth
                     onPress={() => handleBuy(outcome, outcome.tokens[1])}
                     style={styles.buttonNo}
-                  />
+                  >
+                    <Text
+                      variant={
+                        isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
+                      }
+                      style={tw.style('font-medium')}
+                      color={TextColor.ErrorDefault}
+                      numberOfLines={1}
+                      ellipsizeMode="clip"
+                    >
+                      {truncateLabel(outcomeLabels[1])}
+                    </Text>
+                  </Button>
                 </Box>
               </Box>
             );
