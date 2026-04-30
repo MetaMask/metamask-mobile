@@ -8,10 +8,7 @@ import {
 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import {
-  POLYMARKET_COMPLETE_MOCKS,
-  POLYMARKET_PUSD_BALANCE_MOCKS,
-} from '../../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import { POLYMARKET_COMPLETE_MOCKS } from '../../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../../page-objects/Predict/PredictAddFunds';
 import {
   mockRelayQuote,
@@ -87,14 +84,6 @@ async function testSpecificMock(mockServer: Mockttp) {
   });
 
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
-  // This confirmation spec exercises add-funds from an external token, so the
-  // Predict balance must start empty. The shared Predict mocks default to a
-  // funded pUSD balance for smoke flows, which would make the required token
-  // skippable and collapse Transaction Pay into a gas-only path.
-  await POLYMARKET_PUSD_BALANCE_MOCKS(
-    mockServer,
-    '0x0000000000000000000000000000000000000000000000000000000000000000',
-  );
   await mockRelayQuote(mockServer);
   await mockRelayStatus(mockServer);
   // Mock all token-by-address lookups on Polygon (chainId 137) to avoid
