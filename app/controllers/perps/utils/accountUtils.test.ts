@@ -183,12 +183,16 @@ describe('spot balance helpers', () => {
       returnOnEquity: '0',
     };
 
-    const result = addSpotBalanceToAccountState(accountState, {
-      balances: [
-        { coin: 'USDC', total: '25.5' },
-        { coin: 'HYPE', total: '0.5' },
-      ],
-    } as never);
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [
+          { coin: 'USDC', total: '25.5' },
+          { coin: 'HYPE', total: '0.5' },
+        ],
+      } as never,
+      { foldIntoCollateral: true },
+    );
 
     // Only USDC contributes — non-stablecoin spot assets are not convertible
     // to perps collateral and must not inflate totalBalance.

@@ -859,7 +859,10 @@ export class HyperLiquidProvider implements PerpsProvider {
           user: userAddress,
           network,
           error: errorMessage,
-          cached: currentMode !== undefined,
+          // Cache writes only happen on the user-prompted dexAbstraction
+          // path (see P2-B logic above). Reflect that here so retry
+          // behaviour is debuggable from the log alone.
+          cached: currentMode === 'dexAbstraction',
         },
       );
 

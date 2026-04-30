@@ -81,7 +81,7 @@ describe('useWithdrawValidation', () => {
     expect(result.current.availableBalance).toBe('1000');
   });
 
-  it('should prefer availableToTradeBalance for Unified Account target state', () => {
+  it('prefers availableToTradeBalance for Unified Account target state', () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       account: {
         availableBalance: '$0.00',

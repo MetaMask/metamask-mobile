@@ -145,7 +145,10 @@ export function addSpotBalanceToAccountState(
   spotState?: SpotClearinghouseStateResponse | null,
   options?: AddSpotBalanceOptions,
 ): AccountState {
-  const foldIntoCollateral = options?.foldIntoCollateral ?? true;
+  // Fail-closed default: align with `hyperLiquidModeFoldsSpot(null) → false`.
+  // A caller that omits `options` should NOT silently fold spot — that would
+  // over-report withdrawable funds for Standard / dexAbstraction users.
+  const foldIntoCollateral = options?.foldIntoCollateral ?? false;
   const spotBalance = getSpotBalance(spotState);
   const spotHold = getSpotHold(spotState);
   const freeSpot = Math.max(0, spotBalance - spotHold);
