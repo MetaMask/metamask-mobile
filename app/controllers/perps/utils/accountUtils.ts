@@ -160,33 +160,6 @@ export function addSpotBalanceToAccountState(
   }
 
   if (spotBalance === 0) {
-    // For unified / portfolio-margin accounts the USDC may be represented as
-    // perps equity rather than an explicit spot balance (e.g. a user who
-    // migrated from Standard mode — HL keeps the collateral inside the perps
-    // ledger and doesn't surface it via spotClearinghouseState until the next
-    // settlement cycle). In this case withdraw3 draws from the unified balance
-    // directly, so compute a conservative available amount from
-    //   accountValue − initialMarginUsed
-    // rather than returning $0. Standard-mode users are unaffected because
-    // foldIntoCollateral is false for them and their withdrawable is already > 0.
-    if (
-      foldIntoCollateral &&
-      Number.isFinite(currentAvailable) &&
-      currentAvailable === 0 &&
-      currentTotal > 0
-    ) {
-      const marginUsed = parseFloat(accountState.marginUsed);
-      const freeEquity = Number.isFinite(marginUsed)
-        ? Math.max(0, currentTotal - marginUsed)
-        : currentTotal;
-      if (freeEquity > 0) {
-        return {
-          ...accountState,
-          availableToTradeBalance: freeEquity.toString(),
-        };
-      }
-    }
-
     return {
       ...accountState,
       availableToTradeBalance: Number.isFinite(currentAvailable)

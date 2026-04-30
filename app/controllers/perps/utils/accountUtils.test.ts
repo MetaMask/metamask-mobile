@@ -304,10 +304,11 @@ describe('spot balance helpers', () => {
     expect(result.availableToTradeBalance).toBe('7');
   });
 
-  it('folds spot USDC into availableToTradeBalance when withdrawable=0 but freeSpot>0 (stale-cache fail-open guard)', () => {
-    // Simulates a Unified-mode user whose abstraction-mode cache was stale
-    // (foldIntoCollateral=false) but perps withdrawable is 0 because HL
-    // holds all collateral in spot for Unified accounts.
+  it('keeps spot USDC separate from availableToTradeBalance even when withdrawable=0 in Standard mode', () => {
+    // Standard / DEX-abstraction users with $0 perps withdrawable but free
+    // spot USDC must NOT see spot fold into availableToTradeBalance —
+    // withdraw3 only draws from the perps ledger in those modes. Folding
+    // would surface a withdrawable amount the API can't actually fulfill.
     const accountState: AccountState = {
       availableBalance: '0',
       totalBalance: '0',
@@ -324,16 +325,11 @@ describe('spot balance helpers', () => {
       { foldIntoCollateral: false },
     );
 
-    // The fail-open guard detects available=0 + freeSpot>0 and forces folding,
-    // matching withdraw3's actual behaviour on Unified accounts.
-    expect(result.availableToTradeBalance).toBe('2500');
+    expect(result.availableToTradeBalance).toBe('0');
     expect(result.totalBalance).toBe('2500');
   });
 
-  it('does NOT apply fail-open guard when Standard mode has both perps and spot balances', () => {
-    // Standard mode: user has perps collateral AND separate spot holdings.
-    // foldIntoCollateral=false, but currentAvailable > 0 so the guard
-    // must NOT trigger — spot stays separate for Standard users.
+  it('keeps spot separate when Standard mode has both perps and spot balances', () => {
     const accountState: AccountState = {
       availableBalance: '7',
       totalBalance: '10',
@@ -350,7 +346,6 @@ describe('spot balance helpers', () => {
       { foldIntoCollateral: false },
     );
 
-    // Guard skipped because currentAvailable (7) > 0 → spot kept separate.
     expect(result.availableToTradeBalance).toBe('7');
     expect(result.totalBalance).toBe('35');
   });
