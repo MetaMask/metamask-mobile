@@ -6,12 +6,21 @@ on:
       semver-version:
         description: 'A semantic version, eg: x.x.x'
         required: true
+      is-ota:
+        description: 'Set to true for OTA hotfix (branch release/X.Y.Z-ota). Leave false for native release/hotfix.'
+        required: false
+        type: boolean
+        default: false
 
   workflow_call:
     inputs:
       semver-version:
         required: true
         type: string
+      is-ota:
+        required: false
+        type: boolean
+        default: false
     secrets:
       github-token:
         required: false
@@ -24,7 +33,8 @@ on:
 
 jobs:
   resolve-bases:
-    # Determines if the release is hotfix or not based on semver. Then sets the appropriate base branches for the checkout and release PR.
+    # Determines if the release is a hotfix or not based on semver, and whether it's an OTA hotfix
+    # based on the is-ota input. Sets the appropriate base branches for the checkout and release PR.
     runs-on: ubuntu-latest
     outputs:
       checkout_base: ${{ steps.out.outputs.checkout_base }}
@@ -35,26 +45,25 @@ jobs:
         shell: bash
         env:
           SEMVER: ${{ inputs.semver-version }}
+          IS_OTA: ${{ inputs.is-ota }}
         run: |
           set -euo pipefail
 
           echo "Provided semver input: ${SEMVER}"
-          # Validate semver
-          if ! [[ "${SEMVER:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: semver-version must be numeric X.Y.Z, got: ${SEMVER:-<empty>}" >&2
+          echo "Provided is-ota input: ${IS_OTA}"
+          # Validate strict SemVer core (no leading zeros; the -ota suffix lives on the branch name, not the semver input).
+          if ! [[ "${SEMVER:-}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Error: semver-version must be strict SemVer X.Y.Z (no leading zeros), got: ${SEMVER:-<empty>}" >&2
             exit 1
           fi
 
           patch="${SEMVER##*.}"
-          # OTA hotfix: patch has exactly two digits (e.g. 01, 21, 22).
-          # Two-digit patch AB → base patch A, OTA iteration B.
-          # Single-digit patches are regular hotfixes; single-digit 0 is a regular release.
-          if [[ ${#patch} -eq 2 ]]; then
+          if [[ "${IS_OTA}" == "true" ]]; then
             echo "is_ota=true" >> "$GITHUB_OUTPUT"
-            echo "OTA hotfix (two-digit patch: ${patch}): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
+            echo "OTA hotfix: branch release/${SEMVER}-ota; OTA_VERSION v${SEMVER}."
           else
             echo "is_ota=false" >> "$GITHUB_OUTPUT"
-            echo "Not OTA hotfix (patch segment: ${patch})."
+            echo "Native release/hotfix (patch=${patch})."
           fi
 
           if [ "$patch" -gt 0 ]; then
@@ -116,7 +125,7 @@ jobs:
           github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
 
-      # Check PR before checkout/bump/push so retries do not increment OTA_VERSION again when a PR already exists.
+      # Check PR before checkout/bump/push so retries do not overwrite OTA_VERSION again when a PR already exists.
       - name: Check for existing OTA release PR
         id: ota_release_pr
         if: needs.resolve-bases.outputs.is_ota == 'true'
@@ -127,7 +136,7 @@ jobs:
           GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
         run: |
           set -euo pipefail
-          BRANCH="release/${SEMVER}"
+          BRANCH="release/${SEMVER}-ota"
           COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base "$RELEASE_BASE" --json number --jq 'length')
           if [[ "$COUNT" -gt 0 ]]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -141,7 +150,7 @@ jobs:
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         uses: actions/checkout@v4
         with:
-          ref: release/${{ inputs.semver-version }}
+          ref: release/${{ inputs.semver-version }}-ota
           token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           fetch-depth: 0
 
@@ -153,7 +162,7 @@ jobs:
           GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
         run: |
           set -euo pipefail
-          BRANCH="release/${SEMVER}"
+          BRANCH="release/${SEMVER}-ota"
           git config user.name metamaskbot
           git config user.email metamaskbot@users.noreply.github.com
           bash .github/scripts/bump-ota-version-constants.sh app/constants/ota.ts "${SEMVER}"
@@ -165,7 +174,9 @@ jobs:
             git push origin "$BRANCH"
           fi
 
-      # Changelog: run-update-release-changelog-mobile.sh converts OTA two-digit patches to valid SemVer prereleases. The SemVer format stays in CHANGELOG.md permanently.
+      # Changelog: run-update-release-changelog-mobile.sh passes the bare X.Y.Z (stripped from
+      # release/X.Y.Z-ota) to auto-changelog, so the changelog header and the production git
+      # tag match exactly (both v<X.Y.Z>). The `-ota` suffix is a branch-name convention only.
       - name: Checkout github-tools (release changelog)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         uses: actions/checkout@v4
@@ -194,7 +205,7 @@ jobs:
           corepack enable
           yarn install --immutable
           bash .github/scripts/run-update-release-changelog-mobile.sh \
-            "release/${{ inputs.semver-version }}" \
+            "release/${{ inputs.semver-version }}-ota" \
             mobile \
             "${{ github.server_url }}/${{ github.repository }}" \
             "null"
@@ -208,13 +219,11 @@ jobs:
           GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
         run: |
           set -euo pipefail
-          BRANCH="release/${SEMVER}"
-          PATCH="${SEMVER##*.}"
-          SEMVER_CL="${SEMVER%.*}.${PATCH:0:1}-ota.${PATCH:1:1}"
+          BRANCH="release/${SEMVER}-ota"
           BODY="OTA hotfix: branch \`${BRANCH}\`."
           BODY="${BODY}"$'\n\n'"- Native semver and build version are **not** bumped."
           BODY="${BODY}"$'\n'"- \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`."
-          BODY="${BODY}"$'\n'"- CHANGELOG.md uses the SemVer prerelease format \`${SEMVER_CL}\` (maps to Runway \`${SEMVER}\`) because auto-changelog validates all headers as strict SemVer."
+          BODY="${BODY}"$'\n'"- CHANGELOG.md header and production git tag both use bare \`${SEMVER}\` / \`v${SEMVER}\`; the \`-ota\` suffix is branch-only."
           gh pr create --repo "$GITHUB_REPOSITORY" --draft \
             --base "$RELEASE_BASE" --head "$BRANCH" \
             --title "release: ${SEMVER} (OTA)" \

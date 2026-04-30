@@ -22,6 +22,12 @@ import HeaderCompactStandard from '../../../../../../component-library/component
 import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
+import {
+  fireSwitchHaptic,
+  ImpactFeedbackStyle,
+  playImpact,
+  ImpactMoment,
+} from '../../../../../../util/haptics';
 import type { SocialAIPreference } from '../../../NotificationPreferencesView/hooks';
 import AllowPushNotificationsRow from '../../../NotificationPreferencesView/components/AllowPushNotificationsRow';
 import { TraderNotificationsBottomSheetSelectorsIDs } from './TraderNotificationsBottomSheet.testIds';
@@ -84,7 +90,10 @@ const TraderNotificationsBottomSheet = forwardRef<
 
     // Only persist when the user explicitly confirms with Save.
     // If the local draft differs from the remote value, issue one toggle call.
+    // Save is a deliberate primary-action commit, so always fire the haptic
+    // — including when the value didn't change — to acknowledge the press.
     const handleSave = useCallback(() => {
+      playImpact(ImpactMoment.PrimaryCTA);
       if (localEnabled !== isTraderNotificationEnabled(traderId)) {
         toggleTraderNotification(traderId);
       }
@@ -133,9 +142,13 @@ const TraderNotificationsBottomSheet = forwardRef<
           )}
           value={localEnabled}
           onValueChange={(next: boolean) => {
-            if (!globalOff) {
-              setLocalEnabled(next);
+            if (globalOff) {
+              return;
             }
+            // Subordinate switch: rely on iOS UISwitch's native tick on iOS,
+            // fire a Light impact only on Android where there is none.
+            fireSwitchHaptic(ImpactFeedbackStyle.Light);
+            setLocalEnabled(next);
           }}
           disabled={globalOff}
           toggleTestID={TraderNotificationsBottomSheetSelectorsIDs.TOGGLE}

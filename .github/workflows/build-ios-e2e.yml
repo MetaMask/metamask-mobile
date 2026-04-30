@@ -73,7 +73,7 @@ jobs:
     steps:
       # Get the source code from the repository
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
