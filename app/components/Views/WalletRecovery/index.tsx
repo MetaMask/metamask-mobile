@@ -21,6 +21,11 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import {
+  Icon as DSIcon,
+  IconName as DSIconName,
+  IconSize as DSIconSize,
+} from '@metamask/design-system-react-native';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
@@ -142,9 +147,11 @@ const SocialLinked = ({
 
     if (authConnection === 'telegram') {
       return (
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {'✈️'}
-        </Text>
+        <DSIcon
+          name={DSIconName.Telegram}
+          size={DSIconSize.Lg}
+          style={{ color: colors.text.default }}
+        />
       );
     }
 

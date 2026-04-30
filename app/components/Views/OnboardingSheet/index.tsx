@@ -17,6 +17,9 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -181,13 +184,11 @@ const OnboardingSheet = () => {
             onPress={onPressContinueWithTelegramAction}
             testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
             startAccessory={
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
+              <Icon
+                name={IconName.Telegram}
+                size={IconSize.Lg}
                 style={tw.style({ color: colors.background.default })}
-              >
-                {'✈️'}
-              </Text>
+              />
             }
             isFullWidth
             size={ButtonSize.Lg}
