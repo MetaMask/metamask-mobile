@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -58,13 +57,18 @@ export function PayWithModal() {
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
   const blockedTokens = useTransactionPayBlockedTokens();
-  const { onPaymentTokenChange: onPredictPaymentTokenChange } =
-    usePredictPaymentToken();
+  const {
+    onPaymentTokenChange: onPredictPaymentTokenChange,
+    resetSelectedPaymentToken,
+  } = usePredictPaymentToken();
   const isPredictContext = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
   ]);
-  const predictBalanceTokenFilter =
-    usePredictBalanceTokenFilter(isPredictContext);
+
+  const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
+    isPredictContext,
+    isPredictContext ? resetSelectedPaymentToken : undefined,
+  );
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -74,14 +78,10 @@ export function PayWithModal() {
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
       items.map((item) => {
-        if (isHighlightedItemInAssetList(item)) {
-          return {
-            ...item,
-            action: () => close(item.action),
-          };
-        }
-
-        if (isHighlightedItemOutsideAssetList(item)) {
+        if (
+          isHighlightedItemInAssetList(item) ||
+          isHighlightedItemOutsideAssetList(item)
+        ) {
           return {
             ...item,
             action: () => close(item.action),

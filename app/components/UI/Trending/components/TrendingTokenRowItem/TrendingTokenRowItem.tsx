@@ -22,18 +22,8 @@ import {
   isCaipChainId,
   parseCaipChainId,
 } from '@metamask/utils';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconAlert,
-  IconSize,
-  Text as DesignSystemText,
-  TextVariant as DesignSystemTextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
+import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
 
 /**
  * Converts CAIP chain ID to hex chain ID
@@ -356,52 +346,13 @@ const TrendingTokenRowItem = ({
           >
             {token?.name ?? token?.symbol}
           </Text>
-          {securityBadge && securityBadge.label === null && (
-            <>
-              {securityBadge.iconAlertSeverity ? (
-                <IconAlert
-                  severity={securityBadge.iconAlertSeverity}
-                  size={IconSize.Sm}
-                  testID="security-badge-icon"
-                />
-              ) : (
-                <Icon
-                  name={securityBadge.icon}
-                  size={IconSize.Sm}
-                  color={securityBadge.iconColor}
-                  testID="security-badge-icon"
-                />
-              )}
-            </>
-          )}
-          {securityBadge && securityBadge.label !== null && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName={`rounded min-w-[22px] px-1.5 gap-1 shrink-0 ${securityBadge.bg}`}
-            >
-              {securityBadge.iconAlertSeverity ? (
-                <IconAlert
-                  severity={securityBadge.iconAlertSeverity}
-                  size={IconSize.Sm}
-                />
-              ) : (
-                <Icon
-                  name={securityBadge.icon}
-                  size={IconSize.Sm}
-                  color={securityBadge.iconColor}
-                />
-              )}
-              <DesignSystemText
-                variant={DesignSystemTextVariant.BodySm}
-                color={securityBadge.textColor}
-                fontWeight={FontWeight.Medium}
-                numberOfLines={1}
-                twClassName="whitespace-nowrap"
-              >
-                {securityBadge.label}
-              </DesignSystemText>
-            </Box>
+          {securityBadge && (
+            <SecurityTrustInlineBadge
+              badge={securityBadge}
+              iconTestID={
+                securityBadge.label === null ? 'security-badge-icon' : undefined
+              }
+            />
           )}
         </View>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
