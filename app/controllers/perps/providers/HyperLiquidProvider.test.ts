@@ -8799,10 +8799,17 @@ describe('HyperLiquidProvider', () => {
     });
 
     // ─────────────────────────────────────────────────
-    // Migration from dexAbstraction → unifiedAccount (EIP-712 path)
+    // dexAbstraction → unifiedAccount migration deferred on init
+    //
+    // The transition requires an EIP-712 prompt (HL blocks the agent path),
+    // so init must NOT trigger it — it would surface a signing dialog just
+    // from opening the Perps section. The user-signed migration is driven
+    // by ensureReadyForTrading() at trade/withdraw entry instead. Those
+    // action-time tests live in the (currently skipped) HIP-3 Private
+    // Methods block; cover them via integration testing.
     // ─────────────────────────────────────────────────
 
-    it('calls userSetAbstraction (EIP-712) when mode is dexAbstraction', async () => {
+    it('does not call userSetAbstraction on init when mode is dexAbstraction', async () => {
       // Arrange
       const mockExchangeClient = createMockExchangeClient();
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
@@ -8814,18 +8821,15 @@ describe('HyperLiquidProvider', () => {
         .fn()
         .mockReturnValue(mockExchangeClient);
 
-      // Act
+      // Act - init path
       await provider.getMarketDataWithPrices();
 
-      // Assert - EIP-712 user-signed path (agent key is not allowed for this transition)
-      expect(mockExchangeClient.userSetAbstraction).toHaveBeenCalledWith({
-        user: USER_ADDRESS,
-        abstraction: 'unifiedAccount',
-      });
+      // Assert - no signing prompt, no agent call either
+      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
       expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
     });
 
-    it('tracks migration_required then success for dexAbstraction → unifiedAccount', async () => {
+    it('does not track migration_required or write cache for dexAbstraction on init', async () => {
       // Arrange
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -8839,34 +8843,17 @@ describe('HyperLiquidProvider', () => {
       // Act
       await provider.getMarketDataWithPrices();
 
-      // Assert analytics
+      // Assert - analytics only fire on actual migration attempts
       const trackCalls = (
         mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
       ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      expect(trackCalls).toEqual([]);
 
-      expect(trackCalls[0]).toEqual([
-        'Perp Account Setup',
-        expect.objectContaining({
-          abstraction_mode: 'dexAbstraction',
-          status: 'migration_required',
-        }),
-      ]);
-      expect(trackCalls[1]).toEqual([
-        'Perp Account Setup',
-        expect.objectContaining({
-          previous_abstraction_mode: 'dexAbstraction',
-          abstraction_mode: 'unifiedAccount',
-          status: 'success',
-        }),
-      ]);
-      // Cache reflects success
+      // Cache untouched so the next entry (action-time) re-evaluates
       expect(
         (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
           .set,
-      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
-        attempted: true,
-        enabled: true,
-      });
+      ).not.toHaveBeenCalled();
     });
 
     // ─────────────────────────────────────────────────
@@ -8918,7 +8905,10 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalledWith(USER_ADDRESS);
     });
 
-    it('calls invalidateUserAbstractionCache after migrating from dexAbstraction → unifiedAccount', async () => {
+    it('does not call invalidateUserAbstractionCache on init when mode is dexAbstraction', async () => {
+      // Init defers the user-signed migration; no migration means no cache
+      // invalidation. The action-time path (covered by integration testing)
+      // is what triggers invalidation after a successful migration.
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
@@ -8932,7 +8922,7 @@ describe('HyperLiquidProvider', () => {
 
       expect(
         mockSubscriptionService.invalidateUserAbstractionCache,
-      ).toHaveBeenCalledWith(USER_ADDRESS);
+      ).not.toHaveBeenCalled();
     });
 
     it('does NOT call invalidateUserAbstractionCache when migration fails', async () => {

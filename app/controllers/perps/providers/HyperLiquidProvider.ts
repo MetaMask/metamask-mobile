@@ -584,9 +584,20 @@ export class HyperLiquidProvider implements PerpsProvider {
    * IMPORTANT: Uses global singleton cache to prevent repeated signing requests
    * across provider reconnections (critical for hardware wallets).
    *
+   * @param options - Optional configuration.
+   * @param options.allowUserSigning - When true, runs the EIP-712 user-signed migration for `dexAbstraction` accounts. Defaults to false so init does not surface a signing prompt; action-time entry points (trading, withdraw) pass true.
    * @private
    */
-  async #ensureUnifiedAccountEnabled(): Promise<void> {
+  async #ensureUnifiedAccountEnabled(options?: {
+    allowUserSigning?: boolean;
+  }): Promise<void> {
+    // dexAbstraction → unifiedAccount requires an EIP-712 prompt (HL blocks
+    // the agent path for that transition). Init calls with allowUserSigning=false so
+    // viewing the Perps section never surfaces a signing dialog. Trading and
+    // withdraw entry points pass allowUserSigning=true to drive the migration when
+    // the user actually intends to act.
+    const allowUserSigning = options?.allowUserSigning ?? false;
+
     if (!this.#useUnifiedAccount) {
       return; // Feature disabled
     }
@@ -678,6 +689,19 @@ export class HyperLiquidProvider implements PerpsProvider {
         // Evict any stale pre-migration abstraction mode the subscription service
         // may have cached so the next aggregation uses the correct fold behaviour.
         this.#subscriptionService.invalidateUserAbstractionCache(userAddress);
+        completeInFlight();
+        return;
+      }
+
+      // Defer the user-signed transition until the user attempts an action.
+      // Cache is intentionally left untouched so the next entry re-evaluates;
+      // the read-only userAbstraction call is cheap and gated by the in-flight
+      // lock, preventing concurrent prompts.
+      if (currentMode === 'dexAbstraction' && !allowUserSigning) {
+        this.#deps.debugLogger.log(
+          'HyperLiquidProvider: Deferring dexAbstraction → unifiedAccount migration to action time',
+          { user: userAddress, network },
+        );
         completeInFlight();
         return;
       }
@@ -872,6 +896,11 @@ export class HyperLiquidProvider implements PerpsProvider {
   async #ensureReadyForTrading(): Promise<void> {
     // First ensure basic initialization is complete
     await this.#ensureReady();
+
+    // dexAbstraction users were deferred during init to avoid an EIP-712 prompt
+    // on Perps section open. Drive the migration here, gated by its own cache so
+    // already-migrated or already-rejected users are not re-prompted.
+    await this.#ensureUnifiedAccountEnabled({ allowUserSigning: true });
 
     // If trading setup already complete, return immediately
     if (this.#tradingSetupComplete) {
