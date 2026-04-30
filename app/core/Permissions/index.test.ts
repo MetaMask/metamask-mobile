@@ -65,7 +65,7 @@ const mockLastSelectedByAddress = (
     if (!(address in lastSelectedByAddress)) {
       return undefined;
     }
-    return { id: `account-${address}` };
+    return !(address in lastSelectedByAddress) ? undefined : { id: `account-${address}` };
   });
   mockGetAccountContext.mockImplementation((accountId: string) => ({
     groupId: `group-${accountId}`,
@@ -976,10 +976,7 @@ describe('Permission Utility Functions', () => {
         id: `account-${address}`,
       }));
       mockGetAccountContext.mockImplementation((accountId: string) => {
-        if (accountId === 'account-0x1') {
-          return undefined;
-        }
-        return { groupId: `group-${accountId}` };
+        return accountId === 'account-0x1' ? undefined : { groupId: `group-${accountId}` };
       });
       mockGetAccountGroupObject.mockReturnValue({
         metadata: { lastSelected: 500 },
