@@ -1,5 +1,31 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { Platform } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
+
+// RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
+// libraries (notably `@metamask/design-system-react-native`'s `BottomSheet`)
+// still call it on unmount, which crashes the screen with
+// "BackHandler.removeEventListener is not a function".
+// Restore the legacy API by tracking subscriptions returned from
+// `addEventListener` and removing them by handler reference.
+if (typeof BackHandler.removeEventListener !== 'function') {
+  const subscriptionsByHandler = new WeakMap();
+  const originalAddEventListener =
+    BackHandler.addEventListener.bind(BackHandler);
+  BackHandler.addEventListener = (eventName, handler) => {
+    const subscription = originalAddEventListener(eventName, handler);
+    if (handler && subscription) {
+      subscriptionsByHandler.set(handler, subscription);
+    }
+    return subscription;
+  };
+  BackHandler.removeEventListener = (_eventName, handler) => {
+    const subscription = handler && subscriptionsByHandler.get(handler);
+    if (subscription && typeof subscription.remove === 'function') {
+      subscription.remove();
+      subscriptionsByHandler.delete(handler);
+    }
+  };
+}
 import {
   getRandomValues,
   randomUUID,

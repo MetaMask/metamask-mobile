@@ -359,7 +359,13 @@ describe('Login', () => {
     mockTrackOnboarding.mockClear();
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
-    BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
+    // `BackHandler.removeEventListener` was removed from RN's types in 0.74+
+    // (callers now use the `subscription.remove()` returned by addEventListener).
+    // The test still stamps a mock here for backwards-compat with code paths
+    // that may invoke it; cast through `unknown` to bypass the missing key.
+    (
+      BackHandler as unknown as { removeEventListener: jest.Mock }
+    ).removeEventListener = mockBackHandlerRemoveEventListener;
 
     mockUnlockWallet.mockResolvedValue(true);
     (passwordRequirementsMet as jest.Mock).mockReturnValue(true);
