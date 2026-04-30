@@ -5,16 +5,26 @@ import {
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
+import { selectSelectedAccountGroupInternalAccounts } from './multichainAccounts/accountTreeController';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { areAddressesEqual } from '../util/address';
 
 interface MetaMaskPayToken {
   address: Hex;
   chainId: Hex;
 }
+
+const PENDING_EVM_TRANSACTION_STATUSES = new Set([
+  'submitted',
+  'signed',
+  'unapproved',
+  'approved',
+  'pending',
+]);
 
 function getNestedTransactionTypes(
   transaction: TransactionMeta,
@@ -124,6 +134,44 @@ export const selectSortedEVMTransactionsForSelectedAccountGroup =
         (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
       ),
   );
+
+export const selectLocalTransactions = createDeepEqualSelector(
+  [
+    selectNonReplacedTransactions,
+    selectPendingSmartTransactionsForSelectedAccountGroup,
+    selectSelectedAccountGroupInternalAccounts,
+  ],
+  (
+    nonReplacedTransactions,
+    pendingSmartTransactions,
+    selectedAccountGroupInternalAccounts,
+  ) => {
+    const selectedAddresses = selectedAccountGroupInternalAccounts
+      .map((account) => account.address)
+      .filter(Boolean);
+
+    const pendingTransactions = nonReplacedTransactions.filter(
+      (transaction) => {
+        if (!PENDING_EVM_TRANSACTION_STATUSES.has(transaction.status)) {
+          return false;
+        }
+
+        const fromAddress = transaction.txParams?.from;
+        if (!fromAddress) {
+          return false;
+        }
+
+        return selectedAddresses.some((address) =>
+          areAddressesEqual(fromAddress, address),
+        );
+      },
+    );
+
+    return [...pendingTransactions, ...pendingSmartTransactions].sort(
+      (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
+    );
+  },
+);
 
 export const selectSwapsTransactions = createSelector(
   selectTransactionControllerState,

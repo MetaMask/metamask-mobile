@@ -1,4 +1,5 @@
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
@@ -20,6 +21,11 @@ export const selectEVMEnabledNetworks = createDeepEqualSelector(
     Object.keys(enabledNetworksByNamespace?.eip155 ?? {}).filter(
       (chainId) => enabledNetworksByNamespace?.eip155?.[chainId as Hex],
     ) as Hex[],
+);
+
+export const selectEvmEnabledCaipNetworks = createDeepEqualSelector(
+  selectEVMEnabledNetworks,
+  (chainIds) => (chainIds ?? []).map((chainId) => toEvmCaipChainId(chainId)),
 );
 
 export const selectNonEVMEnabledNetworks = createDeepEqualSelector(
