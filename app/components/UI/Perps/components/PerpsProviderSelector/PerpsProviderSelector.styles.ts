@@ -34,7 +34,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       marginVertical: 4,
       borderRadius: 12,
-      backgroundColor: theme.colors.background.default,
     },
     optionRowSelected: {
       backgroundColor: theme.colors.primary.muted,

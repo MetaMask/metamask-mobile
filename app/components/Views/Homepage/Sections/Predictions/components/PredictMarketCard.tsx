@@ -52,7 +52,7 @@ const OutcomeRow: React.FC<{
       gap={3}
     >
       {/* Outcome image */}
-      <Box twClassName="w-6 h-6 rounded-lg overflow-hidden bg-background-alternative">
+      <Box twClassName="w-6 h-6 rounded-lg overflow-hidden bg-background-default">
         {outcome.image ? (
           <Image
             source={{ uri: outcome.image }}
@@ -131,7 +131,7 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({
   return (
     <TouchableOpacity onPress={handlePress}>
       <Box
-        twClassName="w-[240px] rounded-2xl bg-background-muted flex-1"
+        twClassName="w-[240px] rounded-2xl bg-section flex-1"
         padding={4}
         gap={6}
         justifyContent={BoxJustifyContent.Between}

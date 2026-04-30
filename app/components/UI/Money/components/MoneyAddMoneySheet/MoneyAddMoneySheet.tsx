@@ -111,6 +111,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       goBack={handleGoBack}
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName="bg-alternative"
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

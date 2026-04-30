@@ -270,7 +270,7 @@ function TradeWalletActions() {
             >
               <Box
                 style={tw.style(
-                  'bg-default p-4 rounded-2xl mx-4',
+                  'bg-alternative p-4 rounded-2xl mx-4',
                   `pb-[${bottomMaskHeight - 12}px]`,
                   `px-0`,
                 )}

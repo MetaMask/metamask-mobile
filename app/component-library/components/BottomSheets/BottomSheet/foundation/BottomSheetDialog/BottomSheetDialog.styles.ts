@@ -33,7 +33,7 @@ const styleSheet = (params: {
     } as ViewStyle) as ViewStyle,
     sheet: Object.assign(
       {
-        backgroundColor: colors.background.default,
+        backgroundColor: colors.background.alternative,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         maxHeight: maxSheetHeight,

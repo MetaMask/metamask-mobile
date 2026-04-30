@@ -205,7 +205,7 @@ const NetworkManager = () => {
         inactiveUnderlineStyle={styles.inactiveUnderlineStyle}
         activeTextColor={colors.text.default}
         inactiveTextColor={colors.text.alternative}
-        backgroundColor={colors.background.default}
+        backgroundColor={colors.background.alternative}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}
         style={styles.tabBar}

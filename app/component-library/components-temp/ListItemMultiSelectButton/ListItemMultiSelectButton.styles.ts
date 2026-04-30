@@ -57,7 +57,7 @@ const styleSheet = (params: {
     container: {
       backgroundColor: isSelected
         ? colors.background.muted
-        : colors.background.default,
+        : colors.background.alternative,
       flexDirection: 'row',
       alignItems: 'center',
     },
