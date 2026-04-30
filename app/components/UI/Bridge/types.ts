@@ -42,6 +42,8 @@ export interface IncludeAsset {
   decimals: number;
   rwaData?: TokenRwaData;
   iconUrl?: string;
+  isVerified?: boolean;
+  securityData?: SecurityData;
 }
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
