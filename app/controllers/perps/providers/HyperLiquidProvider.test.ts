@@ -8568,8 +8568,9 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalledWith('mainnet', USER_ADDRESS);
     });
 
-    it('waits for in-flight operation and does not call userAbstraction itself', async () => {
-      // Arrange - another provider instance is already mid-setup
+    it('waits for in-flight then returns when another provider already cached the result', async () => {
+      // Arrange — another provider instance is mid-setup AND will land a
+      // cache entry by the time we resume from the await.
       let resolveInFlight: () => void = () => undefined;
       const inFlightPromise = new Promise<void>((resolve) => {
         resolveInFlight = resolve;
@@ -8577,6 +8578,15 @@ describe('HyperLiquidProvider', () => {
       (
         TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
       ).isInFlight.mockReturnValue(inFlightPromise);
+      // Outer cache check returns undefined; post-await cache check reflects
+      // the other instance's recorded result.
+      (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>).get
+        .mockReturnValueOnce(undefined)
+        .mockReturnValue({
+          attempted: true,
+          enabled: true,
+          timestamp: Date.now(),
+        });
 
       const mockInfoClient = createMockInfoClient({
         userAbstraction: jest.fn().mockResolvedValue('default'),
@@ -8585,12 +8595,13 @@ describe('HyperLiquidProvider', () => {
         .fn()
         .mockReturnValue(mockInfoClient);
 
-      // Act - kick off the call then resolve the simulated in-flight
+      // Act
       const marketDataPromise = provider.getMarketDataWithPrices();
       resolveInFlight();
       await marketDataPromise;
 
-      // Assert - checked for in-flight with correct key, did not proceed
+      // Assert — checked for in-flight, saw the cache landed, returned without
+      // acquiring a new lock or re-fetching userAbstraction.
       expect(
         (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
           .isInFlight,
@@ -8600,6 +8611,61 @@ describe('HyperLiquidProvider', () => {
         (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
           .setInFlight,
       ).not.toHaveBeenCalled();
+    });
+
+    it('waits for in-flight then runs its own attempt when no cache was written (deferred dexAbstraction case)', async () => {
+      // Scenario: another provider's init-time call (allowUserSigning=false)
+      // hit the dexAbstraction defer branch and finished without writing the
+      // cache. Our caller is action-time (allowUserSigning=true via withdraw)
+      // and must not skip the migration just because another instance was
+      // mid-setup.
+      let resolveInFlight: () => void = () => undefined;
+      const inFlightPromise = new Promise<void>((resolve) => {
+        resolveInFlight = resolve;
+      });
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).isInFlight.mockReturnValue(inFlightPromise);
+      // Cache stays empty across both checks (no entry was written by the
+      // other instance because it deferred).
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).get.mockReturnValue(undefined);
+
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
+        }),
+      );
+
+      Object.defineProperty(provider, 'getAccountState', {
+        value: jest.fn().mockResolvedValue({ availableBalance: '5000' }),
+        writable: true,
+      });
+
+      // Act — withdraw is the action-time entry that requires migration.
+      const withdrawPromise = provider.withdraw({
+        amount: '100',
+        destination: '0x1234567890123456789012345678901234567890' as Hex,
+        assetId:
+          'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
+      });
+      resolveInFlight();
+      await withdrawPromise;
+
+      // Assert — fell through, acquired our own lock, and migrated.
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setInFlight,
+      ).toHaveBeenCalledWith('unifiedAccount', 'mainnet', USER_ADDRESS);
+      expect(exchangeClient.userSetAbstraction).toHaveBeenCalledWith({
+        user: USER_ADDRESS,
+        abstraction: 'unifiedAccount',
+      });
     });
 
     it('returns early when re-check cache (inside lock) shows another provider completed', async () => {
@@ -8991,9 +9057,13 @@ describe('HyperLiquidProvider', () => {
     // Failure paths
     // ─────────────────────────────────────────────────
 
-    it('caches failure and tracks failed event when exchange call throws', async () => {
-      // Arrange
-      const mockError = new Error('User rejected signing');
+    it('does NOT cache when silent agentSetAbstraction fails (default/disabled paths retry on next entry)', async () => {
+      // Silent agent-key migration (default/disabled) shows no UI prompt, so
+      // the "don't re-prompt rejected users" rationale doesn't apply. Caching
+      // a transient HL/network failure here would pin the user in the
+      // deprecated mode for the rest of the session — instead we leave the
+      // cache empty so the next #ensureReady or action-time call retries.
+      const mockError = new Error('Transient HL network blip');
       const mockExchangeClient = createMockExchangeClient();
       mockExchangeClient.agentSetAbstraction = jest
         .fn()
@@ -9007,19 +9077,14 @@ describe('HyperLiquidProvider', () => {
         .fn()
         .mockReturnValue(mockExchangeClient);
 
-      // Act - getMarketDataWithPrices should succeed even though UA setup fails
       await provider.getMarketDataWithPrices();
 
-      // Assert - failure cached to prevent repeated prompts
+      // No cache write — next entry can retry.
       expect(
         (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
           .set,
-      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
-        attempted: true,
-        enabled: false,
-      });
-      // Analytics failure event emitted with the intended target so the
-      // funnel can compare attempts vs successes by `abstraction_mode`.
+      ).not.toHaveBeenCalled();
+      // Failure analytics still emitted for observability.
       expect(
         mockPlatformDependencies.metrics.trackPerpsEvent,
       ).toHaveBeenCalledWith(
@@ -9028,13 +9093,13 @@ describe('HyperLiquidProvider', () => {
           previous_abstraction_mode: 'default',
           abstraction_mode: 'unifiedAccount',
           status: 'failed',
-          error_message: expect.stringContaining('User rejected signing'),
+          error_message: expect.stringContaining('Transient HL network blip'),
         }),
       );
-      // Sentry logger called with correct context
+      // Sentry logger still records for debugging.
       expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining('User rejected signing'),
+          message: expect.stringContaining('Transient HL network blip'),
         }),
         expect.objectContaining({
           context: expect.objectContaining({
@@ -9045,6 +9110,48 @@ describe('HyperLiquidProvider', () => {
           }),
         }),
       );
+    });
+
+    it("caches failure when user-signed userSetAbstraction throws (don't re-prompt rejected users)", async () => {
+      // The dexAbstraction → unifiedAccount migration goes through
+      // userSetAbstraction which surfaces an EIP-712 signing dialog. Once
+      // the user has been prompted (and either rejected or signed but the
+      // call failed), we should not pop the dialog again this session.
+      const mockError = new Error('User rejected signing');
+      const exchangeClient = createMockExchangeClient();
+      exchangeClient.userSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(mockError);
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
+        }),
+      );
+
+      Object.defineProperty(provider, 'getAccountState', {
+        value: jest.fn().mockResolvedValue({ availableBalance: '5000' }),
+        writable: true,
+      });
+
+      // withdraw() is an action-time caller that passes allowUserSigning=true,
+      // so the dexAbstraction path actually attempts userSetAbstraction.
+      await provider.withdraw({
+        amount: '100',
+        destination: '0x1234567890123456789012345678901234567890' as Hex,
+        assetId:
+          'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
+      });
+
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: false,
+      });
     });
 
     it('does NOT cache or log to Sentry when KEYRING_LOCKED is thrown', async () => {

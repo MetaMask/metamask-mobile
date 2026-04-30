@@ -635,7 +635,16 @@ export class HyperLiquidProvider implements PerpsProvider {
         { network, userAddress },
       );
       await inFlightPromise;
-      return; // After waiting, the cache should be set by the other provider
+      // The other instance may have finished without writing the cache (e.g.
+      // an init-time call deferred a dexAbstraction migration). If the cache
+      // is still empty and we are an action-time caller (allowUserSigning=true),
+      // we must run our own attempt — otherwise the trade/withdraw would
+      // proceed in the deprecated mode.
+      const postWaitCache = TradingReadinessCache.get(network, userAddress);
+      if (postWaitCache?.attempted) {
+        return;
+      }
+      // Fall through to acquire our own lock and retry.
     }
 
     // Set in-flight lock to prevent concurrent attempts
@@ -794,12 +803,17 @@ export class HyperLiquidProvider implements PerpsProvider {
         return;
       }
 
-      // Only cache failures that happened after we successfully read the
-      // current mode. Read-only userAbstraction lookup failures are transient
-      // (HL outage / network) and must not block all future migration attempts
-      // for the rest of the session — no signing prompt has been shown yet,
-      // so the "don't re-prompt the user" rationale doesn't apply.
-      if (currentMode !== undefined) {
+      // Cache failure ONLY for the user-prompted path
+      // (`dexAbstraction → unifiedAccount` via `userSetAbstraction`). The
+      // rationale for caching is "don't re-prompt a user who already saw the
+      // signature dialog and rejected it" — that doesn't apply to:
+      //   - Read-only userAbstraction lookup failures (no prompt; transient).
+      //   - Silent agent-key paths (`default`/`disabled` → `agentSetAbstraction`
+      //     does not show a UI prompt; failures are typically transient HL
+      //     outages and pinning them would leave users stuck in the
+      //     deprecated mode for the rest of the session).
+      // Action-time retries pick up the unmigrated state and try again.
+      if (currentMode === 'dexAbstraction') {
         TradingReadinessCache.set(network, userAddress, {
           attempted: true,
           enabled: false,
