@@ -410,6 +410,12 @@ describe('getNetworkBadgeSource', () => {
     expect(src).toBeUndefined();
   });
 
+  it('returns CustomNetworkImgMapping image for EVM chain not in default/popular lists', () => {
+    // Flare mainnet (14) — in CustomNetworkImgMapping as 0xe, not covered by earlier lookups.
+    const src = getNetworkBadgeSource('eip155:14' as CaipChainId);
+    expect(src).toBeDefined();
+  });
+
   it('does not throw for a non-EVM CAIP chain id', () => {
     // Whether the badge resolves to a real image depends on customNetworks data;
     // we just assert the lookup pipeline handles the non-eip155 branch cleanly.

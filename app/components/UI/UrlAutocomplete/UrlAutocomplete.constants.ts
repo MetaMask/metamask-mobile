@@ -1,5 +1,5 @@
 import { UrlAutocompleteCategory } from './types';
-import type { SearchFeedId } from '../../Views/TrendingView/search/useExploreSearch';
+import { SearchFeedId } from '../../Views/TrendingView/search/useExploreSearch';
 
 export const MAX_RECENTS = 5;
 
@@ -31,7 +31,7 @@ export const EMPTY_STATE_CATEGORIES = [
 
 /**
  * @deprecated Use EMPTY_STATE_CATEGORIES for empty state.
- * Search is now handled by useExploreSearch with BROWSER_SEARCH_FEEDS_ORDER.
+ * Search is now handled by useExploreSearch with BROWSER_SEARCH_SECTIONS_ORDER.
  */
 export const ORDERED_CATEGORIES = [
   UrlAutocompleteCategory.Recents,
@@ -40,11 +40,10 @@ export const ORDERED_CATEGORIES = [
 ];
 
 /**
- * Feed order for browser search (Sites first, then other omni-search feeds).
- * Used to reorder the result of `useExploreSearch` so Sites appears before
- * tokens / perps / predictions in the URL autocomplete.
+ * Section order for browser search (Sites first, then other omni-search sections)
+ * This order is passed to useExploreSearch to display Sites before tokens/perps/predictions
  */
-export const BROWSER_SEARCH_FEEDS_ORDER: SearchFeedId[] = [
+export const BROWSER_SEARCH_SECTIONS_ORDER: SearchFeedId[] = [
   'sites',
   'tokens',
   'perps',
