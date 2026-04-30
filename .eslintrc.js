@@ -53,6 +53,7 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Earn/utils/tron.ts',
   'app/components/UI/HardwareWallet/AccountDetails/index.tsx',
   'app/components/UI/Money/constants/activityStyles.ts',
+  'app/components/UI/Money/hooks/useMoneyAccountBalance.ts',
   'app/components/UI/Money/utils/moneyActivityFiat.ts',
   'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
   'app/components/UI/Notification/TransactionNotification/index.js',

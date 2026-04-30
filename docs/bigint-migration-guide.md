@@ -111,6 +111,7 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 - `app/components/UI/Earn/utils/token/index.ts`
 - `app/components/UI/Earn/utils/tron.ts`
 - `app/components/UI/Money/constants/activityStyles.ts`
+- `app/components/UI/Money/hooks/useMoneyAccountBalance.ts`
 - `app/components/UI/Money/utils/moneyActivityFiat.ts`
 - `app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx`
 - `app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx`
