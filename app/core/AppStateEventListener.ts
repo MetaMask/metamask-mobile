@@ -96,7 +96,12 @@ export class AppStateEventListener {
         const persistedPayload =
           attributionPayloadFromProcessAttribution(attribution);
         if (persistedPayload) {
-          ReduxService.store.dispatch(saveAttribution(persistedPayload));
+          if (
+            ReduxService.store.getState().security
+              .dataCollectionForMarketing === true
+          ) {
+            ReduxService.store.dispatch(saveAttribution(persistedPayload));
+          }
         }
       }
       // Note: User identification is handled when settings change individually

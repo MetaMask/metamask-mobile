@@ -8,10 +8,14 @@ import { analytics } from '../util/analytics/analytics';
 import ReduxService, { ReduxStore } from './redux';
 import { saveAttribution } from './redux/slices/attribution';
 
-function createMockReduxStore(): ReduxStore {
+function createMockReduxStore(
+  dataCollectionForMarketing: boolean | null = true,
+): ReduxStore {
   return {
     dispatch: jest.fn(),
-    getState: jest.fn(() => ({})),
+    getState: jest.fn(() => ({
+      security: { dataCollectionForMarketing },
+    })),
   } as unknown as ReduxStore;
 }
 
@@ -132,6 +136,24 @@ describe('AppStateEventListener', () => {
     expect(appStateManager.currentDeeplink).toBeNull();
   });
 
+  it('does not persist attribution when marketing consent is not opted in', () => {
+    const mockStore = createMockReduxStore(false);
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+    (processAttribution as jest.Mock).mockReturnValue({
+      attributionId: 'test123',
+      utm_source: 'source',
+    });
+
+    appStateManager.setCurrentDeeplink('metamask://connect');
+    mockAppStateListener('background');
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(mockStore.dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: saveAttribution.type }),
+    );
+  });
+
   it('clears currentDeeplink after processing so a later resume does not re-save attribution', () => {
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
@@ -155,7 +177,7 @@ describe('AppStateEventListener', () => {
       }),
     );
 
-    mockStore.dispatch.mockClear();
+    (mockStore.dispatch as jest.Mock).mockClear();
     mockAppStateListener('background');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
