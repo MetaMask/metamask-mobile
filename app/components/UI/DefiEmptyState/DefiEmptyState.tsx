@@ -8,7 +8,6 @@ import {
   type TabEmptyStateProps,
 } from '../../../component-library/components-temp/TabEmptyState';
 import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';
 
 import emptyStateDefiLight from '../../../images/empty-state-defi-light.png';
@@ -22,13 +21,9 @@ export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
   const tw = useTailwind();
 
   const handleExploreDefi = () => {
-    // Navigate to explore tokens page in the in-app browser
-    navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.EXPLORE_TOKENS.URL,
-        timestamp: Date.now(),
-      },
+    // Navigate users to the in-app Explore sites section.
+    navigate(Routes.TRENDING_VIEW, {
+      screen: Routes.SITES_FULL_VIEW,
     });
   };
 
