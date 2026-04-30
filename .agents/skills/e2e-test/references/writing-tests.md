@@ -2,12 +2,12 @@
 
 ## Spec File Location
 
-| Test Type  | Directory                                   | Tag                                                                                    |
-| ---------- | ------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Smoke      | `tests/smoke/<feature>/<name>.spec.ts`      | `SmokeE2E`, `SmokeTrade`, `SmokePredictions`, `SmokePerps`, `SmokeConfirmations`, etc. |
-| Regression | `tests/regression/<feature>/<name>.spec.ts` | `RegressionTrade`, `RegressionWallet`, etc.                                            |
+| Test Type  | Directory                                   | Tag                                                                                                               |
+| ---------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Smoke      | `tests/smoke/<feature>/<name>.spec.ts`      | `SmokeE2E`, `SmokeSwap`, `SmokeStake`, `SmokeMoney`, `SmokePredictions`, `SmokePerps`, `SmokeConfirmations`, etc. |
+| Regression | `tests/regression/<feature>/<name>.spec.ts` | `RegressionTrade`, `RegressionWallet`, etc.                                                                       |
 
-Import tags from `tests/tags.ts`. Check **`tests/tags.js`** for the full list and descriptions. Use the same tag as **existing specs in that feature folder** (e.g. `tests/smoke/predict/` uses `SmokeTrade`).
+Import tags from `tests/tags.ts`. Check **`tests/tags.js`** for the full list and descriptions. Use the same tag as **existing specs in that feature folder** (e.g. `tests/smoke/swap/` uses `SmokeSwap`, `tests/smoke/stake/` uses `SmokeStake`, `tests/smoke/card/` and `tests/smoke/ramps/` use `SmokeMoney`).
 
 ## Minimal Smoke Spec
 
