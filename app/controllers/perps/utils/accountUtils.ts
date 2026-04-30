@@ -160,6 +160,33 @@ export function addSpotBalanceToAccountState(
   }
 
   if (spotBalance === 0) {
+    // For unified / portfolio-margin accounts the USDC may be represented as
+    // perps equity rather than an explicit spot balance (e.g. a user who
+    // migrated from Standard mode — HL keeps the collateral inside the perps
+    // ledger and doesn't surface it via spotClearinghouseState until the next
+    // settlement cycle). In this case withdraw3 draws from the unified balance
+    // directly, so compute a conservative available amount from
+    //   accountValue − initialMarginUsed
+    // rather than returning $0. Standard-mode users are unaffected because
+    // foldIntoCollateral is false for them and their withdrawable is already > 0.
+    if (
+      foldIntoCollateral &&
+      Number.isFinite(currentAvailable) &&
+      currentAvailable === 0 &&
+      currentTotal > 0
+    ) {
+      const marginUsed = parseFloat(accountState.marginUsed);
+      const freeEquity = Number.isFinite(marginUsed)
+        ? Math.max(0, currentTotal - marginUsed)
+        : currentTotal;
+      if (freeEquity > 0) {
+        return {
+          ...accountState,
+          availableToTradeBalance: freeEquity.toString(),
+        };
+      }
+    }
+
     return {
       ...accountState,
       availableToTradeBalance: Number.isFinite(currentAvailable)
@@ -168,8 +195,23 @@ export function addSpotBalanceToAccountState(
     };
   }
 
+  // Fail-open guard: a user with withdrawable=0 but free spot USDC is, by
+  // HL's own contract, in unifiedAccount / portfolioMargin (Standard mode
+  // keeps perps and spot independent, so Standard users always have a
+  // non-zero perps withdrawable when they have collateral). Folding is the
+  // only way to surface a non-zero balance, and withdraw3 will draw from
+  // the unified ledger directly, so this matches the API's actual behaviour.
+  // This catches the race where the abstraction-mode cache is stale
+  // (e.g. subscriptionService fetched it before migration completed).
+  const stuckOnPerpsOnly =
+    !foldIntoCollateral &&
+    Number.isFinite(currentAvailable) &&
+    currentAvailable === 0 &&
+    freeSpot > 0;
+  const effectiveFold = foldIntoCollateral || stuckOnPerpsOnly;
+
   let availableToTrade = accountState.availableBalance;
-  if (foldIntoCollateral) {
+  if (effectiveFold) {
     availableToTrade = Number.isFinite(currentAvailable)
       ? (currentAvailable + freeSpot).toString()
       : freeSpot.toString();

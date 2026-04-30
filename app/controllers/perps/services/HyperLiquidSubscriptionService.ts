@@ -1051,6 +1051,24 @@ export class HyperLiquidSubscriptionService {
     };
   }
 
+  /**
+   * Evict a user's cached abstraction mode so the next aggregation uses the
+   * fail-open default (Unified). Call this immediately after a successful
+   * Unified Account migration so the subscription service doesn't keep serving
+   * the pre-migration mode until the next #refreshSpotState completes.
+   *
+   * If the DEX account cache is already populated the corrected balance is
+   * pushed to subscribers immediately.
+   *
+   * @param userAddress - The EVM address whose cached mode should be evicted.
+   */
+  public invalidateUserAbstractionCache(userAddress: string): void {
+    this.#abstractionModeByUser.delete(userAddress.toLowerCase());
+    if (this.#dexAccountCache.size > 0) {
+      this.#aggregateAndNotifySubscribers();
+    }
+  }
+
   async #ensureSpotState(accountId?: CaipAccountId): Promise<void> {
     const userAddress =
       await this.#walletService.getUserAddressWithDefault(accountId);
