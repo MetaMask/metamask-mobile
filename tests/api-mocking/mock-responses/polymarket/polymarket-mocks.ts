@@ -44,6 +44,7 @@ import {
   USER_WALLET_ADDRESS,
   SAFE_FACTORY_ADDRESS,
   USDC_CONTRACT_ADDRESS,
+  POLYGON_PUSD_TOKEN_ADDRESS,
   MULTICALL_CONTRACT_ADDRESS,
   CONDITIONAL_TOKENS_CONTRACT_ADDRESS,
   POST_CASH_OUT_USDC_BALANCE_WEI,
@@ -842,19 +843,21 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
     },
   });
 
-  // Token API single-token metadata for Polymarket USD (pUSD). Predict deposit/withdraw
-  // confirmation views fetch this since #29450; must be mocked for live-request validation.
+  // pUSD (Polymarket USD) on Polygon — predict / transaction-pay call
+  // GET .../token/137?address=0xC011...&includeRwaData=true
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /^https:\/\/token\.api\.cx\.metamask\.io\/token\/137\?.*address=0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb/i,
+    url: new RegExp(
+      `^https://token\\.api\\.cx\\.metamask\\.io/token/137\\?.*address=${POLYGON_PUSD_TOKEN_ADDRESS}`,
+      'i',
+    ),
     responseCode: 200,
     response: {
-      address: '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb',
-      symbol: 'pUSD',
+      address: POLYGON_PUSD_TOKEN_ADDRESS,
+      symbol: 'PUSD',
       decimals: 6,
       name: 'Polymarket USD',
-      iconUrl:
-        'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb.png',
+      iconUrl: `https://static.cx.metamask.io/api/v1/tokenIcons/137/${POLYGON_PUSD_TOKEN_ADDRESS}.png`,
     },
   });
 
