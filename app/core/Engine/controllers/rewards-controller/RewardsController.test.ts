@@ -114,6 +114,7 @@ import {
   SeasonNotFoundError,
   RewardsDataService,
 } from './services/rewards-data-service';
+import { captureException } from '@sentry/react-native';
 
 // Type the mocked modules
 // Note: mockStore is kept for potential future use but currently unused after feature flag removal
@@ -136,6 +137,9 @@ const mockToHex = toHex as jest.MockedFunction<typeof toHex>;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
 const mockStoreSubscriptionToken =
   storeSubscriptionToken as jest.MockedFunction<typeof storeSubscriptionToken>;
+const mockCaptureException = captureException as jest.MockedFunction<
+  typeof captureException
+>;
 const mockRemoveSubscriptionToken =
   removeSubscriptionToken as jest.MockedFunction<
     typeof removeSubscriptionToken
@@ -4560,6 +4564,47 @@ describe('RewardsController', () => {
         expect.anything(),
       );
     });
+
+    it('reports non-401 login errors to Sentry', async () => {
+      // Arrange — a 500 server error is unexpected and should be reported
+      const unexpectedError = new Error('Internal server error');
+      mockMessenger.call.mockClear();
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
+      mockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]) => {
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return [mockInternalAccount];
+          }
+          if (method === 'RewardsDataService:getOptInStatus') {
+            return Promise.resolve({ ois: [true], sids: ['sub123'] });
+          }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return Promise.resolve('0xsignature');
+          }
+          if (method === 'RewardsDataService:login') {
+            return Promise.reject(unexpectedError);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      // Act — call performSilentAuth directly with an opted-in account
+      await testController.performSilentAuth(mockInternalAccount, false, false);
+
+      // Assert — captureException called with the unexpected error
+      expect(mockCaptureException).toHaveBeenCalledWith(unexpectedError, {
+        tags: {
+          feature: 'rewards',
+          context: 'performSilentAuth.unexpected_error',
+        },
+      });
+    });
   });
 
   describe('getSeasonStatus', () => {
@@ -5229,6 +5274,14 @@ describe('RewardsController', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Attempting reauth with active account after 403',
+      );
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Reauth failed'),
+        }),
+        {
+          tags: { feature: 'rewards', context: 'withAuthRetry.reauth_failed' },
+        },
       );
     });
 
