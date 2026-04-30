@@ -850,6 +850,51 @@ jest.mock('../../component-library/components/BottomSheets/BottomSheet', () => {
   };
 });
 
+// Mock @metamask/design-system-react-native BottomSheet to render children immediately
+// and run open/close callbacks synchronously (bypasses reanimated animations).
+// Matches the component-library BottomSheet mock above; components that migrated
+// to the design-system sheet otherwise trigger act() warnings from Animated updates.
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = React.forwardRef(
+    (
+      { children, onClose, onOpen, goBack, style, twClassName, ...props },
+      ref,
+    ) => {
+      React.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: (callback) => {
+          onOpen?.();
+          callback?.();
+        },
+        onCloseBottomSheet: (callback) => {
+          const hasCallback = Boolean(callback);
+          onClose?.(hasCallback);
+          goBack?.();
+          callback?.();
+        },
+      }));
+      return React.createElement(
+        View,
+        {
+          testID: props.testID || 'design-system-bottom-sheet-mock',
+          style,
+          accessibilityLabel: props.accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+
+  return {
+    ...actual,
+    BottomSheet,
+  };
+});
+
 // Mock react-native-modal to render children immediately (bypasses animation)
 jest.mock('react-native-modal', () => {
   const React = require('react');
