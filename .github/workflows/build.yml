@@ -118,7 +118,7 @@ jobs:
   prepare:
     needs: [update-build-version]
     if: ${{ always() && !failure() && !cancelled() }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
@@ -187,7 +187,7 @@ jobs:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg') }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') || (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg') }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
       - name: Validate version-bump commit
@@ -516,7 +516,7 @@ jobs:
     name: Emit build metadata
     needs: [prepare, build]
     if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
       checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
       built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}

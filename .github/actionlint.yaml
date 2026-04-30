@@ -15,20 +15,11 @@ self-hosted-runner:
     - "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"
     - "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl"
     - "low-priority"
-    - "metamask-ci-linux"
-    # Placeholder — replace with the canonical Namespace Linux label before dispatching
-    # with runner_provider: namespace. See .phase0/namespace-artifacts.md (INFRA-3592).
-    - "nscloud-PLACEHOLDER-CONFIRM-LABEL"
-    - "nscloud-ubuntu-22.04-amd64-2x4"
-    - "nscloud-ubuntu-22.04-amd64-4x8"
-    - "nscloud-ubuntu-22.04-amd64-8x16"
-    - "nscloud-ubuntu-22.04-amd64-16x32"
-    - "nscloud-ubuntu-22.04-amd64-32x64"
-    - "nscloud-ubuntu-24.04-amd64-2x4"
-    - "nscloud-ubuntu-24.04-amd64-4x8"
-    - "nscloud-ubuntu-24.04-amd64-8x16"
-    - "nscloud-ubuntu-24.04-amd64-16x32"
-    - "nscloud-ubuntu-24.04-amd64-32x64"
+    # Namespace runner profile labels (INFRA-3592). Format: namespace-profile-<profile-name>.
+    - "namespace-profile-metamask-ci-linux"
+    - "namespace-profile-metamask-android-build"
+    - "namespace-profile-metamask-ios-build"
+    - "namespace-profile-metamask-ios-e2e"
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.

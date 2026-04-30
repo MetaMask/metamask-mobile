@@ -173,7 +173,7 @@ jobs:
 
   report-ios-regression-tests:
     name: Report iOS Regression Tests
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'nscloud-PLACEHOLDER-CONFIRM-LABEL' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: always()
     needs:
       - regression-confirmations-ios
