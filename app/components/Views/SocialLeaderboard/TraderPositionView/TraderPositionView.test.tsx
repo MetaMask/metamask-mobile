@@ -11,6 +11,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockGetState = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
@@ -44,7 +45,6 @@ const makeMockTrades = (): Trade[] => [
 ];
 
 const makeDefaultPosition = (): Position => ({
-  positionId: 'pepe-base',
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
   tokenAddress: '0x1234567890123456789012345678901234567890',
@@ -174,7 +174,11 @@ jest.mock('@react-navigation/native', () => {
 
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      getState: mockGetState,
+    }),
     useRoute: () => ({
       params: mockRouteParams,
     }),
@@ -194,6 +198,7 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetState.mockReturnValue({ routes: [{ name: 'Home' }], index: 0 });
     mockHandleFetch.mockResolvedValue({});
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -227,7 +232,8 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
-  it('navigates to the trader profile when the back button is pressed', () => {
+  it('navigates to the trader profile when the back button is pressed and no profile is in the back stack (deeplink)', () => {
+    // default mockGetState has no profile route behind the position screen
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
@@ -242,6 +248,27 @@ describe('TraderPositionView', () => {
       },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('calls goBack when the back button is pressed and the trader profile is already in the stack', () => {
+    mockGetState.mockReturnValue({
+      routes: [
+        { name: 'Home' },
+        { name: Routes.SOCIAL_LEADERBOARD.VIEW },
+        { name: Routes.SOCIAL_LEADERBOARD.PROFILE },
+        { name: Routes.SOCIAL_LEADERBOARD.POSITION },
+      ],
+      index: 3,
+    });
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {

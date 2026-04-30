@@ -22,6 +22,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import Routes from '../../../../constants/navigation/Routes';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
 import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
@@ -89,8 +90,20 @@ const TraderPositionView = () => {
   } = positionData;
 
   const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    const state = navigation.getState();
+    const previousRoute = state?.routes[state.index - 1];
+
+    if (previousRoute?.name === Routes.SOCIAL_LEADERBOARD.PROFILE) {
+      // Normal flow: profile is already in the stack, goes back to it
+      navigation.goBack();
+    } else {
+      // Deeplink flow: position was opened directly, push the profile screen
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+        traderId,
+        traderName,
+      });
+    }
+  }, [navigation, traderId, traderName]);
 
   const handleCopyTokenAddress = useCallback(async () => {
     if (!resolvedPosition?.tokenAddress) {
