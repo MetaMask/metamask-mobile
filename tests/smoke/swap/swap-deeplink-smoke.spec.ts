@@ -11,6 +11,7 @@ import Assertions from '../../framework/Assertions';
 import { asDetoxElement } from '../../framework';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import TestHelpers from '../../helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
 
 // Deep link URLs for testing unified swap/bridge experience
@@ -63,8 +64,7 @@ describe(
           await loginToApp();
           await device.sendToHome();
           // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
-          // eslint-disable-next-line no-restricted-syntax
-          await new Promise((r) => setTimeout(r, 1000));
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
             newInstance: false,
             url: SWAP_DEEPLINK_FULL,
@@ -126,8 +126,7 @@ describe(
           await loginToApp();
           await device.sendToHome();
           // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
-          // eslint-disable-next-line no-restricted-syntax
-          await new Promise((r) => setTimeout(r, 1000));
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
             newInstance: false,
             url: SWAP_DEEPLINK_BASE,
@@ -184,8 +183,7 @@ describe(
           await loginToApp();
           await device.sendToHome();
           // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
-          // eslint-disable-next-line no-restricted-syntax
-          await new Promise((r) => setTimeout(r, 1000));
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
             newInstance: false,
             url: invalidDeeplink,
