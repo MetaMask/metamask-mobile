@@ -515,13 +515,28 @@ describe('multichain/tron - tronAdapter', () => {
     expect(tronAdapter.proposalReferencesNamespace(proposal)).toBe(true);
   });
 
-  it('delegates onBeforeApprove to seedTronPermissions for the given channelId', () => {
+  it('skips onBeforeApprove seeding when proposal does not reference tron', () => {
     mockedListAccounts.mockReturnValue([
       { type: TrxAccountType.Eoa, address: 'TAddr' },
     ]);
 
     tronAdapter.onBeforeApprove?.({
       proposal: {},
+      channelId: 'channel-42',
+    });
+
+    expect(mockedAddPermittedAccounts).not.toHaveBeenCalled();
+  });
+
+  it('delegates onBeforeApprove to seedTronPermissions when proposal references tron', () => {
+    mockedListAccounts.mockReturnValue([
+      { type: TrxAccountType.Eoa, address: 'TAddr' },
+    ]);
+
+    tronAdapter.onBeforeApprove?.({
+      proposal: {
+        requiredNamespaces: { tron: { chains: ['tron:728126428'] } },
+      },
       channelId: 'channel-42',
     });
 

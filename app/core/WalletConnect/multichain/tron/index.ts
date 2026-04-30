@@ -582,7 +582,10 @@ export const tronAdapter: ChainAdapter = {
   namespace: 'tron',
   redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
   proposalReferencesNamespace: proposalReferencesTron,
-  onBeforeApprove: ({ channelId }) => {
+  onBeforeApprove: ({ proposal, channelId }) => {
+    if (!proposalReferencesTron(proposal)) {
+      return;
+    }
     seedTronPermissions(channelId);
   },
   buildNamespace: ({
