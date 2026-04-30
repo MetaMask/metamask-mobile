@@ -37,22 +37,6 @@ const OHLCV_CHART_EMPTY_RESPONSE = {
 const musdTokenByAddressRegex =
   /^https:\/\/token\.api\.cx\.metamask\.io\/token\/\d+\?.*address=0xaca92e438df0b2401ff60da7e4337b687a2435da.*$/i;
 
-// Matches the single-token metadata endpoint triggered by TokensController.addToken()
-// when PredictDepositInfo (and related Predict V2 flows) register pUSD via useAddToken.
-// Scoped to the Polymarket V2 collateral (pUSD) address on Polygon (chain 137).
-// e.g. https://token.api.cx.metamask.io/token/137?address=0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB&includeRwaData=true
-const pusdTokenByAddressRegex =
-  /^https:\/\/token\.api\.cx\.metamask\.io\/token\/137\?.*address=0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb.*$/i;
-
-const PUSD_TOKEN_API_RESPONSE = {
-  address: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
-  symbol: 'pUSD',
-  name: 'Polymarket USD',
-  decimals: 6,
-  logoURI: '',
-  aggregators: [],
-};
-
 export const TOKEN_API_MOCKS: MockEventsObject = {
   GET: [
     {
@@ -79,11 +63,6 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
       urlEndpoint: musdTokenByAddressRegex,
       responseCode: 200,
       response: MUSD_TOKEN_API_RESPONSE,
-    },
-    {
-      urlEndpoint: pusdTokenByAddressRegex,
-      responseCode: 200,
-      response: PUSD_TOKEN_API_RESPONSE,
     },
   ],
 };
