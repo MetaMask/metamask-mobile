@@ -5,13 +5,10 @@ import {
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
-import Engine from '../Engine';
-import {
-  handleUnapprovedTransactionAddedForMoneyAccount,
-  registerMoneyAccountOverrideListener,
-} from './moneyAccountOverrideListener';
+import Engine from '../../../../Engine';
+import { handleUnapprovedTransactionAddedForMoneyAccount } from './money-account-override';
 
-jest.mock('../Engine', () => ({
+jest.mock('../../../../Engine', () => ({
   __esModule: true,
   default: {
     context: {
@@ -22,9 +19,6 @@ jest.mock('../Engine', () => ({
       AccountsController: {
         getSelectedAccount: jest.fn(),
       },
-    },
-    controllerMessenger: {
-      subscribe: jest.fn(),
     },
   },
 }));
@@ -58,9 +52,8 @@ const setTransactionConfigMock = jest.mocked(
 const getSelectedAccountMock = jest.mocked(
   Engine.context.AccountsController.getSelectedAccount,
 );
-const subscribeMock = jest.mocked(Engine.controllerMessenger.subscribe);
 
-describe('moneyAccountOverrideListener', () => {
+describe('money-account-override', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Engine.context.TransactionPayController.state = { transactionData: {} };
@@ -154,17 +147,6 @@ describe('moneyAccountOverrideListener', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
 
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('registerMoneyAccountOverrideListener', () => {
-    it('subscribes the handler to unapprovedTransactionAdded', () => {
-      registerMoneyAccountOverrideListener();
-
-      expect(subscribeMock).toHaveBeenCalledWith(
-        'TransactionController:unapprovedTransactionAdded',
-        handleUnapprovedTransactionAddedForMoneyAccount,
-      );
     });
   });
 });
