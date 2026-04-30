@@ -183,10 +183,17 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const [isStepTransitioning, setIsStepTransitioning] = useState(false);
   const stepIndexRef = useRef(stepIndex);
   const isLastStepRef = useRef(stepIndex >= VISIBLE_STEPS.length - 1);
+  /** Kept in sync with `stepIndex` + `isAwaitingBalance` so Primary commit matches `goNextOrComplete` ref reads. */
+  const currentStepKindRef = useRef<StepKind>(
+    VISIBLE_STEPS[visualStepIndexForProgress].kind,
+  );
   useEffect(() => {
     stepIndexRef.current = stepIndex;
     isLastStepRef.current = stepIndex >= VISIBLE_STEPS.length - 1;
-  }, [stepIndex]);
+    const displayIdx = isAwaitingBalance ? 0 : stepIndex;
+    const cappedVisual = Math.min(displayIdx, VISIBLE_STEPS.length - 1);
+    currentStepKindRef.current = VISIBLE_STEPS[cappedVisual].kind;
+  }, [stepIndex, isAwaitingBalance]);
 
   useEffect(
     () => () => {
@@ -388,19 +395,14 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   ]);
 
   const handlePrimaryPress = useCallback(() => {
-    const kind = currentStep.kind;
+    const kind = currentStepKindRef.current;
     if (kind === 'trade' && onTradePrimaryPress) {
       onTradePrimaryPress();
     } else if (kind === 'notifications' && onNotificationsPrimaryPress) {
       onNotificationsPrimaryPress();
     }
     goNextOrComplete();
-  }, [
-    currentStep.kind,
-    goNextOrComplete,
-    onNotificationsPrimaryPress,
-    onTradePrimaryPress,
-  ]);
+  }, [goNextOrComplete, onNotificationsPrimaryPress, onTradePrimaryPress]);
 
   const progressLabel = useMemo(
     () =>

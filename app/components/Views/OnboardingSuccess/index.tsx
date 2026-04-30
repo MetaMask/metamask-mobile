@@ -18,6 +18,7 @@ import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboa
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import Logger from '../../../util/Logger';
 import {
   Box,
   BoxAlignItems,
@@ -79,13 +80,19 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     }
 
-    const onOnboardingSuccess = async () => {
-      // Run discovery on all account providers (EVM and non-EVM)
-      await discoverAccounts(
-        Engine.context.KeyringController.state.keyrings[0].metadata.id,
-      );
+    const runDiscoverAccounts = async () => {
+      try {
+        await discoverAccounts(
+          Engine.context.KeyringController.state.keyrings[0].metadata.id,
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      }
     };
-    onOnboardingSuccess();
+    void runDiscoverAccounts();
     queueMicrotask(() => {
       onDone();
     });
