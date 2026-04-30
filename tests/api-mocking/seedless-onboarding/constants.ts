@@ -30,7 +30,7 @@ export const AuthServer = {
 export const E2E_EMAILS = {
   // Google Login
   GOOGLE_NEW_USER: 'google.newuser+e2e@web3auth.io',
-  GOOGLE_EXISTING_USER: 'google.existinguser+e2e@web3auth.io',
+  GOOGLE_EXISTING_USER: 'abc+e2e@web3auth.io',
 
   // Apple Login
   APPLE_NEW_USER: 'apple.newuser+e2e@web3auth.io',

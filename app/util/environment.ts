@@ -9,12 +9,12 @@ export const isProduction = (): boolean =>
 export const isE2EMockOAuth = (): boolean =>
   process.env.E2E_MOCK_OAUTH === 'true';
 
-export const getE2EByoaAuthSecret = (): string | undefined => {
+export function getE2EByoaAuthSecret(): string | undefined {
   const secret = process.env.E2E_BYOA_AUTH_SECRET;
   return typeof secret === 'string' && secret.length > 0 ? secret : undefined;
-};
+}
 
-export const getE2EMockOAuthEmailForQaMock = (): string | undefined => {
+export function getE2EMockOAuthEmailForQaMock(): string | undefined {
   const email = process.env.E2E_MOCK_OAUTH_EMAIL;
   return typeof email === 'string' && email.length > 0 ? email : undefined;
-};
+}

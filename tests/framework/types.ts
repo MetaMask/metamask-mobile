@@ -279,6 +279,7 @@ export interface LaunchArgs {
   fixtureServerPort: string;
   detoxURLBlacklistRegex: string;
   mockServerPort: string;
+  mockOAuthEmail?: string;
 }
 
 /**

@@ -13,6 +13,7 @@ import {
   loginWithPassword,
   FIXTURE_PASSWORD,
 } from './utils';
+import { googleLoginResetWalletAnalyticsExpectations } from '../../helpers/analytics/expectations/google-login-reset-wallet.analytics';
 
 describe(SmokeSeedlessOnboarding('Google Login - Reset Wallet'), () => {
   beforeAll(async () => {
@@ -40,6 +41,9 @@ describe(SmokeSeedlessOnboarding('Google Login - Reset Wallet'), () => {
           oAuthMockttpService.configureGoogleNewUser();
           await oAuthMockttpService.setup(mockServer);
         },
+        // Reset-wallet events fire on both platforms regardless of how the
+        // wallet was set up (full onboarding on Android vs fixture on iOS).
+        analyticsExpectations: googleLoginResetWalletAnalyticsExpectations,
       },
       async () => {
         if (isIOS) {

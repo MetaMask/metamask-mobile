@@ -7,6 +7,7 @@ import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeSeedlessOnboarding } from '../../tags';
 import { completeAppleNewUserOnboarding } from './utils';
+import { appleLoginNewUserAnalyticsExpectations } from '../../helpers/analytics/expectations/apple-login-new-user.analytics';
 
 describe(SmokeSeedlessOnboarding('Apple Login - New User'), () => {
   beforeAll(async () => {
@@ -28,6 +29,7 @@ describe(SmokeSeedlessOnboarding('Apple Login - New User'), () => {
           oAuthMockttpService.configureAppleNewUser();
           await oAuthMockttpService.setup(mockServer);
         },
+        analyticsExpectations: appleLoginNewUserAnalyticsExpectations,
       },
       async () => {
         await completeAppleNewUserOnboarding();

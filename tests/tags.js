@@ -69,7 +69,12 @@ const smokeTags = {
   smokeSeedlessOnboarding: {
     tag: 'SmokeSeedlessOnboarding:',
     description:
-      'Tests seedless onboarding flows using social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, lock and unlock after social login onboarding, wallet reset from the login screen, and importing an additional SRP after seedless onboarding. Tests the SeedlessOnboardingController mock integration, OAuth token exchange, and the full onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, or the onboarding sheet, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeIdentity for account sync after social login.',
+      'Tests seedless onboarding flows using social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, lock and unlock after social login onboarding, wallet reset from the login screen, and importing an additional SRP after seedless onboarding. Uses the real SeedlessOnboardingController with Metro-mocked OAuth handlers for token flows, OAuth token exchange, and the full onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, or the onboarding sheet, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeIdentity for account sync after social login.',
+  },
+  smokeSeedlessAnalytics: {
+    tag: 'SmokeSeedlessAnalytics:',
+    description:
+      'Tests MetaMetrics analytics event tracking during seedless onboarding flows using social login providers (Google and Apple). Verifies that the correct analytics events are captured with the expected properties during new user wallet creation via Google and Apple OAuth. Covers events such as Metrics Opt-In, Social Login Completed, Wallet Creation Attempted, Wallet Created, Wallet Setup Completed, and Analytics Preference Selected. Select this tag when changes touch analytics tracking in the seedless onboarding flow, MetaMetrics event payloads for social login, or the onboarding analytics expectations framework.',
   },
   smokeBrowser: {
     tag: 'SmokeBrowser:',
@@ -124,6 +129,8 @@ const SmokePredictions = (testName) =>
   `${smokeTags.smokePredictions.tag} ${testName}`;
 const SmokeSeedlessOnboarding = (testName) =>
   `${smokeTags.smokeSeedlessOnboarding.tag} ${testName}`;
+const SmokeSeedlessAnalytics = (testName) =>
+  `${smokeTags.smokeSeedlessAnalytics.tag} ${testName}`;
 const SmokeBrowser = (testName) => `${smokeTags.smokeBrowser.tag} ${testName}`;
 const SmokeSnaps = (testName) => `${smokeTags.smokeSnaps.tag} ${testName}`;
 // Other test tags functions.
@@ -167,6 +174,7 @@ export {
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,
+  SmokeSeedlessAnalytics,
   SmokeBrowser,
   RegressionAccounts,
   RegressionConfirmations,
