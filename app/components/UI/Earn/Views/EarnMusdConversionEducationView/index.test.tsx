@@ -3,7 +3,6 @@ import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { Linking } from 'react-native';
 import EarnMusdConversionEducationView from './index';
 import {
   setMusdConversionEducationSeen,
@@ -20,7 +19,6 @@ import { EARN_TEST_IDS } from '../../constants/testIds';
 import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
-import AppConstants from '../../../../../core/AppConstants';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
@@ -273,9 +271,6 @@ describe('EarnMusdConversionEducationView', () => {
         ),
       ).toBeOnTheScreen();
       expect(getByText(descriptionText, { exact: false })).toBeOnTheScreen();
-      expect(
-        getByText(strings('earn.musd_conversion.education.terms_apply')),
-      ).toBeOnTheScreen();
       expect(
         getByText(strings('earn.musd_conversion.education.primary_button')),
       ).toBeOnTheScreen();
@@ -944,43 +939,6 @@ describe('EarnMusdConversionEducationView', () => {
       );
 
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('external links', () => {
-    it('opens bonus terms of use when "Terms apply" is pressed', () => {
-      const openUrlSpy = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValueOnce(undefined);
-
-      const { getByText } = renderWithProvider(
-        <EarnMusdConversionEducationView />,
-        { state: {} },
-      );
-
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
-      mockBuild.mockClear();
-
-      fireEvent.press(
-        getByText(strings('earn.musd_conversion.education.terms_apply')),
-      );
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location:
-          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-        url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-      });
-      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-
-      expect(openUrlSpy).toHaveBeenCalledTimes(1);
-      expect(openUrlSpy).toHaveBeenCalledWith(
-        AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-      );
     });
   });
 

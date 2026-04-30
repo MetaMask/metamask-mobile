@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { View, Image, useColorScheme, Linking } from 'react-native';
+import { View, Image, useColorScheme } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
 import Text, {
@@ -50,7 +50,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
-import AppConstants from '../../../../../core/AppConstants';
 import {
   MUSD_CONVERSION_NAVIGATION_OVERRIDE,
   MusdNavigationTarget,
@@ -401,19 +400,6 @@ const EarnMusdConversionEducationView = () => {
     }
   };
 
-  const handleTermsOfUsePressed = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
-        .addProperties({
-          location: MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-        })
-        .build(),
-    );
-
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  };
-
   return (
     // Do not remove the top edge as this screen does not have a navbar set in the route options.
     <SafeAreaView
@@ -440,6 +426,7 @@ const EarnMusdConversionEducationView = () => {
               shape={TagShape.Rectangle}
               severity={TagSeverity.Neutral}
               gap={4}
+              style={styles.featureTag}
               startAccessory={
                 <Icon
                   name={IconName.CheckBold}
@@ -470,15 +457,7 @@ const EarnMusdConversionEducationView = () => {
       >
         {strings('earn.musd_conversion.education.description', {
           percentage: MUSD_CONVERSION_APY,
-        })}{' '}
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.termsText}
-          onPress={handleTermsOfUsePressed}
-        >
-          {strings('earn.musd_conversion.education.terms_apply')}
-        </Text>
+        })}
       </Text>
 
       <View style={styles.buttonsContainer}>
