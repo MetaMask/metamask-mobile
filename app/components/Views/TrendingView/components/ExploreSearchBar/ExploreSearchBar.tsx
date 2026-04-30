@@ -89,11 +89,13 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               onChangeText={props.onSearchChange}
               placeholder={placeholder}
               autoFocus={props.type === 'interactive'}
-              autoCapitalize="none"
               onPressClearButton={() => {
                 props.onSearchChange('');
               }}
               clearButtonProps={{ testID: 'explore-search-clear-button' }}
+              inputProps={{
+                autoCapitalize: 'none',
+              }}
             />
           </Box>
           <TouchableOpacity
