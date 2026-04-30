@@ -258,15 +258,32 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   }, [attachSeries, seriesMarkets]);
 
   const advanceExpiredSelection = useCallback(() => {
-    if (!seriesMarkets?.length || !hasMarketEnded(selectedMarket)) {
+    if (!seriesMarkets?.length) {
       return;
     }
 
-    const liveMarket = findLiveMarket(seriesMarkets);
-    if (liveMarket && liveMarket.id !== selectedMarket.id) {
-      setSelectedMarket(attachSeries(liveMarket));
-    }
-  }, [attachSeries, selectedMarket, seriesMarkets]);
+    setSelectedMarket((currentMarket) => {
+      const currentMarketFromSeries = seriesMarkets.find(
+        (seriesMarket) => seriesMarket.id === currentMarket.id,
+      );
+      const marketToEvaluate = currentMarketFromSeries ?? currentMarket;
+
+      if (!hasMarketEnded(marketToEvaluate)) {
+        return currentMarketFromSeries
+          ? attachSeries(currentMarketFromSeries)
+          : currentMarket;
+      }
+
+      const liveMarket = findLiveMarket(seriesMarkets);
+      if (liveMarket && liveMarket.id !== marketToEvaluate.id) {
+        return attachSeries(liveMarket);
+      }
+
+      return currentMarketFromSeries
+        ? attachSeries(currentMarketFromSeries)
+        : currentMarket;
+    });
+  }, [attachSeries, seriesMarkets]);
 
   useEffect(() => {
     const selectedEndDateTime = getEndDateTime(selectedMarket.endDate);
@@ -287,7 +304,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     const timeout = setTimeout(advanceExpiredSelection, delayMs);
 
     return () => clearTimeout(timeout);
-  }, [advanceExpiredSelection, selectedMarket.endDate, seriesMarkets?.length]);
+  }, [advanceExpiredSelection, selectedMarket.endDate, seriesMarkets]);
 
   const title = selectedMarket.series.title;
   const subtitle = selectedMarket.endDate

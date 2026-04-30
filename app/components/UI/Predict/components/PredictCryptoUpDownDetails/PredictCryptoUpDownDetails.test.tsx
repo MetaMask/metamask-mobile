@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PredictCryptoUpDownDetails from './PredictCryptoUpDownDetails';
 import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
 import {
@@ -470,5 +470,60 @@ describe('PredictCryptoUpDownDetails', () => {
     fireEvent.press(screen.getByTestId('mock-time-slot-expired-market'));
 
     expect(getChartMarketId()).toBe('live-market');
+  });
+
+  it('keeps the current slot when an old rollover callback runs', () => {
+    const now = Date.UTC(2026, 0, 1, 0, 0, 0);
+    const scheduledCallbacks: (() => void)[] = [];
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    const setTimeoutSpy = jest
+      .spyOn(global, 'setTimeout')
+      .mockImplementation((callback: Parameters<typeof setTimeout>[0]) => {
+        if (typeof callback === 'function') {
+          scheduledCallbacks.push(() => callback());
+        }
+
+        return scheduledCallbacks.length as unknown as ReturnType<
+          typeof setTimeout
+        >;
+      });
+    const clearTimeoutSpy = jest
+      .spyOn(global, 'clearTimeout')
+      .mockImplementation(() => undefined);
+    const expiringMarket = createMockMarket({
+      id: 'expiring-market',
+      endDate: new Date(now + 1000).toISOString(),
+    });
+    const liveMarket = createMockMarket({
+      id: 'live-market',
+      endDate: new Date(now + 2000).toISOString(),
+    });
+    const laterMarket = createMockMarket({
+      id: 'later-market',
+      endDate: new Date(now + 3000).toISOString(),
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [expiringMarket, liveMarket, laterMarket],
+    });
+
+    try {
+      render(
+        <PredictCryptoUpDownDetails
+          market={expiringMarket}
+          onBack={mockOnBack}
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('mock-time-slot-later-market'));
+      act(() => {
+        scheduledCallbacks[0]();
+      });
+
+      expect(getChartMarketId()).toBe('later-market');
+    } finally {
+      clearTimeoutSpy.mockRestore();
+      setTimeoutSpy.mockRestore();
+      dateNowSpy.mockRestore();
+    }
   });
 });
