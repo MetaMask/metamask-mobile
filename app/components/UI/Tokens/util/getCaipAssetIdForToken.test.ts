@@ -30,119 +30,103 @@ function minimalToken(partial: Partial<TokenI>): TokenI {
 }
 
 describe('getCaipAssetIdForToken', () => {
-  it('returns null when asset is null', async () => {
-    const result = await getCaipAssetIdForToken(null);
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null when asset is undefined', async () => {
-    const result = await getCaipAssetIdForToken(undefined);
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null when asset has no chainId', async () => {
-    const result = await getCaipAssetIdForToken(
-      minimalToken({ chainId: undefined }),
-    );
+  it.each([
+    {
+      caseDescription: 'asset is null',
+      asset: null as TokenI | null | undefined,
+    },
+    {
+      caseDescription: 'asset is undefined',
+      asset: undefined as TokenI | null | undefined,
+    },
+    {
+      caseDescription: 'asset has no chainId',
+      asset: minimalToken({ chainId: undefined }),
+    },
+    {
+      caseDescription: 'non-native token has empty address',
+      asset: minimalToken({
+        address: '',
+        isNative: false,
+        isETH: false,
+      }),
+    },
+    {
+      caseDescription: 'token address is not valid hex',
+      asset: minimalToken({
+        address: 'not-a-valid-token-address',
+        isNative: false,
+        isETH: false,
+      }),
+    },
+  ])('returns null when $caseDescription', async ({ asset }) => {
+    const result = await getCaipAssetIdForToken(asset);
 
     expect(result).toBeNull();
   });
 
   it('returns the address when it is already a CAIP asset id', async () => {
-    const result = await getCaipAssetIdForToken(
-      minimalToken({
-        address: ERC20_CAIP_LOWER,
-        isNative: false,
-        isETH: false,
-      }),
-    );
+    const asset = minimalToken({
+      address: ERC20_CAIP_LOWER,
+      isNative: false,
+      isETH: false,
+    });
+
+    const result = await getCaipAssetIdForToken(asset);
 
     expect(result).toBe(ERC20_CAIP_LOWER);
   });
 
-  it('returns native CAIP from getNativeAssetId when isNative is true', async () => {
-    const expected = (await getNativeAssetId(
-      OBSCURE_EVM_HEX as `0x${string}`,
-    )) as CaipAssetType;
+  it.each([
+    {
+      caseDescription: 'isNative is true',
+      tokenOverrides: { isNative: true, isETH: false },
+    },
+    {
+      caseDescription: 'isETH is true',
+      tokenOverrides: { isNative: false, isETH: true },
+    },
+  ])(
+    'returns native CAIP from getNativeAssetId when $caseDescription',
+    async ({ tokenOverrides }) => {
+      const expected = (await getNativeAssetId(
+        OBSCURE_EVM_HEX as `0x${string}`,
+      )) as CaipAssetType;
 
-    const result = await getCaipAssetIdForToken(
-      minimalToken({
+      const asset = minimalToken({
         chainId: OBSCURE_EVM_HEX,
-        isNative: true,
-        isETH: false,
-      }),
-    );
+        ...tokenOverrides,
+      });
 
-    expect(result).toBe(expected);
-  });
+      const result = await getCaipAssetIdForToken(asset);
 
-  it('returns native CAIP from getNativeAssetId when isETH is true', async () => {
-    const expected = (await getNativeAssetId(
-      OBSCURE_EVM_HEX as `0x${string}`,
-    )) as CaipAssetType;
-
-    const result = await getCaipAssetIdForToken(
-      minimalToken({
-        chainId: OBSCURE_EVM_HEX,
-        isNative: false,
-        isETH: true,
-      }),
-    );
-
-    expect(result).toBe(expected);
-  });
-
-  it('returns null for a non-native token with no address', async () => {
-    const result = await getCaipAssetIdForToken(
-      minimalToken({
-        address: '',
-        isNative: false,
-        isETH: false,
-      }),
-    );
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null when the token address is not valid hex', async () => {
-    const result = await getCaipAssetIdForToken(
-      minimalToken({
-        address: 'not-a-valid-token-address',
-        isNative: false,
-        isETH: false,
-      }),
-    );
-
-    expect(result).toBeNull();
-  });
-
-  it('returns the CAIP asset id for 40-char hex without 0x (normalized and checksummed)', async () => {
-    const raw40 = 'a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-    const result = await getCaipAssetIdForToken(
-      minimalToken({
+      expect(result).toBe(expected);
+    },
+  );
+  it.each([
+    {
+      caseDescription: '40-char hex without 0x prefix',
+      address: 'a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    },
+    {
+      caseDescription: 'prefixed erc-20 hex address',
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    },
+  ])(
+    'returns CAIP asset id normalized from $caseDescription',
+    async ({ address }) => {
+      const asset = minimalToken({
         chainId: '0x1',
-        address: raw40,
+        address,
         isNative: false,
         isETH: false,
-      }),
-    );
+      });
 
-    // `formatAddressToAssetId` returns mixed-case checksummed hex in the CAIP string.
-    expect(result?.toLowerCase()).toStrictEqual(ERC20_CAIP_LOWER.toLowerCase());
-  });
+      const result = await getCaipAssetIdForToken(asset);
 
-  it('returns the formatted asset id for a valid erc-20 hex address', async () => {
-    const result = await getCaipAssetIdForToken(
-      minimalToken({
-        chainId: '0x1',
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        isNative: false,
-        isETH: false,
-      }),
-    );
-
-    expect(result?.toLowerCase()).toStrictEqual(ERC20_CAIP_LOWER.toLowerCase());
-  });
+      expect(result?.toLowerCase()).toStrictEqual(
+        ERC20_CAIP_LOWER.toLowerCase(),
+      );
+    },
+  );
 });
