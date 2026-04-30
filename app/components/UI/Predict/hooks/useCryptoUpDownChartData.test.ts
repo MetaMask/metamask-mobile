@@ -300,12 +300,13 @@ describe('useCryptoUpDownChartData', () => {
       const chartRef = createMockChartRef();
       historicalData = [];
       mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
+      const initialProps: { targetPrice?: number } = { targetPrice: 50000 };
 
       const { result, rerender } = renderHook(
         ({ targetPrice }: { targetPrice?: number }) =>
           useCryptoUpDownChartData(market, chartRef, targetPrice),
         {
-          initialProps: { targetPrice: 50000 },
+          initialProps,
           wrapper: Wrapper,
         },
       );
