@@ -8802,9 +8802,9 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Финансы",
-      "cash_empty_description": "У вас пока нет mUSD. Конвертируйте стейблкоины в mUSD в разделе «Деньги» на главной странице.",
-      "cash_empty_description_network_filter": "В этой сети нет mUSD. Переключитесь на другую сеть, чтобы увидеть свои mUSD.",
+      "money": "Финансы",
+      "money_empty_description": "У вас пока нет mUSD. Конвертируйте стейблкоины в mUSD в разделе «Деньги» на главной странице.",
+      "money_empty_description_network_filter": "В этой сети нет mUSD. Переключитесь на другую сеть, чтобы увидеть свои mUSD.",
       "tokens": "Токены",
       "perpetuals": "Бессрочные контракты",
       "predictions": "Прогнозы",

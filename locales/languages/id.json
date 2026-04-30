@@ -8802,9 +8802,9 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Dana",
-      "cash_empty_description": "Anda belum memiliki mUSD. Konversikan stablecoin ke mUSD dari bagian Dana di halaman utama.",
-      "cash_empty_description_network_filter": "Tidak ada mUSD di jaringan ini. Ganti jaringan untuk melihat mUSD milik Anda.",
+      "money": "Dana",
+      "money_empty_description": "Anda belum memiliki mUSD. Konversikan stablecoin ke mUSD dari bagian Dana di halaman utama.",
+      "money_empty_description_network_filter": "Tidak ada mUSD di jaringan ini. Ganti jaringan untuk melihat mUSD milik Anda.",
       "tokens": "Token",
       "perpetuals": "Abadi",
       "predictions": "Prediksi",

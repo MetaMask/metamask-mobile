@@ -8802,9 +8802,9 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Money",
-      "cash_empty_description": "Aún no tienes mUSD. Convierte monedas estables a mUSD desde la sección Finanzas en la página de inicio.",
-      "cash_empty_description_network_filter": "No hay mUSD en esta red. Cambia de red para ver tus mUSD.",
+      "money": "Money",
+      "money_empty_description": "Aún no tienes mUSD. Convierte monedas estables a mUSD desde la sección Finanzas en la página de inicio.",
+      "money_empty_description_network_filter": "No hay mUSD en esta red. Cambia de red para ver tus mUSD.",
       "tokens": "Tokens",
       "perpetuals": "Contratos perpetuos",
       "predictions": "Predicciones",

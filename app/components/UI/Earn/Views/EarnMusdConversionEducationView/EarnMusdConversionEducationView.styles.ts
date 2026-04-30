@@ -29,7 +29,6 @@ export const styleSheet = (_params: { theme: Theme }) =>
     },
     bodyText: {
       textAlign: 'center',
-      paddingHorizontal: 16,
       marginTop: 16,
       marginBottom: 24,
     },
@@ -46,7 +45,10 @@ export const styleSheet = (_params: { theme: Theme }) =>
       flexWrap: 'wrap',
       justifyContent: 'center',
       gap: 4,
-      paddingHorizontal: 16,
       marginTop: 16,
+    },
+    descriptionContainer: {
+      paddingHorizontal: 16,
+      alignItems: 'center',
     },
   });

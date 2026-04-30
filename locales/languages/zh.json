@@ -8802,9 +8802,9 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Money",
-      "cash_empty_description": "您目前尚未持有任何 mUSD。请从首页的“资金”部分将稳定币兑换为 mUSD。",
-      "cash_empty_description_network_filter": "此网络中没有 mUSD。请切换网络以查看您的 mUSD。",
+      "money": "Money",
+      "money_empty_description": "您目前尚未持有任何 mUSD。请从首页的“资金”部分将稳定币兑换为 mUSD。",
+      "money_empty_description_network_filter": "此网络中没有 mUSD。请切换网络以查看您的 mUSD。",
       "tokens": "代币",
       "perpetuals": "永续合约",
       "predictions": "预测",

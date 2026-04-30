@@ -450,15 +450,17 @@ const EarnMusdConversionEducationView = () => {
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
         />
       </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.bodyText}
-      >
-        {strings('earn.musd_conversion.education.description', {
-          percentage: MUSD_CONVERSION_APY,
-        })}
-      </Text>
+      <View style={styles.descriptionContainer}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.bodyText}
+        >
+          {strings('earn.musd_conversion.education.description', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
+        </Text>
+      </View>
 
       <View style={styles.buttonsContainer}>
         <Button
