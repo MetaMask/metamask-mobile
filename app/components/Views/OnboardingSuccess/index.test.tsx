@@ -14,6 +14,7 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
+import Logger from '../../../util/Logger';
 import {
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
   setWalletHomeOnboardingStepsEligible,
@@ -157,6 +158,33 @@ describe('OnboardingSuccessComponent', () => {
         skipInitialBalanceWait: true,
       }),
     );
+  });
+
+  it('logs when discoverAccounts rejects and still invokes onDone', async () => {
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // Do nothing
+    });
+    mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
+    const onDone = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={onDone}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    await waitFor(() => {
+      expect(onDone).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        'OnboardingSuccess: discoverAccounts failed',
+      );
+    });
+    loggerSpy.mockRestore();
+    mockDiscoverAccounts.mockResolvedValue(0);
   });
 
   it('does not mark steps eligible for SETTINGS_BACKUP flow when Done is pressed', () => {
