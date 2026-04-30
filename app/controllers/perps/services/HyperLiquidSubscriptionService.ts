@@ -1075,14 +1075,10 @@ export class HyperLiquidSubscriptionService {
     const lower = userAddress.toLowerCase();
     this.#abstractionModeByUser.set(lower, mode);
 
-    if (
-      this.#cachedSpotState &&
-      (!this.#cachedSpotStateUserAddress ||
-        this.#cachedSpotStateUserAddress === lower)
-    ) {
-      this.#cachedSpotStateUserAddress = lower;
-    }
-
+    // No need to seal #cachedSpotStateUserAddress here — the WS handler and
+    // #refreshSpotState success path always set it to the spot owner. The
+    // re-aggregation below will pick up the new mode via the now-populated
+    // #abstractionModeByUser entry.
     if (this.#dexAccountCache.size > 0) {
       this.#aggregateAndNotifySubscribers();
     }
@@ -1091,10 +1087,16 @@ export class HyperLiquidSubscriptionService {
   async #ensureSpotState(accountId?: CaipAccountId): Promise<void> {
     const userAddress =
       await this.#walletService.getUserAddressWithDefault(accountId);
+    const lowerUserAddress = userAddress.toLowerCase();
 
+    // Fast-path only when we have spot for this user AND a resolved
+    // abstraction mode. Without the mode, `#getSpotBalanceOptions` would
+    // fall back to fail-closed (no fold), under-reporting Unified /
+    // Portfolio Margin balances — force a refresh instead.
     if (
       this.#cachedSpotState &&
-      this.#cachedSpotStateUserAddress === userAddress
+      this.#cachedSpotStateUserAddress === lowerUserAddress &&
+      this.#abstractionModeByUser.has(lowerUserAddress)
     ) {
       return;
     }
@@ -1183,17 +1185,15 @@ export class HyperLiquidSubscriptionService {
       if (generation !== this.#spotStateGeneration) {
         // A WS push superseded our spot snapshot. The earlier WS-driven
         // aggregation ran with a null mode (fail-closed), so subscribers
-        // may currently be under-reported. If we just resolved the mode,
-        // seal the cache for this user and re-aggregate now so the active
-        // subscribers immediately see the correct fold instead of waiting
-        // for another subscribe/action.
+        // may currently be under-reported. If we just resolved the mode
+        // for the user whose spot is cached (strict match — null cache
+        // owner could mean cleanUp ran for a different user), re-aggregate
+        // now so the active subscribers immediately see the correct fold.
         if (
           abstractionResult.status === 'fulfilled' &&
           this.#cachedSpotState &&
-          (!this.#cachedSpotStateUserAddress ||
-            this.#cachedSpotStateUserAddress === lowerUserAddress)
+          this.#cachedSpotStateUserAddress === lowerUserAddress
         ) {
-          this.#cachedSpotStateUserAddress = lowerUserAddress;
           if (this.#dexAccountCache.size > 0) {
             this.#aggregateAndNotifySubscribers();
           }
@@ -1206,15 +1206,12 @@ export class HyperLiquidSubscriptionService {
       }
 
       this.#cachedSpotState = spotResult.value;
-      // Only seal the cache for this user if we have a resolved abstraction
-      // mode. Without it, Unified / Portfolio Margin users would stay
-      // fail-closed (no fold) after a transient userAbstraction failure,
-      // under-reporting their balance until cleanup or account switch.
-      // Leaving #cachedSpotStateUserAddress unset forces the next
-      // #ensureSpotState() to re-run both fetches.
-      if (this.#abstractionModeByUser.has(lowerUserAddress)) {
-        this.#cachedSpotStateUserAddress = userAddress;
-      }
+      // Always record the spot owner so subsequent #ensureSpotState calls
+      // and recovery branches can identify whose data is cached. Fast-path
+      // eligibility is gated separately by #abstractionModeByUser.has(...);
+      // a transient abstraction failure leaves the user out of the map and
+      // the next #ensureSpotState retries both fetches.
+      this.#cachedSpotStateUserAddress = lowerUserAddress;
 
       if (this.#dexAccountCache.size > 0) {
         this.#aggregateAndNotifySubscribers();
@@ -1266,13 +1263,11 @@ export class HyperLiquidSubscriptionService {
             // its result instead of overwriting this fresher WS snapshot.
             this.#spotStateGeneration += 1;
             this.#cachedSpotState = event.spotState;
-            const normalizedUserAddress = userAddress.toLowerCase();
-            // Only seal the cache once abstraction mode is known. Otherwise a
-            // WS snapshot can make #ensureSpotState fast-return forever while
-            // #getSpotBalanceOptions treats the missing mode as Unified.
-            if (this.#abstractionModeByUser.has(normalizedUserAddress)) {
-              this.#cachedSpotStateUserAddress = normalizedUserAddress;
-            }
+            // Always record the spot owner so subsequent generation guards
+            // and recovery branches can identify whose data is cached.
+            // Fast-path eligibility is gated separately in #ensureSpotState
+            // by checking #abstractionModeByUser.has(...).
+            this.#cachedSpotStateUserAddress = userAddress.toLowerCase();
 
             if (this.#dexAccountCache.size > 0) {
               this.#aggregateAndNotifySubscribers();
