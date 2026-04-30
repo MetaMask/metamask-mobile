@@ -15,9 +15,13 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
+  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -26,6 +30,8 @@ import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import { debounce } from 'lodash';
+
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 
@@ -59,10 +65,7 @@ const BottomSheetDialog = forwardRef<
       keyboardAvoidingViewEnabled = true,
       onClose,
       onOpen,
-      // Deprecated under react-native-gesture-handler v2: the legacy
-      // PanGestureHandler-style config bag is no longer wired through.
-      // See BottomSheetDialog.types.ts for the migration note.
-      panGestureHandlerProps: _panGestureHandlerProps,
+      panGestureHandlerProps,
       style,
       ...props
     },
@@ -82,11 +85,9 @@ const BottomSheetDialog = forwardRef<
     // X and Y values start on top left of the DIALOG
     // currentYOffset will be used to animate the Y position of the Dialog
     const currentYOffset = useSharedValue(screenHeight);
-    const gestureStartY = useSharedValue(0);
     const topOfDialogYValue = useSharedValue(0);
     const bottomOfDialogYValue = useSharedValue(screenHeight);
     const isMounted = useRef(false);
-    const isClosingRef = useRef(false);
 
     const onOpenCB = useCallback(() => {
       onOpen?.();
@@ -96,8 +97,6 @@ const BottomSheetDialog = forwardRef<
     }, [onClose]);
 
     const onCloseDialog = useCallback(() => {
-      if (isClosingRef.current) return;
-      isClosingRef.current = true;
       currentYOffset.value = withTiming(
         bottomOfDialogYValue.value,
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
@@ -107,15 +106,17 @@ const BottomSheetDialog = forwardRef<
       /* eslint-disable-next-line */
     }, [onCloseCB]);
 
-    const panGesture = Gesture.Pan()
-      .enabled(isInteractable)
-      .onBegin(() => {
+    const gestureHandler = useAnimatedGestureHandler<
+      PanGestureHandlerGestureEvent,
+      { startY: number }
+    >({
+      onStart: (_, ctx) => {
         // Starts tracking vertical position of gesture
-        gestureStartY.value = currentYOffset.value;
-      })
-      .onUpdate((event) => {
+        ctx.startY = currentYOffset.value;
+      },
+      onActive: (event, ctx) => {
         const { translationY } = event;
-        currentYOffset.value = gestureStartY.value + translationY;
+        currentYOffset.value = ctx.startY + translationY;
         // If gesture Y value goes above the bottom of Dialog Y value(bottom of dialog),
         // which means the gesture is currently below the bottom of the dialog,
         // sets it to bottom of Dialog Y value
@@ -128,13 +129,13 @@ const BottomSheetDialog = forwardRef<
         if (currentYOffset.value <= topOfDialogYValue.value) {
           currentYOffset.value = topOfDialogYValue.value;
         }
-      })
-      .onEnd((event) => {
+      },
+      onEnd: (event, ctx) => {
         const { translationY, velocityY } = event;
         // finalYOffset is used to animate the Y position of the Dialog after the gesture event
         let finalYOffset: number;
         // Measuring dismissing swipe action
-        const latestOffset = gestureStartY.value + translationY;
+        const latestOffset = ctx.startY + translationY;
         // Check if the swipe distance reach the dismiss offset threshold,
         // which is currently 60% of sheet height
         const hasReachedDismissOffset =
@@ -171,11 +172,11 @@ const BottomSheetDialog = forwardRef<
             duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
           });
         }
-      });
+      },
+    });
 
     // Animate in sheet on initial render.
     const onOpenDialog = () => {
-      isClosingRef.current = false;
       // Starts setting the Y position of the dialog to the bottom of the dialog
       currentYOffset.value = bottomOfDialogYValue.value;
       // Animate the Y position to the top of the dialog, then call onOpenCB
@@ -187,6 +188,21 @@ const BottomSheetDialog = forwardRef<
         () => runOnJS(onOpenCB)(),
       );
     };
+
+    const onDebouncedCloseDialog = useMemo(
+      // Prevent hide from being called multiple times. Potentially caused by taps in quick succession.
+      () => debounce(onCloseDialog, 2000, { leading: true }),
+      [onCloseDialog],
+    );
+
+    useEffect(
+      () =>
+        // Automatically handles animation when content changes
+        // Disable for now since network switches causes the screen to hang with this on.
+        // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        onDebouncedCloseDialog.cancel(),
+      [children, onDebouncedCloseDialog],
+    );
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
@@ -227,7 +243,11 @@ const BottomSheetDialog = forwardRef<
         enabled={keyboardAvoidingViewEnabled}
         {...props}
       >
-        <GestureDetector gesture={panGesture}>
+        <PanGestureHandler
+          enabled={isInteractable}
+          onGestureEvent={gestureHandler}
+          {...panGestureHandlerProps}
+        >
           <Animated.View
             onLayout={updateSheetHeight}
             style={combinedSheetStyle}
@@ -239,7 +259,7 @@ const BottomSheetDialog = forwardRef<
             )}
             {children}
           </Animated.View>
-        </GestureDetector>
+        </PanGestureHandler>
       </KeyboardAvoidingView>
     );
   },
