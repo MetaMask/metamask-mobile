@@ -44,16 +44,14 @@ const baseClaimData = {
   refetch: jest.fn(),
 };
 
-const mockBalance = (fiatBalanceAggregated: string | undefined) =>
+const mockBalance = (musdBalance: string | undefined) =>
   ({
-    fiatBalanceAggregated,
-    fiatBalanceAggregatedFormatted: fiatBalanceAggregated
-      ? `$${fiatBalanceAggregated}`
-      : undefined,
+    fiatBalanceAggregated: musdBalance,
+    fiatBalanceAggregatedFormatted: musdBalance ? `$${musdBalance}` : undefined,
     fiatBalanceByChain: {},
     fiatBalanceFormattedByChain: {},
-    tokenBalanceAggregated: '0',
-    hasMusdBalanceOnAnyChain: false,
+    tokenBalanceAggregated: musdBalance ?? '0',
+    hasMusdBalanceOnAnyChain: !!musdBalance,
   }) as ReturnType<typeof useMusdBalance>;
 
 describe('YourBonusCard', () => {

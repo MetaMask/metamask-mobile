@@ -49,19 +49,22 @@ const YourBonusCard: React.FC = () => {
     MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
   );
 
-  const { fiatBalanceAggregated } = useMusdBalance();
+  const { tokenBalanceAggregated } = useMusdBalance();
 
+  // mUSD is 1:1 with USD, so the token balance doubles as the USD amount.
+  // Avoid fiatBalanceAggregated — that's converted into the user's preferred
+  // fiat currency and would mislabel non-USD amounts as dollars.
   const estimatedAnnualBonus = useMemo(
     () =>
-      fiatBalanceAggregated
+      tokenBalanceAggregated
         ? formatUsd(
-            new BigNumber(fiatBalanceAggregated)
+            new BigNumber(tokenBalanceAggregated)
               .multipliedBy(MUSD_CONVERSION_APY)
               .dividedBy(100)
               .toFixed(2),
           )
         : null,
-    [fiatBalanceAggregated],
+    [tokenBalanceAggregated],
   );
 
   const lifetimeFormatted = lifetimeBonusClaimed
