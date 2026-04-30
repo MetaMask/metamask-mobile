@@ -16,6 +16,11 @@ import {
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
+import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
 import {
   useTransactionPayIsMaxAmount,
@@ -58,8 +63,21 @@ export function useTransactionCustomAmount({
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
+  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
-  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const payTokenFiatRate =
+    useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const musdFiatRate =
+    useTokenFiatRate(
+      MUSD_TOKEN_ADDRESS,
+      MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+      currency,
+    ) ?? 1;
+  const tokenFiatRate = isMoneyAccountWithdraw
+    ? musdFiatRate
+    : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
   const { updateTokenAmount: updateTokenAmountCallback } =
@@ -161,13 +179,14 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // For perps withdraw, do NOT set isMaxAmount=true. TPC's
-      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw`
-      // (the Arbitrum USDC wallet balance — wrong for a HyperLiquid-source
-      // withdrawal) instead of `token.amountRaw` (the typed HL balance).
-      // Letting isMaxAmount stay false routes the typed amount through,
-      // so the user actually withdraws their full balance.
-      const shouldSetMax = percentage === 100 && !isPerpsWithdraw;
+      // Do NOT set isMaxAmount=true for perps or money-account withdraw. TPC's
+      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
+      // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
+      // balance) and wrong for money account (on-chain mUSD only vs mUSD +
+      // musdSHFvd fiat total). Keeping isMaxAmount false routes the typed
+      // amount through as token.amountRaw.
+      const shouldSetMax =
+        percentage === 100 && !isPerpsWithdraw && !isMoneyAccountWithdraw;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -177,7 +196,14 @@ export function useTransactionCustomAmount({
 
       setAmountFiat(newAmount);
     },
-    [balanceUsd, isMaxAmount, isPerpsWithdraw, setIsMax, setConfirmationMetric],
+    [
+      balanceUsd,
+      isMaxAmount,
+      isPerpsWithdraw,
+      isMoneyAccountWithdraw,
+      setIsMax,
+      setConfirmationMetric,
+    ],
   );
 
   const updateTokenAmount = useCallback(() => {
@@ -228,10 +254,25 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
+  const { tokenTotal: moneyAccountTokenTotal } = useMoneyAccountBalance();
+
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
     const availableBalance = perpsState?.accountState?.availableBalance;
     return availableBalance ? parseFloat(availableBalance) : 0;
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    // `tokenTotal` is mUSD-denominated (mUSD + musdSHFvd). Use mUSD's fiat rate
+    // on the canonical chain only — not the pay-token address from tx metadata.
+    if (moneyAccountTokenTotal === undefined) {
+      return 0;
+    }
+    return new BigNumber(moneyAccountTokenTotal)
+      .multipliedBy(tokenUsdRate)
+      .toNumber();
   }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
