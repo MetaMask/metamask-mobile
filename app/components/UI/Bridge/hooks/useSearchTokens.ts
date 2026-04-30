@@ -2,10 +2,10 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
-import { PopularToken, IncludeAsset } from './usePopularTokens';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
+import type { IncludeAsset, PopularToken } from '../types';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -25,7 +25,7 @@ interface UseSearchTokensParams {
 }
 
 interface UseSearchTokensResult {
-  searchResults: PopularToken[];
+  searchResults: (PopularToken | IncludeAsset)[];
   isSearchLoading: boolean;
   isLoadingMore: boolean;
   searchCursor: string | undefined;
@@ -44,7 +44,9 @@ export const useSearchTokens = ({
   chainIds,
   includeAssets,
 }: UseSearchTokensParams): UseSearchTokensResult => {
-  const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
+  const [searchResults, setSearchResults] = useState<
+    (PopularToken | IncludeAsset)[]
+  >([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -95,19 +97,20 @@ export const useSearchTokens = ({
       const isPagination =
         cursor && currentSearchQueryRef.current === query.trim();
 
+      const parsedIncludeAssets: IncludeAsset[] = isPagination
+        ? []
+        : JSON.parse(includeAssetsRef.current);
+
       if (isPagination) {
         setIsLoadingMore(true);
       } else {
         setIsSearchLoading(true);
         currentSearchQueryRef.current = query.trim();
         setCurrentSearchQuery(query.trim());
+        setSearchResults(parsedIncludeAssets);
       }
 
       try {
-        const parsedIncludeAssets: IncludeAsset[] = isPagination
-          ? []
-          : JSON.parse(includeAssetsRef.current);
-
         const requestBody: {
           chainIds: CaipChainId[];
           query: string;
@@ -173,7 +176,6 @@ export const useSearchTokens = ({
         console.error('Error searching tokens:', error);
         // Reset search state on error only if it's not a pagination request
         if (!isPagination) {
-          setSearchResults([]);
           setSearchCursor(undefined);
         }
       } finally {

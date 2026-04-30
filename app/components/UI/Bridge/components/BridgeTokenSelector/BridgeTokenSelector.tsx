@@ -53,14 +53,18 @@ import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { BridgeToken, TokenSelectorType } from '../../types';
+import {
+  type BridgeToken,
+  type IncludeAsset,
+  TokenSelectorType,
+} from '../../types';
 import { usePopularTokens } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
-import { tokenMatchesQuery } from '../../utils/tokenUtils';
+import { tokenMatchesQuery, tokenToIncludeAsset } from '../../utils/tokenUtils';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 
@@ -195,9 +199,13 @@ export const BridgeTokenSelector: React.FC = () => {
   const searchIncludeAssets = useMemo(
     () =>
       JSON.stringify(
-        tokensWithBalance.filter((token) =>
-          tokenMatchesQuery(token, searchQuery),
-        ),
+        tokensWithBalance
+          .map((token) =>
+            tokenMatchesQuery(token, searchQuery)
+              ? tokenToIncludeAsset(token)
+              : null,
+          )
+          .filter((asset): asset is IncludeAsset => asset !== null),
       ),
     [tokensWithBalance, searchQuery],
   );
