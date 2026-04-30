@@ -68,10 +68,7 @@ const ExploreV1PerpsBlock: React.FC<ExploreV1PerpsBlockProps> = ({
         data={perps.data}
         isLoading={perps.isLoading}
         renderItem={(item) => (
-          <PerpsTileRowItem
-            item={item}
-            testIdPrefix="explore-v1-perps-market-tile-card"
-          />
+          <PerpsTileRowItem item={item} testIdPrefix="perps-market-tile-card" />
         )}
         keyExtractor={(item) => item.market.symbol}
         Skeleton={PerpsMarketTileCardSkeleton}
@@ -106,7 +103,7 @@ const ExplorePageV1: React.FC<TabProps> = ({
     ({ item }) => (
       <PredictionCarouselRowItem
         market={item}
-        testIdPrefix="explore-v1-predict-market-row-item"
+        testIdPrefix="predict-market-row-item"
       />
     ),
     [],

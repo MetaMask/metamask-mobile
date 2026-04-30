@@ -13,6 +13,8 @@ import {
   selectCardAvailableTokens,
   selectCardFundingTokens,
   selectCardDelegationSettings,
+  selectCardHasApprovedLineaFunding,
+  selectCardLineaUsdcToken,
 } from './cardController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
 import {
@@ -444,5 +446,93 @@ describe('selectCardDelegationSettings', () => {
     expect(selectCardDelegationSettings(state)).toStrictEqual(
       mockCardHomeData.delegationSettings,
     );
+  });
+});
+
+describe('selectCardHasApprovedLineaFunding', () => {
+  it('returns false when cardHomeData is null', () => {
+    const state = createMockRootState({ cardHomeData: null });
+    expect(selectCardHasApprovedLineaFunding(state)).toBe(false);
+  });
+
+  it('returns true when a Linea funding asset is approved', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectCardHasApprovedLineaFunding(state)).toBe(true);
+  });
+
+  it('returns false when Linea funding assets are inactive', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        fundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            status: FundingAssetStatus.Inactive,
+          },
+        ],
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectCardHasApprovedLineaFunding(state)).toBe(false);
+  });
+
+  it('returns false when approved funding assets are not on Linea', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        fundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            chainId: 'eip155:8453',
+            status: FundingAssetStatus.Active,
+          },
+        ],
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectCardHasApprovedLineaFunding(state)).toBe(false);
+  });
+});
+
+describe('selectCardLineaUsdcToken', () => {
+  it('returns null when cardHomeData is null', () => {
+    const state = createMockRootState({ cardHomeData: null });
+    expect(selectCardLineaUsdcToken(state)).toBeNull();
+  });
+
+  it('returns the USDC token on Linea from available funding assets', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectCardLineaUsdcToken(state)).toEqual(
+      expect.objectContaining({
+        symbol: 'USDC',
+        caipChainId: 'eip155:59144',
+        fundingStatus: FundingStatus.Limited,
+      }),
+    );
+  });
+
+  it('returns null when USDC is not available on Linea', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        availableFundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            symbol: 'USDC',
+            chainId: 'eip155:8453',
+          },
+        ],
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectCardLineaUsdcToken(state)).toBeNull();
   });
 });

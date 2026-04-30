@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   TouchableOpacity,
   StyleSheet,
@@ -23,6 +23,12 @@ export interface SiteData {
   name: string;
   url: string;
   displayUrl: string;
+  /**
+   * Exact bookmark URL as persisted in Redux. When set (e.g. favorites from
+   * `useBrowserFavoritesSites`), use {@link bookmarkUrlForRemoval} for
+   * `removeBookmark` so removal matches even if `url` was normalized with a protocol.
+   */
+  storedBookmarkUrl?: string;
   /** Remote URL string — passed to WebsiteIcon for favicon lookup. */
   logoUrl?: string;
   /** Local bundled image (require result) — rendered directly with <Image>, takes priority over logoUrl. */
@@ -33,6 +39,11 @@ export interface SiteData {
    * Useful for logos that extend to the edges (like the MetaMask fox).
    */
   logoNeedsPadding?: boolean;
+}
+
+/** `url` value to pass to `removeBookmark` for this site row. */
+export function bookmarkUrlForRemoval(site: SiteData): string {
+  return site.storedBookmarkUrl ?? site.url;
 }
 
 interface SiteRowItemProps {
@@ -48,6 +59,13 @@ const { icon: websiteIconStyle, iconWithPadding } = StyleSheet.create({
 
 const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
   const tw = useTailwind();
+  const [remoteLogoLoadError, setRemoteLogoLoadError] = useState(false);
+
+  useEffect(() => {
+    setRemoteLogoLoadError(false);
+  }, [site.id, site.logoUrl]);
+
+  const showRemoteLogoImage = Boolean(site.logoUrl) && !remoteLogoLoadError;
 
   return (
     <TouchableOpacity
@@ -64,11 +82,13 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
               source={site.logoSource}
               style={websiteIconStyle}
             />
-          ) : site.logoUrl ? (
+          ) : showRemoteLogoImage ? (
             <Image
               testID="site-logo-image"
               source={{ uri: site.logoUrl }}
               style={site.logoNeedsPadding ? iconWithPadding : websiteIconStyle}
+              resizeMode="contain"
+              onError={() => setRemoteLogoLoadError(true)}
             />
           ) : (
             <View testID="site-logo-fallback">

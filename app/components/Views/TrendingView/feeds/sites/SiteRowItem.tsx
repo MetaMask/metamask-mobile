@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import SiteRowItemBase, {
+  bookmarkUrlForRemoval,
   type SiteData,
 } from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -43,7 +44,12 @@ export const FavoriteSiteRowItem: React.FC<SiteRowItemProps> = ({ site }) => {
       site={site}
       onPress={() => openSiteInBrowser(navigation, site)}
       onRemoveFavorite={() =>
-        dispatch(removeBookmark({ url: site.url, name: site.name }))
+        dispatch(
+          removeBookmark({
+            url: bookmarkUrlForRemoval(site),
+            name: site.name,
+          }),
+        )
       }
     />
   );

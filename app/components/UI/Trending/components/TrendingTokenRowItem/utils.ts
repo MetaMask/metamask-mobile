@@ -1,5 +1,10 @@
 import { ImageSourcePropType } from 'react-native';
-import { CaipChainId, isCaipChainId } from '@metamask/utils';
+import {
+  CaipChainId,
+  isCaipChainId,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 import {
   getDefaultNetworkByChainId,
   getTestNetImageByChainId,
@@ -34,8 +39,12 @@ export const getNetworkBadgeSource = (
   const popularNetwork = PopularList.find((n) => n.chainId === hexChainId);
   const network = unpopularNetwork || popularNetwork;
   if (network) return network.rpcPrefs.imageSource;
-  if (isCaipChainId(caipChainId))
+  if (
+    isCaipChainId(caipChainId) &&
+    parseCaipChainId(caipChainId).namespace !== KnownCaipNamespace.Eip155
+  ) {
     return getNonEvmNetworkImageSourceByChainId(caipChainId);
+  }
   const customNetworkImg = CustomNetworkImgMapping[hexChainId];
   if (customNetworkImg) return customNetworkImg as ImageSourcePropType;
   return undefined;
