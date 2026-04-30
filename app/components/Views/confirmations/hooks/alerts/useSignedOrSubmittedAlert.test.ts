@@ -340,6 +340,11 @@ describe('useSignedOrSubmittedAlert', () => {
                   },
                 ],
               },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  confirmations_pay_hardware: { enabled: true },
+                },
+              },
             },
           },
         },
