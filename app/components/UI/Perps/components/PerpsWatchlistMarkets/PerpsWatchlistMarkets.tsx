@@ -101,7 +101,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     return (
       <View style={[styles.section, sectionStyle]}>
         <SectionHeader />
-        <View style={[styles.contentContainer, contentContainerStyle]}>
+        <View style={contentContainerStyle}>
           <PerpsRowSkeleton count={3} />
         </View>
       </View>
@@ -117,7 +117,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   return (
     <View style={[styles.section, sectionStyle]}>
       <SectionHeader />
-      <View style={[styles.contentContainer, contentContainerStyle]}>
+      <View style={contentContainerStyle}>
         <FlatList
           data={markets}
           renderItem={renderMarket}

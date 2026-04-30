@@ -73,6 +73,7 @@ export function getTransactionControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountsController:getState',
       `ApprovalController:addRequest`,
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',

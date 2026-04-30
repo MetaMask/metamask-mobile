@@ -61,7 +61,6 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { SHOW_TOKEN_WARNINGS } from './TokenSelectorItem.config';
 import { getBridgeTokenSecurityConfig } from '../utils/tokenSecurityUtils';
 
 const createStyles = ({
@@ -321,9 +320,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
 
-  const securityTag = SHOW_TOKEN_WARNINGS
-    ? getSecurityTag(token.securityData?.type)
-    : null;
+  const securityTag = getSecurityTag(token.securityData?.type);
 
   return (
     <Box

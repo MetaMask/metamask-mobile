@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "No funds available. Use a different account."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
@@ -2445,6 +2445,12 @@
           "title": "Claim already in progress"
         }
       }
+    },
+    "payment": {
+      "change_payment_method": "Change Payment Method",
+      "add_funds": "Add Funds",
+      "add": "Add",
+      "predict_balance": "Predict balance"
     },
     "order": {
       "available": "Available",
@@ -8080,7 +8086,8 @@
     "title": "Select payment method",
     "title_receive": "Select receive token",
     "no_gas": "No native balance for gas",
-    "not_supported": "Not supported"
+    "not_supported": "Not supported",
+    "crypto": "Crypto"
   },
   "connection_removed_modal": {
     "title": "Connections removed",
