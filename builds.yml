@@ -9,6 +9,7 @@
 #   - env: sets environment variables directly (servers, build config, etc.)
 #   - secrets: maps env var names to GitHub Secret names
 #   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
+#   - script_name: (optional) yarn script base name override (defaults to the build key name)
 #   - code_fencing: features to include via code fencing
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
@@ -311,6 +312,7 @@ builds:
 
   # Expo dev build (Debug, simulator + device — triggered on push to main)
   main-dev-expo:
+    script_name: main-dev
     github_environment: build-dev
     signing: *signing_dev
     env:
