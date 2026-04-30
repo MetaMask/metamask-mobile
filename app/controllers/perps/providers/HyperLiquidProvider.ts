@@ -119,6 +119,7 @@ import type {
 } from '../types/hyperliquid-types';
 import {
   HL_ABSTRACTION_WIRE,
+  HL_UNIFIED_ACCOUNT_MODE,
   hyperLiquidModeFoldsSpot,
 } from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
@@ -706,6 +707,22 @@ export class HyperLiquidProvider implements PerpsProvider {
         return;
       }
 
+      // Bail on unknown modes BEFORE firing analytics or attempting dispatch.
+      // Keeps `migration_required` actionable (only fires for modes we can
+      // actually migrate) and avoids re-emitting on every reconnection.
+      if (
+        currentMode !== 'dexAbstraction' &&
+        currentMode !== 'default' &&
+        currentMode !== 'disabled'
+      ) {
+        this.#deps.debugLogger.log(
+          'HyperLiquidProvider: Unknown abstraction mode, skipping Unified Account migration',
+          { user: userAddress, network, mode: currentMode },
+        );
+        completeInFlight();
+        return;
+      }
+
       // Track which mode users are currently on before we attempt migration.
       // This tells us the distribution of legacy modes across our user base.
       this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
@@ -735,20 +752,13 @@ export class HyperLiquidProvider implements PerpsProvider {
         // so userSetAbstraction (user-signed) is the only path for legacy users.
         await exchangeClient.userSetAbstraction({
           user: userAddress,
-          abstraction: 'unifiedAccount',
+          abstraction: HL_UNIFIED_ACCOUNT_MODE,
         });
-      } else if (currentMode === 'default' || currentMode === 'disabled') {
-        // Silent — signed by agent key, no user prompt
+      } else {
+        // default / disabled — silent agent transition, no user prompt
         await exchangeClient.agentSetAbstraction({
           abstraction: HL_ABSTRACTION_WIRE.unifiedAccount,
         });
-      } else {
-        this.#deps.debugLogger.log(
-          'HyperLiquidProvider: Unknown abstraction mode, skipping Unified Account migration',
-          { user: userAddress, network, mode: currentMode },
-        );
-        completeInFlight();
-        return;
       }
 
       this.#deps.debugLogger.log(
@@ -756,8 +766,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
         [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
-        [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]:
-          PERPS_EVENT_VALUE.ABSTRACTION_MODE.UNIFIED_ACCOUNT,
+        [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: HL_UNIFIED_ACCOUNT_MODE,
         [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
       });
       TradingReadinessCache.set(network, userAddress, {
@@ -779,12 +788,17 @@ export class HyperLiquidProvider implements PerpsProvider {
         return;
       }
 
-      // Cache the attempt (even on failure) to prevent repeated signing requests.
-      // This is CRITICAL for hardware wallets — if user rejects, don't ask again.
-      TradingReadinessCache.set(network, userAddress, {
-        attempted: true,
-        enabled: false,
-      });
+      // Only cache failures that happened after we successfully read the
+      // current mode. Read-only userAbstraction lookup failures are transient
+      // (HL outage / network) and must not block all future migration attempts
+      // for the rest of the session — no signing prompt has been shown yet,
+      // so the "don't re-prompt the user" rationale doesn't apply.
+      if (currentMode !== undefined) {
+        TradingReadinessCache.set(network, userAddress, {
+          attempted: true,
+          enabled: false,
+        });
+      }
 
       const errorMessage = ensureError(
         error,
@@ -792,14 +806,19 @@ export class HyperLiquidProvider implements PerpsProvider {
       ).message;
 
       this.#deps.debugLogger.log(
-        'HyperLiquidProvider: Unified Account setup failed, cached to prevent retries',
-        { user: userAddress, network, error: errorMessage },
+        'HyperLiquidProvider: Unified Account setup failed',
+        {
+          user: userAddress,
+          network,
+          error: errorMessage,
+          cached: currentMode !== undefined,
+        },
       );
 
       this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
         ...(currentMode && {
           [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
-          [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: currentMode,
+          [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: HL_UNIFIED_ACCOUNT_MODE,
         }),
         [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
         [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,

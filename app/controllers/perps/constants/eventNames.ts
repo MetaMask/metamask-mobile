@@ -361,13 +361,6 @@ export const PERPS_EVENT_VALUE = {
     ALREADY_ENABLED: 'already_enabled',
     MIGRATION_REQUIRED: 'migration_required',
   },
-  ABSTRACTION_MODE: {
-    UNIFIED_ACCOUNT: 'unifiedAccount',
-    DEX_ABSTRACTION: 'dexAbstraction',
-    PORTFOLIO_MARGIN: 'portfolioMargin',
-    DISABLED: 'disabled',
-    DEFAULT: 'default',
-  },
   SCREEN_TYPE: {
     MARKETS: 'markets',
     MARKET_LIST: 'market_list',

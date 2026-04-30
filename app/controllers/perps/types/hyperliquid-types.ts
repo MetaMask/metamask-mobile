@@ -31,6 +31,13 @@ export const HL_ABSTRACTION_WIRE = {
 } as const;
 
 /**
+ * Long-form abstraction-mode value targeted by the migration. Used as the
+ * `abstraction` parameter for `userSetAbstraction` and as the success / target
+ * value reported by Account Setup analytics.
+ */
+export const HL_UNIFIED_ACCOUNT_MODE = 'unifiedAccount' as const;
+
+/**
  * True when the given HL abstraction mode treats spot balances as perps
  * collateral. Missing mode is treated as Unified to avoid under-reporting
  * usable balance during a transient userAbstraction fetch failure.

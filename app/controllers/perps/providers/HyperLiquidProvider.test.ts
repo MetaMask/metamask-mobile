@@ -9017,14 +9017,15 @@ describe('HyperLiquidProvider', () => {
         attempted: true,
         enabled: false,
       });
-      // Analytics failure event emitted
+      // Analytics failure event emitted with the intended target so the
+      // funnel can compare attempts vs successes by `abstraction_mode`.
       expect(
         mockPlatformDependencies.metrics.trackPerpsEvent,
       ).toHaveBeenCalledWith(
         'Perp Account Setup',
         expect.objectContaining({
           previous_abstraction_mode: 'default',
-          abstraction_mode: 'default',
+          abstraction_mode: 'unifiedAccount',
           status: 'failed',
           error_message: expect.stringContaining('User rejected signing'),
         }),
@@ -9076,6 +9077,35 @@ describe('HyperLiquidProvider', () => {
       expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
       // In-flight lock still released
       expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    it('does NOT cache failure when userAbstraction read itself rejects', async () => {
+      // Read-only userAbstraction lookup failures (transient HL outage /
+      // network) must not block all future migration attempts for the rest
+      // of the session — no signing prompt has happened yet, so the
+      // "don't re-prompt the user" rationale doesn't apply.
+      const lookupError = new Error('HL info endpoint timeout');
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockRejectedValue(lookupError),
+        }),
+      );
+      const mockExchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act - should resolve without throwing
+      await provider.getMarketDataWithPrices();
+
+      // Assert - cache NOT written so the next call retries the lookup
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).not.toHaveBeenCalled();
+      // No signing happened
+      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+      expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
     });
 
     // ─────────────────────────────────────────────────
