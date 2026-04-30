@@ -687,9 +687,12 @@ export class HyperLiquidProvider implements PerpsProvider {
           attempted: true,
           enabled: true,
         });
-        // Evict any stale pre-migration abstraction mode the subscription service
-        // may have cached so the next aggregation uses the correct fold behaviour.
-        this.#subscriptionService.invalidateUserAbstractionCache(userAddress);
+        // Record the resolved mode in the subscription service so the next
+        // aggregation folds spot correctly without waiting for #refreshSpotState.
+        this.#subscriptionService.setUserAbstractionMode(
+          userAddress,
+          currentMode,
+        );
         completeInFlight();
         return;
       }
@@ -773,10 +776,13 @@ export class HyperLiquidProvider implements PerpsProvider {
         attempted: true,
         enabled: true,
       });
-      // Evict the pre-migration abstraction mode from the subscription service
-      // so it immediately re-aggregates with fold=true and surfaces the correct
-      // unified balance rather than waiting for the next #refreshSpotState.
-      this.#subscriptionService.invalidateUserAbstractionCache(userAddress);
+      // Record the post-migration mode in the subscription service so it
+      // immediately re-aggregates with fold=true and surfaces the unified
+      // balance rather than waiting for the next #refreshSpotState.
+      this.#subscriptionService.setUserAbstractionMode(
+        userAddress,
+        HL_UNIFIED_ACCOUNT_MODE,
+      );
       completeInFlight();
     } catch (error) {
       // If keyring is locked, don't cache so it retries when unlocked
@@ -5737,7 +5743,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             .userAbstraction({ user: userAddress })
             .catch((error: unknown) => {
               this.#deps.debugLogger.log(
-                'Standalone userAbstraction fetch failed; falling back to Unified-mode assumption',
+                'Standalone userAbstraction fetch failed; spot fold disabled until the mode resolves',
                 {
                   error: ensureError(
                     error,
@@ -5810,7 +5816,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           : null;
       if (abstractionResult.status === 'rejected') {
         this.#deps.debugLogger.log(
-          'User abstraction fetch failed; falling back to Unified-mode assumption',
+          'User abstraction fetch failed; spot fold disabled until the mode resolves',
           {
             error: ensureError(
               abstractionResult.reason,

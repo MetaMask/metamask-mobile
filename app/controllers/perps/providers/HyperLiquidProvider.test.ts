@@ -431,8 +431,8 @@ describe('HyperLiquidProvider', () => {
       getCachedOrders: jest.fn().mockReturnValue([]),
       // Atomic getter - returns null when cache not initialized (prevents race condition)
       getOrdersCacheIfInitialized: jest.fn().mockReturnValue(null),
-      // Abstraction-mode cache invalidation (unified account migration)
-      invalidateUserAbstractionCache: jest.fn(),
+      // Abstraction-mode resolved-mode setter (unified account migration)
+      setUserAbstractionMode: jest.fn(),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
@@ -8897,10 +8897,11 @@ describe('HyperLiquidProvider', () => {
     });
 
     // ─────────────────────────────────────────────────
-    // invalidateUserAbstractionCache is called on every success path
+    // setUserAbstractionMode is called on every success path with the
+    // resolved mode so the subscription service can fold spot correctly.
     // ─────────────────────────────────────────────────
 
-    it('calls invalidateUserAbstractionCache when account is already unifiedAccount', async () => {
+    it('records unifiedAccount mode when account is already unifiedAccount', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
@@ -8910,11 +8911,11 @@ describe('HyperLiquidProvider', () => {
       await provider.getMarketDataWithPrices();
 
       expect(
-        mockSubscriptionService.invalidateUserAbstractionCache,
-      ).toHaveBeenCalledWith(USER_ADDRESS);
+        mockSubscriptionService.setUserAbstractionMode,
+      ).toHaveBeenCalledWith(USER_ADDRESS, 'unifiedAccount');
     });
 
-    it('calls invalidateUserAbstractionCache when account is already portfolioMargin', async () => {
+    it('records portfolioMargin mode when account is already portfolioMargin', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           userAbstraction: jest.fn().mockResolvedValue('portfolioMargin'),
@@ -8924,11 +8925,11 @@ describe('HyperLiquidProvider', () => {
       await provider.getMarketDataWithPrices();
 
       expect(
-        mockSubscriptionService.invalidateUserAbstractionCache,
-      ).toHaveBeenCalledWith(USER_ADDRESS);
+        mockSubscriptionService.setUserAbstractionMode,
+      ).toHaveBeenCalledWith(USER_ADDRESS, 'portfolioMargin');
     });
 
-    it('calls invalidateUserAbstractionCache after migrating from default → unifiedAccount', async () => {
+    it('records unifiedAccount mode after migrating from default → unifiedAccount', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           userAbstraction: jest.fn().mockResolvedValue('default'),
@@ -8941,14 +8942,14 @@ describe('HyperLiquidProvider', () => {
       await provider.getMarketDataWithPrices();
 
       expect(
-        mockSubscriptionService.invalidateUserAbstractionCache,
-      ).toHaveBeenCalledWith(USER_ADDRESS);
+        mockSubscriptionService.setUserAbstractionMode,
+      ).toHaveBeenCalledWith(USER_ADDRESS, 'unifiedAccount');
     });
 
-    it('does not call invalidateUserAbstractionCache on init when mode is dexAbstraction', async () => {
-      // Init defers the user-signed migration; no migration means no cache
-      // invalidation. The action-time path (covered by integration testing)
-      // is what triggers invalidation after a successful migration.
+    it('does not call setUserAbstractionMode on init when mode is dexAbstraction', async () => {
+      // Init defers the user-signed migration; no migration means no mode
+      // is recorded yet. The action-time path (covered by integration
+      // testing) is what records the new mode after a successful migration.
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
@@ -8961,11 +8962,11 @@ describe('HyperLiquidProvider', () => {
       await provider.getMarketDataWithPrices();
 
       expect(
-        mockSubscriptionService.invalidateUserAbstractionCache,
+        mockSubscriptionService.setUserAbstractionMode,
       ).not.toHaveBeenCalled();
     });
 
-    it('does NOT call invalidateUserAbstractionCache when migration fails', async () => {
+    it('does NOT call setUserAbstractionMode when migration fails', async () => {
       const mockExchangeClient = createMockExchangeClient();
       mockExchangeClient.agentSetAbstraction = jest
         .fn()
@@ -8982,7 +8983,7 @@ describe('HyperLiquidProvider', () => {
       await provider.getMarketDataWithPrices();
 
       expect(
-        mockSubscriptionService.invalidateUserAbstractionCache,
+        mockSubscriptionService.setUserAbstractionMode,
       ).not.toHaveBeenCalled();
     });
 

@@ -1052,18 +1052,37 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Evict a user's cached abstraction mode so the next aggregation uses the
-   * fail-open default (Unified). Call this immediately after a successful
-   * Unified Account migration so the subscription service doesn't keep serving
-   * the pre-migration mode until the next #refreshSpotState completes.
+   * Record a user's resolved abstraction mode and immediately re-aggregate.
+   * Call after the provider has confirmed the on-chain mode (already-enabled
+   * or just-migrated). Setting the mode (rather than deleting it) ensures
+   * `hyperLiquidModeFoldsSpot` returns the correct fold decision on the next
+   * aggregation — a delete would leave the user pinned to fail-closed
+   * (no fold) until the next refresh, under-reporting balance for Unified
+   * and Portfolio Margin users.
    *
-   * If the DEX account cache is already populated the corrected balance is
-   * pushed to subscribers immediately.
+   * Seals `#cachedSpotStateUserAddress` if spot is already cached for this
+   * user (fast-path optimization for the next `#ensureSpotState`). Skips the
+   * seal if spot belongs to a different user — the next refresh will sort
+   * everything out.
    *
-   * @param userAddress - The EVM address whose cached mode should be evicted.
+   * @param userAddress - The EVM address whose mode is being recorded.
+   * @param mode - The current abstraction mode for this user.
    */
-  public invalidateUserAbstractionCache(userAddress: string): void {
-    this.#abstractionModeByUser.delete(userAddress.toLowerCase());
+  public setUserAbstractionMode(
+    userAddress: string,
+    mode: UserAbstractionResponse,
+  ): void {
+    const lower = userAddress.toLowerCase();
+    this.#abstractionModeByUser.set(lower, mode);
+
+    if (
+      this.#cachedSpotState &&
+      (!this.#cachedSpotStateUserAddress ||
+        this.#cachedSpotStateUserAddress === lower)
+    ) {
+      this.#cachedSpotStateUserAddress = lower;
+    }
+
     if (this.#dexAccountCache.size > 0) {
       this.#aggregateAndNotifySubscribers();
     }
@@ -1147,7 +1166,7 @@ export class HyperLiquidSubscriptionService {
         );
       } else {
         this.#deps.debugLogger.log(
-          'User abstraction fetch failed during spot refresh; falling back to Unified-mode assumption',
+          'User abstraction fetch failed during spot refresh; spot fold disabled until the mode resolves',
           {
             error: ensureError(
               abstractionResult.reason,
@@ -1163,10 +1182,11 @@ export class HyperLiquidSubscriptionService {
 
       this.#cachedSpotState = spotResult.value;
       // Only seal the cache for this user if we have a resolved abstraction
-      // mode. Without it, the fail-open Unified default would fold spot for
-      // Standard / dexAbstraction users indefinitely after a transient
-      // userAbstraction failure. Leaving #cachedSpotStateUserAddress unset
-      // forces the next #ensureSpotState() to re-run both fetches.
+      // mode. Without it, Unified / Portfolio Margin users would stay
+      // fail-closed (no fold) after a transient userAbstraction failure,
+      // under-reporting their balance until cleanup or account switch.
+      // Leaving #cachedSpotStateUserAddress unset forces the next
+      // #ensureSpotState() to re-run both fetches.
       if (this.#abstractionModeByUser.has(userAddress.toLowerCase())) {
         this.#cachedSpotStateUserAddress = userAddress;
       }
