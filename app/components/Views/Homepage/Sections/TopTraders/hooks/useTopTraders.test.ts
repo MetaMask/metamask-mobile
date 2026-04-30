@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import { addBreadcrumb } from '@sentry/react-native';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { useTopTraders } from './useTopTraders';
@@ -59,6 +60,12 @@ const mockLeaderboardResponse = { traders: mockTraders };
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
+}));
+
+const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
+
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -69,6 +76,7 @@ const makeQueryResult = (
   ({
     data: undefined,
     isLoading: false,
+    isFetching: false,
     error: null,
     refetch: mockRefetch,
     ...overrides,
@@ -79,6 +87,7 @@ describe('useTopTraders', () => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockUseSelector.mockReturnValue([]);
+    mockAddBreadcrumb.mockClear();
   });
 
   describe('data mapping', () => {
@@ -155,13 +164,17 @@ describe('useTopTraders', () => {
       expect(result.current.error).toBe('Network error');
     });
 
-    it('logs the full error object via Logger.error', () => {
+    it('logs the full error object via Logger.error with enriched extras', () => {
       const err = new Error('Network error');
       mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
       renderHook(() => useTopTraders());
       expect(Logger.error).toHaveBeenCalledWith(
         err,
-        'useTopTraders: leaderboard fetch failed',
+        expect.objectContaining({
+          message: 'useTopTraders: leaderboard fetch failed',
+          endpoint: 'leaderboard',
+          errorCategory: expect.any(String),
+        }),
       );
     });
 
@@ -316,8 +329,46 @@ describe('useTopTraders', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         err,
-        'useTopTraders: refresh failed',
+        expect.objectContaining({
+          message: 'useTopTraders: refresh failed',
+          endpoint: 'leaderboard',
+          errorCategory: expect.any(String),
+        }),
       );
+    });
+  });
+
+  describe('breadcrumbs', () => {
+    it('emits a failure breadcrumb when an error is set', () => {
+      const err = new Error('fetch failed');
+      mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
+      renderHook(() => useTopTraders());
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'social_service',
+          level: 'error',
+          message: expect.stringContaining(
+            'social_service.leaderboard.failure',
+          ),
+        }),
+      );
+    });
+
+    it('includes httpStatus in the failure breadcrumb for HttpError', () => {
+      const err = Object.assign(new Error('Unauthorized'), { httpStatus: 401 });
+      mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
+      renderHook(() => useTopTraders());
+      expect(mockAddBreadcrumb.mock.calls[0][0].message).toContain(
+        'status=401',
+      );
+    });
+
+    it('does not emit a breadcrumb when there is no error', () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: mockLeaderboardResponse as never }),
+      );
+      renderHook(() => useTopTraders());
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
     });
   });
 
