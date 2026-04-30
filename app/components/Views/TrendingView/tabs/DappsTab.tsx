@@ -100,7 +100,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       {showSites && (
         <Box>
           <SectionHeader
-            title={strings('trending.sites')}
+            title={strings('trending.popular')}
             onViewAll={() => navigation.navigate(Routes.SITES_FULL_VIEW)}
             testID="section-header-view-all-sites"
           />
