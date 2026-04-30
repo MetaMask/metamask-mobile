@@ -60,9 +60,6 @@ export const useDiscoveryScrollManager = ({
   const lastScrollY = useSharedValue(0);
   const accumulatedDelta = useSharedValue(0);
   const lastDirection = useSharedValue(0);
-  // Number of scroll events to ignore after a tab switch. Using a counter
-  // instead of a boolean handles multiple settling events that fire when
-  // views stay mounted (opacity approach) and are switching back into view.
   const tabSwitchEventsToSkip = useSharedValue(0);
 
   const [headerHidden, setHeaderHidden] = useState(false);
@@ -72,20 +69,17 @@ export const useDiscoveryScrollManager = ({
     sharedHeaderHeight.value = walletHeaderHeight;
   }, [walletHeaderHeight, sharedHeaderHeight]);
 
-  // Stable refs so worklets can call the latest callbacks without recreating
-  // the scroll handler on every render.
   const onPortfolioScrollRef = useRef<(() => void) | undefined>(undefined);
   onPortfolioScrollRef.current = onPortfolioScroll;
-  const callPortfolioScroll = useCallback(() => {
-    onPortfolioScrollRef.current?.();
-  }, []);
 
   const onScrollEventRef = useRef<
     ((scrollY: number, viewportHeight: number) => void) | undefined
   >(undefined);
   onScrollEventRef.current = onScrollEvent;
-  const callScrollEvent = useCallback(
+
+  const callScrollCallbacks = useCallback(
     (scrollY: number, viewportHeight: number) => {
+      onPortfolioScrollRef.current?.();
       onScrollEventRef.current?.(scrollY, viewportHeight);
     },
     [],
@@ -103,11 +97,8 @@ export const useDiscoveryScrollManager = ({
     onScroll: (event) => {
       'worklet';
 
-      // Forward to the section-visibility tracking subscribers
-      runOnJS(callPortfolioScroll)();
-
       const currentY = event.contentOffset.y;
-      runOnJS(callScrollEvent)(currentY, event.layoutMeasurement.height);
+      runOnJS(callScrollCallbacks)(currentY, event.layoutMeasurement.height);
 
       // Skip settling events after a tab switch. Multiple events can fire
       // when views remain mounted (opacity approach) and settle back into view.
