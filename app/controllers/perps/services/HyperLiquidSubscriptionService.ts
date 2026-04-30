@@ -1141,10 +1141,12 @@ export class HyperLiquidSubscriptionService {
         this.#walletService.createWalletAdapter(),
       );
 
-      if (generation !== this.#spotStateGeneration) {
-        return;
-      }
-
+      // Don't bail here even if generation has bumped (e.g. WS spot snapshot
+      // arrived while we awaited the subscription client). We still need to
+      // resolve `userAbstraction` for this user — the mode is user-keyed,
+      // independent of the spot generation, and the post-fetch path below
+      // correctly handles the generation-changed case (seal + re-aggregate
+      // instead of overwriting WS spot).
       const infoClient = this.#clientService.getInfoClient();
       const [spotResult, abstractionResult] = await Promise.allSettled([
         infoClient.spotClearinghouseState({
