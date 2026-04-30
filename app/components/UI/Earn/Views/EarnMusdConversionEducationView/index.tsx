@@ -29,6 +29,12 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import TagBase from '../../../../../component-library/base-components/TagBase';
+import {
+  TagShape,
+  TagSeverity,
+} from '../../../../../component-library/base-components/TagBase/TagBase.types';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -420,19 +426,7 @@ const EarnMusdConversionEducationView = () => {
             percentage: MUSD_CONVERSION_APY,
           })}
         </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
-          {strings('earn.musd_conversion.education.description', {
-            percentage: MUSD_CONVERSION_APY,
-          })}{' '}
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.termsText}
-            onPress={handleTermsOfUsePressed}
-          >
-            {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
-        </Text>
-        <View style={styles.checklist}>
+        <View style={styles.featureTags}>
           {[
             'earn.musd_conversion.education.checklist.dollar_backed',
             'earn.musd_conversion.education.checklist.no_lockups',
@@ -440,14 +434,24 @@ const EarnMusdConversionEducationView = () => {
             'earn.musd_conversion.education.checklist.metamask_stablecoins',
             'earn.musd_conversion.education.checklist.no_metamask_fee',
           ].map((key) => (
-            <View key={key} style={styles.checklistItem}>
-              <Icon
-                name={IconName.CheckBold}
-                size={IconSize.Sm}
-                color={IconColor.SuccessDefault}
-              />
-              <Text variant={TextVariant.BodyMD}>{strings(key)}</Text>
-            </View>
+            <TagBase
+              key={key}
+              shape={TagShape.Rectangle}
+              severity={TagSeverity.Neutral}
+              gap={4}
+              startAccessory={
+                <Icon
+                  name={IconName.CheckBold}
+                  size={IconSize.Sm}
+                  color={IconColor.SuccessDefault}
+                />
+              }
+              textProps={{
+                variant: ComponentTextVariant.BodySMMedium,
+              }}
+            >
+              {strings(key)}
+            </TagBase>
           ))}
         </View>
       </View>
@@ -458,6 +462,18 @@ const EarnMusdConversionEducationView = () => {
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
         />
       </View>
+      <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
+        {strings('earn.musd_conversion.education.description', {
+          percentage: MUSD_CONVERSION_APY,
+        })}{' '}
+        <Text
+          variant={TextVariant.BodyMD}
+          style={styles.termsText}
+          onPress={handleTermsOfUsePressed}
+        >
+          {strings('earn.musd_conversion.education.terms_apply')}
+        </Text>
+      </Text>
 
       <View style={styles.buttonsContainer}>
         <Button

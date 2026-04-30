@@ -30,6 +30,7 @@ export const styleSheet = (_params: { theme: Theme }) =>
     bodyText: {
       textAlign: 'center',
       paddingHorizontal: 30,
+      marginTop: 16,
     },
     buttonsContainer: {
       marginHorizontal: 32,
@@ -39,15 +40,12 @@ export const styleSheet = (_params: { theme: Theme }) =>
     termsText: {
       textDecorationLine: 'underline',
     },
-    checklist: {
-      paddingHorizontal: 32,
-      gap: 8,
-      marginTop: 24,
-      alignSelf: 'stretch',
-    },
-    checklistItem: {
+    featureTags: {
       flexDirection: 'row',
-      alignItems: 'center',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
       gap: 8,
+      paddingHorizontal: 16,
+      marginTop: 16,
     },
   });
