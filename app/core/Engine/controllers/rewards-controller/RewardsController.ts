@@ -56,7 +56,6 @@ import {
   getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
-import { captureException } from '@sentry/react-native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isHardwareAccount } from '../../../../util/address';
@@ -951,9 +950,6 @@ export class RewardsController extends BaseController<
       try {
         await this.#reauthPromises.get(subscriptionId);
       } catch (reauthError) {
-        captureException(reauthError, {
-          tags: { feature: 'rewards', context: 'withAuthRetry.reauth_failed' },
-        });
         this.invalidateSubscriptionCache(subscriptionId);
         await this.invalidateSubscriptionAndAccounts(subscriptionId);
         throw reauthError;
@@ -1026,12 +1022,6 @@ export class RewardsController extends BaseController<
           'RewardsController: Silent authentication failed:',
           error instanceof Error ? error.message : String(error),
         );
-        captureException(error, {
-          tags: {
-            feature: 'rewards',
-            context: 'handleAuthenticationTrigger.failed',
-          },
-        });
       }
     }
   }
@@ -1324,12 +1314,6 @@ export class RewardsController extends BaseController<
         // Unknown error
         subscription = null;
         authUnexpectedError = true;
-        captureException(error, {
-          tags: {
-            feature: 'rewards',
-            context: 'performSilentAuth.unexpected_error',
-          },
-        });
       }
     } finally {
       // Update state
@@ -1434,12 +1418,6 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to update perps fee discount:',
         error instanceof Error ? error.message : String(error),
       );
-      captureException(error, {
-        tags: {
-          feature: 'rewards',
-          context: 'getPerpsFeeDiscountData.fetch_failed',
-        },
-      });
       return null;
     }
   }

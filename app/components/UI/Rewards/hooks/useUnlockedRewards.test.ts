@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { captureException } from '@sentry/react-native';
 import { useUnlockedRewards } from './useUnlockedRewards';
 import Engine from '../../../../core/Engine';
 import {
@@ -197,9 +196,6 @@ describe('useUnlockedRewards', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(true));
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
     // Keep existing data on error to prevent UI flash (no setUnlockedRewards called)
-    expect(captureException).toHaveBeenCalledWith(mockError, {
-      tags: { feature: 'rewards', context: 'useUnlockedRewards.fetch_failed' },
-    });
   });
 
   it('should handle empty rewards array', async () => {

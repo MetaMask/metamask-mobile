@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -55,15 +54,10 @@ export const useUnlockedRewards = (): UseUnlockedRewardsReturn => {
       );
 
       dispatch(setUnlockedRewards(unlockedRewardsData));
-    } catch (error) {
+    } catch {
       // Keep existing data on error to prevent UI flash
       dispatch(setUnlockedRewardError(true));
-      captureException(error, {
-        tags: {
-          feature: 'rewards',
-          context: 'useUnlockedRewards.fetch_failed',
-        },
-      });
+      console.error('Error fetching unlocked rewards');
     } finally {
       isLoadingRef.current = false;
       dispatch(setUnlockedRewardLoading(false));

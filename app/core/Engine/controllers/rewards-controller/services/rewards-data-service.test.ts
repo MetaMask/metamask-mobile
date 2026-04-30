@@ -1,4 +1,3 @@
-import { captureException } from '@sentry/react-native';
 import {
   InvalidTimestampError,
   AuthorizationFailedError,
@@ -28,7 +27,6 @@ import {
   canChangeRewardsEnvUrl,
   getDefaultRewardsApiBaseUrlForMetaMaskEnv,
 } from '../utils/rewards-api-url';
-import { getVersion } from 'react-native-device-info';
 import type { CaipAccountId } from '@metamask/utils';
 import AppConstants from '../../../../AppConstants';
 
@@ -1958,8 +1956,7 @@ describe('RewardsDataService', () => {
 
     it('handles subscription token retrieval error', async () => {
       // Mock token retrieval throwing an error
-      const tokenError = new Error('Token error');
-      mockGetSubscriptionToken.mockRejectedValue(tokenError);
+      mockGetSubscriptionToken.mockRejectedValue(new Error('Token error'));
 
       const result = await service.getReferralDetails(
         mockSeasonId,
@@ -1975,12 +1972,6 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
-      expect(captureException).toHaveBeenCalledWith(tokenError, {
-        tags: {
-          feature: 'rewards',
-          context: 'makeRequest.bearer_token_failed',
-        },
-      });
     });
 
     it('handles timeout correctly', async () => {
@@ -2125,33 +2116,6 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
-    });
-
-    it('captures exception via Sentry when getVersion throws', async () => {
-      const versionError = new Error('Version retrieval failed');
-      (getVersion as jest.Mock).mockImplementationOnce(() => {
-        throw versionError;
-      });
-
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockLoginResponse),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await service.login({
-        account: '0x123',
-        timestamp: 1234567890,
-        signature: '0xsignature',
-      });
-
-      expect(captureException).toHaveBeenCalledWith(versionError, {
-        tags: {
-          feature: 'rewards',
-          context: 'makeRequest.app_version_failed',
-        },
-      });
-      expect(mockFetch).toHaveBeenCalled();
     });
   });
 

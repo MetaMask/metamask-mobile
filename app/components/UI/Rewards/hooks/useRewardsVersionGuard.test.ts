@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
 import useRewardsVersionGuard from './useRewardsVersionGuard';
 import Engine from '../../../../core/Engine';
 import {
@@ -96,12 +95,6 @@ describe('useRewardsVersionGuard', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(setVersionGuardError(true));
     expect(mockDispatch).toHaveBeenCalledWith(setVersionGuardLoading(false));
-    expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
-      tags: {
-        feature: 'rewards',
-        context: 'useRewardsVersionGuard.fetch_failed',
-      },
-    });
   });
 
   it('returns fetchVersionRequirements function', () => {
