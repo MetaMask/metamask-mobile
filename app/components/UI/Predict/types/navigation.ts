@@ -52,6 +52,12 @@ export interface PredictActivityDetailParams {
   activity: PredictActivityItem;
 }
 
+/** Predict add funds modal parameters */
+export interface PredictAddFundsModalParams {
+  /** When true, deposit() is called immediately on mount — skipping the explanation UI. */
+  autoDeposit?: boolean;
+}
+
 /** Predict buy preview parameters */
 export interface PredictBuyPreviewParams {
   market: PredictMarket;
@@ -97,4 +103,5 @@ export interface PredictNavigationParamList extends ParamListBase {
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
   PredictActivityDetail: PredictActivityDetailParams;
+  PredictAddFundsSheet: PredictAddFundsModalParams;
 }
