@@ -48,6 +48,7 @@ import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags'
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
+import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags.ts';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
