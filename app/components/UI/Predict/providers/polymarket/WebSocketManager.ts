@@ -565,17 +565,19 @@ export class WebSocketManager {
   }
 
   private handleRtdsMessage = (event: WebSocketMessageEvent): void => {
+    let traceStarted = false;
+
     try {
       if (event.data === 'pong') {
         return;
       }
 
       trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
+      traceStarted = true;
 
       const data: RtdsWebSocketEvent = JSON.parse(event.data);
 
       if (data.topic !== 'crypto_prices' || !data.payload) {
-        endTrace({ name: TraceName.CryptoUpDownWsMessage });
         return;
       }
 
@@ -587,12 +589,14 @@ export class WebSocketManager {
 
       this.cryptoPriceBuffer.set(update.symbol, update);
       this.ensureThrottleTimer();
-
-      endTrace({ name: TraceName.CryptoUpDownWsMessage });
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse RTDS message', {
         error,
       });
+    } finally {
+      if (traceStarted) {
+        endTrace({ name: TraceName.CryptoUpDownWsMessage });
+      }
     }
   };
 
@@ -617,19 +621,20 @@ export class WebSocketManager {
 
     trace({ name: TraceName.CryptoUpDownBufferFlush, op: 'rtds.flush' });
 
-    this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
-      const subscribedSymbols = new Set(key.split(','));
+    try {
+      this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
+        const subscribedSymbols = new Set(key.split(','));
 
-      this.cryptoPriceBuffer.forEach((update, symbol) => {
-        if (subscribedSymbols.has(symbol)) {
-          callbacks.forEach((callback) => callback(update));
-        }
+        this.cryptoPriceBuffer.forEach((update, symbol) => {
+          if (subscribedSymbols.has(symbol)) {
+            callbacks.forEach((callback) => callback(update));
+          }
+        });
       });
-    });
-
-    this.cryptoPriceBuffer.clear();
-
-    endTrace({ name: TraceName.CryptoUpDownBufferFlush });
+    } finally {
+      this.cryptoPriceBuffer.clear();
+      endTrace({ name: TraceName.CryptoUpDownBufferFlush });
+    }
   }
 
   private sendRtdsSubscribe(): void {

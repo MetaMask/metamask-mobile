@@ -1,8 +1,14 @@
 import { AppState, AppStateStatus } from 'react-native';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { GameCache } from './GameCache';
 import { WebSocketManager } from './WebSocketManager';
 
 jest.mock('./GameCache');
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 
 const mockGameCacheInstance = {
   updateGame: jest.fn(),
@@ -369,6 +375,66 @@ describe('WebSocketManager', () => {
       } as MessageEvent);
 
       expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('ends the RTDS message trace when JSON parsing throws', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      rtdsInstance.onmessage?.({
+        data: 'not valid json',
+      } as MessageEvent);
+
+      expect(trace).toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownWsMessage,
+        op: 'rtds.message',
+      });
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownWsMessage,
+      });
+    });
+
+    it('clears the crypto price buffer and ends trace when a callback throws', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn().mockImplementationOnce(() => {
+        throw new Error('subscriber failed');
+      });
+
+      manager.subscribeToCryptoPrices(['btcusdt', 'ethusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+
+      expect(() => jest.advanceTimersByTime(16)).toThrow('subscriber failed');
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownBufferFlush,
+      });
+
+      callback.mockClear();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000001,
+        payload: { symbol: 'ethusdt', timestamp: 1700000001, value: 3500 },
+      });
+      jest.advanceTimersByTime(16);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'ethusdt',
+        price: 3500,
+        timestamp: 1700000001,
+      });
     });
   });
 

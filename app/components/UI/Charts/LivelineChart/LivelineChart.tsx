@@ -68,6 +68,15 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
       webViewRef.current?.postMessage(JSON.stringify(message));
     }, []);
 
+    const flushPendingMessages = useCallback(() => {
+      if (hasFlushedRef.current) return;
+      hasFlushedRef.current = true;
+      const queued = pendingRef.current;
+      pendingRef.current = [];
+      if (queued.length === 0) return;
+      queued.forEach((msg) => postMessage(msg));
+    }, [postMessage]);
+
     useImperativeHandle(
       ref,
       () => ({
@@ -117,12 +126,8 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
 
     useEffect(() => {
       if (!isChartReady || hasFlushedRef.current) return;
-      hasFlushedRef.current = true;
-      const queued = pendingRef.current;
-      pendingRef.current = [];
-      if (queued.length === 0) return;
-      queued.forEach((msg) => postMessage(msg));
-    }, [isChartReady, postMessage]);
+      flushPendingMessages();
+    }, [flushPendingMessages, isChartReady]);
 
     const handleMessage = useCallback(
       (event: WebViewMessageEvent) => {
@@ -141,6 +146,7 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
             setIsChartReady(true);
             isChartReadyRef.current = true;
             setWebViewError(null);
+            flushPendingMessages();
             onChartReady?.();
             break;
           case 'ERROR':
@@ -175,6 +181,7 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
         onWindowChange,
         onModeChange,
         onSeriesToggle,
+        flushPendingMessages,
       ],
     );
 

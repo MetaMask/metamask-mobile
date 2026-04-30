@@ -6,6 +6,7 @@ import {
   type LivelinePoint,
   type CandlePoint,
   type HoverPoint,
+  type LivelineChartRef,
 } from '../LivelineChart.types';
 
 // Mock the generated asset file — it contains ~200 KB of minified JS strings
@@ -407,6 +408,38 @@ describe('LivelineChart', () => {
       });
 
       expect(onError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('imperative messages', () => {
+    it('flushes queued messages before onChartReady messages', () => {
+      const chartRef = React.createRef<LivelineChartRef>();
+      const queuedPoint = { time: 1700000060, value: 44 };
+      const readyPoint = { time: 1700000090, value: 45 };
+      const onChartReady = jest.fn(() => {
+        chartRef.current?.appendPoint(readyPoint, readyPoint.value);
+      });
+      const { getByTestId } = render(
+        <LivelineChart
+          ref={chartRef}
+          data={MOCK_DATA}
+          value={43.1}
+          onChartReady={onChartReady}
+        />,
+      );
+
+      act(() => {
+        chartRef.current?.appendPoint(queuedPoint, queuedPoint.value);
+      });
+      makeReady(getByTestId('liveline-chart-webview'));
+
+      const appendMessages = mockPostMessage.mock.calls
+        .map(([message]) => JSON.parse(message as string))
+        .filter((message) => message.type === 'APPEND_POINT');
+      expect(appendMessages.map((message) => message.payload.point)).toEqual([
+        queuedPoint,
+        readyPoint,
+      ]);
     });
   });
 });
