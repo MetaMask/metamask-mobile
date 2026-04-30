@@ -1323,6 +1323,7 @@ export class RewardsController extends BaseController<
             feature: 'rewards',
             context: 'performSilentAuth.unexpected_error',
           },
+          extra: { accountType: internalAccount.type },
         });
       }
     } finally {
@@ -2553,6 +2554,7 @@ export class RewardsController extends BaseController<
     } catch (error) {
       captureException(error, {
         tags: { feature: 'rewards', context: 'optIn.unexpected_error' },
+        extra: { accountType: account.type },
       });
       Logger.log(
         'RewardsController: Opt-in failed for account',
@@ -3077,6 +3079,7 @@ export class RewardsController extends BaseController<
           feature: 'rewards',
           context: 'linkAccountToSubscriptionCandidate.failed',
         },
+        extra: { accountType: account.type },
       });
       Logger.log(
         'RewardsController: Failed to link account to subscription',

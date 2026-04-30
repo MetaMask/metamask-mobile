@@ -4603,6 +4603,7 @@ describe('RewardsController', () => {
           feature: 'rewards',
           context: 'performSilentAuth.unexpected_error',
         },
+        extra: { accountType: 'eip155:eoa' },
       });
     });
   });
@@ -10293,7 +10294,10 @@ describe('RewardsController', () => {
       );
       expect(mockCaptureException).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'Optin service error' }),
-        { tags: { feature: 'rewards', context: 'optIn.unexpected_error' } },
+        {
+          tags: { feature: 'rewards', context: 'optIn.unexpected_error' },
+          extra: { accountType: 'eip155:eoa' },
+        },
       );
     });
 
@@ -13224,6 +13228,7 @@ describe('RewardsController', () => {
           feature: 'rewards',
           context: 'linkAccountToSubscriptionCandidate.failed',
         },
+        extra: { accountType: 'eip155:eoa' },
       });
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to link account to subscription',
