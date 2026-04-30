@@ -5,7 +5,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -56,18 +56,27 @@ import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
+import {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewSessionRef,
+} from '../PredictBuyPreview/PredictBuyPreview';
 
 const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const isSheetMode = props.mode === 'sheet';
-  const { market, outcome, outcomeToken, entryPoint } = isSheetMode
-    ? props
-    : route.params;
+  const {
+    market,
+    outcome,
+    outcomeToken,
+    entryPoint,
+    transactionActiveAbTests,
+  } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
 
   const { isPlacingOrder } = usePredictActiveOrder();
@@ -202,6 +211,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     setIsConfirming,
     isSheetMode,
     onClose,
+    transactionActiveAbTests,
   });
 
   useEffect(() => {
@@ -209,6 +219,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       setIsUserInputChange(false);
     }
   }, [isPreviewCalculating, setIsUserInputChange]);
+
+  // Keep the shared session ref in sync so swipe/hardware-back dismiss tracking
+  // in PredictPreviewSheetContext reads the correct hadEnteredAmount value.
+  useEffect(() => {
+    if (currentValue > 0) {
+      predictBuyPreviewSessionRef.hadEnteredAmount = true;
+    }
+  }, [currentValue]);
 
   const {
     retrySheetRef,
@@ -274,6 +292,12 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           outcome={outcome}
           outcomeToken={outcomeToken}
           preview={preview}
+          onBack={() => {
+            // Mark this dismissal as a back-button press so the beforeRemove
+            // listener in usePredictBuyActions reports BACK_BUTTON instead of SWIPE.
+            predictBuyPreviewDismissedViaBackRef.current = true;
+            navigation.goBack();
+          }}
         />
       )}
       {isSheetMode ? (

@@ -1,9 +1,11 @@
+import { TokenSecurityData } from '@metamask/assets-controllers';
 import { IconColor, IconName } from '@metamask/design-system-react-native';
 import { TagSeverity } from '../../../../component-library/base-components/TagBase';
 import { strings } from '../../../../../locales/i18n';
 import { SecurityDataType } from '../hooks/usePopularTokens';
 import { createMockToken } from '../testUtils/fixtures';
 import {
+  adaptTokenSecurityData,
   getBridgeTokenSecurityConfig,
   getSecurityWarnings,
   isNegativeSecurityType,
@@ -116,6 +118,101 @@ describe('tokenSecurityUtils', () => {
 
       expect(config.iconName).toBe(IconName.Info);
       expect(config.severity).toBe(TagSeverity.Default);
+    });
+  });
+
+  describe('adaptTokenSecurityData', () => {
+    const buildTrendingShape = (
+      overrides: Partial<TokenSecurityData> = {},
+    ): TokenSecurityData => ({
+      resultType: 'Verified',
+      maliciousScore: '0',
+      fees: { transfer: 0, transferFeeMaxAmount: null, buy: 0, sell: null },
+      features: [],
+      financialStats: {
+        supply: 0,
+        topHolders: [],
+        holdersCount: 0,
+        tradeVolume24h: null,
+        lockedLiquidityPct: null,
+        markets: [],
+      },
+      metadata: {
+        externalLinks: {
+          homepage: null,
+          twitterPage: null,
+          telegramChannelId: null,
+        },
+      },
+      created: '2025-01-01T00:00:00Z',
+      ...overrides,
+    });
+
+    it('returns undefined when input is undefined', () => {
+      expect(adaptTokenSecurityData(undefined)).toBeUndefined();
+    });
+
+    it.each([
+      SecurityDataType.Verified,
+      SecurityDataType.Benign,
+      SecurityDataType.Warning,
+      SecurityDataType.Spam,
+      SecurityDataType.Malicious,
+      SecurityDataType.Info,
+    ])('maps resultType %s to type', (value) => {
+      const adapted = adaptTokenSecurityData(
+        buildTrendingShape({ resultType: value }),
+      );
+
+      expect(adapted?.type).toBe(value);
+    });
+
+    it('passes through unknown resultType strings as-is', () => {
+      const adapted = adaptTokenSecurityData(
+        buildTrendingShape({ resultType: 'SomethingNew' }),
+      );
+
+      expect(adapted?.type).toBe('SomethingNew');
+    });
+
+    it('maps top-level features to metadata.features preserving fields', () => {
+      const adapted = adaptTokenSecurityData(
+        buildTrendingShape({
+          features: [
+            {
+              featureId: 'HONEYPOT',
+              type: 'Warning',
+              description: 'Honeypot risk',
+            },
+            {
+              featureId: 'RUGPULL',
+              type: 'Malicious',
+              description: 'Rugpull risk',
+            },
+          ],
+        }),
+      );
+
+      expect(adapted?.metadata?.features).toEqual([
+        {
+          featureId: 'HONEYPOT',
+          type: 'Warning',
+          description: 'Honeypot risk',
+        },
+        {
+          featureId: 'RUGPULL',
+          type: 'Malicious',
+          description: 'Rugpull risk',
+        },
+      ]);
+    });
+
+    it('returns metadata.features as empty array when input has no features', () => {
+      const adapted = adaptTokenSecurityData(
+        buildTrendingShape({ features: [] }),
+      );
+
+      expect(adapted?.metadata?.features).toEqual([]);
     });
   });
 });
