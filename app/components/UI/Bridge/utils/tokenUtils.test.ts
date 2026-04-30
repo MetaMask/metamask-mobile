@@ -5,7 +5,7 @@ import {
   tokenMatchesQuery,
 } from './tokenUtils';
 import { getSecurityWarnings } from './tokenSecurityUtils';
-import { BridgeToken , SecurityDataType } from '../types';
+import { BridgeToken, SecurityDataType } from '../types';
 import {
   getNativeAssetForChainId,
   isNonEvmChainId,

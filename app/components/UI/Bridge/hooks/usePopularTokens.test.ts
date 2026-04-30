@@ -38,7 +38,8 @@ const renderPopularTokensHook = (
   chainIds: CaipChainId[],
   includeAssets: IncludeAsset[],
   options?: Parameters<typeof renderHook>[1],
-) => renderHook(() => {
+) =>
+  renderHook(() => {
     const { fetchPopularTokens } = useInitialBridgeTokens(chainIds);
     const { popularTokens, isLoading } = usePopularTokens({
       fetchTokens: fetchPopularTokens,

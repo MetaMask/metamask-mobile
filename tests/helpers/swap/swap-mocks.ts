@@ -79,7 +79,8 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
 
 export const mockSwapPopularTokens = async (
   mockServer: Mockttp,
-): Promise<void> => await setupMockRequest(mockServer, {
+): Promise<void> =>
+  await setupMockRequest(mockServer, {
     requestMethod: 'POST',
     url: /getTokens\/popular/i,
     response: GET_POPULAR_TOKENS_MAINNET_RESPONSE,
