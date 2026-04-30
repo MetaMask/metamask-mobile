@@ -1219,7 +1219,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
   describe('showScannerError without onQRHardwareScanError callback', () => {
     it('renders inline error UI when onQRHardwareScanError is not provided', async () => {
-      const { getByText, queryByTestId } = render(
+      const { getByText, getByTestId } = render(
         <AnimatedQRScannerModal {...defaultProps} />,
       );
 
@@ -1232,9 +1232,11 @@ describe('AnimatedQRScannerModal - Metrics', () => {
           ),
         ).toBeOnTheScreen();
         expect(
-          queryByTestId('qr-scanner-error-learn-more-button'),
-        ).toBeTruthy();
-        expect(queryByTestId('qr-scanner-error-try-again-button')).toBeTruthy();
+          getByTestId('qr-scanner-error-learn-more-button'),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId('qr-scanner-error-try-again-button'),
+        ).toBeOnTheScreen();
       });
     });
   });
