@@ -129,7 +129,8 @@ describe('getCaipAssetIdForToken', () => {
       }),
     );
 
-    expect(result?.toLowerCase()).toBe(ERC20_CAIP_LOWER);
+    // `formatAddressToAssetId` returns mixed-case checksummed hex in the CAIP string.
+    expect(result?.toLowerCase()).toStrictEqual(ERC20_CAIP_LOWER.toLowerCase());
   });
 
   it('returns the formatted asset id for a valid erc-20 hex address', async () => {
@@ -142,6 +143,6 @@ describe('getCaipAssetIdForToken', () => {
       }),
     );
 
-    expect(result?.toLowerCase()).toBe(ERC20_CAIP_LOWER);
+    expect(result?.toLowerCase()).toStrictEqual(ERC20_CAIP_LOWER.toLowerCase());
   });
 });
