@@ -67,7 +67,7 @@ const SecurityTrustInlineBadge = ({
       )}
       <DesignSystemText
         variant={DesignSystemTextVariant.BodySm}
-        color={badge.textColor ?? TextColor.Default}
+        color={badge.textColor ?? TextColor.TextDefault}
         fontWeight={FontWeight.Medium}
         numberOfLines={1}
         twClassName="whitespace-nowrap"
