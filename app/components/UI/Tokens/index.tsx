@@ -285,9 +285,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
       const cashEmptyDescription =
         showOnlyMusd && hasMusdBalanceOnAnyChainProp
-          ? strings('homepage.sections.cash_empty_description_network_filter')
+          ? strings('homepage.sections.money_empty_description_network_filter')
           : showOnlyMusd
-            ? strings('homepage.sections.cash_empty_description')
+            ? strings('homepage.sections.money_empty_description')
             : undefined;
 
       const emptyState = (
