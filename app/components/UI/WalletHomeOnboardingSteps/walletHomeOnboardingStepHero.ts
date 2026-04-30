@@ -9,28 +9,16 @@ export type WalletHomeOnboardingStepHeroKind =
   | 'trade'
   | 'notifications';
 
-/**
- * Which theme accent palette’s `.light` swatch fills the hero area behind the image.
- * Matches `@metamask/design-tokens`.
- */
-export type WalletHomeOnboardingHeroAccent =
-  | 'accent03'
-  | 'accent04'
-  | 'accent02';
-
 export interface WalletHomeOnboardingStepHeroEntry {
+  /**
+   * Full-bleed hero background for the step (also used as the E2E static hero when Rive is off).
+   */
   image: ImageSourcePropType;
-  heroAccent: WalletHomeOnboardingHeroAccent;
-  /** Tailwind background for the hero card (design-token `accent*.light` → `bg-accent0*-light`). */
-  heroBackgroundClassName: string;
 }
 
 /**
- * Central map for step hero assets and backgrounds.
- * In app builds the checklist hero uses Rive (`onboard_checklist_v05.riv`) artboards
- * `01_Add_Funds` / `02_First_Trade` / `03_Notifications` per step; these PNGs are the E2E
- * fallback (and when `isE2E`). Keep raster dimensions modest (on the order of hundreds of
- * px per side) so the app bundle stays lean. To change static fallbacks, edit `*.image` / `heroAccent`.
+ * Per-step hero assets. In app builds the checklist uses Rive (`onboard_checklist_v05.riv`) on top of
+ * this PNG background; in E2E the image is the only hero layer.
  */
 export const WALLET_HOME_ONBOARDING_STEP_HERO: Record<
   WalletHomeOnboardingStepHeroKind,
@@ -38,17 +26,11 @@ export const WALLET_HOME_ONBOARDING_STEP_HERO: Record<
 > = {
   fund: {
     image: walletHomeOnboardingAddFundsImage,
-    heroAccent: 'accent04',
-    heroBackgroundClassName: 'bg-accent04-light',
   },
   trade: {
     image: walletHomeOnboardingTradeHeroImage,
-    heroAccent: 'accent03',
-    heroBackgroundClassName: 'bg-accent03-light',
   },
   notifications: {
     image: walletHomeOnboardingNotificationsHeroImage,
-    heroAccent: 'accent02',
-    heroBackgroundClassName: 'bg-accent02-light',
   },
 };

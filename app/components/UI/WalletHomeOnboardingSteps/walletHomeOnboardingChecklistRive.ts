@@ -46,29 +46,14 @@ export function walletHomeOnboardingChecklistSlideDownExitDistancePx(
   );
 }
 
-/** Wallet curtain rise: homepage slides up over the balance cluster. */
-export const WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_UP_MS = 480;
-
-/** Wallet curtain fall: homepage slides back down, revealing the new balance cluster. */
-export const WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_DOWN_MS = 560;
+/** Checklist opacity fade before Wallet completes flow (replaces curtain slide). */
+export const WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS = 280;
 
 /**
- * Brief pause before the curtain rises after the user presses the last step's primary —
- * lets the button press feedback land before motion starts.
+ * Wallet main column: Reanimated layout transition for homepage/tokens below the cluster, and
+ * native layout animation duration for the network banner (see `walletLayoutShiftAnimation.ts`).
  */
-export const WALLET_HOME_POST_ONBOARDING_CURTAIN_PRE_HOLD_MS = 80;
-
-/**
- * Hold at the top of the rise so the swap underneath (checklist → balance) feels deliberate
- * instead of instant. Also gives the new cluster `onLayout` time to fire before we start the fall.
- */
-export const WALLET_HOME_POST_ONBOARDING_CURTAIN_TOP_HOLD_MS = 140;
-
-/**
- * Max wait for the inner cluster `onLayout` to report a post-swap height (different
- * from the pre-swap height) before falling back to the latest measured inner height.
- */
-export const WALLET_HOME_POST_ONBOARDING_CURTAIN_LAYOUT_WAIT_MS = 320;
+export const WALLET_HOME_POST_ONBOARDING_REVEAL_MS = 400;
 
 /** Slide the next step in from the right. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_IN_MS = 300;

@@ -2,10 +2,8 @@ export { default } from './WalletHomeOnboardingSteps';
 export type { WalletHomeOnboardingStepsProps } from './WalletHomeOnboardingSteps';
 export { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
 
-/** Curtain timing constants consumed by the Wallet screen. */
+/** Post-onboarding timing shared with Wallet (fade-out, homepage layout duration). */
 export {
-  WALLET_HOME_POST_ONBOARDING_CURTAIN_LAYOUT_WAIT_MS,
-  WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_DOWN_MS,
-  WALLET_HOME_POST_ONBOARDING_CURTAIN_SLIDE_UP_MS,
-  WALLET_HOME_POST_ONBOARDING_CURTAIN_TOP_HOLD_MS,
+  WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS,
+  WALLET_HOME_POST_ONBOARDING_REVEAL_MS,
 } from './walletHomeOnboardingChecklistRive';

@@ -24,6 +24,7 @@ import {
   selectShouldShowWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
+  selectWalletHomeOnboardingSkipInitialBalanceWait,
 } from '../../../../../selectors/onboarding';
 import { suppressWalletHomeOnboardingSteps } from '../../../../../actions/onboarding';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
@@ -59,16 +60,19 @@ export interface AccountGroupBalanceProps {
     source?: PostOnboardingStepsSurfaceChangeSource,
   ) => void;
   /**
-   * When set, the last post-onboarding step completes by awaiting this handler.
-   * The parent (Wallet) drives a curtain animation over the cluster — this component just waits
-   * for the swap to finish before resolving the primary press.
+   * When set, the last post-onboarding step awaits this handler after the checklist fade.
    */
   onCoordinatedFlowExit?: () => Promise<void>;
+  /**
+   * While true, pauses checklist Rive during the coordinated Wallet exit (reduces jank).
+   */
+  suspendRiveForCurtain?: boolean;
 }
 
 const AccountGroupBalance = ({
   onPostOnboardingStepsSurfaceActiveChange,
   onCoordinatedFlowExit,
+  suspendRiveForCurtain = false,
 }: AccountGroupBalanceProps) => {
   const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
@@ -90,6 +94,9 @@ const AccountGroupBalance = ({
   );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
+  );
+  const walletHomeOnboardingSkipInitialBalanceWait = useSelector(
+    selectWalletHomeOnboardingSkipInitialBalanceWait,
   );
   const { popularNetworks } = useNetworkEnablement();
 
@@ -228,6 +235,8 @@ const AccountGroupBalance = ({
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
   const isLoading = !groupBalance || !hasBalanceFetched;
+  const awaitBalanceForPostOnboardingSteps =
+    isLoading && !walletHomeOnboardingSkipInitialBalanceWait;
 
   // Check if account group balance (across all mainnet networks) is zero for empty state
   const hasZeroAccountGroupBalance =
@@ -246,9 +255,8 @@ const AccountGroupBalance = ({
   const inWalletHomePostOnboardingFlow =
     isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
 
-  /** In-flow users: show checklist (awaiting-balance shell or real steps) instead of balance skeleton. */
-  const showWalletHomeOnboardingStepsTile =
-    inWalletHomePostOnboardingFlow && (isLoading || shouldShowEmptyState);
+  /** While the flow is active, always use the checklist surface — never the balance row (avoids a flash before loading/empty state is known). */
+  const showWalletHomeOnboardingStepsTile = inWalletHomePostOnboardingFlow;
 
   const postOnboardingStepsSurfaceActive = showWalletHomeOnboardingStepsTile;
 
@@ -312,8 +320,9 @@ const AccountGroupBalance = ({
     <View style={styles.accountGroupBalance}>
       {showWalletHomeOnboardingStepsTile ? (
         <WalletHomeOnboardingSteps
-          isAwaitingBalance={isLoading}
+          isAwaitingBalance={awaitBalanceForPostOnboardingSteps}
           onCoordinatedFlowExit={onCoordinatedFlowExit}
+          suspendRiveForCurtain={suspendRiveForCurtain}
           testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
         />
       ) : (
