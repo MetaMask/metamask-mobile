@@ -188,7 +188,8 @@ const UnifiedTransactionsView = ({
         return false;
       }
 
-      const { chainId: _chainId, txParams, hash } = tx;
+      const { chainId: _chainId, txParams } = tx;
+      const hash = 'hash' in tx ? tx.hash : undefined;
       const { from, nonce, actionId } = txParams || {};
       // Some txs don't have nonce, like intent based swaps
       const hasNonce = nonce !== undefined && nonce !== null;

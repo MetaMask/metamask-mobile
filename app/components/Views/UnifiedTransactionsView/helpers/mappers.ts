@@ -12,15 +12,15 @@ import { NATIVE_TOKEN_ADDRESS } from '../../confirmations/constants/tokens';
 import type { ConfirmedEvmTransaction } from './types';
 
 export interface ActivityHistoryQueryParams {
-  accountAddresses: string[];
-  networks: CaipChainId[];
+  accountAddresses: readonly string[];
+  networks: readonly CaipChainId[];
 }
 
 const EXCLUDED_TRANSACTION_TYPES = ['SPAM_TOKEN_TRANSFER'];
 
 // The API returns CAIP-10 account IDs, but the filtering logic only needs the
 // plain wallet address when deciding whether a tx belongs to the active account.
-const getPlainAddresses = (accountAddresses: string[]) =>
+const getPlainAddresses = (accountAddresses: readonly string[]) =>
   [
     ...new Set(
       accountAddresses
@@ -206,7 +206,7 @@ export const normalizeTransactions = (
 // rules first, then adapts the surviving rows into TransactionMeta-like items
 // for the existing mobile Activity renderers.
 export const selectConfirmedTransactions =
-  ({ accountAddresses }: { accountAddresses: string[] }) =>
+  ({ accountAddresses }: { accountAddresses: readonly string[] }) =>
   (data: InfiniteData<V4MultiAccountTransactionsResponse>) => {
     const plainAddresses = new Set(getPlainAddresses(accountAddresses));
 

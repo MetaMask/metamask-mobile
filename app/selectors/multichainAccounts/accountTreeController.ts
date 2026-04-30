@@ -429,7 +429,9 @@ export const selectAccountGroupEvmInternalAccounts = createSelector(
 export const selectAccountGroupEvmAccountAddresses = createSelector(
   [selectSelectedInternalAccount, selectAccountGroupEvmInternalAccounts],
   (selectedInternalAccount, groupEvmAccounts) => {
-    const selectedEvmAccount = isEvmAccountType(selectedInternalAccount?.type)
+    const selectedEvmAccount =
+      selectedInternalAccount &&
+      isEvmAccountType(selectedInternalAccount.type)
       ? selectedInternalAccount
       : (groupEvmAccounts.find(
           (account) =>

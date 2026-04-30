@@ -1,5 +1,7 @@
 import {
+  InfiniteData,
   QueryFunctionContext,
+  QueryFunction,
   QueryKey,
   useInfiniteQuery,
 } from '@tanstack/react-query';
@@ -11,6 +13,14 @@ import { selectAccountGroupEvmAccountAddresses } from '../../../../selectors/mul
 import { selectEvmEnabledCaipNetworks } from '../../../../selectors/networkEnablementController';
 import { selectConfirmedTransactions } from '../helpers/mappers';
 import { MINUTE } from '../../../../constants/time';
+import type { ConfirmedEvmTransaction } from '../helpers/types';
+
+type ConfirmedEvmTransactionsPage = Omit<
+  V4MultiAccountTransactionsResponse,
+  'data'
+> & {
+  data: ConfirmedEvmTransaction[];
+};
 
 export const useTransactionsQuery = () => {
   const accountAddresses = useSelector(selectAccountGroupEvmAccountAddresses);
@@ -18,36 +28,54 @@ export const useTransactionsQuery = () => {
   const selectFn = useMemo(
     () =>
       selectConfirmedTransactions({
-        accountAddresses,
+        accountAddresses: [...accountAddresses],
       }),
     [accountAddresses],
   );
 
-  const queryOptions = useMemo(
-    () =>
+  const queryOptions = useMemo(() => {
+    const options =
       getApiClient().accounts.getV4MultiAccountTransactionsInfiniteQueryOptions(
         {
           accountAddresses: [...accountAddresses],
           networks: [...networks],
           includeTxMetadata: true,
         },
-      ),
-    [accountAddresses, networks],
-  );
+      );
+
+    return {
+      queryKey: options.queryKey as QueryKey,
+      queryFn: options.queryFn as QueryFunction<
+        V4MultiAccountTransactionsResponse,
+        QueryKey,
+        string | undefined
+      >,
+    };
+  }, [accountAddresses, networks]);
 
   return useInfiniteQuery<
     V4MultiAccountTransactionsResponse,
     Error,
-    ReturnType<ReturnType<typeof selectConfirmedTransactions>>,
+    ConfirmedEvmTransactionsPage,
     QueryKey
   >({
-    queryKey: queryOptions.queryKey as QueryKey,
-    queryFn: ({
+    queryKey: queryOptions.queryKey,
+    queryFn: (({
       pageParam,
       signal,
     }: QueryFunctionContext<QueryKey, string | undefined>) =>
-      queryOptions.queryFn({ pageParam, signal }),
-    getNextPageParam: queryOptions.getNextPageParam,
+      queryOptions.queryFn({
+        pageParam,
+        signal,
+        queryKey: queryOptions.queryKey,
+        meta: undefined,
+      })) as QueryFunction<
+      V4MultiAccountTransactionsResponse,
+      QueryKey,
+      string | undefined
+    >,
+    getNextPageParam: ({ pageInfo }) =>
+      pageInfo.hasNextPage ? pageInfo.endCursor : undefined,
     select: selectFn,
     enabled: accountAddresses.length > 0 && networks.length > 0,
     staleTime: 5 * MINUTE,
