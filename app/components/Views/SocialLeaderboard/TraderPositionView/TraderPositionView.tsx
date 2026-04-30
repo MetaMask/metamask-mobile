@@ -9,6 +9,7 @@ import {
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
   Button,
@@ -78,14 +79,18 @@ const TraderPositionView = () => {
     timePeriods,
   } = positionData;
 
-  const handleClose = useCallback(() => {
+  const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleBuyPress = useCallback(() => {
-    if (resolvedPosition) {
-      setIsQuickBuyVisible(true);
+    if (!resolvedPosition) {
+      return;
     }
+    // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
+    // Success/error notification haptics fire later in useQuickBuyBottomSheet.
+    playImpact(ImpactMoment.PrimaryCTA);
+    setIsQuickBuyVisible(true);
   }, [resolvedPosition]);
 
   const handleQuickBuyClose = useCallback(() => {
@@ -108,8 +113,8 @@ const TraderPositionView = () => {
     >
       <TraderPositionHeader
         traderName={traderName}
-        onClose={handleClose}
-        closeButtonTestID={TraderPositionViewSelectorsIDs.CLOSE_BUTTON}
+        onBack={handleBack}
+        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
       />
 
       {isInitialLoading ? (
@@ -172,6 +177,7 @@ const TraderPositionView = () => {
           <QuickBuyBottomSheet
             isVisible={isQuickBuyVisible}
             position={resolvedPosition ?? null}
+            marketCap={marketCap}
             onClose={handleQuickBuyClose}
           />
         </>

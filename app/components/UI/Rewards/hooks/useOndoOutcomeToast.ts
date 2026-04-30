@@ -1,7 +1,10 @@
 import { useCallback, useContext, useMemo } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playSuccessNotification,
+  playWarningNotification,
+} from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
@@ -132,11 +135,11 @@ export function useOndoOutcomeToast(): void {
           onPress: handleDismiss,
         },
       });
-      notificationAsync(
-        isWinner
-          ? NotificationFeedbackType.Success
-          : NotificationFeedbackType.Warning,
-      );
+      if (isWinner) {
+        playSuccessNotification();
+      } else {
+        playWarningNotification();
+      }
 
       return () => {
         toastRef?.current?.closeToast();
