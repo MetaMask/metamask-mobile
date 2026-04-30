@@ -2,6 +2,8 @@ import generateUserProfileAnalyticsMetaData from './generateUserProfileAnalytics
 import { UserProfileProperty } from './UserProfileAnalyticsMetaData.types';
 import { Appearance } from 'react-native';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { AccountType } from '../../../constants/onboarding';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 
 const mockGetState = jest.fn();
 jest.mock('../../../store', () => ({
@@ -121,5 +123,63 @@ describe('generateUserProfileAnalyticsMetaData', () => {
 
     const metadata = generateUserProfileAnalyticsMetaData();
     expect(metadata[UserProfileProperty.THEME]).toBe('light');
+  });
+
+  it('includes account_type from onboarding redux state when set', () => {
+    mockGetState.mockReturnValue({
+      ...mockState,
+      onboarding: { accountType: AccountType.MetamaskGoogle },
+    });
+
+    const metadata = generateUserProfileAnalyticsMetaData();
+    expect(metadata[UserProfileProperty.ACCOUNT_TYPE]).toBe(
+      AccountType.MetamaskGoogle,
+    );
+  });
+
+  it('falls back to SeedlessOnboardingController authConnection when redux accountType is unset', () => {
+    mockGetState.mockReturnValue({
+      ...mockState,
+      engine: {
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Google,
+          },
+        },
+      },
+    });
+
+    const metadata = generateUserProfileAnalyticsMetaData();
+    expect(metadata[UserProfileProperty.ACCOUNT_TYPE]).toBe(
+      AccountType.ImportedGoogle,
+    );
+  });
+
+  it('omits account_type when neither onboarding redux nor SeedlessOnboardingController has a value', () => {
+    mockGetState.mockReturnValue(mockState);
+
+    const metadata = generateUserProfileAnalyticsMetaData();
+    expect(UserProfileProperty.ACCOUNT_TYPE in metadata).toBe(false);
+  });
+
+  it('prefers redux accountType over SeedlessOnboardingController authConnection', () => {
+    mockGetState.mockReturnValue({
+      ...mockState,
+      engine: {
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Apple,
+          },
+        },
+      },
+      onboarding: { accountType: AccountType.MetamaskGoogle },
+    });
+
+    const metadata = generateUserProfileAnalyticsMetaData();
+    expect(metadata[UserProfileProperty.ACCOUNT_TYPE]).toBe(
+      AccountType.MetamaskGoogle,
+    );
   });
 });
