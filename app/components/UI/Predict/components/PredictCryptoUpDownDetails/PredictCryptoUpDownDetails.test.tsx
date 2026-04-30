@@ -14,19 +14,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('react-native-reanimated', () => {
-  const { ScrollView, View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('react-native-reanimated');
-  // The component uses `import Animated from 'react-native-reanimated'` (default export)
-  // and then accesses `Animated.ScrollView`. The default export must include ScrollView.
-  const MockAnimated = {
-    ...actual.default,
-    ScrollView,
-    View,
-  };
+  const { ScrollView } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    ...actual,
-    default: MockAnimated,
+    ...jest.requireActual('react-native-reanimated'),
+    Animated: { ScrollView },
     useSharedValue: jest.fn((initialValue: number) => ({
       value: initialValue,
     })),

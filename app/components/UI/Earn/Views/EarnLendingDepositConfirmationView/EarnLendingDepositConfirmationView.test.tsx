@@ -55,7 +55,6 @@ const mockNavigate = jest.fn();
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingEnabledFlag: jest.fn(),
-  selectMusdConversionBlockedCountries: jest.fn(() => []),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -291,26 +290,28 @@ describe('EarnLendingDepositConfirmationView', () => {
     ).mockReturnValue(true);
   });
 
-  it('renders token hero, deposit sections, and confirmation footer buttons', () => {
-    const { getByTestId } = renderWithProvider(
+  it('matches snapshot', () => {
+    const { toJSON, getByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
     );
 
+    expect(toJSON()).toMatchSnapshot();
+
     // ERC20 Token Hero
-    expect(getByTestId('earn-token-selector-USDC-0x1')).toBeOnTheScreen();
+    expect(getByTestId('earn-token-selector-USDC-0x1')).toBeDefined();
     // Deposit Details Section
-    expect(getByTestId(DEPOSIT_DETAILS_SECTION_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(DEPOSIT_DETAILS_SECTION_TEST_ID)).toBeDefined();
     // Deposit Receive Section
-    expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeDefined();
     // Footer
-    expect(getByTestId(CONFIRMATION_FOOTER_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(CONFIRMATION_FOOTER_TEST_ID)).toBeDefined();
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
-    ).toBeOnTheScreen();
+    ).toBeDefined();
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON),
-    ).toBeOnTheScreen();
+    ).toBeDefined();
   });
 
   it('does not render when stablecoin lending feature flag disabled', () => {
@@ -399,7 +400,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         },
       );
 
-      expect(getByText(strings('earn.allowance_reset'))).toBeOnTheScreen();
+      expect(getByText(strings('earn.allowance_reset'))).toBeDefined();
       // 3 Pending Steps
       expect(
         getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
@@ -463,9 +464,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         },
       );
 
-      expect(
-        queryByText(strings('earn.allowance_reset')),
-      ).not.toBeOnTheScreen();
+      expect(queryByText(strings('earn.allowance_reset'))).toBeNull();
       // 2 Pending Steps
       expect(
         getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
@@ -1208,7 +1207,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // The button should be re-enabled after the error
-    expect(approveButton).not.toBeDisabled();
+    expect(approveButton.props.disabled).toBe(false);
   });
 
   it('handles empty transaction response during approval flow', async () => {
@@ -1245,7 +1244,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // Button should be re-enabled when transaction is undefined
-    expect(approveButton).not.toBeDisabled();
+    expect(approveButton.props.disabled).toBe(false);
   });
 
   it('handles missing protocol or chainId during approval flow', async () => {
@@ -1294,7 +1293,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(mockExecuteLendingTokenApprove).not.toHaveBeenCalled();
 
     // Button should remain enabled since no loading state was set
-    expect(approveButton).not.toBeDisabled();
+    expect(approveButton.props.disabled).toBe(false);
   });
 
   it('handles errors during approval flow and logs them', async () => {
@@ -1417,7 +1416,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       '[resetTokenAllowance] Lending deposit failed',
     );
 
-    expect(resetButton).not.toBeDisabled();
+    expect(resetButton.props.disabled).toBe(false);
 
     loggerSpy.mockRestore();
   });
@@ -1446,7 +1445,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // Button should be re-enabled when transaction is empty
-    expect(depositButton).not.toBeDisabled();
+    expect(depositButton.props.disabled).toBe(false);
   });
 
   it('enables retries after transaction error during deposit flow', async () => {
@@ -1491,7 +1490,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // The button should be re-enabled after the error
-    expect(depositButton).not.toBeDisabled();
+    expect(depositButton.props.disabled).toBe(false);
   });
 
   it('displays token information', () => {
@@ -1500,9 +1499,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       { state: mockInitialState },
     );
 
-    expect(getByText('45 USDC')).toBeOnTheScreen();
-    expect(getByText('5 aUSDC')).toBeOnTheScreen();
-    expect(getByText('4.5%')).toBeOnTheScreen();
+    expect(getByText('45 USDC')).toBeDefined();
+    expect(getByText('5 aUSDC')).toBeDefined();
+    expect(getByText('4.5%')).toBeDefined();
   });
 
   it('displays amount information', () => {
@@ -1511,9 +1510,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       { state: mockInitialState },
     );
 
-    expect(getAllByText('$4.99').length).toBeGreaterThan(0);
-    expect(getByText('5 aUSDC')).toBeOnTheScreen();
-    expect(getByText('5 USDC')).toBeOnTheScreen();
+    expect(getAllByText('$4.99')).toBeDefined();
+    expect(getByText('5 aUSDC')).toBeDefined();
+    expect(getByText('5 USDC')).toBeDefined();
   });
 
   it('displays nothing when missing route params', () => {
@@ -1814,7 +1813,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       errorMocked,
       '[depositTokens] Lending deposit failed',
     );
-    expect(confirmButton).not.toBeDisabled();
+    expect(confirmButton.props.disabled).toBe(false);
 
     errorSpy.mockRestore();
   });

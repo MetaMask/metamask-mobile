@@ -23,6 +23,6 @@ describe('ReusableModal', () => {
         <ReusableModal>{null}</ReusableModal>
       </SafeAreaView>,
     );
-    expect(screen.toJSON()).not.toBeNull();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

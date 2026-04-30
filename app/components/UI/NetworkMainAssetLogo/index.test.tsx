@@ -38,6 +38,6 @@ describe('NetworkMainAssetLogo', () => {
         <NetworkMainAssetLogo />
       </Provider>,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

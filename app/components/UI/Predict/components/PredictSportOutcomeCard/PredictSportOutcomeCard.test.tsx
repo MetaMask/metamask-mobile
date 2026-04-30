@@ -6,15 +6,12 @@ import PredictSportOutcomeCard, {
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { PREDICT_SPORT_OUTCOME_CARD_TEST_IDS } from './PredictSportOutcomeCard.testIds';
+
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: {
-      View,
-      createAnimatedComponent: (c: React.ComponentType) => c,
-    },
-    createAnimatedComponent: (c: React.ComponentType) => c,
+    default: { View },
     useSharedValue: (v: number) => ({ value: v }),
     useAnimatedStyle: (fn: () => object) => fn(),
     withTiming: (v: number) => v,
@@ -35,7 +32,10 @@ jest.mock('@react-native-masked-view/masked-view', () =>
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('../../../../../util/haptics');
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light' },
+}));
 
 const createButtons = (
   overrides: Partial<PredictSportOutcomeButton>[] = [],

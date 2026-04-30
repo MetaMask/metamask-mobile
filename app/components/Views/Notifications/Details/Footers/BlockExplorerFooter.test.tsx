@@ -17,6 +17,9 @@ import {
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { getNetworkDetailsFromNotifPayload } from '../../../../../util/notifications';
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -30,6 +33,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 const trackEventMock = jest.fn();
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+}));
 
 describe('BlockExplorerFooter', () => {
   beforeEach(() => {

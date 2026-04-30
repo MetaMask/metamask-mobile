@@ -6,7 +6,7 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 
-const mockExistingNetworkConfiguration = {
+const existingNetworkConfiguration = {
   id: 'test-network-configuration-id',
   chainId: '0x64',
   rpcUrl: 'https://rpc.test-chain.com',
@@ -58,7 +58,7 @@ jest.mock('../../store', () => ({
                 ticker: 'ETH',
               },
               {
-                ...mockExistingNetworkConfiguration,
+                ...existingNetworkConfiguration,
               },
             ),
           },

@@ -25,7 +25,7 @@ export class BrowserStackConfigBuilder {
   build() {
     const platformName = this.project.use.platform;
     const projectName = path.basename(process.cwd());
-    const appBsUrl = this.project.use.app?.buildPath;
+    const appBsUrl = this.project.use.buildPath;
     const device = this.project.use.device as BrowserStackConfig;
 
     if (!appBsUrl) {
@@ -95,9 +95,7 @@ export class BrowserStackConfigBuilder {
           appProfiling: true,
           selfHeal: device.selfHeal ?? true,
           networkProfile: '4g-lte-advanced-good',
-          ...(process.env.BROWSERSTACK_LOCAL?.toLowerCase() !== 'true'
-            ? { geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES' }
-            : {}),
+          // geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
           enableCameraImageInjection: device.enableCameraImageInjection,
           ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
             ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }

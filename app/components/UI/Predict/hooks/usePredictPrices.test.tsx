@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { GetPriceResponse, PriceQuery } from '../types';
@@ -85,7 +85,7 @@ describe('usePredictPrices', () => {
 
   describe('single token fetching', () => {
     it('fetches prices for a single token', async () => {
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -99,9 +99,8 @@ describe('usePredictPrices', () => {
 
       expect(result.current.isFetching).toBe(true);
 
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
-      });
+      await waitForNextUpdate();
+
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
         queries: [
           {
@@ -112,6 +111,7 @@ describe('usePredictPrices', () => {
         ],
       });
       expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
@@ -121,7 +121,7 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -133,10 +133,10 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.error).toBe('Failed to fetch prices');
-      });
+      await waitForNextUpdate();
+
       expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.error).toBe('Failed to fetch prices');
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePredictPrices: Error fetching prices',
@@ -147,7 +147,7 @@ describe('usePredictPrices', () => {
 
   describe('multiple tokens fetching', () => {
     it('fetches prices for multiple tokens with different sides', async () => {
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -164,9 +164,8 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
-      });
+      await waitForNextUpdate();
+
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
         queries: [
           {
@@ -183,10 +182,11 @@ describe('usePredictPrices', () => {
       });
       expect(result.current.prices).toEqual(mockPrices);
       expect(result.current.error).toBeNull();
+      expect(result.current.isFetching).toBe(false);
     });
 
     it('fetches prices for same token with both BUY and SELL sides', async () => {
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -203,19 +203,19 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
-      });
-      expect(result.current.prices).toEqual(mockPrices);
+      await waitForNextUpdate();
+
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
         1,
       );
+      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.isFetching).toBe(false);
     });
   });
 
   describe('refetch functionality', () => {
     it('refetches data when refetch is called', async () => {
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -227,9 +227,11 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
-      });
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
+      );
 
       await act(async () => {
         await result.current.refetch();
@@ -265,7 +267,7 @@ describe('usePredictPrices', () => {
 
   describe('configuration options', () => {
     it('fetches prices when queries are provided', async () => {
-      const { result } = renderHook(() =>
+      const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -277,9 +279,8 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
-      });
+      await waitForNextUpdate();
+
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
         queries: [
           {
@@ -292,7 +293,7 @@ describe('usePredictPrices', () => {
     });
 
     it('fetches prices without provider option when not specified', async () => {
-      const { result } = renderHook(() =>
+      const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -304,9 +305,8 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
-      });
+      await waitForNextUpdate();
+
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
         queries: [
           {
@@ -323,7 +323,7 @@ describe('usePredictPrices', () => {
     it('polls at specified interval', async () => {
       jest.useFakeTimers();
 
-      renderHook(() =>
+      const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -336,37 +336,37 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenCalledTimes(1);
-      });
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
+      );
 
       act(() => {
         jest.advanceTimersByTime(5000);
       });
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenCalledTimes(2);
-      });
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        2,
+      );
 
       act(() => {
         jest.advanceTimersByTime(5000);
       });
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenCalledTimes(3);
-      });
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        3,
+      );
     });
 
     it('stops polling when unmounted', async () => {
       jest.useFakeTimers();
 
-      const { unmount } = renderHook(() =>
+      const { unmount, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -379,11 +379,11 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenCalledTimes(1);
-      });
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
+      );
 
       unmount();
 
@@ -399,7 +399,7 @@ describe('usePredictPrices', () => {
     it('does not poll when pollingInterval is not provided', async () => {
       jest.useFakeTimers();
 
-      renderHook(() =>
+      const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -411,11 +411,11 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenCalledTimes(1);
-      });
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
+      );
 
       act(() => {
         jest.advanceTimersByTime(10000);
@@ -429,7 +429,7 @@ describe('usePredictPrices', () => {
 
   describe('reactivity', () => {
     it('refetches when queries change', async () => {
-      const { result, rerender } = renderHook(
+      const { rerender, waitForNextUpdate } = renderHook(
         ({ queries }) =>
           usePredictPrices({
             queries,
@@ -447,8 +447,16 @@ describe('usePredictPrices', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
       });
 
       rerender({
@@ -461,23 +469,23 @@ describe('usePredictPrices', () => {
         ],
       });
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenLastCalledWith({
-          queries: [
-            {
-              marketId: 'market-2',
-              outcomeId: 'outcome-2',
-              outcomeTokenId: 'token-2',
-            },
-          ],
-        });
+      await waitForNextUpdate();
+
+      expect(
+        Engine.context.PredictController.getPrices,
+      ).toHaveBeenLastCalledWith({
+        queries: [
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
+        ],
       });
     });
 
     it('refetches when queries change across rerenders', async () => {
-      const { rerender } = renderHook(
+      const { rerender, waitForNextUpdate } = renderHook(
         ({ queries }) =>
           usePredictPrices({
             queries,
@@ -495,6 +503,8 @@ describe('usePredictPrices', () => {
         },
       );
 
+      await waitForNextUpdate();
+
       rerender({
         queries: [
           {
@@ -505,18 +515,18 @@ describe('usePredictPrices', () => {
         ],
       });
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenLastCalledWith({
-          queries: [
-            {
-              marketId: 'market-3',
-              outcomeId: 'outcome-3',
-              outcomeTokenId: 'token-3',
-            },
-          ],
-        });
+      await waitForNextUpdate();
+
+      expect(
+        Engine.context.PredictController.getPrices,
+      ).toHaveBeenLastCalledWith({
+        queries: [
+          {
+            marketId: 'market-3',
+            outcomeId: 'outcome-3',
+            outcomeTokenId: 'token-3',
+          },
+        ],
       });
     });
 
@@ -546,7 +556,7 @@ describe('usePredictPrices', () => {
     });
 
     it('fetches when enabled changes from false to true', async () => {
-      const { rerender } = renderHook(
+      const { rerender, waitForNextUpdate } = renderHook(
         ({ enabled }) =>
           usePredictPrices({
             queries: [
@@ -567,13 +577,13 @@ describe('usePredictPrices', () => {
 
       rerender({ enabled: true });
 
-      await waitFor(() => {
-        expect(Engine.context.PredictController.getPrices).toHaveBeenCalled();
-      });
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalled();
     });
 
     it('clears prices when enabled changes from true to false', async () => {
-      const { result, rerender } = renderHook(
+      const { result, rerender, waitForNextUpdate } = renderHook(
         ({ enabled }) =>
           usePredictPrices({
             queries: [
@@ -590,9 +600,9 @@ describe('usePredictPrices', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(result.current.prices).toEqual(mockPrices);
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.prices).toEqual(mockPrices);
 
       rerender({ enabled: false });
 
@@ -607,7 +617,7 @@ describe('usePredictPrices', () => {
       const originalContext = Engine.context;
       (Engine as unknown as { context: null }).context = null;
 
-      const { result } = renderHook(() =>
+      const { result, waitFor } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -619,11 +629,10 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.error).toBe('Engine not initialized');
-      });
+      await waitFor(() => result.current.isFetching === false);
 
       expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.error).toBe('Engine not initialized');
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalled();
 
@@ -637,7 +646,7 @@ describe('usePredictPrices', () => {
         Engine.context as unknown as { PredictController: undefined }
       ).PredictController = undefined;
 
-      const { result } = renderHook(() =>
+      const { result, waitFor } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -649,11 +658,10 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.error).toBe('Predict controller not available');
-      });
+      await waitFor(() => result.current.isFetching === false);
 
       expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.error).toBe('Predict controller not available');
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalled();
 
@@ -669,7 +677,7 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce('String error');
 
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -681,10 +689,10 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.error).toBe('Failed to fetch prices');
-      });
+      await waitForNextUpdate();
+
       expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.error).toBe('Failed to fetch prices');
       expect(DevLogger.log).toHaveBeenCalled();
     });
 
@@ -694,7 +702,7 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -706,9 +714,9 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.error).toBe('Failed to fetch prices');
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.error).toBe('Failed to fetch prices');
 
       (
         Engine.context.PredictController.getPrices as jest.Mock
@@ -724,7 +732,7 @@ describe('usePredictPrices', () => {
   });
 
   describe('cleanup', () => {
-    it('does not update state after unmount', () => {
+    it('does not update state after unmount', async () => {
       jest.useFakeTimers();
 
       (
@@ -762,7 +770,7 @@ describe('usePredictPrices', () => {
     it('clears polling timeout on unmount', async () => {
       jest.useFakeTimers();
 
-      const { unmount } = renderHook(() =>
+      const { unmount, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -775,11 +783,11 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenCalledTimes(1);
-      });
+      await waitForNextUpdate();
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
+      );
 
       unmount();
 
@@ -794,7 +802,7 @@ describe('usePredictPrices', () => {
   });
 
   describe('edge cases', () => {
-    it('handles empty queries array', () => {
+    it('handles empty queries array', async () => {
       const { result } = renderHook(() =>
         usePredictPrices({
           queries: [],
@@ -807,7 +815,7 @@ describe('usePredictPrices', () => {
       expect(Engine.context.PredictController.getPrices).not.toHaveBeenCalled();
     });
 
-    it('handles undefined queries', () => {
+    it('handles undefined queries', async () => {
       const { result } = renderHook(() =>
         usePredictPrices({
           queries: undefined as unknown as [],
@@ -820,7 +828,7 @@ describe('usePredictPrices', () => {
     });
 
     it('handles transition from empty to non-empty queries', async () => {
-      const { result, rerender } = renderHook(
+      const { result, rerender, waitForNextUpdate } = renderHook(
         ({ queries }) =>
           usePredictPrices({
             queries,
@@ -842,13 +850,13 @@ describe('usePredictPrices', () => {
         ],
       });
 
-      await waitFor(() => {
-        expect(result.current.prices).toEqual(mockPrices);
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.prices).toEqual(mockPrices);
     });
 
     it('handles transition from non-empty to empty queries', async () => {
-      const { result, rerender } = renderHook(
+      const { result, rerender, waitForNextUpdate } = renderHook(
         ({ queries }) =>
           usePredictPrices({
             queries,
@@ -866,9 +874,9 @@ describe('usePredictPrices', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(result.current.prices).toEqual(mockPrices);
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.prices).toEqual(mockPrices);
 
       rerender({ queries: [] });
 
@@ -881,7 +889,7 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockResolvedValueOnce({ providerId: '', results: [] });
 
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -893,11 +901,11 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
-      });
+      await waitForNextUpdate();
+
       expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.error).toBeNull();
+      expect(result.current.isFetching).toBe(false);
     });
   });
 
@@ -910,7 +918,7 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -923,9 +931,9 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.error).toBe('Network error');
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.error).toBe('Network error');
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
         1,
       );
@@ -946,7 +954,7 @@ describe('usePredictPrices', () => {
         Engine.context.PredictController.getPrices as jest.Mock
       ).mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() =>
+      const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
             {
@@ -958,9 +966,9 @@ describe('usePredictPrices', () => {
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.error).toBe('Network error');
-      });
+      await waitForNextUpdate();
+
+      expect(result.current.error).toBe('Network error');
       expect(result.current.prices).toEqual({ providerId: '', results: [] });
 
       (

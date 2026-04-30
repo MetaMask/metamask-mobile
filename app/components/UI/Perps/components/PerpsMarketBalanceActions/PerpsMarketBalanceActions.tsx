@@ -22,7 +22,10 @@ import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
-import { formatPerpsBalance } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -252,7 +255,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Medium}
               >
-                {formatPerpsBalance(totalBalance)}
+                {formatPerpsFiat(totalBalance)}
               </SensitiveText>
             </Animated.View>
             <Box
@@ -268,7 +271,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {formatPerpsBalance(availableBalance)}
+                {formatPerpsFiat(availableBalance, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  stripTrailingZeros: false,
+                })}
               </SensitiveText>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {' '}

@@ -102,12 +102,12 @@ describe('AssetDetailsActions', () => {
     jest.mocked(selectIsSwapsEnabled).mockReset();
   });
 
-  it('renders without crashing', () => {
-    const { getByTestId } = renderWithProvider(
+  it('should render correctly', () => {
+    const { toJSON } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
     );
-    expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with all buttons displayed', () => {

@@ -1,4 +1,5 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
+import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
@@ -241,13 +242,11 @@ describe('usePerpsMarkets', () => {
 
     it('sets isRefreshing state during refresh', async () => {
       // Arrange
-      let resolveRefresh!: () => void;
-      mockRefresh.mockImplementation(
-        () =>
-          new Promise<void>((resolve) => {
-            resolveRefresh = resolve;
-          }),
-      );
+      let resolveRefresh: () => void;
+      const refreshPromise = new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      mockRefresh.mockReturnValue(refreshPromise);
 
       const { result } = renderHook(() => usePerpsMarkets());
 
@@ -255,19 +254,16 @@ describe('usePerpsMarkets', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Act - start refresh and wait for state to flush
-      let refreshPromise: Promise<void> = Promise.resolve();
-      await act(async () => {
-        refreshPromise = result.current.refresh();
-      });
+      // Act - start refresh
+      const refreshCall = act(() => result.current.refresh());
 
       // Assert - should be refreshing
       expect(result.current.isRefreshing).toBe(true);
 
       // Complete refresh
       await act(async () => {
-        resolveRefresh();
-        await refreshPromise;
+        resolveRefresh?.();
+        await refreshCall;
       });
 
       // Assert - no longer refreshing

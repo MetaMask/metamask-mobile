@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
-import { playNotification, NotificationMoment } from '../../../../util/haptics';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import { mockTheme } from '../../../../util/theme';
 import useRewardsToast, { RewardsToastOptions } from './useRewardsToast';
 import {
@@ -8,6 +8,7 @@ import {
   ButtonIconVariant,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -15,7 +16,14 @@ jest.mock('react', () => ({
   useMemo: jest.fn((fn) => fn()),
 }));
 
-jest.mock('../../../../util/haptics');
+jest.mock('expo-haptics', () => ({
+  notificationAsync: jest.fn(),
+  NotificationFeedbackType: {
+    Success: 'success',
+    Warning: 'warning',
+    Error: 'error',
+  },
+}));
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -61,7 +69,7 @@ describe('useRewardsToast', () => {
       const testConfig: RewardsToastOptions = {
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        hapticsType: NotificationMoment.Success,
+        hapticsType: NotificationFeedbackType.Success,
         labelOptions: [{ label: 'Test', isBold: true }],
         hasNoTimeout: false,
       };
@@ -71,13 +79,10 @@ describe('useRewardsToast', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        labelOptions: [{ label: 'Test', isBold: true }],
-        hasNoTimeout: false,
-      });
-      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
+      expect(mockShowToast).toHaveBeenCalledWith(testConfig);
+      expect(notificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Success,
+      );
     });
   });
 
@@ -91,7 +96,7 @@ describe('useRewardsToast', () => {
         iconName: IconName.Confirmation,
         iconColor: mockTheme.colors.success.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Success,
+        hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
@@ -115,7 +120,7 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
         iconColor: mockTheme.colors.success.default,
-        hapticsType: NotificationMoment.Success,
+        hapticsType: NotificationFeedbackType.Success,
       });
       expect(config.labelOptions).toEqual([
         { label: 'Test Title', isBold: true },
@@ -134,7 +139,7 @@ describe('useRewardsToast', () => {
         iconName: IconName.Danger,
         iconColor: mockTheme.colors.error.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Error,
+        hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
@@ -158,7 +163,7 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
         iconColor: mockTheme.colors.error.default,
-        hapticsType: NotificationMoment.Error,
+        hapticsType: NotificationFeedbackType.Error,
       });
       expect(config.labelOptions).toEqual([
         { label: 'Error Title', isBold: true },
@@ -178,7 +183,7 @@ describe('useRewardsToast', () => {
         iconName: IconName.Lock,
         iconColor: mockTheme.colors.icon.default,
         backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Warning,
+        hapticsType: NotificationFeedbackType.Warning,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
@@ -202,7 +207,7 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Icon,
         iconName: IconName.Lock,
         iconColor: mockTheme.colors.icon.default,
-        hapticsType: NotificationMoment.Warning,
+        hapticsType: NotificationFeedbackType.Warning,
       });
       expect(config.labelOptions).toEqual([
         { label: 'Entries closed', isBold: true },
@@ -231,7 +236,7 @@ describe('useRewardsToast', () => {
       const testConfig: RewardsToastOptions = {
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        hapticsType: NotificationMoment.Success,
+        hapticsType: NotificationFeedbackType.Success,
         labelOptions: [{ label: 'Test', isBold: true }],
         hasNoTimeout: false,
       };
@@ -246,7 +251,9 @@ describe('useRewardsToast', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
+      expect(notificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Success,
+      );
     });
 
     it('handles undefined toastRef.current gracefully in showToast', async () => {
@@ -258,7 +265,7 @@ describe('useRewardsToast', () => {
       const testConfig: RewardsToastOptions = {
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        hapticsType: NotificationMoment.Success,
+        hapticsType: NotificationFeedbackType.Success,
         labelOptions: [{ label: 'Test', isBold: true }],
         hasNoTimeout: false,
       };
@@ -273,7 +280,9 @@ describe('useRewardsToast', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
+      expect(notificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Success,
+      );
     });
 
     it('handles null toastRef gracefully in close button', () => {

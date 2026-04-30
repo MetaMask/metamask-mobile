@@ -175,10 +175,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
     const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-    expect(
-      switchComponent.props.accessibilityState?.disabled ??
-        switchComponent.props.disabled,
-    ).toBe(true);
+    expect(switchComponent.props.disabled).toBe(true);
   });
 
   it('disables switch for standard account when upgradeContractAddress is missing', () => {
@@ -195,10 +192,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
     const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-    expect(
-      switchComponent.props.accessibilityState?.disabled ??
-        switchComponent.props.disabled,
-    ).toBe(true);
+    expect(switchComponent.props.disabled).toBe(true);
   });
 
   it('does not navigate to wallet view when switch is pressed', () => {

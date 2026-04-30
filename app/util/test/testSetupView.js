@@ -106,16 +106,7 @@ jest.mock(
 );
 
 // Mock NativeEventEmitter to prevent crashes in Node environment
-jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
-  const NativeEventEmitter = jest.fn().mockImplementation(() => ({
-    addListener: jest.fn(() => ({ remove: jest.fn() })),
-    removeListeners: jest.fn(),
-    removeAllListeners: jest.fn(),
-    listenerCount: jest.fn(() => 0),
-    emit: jest.fn(),
-  }));
-  return { __esModule: true, default: NativeEventEmitter };
-});
+jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
 // Mock react-native-quick-crypto
 jest.mock('react-native-quick-crypto', () => {

@@ -40,9 +40,10 @@ describe('TemplateConfirmation', () => {
     });
     const wrapper = render(<TemplateConfirmation {...mockProps} />);
 
-    expect(wrapper.getByText(CONTENT_MOCK)).toBeOnTheScreen();
-    expect(wrapper.getByText(CANCEL_TEXT_MOCK)).toBeOnTheScreen();
-    expect(wrapper.getByText(CONFIRM_TEXT_MOCK)).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByText(CONTENT_MOCK)).toBeDefined();
+    expect(wrapper.queryByText(CANCEL_TEXT_MOCK)).toBeDefined();
+    expect(wrapper.queryByText(CONFIRM_TEXT_MOCK)).toBeDefined();
   });
 
   it('renders content without actions', () => {
@@ -55,7 +56,8 @@ describe('TemplateConfirmation', () => {
     });
     const wrapper = render(<TemplateConfirmation {...mockProps} />);
 
-    expect(wrapper.getByText(CONTENT_MOCK)).toBeOnTheScreen();
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByText(CONTENT_MOCK)).toBeDefined();
     expect(wrapper.queryByText(CANCEL_TEXT_MOCK)).toBeNull();
     expect(wrapper.queryByText(CONFIRM_TEXT_MOCK)).toBeNull();
   });

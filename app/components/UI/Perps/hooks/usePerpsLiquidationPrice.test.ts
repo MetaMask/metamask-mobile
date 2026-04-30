@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-hooks';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -34,12 +34,14 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'BTC',
     };
 
-    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePerpsLiquidationPrice(params),
+    );
 
     // With 0ms debounce, still need to wait for async debounced function
-    await waitFor(() => {
-      expect(result.current.isCalculating).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isCalculating).toBe(false);
     expect(result.current.liquidationPrice).toBe('45000.00');
     expect(result.current.error).toBe(null);
     expect(mockCalculateLiquidationPrice).toHaveBeenCalledWith({
@@ -62,11 +64,13 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'ETH',
     };
 
-    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePerpsLiquidationPrice(params),
+    );
 
-    await waitFor(() => {
-      expect(result.current.isCalculating).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isCalculating).toBe(false);
     expect(result.current.liquidationPrice).toBe('0.00');
     expect(result.current.error).toBe('Calculation failed');
   });
@@ -84,11 +88,13 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'BTC',
     };
 
-    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePerpsLiquidationPrice(params),
+    );
 
-    await waitFor(() => {
-      expect(result.current.isCalculating).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isCalculating).toBe(false);
     expect(result.current.liquidationPrice).toBe(
       PERPS_CONSTANTS.FallbackPriceDisplay,
     );
@@ -153,7 +159,7 @@ describe('usePerpsLiquidationPrice', () => {
       .mockResolvedValueOnce('45000.00')
       .mockResolvedValueOnce('47500.00');
 
-    const { result, rerender } = renderHook(
+    const { result, rerender, waitForNextUpdate } = renderHook(
       (props) => usePerpsLiquidationPrice(props),
       {
         initialProps: {
@@ -165,9 +171,8 @@ describe('usePerpsLiquidationPrice', () => {
       },
     );
 
-    await waitFor(() => {
-      expect(result.current.liquidationPrice).toBe('45000.00');
-    });
+    await waitForNextUpdate();
+    expect(result.current.liquidationPrice).toBe('45000.00');
 
     // Change leverage
     rerender({
@@ -177,9 +182,8 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'BTC',
     });
 
-    await waitFor(() => {
-      expect(result.current.liquidationPrice).toBe('47500.00');
-    });
+    await waitForNextUpdate();
+    expect(result.current.liquidationPrice).toBe('47500.00');
 
     expect(mockCalculateLiquidationPrice).toHaveBeenCalledTimes(2);
     expect(mockCalculateLiquidationPrice).toHaveBeenLastCalledWith({
@@ -201,11 +205,13 @@ describe('usePerpsLiquidationPrice', () => {
       asset: 'BTC',
     };
 
-    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePerpsLiquidationPrice(params),
+    );
 
-    await waitFor(() => {
-      expect(result.current.isCalculating).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isCalculating).toBe(false);
     expect(result.current.liquidationPrice).toBe('0.00');
     expect(result.current.error).toBe('Failed to calculate liquidation price');
   });

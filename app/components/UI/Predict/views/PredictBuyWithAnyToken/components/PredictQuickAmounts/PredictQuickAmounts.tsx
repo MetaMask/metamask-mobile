@@ -1,6 +1,6 @@
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import React from 'react';
 import Button, {
   ButtonSize,
@@ -19,7 +19,6 @@ function PredictQuickAmounts({
   disabled = false,
 }: PredictQuickAmountsProps) {
   const tw = useTailwind();
-  const { playImpact } = useHaptics();
 
   return (
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-2">
@@ -30,7 +29,7 @@ function PredictQuickAmounts({
           size={ButtonSize.Md}
           label={`$${amount}`}
           onPress={async () => {
-            playImpact(ImpactMoment.QuickAmountSelection);
+            await impactAsync(ImpactFeedbackStyle.Light).catch(() => undefined);
             onSelectAmount(amount);
           }}
           isDisabled={disabled}

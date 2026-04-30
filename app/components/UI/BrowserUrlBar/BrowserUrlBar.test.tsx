@@ -99,7 +99,7 @@ describe('BrowserUrlBar', () => {
     const { toJSON } = renderWithProvider(<BrowserUrlBar {...defaultProps} />, {
       state: mockInitialState,
     });
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('render matches snapshot when not focused', () => {
@@ -109,7 +109,7 @@ describe('BrowserUrlBar', () => {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onChangeText when text input changes', () => {

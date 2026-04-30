@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, waitFor, fireEvent } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountOverview from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -98,7 +98,7 @@ describe('AccountOverview', () => {
       <AccountOverview account={account} />,
       { state: mockInitialState },
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks WALLET_COPIED_ADDRESS when address is pressed', async () => {
@@ -118,7 +118,7 @@ describe('AccountOverview', () => {
       AccountOverviewSelectorsIDs.ADDRESS_COPY_BUTTON,
     );
     await act(async () => {
-      await fireEvent.press(addressCopyButton);
+      await addressCopyButton.props.onPress();
     });
 
     await waitFor(() => {

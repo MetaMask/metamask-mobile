@@ -1,12 +1,13 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
-import { playNotification, NotificationMoment } from '../../../../util/haptics';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import useEarnToasts from './useEarnToasts';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonIconProps } from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
-jest.mock('../../../../util/haptics');
+
+jest.mock('expo-haptics');
 
 const mockTheme = {
   colors: {
@@ -42,7 +43,7 @@ describe('useEarnToasts', () => {
     },
   };
 
-  const mockPlayNotification = jest.mocked(playNotification);
+  const mockNotificationAsync = jest.mocked(notificationAsync);
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <ToastContext.Provider value={{ toastRef: mockToastRef }}>
@@ -86,9 +87,9 @@ describe('useEarnToasts', () => {
 
       result.current.showToast(testConfig);
 
-      expect(mockPlayNotification).toHaveBeenCalledTimes(1);
-      expect(mockPlayNotification).toHaveBeenCalledWith(
-        NotificationMoment.Success,
+      expect(mockNotificationAsync).toHaveBeenCalledTimes(1);
+      expect(mockNotificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Success,
       );
     });
 
@@ -133,7 +134,7 @@ describe('useEarnToasts', () => {
       expect(successToast.variant).toBe(ToastVariants.Icon);
       expect(successToast.iconName).toBe(IconName.Confirmation);
       expect(successToast.iconColor).toBeDefined();
-      expect(successToast.hapticsType).toBe(NotificationMoment.Success);
+      expect(successToast.hapticsType).toBe(NotificationFeedbackType.Success);
     });
 
     it('configures inProgress toast with correct properties when called with params', () => {
@@ -146,7 +147,9 @@ describe('useEarnToasts', () => {
 
       expect(inProgressToast.variant).toBe(ToastVariants.Icon);
       expect(inProgressToast.iconName).toBe(IconName.Loading);
-      expect(inProgressToast.hapticsType).toBe(NotificationMoment.Warning);
+      expect(inProgressToast.hapticsType).toBe(
+        NotificationFeedbackType.Warning,
+      );
       expect(inProgressToast.hasNoTimeout).toBe(true);
     });
 
@@ -158,7 +161,7 @@ describe('useEarnToasts', () => {
       expect(failedToast.variant).toBe(ToastVariants.Icon);
       expect(failedToast.iconName).toBe(IconName.CircleX);
       expect(failedToast.iconColor).toBeDefined();
-      expect(failedToast.hapticsType).toBe(NotificationMoment.Error);
+      expect(failedToast.hapticsType).toBe(NotificationFeedbackType.Error);
     });
   });
 
@@ -351,8 +354,8 @@ describe('useEarnToasts', () => {
 
       result.current.showToast(inProgressToast);
 
-      expect(mockPlayNotification).toHaveBeenCalledWith(
-        NotificationMoment.Warning,
+      expect(mockNotificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Warning,
       );
     });
 
@@ -363,8 +366,8 @@ describe('useEarnToasts', () => {
 
       result.current.showToast(failedToast);
 
-      expect(mockPlayNotification).toHaveBeenCalledWith(
-        NotificationMoment.Error,
+      expect(mockNotificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Error,
       );
     });
   });
@@ -387,7 +390,7 @@ describe('useEarnToasts', () => {
 
       expect(() => result.current.showToast(testConfig)).not.toThrow();
 
-      expect(mockPlayNotification).toHaveBeenCalled();
+      expect(mockNotificationAsync).toHaveBeenCalled();
     });
 
     it('handles closeToast with null toastRef gracefully', () => {

@@ -106,7 +106,7 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
       return computeProgress(parseFloat(totalUsdDeposited));
     }, [totalUsdDeposited]);
 
-  const progressPercent: `${number}%` = `${Math.round(progress * 100)}%`;
+  const progressPercent = `${Math.round(progress * 100)}%`;
   const deposited = totalUsdDeposited ? parseFloat(totalUsdDeposited) : 0;
 
   if (showError) {

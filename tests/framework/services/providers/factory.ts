@@ -2,7 +2,6 @@ import type { ServiceProvider } from '../common/interfaces/ServiceProvider.ts';
 import type { ProjectConfig } from '../common/types.ts';
 import { EmulatorProvider } from './emulator';
 import { BrowserStackProvider } from './browserstack';
-import { ProviderName } from '../../types.ts';
 
 /**
  * Supported provider types
@@ -23,11 +22,10 @@ export function createServiceProvider(project: ProjectConfig): ServiceProvider {
   }
 
   switch (provider) {
-    case ProviderName.EMULATOR:
-    case ProviderName.SIMULATOR:
+    case 'emulator':
       return new EmulatorProvider(project);
 
-    case ProviderName.BROWSERSTACK:
+    case 'browserstack':
       return new BrowserStackProvider(project);
 
     default:

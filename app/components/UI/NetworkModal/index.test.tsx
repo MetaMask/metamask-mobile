@@ -140,7 +140,7 @@ describe('NetworkDetails', () => {
     );
     const { toJSON } = renderWithTheme(<NetworkModal {...props} />);
 
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should call setTokenNetworkFilter when switching networks', async () => {

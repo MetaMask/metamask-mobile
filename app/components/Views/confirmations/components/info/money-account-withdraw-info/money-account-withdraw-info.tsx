@@ -28,7 +28,6 @@ export function MoneyAccountWithdrawInfo() {
         address: MUSD_TOKEN_ADDRESS,
         chainId: CHAIN_IDS.MAINNET,
       }}
-      supportAccountSelection
     >
       <MoneyAccountWithdrawBalance />
     </CustomAmountInfo>

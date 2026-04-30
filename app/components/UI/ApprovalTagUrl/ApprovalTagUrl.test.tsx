@@ -17,7 +17,7 @@ const mockInitialState = {
 
 describe('ApprovalTagUrl', () => {
   it('renders correctly', () => {
-    const { getByTestId } = renderWithProvider(
+    const { toJSON, getByTestId } = renderWithProvider(
       <ApprovalTagUrl
         origin={DOMAIN_MOCK}
         url={`https://${DOMAIN_MOCK}/test-dapp/mock-url-query`}
@@ -26,6 +26,7 @@ describe('ApprovalTagUrl', () => {
       { state: mockInitialState },
     );
 
+    expect(toJSON()).toMatchSnapshot();
     expect(getByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeDefined();
   });
 
@@ -43,7 +44,7 @@ describe('ApprovalTagUrl', () => {
   });
 
   it('renders origin when only origin is provided', () => {
-    const { getByTestId } = renderWithProvider(
+    const { toJSON, getByTestId } = renderWithProvider(
       <ApprovalTagUrl
         origin={DOMAIN_MOCK}
         url=""
@@ -52,6 +53,7 @@ describe('ApprovalTagUrl', () => {
       { state: mockInitialState },
     );
 
+    expect(toJSON()).toMatchSnapshot();
     expect(getByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeDefined();
   });
 });

@@ -443,19 +443,19 @@ class TransactionDetails extends PureComponent {
             </View>
           </DetailsModal.Column>
         </DetailsModal.Section>
-        {!!txParams?.nonce && (
-          <DetailsModal.Section>
-            <DetailsModal.Column>
-              <DetailsModal.SectionTitle upper>
-                {strings('transactions.nonce')}
-              </DetailsModal.SectionTitle>
+        <DetailsModal.Section>
+          <DetailsModal.Column>
+            <DetailsModal.SectionTitle upper>
+              {strings('transactions.nonce')}
+            </DetailsModal.SectionTitle>
+            {!!txParams?.nonce && (
               <Text small primary>{`#${parseInt(
                 txParams.nonce.replace(regex.transactionNonce, ''),
                 16,
               )}`}</Text>
-            </DetailsModal.Column>
-          </DetailsModal.Section>
-        )}
+            )}
+          </DetailsModal.Column>
+        </DetailsModal.Section>
         <View
           style={[
             styles.summaryWrapper,

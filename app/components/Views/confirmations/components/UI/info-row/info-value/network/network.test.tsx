@@ -23,11 +23,11 @@ const mockInitialState = {
 };
 
 describe('Network', () => {
-  it('renders the network avatar', () => {
-    const { getByTestId } = renderWithProvider(
+  it('should match snapshot', async () => {
+    const container = renderWithProvider(
       <Network chainId={CHAIN_IDS.MAINNET} />,
       { state: mockInitialState },
     );
-    expect(getByTestId('network-avatar-image')).toBeOnTheScreen();
+    expect(container).toMatchSnapshot();
   });
 });

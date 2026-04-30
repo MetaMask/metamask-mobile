@@ -62,6 +62,7 @@ describe('Name', () => {
       expect(
         wrapper.getByText(EXPECTED_UNKNOWN_ADDRESS_CHECKSUMMED),
       ).toBeTruthy();
+      expect(wrapper).toMatchSnapshot();
     });
   });
 
@@ -86,6 +87,7 @@ describe('Name', () => {
       );
 
       expect(wrapper.getByText(KNOWN_NAME_MOCK)).toBeTruthy();
+      expect(wrapper).toMatchSnapshot();
     });
 
     it('renders image', () => {
@@ -98,7 +100,7 @@ describe('Name', () => {
         isAccount: false,
       });
 
-      const { toJSON } = render(
+      const wrapper = render(
         <Provider store={store}>
           <Name
             type={NameType.EthereumAddress}
@@ -107,7 +109,7 @@ describe('Name', () => {
           />
         </Provider>,
       );
-      expect(toJSON()).not.toBeNull();
+      expect(wrapper).toMatchSnapshot();
     });
 
     it('renders account wallet name', () => {
@@ -132,6 +134,7 @@ describe('Name', () => {
       );
 
       expect(wrapper.getByText(mockAccountWalletName)).toBeTruthy();
+      expect(wrapper).toMatchSnapshot();
     });
   });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, fireEvent } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
 import TokenIcon from '.';
 
 // Mock component-library Text component
@@ -270,7 +270,7 @@ describe('TokenIcon', () => {
 
       await act(async () => {
         const errorTrigger = getByTestId('token-icon-error-trigger');
-        fireEvent.press(errorTrigger);
+        errorTrigger.props.onPress();
       });
 
       expect(getByText('D')).toBeOnTheScreen();

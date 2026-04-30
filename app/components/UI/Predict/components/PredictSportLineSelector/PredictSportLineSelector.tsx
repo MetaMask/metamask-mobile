@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import { playSelection } from '../../../../../util/haptics';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -27,8 +27,7 @@ import { PREDICT_SPORT_LINE_SELECTOR_TEST_IDS } from './PredictSportLineSelector
 interface PredictSportLineSelectorProps {
   lines: number[];
   selectedLine: number;
-  selectedIndex?: number;
-  onSelectLine: (line: number, index: number) => void;
+  onSelectLine: (line: number) => void;
   testID?: string;
 }
 
@@ -39,7 +38,6 @@ const ANIMATION_DURATION = 250;
 const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   lines,
   selectedLine,
-  selectedIndex: selectedIndexProp,
   onSelectLine,
   testID,
 }) => {
@@ -47,8 +45,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   const translateX = useSharedValue(0);
   const containerWidth = useSharedValue(0);
 
-  const selectedIndex =
-    selectedIndexProp ?? Math.max(0, lines.indexOf(selectedLine));
+  const selectedIndex = Math.max(0, lines.indexOf(selectedLine));
   const isFirstSelected = selectedIndex <= 0;
   const isLastSelected = selectedIndex >= lines.length - 1;
 
@@ -85,24 +82,22 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   }));
 
   const selectWithHaptics = useCallback(
-    (line: number, index: number) => {
-      playSelection();
-      onSelectLine(line, index);
+    (line: number) => {
+      impactAsync(ImpactFeedbackStyle.Light);
+      onSelectLine(line);
     },
     [onSelectLine],
   );
 
   const handlePrevious = () => {
     if (!isFirstSelected) {
-      const prevIdx = selectedIndex - 1;
-      selectWithHaptics(lines[prevIdx], prevIdx);
+      selectWithHaptics(lines[selectedIndex - 1]);
     }
   };
 
   const handleNext = () => {
     if (!isLastSelected) {
-      const nextIdx = selectedIndex + 1;
-      selectWithHaptics(lines[nextIdx], nextIdx);
+      selectWithHaptics(lines[selectedIndex + 1]);
     }
   };
 
@@ -155,13 +150,13 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
       >
         <Box onLayout={handleLayout}>
           <Animated.View style={animatedStyle}>
-            {lines.map((line, index) => {
-              const isSelected = index === selectedIndex;
+            {lines.map((line) => {
+              const isSelected = line === selectedLine;
               return (
                 <Pressable
-                  key={`line-${index}-${line}`}
-                  onPress={() => selectWithHaptics(line, index)}
-                  testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.LINE_PREFIX}${index}-${line}`}
+                  key={line}
+                  onPress={() => selectWithHaptics(line)}
+                  testID={`${baseTestID}-${PREDICT_SPORT_LINE_SELECTOR_TEST_IDS.LINE_PREFIX}${line}`}
                   style={({ pressed }) =>
                     tw.style(
                       'items-center justify-center py-2',

@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-hooks';
 import { handleFetch } from '@metamask/controller-utils';
 import useFetchTokenRatesMulti from './useTokenRates';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
@@ -47,7 +47,7 @@ describe('useFetchTokenRatesMulti', () => {
 
     (handleFetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
-    const { result } = renderHook(() =>
+    const { result, waitForNextUpdate } = renderHook(() =>
       useFetchTokenRatesMulti({
         tokens: mockTokens,
         fiatCurrency: mockFiatCurrency,
@@ -58,9 +58,9 @@ describe('useFetchTokenRatesMulti', () => {
     expect(result.current.error).toBe(null);
     expect(result.current.rates).toEqual({});
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
     expect(result.current.rates).toEqual({
       'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 1.0,
@@ -78,16 +78,16 @@ describe('useFetchTokenRatesMulti', () => {
     const mockError = new Error('API Error');
     (handleFetch as jest.Mock).mockRejectedValueOnce(mockError);
 
-    const { result } = renderHook(() =>
+    const { result, waitForNextUpdate } = renderHook(() =>
       useFetchTokenRatesMulti({
         tokens: mockTokens,
         fiatCurrency: mockFiatCurrency,
       }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(mockError);
     expect(result.current.rates).toEqual({});
   });
@@ -101,16 +101,16 @@ describe('useFetchTokenRatesMulti', () => {
 
     (handleFetch as jest.Mock).mockResolvedValueOnce(mockResponse);
 
-    const { result } = renderHook(() =>
+    const { result, waitForNextUpdate } = renderHook(() =>
       useFetchTokenRatesMulti({
         tokens: mockTokens,
         fiatCurrency: mockFiatCurrency,
       }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitForNextUpdate();
+
+    expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
     expect(result.current.rates).toEqual({
       'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 1.0,
@@ -127,7 +127,7 @@ describe('useFetchTokenRatesMulti', () => {
 
     (handleFetch as jest.Mock).mockResolvedValue(mockResponse);
 
-    const { result, rerender } = renderHook(
+    const { result, rerender, waitForNextUpdate } = renderHook(
       ({ tokens, fiatCurrency }) =>
         useFetchTokenRatesMulti({ tokens, fiatCurrency }),
       {
@@ -138,14 +138,16 @@ describe('useFetchTokenRatesMulti', () => {
       },
     );
 
+    await waitForNextUpdate();
+
     rerender({
       tokens: [MOCK_USDT_TOKEN],
       fiatCurrency: 'USD',
     });
 
     expect(result.current.isLoading).toBe(true);
-    await waitFor(() => {
-      expect(handleFetch).toHaveBeenCalledTimes(2);
-    });
+    await waitForNextUpdate();
+
+    expect(handleFetch).toHaveBeenCalledTimes(2);
   });
 });

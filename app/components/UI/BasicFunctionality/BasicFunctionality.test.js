@@ -8,6 +8,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 describe('BasicFunctionality', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<BasicFunctionality />);
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -101,7 +101,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   if (securityAlertResponse.reason === Reason.requestInProgress) {
     return (
       <ActivityIndicator
-        testID="blockaid-banner-loader"
         style={styles.bannerSectionSmall}
         size="small"
         color={theme.colors.warning.default}

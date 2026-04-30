@@ -33,7 +33,7 @@ describe('NetworkImageComponent', () => {
         allNetworksEnabled={{}}
       />,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders multiple avatars when isAllNetworksEnabled is true', () => {

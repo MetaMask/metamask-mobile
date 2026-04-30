@@ -36,8 +36,6 @@ jest.mock('../../hooks/useEarnTokens', () => () => ({
     isNative: true,
   })),
   getOutputToken: jest.fn(() => ({
-    experience: { type: 'STABLECOIN_LENDING' },
-    chainId: '1',
     symbol: 'ETH',
     ticker: 'ETH',
     name: 'Ethereum',

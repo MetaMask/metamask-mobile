@@ -139,7 +139,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     activeChainId,
     fromPerps,
     fromBenefit,
-    fromCard,
   }) => {
     const navigation = useNavigation();
     const { styles } = useStyles(styleSheet, {});
@@ -1284,13 +1283,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         });
       } else if (fromBenefit) {
         navigation.goBack();
-      } else if (fromCard) {
-        navigation.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-          },
-        });
       } else {
         // Navigate to TrendingView/TrendingFeed
         // Note: We use explicit navigation instead of goBack() because the browser
@@ -1300,7 +1292,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           screen: Routes.TRENDING_FEED,
         });
       }
-    }, [navigation, fromPerps, fromBenefit, fromCard]);
+    }, [navigation, fromPerps, fromBenefit]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();

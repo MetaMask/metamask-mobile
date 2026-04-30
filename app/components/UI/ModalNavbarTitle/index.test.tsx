@@ -6,7 +6,7 @@ describe('ModalNavbarTitle', () => {
   it('should render correctly', () => {
     const title = 'Test';
 
-    const { getByText } = render(<ModalNavbarTitle title={title} />);
-    expect(getByText(title)).toBeOnTheScreen();
+    const { toJSON } = render(<ModalNavbarTitle title={title} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

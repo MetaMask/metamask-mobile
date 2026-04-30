@@ -7,42 +7,33 @@ describe('AssetActionButtons', () => {
 
   it('should render correctly', () => {
     render(<AssetActionButton label={mockText} />);
-    expect(screen.getByText(mockText)).toBeDefined();
+    expect(screen.getByText(mockText)).toBeOnTheScreen();
   });
 
   it('should render type send correctly', () => {
-    const { toJSON } = render(
-      <AssetActionButton icon="send" label={mockText} />,
-    );
-    expect(toJSON()).toBeDefined();
+    render(<AssetActionButton icon="send" label={mockText} />);
+    expect(screen.getByText(mockText)).toBeOnTheScreen();
   });
 
   it('should render type receive correctly', () => {
     const text = 'receive receive';
-    const { toJSON } = render(
-      <AssetActionButton icon="receive" label={text} />,
-    );
-    expect(toJSON()).toBeDefined();
+    render(<AssetActionButton icon="receive" label={text} />);
+    // Label longer than 10 chars gets truncated to first 7 chars + '...'
+    expect(screen.getByText('receive...')).toBeOnTheScreen();
   });
 
   it('should render type add correctly', () => {
-    const { toJSON } = render(
-      <AssetActionButton icon="add" label={mockText} />,
-    );
-    expect(toJSON()).toBeDefined();
+    render(<AssetActionButton icon="add" label={mockText} />);
+    expect(screen.getByText(mockText)).toBeOnTheScreen();
   });
 
   it('should render type information correctly', () => {
-    const { toJSON } = render(
-      <AssetActionButton icon="information" label={mockText} />,
-    );
-    expect(toJSON()).toBeDefined();
+    render(<AssetActionButton icon="information" label={mockText} />);
+    expect(screen.getByText(mockText)).toBeOnTheScreen();
   });
 
   it('should render type swap correctly', () => {
-    const { toJSON } = render(
-      <AssetActionButton icon="swap" label={mockText} />,
-    );
-    expect(toJSON()).toBeDefined();
+    render(<AssetActionButton icon="swap" label={mockText} />);
+    expect(screen.getByText(mockText)).toBeOnTheScreen();
   });
 });

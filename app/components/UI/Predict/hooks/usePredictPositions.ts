@@ -14,14 +14,9 @@ interface UsePredictPositionsOptions {
   refetchInterval?: number | false;
   claimable?: boolean;
   marketId?: string;
-  childMarketIds?: string[];
 }
 
-function buildSelect(
-  claimable?: boolean,
-  marketId?: string,
-  childMarketIds?: string[],
-) {
+function buildSelect(claimable?: boolean, marketId?: string) {
   return (data: PredictPosition[]) => {
     let result = data;
 
@@ -32,12 +27,7 @@ function buildSelect(
     }
 
     if (marketId) {
-      if (childMarketIds && childMarketIds.length > 0) {
-        const validIds = new Set(childMarketIds);
-        result = result.filter((p) => validIds.has(p.marketId));
-      } else {
-        result = result.filter((p) => p.marketId === marketId);
-      }
+      result = result.filter((p) => p.marketId === marketId);
     }
 
     return result;
@@ -45,13 +35,7 @@ function buildSelect(
 }
 
 export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
-  const {
-    enabled = true,
-    refetchInterval,
-    claimable,
-    marketId,
-    childMarketIds,
-  } = options;
+  const { enabled = true, refetchInterval, claimable, marketId } = options;
 
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
@@ -80,6 +64,6 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     refetchInterval: hasOptimistic
       ? OPTIMISTIC_POLL_INTERVAL
       : (refetchInterval ?? false),
-    select: buildSelect(claimable, marketId, childMarketIds),
+    select: buildSelect(claimable, marketId),
   });
 }

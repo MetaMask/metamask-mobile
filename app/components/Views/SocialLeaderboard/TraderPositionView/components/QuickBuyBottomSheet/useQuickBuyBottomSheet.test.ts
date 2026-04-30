@@ -2,28 +2,21 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
-import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import { useRewards } from '../../../../../UI/Bridge/hooks/useRewards';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import Engine from '../../../../../../core/Engine';
+import useSubmitBridgeTx from '../../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import {
   selectIsSubmittingTx,
   selectDestAddress,
-  selectSlippage,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
-  selectIsSolanaSourced,
-  selectBridgeFeatureFlags,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
-import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 
 jest.mock('react-redux', () => ({
@@ -45,6 +38,10 @@ jest.mock('./useSourceTokenOptions', () => ({
 
 jest.mock('./useQuickBuyQuotes', () => ({
   useQuickBuyQuotes: jest.fn(),
+}));
+
+jest.mock('../../../../../UI/Bridge/hooks/useRewards', () => ({
+  useRewards: jest.fn(),
 }));
 
 jest.mock('../../../../../UI/Bridge/hooks/useLatestBalance', () => ({
@@ -75,16 +72,13 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn(),
+jest.mock('../../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
-}));
-
-jest.mock('../../../../confirmations/hooks/gas/useGasFeeEstimates', () => ({
-  useGasFeeEstimates: jest.fn(),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -92,10 +86,6 @@ jest.mock('../../../../../../core/Engine', () => ({
   default: {
     context: {
       BridgeController: { resetState: jest.fn() },
-      BridgeStatusController: { submitTx: jest.fn() },
-      NetworkController: {
-        findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
-      },
     },
   },
 }));
@@ -117,27 +107,12 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   })),
   selectIsSubmittingTx: jest.fn(),
   selectDestAddress: jest.fn(),
-  selectSlippage: jest.fn(),
   selectIsEvmNonEvmBridge: jest.fn(),
   selectIsNonEvmNonEvmBridge: jest.fn(),
-  selectIsSolanaSourced: jest.fn(),
-  selectBridgeFeatureFlags: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
-}));
-
-jest.mock('../../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountFormattedAddress: jest.fn(),
-}));
-
-jest.mock('../../../../../../util/address', () => ({
-  isHardwareAccount: jest.fn(() => false),
-}));
-
-jest.mock('../../../../../UI/Bridge/hooks/usePriceImpactViewData', () => ({
-  usePriceImpactViewData: jest.fn(),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -145,6 +120,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 const mockDispatch = jest.fn();
+const mockSubmitBridgeTx = jest.fn();
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
   ({
@@ -198,22 +174,8 @@ const setupDefaultMocks = () => {
     '0xWALLET',
   );
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
-  (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
   (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
-  (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(false);
-  (selectBridgeFeatureFlags as unknown as jest.Mock).mockReturnValue({
-    priceImpactThreshold: { warning: 0.05, error: 0.25 },
-  });
-  (
-    selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
-  ).mockReturnValue('0xWALLET');
-  (usePriceImpactViewData as jest.Mock).mockReturnValue({
-    textColor: TextColor.TextAlternative,
-    icon: undefined,
-    title: 'bridge.price_impact_info_title',
-    description: 'bridge.price_impact_info_description',
-  });
 
   (useQuickBuySetup as jest.Mock).mockReturnValue({
     chainId: '0x1',
@@ -242,6 +204,15 @@ const setupDefaultMocks = () => {
     isActiveQuoteForCurrentTokenPair: true,
   });
 
+  (useRewards as jest.Mock).mockReturnValue({
+    estimatedPoints: undefined,
+    isLoading: false,
+    shouldShowRewardsRow: false,
+    hasError: false,
+    accountOptedIn: false,
+    rewardsAccountScope: null,
+  });
+
   (useLatestBalance as jest.Mock).mockReturnValue({
     atomicBalance: undefined,
     displayBalance: undefined,
@@ -249,12 +220,9 @@ const setupDefaultMocks = () => {
 
   (useIsInsufficientBalance as jest.Mock).mockReturnValue(false);
   (useHasSufficientGas as jest.Mock).mockReturnValue(true);
-  (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
-    false,
-  );
-  (
-    Engine.context.BridgeStatusController.submitTx as jest.Mock
-  ).mockResolvedValue(undefined);
+  (useSubmitBridgeTx as jest.Mock).mockReturnValue({
+    submitBridgeTx: mockSubmitBridgeTx,
+  });
 };
 
 describe('useQuickBuyBottomSheet', () => {
@@ -332,28 +300,14 @@ describe('useQuickBuyBottomSheet', () => {
       );
     });
 
-    it('returns the insufficient-funds label when source balance is too low', () => {
+    it('returns insufficient funds label when source balance is too low', () => {
       (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() =>
         useQuickBuyBottomSheet(createPosition(), jest.fn()),
       );
 
-      expect(result.current.buttonError).toBe('insufficient_balance');
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_funds');
-    });
-
-    it('returns the insufficient-gas label when gas is short', () => {
-      (useHasSufficientGas as jest.Mock).mockReturnValue(false);
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      expect(result.current.buttonError).toBe('insufficient_gas');
-      expect(result.current.getButtonLabel()).toBe('bridge.insufficient_gas');
-
-      (useHasSufficientGas as jest.Mock).mockReturnValue(true);
     });
   });
 
@@ -433,7 +387,7 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.confirmButtonState).toBe('idle');
+      expect(result.current.isConfirmLoading).toBe(false);
     });
 
     it('is disabled when a destination address is required but missing', () => {
@@ -456,7 +410,7 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.confirmButtonState).toBe('idle');
+      expect(result.current.isConfirmLoading).toBe(false);
     });
 
     it('is enabled after quote loading settles for the entered amount', () => {
@@ -551,96 +505,12 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(result.current.isConfirmDisabled).toBe(true);
-      expect(result.current.confirmButtonState).toBe('idle');
-    });
-
-    const settleQuote = () => {
-      const quoteState: {
-        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
-        destTokenAmount: string | undefined;
-        isQuoteLoading: boolean;
-        isNoQuotesAvailable: boolean;
-        quoteFetchError: null;
-        isActiveQuoteForCurrentTokenPair: boolean;
-      } = {
-        activeQuote: undefined,
-        destTokenAmount: undefined,
-        isQuoteLoading: false,
-        isNoQuotesAvailable: false,
-        quoteFetchError: null,
-        isActiveQuoteForCurrentTokenPair: true,
-      };
-      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
-
-      const props = {
-        position: createPosition(),
-        onClose: jest.fn(),
-      };
-      const { result, rerender } = renderHook(
-        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
-        { initialProps: props },
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-      quoteState.isQuoteLoading = true;
-      rerender(props);
-      quoteState.isQuoteLoading = false;
-      quoteState.activeQuote = createActiveQuote();
-      rerender(props);
-      rerender(props);
-
-      return { result, rerender, props };
-    };
-
-    it('is disabled when a hardware wallet sources from Solana', () => {
-      (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
-      const { isHardwareAccount } = jest.requireMock(
-        '../../../../../../util/address',
-      );
-      isHardwareAccount.mockReturnValue(true);
-
-      const { result } = settleQuote();
-
-      expect(result.current.isHardwareSolanaBlocked).toBe(true);
-      expect(result.current.isConfirmDisabled).toBe(true);
-
-      isHardwareAccount.mockReturnValue(false);
-    });
-
-    it('is disabled when the price impact exceeds the error threshold', () => {
-      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
-        activeQuote: {
-          quote: { priceData: { priceImpact: '0.30' } },
-        },
-        destTokenAmount: '1',
-        isQuoteLoading: false,
-        isNoQuotesAvailable: false,
-        quoteFetchError: null,
-        isActiveQuoteForCurrentTokenPair: true,
-      }));
-
-      const props = {
-        position: createPosition(),
-        onClose: jest.fn(),
-      };
-      const { result } = renderHook(
-        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
-        { initialProps: props },
-      );
-
-      act(() => {
-        result.current.handleAmountChange('20');
-      });
-
-      expect(result.current.isPriceImpactError).toBe(true);
-      expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isConfirmLoading).toBe(true);
     });
   });
 
   describe('source token auto-selection', () => {
-    it('auto-selects the first option when options load (legacy — native on dest chain matches priority 1)', () => {
+    it('auto-selects the first option when options load', () => {
       const firstToken = createSourceToken({ symbol: 'ETH' });
 
       (useSourceTokenOptions as jest.Mock).mockReturnValue({
@@ -652,120 +522,7 @@ describe('useQuickBuyBottomSheet', () => {
         useQuickBuyBottomSheet(createPosition(), jest.fn()),
       );
 
-      // createPosition uses chain 'base' → destChainId '0x1' in default mock,
-      // and ETH (zero address, chainId '0x1') is native on that chain → priority 1.
       expect(result.current.sourceToken?.symbol).toBe('ETH');
-    });
-  });
-
-  describe('selectDefaultSourceToken', () => {
-    const native = (chainId: string, fiat = 1000): BridgeToken =>
-      createSourceToken({
-        address: '0x0000000000000000000000000000000000000000',
-        chainId: chainId as `0x${string}`,
-        symbol: 'ETH',
-        tokenFiatAmount: fiat,
-      });
-
-    const erc20 = (chainId: string, symbol: string, fiat = 1000): BridgeToken =>
-      createSourceToken({
-        address: `0xToken${symbol}`,
-        chainId: chainId as `0x${string}`,
-        symbol,
-        tokenFiatAmount: fiat,
-      });
-
-    it('returns undefined when options list is empty', () => {
-      expect(selectDefaultSourceToken([], '0x1')).toBeUndefined();
-    });
-
-    it('priority 1: selects native token on the destination chain', () => {
-      const ethOnBase = native('0x2105', 500);
-      const usdcOnBase = erc20('0x2105', 'USDC', 3000);
-      const ethOnMainnet = native('0x1', 2000);
-
-      // Sorted by highest fiat: USDC on Base, ETH mainnet, ETH on Base
-      const result = selectDefaultSourceToken(
-        [usdcOnBase, ethOnMainnet, ethOnBase],
-        '0x2105',
-      );
-
-      expect(result?.symbol).toBe('ETH');
-      expect(result?.chainId).toBe('0x2105');
-    });
-
-    it('priority 2: selects highest-balance token on the dest chain when no native exists there', () => {
-      const usdcOnBase = erc20('0x2105', 'USDC', 3000);
-      const usdtOnBase = erc20('0x2105', 'USDT', 1000);
-      const ethOnMainnet = native('0x1', 2000);
-
-      // Sorted by highest fiat: USDC on Base, ETH mainnet, USDT on Base
-      const result = selectDefaultSourceToken(
-        [usdcOnBase, ethOnMainnet, usdtOnBase],
-        '0x2105',
-      );
-
-      expect(result?.symbol).toBe('USDC');
-      expect(result?.chainId).toBe('0x2105');
-    });
-
-    it('priority 3: selects the native token with the highest balance when no tokens exist on the dest chain', () => {
-      const usdcOnMainnet = erc20('0x1', 'USDC', 5000);
-      const ethOnArbitrum = native('0xa4b1', 3000);
-      const ethOnMainnet = native('0x1', 2000);
-
-      // Sorted by highest fiat: USDC mainnet, ETH Arbitrum, ETH mainnet
-      const result = selectDefaultSourceToken(
-        [usdcOnMainnet, ethOnArbitrum, ethOnMainnet],
-        '0x2105', // Base — no tokens here
-      );
-
-      // ETH on Arbitrum (index 1) is the first native in the sorted list
-      expect(result?.symbol).toBe('ETH');
-      expect(result?.chainId).toBe('0xa4b1');
-    });
-
-    it('priority 3 fallback: returns first option when no native tokens exist on any chain', () => {
-      const usdcOnMainnet = erc20('0x1', 'USDC', 5000);
-      const usdtOnMainnet = erc20('0x1', 'USDT', 3000);
-
-      const result = selectDefaultSourceToken(
-        [usdcOnMainnet, usdtOnMainnet],
-        '0x2105', // Base — no tokens here
-      );
-
-      expect(result?.symbol).toBe('USDC');
-    });
-
-    it('selects native SOL as priority 3 when no EVM native is available', () => {
-      const solNative: BridgeToken = createSourceToken({
-        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        symbol: 'SOL',
-        tokenFiatAmount: 2000,
-      });
-      const usdcOnMainnet = erc20('0x1', 'USDC', 5000);
-
-      const result = selectDefaultSourceToken(
-        [usdcOnMainnet, solNative],
-        '0x2105',
-      );
-
-      // SOL is native (slip44:501) and highest among natives
-      expect(result?.symbol).toBe('SOL');
-    });
-
-    it('works correctly when destChainId is undefined', () => {
-      const ethOnMainnet = native('0x1', 2000);
-      const usdcOnMainnet = erc20('0x1', 'USDC', 5000);
-
-      // Without destChainId, skip priorities 1 & 2 and go straight to priority 3
-      const result = selectDefaultSourceToken(
-        [usdcOnMainnet, ethOnMainnet],
-        undefined,
-      );
-
-      expect(result?.symbol).toBe('ETH');
     });
   });
 
@@ -781,67 +538,6 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('handleConfirm', () => {
-    it('submits via BridgeStatusController.submitTx with normalised approval and stxEnabled', async () => {
-      const activeQuote = {
-        ...createActiveQuote(),
-        approval: null,
-      } as unknown as ReturnType<typeof createActiveQuote>;
-
-      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
-        activeQuote,
-        destTokenAmount: '1',
-        isQuoteLoading: false,
-        isNoQuotesAvailable: false,
-        quoteFetchError: null,
-        isActiveQuoteForCurrentTokenPair: true,
-      });
-      (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
-
-      const onClose = jest.fn();
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), onClose),
-      );
-
-      await act(async () => {
-        await result.current.handleConfirm();
-      });
-
-      expect(
-        Engine.context.BridgeStatusController.submitTx,
-      ).toHaveBeenCalledWith(
-        '0xWALLET',
-        expect.objectContaining({ approval: undefined }),
-        true,
-      );
-    });
-
-    it('does not call submitTx when there is no active quote', async () => {
-      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
-        activeQuote: undefined,
-        destTokenAmount: undefined,
-        isQuoteLoading: false,
-        isNoQuotesAvailable: false,
-        quoteFetchError: null,
-        isActiveQuoteForCurrentTokenPair: true,
-      });
-
-      const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
-      );
-
-      await act(async () => {
-        await result.current.handleConfirm();
-      });
-
-      expect(
-        Engine.context.BridgeStatusController.submitTx,
-      ).not.toHaveBeenCalled();
     });
   });
 });

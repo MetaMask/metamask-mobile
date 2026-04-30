@@ -45,19 +45,6 @@ jest.mock('../Engine/Engine', () => ({
           },
         },
       ]),
-      listMultichainAccounts: jest.fn().mockReturnValue([
-        {
-          address: '0x1234567890123456789012345678901234567890',
-          id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
-          metadata: {
-            name: 'Test Account 1',
-            lastSelected: 1,
-            keyring: {
-              type: 'HD Key Tree',
-            },
-          },
-        },
-      ]),
     },
     ApprovalController: {
       addAndShowApprovalRequest: jest.fn(),
@@ -102,9 +89,7 @@ jest.mock('../Engine/Engine', () => ({
         value: {
           requiredScopes: {},
           optionalScopes: {
-            'eip155:1': {
-              accounts: ['eip155:1:0x1234567890123456789012345678901234567890'],
-            },
+            'eip155:1': {},
           },
           sessionProperties: {},
           isMultichainOrigin: true,

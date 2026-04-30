@@ -32,12 +32,9 @@ describe('SampleCounterPane', () => {
    *
    * @test
    */
-  it('renders without crashing', () => {
-    const { getByTestId } = renderWithProvider(<SampleCounterPane />);
-    expect(getByTestId('sample-counter-pane-value')).toBeOnTheScreen();
-    expect(
-      getByTestId('sample-counter-pane-increment-button'),
-    ).toBeOnTheScreen();
+  it('matches rendered snapshot', () => {
+    const { toJSON } = renderWithProvider(<SampleCounterPane />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   /**

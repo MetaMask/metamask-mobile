@@ -117,9 +117,7 @@ describe('useTokenBalancesController()', () => {
     await waitFor(async () => {
       // check that the initial balances are returned
       expect(spyOnDummyUseEffect).toHaveBeenCalledTimes(1);
-      expect(JSON.stringify(toJSON())).toContain(
-        '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
-      );
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -145,9 +143,7 @@ describe('useTokenBalancesController()', () => {
     // check that the useEffect is called again and the new updated balances are returned
     await waitFor(() => {
       expect(spyOnDummyUseEffect).toHaveBeenCalledTimes(2);
-      expect(JSON.stringify(toJSON())).toContain(
-        '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96',
-      );
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -169,9 +165,7 @@ describe('useTokenBalancesController()', () => {
     // check that the useEffect is not called again and the returned balances are unchanged
     await waitFor(async () => {
       expect(spyOnDummyUseEffect).toHaveBeenCalledTimes(1);
-      expect(JSON.stringify(toJSON())).toContain(
-        '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
-      );
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

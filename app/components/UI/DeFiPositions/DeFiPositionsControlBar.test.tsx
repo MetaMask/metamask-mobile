@@ -311,7 +311,7 @@ describe('DeFiPositionsControlBar', () => {
     );
 
     const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton).toBeDisabled();
+    expect(filterButton.props.disabled).toBe(true);
   });
 
   it('is not disabled when on testnet if homepage sections V1 is enabled', () => {
@@ -351,7 +351,7 @@ describe('DeFiPositionsControlBar', () => {
     );
 
     const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton).not.toBeDisabled();
+    expect(filterButton.props.disabled).toBe(false);
   });
 
   it('should be disabled when not on popular network and homepage sections V1 is disabled', () => {
@@ -370,7 +370,7 @@ describe('DeFiPositionsControlBar', () => {
     );
 
     const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton).toBeDisabled();
+    expect(filterButton.props.disabled).toBe(true);
   });
 
   it('is not disabled when not on popular network if homepage sections V1 is enabled', () => {
@@ -394,7 +394,7 @@ describe('DeFiPositionsControlBar', () => {
     );
 
     const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton).not.toBeDisabled();
+    expect(filterButton.props.disabled).toBe(false);
   });
 
   it('should render sort button with filter icon', () => {

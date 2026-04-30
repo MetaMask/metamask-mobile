@@ -1,5 +1,4 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import AccountApproval from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -42,7 +41,12 @@ jest.mock('../../../util/phishingDetection', () => ({
     mockGetPhishingTestResultAsync(origin),
 }));
 
-// Linking.openURL is already globally mocked in testSetup.js
+const mockOpenURL = jest.fn();
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: (url: string) => mockOpenURL(url),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
 
 const mockRemoveChannel = jest.fn();
 jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
@@ -137,14 +141,14 @@ describe('AccountApproval', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const container = renderWithProvider(
       <AccountApproval
         currentPageInformation={{ icon: '', url: '', title: '' }}
       />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).not.toBeNull();
+    expect(container).toMatchSnapshot();
   });
 
   it('tracks CONNECT_REQUEST_STARTED on mount', () => {
@@ -236,9 +240,7 @@ describe('AccountApproval', () => {
     mockTrackEvent.mockClear();
     fireEvent.press(learnMore);
 
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      CONNECTING_TO_A_DECEPTIVE_SITE,
-    );
+    expect(mockOpenURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: MetaMetricsEvents.EXTERNAL_LINK_CLICKED,

@@ -15,14 +15,14 @@ import {
 
 export interface TraderPositionHeaderProps {
   traderName: string;
-  onBack: () => void;
-  backButtonTestID: string;
+  onClose: () => void;
+  closeButtonTestID: string;
 }
 
 const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
   traderName,
-  onBack,
-  backButtonTestID,
+  onClose,
+  closeButtonTestID,
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -30,14 +30,7 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
     justifyContent={BoxJustifyContent.Between}
     twClassName="px-2 py-2"
   >
-    <Box twClassName="w-10">
-      <ButtonIcon
-        iconName={IconName.ArrowLeft}
-        size={ButtonIconSize.Md}
-        onPress={onBack}
-        testID={backButtonTestID}
-      />
-    </Box>
+    <Box twClassName="w-10" />
     <Text
       variant={TextVariant.HeadingSm}
       fontWeight={FontWeight.Bold}
@@ -46,7 +39,14 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
     >
       {traderName}
     </Text>
-    <Box twClassName="w-10" />
+    <Box twClassName="w-10 items-end">
+      <ButtonIcon
+        iconName={IconName.Close}
+        size={ButtonIconSize.Md}
+        onPress={onClose}
+        testID={closeButtonTestID}
+      />
+    </Box>
   </Box>
 );
 

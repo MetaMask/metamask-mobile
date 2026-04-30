@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import Engine from '../../core/Engine/Engine';
 import { useAccountsWithNetworkActivitySync } from './useAccountsWithNetworkActivitySync';
 import configureMockStore from 'redux-mock-store';
@@ -70,13 +70,10 @@ describe('useAccountsWithNetworkActivitySync', () => {
           controllerMessenger: unknown;
         }) => void;
       }
-    ).setMocks({
-      context: {},
-      controllerMessenger: { subscribe: jest.fn(), unsubscribe: jest.fn() },
-    });
+    ).setMocks({ context: {}, controllerMessenger: {} });
   });
 
-  it('fetches on first load if basicFunctionalityEnabled is true', () => {
+  it('fetches on first load if basicFunctionalityEnabled is true', async () => {
     store = mockStore({
       settings: { basicFunctionalityEnabled: true },
     });
@@ -111,13 +108,15 @@ describe('useAccountsWithNetworkActivitySync', () => {
       mockEngineInstance.context.MultichainNetworkController,
       'getNetworksWithTransactionActivityByAccounts',
     );
-    renderHook(() => useAccountsWithNetworkActivitySync(), {
-      wrapper: getWrapper(store),
+    await act(async () => {
+      renderHook(() => useAccountsWithNetworkActivitySync(), {
+        wrapper: getWrapper(store),
+      });
     });
     expect(fetchAccountsSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not fetch on first load if basicFunctionalityEnabled is false', () => {
+  it('does not fetch on first load if basicFunctionalityEnabled is false', async () => {
     store = mockStore({
       settings: { basicFunctionalityEnabled: false },
     });
@@ -152,8 +151,10 @@ describe('useAccountsWithNetworkActivitySync', () => {
       mockEngineInstance.context.MultichainNetworkController,
       'getNetworksWithTransactionActivityByAccounts',
     );
-    renderHook(() => useAccountsWithNetworkActivitySync(), {
-      wrapper: getWrapper(store),
+    await act(async () => {
+      renderHook(() => useAccountsWithNetworkActivitySync(), {
+        wrapper: getWrapper(store),
+      });
     });
     expect(fetchAccountsSpy).not.toHaveBeenCalled();
   });
@@ -301,7 +302,7 @@ describe('useAccountsWithNetworkActivitySync', () => {
     expect(fetchAccountsSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not fetch on first load if onFirstLoad is false', () => {
+  it('does not fetch on first load if onFirstLoad is false', async () => {
     store = mockStore({
       settings: { basicFunctionalityEnabled: true },
     });
@@ -336,12 +337,14 @@ describe('useAccountsWithNetworkActivitySync', () => {
       mockEngineInstance.context.MultichainNetworkController,
       'getNetworksWithTransactionActivityByAccounts',
     );
-    renderHook(
-      () => useAccountsWithNetworkActivitySync({ onFirstLoad: false }),
-      {
-        wrapper: getWrapper(store),
-      },
-    );
+    await act(async () => {
+      renderHook(
+        () => useAccountsWithNetworkActivitySync({ onFirstLoad: false }),
+        {
+          wrapper: getWrapper(store),
+        },
+      );
+    });
     expect(fetchAccountsSpy).not.toHaveBeenCalled();
   });
 });

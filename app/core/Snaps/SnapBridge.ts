@@ -53,7 +53,6 @@ import {
 } from '../RPCMethods/utils';
 import { MultichainRoutingService } from '@metamask/snaps-controllers';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
-import { sortMultichainAccountsByLastSelected } from '../Permissions';
 
 /**
  * Type definition for the GetRPCMethodMiddleware function.
@@ -310,7 +309,6 @@ export default class SnapBridge {
           Engine.controllerMessenger,
           'MultichainRoutingService:getSupportedAccounts',
         ),
-        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: undefined,
       }),
     );

@@ -37,7 +37,7 @@ describe('CollectibleView Snapshot', () => {
       newAssetTransaction: jest.fn(),
     };
 
-    const { getByTestId } = render(
+    const { toJSON } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <CollectibleView {...props} />
@@ -45,7 +45,7 @@ describe('CollectibleView Snapshot', () => {
       </Provider>,
     );
 
-    expect(getByTestId('send-button')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to Send route when send button is pressed', () => {

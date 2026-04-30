@@ -99,11 +99,11 @@ jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
 
 describe('AccountInfoCard', () => {
   it('should match snapshot', async () => {
-    const { toJSON } = renderWithProvider(
+    const container = renderWithProvider(
       <AccountInfoCard fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272" />,
       { state: mockInitialState },
     );
-    expect(toJSON()).not.toBeNull();
+    expect(container).toMatchSnapshot();
   });
 
   it('should show balance header in signing page', async () => {

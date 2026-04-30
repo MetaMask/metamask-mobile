@@ -4,14 +4,12 @@ import Keypad from '.';
 import { act, fireEvent, render } from '@testing-library/react-native';
 
 describe('Keypad', () => {
-  it('renders all digit keys', () => {
+  it('should render correctly and match snapshot', () => {
     const mockOnChange = jest.fn();
-    const { getByText } = render(
+    const { toJSON } = render(
       <Keypad currency="native" value="0" onChange={mockOnChange} />,
     );
-    expect(getByText('1')).toBeOnTheScreen();
-    expect(getByText('5')).toBeOnTheScreen();
-    expect(getByText('0')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls the onChange handler with correct data when a key is pressed', () => {
@@ -33,9 +31,9 @@ describe('Keypad', () => {
 });
 
 describe('Keypad components', () => {
-  it('renders all provided buttons', () => {
+  it('components should render correctly and match snapshot', () => {
     const dummyHandler = jest.fn();
-    const { getByText } = render(
+    const { toJSON } = render(
       <KeypadComponents>
         <KeypadComponents.Row>
           <KeypadComponents.Button onPress={dummyHandler}>
@@ -81,9 +79,7 @@ describe('Keypad components', () => {
         </KeypadComponents.Row>
       </KeypadComponents>,
     );
-    expect(getByText('1')).toBeOnTheScreen();
-    expect(getByText('9')).toBeOnTheScreen();
-    expect(getByText('.')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls the onPress handler when a button is pressed', () => {

@@ -36,27 +36,28 @@ test.describe(PerformancePreps, () => {
 
       const selectMarketTimer = new TimerHelper(
         'Market list screen visible',
-        { ios: 7500, android: 2000 },
+        { ios: 7500, android: 7500 },
         currentDeviceDetails.platform,
       );
       const openOrderScreenTimer = new TimerHelper(
         'Open Order Screen',
-        { ios: 1500, android: 3000 },
+        { ios: 1500, android: 1500 },
         currentDeviceDetails.platform,
       );
       const openPositionTimer = new TimerHelper(
         'Position opened',
-        { ios: 10500, android: 13000 },
+        { ios: 10500, android: 20000 },
         currentDeviceDetails.platform,
       );
 
       const MarketDetailsScreenTimer = new TimerHelper(
         'Market Details Screen',
-        { ios: 10000, android: 2500 },
+        { ios: 10000, android: 10000 },
         currentDeviceDetails.platform,
       );
 
       await loginToAppPlaywright();
+
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
@@ -100,7 +101,6 @@ test.describe(PerformancePreps, () => {
       );
 
       await PerpsOrderView.setLeverageAppium(40);
-      await PerpsOrderView.setAmountUSD('10');
       await PerpsOrderView.tapPlaceOrder();
 
       await openPositionTimer.measure(

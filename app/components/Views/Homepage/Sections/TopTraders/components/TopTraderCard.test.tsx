@@ -7,7 +7,6 @@ import type { TopTrader } from '../types';
 const baseTrader: TopTrader = {
   id: 'trader-1',
   rank: 1,
-  overallRank: 1,
   username: 'sniperliquid',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
@@ -24,20 +23,13 @@ describe('TopTraderCard', () => {
     jest.clearAllMocks();
   });
 
-  it('renders username and 30D PnL', () => {
+  it('renders username, ROI, and PnL', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
+    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
     expect(screen.getByText('+$963K')).toBeOnTheScreen();
-    expect(screen.getByText(/30D/)).toBeOnTheScreen();
-  });
-
-  it('does not display ROI percentage on the card', () => {
-    renderWithProvider(
-      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
-    );
-    expect(screen.queryByText('+43.0%')).not.toBeOnTheScreen();
   });
 
   it('renders with default testID when none is provided', () => {
@@ -104,7 +96,7 @@ describe('TopTraderCard', () => {
     expect(mockOnFollowPress).toHaveBeenCalledWith('trader-1');
   });
 
-  it('calls onTraderPress with trader id, username, and rank when card content is tapped', () => {
+  it('calls onTraderPress with trader.id and username when card content is tapped', () => {
     renderWithProvider(
       <TopTraderCard
         trader={baseTrader}
@@ -115,34 +107,7 @@ describe('TopTraderCard', () => {
 
     fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      1,
-    );
-  });
-
-  it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
-    const filteredTrader: TopTrader = {
-      ...baseTrader,
-      rank: 1,
-      overallRank: 50,
-    };
-    renderWithProvider(
-      <TopTraderCard
-        trader={filteredTrader}
-        onFollowPress={mockOnFollowPress}
-        onTraderPress={mockOnTraderPress}
-      />,
-    );
-
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
-
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      50,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'sniperliquid');
   });
 
   it('does not call onTraderPress when the prop is not provided', () => {
@@ -170,7 +135,7 @@ describe('TopTraderCard', () => {
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 
-  it('displays negative PnL values with correct sign', () => {
+  it('displays negative ROI and PnL values with correct sign', () => {
     const negativeTrader: TopTrader = {
       ...baseTrader,
       percentageChange: -15.3,
@@ -182,6 +147,7 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
+    expect(screen.getByText('-15.3%')).toBeOnTheScreen();
     expect(screen.getByText('-$500')).toBeOnTheScreen();
   });
 });

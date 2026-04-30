@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTileCard from './PerpsMarketTileCard';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 
@@ -168,13 +168,13 @@ describe('PerpsMarketTileCard', () => {
     expect(screen.getByTestId('shimmer-overlay')).toBeOnTheScreen();
   });
 
-  it('calls onPress with market data when pressed', async () => {
+  it('calls onPress with market data when pressed', () => {
     const mockOnPress = jest.fn();
     render(
       <PerpsMarketTileCard market={mockMarketData} onPress={mockOnPress} />,
     );
 
-    const touchable = screen.getByTestId('perps-market-tile-card');
+    const touchable = screen.root.findByType(TouchableOpacity);
     fireEvent.press(touchable);
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);

@@ -13,6 +13,15 @@ import { IncludeAsset } from '../hooks/usePopularTokens';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 
 /**
+ * Extracts security warning descriptions from a token's securityData metadata features.
+ * Returns an empty array when the token has no security warnings.
+ */
+export const getSecurityWarnings = (
+  token: BridgeToken | undefined | null,
+): string[] =>
+  token?.securityData?.metadata?.features?.map((f) => f.description) ?? [];
+
+/**
  * Normalizes chain-specific native token addresses to the zero address for the bridge flow.
  *
  * Some chains use a non-zero contract address for their native token

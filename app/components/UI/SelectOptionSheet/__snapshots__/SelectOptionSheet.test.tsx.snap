@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SelectOptionSheet render matches the snapshot 1`] = `
+<TouchableOpacity
+  onPress={[Function]}
+  testID="select-drop-down"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      style={
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 14,
+          "fontWeight": 600,
+          "paddingBottom": 8,
+          "paddingHorizontal": 10,
+          "paddingTop": 8,
+        }
+      }
+    >
+      option 2
+    </Text>
+    <SvgMock
+      fill="currentColor"
+      name="ArrowDown"
+      style={
+        [
+          {
+            "color": "#66676a",
+            "height": 12,
+            "marginRight": 8,
+            "width": 12,
+          },
+          undefined,
+        ]
+      }
+    />
+  </View>
+</TouchableOpacity>
+`;

@@ -174,7 +174,7 @@ describe('SnapUIAssetSelector', () => {
 
     const selector = getByTestId('snap-ui-renderer__selector');
 
-    expect(selector).toBeDisabled();
+    expect(selector.props.disabled).toBe(true);
   });
 
   it('can switch assets', async () => {

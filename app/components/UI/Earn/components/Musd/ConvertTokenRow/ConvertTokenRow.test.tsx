@@ -201,7 +201,7 @@ describe('ConvertTokenRow', () => {
 
       const maxButton = getByTestId(ConvertTokenRowTestIds.MAX_BUTTON);
 
-      expect(maxButton).toBeDisabled();
+      expect(maxButton.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('Edit button has isDisabled true when areActionsDisabled is true', () => {
@@ -212,7 +212,7 @@ describe('ConvertTokenRow', () => {
 
       const editButton = getByTestId(ConvertTokenRowTestIds.EDIT_BUTTON);
 
-      expect(editButton).toBeDisabled();
+      expect(editButton.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('Max button has isDisabled false when areActionsDisabled is false', () => {
@@ -223,7 +223,7 @@ describe('ConvertTokenRow', () => {
 
       const maxButton = getByTestId(ConvertTokenRowTestIds.MAX_BUTTON);
 
-      expect(maxButton).toBeEnabled();
+      expect(maxButton.props.accessibilityState?.disabled).toBe(false);
     });
 
     it('Edit button has isDisabled false when areActionsDisabled is false', () => {
@@ -234,7 +234,7 @@ describe('ConvertTokenRow', () => {
 
       const editButton = getByTestId(ConvertTokenRowTestIds.EDIT_BUTTON);
 
-      expect(editButton).toBeEnabled();
+      expect(editButton.props.accessibilityState?.disabled).toBe(false);
     });
   });
 

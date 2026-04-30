@@ -96,28 +96,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       InfoDefault: 'InfoDefault',
       WarningDefault: 'WarningDefault',
       ErrorDefault: 'ErrorDefault',
-      SuccessDefault: 'SuccessDefault',
     },
     IconName: {
       VerifiedFilled: 'VerifiedFilled',
       Warning: 'Warning',
       Danger: 'Danger',
-      Error: 'Error',
-      SecurityTick: 'SecurityTick',
-    },
-    IconAlertSeverity: {
-      Info: 'Info',
-      Success: 'Success',
-      Warning: 'Warning',
-      Error: 'Error',
     },
     IconSize: { Sm: 'Sm', Xs: 'Xs' },
-    TextColor: {
-      ErrorDefault: 'ErrorDefault',
-      WarningDefault: 'WarningDefault',
-      SuccessDefault: 'SuccessDefault',
-      TextAlternative: 'TextAlternative',
-    },
   };
 });
 
@@ -587,7 +572,7 @@ describe('TokenSelectorItem', () => {
       );
     });
 
-    it('renders Error icon with ErrorDefault color for Malicious badge', () => {
+    it('renders Danger icon with ErrorDefault color for Malicious badge', () => {
       const token = createMockTokenWithBalance({
         securityData: { type: SecurityDataType.Malicious },
       });
@@ -596,7 +581,7 @@ describe('TokenSelectorItem', () => {
 
       expect(mockDSIcon).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Error',
+          name: 'Warning',
           color: 'ErrorDefault',
           size: 'Sm',
         }),
@@ -680,7 +665,7 @@ describe('getSecurityTag', () => {
     expect(result).toEqual(
       expect.objectContaining({
         severity: 'Danger',
-        iconName: 'Error',
+        iconName: 'Warning',
         iconColor: 'ErrorDefault',
       }),
     );

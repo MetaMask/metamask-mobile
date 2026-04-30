@@ -59,6 +59,15 @@ jest.mock(
   }),
 );
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openSettings: jest.fn(),
+  openURL: jest.fn(),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+  canOpenURL: jest.fn(() => Promise.resolve(true)),
+}));
+
 const defaultCapabilities = {
   isBiometricsAvailable: true,
   passcodeAvailable: true,
@@ -406,7 +415,7 @@ describe('DeviceSecurityToggle', () => {
         const toggleAfterSuccess = getByTestId(
           SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
         );
-        expect(toggleAfterSuccess).toBeEnabled();
+        expect(toggleAfterSuccess.props.disabled).toBe(false);
       });
       jest.useRealTimers();
     });
@@ -423,7 +432,7 @@ describe('DeviceSecurityToggle', () => {
         const toggle = getByTestId(
           SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
         );
-        expect(toggle).toHaveProp('disabled', true);
+        expect(toggle.props.disabled).toBe(true);
       });
     });
 

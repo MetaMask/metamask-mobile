@@ -78,8 +78,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
 
   // Get device ID to target specific device (important for CI with multiple devices)
   // In Detox: use device.id for multi-device support
-  // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
-  // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
+  // In Appium/Playwright: skip device flag (single emulator assumption)
   let deviceFlag = '';
   if (FrameworkDetector.isDetox()) {
     const deviceId = device.id || '';
@@ -186,8 +185,7 @@ async function setupAndroidPortForwarding(
 
   // Get device ID to target specific device (important for CI with multiple devices)
   // In Detox: use device.id for multi-device support
-  // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
-  // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
+  // In Appium/Playwright: skip device flag (single emulator assumption)
   let deviceFlag = '';
   if (FrameworkDetector.isDetox()) {
     const deviceId = device.id || '';

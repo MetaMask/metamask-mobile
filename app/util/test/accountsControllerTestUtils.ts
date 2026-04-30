@@ -14,8 +14,6 @@ import {
   AnyAccountType,
   TrxAccountType,
   TrxScope,
-  XlmAccountType,
-  XlmScope,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -70,9 +68,6 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
 
     // Tron account types
     [TrxAccountType.Eoa]: [TrxScope.Mainnet],
-
-    // Stellar account types
-    [XlmAccountType.Account]: [XlmScope.Pubnet],
 
     // Generic account type
     //

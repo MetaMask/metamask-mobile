@@ -224,28 +224,6 @@ export interface NestedNavigationParams {
 
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
-type TraderPositionViewParams =
-  | {
-      traderId: string;
-      tokenSymbol: string;
-      /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
-      position: Position;
-      positionId?: string;
-      /** Optional — fetched via useTraderProfile when absent. */
-      traderName?: string;
-      /** Optional — fetched via useTraderProfile when absent. */
-      traderImageUrl?: string;
-    }
-  | {
-      /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
-      positionId: string;
-      traderId: string;
-      tokenSymbol?: never;
-      traderName?: never;
-      traderImageUrl?: never;
-      position?: never;
-    };
-
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
@@ -579,8 +557,14 @@ export interface RootStackParamList extends ParamListBase {
 
   // Social Leaderboard routes
   TopTradersView: undefined;
-  TraderProfileView: { traderId: string; traderName: string; rank?: number };
-  TraderPositionView: TraderPositionViewParams;
+  TraderProfileView: { traderId: string; traderName: string };
+  TraderPositionView: {
+    traderId: string;
+    traderName: string;
+    traderImageUrl?: string;
+    tokenSymbol: string;
+    position?: Position;
+  };
 
   // Misc routes
   LockScreen: undefined;
@@ -639,7 +623,7 @@ export interface RootStackParamList extends ParamListBase {
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   // Snaps routes
   SnapsSettingsList: undefined;
   SnapSettings: SnapSettingsParams | undefined;

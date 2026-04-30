@@ -19,6 +19,8 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 9999,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     paddingVertical: 6,
   },
   stepId: {
@@ -26,11 +28,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Courier',
     fontSize: 12,
     fontWeight: '700',
+    marginRight: 8,
   },
   description: {
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '500',
+    flexShrink: 1,
   },
 });
 /* eslint-enable react-native/no-color-literals, @metamask/design-tokens/color-no-hex */
@@ -63,9 +67,9 @@ const AgentStepHudInner = () => {
 
   return (
     <View style={containerStyle} pointerEvents="none">
-      <Text numberOfLines={3}>
-        <Text style={styles.stepId}>{step.id}</Text>
-        <Text style={styles.description}>{`  ${step.description}`}</Text>
+      <Text style={styles.stepId}>{step.id}</Text>
+      <Text style={styles.description} numberOfLines={2}>
+        {step.description}
       </Text>
     </View>
   );

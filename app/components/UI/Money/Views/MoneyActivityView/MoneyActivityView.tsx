@@ -17,7 +17,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -96,8 +95,7 @@ const MoneyActivityView = () => {
   const renderSectionHeader = ({ section }: { section: DateSection }) => (
     <Box twClassName="px-4 pt-2 pb-1 bg-default">
       <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
+        variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         testID={MoneyActivityViewTestIds.DATE_HEADER}
       >
@@ -141,7 +139,7 @@ const MoneyActivityView = () => {
         />
       </Box>
 
-      <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
+      <Box paddingHorizontal={4} paddingTop={4} paddingBottom={6}>
         <Text
           variant={TextVariant.HeadingLg}
           testID={MoneyActivityViewTestIds.TITLE}
@@ -152,7 +150,7 @@ const MoneyActivityView = () => {
 
       <Box
         flexDirection={BoxFlexDirection.Row}
-        gap={2}
+        gap={4}
         paddingHorizontal={4}
         paddingBottom={3}
       >
@@ -163,7 +161,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="min-w-0 shrink"
           onPress={() => setFilter(MoneyActivityFilter.All)}
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
@@ -176,7 +174,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="min-w-0 shrink"
           onPress={() => setFilter(MoneyActivityFilter.Deposits)}
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
@@ -189,7 +187,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="min-w-0 shrink"
           onPress={() => setFilter(MoneyActivityFilter.Transfers)}
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >

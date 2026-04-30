@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountFromToInfoCard should render correctly 1`] = `
+exports[`AccountFromToInfoCard should match snapshot 1`] = `
 <View
   style={
     {
@@ -34,34 +34,7 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
         From:
       </Text>
     </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={false}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
       style={
         {
           "backgroundColor": "#ffffff",
@@ -71,7 +44,6 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
           "flexDirection": "row",
           "justifyContent": "space-between",
           "marginHorizontal": 10,
-          "opacity": 1,
           "padding": 16,
         }
       }
@@ -281,7 +253,7 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -510,153 +482,55 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
       </View>
     </View>
   </View>
-  <View
-    testID="modal-mock"
-  >
-    <RNCSafeAreaView
-      edges={
-        {
-          "bottom": "additive",
-          "left": "additive",
-          "right": "additive",
-          "top": "additive",
-        }
-      }
-      style={
-        {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderRadius": 10,
-          "elevation": 11,
-          "justifyContent": "center",
-          "marginVertical": 50,
-          "shadowColor": "#0000001a",
-          "shadowOffset": {
-            "height": 2,
-            "width": 0,
-          },
-          "shadowOpacity": 1,
-          "shadowRadius": 8,
-        }
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "color": "#131416",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "paddingHorizontal": 20,
-            "paddingVertical": 15,
-            "width": "100%",
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-SemiBold",
-              "fontSize": 18,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginVertical": 3,
-            }
-          }
-        >
-          Check the recipient address
-        </Text>
-        <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          hitSlop={
-            {
-              "bottom": 20,
-              "left": 20,
-              "right": 20,
-              "top": 20,
-            }
-          }
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        >
-          <Text
-            allowFontScaling={false}
-            selectable={false}
-            style={
-              [
-                {
-                  "color": undefined,
-                  "fontSize": 30,
-                },
-                {
-                  "color": "#131416",
-                },
-                {
-                  "fontFamily": "Ionicons",
-                  "fontStyle": "normal",
-                  "fontWeight": "normal",
-                },
-                {},
-              ]
-            }
-          >
-            
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "marginBottom": 15,
-            "paddingBottom": 5,
-            "paddingHorizontal": 20,
-            "width": "100%",
-          }
-        }
-      >
-        <Text
-          style={
-            {
-              "color": "#131416",
-              "lineHeight": 20,
-            }
-          }
-        >
-          We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.
-        </Text>
-      </View>
-    </RNCSafeAreaView>
-  </View>
+  <View />
 </View>
+`;
+
+exports[`AccountFromToInfoCard should render correctly 1`] = `
+<ContextProvider
+  value={
+    {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
+      "store": {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
+        "handleChangeWrapper": [Function],
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
+      },
+    }
+  }
+>
+  <Component
+    transactionState={
+      {
+        "selectedAsset": {
+          "address": "0x0",
+          "decimals": 8,
+          "isETH": true,
+          "symbol": "ETH",
+        },
+        "transaction": {
+          "from": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+          "to": "0x519d2CE57898513F676a5C3b66496c3C394c9CC7",
+        },
+        "transactionFromName": "Account 1",
+        "transactionTo": "0x519d2CE57898513F676a5C3b66496c3C394c9CC7",
+        "transactionToName": "Account 2",
+      }
+    }
+  />
+</ContextProvider>
 `;

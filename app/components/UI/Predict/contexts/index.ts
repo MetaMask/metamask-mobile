@@ -4,7 +4,6 @@ export {
 } from './PredictEntryPointContext';
 
 export {
-  isPredictSheetProviderMounted,
   PredictPreviewSheetProvider,
   usePredictPreviewSheet,
 } from './PredictPreviewSheetContext';

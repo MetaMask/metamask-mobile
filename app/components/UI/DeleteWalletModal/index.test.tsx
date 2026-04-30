@@ -106,12 +106,10 @@ describe('DeleteWalletModal', () => {
     .mockImplementation(mockRunAfterInteractions);
 
   describe('bottom sheet', () => {
-    it('renders the forgot password description', () => {
+    it('renders matching snapshot', () => {
       const wrapper = renderComponent(mockInitialState);
 
-      expect(
-        wrapper.getByText(strings('login.forgot_password_desc')),
-      ).toBeOnTheScreen();
+      expect(wrapper).toMatchSnapshot();
     });
   });
 
@@ -260,7 +258,7 @@ describe('DeleteWalletModal', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Assert - Verify error was logged and loading state was reset
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledTimes(1);
 
       // Cleanup
       consoleSpy.mockRestore();

@@ -4,7 +4,7 @@ import ApprovalModal from './ApprovalModal';
 
 describe('ApprovalModal', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('renders', () => {
@@ -13,6 +13,6 @@ describe('ApprovalModal', () => {
         <div>test</div>
       </ApprovalModal>,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

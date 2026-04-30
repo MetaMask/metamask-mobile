@@ -66,7 +66,7 @@ describe('SeedphraseModal', () => {
 
   it('renders matches snapshot', () => {
     const { wrapper } = setupTest();
-    expect(wrapper.toJSON()).not.toBeNull();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders all title and explanation text', () => {

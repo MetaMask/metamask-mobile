@@ -94,14 +94,18 @@ describe('PaymentMethodPill', () => {
 
   describe('when isLoading is true', () => {
     it('renders a non-interactive View instead of TouchableOpacity', () => {
+      const mockOnPress = jest.fn();
       const { getByTestId } = renderWithTheme(
-        <PaymentMethodPill label="Select payment method" isLoading />,
+        <PaymentMethodPill
+          label="Select payment method"
+          onPress={mockOnPress}
+          isLoading
+        />,
       );
 
-      const pill = getByTestId('payment-method-pill');
-      // When loading, the component renders a plain View (not TouchableOpacity),
-      // so it should not have an onPress handler.
-      expect(pill.props.onPress).toBeUndefined();
+      fireEvent.press(getByTestId('payment-method-pill'));
+
+      expect(mockOnPress).not.toHaveBeenCalled();
     });
 
     it('does not render label text', () => {
@@ -113,11 +117,12 @@ describe('PaymentMethodPill', () => {
     });
 
     it('does not render arrow icon', () => {
-      const { queryByTestId } = renderWithTheme(
+      const { toJSON } = renderWithTheme(
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
+      const json = JSON.stringify(toJSON());
 
-      expect(queryByTestId('ArrowDown')).toBeNull();
+      expect(json).not.toContain('ArrowDown');
     });
 
     it('applies loadingContainer style with centered content', () => {

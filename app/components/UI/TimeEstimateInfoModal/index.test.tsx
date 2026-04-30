@@ -7,6 +7,6 @@ describe('TimeEstimateInfoModal', () => {
     const { toJSON } = render(
       <TimeEstimateInfoModal timeEstimateId={'medium'} />,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

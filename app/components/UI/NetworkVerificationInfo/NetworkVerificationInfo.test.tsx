@@ -41,7 +41,7 @@ describe('NetworkVerificationInfo', () => {
       />,
     );
 
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders updated details when isNetworkRpcUpdate is true', () => {
@@ -55,7 +55,7 @@ describe('NetworkVerificationInfo', () => {
       alerts: [],
     };
 
-    const { getByText } = render(
+    const { toJSON, getByText } = render(
       <NetworkVerificationInfo
         // @ts-expect-error - The CustomNetworkInformation type is missing the pageMeta property
         customNetworkInformation={networkWithCustomRpcUrl}
@@ -65,6 +65,7 @@ describe('NetworkVerificationInfo', () => {
       />,
     );
 
+    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText(
         strings(

@@ -39,12 +39,6 @@ export interface V2VerifyIdentityParams {
   amount?: string;
   currency?: string;
   assetId?: string;
-  /**
-   * When present, the screen is part of a headless buy flow and should
-   * forward this id down the auth loop so post-OTP routing can land
-   * back on `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote.
-   */
-  headlessSessionId?: string;
 }
 
 export const createV2VerifyIdentityNavDetails =
@@ -56,21 +50,15 @@ const V2VerifyIdentity = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
-  const { amount, currency, assetId, headlessSessionId } =
-    useParams<V2VerifyIdentityParams>();
+  const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const navigateToEnterEmail = useCallback(() => {
     navigation.navigate(
-      ...createV2EnterEmailNavDetails({
-        amount,
-        currency,
-        assetId,
-        headlessSessionId,
-      }),
+      ...createV2EnterEmailNavDetails({ amount, currency, assetId }),
     );
-  }, [navigation, amount, currency, assetId, headlessSessionId]);
+  }, [navigation, amount, currency, assetId]);
 
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();

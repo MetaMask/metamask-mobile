@@ -474,9 +474,9 @@ describe('EarnInputView', () => {
 
   const renderComponent = () => render(EarnInputView);
 
-  it('renders stake ETH heading', () => {
-    const { getByText } = renderComponent();
-    expect(getByText(strings('stake.stake_eth'))).toBeOnTheScreen();
+  it('render matches snapshot', () => {
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('when erc20 token is selected', () => {
@@ -528,23 +528,23 @@ describe('EarnInputView', () => {
       });
 
       // Verify the title is rendered in the HeaderCompactStandard component
-      expect(getByText('Supply USDC')).toBeOnTheScreen();
+      expect(getByText('Supply USDC')).toBeTruthy();
 
       // "0" in the input display and on the keypad
       expect(getAllByText('0').length).toBe(2);
       // "USDC" in the input display and in the token selector
       expect(getAllByText('USDC').length).toBe(2);
-      expect(getByText('$0')).toBeOnTheScreen();
+      expect(getByText('$0')).toBeDefined();
 
       // Token Selector should display USDC as selected token
-      expect(getByText('2.5% APR')).toBeOnTheScreen();
-      expect(getByText('100 USDC')).toBeOnTheScreen();
+      expect(getByText('2.5% APR')).toBeDefined();
+      expect(getByText('100 USDC')).toBeDefined();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
-      expect(getByText('$1')).toBeOnTheScreen();
+      expect(getByText('$1')).toBeTruthy();
 
       await act(async () => {
         fireEvent.press(getByText('Max'));
@@ -599,8 +599,8 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      expect(getByTestId('resource-toggle-energy')).toBeOnTheScreen();
-      expect(getByTestId('resource-toggle-bandwidth')).toBeOnTheScreen();
+      expect(getByTestId('resource-toggle-energy')).toBeTruthy();
+      expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
     });
 
     it('renders TRX earnToken with non-zero balance from selector', () => {
@@ -645,8 +645,8 @@ describe('EarnInputView', () => {
       // Verify getEarnToken was called with the token
       expect(mockGetEarnToken).toHaveBeenCalledWith(TRX_TOKEN);
       // Verify TRX-specific UI elements are rendered
-      expect(getByTestId('resource-toggle-energy')).toBeOnTheScreen();
-      expect(getByTestId('resource-toggle-bandwidth')).toBeOnTheScreen();
+      expect(getByTestId('resource-toggle-energy')).toBeTruthy();
+      expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
     });
 
     it('replaces Max button with Done when non-zero amount is entered', async () => {
@@ -686,16 +686,14 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      expect(getByText('Max')).toBeOnTheScreen();
-      expect(
-        queryByText(strings('onboarding_success.done')),
-      ).not.toBeOnTheScreen();
+      expect(getByText('Max')).toBeTruthy();
+      expect(queryByText(strings('onboarding_success.done'))).toBeNull();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
-      expect(queryByText('Max')).not.toBeOnTheScreen();
+      expect(queryByText('Max')).toBeNull();
       expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
     });
 
@@ -751,13 +749,15 @@ describe('EarnInputView', () => {
 
   describe('when values are entered in the keypad', () => {
     it('updates ETH and fiat values', async () => {
-      const { getByText } = renderComponent();
+      const { toJSON, getByText } = renderComponent();
+
+      expect(toJSON()).toMatchSnapshot();
 
       await act(async () => {
         fireEvent.press(getByText('2'));
       });
 
-      expect(getByText('4000 USD')).toBeOnTheScreen();
+      expect(getByText('4000 USD')).toBeTruthy();
     });
   });
 
@@ -765,13 +765,13 @@ describe('EarnInputView', () => {
     it('switches between ETH and fiat correctly', async () => {
       const { getByText } = renderComponent();
 
-      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(getByText('ETH')).toBeTruthy();
 
       await act(async () => {
         fireEvent.press(getByText('0 USD'));
       });
 
-      expect(getByText('USD')).toBeOnTheScreen();
+      expect(getByText('USD')).toBeTruthy();
     });
   });
 
@@ -781,7 +781,7 @@ describe('EarnInputView', () => {
 
       fireEvent.press(getByText('25%'));
 
-      expect(getByText('0.375')).toBeOnTheScreen();
+      expect(getByText('0.375')).toBeTruthy();
     });
   });
 
@@ -789,14 +789,14 @@ describe('EarnInputView', () => {
     it('displays `Enter amount` if input is 0', () => {
       const { getByText } = renderComponent();
 
-      expect(getByText('Enter amount')).toBeOnTheScreen();
+      expect(getByText('Enter amount')).toBeTruthy();
     });
 
     it('displays `Review` on stake button if input is valid', () => {
       const { getByText } = renderComponent();
 
       fireEvent.press(getByText('1'));
-      expect(getByText('Review')).toBeOnTheScreen();
+      expect(getByText('Review')).toBeTruthy();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
@@ -1203,7 +1203,7 @@ describe('EarnInputView', () => {
       const { getByText } = renderComponent();
 
       // Verify the title is rendered in the HeaderCompactStandard component
-      expect(getByText('Stake ETH')).toBeOnTheScreen();
+      expect(getByText('Stake ETH')).toBeTruthy();
     });
   });
 

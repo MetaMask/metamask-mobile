@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { render } from '@testing-library/react-native';
+import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
 
 import renderWithProvider, {
@@ -155,31 +155,23 @@ const transactionState: Transaction = {
 };
 
 describe('AccountFromToInfoCard', () => {
-  beforeAll(() => {
-    // Update the global store mock so that selectors called via
-    // store.getState() (e.g. inside renderAccountName) receive the
-    // correct background state.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    require('../../../store')._updateMockState(mockInitialState);
-  });
-
   it('should render correctly', () => {
-    const { toJSON } = render(
+    const wrapper = shallow(
       <Provider store={store}>
         {/* @ts-expect-error: Rest props are ignored for testing purposes */}
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
-  it('should match snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('should match snapshot', async () => {
+    const container = renderWithProvider(
       //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(toJSON()).not.toBeNull();
+    expect(container).toMatchSnapshot();
   });
 
   it('should render to account name', async () => {

@@ -387,7 +387,6 @@ describe('BridgeStepDescription', () => {
       slippagePercentage: 0,
       account: '0x123',
       hasApprovalTx: false,
-      startTime: Date.now(),
     };
 
     const mockSrcChainTxMeta: TransactionMeta = {

@@ -1,4 +1,3 @@
-import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import DeFiFullView from './DeFiFullView';
 import { useNavigation } from '@react-navigation/native';
@@ -67,7 +66,7 @@ describe('DeFiFullView', () => {
       name: 'DeFiFullView',
     });
 
-    fireEvent.press(getByTestId('back-button'));
+    getByTestId('back-button').props.onPress();
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });

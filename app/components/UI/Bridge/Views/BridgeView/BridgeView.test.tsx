@@ -13,17 +13,15 @@ import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeViewMode } from '../../types';
 import {
   RequestStatus,
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
-  QuoteStreamCompleteReason,
   TokenFeatureType,
+  QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
-import { SecurityDataType } from '../../hooks/usePopularTokens';
-import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -682,7 +680,7 @@ describe('BridgeView', () => {
     });
   });
 
-  it('switch tokens and preserve keypad state when clicking arrow button', async () => {
+  it('switch tokens and preserve keypad state when clicking arrow button', () => {
     const mockStateWithTokens = {
       ...mockState,
       bridge: {
@@ -800,7 +798,7 @@ describe('BridgeView', () => {
     const arrowButton = getByTestId('arrow-button');
 
     // Button should be disabled when dest network is disabled
-    expect(arrowButton).toBeDisabled();
+    expect(arrowButton.props.disabled).toBe(true);
     // When disabled, onPress is set to undefined in FLipQuoteButton
     expect(arrowButton.props.onPress).toBeUndefined();
   });
@@ -1323,7 +1321,7 @@ describe('BridgeView', () => {
       } as BridgeRouteParams;
     });
 
-    it('uses sourceToken from route params when provided', () => {
+    it('uses sourceToken from route params when provided', async () => {
       mockRoute.params.sourceToken = mockDeepLinkSourceToken;
 
       // Update the mock state to include the deep link source token
@@ -1397,7 +1395,7 @@ describe('BridgeView', () => {
       expect(input.props.value).toBe('1,000,000');
     });
 
-    it('uses all deep link params when all are provided', () => {
+    it('uses all deep link params when all are provided', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         sourceToken: mockDeepLinkSourceToken,
@@ -1900,42 +1898,34 @@ describe('BridgeView', () => {
   });
 
   describe('Token Warning Banner', () => {
-    const mockWarningFeatures = [
-      {
-        featureId: 'low_locked_liquidity',
-        type: SecurityDataType.Warning,
-        description: 'This token is suspicious.',
-      },
-    ];
+    const mockWarning = {
+      type: TokenFeatureType.WARNING,
+      feature_id: 'warn-1',
+      description: 'This token is suspicious.',
+    };
 
-    const mockMaliciousFeatures = [
-      {
-        featureId: 'honeypot',
-        type: SecurityDataType.Malicious,
-        description: 'This token is malicious.',
-      },
-    ];
+    const mockMaliciousWarning = {
+      type: TokenFeatureType.MALICIOUS,
+      feature_id: 'mal-1',
+      description: 'This token is malicious.',
+    };
 
     // createBridgeTestState sets bridge from mockBridgeReducerState (sourceAmount non-zero,
     // destToken.symbol = 'USDC') which puts the view into 'quote' contentMode.
-    const stateWithDestSecurityData = (
-      type: SecurityDataType,
-      features: typeof mockWarningFeatures,
+    const stateWithWarnings = (
+      warnings: {
+        type: TokenFeatureType;
+        feature_id: string;
+        description: string;
+      }[],
     ) =>
       createBridgeTestState(
-        {
-          bridgeReducerOverrides: {
-            destToken: {
-              ...(mockBridgeReducerState.destToken as BridgeToken),
-              securityData: { type, metadata: { features } },
-            },
-          },
-        },
+        { bridgeControllerOverrides: { tokenWarnings: warnings } },
         mockState,
       );
 
-    it('does not show the banner when destToken has no securityData', () => {
-      const testState = createBridgeTestState({}, mockState);
+    it('does not show the banner when tokenWarnings is empty', () => {
+      const testState = stateWithWarnings([]);
 
       const { queryByText } = renderScreen(
         BridgeView,
@@ -1955,23 +1945,31 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
-    it('shows the banner in zero state (no source amount) when destToken has securityData', () => {
+    it('does not show the banner in zero state (no source amount)', () => {
       const testState = createBridgeTestState(
         {
-          bridgeReducerOverrides: {
-            sourceAmount: undefined,
-            destToken: {
-              ...(mockBridgeReducerState.destToken as BridgeToken),
-              securityData: {
-                type: SecurityDataType.Warning,
-                metadata: { features: mockWarningFeatures },
-              },
-            },
-          },
+          bridgeControllerOverrides: { tokenWarnings: [mockWarning] },
+          bridgeReducerOverrides: { sourceAmount: undefined },
         },
         mockState,
       );
 
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        queryByText(
+          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeNull();
+    });
+
+    it('shows the suspicious banner for a WARNING type token', () => {
+      const testState = stateWithWarnings([mockWarning]);
+
       const { getByText } = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
@@ -1985,30 +1983,8 @@ describe('BridgeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows the suspicious banner for a Warning type token', () => {
-      const testState = stateWithDestSecurityData(
-        SecurityDataType.Warning,
-        mockWarningFeatures,
-      );
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      expect(
-        getByText(
-          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows the malicious banner for a Malicious type token', () => {
-      const testState = stateWithDestSecurityData(
-        SecurityDataType.Malicious,
-        mockMaliciousFeatures,
-      );
+    it('shows the malicious banner for a MALICIOUS type token', () => {
+      const testState = stateWithWarnings([mockMaliciousWarning]);
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -2029,10 +2005,7 @@ describe('BridgeView', () => {
         bridgeViewMode: BridgeViewMode.Swap,
         location: MetaMetricsSwapsEventSource.MainView,
       };
-      const testState = stateWithDestSecurityData(
-        SecurityDataType.Warning,
-        mockWarningFeatures,
-      );
+      const testState = stateWithWarnings([mockWarning]);
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -2050,24 +2023,21 @@ describe('BridgeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params: {
-          warningType: SecurityDataType.Warning,
-          features: mockWarningFeatures,
+          warningType: TokenFeatureType.WARNING,
+          description: mockWarning.description,
           mode: TokenWarningModalMode.Info,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
     });
 
-    it('passes Malicious warningType when navigating from a malicious banner', async () => {
+    it('passes MALICIOUS warningType when navigating from a malicious banner', async () => {
       mockRoute.params = {
         sourcePage: 'test',
         bridgeViewMode: BridgeViewMode.Swap,
         location: MetaMetricsSwapsEventSource.MainView,
       };
-      const testState = stateWithDestSecurityData(
-        SecurityDataType.Malicious,
-        mockMaliciousFeatures,
-      );
+      const testState = stateWithWarnings([mockMaliciousWarning]);
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -2085,136 +2055,11 @@ describe('BridgeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params: expect.objectContaining({
-          warningType: SecurityDataType.Malicious,
-          features: mockMaliciousFeatures,
+          warningType: TokenFeatureType.MALICIOUS,
+          description: mockMaliciousWarning.description,
           mode: TokenWarningModalMode.Info,
         }),
       });
-    });
-  });
-
-  describe('Missing Price Banner', () => {
-    const mockWarning = {
-      type: TokenFeatureType.WARNING,
-      feature_id: 'warn-1',
-      description: 'This token is suspicious.',
-    };
-
-    const quoteModeState = (tokenWarnings: (typeof mockWarning)[] = []) =>
-      createBridgeTestState(
-        {
-          bridgeControllerOverrides: { tokenWarnings },
-          ...(tokenWarnings.length > 0 && {
-            bridgeReducerOverrides: {
-              destToken: {
-                ...(mockBridgeReducerState.destToken as BridgeToken),
-                securityData: {
-                  type: tokenWarnings[0].type as unknown as SecurityDataType,
-                  metadata: {
-                    features: tokenWarnings.map((w) => ({
-                      featureId: w.feature_id,
-                      type: w.type as unknown as SecurityDataType,
-                      description: w.description,
-                    })),
-                  },
-                },
-              },
-            },
-          }),
-        },
-        mockState,
-      );
-
-    it('shows the missing price banner when quote price data is unavailable', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockQuoteWithMetadata,
-            quote: {
-              ...mockQuoteWithMetadata.quote,
-              priceData: undefined,
-            },
-          },
-        }));
-
-      const { getByTestId, getByText } = renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: quoteModeState() },
-      );
-
-      expect(
-        getByTestId(BridgeViewSelectorsIDs.MISSING_PRICE_BANNER),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('swaps.market_price_unavailable')),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not navigate when the missing price banner is pressed', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockQuoteWithMetadata,
-            quote: {
-              ...mockQuoteWithMetadata.quote,
-              priceData: undefined,
-            },
-          },
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: quoteModeState() },
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(BridgeViewSelectorsIDs.MISSING_PRICE_BANNER),
-        );
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.BRIDGE.MODALS.ROOT,
-        expect.objectContaining({
-          screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
-        }),
-      );
-    });
-
-    it('renders both the token warning banner and the missing price banner together', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockQuoteWithMetadata,
-            quote: {
-              ...mockQuoteWithMetadata.quote,
-              priceData: undefined,
-            },
-          },
-        }));
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: quoteModeState([mockWarning]) },
-      );
-
-      expect(
-        getByText(
-          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('swaps.market_price_unavailable')),
-      ).toBeOnTheScreen();
     });
   });
 });

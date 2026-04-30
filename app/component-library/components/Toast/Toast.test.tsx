@@ -6,7 +6,23 @@ import { render, screen, act } from '@testing-library/react-native';
 import Toast from './Toast';
 import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
 
-// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => ({
+  useSharedValue: jest.fn(() => ({ value: 0 })),
+  useAnimatedStyle: jest.fn(() => ({})),
+  withTiming: jest.fn((value, _config, callback) => {
+    if (callback) {
+      callback();
+    }
+    return value;
+  }),
+  withDelay: jest.fn((_delay, animation) => animation),
+  cancelAnimation: jest.fn(),
+  runOnJS: jest.fn((fn) => () => fn()),
+  default: {
+    View: 'Animated.View',
+  },
+}));
 
 // Mock safe area context
 describe('Toast', () => {
@@ -124,7 +140,6 @@ describe('Toast', () => {
     // Close toast
     await act(async () => {
       toastRef.current?.closeToast();
-      jest.runAllTimers();
     });
 
     expect(screen.queryByText('Test Label')).toBeNull();
@@ -152,9 +167,9 @@ describe('Toast', () => {
       toastRef.current?.showToast(successOptions);
     });
 
-    // The first setTimeout(0) is cleared and replaced by the second call;
-    // additional framework timers (e.g. Reanimated) may also be pending.
-    expect(jest.getTimerCount()).toBeGreaterThanOrEqual(1);
+    // Without the fix two setTimeout(0) callbacks are queued (one per call);
+    // with the fix the first timeout is cleared, leaving only one pending.
+    expect(jest.getTimerCount()).toBe(1);
 
     await act(async () => {
       jest.runAllTimers();

@@ -20,6 +20,6 @@ describe('SelectComponent', () => {
         label={'Choose an option'}
       />,
     );
-    expect(toJSON()).not.toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

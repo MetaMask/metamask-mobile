@@ -135,22 +135,21 @@ describe('Earnings', () => {
   });
 
   it('should render correctly', () => {
-    const { getByText, queryByText } = render();
+    const { toJSON, getByText, queryByText } = render();
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
-    expect(getByText(strings('stake.annual_rate'))).toBeOnTheScreen();
-    expect(getByText(strings('stake.lifetime_rewards'))).toBeOnTheScreen();
-    expect(
-      getByText(strings('stake.estimated_annual_earnings')),
-    ).toBeOnTheScreen();
+    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
+    expect(getByText(strings('stake.annual_rate'))).toBeDefined();
+    expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
+    expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
     expect(
       getByText(strings('earn.view_earnings_history.staking')),
-    ).toBeOnTheScreen();
+    ).toBeDefined();
     expect(
       queryByText(
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
@@ -160,13 +159,14 @@ describe('Earnings', () => {
       >
     ).mockReturnValue(true);
 
-    const { getByText } = render();
+    const { toJSON, getByText } = render();
 
+    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText(
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
-    ).toBeOnTheScreen();
+    ).toBeDefined();
   });
 
   it('displays lending maintenance banner when feature flag is enabled', () => {
@@ -176,13 +176,14 @@ describe('Earnings', () => {
       >
     ).mockReturnValue(true);
 
-    const { getByText } = render();
+    const { toJSON, getByText } = render();
 
+    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText(
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
-    ).toBeOnTheScreen();
+    ).toBeDefined();
   });
 
   it('should not display earnings history button when earn experience is STABLECOIN_LENDING', () => {
@@ -201,13 +202,13 @@ describe('Earnings', () => {
 
     const { getByText, queryByText } = render();
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
     expect(
       queryByText(strings('earn.view_earnings_history.lending')),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
     expect(
       queryByText(strings('earn.view_earnings_history.staking')),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
   });
 
   it('should navigate to lending learn more modal when earn experience is STABLECOIN_LENDING', async () => {
@@ -243,7 +244,7 @@ describe('Earnings', () => {
       fireEvent.press(getByTestId('annual-rate-tooltip'));
     });
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
     expect(mockNavigate).toHaveBeenCalledWith('EarnModals', {
       screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
       params: {
@@ -285,7 +286,7 @@ describe('Earnings', () => {
       fireEvent.press(getByTestId('annual-rate-tooltip'));
     });
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
     expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: {

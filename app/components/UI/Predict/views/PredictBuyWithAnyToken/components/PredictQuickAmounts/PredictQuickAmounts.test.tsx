@@ -1,30 +1,16 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import PredictQuickAmounts from './PredictQuickAmounts';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 
-const mockPlayImpact = jest.fn();
-
-jest.mock('../../../../../../../util/haptics', () => ({
-  ...jest.requireActual<typeof import('../../../../../../../util/haptics')>(
-    '../../../../../../../util/haptics',
-  ),
-  useHaptics: jest.fn(),
-}));
+jest.mock('expo-haptics');
 
 describe('PredictQuickAmounts', () => {
   const mockOnSelectAmount = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useHaptics as jest.Mock).mockReturnValue({
-      playSuccessNotification: jest.fn(),
-      playErrorNotification: jest.fn(),
-      playWarningNotification: jest.fn(),
-      playImpact: mockPlayImpact,
-      playSelection: jest.fn(),
-    });
   });
 
   it('renders all four quick amount buttons', () => {
@@ -94,9 +80,7 @@ describe('PredictQuickAmounts', () => {
     fireEvent.press(screen.getByText('$50'));
 
     await waitFor(() => {
-      expect(mockPlayImpact).toHaveBeenCalledWith(
-        ImpactMoment.QuickAmountSelection,
-      );
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
   });
 
@@ -105,10 +89,10 @@ describe('PredictQuickAmounts', () => {
       <PredictQuickAmounts onSelectAmount={mockOnSelectAmount} disabled />,
     );
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(4);
-    buttons.forEach((button) => {
-      expect(button).toBeDisabled();
-    });
+    expect(screen.getByText('$20')).toBeOnTheScreen();
+    expect(screen.getByText('$250')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByText('$20'));
+    expect(mockOnSelectAmount).not.toHaveBeenCalled();
   });
 });

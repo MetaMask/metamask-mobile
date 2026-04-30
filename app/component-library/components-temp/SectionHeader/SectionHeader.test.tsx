@@ -69,7 +69,9 @@ describe('SectionHeader', () => {
         <SectionHeader title="Tokens" onPress={jest.fn()} />,
       );
 
-      expect(UNSAFE_getByProps({ accessibilityRole: 'button' })).toBeTruthy();
+      expect(
+        UNSAFE_getByProps({ accessibilityRole: 'button' }),
+      ).toBeOnTheScreen();
     });
 
     it('sets the accessibilityLabel to the string title when pressable', () => {
@@ -82,7 +84,7 @@ describe('SectionHeader', () => {
           accessibilityRole: 'button',
           accessibilityLabel: 'Tokens',
         }),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('calls onPress when the header is pressed', () => {

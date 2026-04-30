@@ -334,7 +334,7 @@ describe('KYCFailed Component', () => {
 
       const button = getByTestId('kyc-failed-close-button');
 
-      expect(button).not.toBeDisabled();
+      expect(button.props.disabled).toBeFalsy();
     });
   });
 

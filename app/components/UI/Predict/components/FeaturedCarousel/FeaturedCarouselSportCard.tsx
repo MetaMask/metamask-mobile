@@ -33,7 +33,6 @@ import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
 import { isDrawCapableLeague } from '../../constants/sports';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
-import { parseScore } from '../../utils/gameParser';
 import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
@@ -69,9 +68,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const showDraw = isDrawCapableLeague(game.league);
 
   const liveData = useMemo(() => {
-    const liveScore = gameUpdate?.score
-      ? parseScore(gameUpdate.score, game.league)
-      : null;
+    const parseScore = (raw: string | null | undefined) => {
+      if (!raw) return null;
+      const [away, home] = raw.split('-').map(Number);
+      return !isNaN(away) && !isNaN(home) ? { away, home } : null;
+    };
+    const liveScore = gameUpdate?.score ? parseScore(gameUpdate.score) : null;
     return {
       homeScore: liveScore?.home ?? game.score?.home ?? 0,
       awayScore: liveScore?.away ?? game.score?.away ?? 0,

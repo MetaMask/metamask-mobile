@@ -8,10 +8,10 @@
 
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
+import { resetPerpsRestCacheForTests } from '../utils/coalescePerpsRestRequest';
 
 import { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { ValidCandleInterval } from './HyperLiquidClientService';
-import { resetPerpsRestCacheForTests } from '../utils/coalescePerpsRestRequest';
 
 // Mock WebSocket for Jest environment (React Native provides this globally)
 (global as any).WebSocket = jest.fn();
@@ -106,7 +106,6 @@ describe('HyperLiquidClientService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
-    resetPerpsRestCacheForTests();
     mockInfoClientCallCount = 0; // Reset InfoClient call counter
 
     // Restore default mock for transport ready
@@ -515,6 +514,10 @@ describe('HyperLiquidClientService', () => {
   describe('fetchHistoricalCandles', () => {
     beforeEach(async () => {
       await service.initialize(mockWallet);
+      // Reset module-level coalesce cache so each test starts clean — without
+      // this, the first test populates the cache and subsequent tests with
+      // matching (symbol, interval, limit) skip the underlying REST call.
+      resetPerpsRestCacheForTests();
     });
 
     it('fetches historical candles successfully', async () => {
@@ -566,7 +569,7 @@ describe('HyperLiquidClientService', () => {
       });
     });
 
-    it('uses the default limit and forwards an explicit abort signal', async () => {
+    it('uses the default limit when no signal is aborted', async () => {
       const abortController = new AbortController();
       mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
 
@@ -576,8 +579,6 @@ describe('HyperLiquidClientService', () => {
         signal: abortController.signal,
       });
 
-      // signal is not forwarded through the coalesce path (no endTime),
-      // so candleSnapshot is called with only the request object
       expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith({
         coin: 'BTC',
         interval: '1h',
@@ -633,6 +634,11 @@ describe('HyperLiquidClientService', () => {
       mockInfoClientHttp.candleSnapshot = jest.fn().mockResolvedValue([]);
 
       await Promise.all([
+        service.fetchHistoricalCandles({
+          symbol: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          limit: 100,
+        }),
         service.fetchHistoricalCandles({
           symbol: 'BTC',
           interval: '1h' as ValidCandleInterval,
@@ -868,6 +874,7 @@ describe('HyperLiquidClientService', () => {
     beforeEach(async () => {
       await service.initialize(mockWallet);
       jest.clearAllMocks();
+      resetPerpsRestCacheForTests();
     });
 
     it('throws error when service not initialized', () => {
@@ -949,7 +956,6 @@ describe('HyperLiquidClientService', () => {
       await jest.advanceTimersByTimeAsync(100);
 
       // Assert - should have fetched historical data (SDK uses 'coin' terminology)
-      // Signal is intentionally dropped inside the coalesced fetch path.
       expect(mockInfoClientHttp.candleSnapshot).toHaveBeenCalledWith(
         expect.objectContaining({
           coin: 'BTC',

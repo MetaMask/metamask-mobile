@@ -32,25 +32,7 @@ exports[`CollapsibleSection can expand 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <View
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          focusable={false}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-        >
+        <TouchableHighlight>
           <View
             backgroundColor="#f3f3f4"
             gap={8}
@@ -70,41 +52,14 @@ exports[`CollapsibleSection can expand 1`] = `
             }
             testID="snaps-ui-collapsible-section"
           >
-            <View
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+            <TouchableOpacity
+              onPress={[Function]}
               style={
                 {
                   "alignItems": "center",
                   "display": "flex",
                   "flexDirection": "row",
                   "justifyContent": "space-between",
-                  "opacity": 1,
                   "paddingBottom": 0,
                   "paddingTop": 8,
                 }
@@ -138,7 +93,7 @@ exports[`CollapsibleSection can expand 1`] = `
                   ]
                 }
               />
-            </View>
+            </TouchableOpacity>
             <View
               color="Default"
               flexDirection="column"
@@ -337,7 +292,7 @@ exports[`CollapsibleSection can expand 1`] = `
               </View>
             </View>
           </View>
-        </View>
+        </TouchableHighlight>
       </View>
     </RCTScrollView>
   </View>

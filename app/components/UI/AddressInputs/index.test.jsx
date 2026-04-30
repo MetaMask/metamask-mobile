@@ -45,7 +45,7 @@ jest.mock('../../../core/Engine', () => ({
 describe('AddressInputs', () => {
   describe('AddressFrom', () => {
     it('should match default snapshot', async () => {
-      const { toJSON } = renderWithProvider(
+      const container = renderWithProvider(
         <AddressFrom
           fromAccountAddress="0x9004C7f302475BF5501fbc6254f69C64212A0d12"
           fromAccountBalance="0x5"
@@ -53,11 +53,11 @@ describe('AddressInputs', () => {
         />,
         { state: initialState },
       );
-      expect(toJSON()).not.toBeNull();
+      expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot when layout is vertical', () => {
-      const { toJSON } = renderWithProvider(
+      const container = renderWithProvider(
         <AddressFrom
           fromAccountAddress="0x9004C7f302475BF5501fbc6254f69C64212A0d12"
           fromAccountBalance="0x5"
@@ -66,13 +66,13 @@ describe('AddressInputs', () => {
         />,
         { state: initialState },
       );
-      expect(toJSON()).not.toBeNull();
+      expect(container).toMatchSnapshot();
     });
   });
 
   describe('AddressTo', () => {
     it('should match default snapshot', () => {
-      const { toJSON } = renderWithProvider(
+      const container = renderWithProvider(
         <AddressTo
           displayExclamation
           isConfirmScreen
@@ -81,11 +81,11 @@ describe('AddressInputs', () => {
         />,
         { state: initialState },
       );
-      expect(toJSON()).not.toBeNull();
+      expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot when layout is vertical', () => {
-      const { toJSON } = renderWithProvider(
+      const container = renderWithProvider(
         <AddressTo
           displayExclamation
           isConfirmScreen
@@ -95,7 +95,7 @@ describe('AddressInputs', () => {
         />,
         { state: initialState },
       );
-      expect(toJSON()).not.toBeNull();
+      expect(container).toMatchSnapshot();
     });
 
     it('should open address book modal on press', () => {

@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NotificationMoment } from '../../../../../util/haptics';
+import { NotificationFeedbackType } from 'expo-haptics';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -103,7 +103,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         iconName: IconName.CheckBold,
         backgroundColor: theme.colors.accent03.normal,
         iconColor: theme.colors.accent03.dark,
-        hapticsType: NotificationMoment.Success,
+        hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
         labelOptions: message
           ? [
@@ -126,7 +126,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         iconName: IconName.Warning,
         backgroundColor: theme.colors.accent01.light,
         iconColor: theme.colors.accent01.dark,
-        hapticsType: NotificationMoment.Error,
+        hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,
         labelOptions: message
           ? [

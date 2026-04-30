@@ -8,8 +8,7 @@ exports[`AddAccountActions renders correctly 1`] = `
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
@@ -334,16 +333,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "additive",
-                          }
-                        }
-                      >
+                      <View>
                         <View>
                           <Text
                             accessibilityRole="text"
@@ -361,39 +351,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           >
                             Create a new account
                           </Text>
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
+                          <TouchableOpacity
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "opacity": 1,
                                 "paddingVertical": 8,
                                 "width": "100%",
                               }
@@ -405,49 +369,38 @@ exports[`AddAccountActions renders correctly 1`] = `
                               fill="currentColor"
                               height={20}
                               name="Add"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "height": 20,
+                                  "marginHorizontal": 16,
+                                  "width": 20,
+                                }
+                              }
                               width={20}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 20,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
                             >
                               Ethereum account
                             </Text>
-                          </View>
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "opacity": 1,
                                 "paddingVertical": 8,
                                 "width": "100%",
                               }
@@ -459,49 +412,38 @@ exports[`AddAccountActions renders correctly 1`] = `
                               fill="currentColor"
                               height={20}
                               name="Add"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "height": 20,
+                                  "marginHorizontal": 16,
+                                  "width": 20,
+                                }
+                              }
                               width={20}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 20,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
                             >
                               Solana account
                             </Text>
-                          </View>
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "opacity": 1,
                                 "paddingVertical": 8,
                                 "width": "100%",
                               }
@@ -513,49 +455,38 @@ exports[`AddAccountActions renders correctly 1`] = `
                               fill="currentColor"
                               height={20}
                               name="Add"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "height": 20,
+                                  "marginHorizontal": 16,
+                                  "width": 20,
+                                }
+                              }
                               width={20}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 20,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
                             >
                               Bitcoin account
                             </Text>
-                          </View>
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "opacity": 1,
                                 "paddingVertical": 8,
                                 "width": "100%",
                               }
@@ -567,16 +498,31 @@ exports[`AddAccountActions renders correctly 1`] = `
                               fill="currentColor"
                               height={20}
                               name="Add"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "height": 20,
+                                  "marginHorizontal": 16,
+                                  "width": 20,
+                                }
+                              }
                               width={20}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 20,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
                             >
                               Tron account
                             </Text>
-                          </View>
+                          </TouchableOpacity>
                           <Text
                             accessibilityRole="text"
                             style={
@@ -593,39 +539,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           >
                             Import a wallet or account
                           </Text>
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
+                          <TouchableOpacity
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "opacity": 1,
                                 "paddingVertical": 8,
                                 "width": "100%",
                               }
@@ -637,49 +557,38 @@ exports[`AddAccountActions renders correctly 1`] = `
                               fill="currentColor"
                               height={20}
                               name="Wallet"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "height": 20,
+                                  "marginHorizontal": 16,
+                                  "width": 20,
+                                }
+                              }
                               width={20}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 20,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
                             >
                               Secret Recovery Phrase
                             </Text>
-                          </View>
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "opacity": 1,
                                 "paddingVertical": 8,
                                 "width": "100%",
                               }
@@ -691,16 +600,31 @@ exports[`AddAccountActions renders correctly 1`] = `
                               fill="currentColor"
                               height={20}
                               name="Key"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "height": 20,
+                                  "marginHorizontal": 16,
+                                  "width": 20,
+                                }
+                              }
                               width={20}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 20,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
                             >
                               Private key
                             </Text>
-                          </View>
+                          </TouchableOpacity>
                           <Text
                             accessibilityRole="text"
                             style={
@@ -717,39 +641,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           >
                             Connect an account
                           </Text>
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
+                          <TouchableOpacity
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "opacity": 1,
                                 "paddingVertical": 8,
                                 "width": "100%",
                               }
@@ -761,18 +659,33 @@ exports[`AddAccountActions renders correctly 1`] = `
                               fill="currentColor"
                               height={20}
                               name="Hardware"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "height": 20,
+                                  "marginHorizontal": 16,
+                                  "width": 20,
+                                }
+                              }
                               width={20}
                             />
                             <Text
                               accessibilityRole="text"
-                              style={[Object]}
+                              style={
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 20,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
                             >
                               Hardware wallet
                             </Text>
-                          </View>
+                          </TouchableOpacity>
                         </View>
-                      </RNCSafeAreaView>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -782,6 +695,6 @@ exports[`AddAccountActions renders correctly 1`] = `
         </RNSScreen>
       </RNSScreenContainer>
     </View>
-  </RNCSafeAreaProvider>
+  </View>
 </View>
 `;

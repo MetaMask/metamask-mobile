@@ -1,10 +1,5 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
-import {
-  playImpact,
-  playSelection,
-  ImpactMoment,
-  type HapticImpactMoment,
-} from '../../../../../util/haptics';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import React, {
   memo,
   useCallback,
@@ -185,9 +180,13 @@ const LeverageSlider: React.FC<{
     [onValueChange, onInteraction],
   );
 
-  const triggerHapticFeedback = useCallback((moment: HapticImpactMoment) => {
-    playImpact(moment);
-  }, []);
+  // Haptic feedback callbacks
+  const triggerHapticFeedback = useCallback(
+    (impactStyle: ImpactFeedbackStyle) => {
+      impactAsync(impactStyle);
+    },
+    [],
+  );
 
   // Check if value crosses leverage thresholds
   const checkThresholdCrossing = useCallback(
@@ -202,7 +201,7 @@ const LeverageSlider: React.FC<{
           (prevValue < threshold && newValue >= threshold) ||
           (prevValue > threshold && newValue <= threshold)
         ) {
-          runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+          runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
           break;
         }
       }
@@ -215,7 +214,7 @@ const LeverageSlider: React.FC<{
   const panGesture = Gesture.Pan()
     .onBegin(() => {
       isPressed.value = true;
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
       runOnJS(onDragStart)();
     })
     .onUpdate((event) => {
@@ -231,7 +230,7 @@ const LeverageSlider: React.FC<{
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
       runOnJS(onDragEnd)(currentValue);
     })
     .onFinalize(() => {
@@ -245,7 +244,7 @@ const LeverageSlider: React.FC<{
     const newValue = positionToValue(newPosition, sliderWidth.value);
     runOnJS(updateValue)(newValue);
     runOnJS(checkThresholdCrossing)(newValue);
-    runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+    runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
     runOnJS(onDragEnd)(newValue);
   };
 
@@ -856,7 +855,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 setTempLeverage(value);
                 setInputMethod('preset');
                 // Add haptic feedback for quick select buttons
-                playSelection();
+                impactAsync(ImpactFeedbackStyle.Light);
               }}
             >
               <Text

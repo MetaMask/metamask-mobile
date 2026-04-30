@@ -90,10 +90,12 @@ describe('SnapElement', () => {
   };
 
   it('renders correctly', () => {
-    const { getByTestId, getByText } = render(<SnapElement {...mockSnap} />);
+    const { getByTestId } = render(<SnapElement {...mockSnap} />);
 
-    expect(getByTestId(SNAP_ElEMENT)).toBeTruthy();
-    expect(getByText(mockSnap.manifest.proposedName)).toBeTruthy();
-    expect(getByText(mockSnap.id)).toBeTruthy();
+    const cell = getByTestId(SNAP_ElEMENT);
+    expect(cell.props.children.props.title).toEqual(
+      mockSnap.manifest.proposedName,
+    );
+    expect(cell.props.children.props.secondaryText).toEqual(mockSnap.id);
   });
 });

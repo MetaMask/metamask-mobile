@@ -126,7 +126,6 @@ jobs:
 
       - name: Compute BrowserStack Local Identifier
         id: bs-local-id
-        if: inputs.build_type == 'mm-connect'
         run: |
           # Strip any character that is not alphanumeric or a hyphen (covers spaces, /, \, @, etc.)
           BUILD_TYPE_SAFE=$(printf '%s' "${{ inputs.build_type }}" | tr -c 'a-zA-Z0-9-' '_')
@@ -142,7 +141,6 @@ jobs:
           echo "value=${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
 
       - name: Setup BrowserStack Local
-        if: inputs.build_type == 'mm-connect'
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
@@ -152,11 +150,10 @@ jobs:
           local-args: '--force-local --verbose'
 
       - name: Wait for BrowserStack Local
-        if: inputs.build_type == 'mm-connect'
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
-          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090
-          sleep 15
+          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090; allow extra time
+          sleep ${{ inputs.build_type == 'mm-connect' && 15 || 10 }}
           echo "BrowserStack Local should be ready now"
 
       - name: Set Test Environment
@@ -229,8 +226,8 @@ jobs:
 
       - name: Run Tests
         env:
-          BROWSERSTACK_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ inputs.build_type == 'mm-connect' && steps.bs-local-id.outputs.value || '' }}
+          BROWSERSTACK_LOCAL: 'true'
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ steps.bs-local-id.outputs.value }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
         run: |

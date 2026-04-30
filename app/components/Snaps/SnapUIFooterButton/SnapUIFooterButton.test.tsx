@@ -67,7 +67,7 @@ describe('SnapUIFooterButton', () => {
   it('applies correct variant based on disabled state', () => {
     render(<SnapUIFooterButton {...defaultProps} disabled />);
     const button = screen.getByRole('button', { name: 'Test Button' });
-    expect(button).toBeDisabled();
+    expect(button.props.accessibilityState.disabled).toBe(true);
   });
 
   it('fires ButtonClickEvent and FormSubmitEvent when snap action button with Submit type is pressed', () => {

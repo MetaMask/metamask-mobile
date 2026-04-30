@@ -35,7 +35,6 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
   excludedRegions: [],
   details: null,
   featured: true,
-  showUpcomingDate: false,
   ...overrides,
 });
 

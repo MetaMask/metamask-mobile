@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { InteractionManager, RefreshControl } from 'react-native';
+import { InteractionManager } from 'react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -1566,14 +1566,17 @@ describe('PredictMarketDetails', () => {
     it('attaches a themed RefreshControl to the scroll view', () => {
       setupPredictMarketDetailsTest();
 
-      const refreshControl = screen.UNSAFE_getByType(RefreshControl);
+      const scrollView = screen.getByTestId(
+        'predict-market-details-scrollable-tab-view',
+      );
+      const refreshControlProps = scrollView.props.refreshControl.props;
 
-      expect(refreshControl).toBeTruthy();
-      expect(refreshControl.props.tintColor).toBeTruthy();
-      expect(refreshControl.props.colors).toEqual([
-        refreshControl.props.tintColor,
+      expect(scrollView.props.refreshControl).toBeDefined();
+      expect(refreshControlProps.tintColor).toBeTruthy();
+      expect(refreshControlProps.colors).toEqual([
+        refreshControlProps.tintColor,
       ]);
-      expect(refreshControl.props.refreshing).toBe(false);
+      expect(refreshControlProps.refreshing).toBe(false);
     });
 
     it('triggers market, price history, and active positions refresh', async () => {
@@ -1591,10 +1594,12 @@ describe('PredictMarketDetails', () => {
         },
       );
 
-      const refreshControl = screen.UNSAFE_getByType(RefreshControl);
+      const scrollView = screen.getByTestId(
+        'predict-market-details-scrollable-tab-view',
+      );
 
       await act(async () => {
-        await fireEvent(refreshControl, 'refresh');
+        await scrollView.props.refreshControl.props.onRefresh();
       });
 
       await waitFor(() => {
@@ -3657,33 +3662,6 @@ describe('PredictMarketDetails', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('NFL: Team A vs Team B')).toBeOnTheScreen();
-    });
-
-    it('threads childMarketIds to usePredictPositions for both active and claimable queries', () => {
-      const marketWithChildren = createMockMarket({
-        childMarketIds: ['child-1', 'child-2'],
-      });
-
-      setupPredictMarketDetailsTest(marketWithChildren);
-
-      const { usePredictPositions } = jest.requireMock(
-        '../../hooks/usePredictPositions',
-      );
-
-      const calls = usePredictPositions.mock.calls;
-      const activeCall = calls.find(
-        ([args]: [{ claimable: boolean }]) => !args.claimable,
-      );
-      const claimableCall = calls.find(
-        ([args]: [{ claimable: boolean }]) => args.claimable,
-      );
-
-      expect(activeCall[0]).toEqual(
-        expect.objectContaining({ childMarketIds: ['child-1', 'child-2'] }),
-      );
-      expect(claimableCall[0]).toEqual(
-        expect.objectContaining({ childMarketIds: ['child-1', 'child-2'] }),
-      );
     });
 
     it('renders regular market details when market has no game property', () => {
