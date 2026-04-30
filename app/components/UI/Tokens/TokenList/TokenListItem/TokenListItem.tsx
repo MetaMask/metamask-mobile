@@ -115,7 +115,7 @@ const createStyles = (colors: Colors) =>
     assetName: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 4,
       flexShrink: 1,
     },
     assetNameText: {
