@@ -357,6 +357,12 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   readonly #blocklistMarkets: string[];
 
+  // Emergency kill-switch for the Unified Account migration flow. Defaults
+  // to true and is the expected production state after HL's DEX Abstraction
+  // deprecation. Kept as a constructor option (not removed) so we can
+  // disable the migration via a hot-fix release if a regression surfaces
+  // in the wild — flipping this to false reverts to the legacy programmatic
+  // HIP-3 transfer path that already lives in the codebase.
   #useUnifiedAccount: boolean;
 
   // True once DEX discovery has succeeded with real data (not a fallback).

@@ -23,6 +23,11 @@ import type {
 /**
  * Wire codes accepted by `agentSetAbstraction({ abstraction })`. The SDK
  * types these as a `"i" | "u" | "p"` literal union with no exported constant.
+ *
+ * Only `unifiedAccount` is referenced by the current migration flow; the
+ * other entries document the full SDK wire format so a future caller
+ * (e.g. emergency rollback to `disabled`, or opting into `portfolioMargin`)
+ * does not have to re-discover the codes.
  */
 export const HL_ABSTRACTION_WIRE = {
   disabled: 'i',
