@@ -21,6 +21,16 @@ import type {
 } from '@nktkas/hyperliquid';
 
 /**
+ * Wire codes accepted by `agentSetAbstraction({ abstraction })`. The SDK
+ * types these as a `"i" | "u" | "p"` literal union with no exported constant.
+ */
+export const HL_ABSTRACTION_WIRE = {
+  disabled: 'i',
+  unifiedAccount: 'u',
+  portfolioMargin: 'p',
+} as const;
+
+/**
  * True when the given HL abstraction mode treats spot balances as perps
  * collateral. Missing mode is treated as Unified to avoid under-reporting
  * usable balance during a transient userAbstraction fetch failure.

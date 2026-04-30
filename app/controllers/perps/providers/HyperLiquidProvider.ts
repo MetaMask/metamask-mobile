@@ -117,7 +117,10 @@ import type {
   FrontendOrder,
   SpotMetaResponse,
 } from '../types/hyperliquid-types';
-import { hyperLiquidModeFoldsSpot } from '../types/hyperliquid-types';
+import {
+  HL_ABSTRACTION_WIRE,
+  hyperLiquidModeFoldsSpot,
+} from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import {
@@ -712,7 +715,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         });
       } else if (currentMode === 'default' || currentMode === 'disabled') {
         // Silent — signed by agent key, no user prompt
-        await exchangeClient.agentSetAbstraction({ abstraction: 'u' });
+        await exchangeClient.agentSetAbstraction({
+          abstraction: HL_ABSTRACTION_WIRE.unifiedAccount,
+        });
       } else {
         this.#deps.debugLogger.log(
           'HyperLiquidProvider: Unknown abstraction mode, skipping Unified Account migration',
