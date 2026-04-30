@@ -23,13 +23,10 @@ export const ALLOWLISTED_HOSTS = [
 export const ALLOWLISTED_URLS = [
   // Temporarily allow existing live requests during migration
   'https://api.avax.network/ext/bc/C/rpc',
-  'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
   'https://mainnet.era.zksync.io/',
   'https://rpc.atlantischain.network/',
   'https://nft.api.cx.metamask.io/collections?chainId=0x539&contract=0xb2552e4f4bc23e1572041677234d192774558bf0',
   'https://metamask.github.io/test-dapp/metamask-fox.svg',
   'https://nft.api.cx.metamask.io/collections?contract=0xb66a603f4cfe17e3d27b87a8bfcad319856518b8&chainId=1',
   'https://nft.api.cx.metamask.io/users/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=',
-  'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
-  'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0xaa36a7',
 ];
