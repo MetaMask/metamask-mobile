@@ -1,4 +1,4 @@
-import { CaipAssetType, Hex } from '@metamask/utils';
+import { CaipAssetType, Hex, isCaipAssetType } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -69,7 +69,10 @@ import {
   selectProviderType,
 } from '../../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  SPOT_PRICES_SUPPORT_INFO,
+  getNativeTokenAddress,
+} from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
@@ -95,6 +98,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { useAssetSecurityDataFetch } from '../../../../../util/fetchWithDebounce.ts/useAssetSecurityDataFetch';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -178,6 +183,21 @@ export const TokenListItem = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
+
+    let assetId: CaipAssetType;
+    if (isCaipAssetType(asset?.address)) {
+      assetId = asset?.address;
+    } else if (asset?.isNative) {
+      assetId =
+        SPOT_PRICES_SUPPORT_INFO[
+          asset?.chainId as keyof typeof SPOT_PRICES_SUPPORT_INFO
+        ];
+    } else {
+      const caipChainId = formatChainIdToCaip(asset?.chainId as string);
+      assetId = `${caipChainId}/erc20:${asset?.address}`;
+    }
+
+    const securityDataQuery = useAssetSecurityDataFetch(assetId);
 
     const { isStockToken } = useRWAToken();
 
@@ -558,6 +578,9 @@ export const TokenListItem = React.memo(
                 </Text>
                 {label && (
                   <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+                )}
+                {securityDataQuery.data?.result_type && (
+                  <Tag label={securityDataQuery.data.result_type} />
                 )}
               </View>
 
