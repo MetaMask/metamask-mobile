@@ -7,26 +7,32 @@ import Logger from '../../../../../util/Logger';
 export function useUpdateCustomTokenAmount() {
   const transactionMeta = useTransactionMetadataRequest();
 
-  const updateCustomTokenAmount = useCallback(() => {
-    if (!transactionMeta) {
-      return;
-    }
+  const updateCustomTokenAmount = useCallback(
+    (amountHuman: string) => {
+      if (!transactionMeta) {
+        return;
+      }
 
-    const updates = updateMoneyAccountDepositTokenAmount(transactionMeta);
+      const updates = updateMoneyAccountDepositTokenAmount(
+        transactionMeta,
+        amountHuman,
+      );
 
-    for (const { nestedTransactionIndex, transactionData } of updates) {
-      updateAtomicBatchData({
-        transactionId: transactionMeta.id,
-        transactionIndex: nestedTransactionIndex,
-        transactionData,
-      }).catch((error) => {
-        Logger.error(
-          error,
-          'Failed to update custom token amount in nested transaction',
-        );
-      });
-    }
-  }, [transactionMeta]);
+      for (const { nestedTransactionIndex, transactionData } of updates) {
+        updateAtomicBatchData({
+          transactionId: transactionMeta.id,
+          transactionIndex: nestedTransactionIndex,
+          transactionData,
+        }).catch((error) => {
+          Logger.error(
+            error,
+            'Failed to update custom token amount in nested transaction',
+          );
+        });
+      }
+    },
+    [transactionMeta],
+  );
 
   return { updateCustomTokenAmount };
 }

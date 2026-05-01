@@ -183,7 +183,9 @@ describe('moneyAccountTransactions', () => {
         nestedTransactions: [],
       } as unknown as TransactionMeta;
 
-      expect(updateMoneyAccountDepositTokenAmount(transactionMeta)).toEqual([]);
+      expect(
+        updateMoneyAccountDepositTokenAmount(transactionMeta, '1.23'),
+      ).toEqual([]);
     });
 
     it('returns an array regardless of transactionMeta shape', () => {
@@ -192,7 +194,9 @@ describe('moneyAccountTransactions', () => {
       } as unknown as TransactionMeta;
 
       expect(
-        Array.isArray(updateMoneyAccountDepositTokenAmount(transactionMeta)),
+        Array.isArray(
+          updateMoneyAccountDepositTokenAmount(transactionMeta, '1.23'),
+        ),
       ).toBe(true);
     });
   });

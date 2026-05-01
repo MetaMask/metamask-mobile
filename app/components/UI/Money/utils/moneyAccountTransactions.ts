@@ -180,6 +180,8 @@ export interface MoneyAccountDepositTokenAmountUpdate {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function updateMoneyAccountDepositTokenAmount(
   _transactionMeta: TransactionMeta,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _amountHuman: string,
 ): MoneyAccountDepositTokenAmountUpdate[] {
   return [];
 }

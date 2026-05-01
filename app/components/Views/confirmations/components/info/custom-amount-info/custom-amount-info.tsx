@@ -179,7 +179,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           },
         });
       } else if (isMoneyAccountDeposit) {
-        updateCustomTokenAmount();
+        updateCustomTokenAmount(amountHuman);
       } else {
         updateTokenAmount();
       }
@@ -189,6 +189,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit?.();
     }, [
       amountFiat,
+      amountHuman,
       isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,

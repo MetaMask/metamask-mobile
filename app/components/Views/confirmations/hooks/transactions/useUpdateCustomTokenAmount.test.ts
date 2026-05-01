@@ -59,9 +59,13 @@ describe('useUpdateCustomTokenAmount', () => {
 
     const { result } = runHook();
 
-    result.current.updateCustomTokenAmount();
+    result.current.updateCustomTokenAmount('1.23');
 
     expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      '1.23',
+    );
     expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(2);
     expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(1, {
       transactionId: expect.any(String),
@@ -80,7 +84,7 @@ describe('useUpdateCustomTokenAmount', () => {
 
     const { result } = runHook();
 
-    result.current.updateCustomTokenAmount();
+    result.current.updateCustomTokenAmount('1.23');
 
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
   });
@@ -101,7 +105,7 @@ describe('useUpdateCustomTokenAmount', () => {
       ),
     });
 
-    result.current.updateCustomTokenAmount();
+    result.current.updateCustomTokenAmount('1.23');
 
     expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
@@ -116,7 +120,7 @@ describe('useUpdateCustomTokenAmount', () => {
 
     const { result } = runHook();
 
-    result.current.updateCustomTokenAmount();
+    result.current.updateCustomTokenAmount('1.23');
 
     await Promise.resolve();
 
