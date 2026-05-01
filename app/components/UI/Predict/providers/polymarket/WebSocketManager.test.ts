@@ -377,7 +377,7 @@ describe('WebSocketManager', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('ends the RTDS message trace when JSON parsing throws', () => {
+    it('does not trace RTDS messages when JSON parsing throws', () => {
       const manager = WebSocketManager.getInstance();
 
       manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
@@ -389,13 +389,8 @@ describe('WebSocketManager', () => {
         data: 'not valid json',
       } as MessageEvent);
 
-      expect(trace).toHaveBeenCalledWith({
-        name: TraceName.CryptoUpDownWsMessage,
-        op: 'rtds.message',
-      });
-      expect(endTrace).toHaveBeenCalledWith({
-        name: TraceName.CryptoUpDownWsMessage,
-      });
+      expect(trace).not.toHaveBeenCalled();
+      expect(endTrace).not.toHaveBeenCalled();
     });
 
     it('clears the crypto price buffer and ends trace when a callback throws', () => {
@@ -656,6 +651,13 @@ describe('WebSocketManager', () => {
         symbol: 'btcusdt',
         price: 67234.5,
         timestamp: 1700000001,
+      });
+      expect(trace).toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownWsMessage,
+        op: 'rtds.message',
+      });
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownWsMessage,
       });
     });
 
@@ -1281,6 +1283,10 @@ describe('WebSocketManager', () => {
       jest.advanceTimersByTime(16);
 
       expect(callback).not.toHaveBeenCalled();
+      expect(trace).not.toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownWsMessage,
+        op: 'rtds.message',
+      });
     });
 
     it('ignores messages with missing payload', () => {

@@ -22,7 +22,10 @@ export const useLiveCryptoPrices = (
     if (!symbol) {
       isConnectedRef.current = false;
       setIsConnected(false);
-      return;
+      return () => {
+        isMountedRef.current = false;
+        isConnectedRef.current = false;
+      };
     }
 
     const { PredictController } = Engine.context;

@@ -572,14 +572,14 @@ export class WebSocketManager {
         return;
       }
 
-      trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
-      traceStarted = true;
-
       const data: RtdsWebSocketEvent = JSON.parse(event.data);
 
       if (data.topic !== 'crypto_prices' || !data.payload) {
         return;
       }
+
+      trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
+      traceStarted = true;
 
       const update: CryptoPriceUpdate = {
         symbol: data.payload.symbol,

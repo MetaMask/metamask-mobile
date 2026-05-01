@@ -536,4 +536,16 @@ describe('parseWebViewMessage', () => {
       payload: { id: 'series-1', visible: false },
     });
   });
+
+  it('parses PERF message', () => {
+    const result = parseWebViewMessage({
+      type: 'PERF',
+      payload: { renderMs: 24, points: 10 },
+    });
+
+    expect(result).toEqual({
+      type: 'PERF',
+      payload: { renderMs: 24, points: 10 },
+    });
+  });
 });

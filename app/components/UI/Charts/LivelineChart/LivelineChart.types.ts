@@ -216,6 +216,20 @@ export type WebViewToRNMessage =
   | { type: 'SERIES_TOGGLE'; payload: { id: string; visible: boolean } }
   | { type: 'PERF'; payload: { renderMs: number; points: number } };
 
+const parsePerfPayload = (payload: unknown): WebViewToRNMessage => {
+  const perfPayload = payload as
+    | { renderMs?: number; points?: number }
+    | undefined;
+
+  return {
+    type: 'PERF',
+    payload: {
+      renderMs: perfPayload?.renderMs ?? 0,
+      points: perfPayload?.points ?? 0,
+    },
+  };
+};
+
 /**
  * Type-safe parser for incoming WebView → RN messages.
  */
@@ -263,18 +277,8 @@ export const parseWebViewMessage = (
         payload: { id: payload?.id ?? '', visible: payload?.visible ?? true },
       };
     }
-    case 'PERF': {
-      const payload = obj.payload as
-        | { renderMs?: number; points?: number }
-        | undefined;
-      return {
-        type: 'PERF',
-        payload: {
-          renderMs: payload?.renderMs ?? 0,
-          points: payload?.points ?? 0,
-        },
-      };
-    }
+    case 'PERF':
+      return parsePerfPayload(obj.payload);
     default:
       return null;
   }
