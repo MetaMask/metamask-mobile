@@ -138,11 +138,12 @@ const useRewardsToast = (): {
         contentAlignItems: 'flex-start',
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
-          <Box twClassName="py-2 px-1 mr-2">
+          <Box twClassName="p-1 mr-2">
             <RewardsNotificationIcon
               name="notification"
               width={24}
               height={24}
+              color={theme.colors.warning.default}
             />
           </Box>
         ),
@@ -166,6 +167,7 @@ const useRewardsToast = (): {
       theme.colors.success.default,
       theme.colors.error.default,
       theme.colors.icon.default,
+      theme.colors.warning.default,
       toastRef,
     ],
   );
