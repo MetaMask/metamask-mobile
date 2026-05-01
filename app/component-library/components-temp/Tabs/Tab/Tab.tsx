@@ -70,11 +70,7 @@ const Tab: React.FC<TabProps> = ({
     <View
       ref={viewRef}
       onLayout={handleOnLayout}
-      style={[
-        fillWidth
-          ? tw.style('flex-1')
-          : tw.style('flex-shrink-0 overflow-hidden'),
-      ]}
+      style={[fillWidth ? tw.style('flex-1') : tw.style('flex-shrink-0')]}
     >
       <Pressable
         style={tw.style(
@@ -141,6 +137,8 @@ const Tab: React.FC<TabProps> = ({
             >
               {label}
             </Text>
+
+            {/* Visible text positioned absolutely over the hidden text */}
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={

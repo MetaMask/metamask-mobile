@@ -298,6 +298,7 @@ const HomepageDiscoveryTabs = forwardRef<
             <DiscoveryTabView
               tabLabel="Perpetuals"
               tabIcon={IconName.Candlestick}
+              keepMounted={false}
             >
               <PerpsConnectionProvider suppressErrorView>
                 <PerpsStreamProvider>
