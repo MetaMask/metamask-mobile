@@ -342,6 +342,12 @@ export const useBridgeQuoteData = ({
       }
 
       console.error('Swaps Quote Data Validation error:', error);
+      if (
+        lastValidatedQuoteRef.current?.requestId === activeQuoteRequestId &&
+        lastValidatedQuoteRef.current?.validateBridgeTx === validateBridgeTx
+      ) {
+        lastValidatedQuoteRef.current = null;
+      }
       setBlockaidError(null);
     }
   }, [activeQuote, isSolanaSwap, isSolanaToNonSolana, validateBridgeTx]);
@@ -356,7 +362,7 @@ export const useBridgeQuoteData = ({
     }
   }, [manuallySelectedQuote, dispatch]);
 
-  return {
+  const returnValue = {
     bestQuote,
     quoteFetchError,
     activeQuote,
@@ -374,4 +380,6 @@ export const useBridgeQuoteData = ({
     isActiveQuoteForCurrentTokenPair:
       isQuoteSourceTokenMatch && isQuoteDestTokenMatch,
   };
+
+  return returnValue;
 };
