@@ -173,12 +173,12 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51000,
-          timestamp: 100000,
+          timestamp: 100,
         });
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51500,
-          timestamp: 110000,
+          timestamp: 110,
         });
       });
 
@@ -189,6 +189,50 @@ describe('useCryptoUpDownChartData', () => {
       ]);
       expect(result.current.value).toBe(51500);
       expect(result.current.loading).toBe(false);
+    });
+
+    it('preserves second-based live timestamps', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [];
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 1700000000,
+        });
+      });
+
+      expect(result.current.data).toEqual([{ time: 1700000000, value: 51000 }]);
+    });
+
+    it('converts millisecond-based live timestamps to seconds', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [];
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 1700000000000,
+        });
+      });
+
+      expect(result.current.data).toEqual([{ time: 1700000000, value: 51000 }]);
     });
 
     it('clears live state and chart data after market id changes', async () => {
@@ -214,7 +258,7 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51000,
-          timestamp: 100000,
+          timestamp: 100,
         });
       });
 
@@ -263,7 +307,7 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51500,
-          timestamp: 210000,
+          timestamp: 210,
         });
       });
 
@@ -290,7 +334,7 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51500,
-          timestamp: 110000,
+          timestamp: 110,
         });
       });
 
@@ -317,12 +361,12 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51500,
-          timestamp: 260000,
+          timestamp: 260,
         });
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51600,
-          timestamp: 270000,
+          timestamp: 270,
         });
       });
 
@@ -353,7 +397,7 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51500,
-          timestamp: 110000,
+          timestamp: 110,
         });
       });
 
@@ -402,7 +446,7 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 50000,
-          timestamp: 100000,
+          timestamp: 100,
         });
       });
 
@@ -411,12 +455,12 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 52000,
-          timestamp: 110000,
+          timestamp: 110,
         });
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 53000,
-          timestamp: 120000,
+          timestamp: 120,
         });
       });
 

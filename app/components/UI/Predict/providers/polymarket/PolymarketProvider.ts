@@ -1093,11 +1093,11 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<CryptoPriceHistoryPoint[]> {
     const { symbol, eventStartTime, variant, endDate } = params;
 
-    if (!symbol) {
-      throw new Error('symbol parameter is required');
-    }
-
     try {
+      if (!symbol) {
+        throw new Error('symbol parameter is required');
+      }
+
       const { CRYPTO_PRICE_HISTORY_ENDPOINT } = getPolymarketEndpoints();
       const searchParams = new URLSearchParams({
         symbol,

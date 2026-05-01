@@ -21,6 +21,12 @@ import type {
 } from '../../Charts/LivelineChart/LivelineChart.types';
 
 const EMPTY_DATA: LivelinePoint[] = [];
+const MILLISECOND_TIMESTAMP_THRESHOLD = 9999999999;
+
+const toTimestampSeconds = (timestamp: number) =>
+  timestamp > MILLISECOND_TIMESTAMP_THRESHOLD
+    ? Math.floor(timestamp / 1000)
+    : timestamp;
 
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
@@ -98,7 +104,7 @@ export const useCryptoUpDownChartData = (
         return;
       }
 
-      const timeSecs = Math.floor(update.timestamp / 1000);
+      const timeSecs = toTimestampSeconds(update.timestamp);
       const point: LivelinePoint = {
         time: timeSecs,
         value: update.price,

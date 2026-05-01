@@ -4399,16 +4399,21 @@ describe('PolymarketProvider', () => {
       ]);
     });
 
-    it('throws when symbol is missing', async () => {
+    it('returns empty array and skips fetch when symbol is missing', async () => {
       const provider = createProvider();
 
-      await expect(
-        provider.getCryptoPriceHistory({
-          symbol: '',
-          eventStartTime: '2025-01-01T00:00:00Z',
-          variant: 'hourly',
-        }),
-      ).rejects.toThrow('symbol parameter is required');
+      const result = await provider.getCryptoPriceHistory({
+        symbol: '',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      });
+
+      expect(result).toEqual([]);
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Error getting crypto price history via Polymarket API:',
+        expect.any(Error),
+      );
     });
   });
 
