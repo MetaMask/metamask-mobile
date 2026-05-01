@@ -729,6 +729,17 @@ const ChoosePassword = () => {
                   <TextField
                     autoFocus
                     value={password}
+                    inputProps={{
+                      accessibilityLabel:
+                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      autoCapitalize: 'none',
+                      autoComplete: 'password-new',
+                      keyboardAppearance: themeAppearance,
+                      onSubmitEditing: jumpToConfirmPassword,
+                      returnKeyType: 'next',
+                      secureTextEntry: showPasswordIndex.includes(0),
+                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                    }}
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}

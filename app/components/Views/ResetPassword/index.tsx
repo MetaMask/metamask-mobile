@@ -571,6 +571,13 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
             </Label>
             <TextField
               placeholder={strings('password_reset.password_title')}
+              inputProps={{
+                autoComplete: 'password',
+                keyboardAppearance: themeAppearance,
+                onSubmitEditing: reauthenticateWithPassword,
+                secureTextEntry: true,
+                testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+              }}
               onChangeText={onPasswordChange}
               value={password}
               inputProps={{

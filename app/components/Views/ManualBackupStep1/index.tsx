@@ -321,6 +321,15 @@ const ManualBackupStep1 = () => {
               <TextField
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
+                inputProps={{
+                  accessibilityLabel:
+                    ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  autoCapitalize: 'none',
+                  keyboardAppearance: themeAppearance,
+                  onSubmitEditing: tryUnlock,
+                  secureTextEntry: true,
+                  testID: ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                }}
                 onChangeText={onPasswordChange}
                 autoFocus
                 inputProps={{

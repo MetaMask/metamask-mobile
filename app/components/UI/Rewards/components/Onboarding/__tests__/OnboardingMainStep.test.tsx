@@ -206,6 +206,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     TextField: (props: {
       testID?: string;
+      inputProps?: {
+        testID?: string;
+      };
       value?: string;
       onChangeText?: (text: string) => void;
       placeholder?: string;
