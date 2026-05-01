@@ -9,15 +9,24 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
+  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -67,12 +76,28 @@ import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import Routes from '../../../constants/navigation/Routes';
 
+/**
+ * Motion aligned with @react-navigation/stack horizontal presets so the account list
+ * matches Settings / token-details stack transitions (iOS: TransitionIOSSpec;
+ * Android: ScaleFromCenterAndroidSpec timing + easing).
+ */
+const ACCOUNT_SELECTOR_IOS_SPRING = {
+  damping: 500,
+  mass: 3,
+  overshootClamping: true,
+  stiffness: 1000,
+} as const;
+
+const ACCOUNT_SELECTOR_ANDROID_TRANSITION_MS = 400;
+const ACCOUNT_SELECTOR_ANDROID_EASING = Easing.bezier(0.35, 0.45, 0, 1);
+
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { y: frameY } = useSafeAreaFrame();
+  const { width: screenWidth } = useWindowDimensions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
@@ -129,6 +154,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     useState<AccountSelectorScreens>(getInitialScreen());
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
+  const translateX = useSharedValue(screenWidth);
 
   useLayoutEffect(() => {
     if (shouldRedirectToAddWallet) {
@@ -141,41 +167,75 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [screen],
   );
 
-  const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
     }
   }, [dispatch, reloadAccounts]);
 
-  // Tracing for the account list: start at layout flush, end after paint (useEffect).
+  // Tracing for the account list: start at layout flush, end after the open transition.
   useLayoutEffect(() => {
     if (!isAccountSelector) {
-      return undefined;
+      return;
     }
+
     trace({
       name: TraceName.ShowAccountList,
       op: TraceOperation.AccountUi,
       tags: getTraceTags(store.getState()),
     });
-    return () => {
-      endTrace({
-        name: TraceName.ShowAccountList,
-      });
-    };
   }, [isAccountSelector]);
 
   useEffect(() => {
     if (!isAccountSelector) {
       return;
     }
-    endTrace({
-      name: TraceName.ShowAccountList,
-    });
+
+    const onAnimationComplete = () => {
+      endTrace({
+        name: TraceName.ShowAccountList,
+      });
+    };
+
+    if (Platform.OS === 'ios') {
+      translateX.value = withSpring(0, ACCOUNT_SELECTOR_IOS_SPRING, () =>
+        runOnJS(onAnimationComplete)(),
+      );
+    } else {
+      translateX.value = withTiming(
+        0,
+        {
+          duration: ACCOUNT_SELECTOR_ANDROID_TRANSITION_MS,
+          easing: ACCOUNT_SELECTOR_ANDROID_EASING,
+        },
+        () => runOnJS(onAnimationComplete)(),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAccountSelector]);
+
+  const handleClose = useCallback(() => {
+    const onCloseComplete = () => {
+      navigation.goBack();
+    };
+
+    if (Platform.OS === 'ios') {
+      translateX.value = withSpring(
+        screenWidth,
+        ACCOUNT_SELECTOR_IOS_SPRING,
+        () => runOnJS(onCloseComplete)(),
+      );
+    } else {
+      translateX.value = withTiming(
+        screenWidth,
+        {
+          duration: ACCOUNT_SELECTOR_ANDROID_TRANSITION_MS,
+          easing: ACCOUNT_SELECTOR_ANDROID_EASING,
+        },
+        () => runOnJS(onCloseComplete)(),
+      );
+    }
+  }, [translateX, navigation, screenWidth]);
 
   const _onSelectMultichainAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
@@ -276,6 +336,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     screen === AccountSelectorScreens.AddAccountActions ||
     screen === AccountSelectorScreens.MultichainAddWalletActions;
 
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
   if (shouldRedirectToAddWallet) {
     return null;
   }
@@ -288,22 +352,24 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? -insets.bottom : frameY}
         style={tw.style('flex-1')}
       >
-        <Box
-          twClassName="flex-1 bg-default"
-          style={{
-            paddingTop: insets.top,
-            paddingBottom: insets.bottom,
-          }}
-        >
-          <HeaderCompactStandard
-            title={strings('accounts.accounts_title')}
-            onBack={handleClose}
-            backButtonProps={{
-              testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
+        <Animated.View style={[tw.style('flex-1'), animatedStyle]}>
+          <Box
+            twClassName="flex-1 bg-default"
+            style={{
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
             }}
-          />
-          {renderAccountSelector()}
-        </Box>
+          >
+            <HeaderCompactStandard
+              title={strings('accounts.accounts_title')}
+              onBack={handleClose}
+              backButtonProps={{
+                testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
+              }}
+            />
+            {renderAccountSelector()}
+          </Box>
+        </Animated.View>
       </KeyboardAvoidingView>
 
       <Modal

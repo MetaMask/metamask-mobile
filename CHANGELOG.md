@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Aligned full-page account list open and close animations with the main stack horizontal transition timing
+
 ## [7.75.1]
 
 ### Fixed
