@@ -554,7 +554,7 @@ generateIosBinary() {
 		# so a Release archive can be signed with the development profile instead of
 		# the App Store profile hardcoded in the Xcode project.
 		local archiveOverrides=""
-		if [ "$provProfile" = "development" ] && [ "$configuration" = "Release" ]; then
+		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ]; then
 			archiveOverrides="CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER=development-metamask"
 			echo "Overriding signing: using development profile for Release archive"
 		fi
