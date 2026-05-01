@@ -75,7 +75,8 @@ export const useCryptoUpDownChartData = (
   const isLiveByEndDate =
     typeof liveEndDateMs === 'number' ? Date.now() < liveEndDateMs : false;
 
-  const [hasFrozenLiveData, setHasFrozenLiveData] = useState(false);
+  const [frozenMarketId, setFrozenMarketId] = useState<string>();
+  const hasFrozenLiveData = frozenMarketId === market.id;
   const [liveLoading, setLiveLoading] = useState(true);
   const liveLoadingRef = useRef(true);
   const [liveValue, setLiveValue] = useState(0);
@@ -85,8 +86,12 @@ export const useCryptoUpDownChartData = (
   const frozenRef = useRef(false);
   const durationSecsRef = useRef(durationSecs);
   const liveEndDateMsRef = useRef(liveEndDateMs);
+  const marketIdRef = useRef(market.id);
+  const frozenMarketIdRef = useRef(frozenMarketId);
   durationSecsRef.current = durationSecs;
   liveEndDateMsRef.current = liveEndDateMs;
+  marketIdRef.current = market.id;
+  frozenMarketIdRef.current = frozenMarketId;
 
   const prevMarketIdRef = useRef(market.id);
   useEffect(() => {
@@ -96,7 +101,7 @@ export const useCryptoUpDownChartData = (
 
     prevMarketIdRef.current = market.id;
     frozenRef.current = false;
-    setHasFrozenLiveData(false);
+    setFrozenMarketId(undefined);
     liveLoadingRef.current = true;
     setLiveLoading(true);
     setLiveValue(0);
@@ -108,15 +113,17 @@ export const useCryptoUpDownChartData = (
 
   const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
     const currentLiveEndDateMs = liveEndDateMsRef.current;
+    const currentMarketId = marketIdRef.current;
     if (
       typeof currentLiveEndDateMs === 'number' &&
       Date.now() >= currentLiveEndDateMs
     ) {
       frozenRef.current = true;
-      setHasFrozenLiveData(true);
+      frozenMarketIdRef.current = currentMarketId;
+      setFrozenMarketId(currentMarketId);
     }
 
-    if (frozenRef.current) {
+    if (frozenRef.current && frozenMarketIdRef.current === currentMarketId) {
       return;
     }
 
@@ -181,10 +188,15 @@ export const useCryptoUpDownChartData = (
     fallbackStartPointRef.current = fallbackStartPoint;
   }
   const firstLivePointTime = livePoints[0]?.time;
-  const firstLivePointIsNearEventStart =
+  const livePointOffsetFromEventStart =
     typeof firstLivePointTime === 'number' &&
-    typeof eventStartTimeSecs === 'number' &&
-    firstLivePointTime - eventStartTimeSecs <= 90;
+    typeof eventStartTimeSecs === 'number'
+      ? firstLivePointTime - eventStartTimeSecs
+      : undefined;
+  const firstLivePointIsNearEventStart =
+    typeof livePointOffsetFromEventStart === 'number' &&
+    livePointOffsetFromEventStart >= 0 &&
+    livePointOffsetFromEventStart <= 90;
   const shouldUseFallbackStartPoint =
     stableHistoricalData.length > 0 || firstLivePointIsNearEventStart;
   const baseHistoricalData = mergeLivelinePoints(

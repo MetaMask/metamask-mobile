@@ -440,6 +440,29 @@ describe('useCryptoUpDownChartData', () => {
       ]);
     });
 
+    it('does not draw a target fallback after a pre-start live point', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [];
+      mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef, 50000),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51500,
+          timestamp: 90,
+        });
+      });
+
+      expect(result.current.data).toEqual([{ time: 90, value: 51500 }]);
+    });
+
     it('keeps the target price fallback if target price later becomes unavailable', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
@@ -530,6 +553,50 @@ describe('useCryptoUpDownChartData', () => {
 
       expect(chartRef.current.appendPoint).not.toHaveBeenCalled();
       expect(result.current.data).toEqual([{ time: 100, value: 50000 }]);
+    });
+
+    it('accepts live updates after switching from an expired market', () => {
+      const { Wrapper } = createWrapper();
+      const expiredMarket = createMarket({
+        endDate: '2026-01-01T00:00:05.000Z',
+      });
+      const liveMarket = createMarket({
+        id: 'market-2',
+        endDate: '2026-01-01T00:01:00.000Z',
+      });
+      const chartRef = createMockChartRef();
+      historicalData = [];
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket, chartRef),
+        {
+          initialProps: { activeMarket: expiredMarket },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        jest.setSystemTime(new Date('2026-01-01T00:00:06.000Z'));
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 50000,
+          timestamp: 100,
+        });
+      });
+
+      rerender({ activeMarket: liveMarket });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 110,
+        });
+      });
+
+      expect(result.current.data).toEqual([{ time: 110, value: 51000 }]);
+      expect(result.current.isLive).toBe(true);
     });
 
     it('returns live flags and the live window for future markets', () => {
