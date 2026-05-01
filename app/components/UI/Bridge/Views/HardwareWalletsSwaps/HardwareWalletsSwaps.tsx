@@ -27,6 +27,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { StyleSheet } from 'react-native';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 
@@ -48,7 +49,8 @@ import {
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_statesi wan';
+const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
+const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
 
 const styles = StyleSheet.create({
   riveAnimation: {
@@ -204,6 +206,7 @@ function StepRow({ step, index }: StepRowProps) {
 export function HardwareWalletsSwaps() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const tw = useTailwind();
   const riveRef = useRef<RiveRef>(null);
   const [isRivePlaying, setIsRivePlaying] = useState(false);
   const progress = useSelector(selectHardwareWalletsSwaps);
@@ -276,7 +279,7 @@ export function HardwareWalletsSwaps() {
   return (
     <SafeAreaView
       testID={HardwareWalletsSwapsSelectorsIDs.CONTAINER}
-      className="flex-1 bg-default"
+      style={tw`flex-1 bg-default`}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -302,7 +305,7 @@ export function HardwareWalletsSwaps() {
             ref={riveRef}
             testID={HardwareWalletsSwapsSelectorsIDs.RIVE_ANIMATION}
             source={genericHardwareWalletRiveFile}
-            artboardName={HARDWARE_WALLET_RIVE_STATE_MACHINE}
+            artboardName={HARDWARE_WALLET_RIVE_ARTBOARD}
             stateMachineName={HARDWARE_WALLET_RIVE_STATE_MACHINE}
             autoplay
             fit={Fit.Contain}
