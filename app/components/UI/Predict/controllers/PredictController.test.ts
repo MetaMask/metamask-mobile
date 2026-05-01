@@ -973,6 +973,26 @@ describe('PredictController', () => {
         );
       });
     });
+
+    it('uses crypto price history error code for non-Error failures', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockRejectedValue('String error');
+
+        await expect(
+          controller.getCryptoPriceHistory({
+            symbol: 'BTC',
+            eventStartTime: '2025-01-01T00:00:00Z',
+            variant: 'hourly',
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe(
+          PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
+        );
+      });
+    });
   });
 
   describe('getCryptoTargetPrice', () => {

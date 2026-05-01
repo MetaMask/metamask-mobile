@@ -109,6 +109,25 @@ describe('PredictCryptoUpDownChart', () => {
     );
   });
 
+  it('passes a custom chart color to LivelineChart', () => {
+    const market = createMockMarket();
+
+    render(
+      <PredictCryptoUpDownChart market={market} color="rgb(247, 147, 26)" />,
+    );
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.color).toBe(
+      'rgb(247, 147, 26)',
+    );
+  });
+
   it('passes loading true when hook returns loading', () => {
     mockUseCryptoUpDownChartData.mockReturnValue({
       data: [],

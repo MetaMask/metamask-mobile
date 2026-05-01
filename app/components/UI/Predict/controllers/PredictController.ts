@@ -817,7 +817,7 @@ export class PredictController extends BaseController<
           variant: params.variant,
           endDate: params.endDate,
         },
-        fallbackErrorCode: PREDICT_ERROR_CODES.PRICE_HISTORY_FAILED,
+        fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
         traceData: (history) => ({ pointCount: history.length }),
       },
       async () => {

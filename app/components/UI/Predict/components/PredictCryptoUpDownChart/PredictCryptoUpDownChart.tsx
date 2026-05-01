@@ -11,6 +11,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   market,
   targetPrice,
   onCurrentPriceChange,
+  color = 'rgb(245, 158, 11)',
   height: explicitHeight,
 }) => {
   const chartRef = useRef<LivelineChartRef>(null);
@@ -48,7 +49,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           loading={loading}
           window={chartWindow}
           height={chartHeight}
-          color="rgb(245, 158, 11)"
+          color={color}
           lineWidth={2}
           grid
           hideControls

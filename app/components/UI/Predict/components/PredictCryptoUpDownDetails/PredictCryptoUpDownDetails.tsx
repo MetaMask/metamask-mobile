@@ -451,6 +451,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             market={selectedMarket}
             targetPrice={validatedTargetPrice}
             onCurrentPriceChange={handleCurrentPriceChange}
+            color={currentPriceAccentColor}
             height={chartAreaHeight}
           />
         </Box>
