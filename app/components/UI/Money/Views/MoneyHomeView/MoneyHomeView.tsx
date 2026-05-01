@@ -30,6 +30,7 @@ import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMon
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { calculateProjectedEarnings } from '../../utils/projections';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
@@ -86,8 +87,9 @@ const MoneyHomeView = () => {
     if (!totalFiatRaw || !apyPercent) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
-    const earnings = balance.times(apyPercent).dividedBy(100);
-    return moneyFormatFiat(earnings, currentCurrency);
+    const earnings = calculateProjectedEarnings(balance.toNumber(), apyPercent);
+    if (!Number.isFinite(earnings)) return formattedZero;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleBackPress = useCallback(() => {

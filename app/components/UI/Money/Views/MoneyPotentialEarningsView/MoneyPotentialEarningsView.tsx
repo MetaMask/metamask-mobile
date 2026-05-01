@@ -32,7 +32,10 @@ import { Hex } from '@metamask/utils';
 import MoneyGradientText from '../../components/MoneyPotentialEarnings/MoneyGradientText';
 import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import { isPositiveNumber } from '../../utils/number';
-import { PROJECTION_YEARS } from '../../utils/projections';
+import {
+  calculateProjectedEarnings,
+  PROJECTION_YEARS,
+} from '../../utils/projections';
 import styleSheet from './MoneyPotentialEarningsView.styles';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
 
@@ -45,12 +48,7 @@ const MoneyPotentialEarningsView = () => {
   const { tokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
   const { apyPercent } = useMoneyAccountBalance();
-
-  // TODO: It likely makes more sense to use the apyDecimal from useMoneyAccountBalance instead of apyPercent in this calculation.
-  const projectedMultiplier = useMemo(
-    () => ((apyPercent ?? 0) / 100) * PROJECTION_YEARS,
-    [apyPercent],
-  );
+  const apyPercentForProjection = apyPercent ?? 0;
 
   const eligibleTokens = useMemo(
     () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
@@ -60,10 +58,16 @@ const MoneyPotentialEarningsView = () => {
   const projectedAmount = useMemo(
     () =>
       eligibleTokens.reduce(
-        (sum, token) => sum + tokenFiatValue(token) * projectedMultiplier,
+        (sum, token) =>
+          sum +
+          calculateProjectedEarnings(
+            tokenFiatValue(token),
+            apyPercentForProjection,
+            PROJECTION_YEARS,
+          ),
         0,
       ),
-    [eligibleTokens, projectedMultiplier],
+    [eligibleTokens, apyPercentForProjection],
   );
 
   const handleBackPress = useCallback(() => {
@@ -130,7 +134,7 @@ const MoneyPotentialEarningsView = () => {
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
-            projectedMultiplier={projectedMultiplier}
+            apyPercent={apyPercentForProjection}
             onPress={handleTokenPress(token)}
           />
         ))}

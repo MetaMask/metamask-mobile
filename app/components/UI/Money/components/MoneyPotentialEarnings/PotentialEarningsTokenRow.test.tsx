@@ -59,7 +59,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        projectedMultiplier={0.2}
+        apyPercent={20}
         onPress={jest.fn()}
       />,
     );
@@ -72,7 +72,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        projectedMultiplier={0.2}
+        apyPercent={20}
         onPress={jest.fn()}
       />,
     );
@@ -85,7 +85,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        projectedMultiplier={0.2}
+        apyPercent={20}
         onPress={jest.fn()}
       />,
     );
@@ -98,7 +98,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        projectedMultiplier={0}
+        apyPercent={0}
         onPress={jest.fn()}
       />,
     );
@@ -111,7 +111,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee
-        projectedMultiplier={0.2}
+        apyPercent={20}
         onPress={jest.fn()}
       />,
     );
@@ -126,7 +126,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        projectedMultiplier={0.2}
+        apyPercent={20}
         onPress={jest.fn()}
       />,
     );
@@ -141,7 +141,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        projectedMultiplier={0.2}
+        apyPercent={20}
         onPress={jest.fn()}
       />,
     );
@@ -157,7 +157,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        projectedMultiplier={0.2}
+        apyPercent={20}
         onPress={mockOnPress}
       />,
     );
@@ -173,7 +173,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        projectedMultiplier={0.2}
+        apyPercent={20}
         onPress={mockOnPress}
       />,
     );

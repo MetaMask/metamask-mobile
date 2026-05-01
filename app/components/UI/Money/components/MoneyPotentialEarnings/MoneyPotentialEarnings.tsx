@@ -24,7 +24,10 @@ import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
 import MoneyGradientText from './MoneyGradientText';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
-import { PROJECTION_YEARS } from '../../utils/projections';
+import {
+  calculateProjectedEarnings,
+  PROJECTION_YEARS,
+} from '../../utils/projections';
 
 /** Number of years the projected earnings are simulated over. */
 const MAX_TOKENS = 5;
@@ -62,10 +65,7 @@ const MoneyPotentialEarnings = ({
   condensed = false,
 }: MoneyPotentialEarningsProps) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const projectedMultiplier = useMemo(
-    () => ((apy ?? 0) / 100) * PROJECTION_YEARS,
-    [apy],
-  );
+  const apyPercent = apy ?? 0;
 
   // Tokens arrive pre-sorted (stablecoins first, then fiat desc) from
   // useMusdConversionTokens; strip zero-balance entries defensively — the
@@ -86,10 +86,16 @@ const MoneyPotentialEarnings = ({
   const projectedAmount = useMemo(
     () =>
       eligibleTokens.reduce(
-        (sum, token) => sum + tokenFiatValue(token) * projectedMultiplier,
+        (sum, token) =>
+          sum +
+          calculateProjectedEarnings(
+            tokenFiatValue(token),
+            apyPercent,
+            PROJECTION_YEARS,
+          ),
         0,
       ),
-    [eligibleTokens, projectedMultiplier],
+    [eligibleTokens, apyPercent],
   );
 
   const handleTokenPress = useCallback(
@@ -145,7 +151,7 @@ const MoneyPotentialEarnings = ({
               key={`${token.address}-${token.chainId}`}
               token={token}
               hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
-              projectedMultiplier={projectedMultiplier}
+              apyPercent={apyPercent}
               onPress={handleTokenPress(token)}
             />
           ))}

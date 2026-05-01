@@ -25,6 +25,10 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import {
+  calculateProjectedEarnings,
+  PROJECTION_YEARS,
+} from '../../utils/projections';
 import { tokenFiatValue } from '../../../Earn/hooks/useMusdConversionTokens';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -37,12 +41,13 @@ const styles = StyleSheet.create({
 const PotentialEarningsTokenRow = ({
   token,
   hasSubsidizedFee,
-  projectedMultiplier,
+  apyPercent,
   onPress,
 }: {
   token: AssetType;
   hasSubsidizedFee: boolean;
-  projectedMultiplier: number;
+  /** APY as a percentage (e.g. 4 for 4%). */
+  apyPercent: number;
   onPress: () => void;
 }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -51,14 +56,19 @@ const PotentialEarningsTokenRow = ({
     [token.chainId],
   );
 
-  const projectedFiatNumber = tokenFiatValue(token) * projectedMultiplier;
+  const fiatBalance = tokenFiatValue(token);
+  const projectedFiatNumber = calculateProjectedEarnings(
+    fiatBalance,
+    apyPercent,
+    PROJECTION_YEARS,
+  );
   const projectedFiatFormatted = moneyFormatFiat(
     new BigNumber(projectedFiatNumber),
     currentCurrency,
   );
 
   const balanceFiatFormatted = moneyFormatFiat(
-    new BigNumber(tokenFiatValue(token)),
+    new BigNumber(fiatBalance),
     currentCurrency,
   );
 
