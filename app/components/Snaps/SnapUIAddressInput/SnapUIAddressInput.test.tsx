@@ -203,7 +203,7 @@ describe('SnapUIAddressInput', () => {
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { getByText, getByTestId } = renderWithProvider(
+    const { getByText, getByTestId, toJSON } = renderWithProvider(
       <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
       { state: mockInitialState },
     );
@@ -219,6 +219,9 @@ describe('SnapUIAddressInput', () => {
     expect(matchedAccountInfo.props.style).toEqual(
       expect.arrayContaining([expect.objectContaining({ opacity: 0.5 })]),
     );
+
+    const tree = JSON.stringify(toJSON());
+    expect(tree).toContain('"disabled":true');
   });
 
   it('renders the matched address info with an error', () => {

@@ -39,7 +39,7 @@ describe('SnapUIRenderer', () => {
     const { getByTestId, queryByTestId } = renderInterface(null);
 
     expect(getByTestId('snap-ui-renderer__loading')).toBeOnTheScreen();
-    expect(queryByTestId('snap-ui-renderer__scrollview')).toBeNull();
+    expect(queryByTestId('snap-ui-renderer__scrollview')).not.toBeOnTheScreen();
   });
 
   it('renders basic UI', () => {
