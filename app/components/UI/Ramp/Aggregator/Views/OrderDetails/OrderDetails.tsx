@@ -67,7 +67,7 @@ const OrderDetails = () => {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();
-  const { goToAggregator, goToSell } = useRampNavigation();
+  const { goToBuy, goToSell } = useRampNavigation();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
@@ -189,11 +189,11 @@ const OrderDetails = () => {
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
     if (order?.orderType === OrderOrderTypeEnum.Buy) {
-      goToAggregator();
+      goToBuy();
     } else {
       goToSell();
     }
-  }, [navigation, order?.orderType, goToAggregator, goToSell]);
+  }, [navigation, order?.orderType, goToBuy, goToSell]);
 
   useInterval(
     () => {

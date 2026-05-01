@@ -32,10 +32,14 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import useRampsUnifiedV1Enabled from '../../../Ramp/hooks/useRampsUnifiedV1Enabled';
+import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
+import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
+import type { RampIntent } from '../../../Ramp/types';
+import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
-import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import {
   createNavigationDetails,
   useParams,
@@ -53,6 +57,22 @@ export const createAddFundsModalNavigationDetails =
     Routes.CARD.MODALS.ADD_FUNDS,
   );
 
+function getRampBuyIntentFromPriorityToken(
+  token: CardFundingToken | undefined,
+): RampIntent | undefined {
+  if (!token?.address || !token.caipChainId) {
+    return undefined;
+  }
+  const chainReference = token.caipChainId.split(':').pop();
+  if (!chainReference) {
+    return undefined;
+  }
+  return parseRampIntent({
+    chainId: chainReference,
+    address: token.address,
+  });
+}
+
 const AddFundsBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { priorityToken } = useParams<AddFundsModalNavigationDetails>();
@@ -65,7 +85,8 @@ const AddFundsBottomSheet: React.FC = () => {
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const buttonClickData = useRampsButtonClickData();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
@@ -83,9 +104,9 @@ const AddFundsBottomSheet: React.FC = () => {
     });
   }, [priorityToken, openSwaps, closeBottomSheetAndNavigate]);
 
-  const openDeposit = useCallback(() => {
+  const handleFundWithCash = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      goToDeposit();
+      goToBuy(getRampBuyIntentFromPriorityToken(priorityToken));
     });
     trackEvent(
       createEventBuilder(
@@ -99,7 +120,11 @@ const AddFundsBottomSheet: React.FC = () => {
           button_text: 'Fund with cash',
           location: 'CardHome',
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'DEPOSIT',
+          ramp_type: isV2UnifiedEnabled
+            ? 'UNIFIED_BUY_2'
+            : rampUnifiedV1Enabled
+              ? 'UNIFIED_BUY'
+              : 'BUY',
           region: rampGeodetectedRegion,
           ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
@@ -110,17 +135,19 @@ const AddFundsBottomSheet: React.FC = () => {
     );
 
     trace({
-      name: TraceName.LoadDepositExperience,
+      name: TraceName.LoadRampExperience,
+      tags: { rampType: RampType.BUY },
     });
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    goToDeposit,
+    goToBuy,
     trackEvent,
     createEventBuilder,
     priorityToken,
     buttonClickData,
     isV2UnifiedEnabled,
+    rampUnifiedV1Enabled,
   ]);
 
   const options = [
@@ -128,7 +155,7 @@ const AddFundsBottomSheet: React.FC = () => {
       label: strings('card.add_funds_bottomsheet.deposit'),
       description: strings('card.add_funds_bottomsheet.deposit_description'),
       icon: IconName.Bank,
-      onPress: openDeposit,
+      onPress: handleFundWithCash,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION,
       enabled: isDepositEnabled,
     },
