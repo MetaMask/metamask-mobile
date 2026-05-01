@@ -30,6 +30,13 @@ import ConvertTokenRow from '../../../Earn/components/Musd/ConvertTokenRow';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
 import { CaipChainId } from '@metamask/utils';
+import { useSelector } from 'react-redux';
+import {
+  createTokenChainKey,
+  selectHasInFlightMusdConversion,
+  selectHasUnapprovedMusdConversion,
+  selectMusdConversionStatuses,
+} from '../../../Earn/selectors/musdConversionStatus';
 
 interface MoneyConvertStablecoinsProps {
   tokens: AssetType[];
@@ -134,9 +141,36 @@ const MoneyConvertStablecoins = ({
 }: MoneyConvertStablecoinsProps) => {
   const hasTokens = tokens.length > 0;
 
+  const hasUnapprovedMusdConversion = useSelector(
+    selectHasUnapprovedMusdConversion,
+  );
+  const hasInFlightMusdConversion = useSelector(
+    selectHasInFlightMusdConversion,
+  );
+
+  const conversionStatusesByTokenChainKey = useSelector(
+    selectMusdConversionStatuses,
+  );
+
+  const isConversionPending = (token: AssetType) => {
+    const tokenAddress = token.address;
+    const tokenChainId = token.chainId;
+
+    const tokenChainKey =
+      tokenAddress && tokenChainId
+        ? createTokenChainKey(tokenAddress, tokenChainId)
+        : undefined;
+
+    const txStatusInfo = tokenChainKey
+      ? conversionStatusesByTokenChainKey[tokenChainKey]
+      : undefined;
+
+    return Boolean(txStatusInfo?.isPending);
+  };
+
   return (
     <Box testID={MoneyConvertStablecoinsTestIds.CONTAINER}>
-      <Box twClassName="px-4">
+      <Box twClassName="px-4 pt-3">
         {!hasTokens && (
           <Box
             twClassName="mb-4"
@@ -164,6 +198,10 @@ const MoneyConvertStablecoins = ({
                 token={token}
                 onMaxPress={onMaxPress}
                 onEditPress={onEditPress}
+                areActionsDisabled={
+                  hasUnapprovedMusdConversion || hasInFlightMusdConversion
+                }
+                isConversionPending={isConversionPending(token)}
               />
             </Box>
           ))}

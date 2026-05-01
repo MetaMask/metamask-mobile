@@ -96,8 +96,6 @@ test.describe(PerformanceOnboarding, () => {
       await CreatePasswordView.reEnterPassword(
         getPasswordForScenario('import') || '',
       );
-      await CreatePasswordView.tapPasswordVisibilityIcon();
-      await PlaywrightGestures.hideKeyboard();
       await CreatePasswordView.tapIUnderstandCheckBox();
       await CreatePasswordView.tapCreatePasswordButton();
 

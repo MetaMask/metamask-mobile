@@ -394,6 +394,7 @@
   },
   "SocialController": {
     "followingAddresses": [],
+    "followingProfileIds": [],
     "leaderboardEntries": []
   },
   "SubjectMetadataController": {
@@ -630,6 +631,7 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "tokenSecurityTypeDestination": null,
     "tokenWarnings": []
   },
   "BridgeStatusController": {
@@ -643,6 +645,9 @@
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
+  },
+  "ClientController": {
+    "isUiOpen": false
   },
   "ComplianceController": {},
   "ConnectivityController": {

@@ -42,6 +42,11 @@ const createMockProvider = (providerId: string): jest.Mocked<PerpsProvider> => {
     }),
     getUserNonFundingLedgerUpdates: jest.fn().mockResolvedValue([]),
     getUserHistory: jest.fn().mockResolvedValue([]),
+    getCurrentAccountId: jest
+      .fn()
+      .mockResolvedValue(
+        `eip155:1:0x${providerId.padStart(40, '0').slice(0, 40)}`,
+      ),
 
     // Write operations
     placeOrder: jest

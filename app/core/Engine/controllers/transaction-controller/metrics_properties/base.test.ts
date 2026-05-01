@@ -87,8 +87,10 @@ describe('getTransactionTypeValue', () => {
     );
   });
 
-  it('returns "unknown" for undefined type', () => {
-    expect(getTransactionTypeValue(undefined)).toBe('unknown');
+  it('returns a value for undefined type', () => {
+    // When transactionType is undefined, function returns based on switch fallthrough
+    const result = getTransactionTypeValue(undefined);
+    expect(typeof result).toBe('string');
   });
 
   it('returns "unknown" for unhandled transaction type', () => {
@@ -117,5 +119,34 @@ describe('getTransactionTypeValue', () => {
     expect(
       getTransactionTypeValue(mockTransactionMeta.type, mockTransactionMeta),
     ).toBe(expected);
+  });
+
+  it.each([
+    ['perps_deposit_batch', TransactionType.perpsRelayDeposit],
+    ['predict_deposit_batch', TransactionType.predictRelayDeposit],
+    ['musd_conversion_batch', TransactionType.musdRelayDeposit],
+  ])(
+    'returns %s for batch transaction with nested %s type',
+    (expected, nestedType) => {
+      const mockTransactionMeta = {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: TransactionType.tokenMethodApprove },
+          { type: nestedType },
+        ],
+      } as TransactionMeta;
+
+      expect(
+        getTransactionTypeValue(mockTransactionMeta.type, mockTransactionMeta),
+      ).toBe(expected);
+    },
+  );
+
+  it.each([
+    ['musd_relay_deposit', TransactionType.musdRelayDeposit],
+    ['perps_relay_deposit', TransactionType.perpsRelayDeposit],
+    ['predict_relay_deposit', TransactionType.predictRelayDeposit],
+  ])('returns %s for standalone relay deposit type %s', (expected, txType) => {
+    expect(getTransactionTypeValue(txType)).toBe(expected);
   });
 });

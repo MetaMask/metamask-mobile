@@ -4,9 +4,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Text,
   Box,
-  BoxAlignItems,
   BoxJustifyContent,
-  BoxFlexDirection,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import RewardsThemeImageComponent from '../../ThemeImageComponent/RewardsThemeImageComponent';
@@ -30,38 +29,41 @@ const CampaignTourStep: React.FC<CampaignTourStepProps> = ({ step }) => {
 
   return (
     <ScrollView
-      contentContainerStyle={tw.style('flex-grow px-4 justify-center')}
+      style={tw.style('flex-1')}
+      contentContainerStyle={tw.style('flex-grow')}
       showsVerticalScrollIndicator={false}
     >
-      {step.image && (
-        <Box
-          justifyContent={BoxJustifyContent.Center}
-          alignItems={BoxAlignItems.Center}
-          flexDirection={BoxFlexDirection.Column}
-          twClassName="mb-6"
-        >
-          <RewardsThemeImageComponent
-            themeImage={step.image}
-            style={tw.style('w-64 h-64')}
-          />
+      <Box twClassName="flex-1 px-6 pt-3">
+        <Box>
+          <Text
+            variant={TextVariant.HeadingLg}
+            color={TextColor.TextDefault}
+            twClassName="text-left mb-1.5"
+            testID={CAMPAIGN_TOUR_STEP_TEST_IDS.TITLE}
+          >
+            {documentToPlainText(step.title)}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-left mb-4"
+            testID={CAMPAIGN_TOUR_STEP_TEST_IDS.DESCRIPTION}
+          >
+            {documentToPlainText(step.description)}
+          </Text>
         </Box>
-      )}
 
-      <Box twClassName="w-full">
-        <Text
-          variant={TextVariant.HeadingLg}
-          twClassName="text-center"
-          testID={CAMPAIGN_TOUR_STEP_TEST_IDS.TITLE}
-        >
-          {documentToPlainText(step.title)}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="mt-2 text-center text-text-alternative"
-          testID={CAMPAIGN_TOUR_STEP_TEST_IDS.DESCRIPTION}
-        >
-          {documentToPlainText(step.description)}
-        </Text>
+        {step.image && (
+          <Box
+            twClassName="flex-1 w-full"
+            justifyContent={BoxJustifyContent.Center}
+          >
+            <RewardsThemeImageComponent
+              themeImage={step.image}
+              style={tw.style('w-full h-[400px] max-h-[400px]')}
+            />
+          </Box>
+        )}
       </Box>
     </ScrollView>
   );

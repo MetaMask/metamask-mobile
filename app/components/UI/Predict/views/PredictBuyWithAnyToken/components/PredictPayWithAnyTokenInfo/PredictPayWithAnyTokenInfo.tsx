@@ -5,7 +5,6 @@ import { useTransactionCustomAmount } from '../../../../../../Views/confirmation
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
-import { usePredictBalance } from '../../../../hooks/usePredictBalance';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { MINIMUM_BET } from '../../../../constants/transactions';
 import { OrderPreview } from '../../../../types';
@@ -44,11 +43,11 @@ function PredictPayWithAnyTokenInfoInner({
   isInputFocused,
 }: PredictPayWithAnyTokenInfoProps) {
   const [depositAmount, setDepositAmount] = useState('');
+
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
   const { setPayToken, payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
-  const { data: predictBalance = 0 } = usePredictBalance();
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
   const { updatePendingAmount, amountHuman } = useTransactionCustomAmount({
@@ -77,19 +76,10 @@ function PredictPayWithAnyTokenInfoInner({
       return '';
     }
 
-    const totalPay = new BigNumber(totalPayForPredictBalance);
-    const remaining = totalPay.minus(predictBalance);
-
-    const amount = remaining.lte(0)
-      ? totalPay.decimalPlaces(2, BigNumber.ROUND_UP)
-      : remaining.decimalPlaces(2, BigNumber.ROUND_UP);
-
-    return amount.toString(10);
-  }, [
-    canTriggerDepositAmountCalculation,
-    totalPayForPredictBalance,
-    predictBalance,
-  ]);
+    return new BigNumber(totalPayForPredictBalance)
+      .decimalPlaces(2, BigNumber.ROUND_UP)
+      .toString(10);
+  }, [canTriggerDepositAmountCalculation, totalPayForPredictBalance]);
 
   useEffect(() => {
     if (!canTriggerDepositAmountCalculation) return;

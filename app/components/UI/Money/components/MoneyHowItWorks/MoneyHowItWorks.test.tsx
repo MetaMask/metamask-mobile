@@ -28,7 +28,7 @@ describe('MoneyHowItWorks', () => {
 
     expect(getByTestId(MoneyHowItWorksTestIds.APY)).toHaveTextContent(
       strings('money.apy_label', {
-        percentage: '4',
+        percentage: 4,
       }),
     );
   });
@@ -42,5 +42,35 @@ describe('MoneyHowItWorks', () => {
     fireEvent.press(getByText(strings('money.how_it_works.title')));
 
     expect(mockHeaderPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the highlighted APY text when isLoading is true', () => {
+    const { queryByTestId } = render(<MoneyHowItWorks apy={4} isLoading />);
+
+    expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('shows the highlighted APY text when isLoading is false', () => {
+    const { getByTestId } = render(<MoneyHowItWorks apy={4} />);
+
+    expect(getByTestId(MoneyHowItWorksTestIds.APY)).toBeOnTheScreen();
+  });
+
+  it('hides the highlighted APY text when apy is undefined', () => {
+    const { queryByTestId } = render(<MoneyHowItWorks apy={undefined} />);
+
+    expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('hides the highlighted APY text when apy is zero', () => {
+    const { queryByTestId } = render(<MoneyHowItWorks apy={0} />);
+
+    expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('hides the highlighted APY text when apy is negative', () => {
+    const { queryByTestId } = render(<MoneyHowItWorks apy={-1} />);
+
+    expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
   });
 });

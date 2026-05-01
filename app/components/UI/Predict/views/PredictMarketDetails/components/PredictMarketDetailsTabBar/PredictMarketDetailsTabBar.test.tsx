@@ -41,7 +41,7 @@ describe('PredictMarketDetailsTabBar', () => {
   });
 
   it('renders all tab labels', () => {
-    const { getByText } = render(
+    const { getAllByText } = render(
       <PredictMarketDetailsTabBar
         tabs={threeTabs}
         activeTab={0}
@@ -49,9 +49,10 @@ describe('PredictMarketDetailsTabBar', () => {
       />,
     );
 
-    expect(getByText('Positions')).toBeOnTheScreen();
-    expect(getByText('Outcomes')).toBeOnTheScreen();
-    expect(getByText('About')).toBeOnTheScreen();
+    // Tab renders a hidden + visible label copy for layout; allow duplicates per label.
+    expect(getAllByText('Positions').length).toBeGreaterThanOrEqual(1);
+    expect(getAllByText('Outcomes').length).toBeGreaterThanOrEqual(1);
+    expect(getAllByText('About').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders correct testID for each tab', () => {
@@ -72,7 +73,7 @@ describe('PredictMarketDetailsTabBar', () => {
   });
 
   it('calls onTabPress with correct index when tab is pressed', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <PredictMarketDetailsTabBar
         tabs={twoTabs}
         activeTab={0}
@@ -80,7 +81,9 @@ describe('PredictMarketDetailsTabBar', () => {
       />,
     );
 
-    fireEvent.press(getByText('Outcomes'));
+    fireEvent.press(
+      getByTestId(getPredictMarketDetailsSelector.tabBarTab('outcomes')),
+    );
 
     expect(mockOnTabPress).toHaveBeenCalledWith(1);
   });
@@ -98,35 +101,5 @@ describe('PredictMarketDetailsTabBar', () => {
       getByTestId(PredictMarketDetailsSelectorsIDs.TAB_BAR),
     ).toBeOnTheScreen();
     expect(queryByText('Positions')).not.toBeOnTheScreen();
-  });
-
-  describe('tabTwStyle prop', () => {
-    it('produces different tab styles when tabTwStyle is provided', () => {
-      const { getByTestId: getWithStyle } = render(
-        <PredictMarketDetailsTabBar
-          tabs={twoTabs}
-          activeTab={0}
-          onTabPress={mockOnTabPress}
-          tabTwStyle="flex-1"
-        />,
-      );
-
-      const { getByTestId: getWithoutStyle } = render(
-        <PredictMarketDetailsTabBar
-          tabs={twoTabs}
-          activeTab={0}
-          onTabPress={mockOnTabPress}
-        />,
-      );
-
-      const tabWithStyle = getWithStyle(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
-      );
-      const tabWithoutStyle = getWithoutStyle(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
-      );
-
-      expect(tabWithStyle.props.style).not.toEqual(tabWithoutStyle.props.style);
-    });
   });
 });

@@ -97,6 +97,7 @@ import {
   selectCardUserLocation,
 } from '../../../../../selectors/cardController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
 
@@ -205,7 +206,6 @@ const mockUseCardFreeze = jest.fn(() => ({
     error: null,
   },
 }));
-const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockDispatch = jest.fn();
 const mockOpenSwaps = jest.fn();
@@ -253,7 +253,6 @@ const mockNavigateToTravelPage = jest.fn();
 const mockNavigateToCardTosPage = jest.fn();
 
 const mockUseNavigateToCardPage = jest.fn(() => ({
-  navigateToCardPage: mockNavigateToCardPage,
   navigateToTravelPage: mockNavigateToTravelPage,
   navigateToCardTosPage: mockNavigateToCardTosPage,
 }));
@@ -450,6 +449,7 @@ jest.mock('../../../Tokens/constants', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
+    setSelectedAddress: jest.fn(),
     context: {
       PreferencesController: {
         setPrivacyMode: jest.fn(),
@@ -499,6 +499,9 @@ const mockSetSelectedAccount = Engine.context.AccountsController
   .setSelectedAccount as jest.MockedFunction<
   typeof Engine.context.AccountsController.setSelectedAccount
 >;
+const mockSetSelectedAddress = Engine.setSelectedAddress as jest.MockedFunction<
+  typeof Engine.setSelectedAddress
+>;
 const mockGetCapabilities = Engine.context.CardController
   .getCapabilities as jest.Mock;
 const mockCardControllerLogout = Engine.context.CardController
@@ -514,11 +517,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.spending_with': 'Spending with',
       'card.card_home.add_funds': 'Add funds',
       'card.card_home.limited_spending_warning': 'Limited spending allowance',
-      'card.card_home.manage_card_options.manage_card': 'Manage card',
-      'card.card_home.manage_card_options.advanced_card_management':
-        'Advanced card management',
-      'card.card_home.manage_card_options.advanced_card_management_description':
-        'See detailed transactions, freeze your card, etc.',
       'card.card': 'Card',
       'card.card_home.error_title': 'Unable to load card',
       'card.card_home.error_description': 'Please try again later',
@@ -655,6 +653,9 @@ function setupMockSelectors(
     if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
+
+    if (selector === selectSelectedInternalAccountByScope)
+      return () => config.selectedAccount;
 
     const selectorString =
       typeof selector === 'function' ? selector.toString() : '';
@@ -794,7 +795,6 @@ function setupLoadCardDataMock(
     }
   } else if (!config.warning && primaryFundingAsset) {
     actions.push({ type: 'add_funds', enabled: true });
-    actions.push({ type: 'change_asset' });
   }
 
   // Map kycStatus to CardAccountStatus
@@ -918,7 +918,7 @@ function overrideCardHomeDataBalance(
       },
       account: null,
       alerts: [],
-      actions: [{ type: 'add_funds', enabled: true }, { type: 'change_asset' }],
+      actions: [{ type: 'add_funds', enabled: true }],
     },
     primaryToken: { ...mockPrimaryAssetWithBalance, ...assetOverrides },
     availableTokens: [mockPrimaryAssetWithBalance],
@@ -1039,10 +1039,7 @@ describe('CardHome Component', () => {
         },
         account: null,
         alerts: [],
-        actions: [
-          { type: 'add_funds', enabled: true },
-          { type: 'change_asset' },
-        ],
+        actions: [{ type: 'add_funds', enabled: true }],
       },
       primaryToken: mockPrimaryAssetWithBalance,
       availableTokens: [mockPrimaryAssetWithBalance],
@@ -1073,7 +1070,6 @@ describe('CardHome Component', () => {
     );
 
     mockUseNavigateToCardPage.mockReturnValue({
-      navigateToCardPage: mockNavigateToCardPage,
       navigateToTravelPage: mockNavigateToTravelPage,
       navigateToCardTosPage: mockNavigateToCardTosPage,
     });
@@ -1253,23 +1249,6 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('calls navigateToCardPage when advanced card management is pressed', async () => {
-    // Given: authenticated user (ADVANCED_CARD_MANAGEMENT_ITEM requires isFullySetUp)
-    setupMockSelectors({ isAuthenticated: true });
-    // When: user presses advanced management item
-    render();
-
-    const advancedManagementItem = screen.getByTestId(
-      CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM,
-    );
-    fireEvent.press(advancedManagementItem);
-
-    // Then: should navigate to card page
-    await waitFor(() => {
-      expect(mockNavigateToCardPage).toHaveBeenCalled();
-    });
-  });
-
   it('calls navigateToTravelPage when travel item is pressed', async () => {
     // TRAVEL_ITEM requires isFullySetUp (isAuthenticated + card + no setup actions)
     setupMockSelectors({ isAuthenticated: true });
@@ -1350,16 +1329,11 @@ describe('CardHome Component', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays manage card section', () => {
-    // Given: authenticated state (ADVANCED_CARD_MANAGEMENT_ITEM requires isFullySetUp)
+  it('displays travel item in manage options section', () => {
     setupMockSelectors({ isAuthenticated: true });
-    // When: component renders
     render();
 
-    // Then: should show manage card section
-    expect(
-      screen.getByTestId(CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM),
-    ).toBeTruthy();
+    expect(screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM)).toBeOnTheScreen();
   });
 
   it('toggles privacy mode when privacy toggle button is pressed', async () => {
@@ -2060,6 +2034,27 @@ describe('CardHome Component', () => {
         }),
       );
     });
+
+    it('includes state UNFUNDED when authenticated user has zero balance', async () => {
+      // Given: user is authenticated and VERIFIED but has zero balance
+      overrideCardHomeDataBalance({
+        rawTokenBalance: 0,
+        balanceFiat: '$0.00',
+        balanceFormatted: '0.000000 USDC',
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be UNFUNDED
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'UNFUNDED',
+        }),
+      );
+    });
   });
 
   describe('Swap Enabled for Priority Token', () => {
@@ -2134,6 +2129,78 @@ describe('CardHome Component', () => {
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
+    });
+
+    it('calls Engine.setSelectedAddress when wallet address differs from selected account', async () => {
+      const differentWalletAddress = '0xAnotherOwnedAccount123456789000';
+
+      (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(true);
+      (useCardHomeData as jest.Mock).mockReturnValueOnce({
+        data: {
+          primaryFundingAsset: {
+            ...mockPrimaryFundingAsset,
+            walletAddress: differentWalletAddress,
+          },
+          fundingAssets: [mockPrimaryFundingAsset],
+          availableFundingAssets: [mockPrimaryFundingAsset],
+          card: {
+            id: 'card-123',
+            status: 'ACTIVE',
+          },
+          account: null,
+          alerts: [],
+          actions: [{ type: 'add_funds', enabled: true }],
+        },
+        primaryToken: mockPrimaryAssetWithBalance,
+        availableTokens: [mockPrimaryAssetWithBalance],
+        fundingTokens: [mockPrimaryAssetWithBalance],
+        isLoading: false,
+        error: null,
+        warning: null,
+      });
+
+      render();
+
+      const addFundsButton = screen.getByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+      fireEvent.press(addFundsButton);
+
+      await waitFor(() => {
+        expect(mockSetSelectedAddress).toHaveBeenCalledWith(
+          differentWalletAddress,
+        );
+      });
+    });
+
+    it('does not call Engine.setSelectedAddress when wallet address matches selected account', async () => {
+      (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(true);
+
+      render();
+
+      const addFundsButton = screen.getByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+      fireEvent.press(addFundsButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Data refresh on focus', () => {
+    it('calls refetch when the screen gains focus', () => {
+      mockRefetchAllData.mockClear();
+
+      jest.mocked(useFocusEffect).mockImplementation((cb) => cb());
+
+      render();
+
+      expect(mockRefetchAllData).toHaveBeenCalled();
+
+      jest.mocked(useFocusEffect).mockImplementation(jest.fn());
     });
   });
 
@@ -4720,7 +4787,9 @@ describe('CardHome Component', () => {
         render();
 
         const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
-        expect(toggle.props.disabled).toBe(true);
+        expect(
+          toggle.props.accessibilityState?.disabled ?? toggle.props.disabled,
+        ).toBe(true);
       });
     });
   });
@@ -5897,6 +5966,92 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('Zero priority token balance — manage options visibility', () => {
+    beforeEach(() => {
+      setupMockSelectors({ isAuthenticated: true });
+      mockGetCapabilities.mockReturnValue({
+        supportsPinView: true,
+        supportsCashback: true,
+      });
+    });
+
+    it('hides all manage options except Change asset when priority token balance is zero', () => {
+      setupLoadCardDataMock({ isAuthenticated: true });
+      overrideCardHomeDataBalance({
+        rawTokenBalance: 0,
+        rawFiatNumber: 0,
+        balanceFiat: '$0.00',
+        balanceFormatted: '0.000000 USDC',
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+      ).toBeNull();
+      expect(screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
+      expect(screen.queryByTestId(CardHomeSelectors.TRAVEL_ITEM)).toBeNull();
+    });
+
+    it('shows all manage options when priority token balance is positive', () => {
+      setupLoadCardDataMock({ isAuthenticated: true });
+      overrideCardHomeDataBalance({
+        rawTokenBalance: 1000,
+        rawFiatNumber: 1000,
+        balanceFiat: '$1,000.00',
+        balanceFormatted: '1000.000000 USDC',
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('still shows teaser options for unauthenticated users regardless of balance', () => {
+      setupMockSelectors({ isAuthenticated: false });
+      setupLoadCardDataMock({ isAuthenticated: false });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('Unauthenticated cardholder teaser options', () => {
     beforeEach(() => {
       setupMockSelectors({ isAuthenticated: false });
@@ -5931,13 +6086,6 @@ describe('CardHome Component', () => {
       render();
       expect(
         screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows manage card as teaser when unauthenticated', () => {
-      render();
-      expect(
-        screen.getByTestId(CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM),
       ).toBeOnTheScreen();
     });
 

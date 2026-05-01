@@ -162,6 +162,20 @@ describe('PriceAdvanced', () => {
     });
     mockTrackEvent = analyticsHook.trackEvent as jest.Mock;
     jest.mocked(useAnalytics).mockReturnValue(analyticsHook);
+
+    // Reset useOHLCVChart to default success state
+    mockUseOHLCVChart.mockReturnValue({
+      ohlcvData: [
+        ...ohlcvPaddingThree,
+        { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
   });
 
   it('renders the token price when not loading', () => {
@@ -663,6 +677,108 @@ describe('PriceAdvanced', () => {
     // Should use close=100 from the first visible candle, NOT close=200 from 3 days ago
     // (105 - 100) / 100 * 100 = 5.00%
     expect(getByText(/5\.00%/)).toBeOnTheScreen();
+  });
+
+  describe('custom network support', () => {
+    it('falls back to legacy chart when formatAddressToAssetId throws for unsupported chain', () => {
+      // useOHLCVChart should receive empty assetId and skip fetch
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const customNetworkAsset: TokenI = {
+        ...mockAsset,
+        chainId: '0x999999', // Unsupported custom network
+        symbol: 'CUSTOM',
+        name: 'Custom Token',
+      };
+
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} asset={customNetworkAsset} />,
+      );
+
+      // Should fallback to legacy chart instead of crashing
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    });
+
+    it('handles formatAddressToAssetId error for Linea Sepolia testnet', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const lineaSepoliaAsset: TokenI = {
+        ...mockAsset,
+        chainId: '0xe705', // Linea Sepolia - unsupported testnet
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} asset={lineaSepoliaAsset} />,
+      );
+
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    });
+
+    it('still renders advanced chart for supported networks', () => {
+      // Mock successful OHLCV data fetch
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          ...ohlcvPaddingThree,
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      // Should render advanced chart for supported networks
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+      expect(queryByTestId('price-legacy-fallback')).not.toBeOnTheScreen();
+    });
+
+    it('passes empty assetId to useOHLCVChart when formatAddressToAssetId fails', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const customNetworkAsset: TokenI = {
+        ...mockAsset,
+        chainId: '0x999999', // Unsupported custom network
+        address: '0x0000000000000000000000000000000000000000', // Native token
+      };
+
+      render(<PriceAdvanced {...baseProps} asset={customNetworkAsset} />);
+
+      // useOHLCVChart should be called with empty assetId
+      expect(mockUseOHLCVChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          assetId: '',
+        }),
+      );
+    });
   });
 
   describe('touch gesture handling', () => {

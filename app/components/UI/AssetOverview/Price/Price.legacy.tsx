@@ -17,6 +17,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
@@ -93,6 +95,8 @@ const PriceLegacy = ({
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
 
   const { styles, theme } = useStyles(styleSheet);
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
 
   return (
     <>
@@ -145,6 +149,11 @@ const PriceLegacy = ({
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
+              style={
+                isLightMode && displayDiff > 0
+                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                  : undefined
+              }
               allowFontScaling={false}
             >
               {diffSign}
@@ -173,7 +182,7 @@ const PriceLegacy = ({
           )}
         </Text>
       </View>
-      <Box twClassName={'mt-3'}>
+      <Box twClassName="mt-3 w-full overflow-hidden">
         <PriceChart
           prices={distributedPriceData}
           priceDiff={priceDiff}
@@ -182,17 +191,21 @@ const PriceLegacy = ({
         />
       </Box>
       {chartNavigationButtons.length > 0 && onTimePeriodChange && (
-        <View style={styles.chartNavigationWrapper}>
-          {chartNavigationButtons.map((label) => (
-            <ChartNavigationButton
-              key={label}
-              label={strings(
-                `asset_overview.chart_time_period_navigation.${label}`,
-              )}
-              onPress={() => onTimePeriodChange(label)}
-              selected={timePeriod === label}
-            />
-          ))}
+        <View style={styles.timeRangeContainer}>
+          <Box twClassName="w-full px-4">
+            <View style={styles.chartNavigationWrapper}>
+              {chartNavigationButtons.map((label) => (
+                <ChartNavigationButton
+                  key={label}
+                  label={strings(
+                    `asset_overview.chart_time_period_navigation.${label}`,
+                  )}
+                  onPress={() => onTimePeriodChange(label)}
+                  selected={timePeriod === label}
+                />
+              ))}
+            </View>
+          </Box>
         </View>
       )}
     </>

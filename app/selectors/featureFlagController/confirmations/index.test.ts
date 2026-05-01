@@ -14,6 +14,8 @@ import {
   selectPayQuoteConfig,
   selectMetaMaskPayFiatFlags,
   PAY_FIAT_ENABLED_DEFAULT,
+  selectMetaMaskPayHardwareFlags,
+  PAY_HARDWARE_ENABLED_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
 } from '.';
@@ -517,5 +519,23 @@ describe('selectMetaMaskPayFiatFlags', () => {
       };
 
     expect(selectMetaMaskPayFiatFlags(state)).toEqual({ enabled: true });
+  });
+});
+
+describe('selectMetaMaskPayHardwareFlags', () => {
+  it('returns default when flag is absent', () => {
+    expect(selectMetaMaskPayHardwareFlags(mockedEmptyFlagsState)).toEqual({
+      enabled: PAY_HARDWARE_ENABLED_DEFAULT,
+    });
+  });
+
+  it('returns enabled from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_hardware: { enabled: true },
+      };
+
+    expect(selectMetaMaskPayHardwareFlags(state)).toEqual({ enabled: true });
   });
 });

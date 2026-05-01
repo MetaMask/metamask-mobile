@@ -78,8 +78,8 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController = jest
+  if (!initRequestProperties.getMessengerClient) {
+    requestMock.getMessengerClient = jest
       .fn()
       .mockReturnValue(buildTransactionControllerMock());
   }
@@ -126,7 +126,7 @@ describe('BridgeController Init', () => {
   it('throws error if TransactionController is not found', () => {
     // Arrange
     const requestMock = buildInitRequestMock({
-      getController: jest.fn().mockImplementation(() => {
+      getMessengerClient: jest.fn().mockImplementation(() => {
         throw new Error('TransactionController not found');
       }),
     });
@@ -215,7 +215,9 @@ describe('BridgeController Init', () => {
         getLayer1GasFee: jest.fn().mockResolvedValue('0x200'),
       });
       const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
+        getMessengerClient: jest
+          .fn()
+          .mockReturnValue(mockTransactionController),
       });
 
       // Act
@@ -287,14 +289,16 @@ describe('BridgeController Init', () => {
       // Arrange
       const mockTransactionController = buildTransactionControllerMock();
       const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
+        getMessengerClient: jest
+          .fn()
+          .mockReturnValue(mockTransactionController),
       });
 
       // Act
       bridgeControllerInit(requestMock);
 
       // Assert
-      expect(requestMock.getController).toHaveBeenCalledWith(
+      expect(requestMock.getMessengerClient).toHaveBeenCalledWith(
         'TransactionController',
       );
     });

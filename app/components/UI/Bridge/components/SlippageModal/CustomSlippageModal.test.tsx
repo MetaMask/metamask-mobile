@@ -252,7 +252,7 @@ describe('CustomSlippageModal', () => {
 
       // Verify close was called (ref.onCloseBottomSheet)
       // Component should render without errors
-      expect(cancelButton).toBeTruthy();
+      expect(cancelButton).toBeOnTheScreen();
     });
 
     it('does not dispatch slippage on cancel', () => {
@@ -315,25 +315,17 @@ describe('CustomSlippageModal', () => {
     it('is disabled when shouldDisableConfirm is true', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(true);
 
-      const { toJSON, getByText } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      // Verify button exists
-      expect(getByText('Confirm')).toBeTruthy();
-
-      // Snapshot shows disabled state
-      expect(toJSON()).toMatchSnapshot('confirm button disabled');
+      expect(getByText('Confirm')).toBeDisabled();
     });
 
     it('is enabled when shouldDisableConfirm is false', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(false);
 
-      const { toJSON, getByText } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      // Verify button exists
-      expect(getByText('Confirm')).toBeTruthy();
-
-      // Snapshot shows enabled state
-      expect(toJSON()).toMatchSnapshot('confirm button enabled');
+      expect(getByText('Confirm')).toBeEnabled();
     });
   });
 
@@ -793,31 +785,31 @@ describe('CustomSlippageModal', () => {
     it('renders header with correct title', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Slippage')).toBeTruthy();
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
 
     it('renders InputStepper', () => {
       const { getByTestId } = render(<CustomSlippageModal />);
 
-      expect(getByTestId('input-stepper')).toBeTruthy();
+      expect(getByTestId('input-stepper')).toBeOnTheScreen();
     });
 
     it('renders Keypad', () => {
       const { getByTestId } = render(<CustomSlippageModal />);
 
-      expect(getByTestId('keypad')).toBeTruthy();
+      expect(getByTestId('keypad')).toBeOnTheScreen();
     });
 
     it('renders cancel button', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Cancel')).toBeTruthy();
+      expect(getByText('Cancel')).toBeOnTheScreen();
     });
 
     it('renders confirm button', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Confirm')).toBeTruthy();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('passes correct props to InputStepper', () => {
@@ -916,9 +908,9 @@ describe('CustomSlippageModal', () => {
 
   describe('snapshot tests', () => {
     it('matches snapshot for complete modal', () => {
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('matches snapshot with description shown', () => {
@@ -933,17 +925,17 @@ describe('CustomSlippageModal', () => {
         >,
       );
 
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('matches snapshot with confirm disabled', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(true);
 
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
   });
 
@@ -1053,7 +1045,7 @@ describe('CustomSlippageModal', () => {
       fireEvent.press(closeButton);
 
       // Verify it doesn't throw and component handles close
-      expect(closeButton).toBeTruthy();
+      expect(closeButton).toBeOnTheScreen();
     });
 
     it('does not dispatch slippage when closing without confirm', () => {

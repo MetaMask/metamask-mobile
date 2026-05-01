@@ -1,7 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
+import { TokenSecurityData } from '@metamask/assets-controllers';
 import { useSelector } from 'react-redux';
 import { useTokenActions, getSwapTokens } from './useTokenActions';
 import { TokenI } from '../../Tokens/types';
+import { SecurityDataType } from '../../Bridge/hooks/usePopularTokens';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -32,10 +34,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual<
+    typeof import('../../../../selectors/networkController')
+  >('../../../../selectors/networkController'),
   selectEvmChainId: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/accountsController', () => ({
+  ...jest.requireActual<
+    typeof import('../../../../selectors/accountsController')
+  >('../../../../selectors/accountsController'),
   selectSelectedInternalAccount: jest.fn(),
 }));
 
@@ -315,6 +323,27 @@ describe('useTokenActions', () => {
       );
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('includes asset_symbol in RAMPS_BUTTON_CLICKED event', () => {
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.onBuy();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'TokenDetails',
+          asset_symbol: 'DAI',
+        }),
+      );
     });
   });
 
@@ -689,5 +718,105 @@ describe('useTokenActions', () => {
         );
       },
     );
+
+    describe('securityData adaptation', () => {
+      const buildTrendingSecurityData = (
+        overrides: Partial<TokenSecurityData> = {},
+      ): TokenSecurityData => ({
+        resultType: 'Warning',
+        maliciousScore: '50',
+        fees: { transfer: 0, transferFeeMaxAmount: null, buy: 0, sell: null },
+        features: [
+          {
+            featureId: 'HONEYPOT',
+            type: 'Warning',
+            description: 'Honeypot risk',
+          },
+        ],
+        financialStats: {
+          supply: 0,
+          topHolders: [],
+          holdersCount: 0,
+          tradeVolume24h: null,
+          lockedLiquidityPct: null,
+          markets: [],
+        },
+        metadata: {
+          externalLinks: {
+            homepage: null,
+            twitterPage: null,
+            telegramChannelId: null,
+          },
+        },
+        created: '2025-01-01T00:00:00Z',
+        ...overrides,
+      });
+
+      it("adapts trending-shape securityData to the bridge's legacy shape when handing off to goToSwaps", () => {
+        const tokenWithSecurity: TokenI = {
+          ...defaultToken,
+          balance: '1',
+          securityData: buildTrendingSecurityData(),
+        } as TokenI;
+
+        const { result } = renderHook(() =>
+          useTokenActions({
+            token: tokenWithSecurity,
+            networkName: 'Ethereum Mainnet',
+          }),
+        );
+
+        result.current.handleStickySwapPress();
+
+        expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+        expect(mockGoToSwaps).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: defaultToken.address,
+            securityData: {
+              type: SecurityDataType.Warning,
+              metadata: {
+                features: [
+                  {
+                    featureId: 'HONEYPOT',
+                    type: SecurityDataType.Warning,
+                    description: 'Honeypot risk',
+                  },
+                ],
+              },
+            },
+          }),
+          undefined,
+          undefined,
+          true,
+        );
+      });
+
+      it('passes securityData as undefined when token has no security data', () => {
+        const tokenWithBalance: TokenI = {
+          ...defaultToken,
+          balance: '1',
+        } as TokenI;
+
+        const { result } = renderHook(() =>
+          useTokenActions({
+            token: tokenWithBalance,
+            networkName: 'Ethereum Mainnet',
+          }),
+        );
+
+        result.current.handleStickySwapPress();
+
+        expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+        expect(mockGoToSwaps).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: defaultToken.address,
+            securityData: undefined,
+          }),
+          undefined,
+          undefined,
+          true,
+        );
+      });
+    });
   });
 });

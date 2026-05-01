@@ -28,11 +28,12 @@ import {
 import { formatPercentage } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { usePredictPreviewSheet } from '../../contexts';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
 import { isDrawCapableLeague } from '../../constants/sports';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
+import { parseScore } from '../../utils/gameParser';
 import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
@@ -59,7 +60,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
 
   const game = market.game as PredictMarketGame;
@@ -68,12 +69,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const showDraw = isDrawCapableLeague(game.league);
 
   const liveData = useMemo(() => {
-    const parseScore = (raw: string | null | undefined) => {
-      if (!raw) return null;
-      const [away, home] = raw.split('-').map(Number);
-      return !isNaN(away) && !isNaN(home) ? { away, home } : null;
-    };
-    const liveScore = gameUpdate?.score ? parseScore(gameUpdate.score) : null;
+    const liveScore = gameUpdate?.score
+      ? parseScore(gameUpdate.score, game.league)
+      : null;
     return {
       homeScore: liveScore?.home ?? game.score?.home ?? 0,
       awayScore: liveScore?.away ?? game.score?.away ?? 0,
@@ -98,20 +96,26 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const footerTimeText = timeRemaining ?? scheduledTime;
 
   const outcome = market.outcomes[0];
+  const matchesTeam = (
+    tokenTitle: string | undefined,
+    team: { name?: string; alias?: string },
+  ) => {
+    if (!tokenTitle) return false;
+    const lower = tokenTitle.toLowerCase();
+    return (
+      lower === team.name?.toLowerCase() ||
+      (team.alias != null && lower === team.alias.toLowerCase())
+    );
+  };
+
   const homeToken =
-    outcome?.tokens?.find(
-      (t) =>
-        t.title.toLowerCase() === game.homeTeam.name.toLowerCase() ||
-        t.title.toLowerCase() === game.homeTeam.alias.toLowerCase(),
-    ) ?? outcome?.tokens?.[0];
+    outcome?.tokens?.find((t) => matchesTeam(t.title, game.homeTeam)) ??
+    outcome?.tokens?.[0];
   const awayToken =
-    outcome?.tokens?.find(
-      (t) =>
-        t.title.toLowerCase() === game.awayTeam.name.toLowerCase() ||
-        t.title.toLowerCase() === game.awayTeam.alias.toLowerCase(),
-    ) ?? outcome?.tokens?.[1];
+    outcome?.tokens?.find((t) => matchesTeam(t.title, game.awayTeam)) ??
+    outcome?.tokens?.[1];
   const drawToken = showDraw
-    ? outcome?.tokens?.find((t) => t.title.toLowerCase() === 'draw')
+    ? outcome?.tokens?.find((t) => t.title?.toLowerCase() === 'draw')
     : undefined;
 
   const handleCardPress = useCallback(() => {
@@ -131,15 +135,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
       if (!outcome) return;
       executeGuardedAction(
         () => {
-          navigateToBuyPreview(
-            { market, outcome, outcomeToken: token, entryPoint },
-            { throughRoot: true },
-          );
+          openBuySheet({ market, outcome, outcomeToken: token, entryPoint });
         },
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [market, outcome, entryPoint, executeGuardedAction, navigateToBuyPreview],
+    [market, outcome, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   const totalVolume = calculateTotalVolume(market.outcomes);

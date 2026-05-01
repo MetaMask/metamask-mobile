@@ -76,7 +76,7 @@ export enum ApprovalTypes {
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
-  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   SNAP_DIALOG = 'snap_dialog',
@@ -199,6 +199,19 @@ export const checkActiveAccountAndChainId = async ({
   }
 };
 
+/**
+ * Attach `remote_session_id` only when the upstream bridge supplied one.
+ * Don't inline as `analytics?.remote_session_id`: bridges emit `''` for older
+ * SDKs without an anonId, and the schema requires the property be absent on
+ * non-remote paths.
+ */
+const withRemoteSessionId = (
+  analytics: { remote_session_id?: string } | undefined,
+): Partial<{ remote_session_id: string }> =>
+  analytics?.remote_session_id
+    ? { remote_session_id: analytics.remote_session_id }
+    : {};
+
 const generateRawSignature = async ({
   version,
   req,
@@ -244,7 +257,8 @@ const generateRawSignature = async ({
       channelId,
       analytics: {
         request_source: getSource(),
-        request_platform: analytics?.platform,
+        remote_request_platform: analytics?.platform,
+        ...withRemoteSessionId(analytics),
       },
     },
   };
@@ -343,15 +357,15 @@ export const getRpcMethodMiddlewareHooks = ({
         requestPermissionsIncremental: (
           subject,
           requestedPermissions,
-          options,
+          incrementalOptions,
         ) =>
           Engine.context.PermissionController.requestPermissionsIncremental(
             subject,
             requestedPermissions,
             {
-              ...options,
+              ...incrementalOptions,
               metadata: {
-                ...options?.metadata,
+                ...incrementalOptions?.metadata,
                 pageMeta: {
                   url: url.current,
                   title: title.current,
@@ -359,7 +373,8 @@ export const getRpcMethodMiddlewareHooks = ({
                   channelId,
                   analytics: {
                     request_source: getSource(),
-                    request_platform: analytics?.platform,
+                    remote_request_platform: analytics?.platform,
+                    ...withRemoteSessionId(analytics),
                   },
                 },
               },
@@ -477,7 +492,8 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         },
@@ -682,6 +698,7 @@ export const getRpcMethodMiddleware = ({
         const transactionAnalytics = {
           dapp_url: url.current,
           request_source: getSource(),
+          ...withRemoteSessionId(analytics),
         };
         return RPCMethods.eth_sendTransaction({
           hostname,
@@ -730,7 +747,8 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         };
@@ -794,7 +812,8 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         };
@@ -950,6 +969,7 @@ export const getRpcMethodMiddleware = ({
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         }),
@@ -984,6 +1004,7 @@ export const getRpcMethodMiddleware = ({
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
+            ...withRemoteSessionId(analytics),
           },
           hooks,
         });
@@ -997,6 +1018,7 @@ export const getRpcMethodMiddleware = ({
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
+            ...withRemoteSessionId(analytics),
           },
           hooks,
         });

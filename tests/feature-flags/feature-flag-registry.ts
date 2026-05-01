@@ -2770,6 +2770,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyHubEnabled: {
+    name: 'earnMoneyHubEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMusdConversionAssetOverviewCtaEnabled: {
     name: 'earnMusdConversionAssetOverviewCtaEnabled',
     type: FeatureFlagType.Remote,
@@ -3028,6 +3039,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  hapticsKillSwitch: {
+    name: 'hapticsKillSwitch',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   homepageSectionsV1: {
     name: 'homepageSectionsV1',
     type: FeatureFlagType.Remote,
@@ -3105,6 +3127,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       moneyAccountWithdrawEnabled: false,
       moneyAccountDepositEnabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyAccountVaultConfig: {
+    name: 'moneyAccountVaultConfig',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      chainId: '0xa4b1',
+      boringVault: '0xB5F07d769dD60fE54c97dd53101181073DDf21b2',
+      tellerAddress: '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9',
+      accountantAddress: '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173',
+      lensAddress: '0x846a7832022350434B5cC006d07cc9c782469660',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3492,6 +3528,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictBottomSheet: {
+    name: 'predictBottomSheet',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictUpDown: {
     name: 'predictUpDown',
     type: FeatureFlagType.Remote,
@@ -3833,6 +3880,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tokenListSecurityBadges: {
+    name: 'tokenListSecurityBadges',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.76.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenSearchDiscoveryEnabled: {
     name: 'tokenSearchDiscoveryEnabled',
     type: FeatureFlagType.Remote,
@@ -4096,6 +4154,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '7.67.0',
       enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  brazeSegmentForwarding: {
+    name: 'brazeSegmentForwarding',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      allowedEvents: [],
+      allowedTraits: [],
     },
     status: FeatureFlagStatus.Active,
   },

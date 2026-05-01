@@ -109,6 +109,7 @@ describe('toCardFundingToken', () => {
         chainId: 'eip155:1' as `eip155:${number}`,
         spendableBalance: '123',
         spendingCap: '999',
+        originalSpendingCap: '1500',
         walletAddress: '0xowner',
       });
       const result = toCardFundingToken(asset);
@@ -119,6 +120,7 @@ describe('toCardFundingToken', () => {
       expect(result.caipChainId).toBe('eip155:1');
       expect(result.spendableBalance).toBe('123');
       expect(result.spendingCap).toBe('999');
+      expect(result.originalSpendingCap).toBe('1500');
       expect(result.walletAddress).toBe('0xowner');
     });
   });

@@ -6,7 +6,6 @@ import {
 import { RootMessenger } from '../types';
 import { SmartTransactionsControllerMessenger } from '@metamask/smart-transactions-controller';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
-import { AuthenticationController } from '@metamask/profile-sync-controller';
 
 /**
  * Get the messenger for the smart transactions controller. This is scoped to the
@@ -29,6 +28,7 @@ export function getSmartTransactionsControllerMessenger(
   });
   rootMessenger.delegate({
     actions: [
+      'AuthenticationController:getBearerToken',
       'NetworkController:getNetworkClientById',
       'NetworkController:getState',
       'RemoteFeatureFlagController:getState',
@@ -46,8 +46,7 @@ export function getSmartTransactionsControllerMessenger(
 }
 
 type SmartTransactionsControllerInitMessengerActions =
-  | AnalyticsControllerActions
-  | AuthenticationController.AuthenticationControllerGetBearerTokenAction;
+  AnalyticsControllerActions;
 
 /**
  * Get the SmartTransactionsControllerInitMessenger for the SmartTransactionsController.
@@ -79,10 +78,7 @@ export function getSmartTransactionsControllerInitMessenger(
   });
 
   rootMessenger.delegate({
-    actions: [
-      'AnalyticsController:trackEvent',
-      'AuthenticationController:getBearerToken',
-    ],
+    actions: ['AnalyticsController:trackEvent'],
     events: [],
     messenger,
   });

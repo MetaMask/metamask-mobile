@@ -14,6 +14,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -68,11 +71,6 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import {
   IconName,
   IconSize,
@@ -406,7 +404,11 @@ const PerpsWithdrawView: React.FC = () => {
                 ]}
               />
             </Box>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              testID={PerpsWithdrawViewSelectorsIDs.AVAILABLE_BALANCE_TEXT}
+            >
               {strings('perps.withdrawal.available_balance', {
                 amount: formattedBalance,
               })}
@@ -497,11 +499,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.networkFee || '$1.00',
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.FEE_VALUE}
+                >
+                  {formattedQuoteData?.networkFee || '$1.00'}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -526,11 +532,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.estimatedTime,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.TIME_VALUE}
+                >
+                  {formattedQuoteData?.estimatedTime}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -545,10 +555,14 @@ const PerpsWithdrawView: React.FC = () => {
               },
             }}
             value={{
-              label: {
-                text: formatReceiveAmount,
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  testID={PerpsWithdrawViewSelectorsIDs.RECEIVE_VALUE}
+                >
+                  {formatReceiveAmount}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -655,15 +669,16 @@ const PerpsWithdrawView: React.FC = () => {
               </Box>
             ) : (
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                label={strings('perps.withdrawal.withdraw')}
                 onPress={handleContinue}
-                loading={isSubmittingTx}
-                disabled={!hasValidInputs || isSubmittingTx}
+                isLoading={isSubmittingTx}
+                isDisabled={!hasValidInputs || isSubmittingTx}
                 testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
-                width={ButtonWidthTypes.Full}
-              />
+                isFullWidth
+              >
+                {strings('perps.withdrawal.withdraw')}
+              </Button>
             )}
           </Box>
 

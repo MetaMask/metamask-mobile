@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, RefreshControl } from 'react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -125,6 +125,15 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     },
   };
 });
+
+const mockOpenBuySheet = jest.fn();
+const mockOpenSellSheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: mockOpenSellSheet,
+  }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
@@ -1428,7 +1437,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
     });
 
-    it('handles cash out button press', () => {
+    it('cash out uses context sell sheet instead of navigation', () => {
       const mockPosition = {
         id: 'position-1',
         outcomeId: 'outcome-1',
@@ -1441,13 +1450,12 @@ describe('PredictMarketDetails', () => {
         icon: 'https://example.com/icon.png',
       };
 
-      const { mockNavigate } = setupPredictMarketDetailsTest(
+      setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
         { positions: { data: [mockPosition] } },
       );
 
-      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
         getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
@@ -1456,18 +1464,15 @@ describe('PredictMarketDetails', () => {
       const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        {
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           position: mockPosition,
-          outcome: expect.any(Object),
-          market: expect.any(Object),
           entryPoint: 'predict_market_details',
-        },
+        }),
       );
     });
 
-    it('handles Yes button press for betting', () => {
+    it('calls openBuySheet via context when Yes button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1483,25 +1488,23 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const yesButton = findActionButtonByPrice(65);
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 
-    it('handles No button press for betting', () => {
+    it('calls openBuySheet via context when No button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1517,21 +1520,19 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const noButton = findActionButtonByPrice(35);
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 
@@ -1565,17 +1566,14 @@ describe('PredictMarketDetails', () => {
     it('attaches a themed RefreshControl to the scroll view', () => {
       setupPredictMarketDetailsTest();
 
-      const scrollView = screen.getByTestId(
-        'predict-market-details-scrollable-tab-view',
-      );
-      const refreshControlProps = scrollView.props.refreshControl.props;
+      const refreshControl = screen.UNSAFE_getByType(RefreshControl);
 
-      expect(scrollView.props.refreshControl).toBeDefined();
-      expect(refreshControlProps.tintColor).toBeTruthy();
-      expect(refreshControlProps.colors).toEqual([
-        refreshControlProps.tintColor,
+      expect(refreshControl).toBeTruthy();
+      expect(refreshControl.props.tintColor).toBeTruthy();
+      expect(refreshControl.props.colors).toEqual([
+        refreshControl.props.tintColor,
       ]);
-      expect(refreshControlProps.refreshing).toBe(false);
+      expect(refreshControl.props.refreshing).toBe(false);
     });
 
     it('triggers market, price history, and active positions refresh', async () => {
@@ -1593,12 +1591,10 @@ describe('PredictMarketDetails', () => {
         },
       );
 
-      const scrollView = screen.getByTestId(
-        'predict-market-details-scrollable-tab-view',
-      );
+      const refreshControl = screen.UNSAFE_getByType(RefreshControl);
 
       await act(async () => {
-        await scrollView.props.refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       await waitFor(() => {
@@ -3661,6 +3657,33 @@ describe('PredictMarketDetails', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('NFL: Team A vs Team B')).toBeOnTheScreen();
+    });
+
+    it('threads childMarketIds to usePredictPositions for both active and claimable queries', () => {
+      const marketWithChildren = createMockMarket({
+        childMarketIds: ['child-1', 'child-2'],
+      });
+
+      setupPredictMarketDetailsTest(marketWithChildren);
+
+      const { usePredictPositions } = jest.requireMock(
+        '../../hooks/usePredictPositions',
+      );
+
+      const calls = usePredictPositions.mock.calls;
+      const activeCall = calls.find(
+        ([args]: [{ claimable: boolean }]) => !args.claimable,
+      );
+      const claimableCall = calls.find(
+        ([args]: [{ claimable: boolean }]) => args.claimable,
+      );
+
+      expect(activeCall[0]).toEqual(
+        expect.objectContaining({ childMarketIds: ['child-1', 'child-2'] }),
+      );
+      expect(claimableCall[0]).toEqual(
+        expect.objectContaining({ childMarketIds: ['child-1', 'child-2'] }),
+      );
     });
 
     it('renders regular market details when market has no game property', () => {

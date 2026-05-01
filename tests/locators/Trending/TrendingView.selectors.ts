@@ -5,6 +5,7 @@ export const TrendingViewSelectorsIDs = {
   SEARCH_BUTTON: 'explore-view-search-button',
   BROWSER_BUTTON: 'trending-view-browser-button',
   SEARCH_INPUT: 'explore-view-search-input',
+  SEARCH_TEXT_FIELD: 'textfieldsearch',
   SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
   PERPS_ROW_ITEM_PREFIX: 'perps-market-tile-card-',
@@ -19,9 +20,9 @@ export const TrendingViewSelectorsIDs = {
 } as const;
 
 export const TrendingViewSelectorsText = {
-  // Section titles - must match the actual localized strings from sections.config.tsx
+  // Section titles — must match `strings('trending.*')` in sections.config.tsx (see en.json)
   SECTION_PREDICTIONS: 'Predictions',
-  SECTION_TOKENS: 'Trending tokens',
+  SECTION_TOKENS: 'Trending',
   SECTION_STOCKS: 'Stocks',
   SECTION_PERPS: 'Perps',
   SECTION_SITES: 'Sites',

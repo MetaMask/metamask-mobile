@@ -25,7 +25,7 @@ export interface AccountSelectorParams {
    */
   onSelectAccount?: (address: string) => void;
   /**
-   * Optional boolean that indicates if the sheet is for selection only. Other account actions are disabled when this is true.
+   * Optional boolean that indicates if the account selector is for selection only. Other account actions are disabled when this is true.
    */
   isSelectOnly?: boolean;
   /**
@@ -33,7 +33,7 @@ export interface AccountSelectorParams {
    */
   disablePrivacyMode?: boolean;
   /**
-   * Optional navigation screen to indicate if should navigate to add account actions sheet.
+   * Optional navigation screen to open add-account actions when the account selector loads.
    */
   navigateToAddAccountActions?:
     | AccountSelectorScreens.AddAccountActions
