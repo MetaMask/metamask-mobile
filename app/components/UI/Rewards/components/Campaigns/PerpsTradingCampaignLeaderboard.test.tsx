@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import PerpsTradingCampaignLeaderboard, {
   PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './PerpsTradingCampaignLeaderboard';
@@ -34,6 +34,20 @@ jest.mock('../RewardsErrorBanner', () => {
 
 jest.mock('../../../../../images/rewards/crown.svg', () => 'CrownIcon');
 
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
+jest.mock('../../../../../constants/navigation/Routes', () => ({
+  __esModule: true,
+  default: {
+    BROWSER: { HOME: 'BrowserHome', VIEW: 'BrowserView' },
+  },
+}));
+
 const TEST_IDS = PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS;
 
 const createPerpsEntry = (
@@ -58,6 +72,10 @@ const defaultProps = {
 };
 
 describe('PerpsTradingCampaignLeaderboard', () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
+
   it('renders container and list with entry testIDs', () => {
     const { getByTestId } = render(
       <PerpsTradingCampaignLeaderboard {...defaultProps} />,
@@ -65,6 +83,29 @@ describe('PerpsTradingCampaignLeaderboard', () => {
     expect(getByTestId(TEST_IDS.CONTAINER)).toBeDefined();
     expect(getByTestId(TEST_IDS.LIST)).toBeDefined();
     expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-1`)).toBeDefined();
+    expect(getByTestId(TEST_IDS.POWERED_BY)).toBeDefined();
+  });
+
+  it('navigates to in-app browser with HyperTracker attribution URL when brand is pressed', () => {
+    const { getByText } = render(
+      <PerpsTradingCampaignLeaderboard {...defaultProps} />,
+    );
+    fireEvent.press(
+      getByText(
+        'rewards.perps_trading_campaign.leaderboard_hypertracker_brand',
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'BrowserHome',
+      expect.objectContaining({
+        screen: 'BrowserView',
+        params: expect.objectContaining({
+          newTabUrl:
+            'https://hypertracker.io?utm_source=metamask&utm_medium=leaderboard&utm_campaign=partner-attribution',
+        }),
+      }),
+    );
   });
 
   describe('split view top count (preview vs full, ranks 21–22 vs other)', () => {

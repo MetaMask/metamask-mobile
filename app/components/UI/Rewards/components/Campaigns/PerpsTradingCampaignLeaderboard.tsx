@@ -1,34 +1,36 @@
 import React, { useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
-  Skeleton,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { PerpsTradingCampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import CrownIcon from '../../../../../images/rewards/crown.svg';
-import { PendingTag } from './OndoCampaignStatsSummary';
-import { formatComputedAt, formatSignedUsd } from '../../utils/formatUtils';
+import { formatSignedUsd } from '../../utils/formatUtils';
+import {
+  CampaignLeaderboardEntryRow,
+  CampaignLeaderboardNeighborSeparator,
+  CampaignLeaderboardSkeleton,
+  CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS,
+} from './CampaignLeaderboard';
+import Routes from '../../../../../constants/navigation/Routes';
+import { HYPERTRACKER_ATTRIBUTION_URL } from '../../utils/perpsCampaignConstants';
 
 export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'perps-campaign-leaderboard-container',
   LIST: 'perps-campaign-leaderboard-list',
-  ENTRY_ROW: 'perps-campaign-leaderboard-entry-row',
-  PENDING_TAG: 'perps-campaign-leaderboard-pending-tag',
-  NEIGHBOR_SEPARATOR: 'perps-campaign-leaderboard-neighbor-separator',
-  LOADING: 'perps-campaign-leaderboard-loading',
+  ENTRY_ROW: CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS.ENTRY_ROW,
+  PENDING_TAG: CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS.PENDING_TAG,
+  NEIGHBOR_SEPARATOR: CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS.NEIGHBOR_SEPARATOR,
+  LOADING: CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS.LOADING,
   ERROR: 'perps-campaign-leaderboard-error',
   EMPTY: 'perps-campaign-leaderboard-empty',
   NOT_YET_COMPUTED: 'perps-campaign-leaderboard-not-yet-computed',
   TOTAL_PARTICIPANTS: 'perps-campaign-leaderboard-total-participants',
+  POWERED_BY: 'perps-campaign-leaderboard-powered-by',
 } as const;
 
 const MAX_ENTRIES_LIMIT = 20;
@@ -53,121 +55,8 @@ export interface PerpsTradingCampaignLeaderboardProps {
   maxEntries?: number;
   userPosition?: UserPosition | null;
   campaignId?: string;
+  isCampaignComplete?: boolean;
 }
-
-const LeaderboardEntryRow: React.FC<{
-  entry: PerpsTradingCampaignLeaderboardEntry;
-  isCurrentUser?: boolean;
-  showCrown?: boolean;
-}> = ({ entry, isCurrentUser = false, showCrown = false }) => {
-  const isPositivePnl = entry.pnl >= 0;
-  const textColor = isCurrentUser
-    ? isPositivePnl
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
-  const isPending = !entry.qualified;
-  const rowBg = isCurrentUser
-    ? isPending
-      ? 'bg-muted'
-      : isPositivePnl
-        ? 'bg-success-muted'
-        : 'bg-error-muted'
-    : '';
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName={`py-2 px-4 ${rowBg}`}
-      testID={`${PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-3"
-      >
-        <Text variant={TextVariant.BodyMd} color={textColor} twClassName="w-8">
-          {String(entry.rank).padStart(2, '0')}
-        </Text>
-        <Box twClassName="flex-row items-center gap-1">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={textColor}
-          >
-            {entry.referralCode}
-          </Text>
-          {showCrown && entry.rank <= 5 && (
-            <CrownIcon name="crown" width={14} height={14} />
-          )}
-        </Box>
-        {isCurrentUser && isPending && (
-          <PendingTag
-            testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG}
-          />
-        )}
-      </Box>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={textColor}
-      >
-        {formatSignedUsd(entry.pnl)}
-      </Text>
-    </Box>
-  );
-};
-
-const LeaderboardSkeleton: React.FC = () => {
-  const tw = useTailwind();
-  return (
-    <Box testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.LOADING}>
-      <Box twClassName="rounded-xl overflow-hidden">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Box key={i}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Between}
-              alignItems={BoxAlignItems.Center}
-              twClassName="py-1 px-4"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-3"
-              >
-                <Skeleton style={tw.style('h-5 w-8 rounded')} />
-                <Skeleton style={tw.style('h-5 w-20 rounded')} />
-              </Box>
-              <Skeleton style={tw.style('h-5 w-16 rounded')} />
-            </Box>
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  );
-};
-
-const NeighborSeparator: React.FC = () => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="py-1"
-    testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR}
-  >
-    <Box twClassName="flex-1 border-b border-border-muted" />
-    <Text
-      variant={TextVariant.BodyMd}
-      color={TextColor.TextAlternative}
-      twClassName="px-3"
-    >
-      •••
-    </Text>
-    <Box twClassName="flex-1 border-b border-border-muted" />
-  </Box>
-);
 
 const PerpsTradingCampaignLeaderboard: React.FC<
   PerpsTradingCampaignLeaderboardProps
@@ -182,7 +71,20 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   currentUserReferralCode,
   maxEntries,
   userPosition,
+  isCampaignComplete = false,
 }) => {
+  const navigation = useNavigation();
+
+  const handleHyperTrackerPress = useCallback(() => {
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: HYPERTRACKER_ATTRIBUTION_URL,
+        timestamp: Date.now(),
+      },
+    });
+  }, [navigation]);
+
   const isPreview = maxEntries != null;
 
   const effectiveMaxEntries =
@@ -227,7 +129,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   );
 
   if (isLoading && entries.length === 0) {
-    return <LeaderboardSkeleton />;
+    return <CampaignLeaderboardSkeleton skeletonRowCount={5} />;
   }
 
   if (hasError && entries.length === 0) {
@@ -289,27 +191,52 @@ const PerpsTradingCampaignLeaderboard: React.FC<
       {/* Leaderboard list */}
       <Box testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.LIST}>
         {visibleEntries.map((entry) => (
-          <LeaderboardEntryRow
+          <CampaignLeaderboardEntryRow
             key={`${entry.rank}-${entry.referralCode}`}
             entry={entry}
             isCurrentUser={isCurrentUser(entry)}
             showCrown={!isPreview}
+            isCampaignComplete={isCampaignComplete}
+            formatPrimaryMetric={(e) => formatSignedUsd(e.pnl)}
+            isPositivePrimaryMetric={(e) => e.pnl >= 0}
           />
         ))}
         {showSplitView && userPosition && (
           <>
-            <NeighborSeparator />
+            <CampaignLeaderboardNeighborSeparator />
             {userPosition.neighbors.map((entry) => (
-              <LeaderboardEntryRow
+              <CampaignLeaderboardEntryRow
                 key={`neighbor-${entry.rank}-${entry.referralCode}`}
                 entry={entry}
                 isCurrentUser={isCurrentUser(entry)}
                 showCrown={!isPreview}
+                isCampaignComplete={isCampaignComplete}
+                formatPrimaryMetric={(e) => formatSignedUsd(e.pnl)}
+                isPositivePrimaryMetric={(e) => e.pnl >= 0}
               />
             ))}
           </>
         )}
       </Box>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextDefault}
+        twClassName="mt-4 px-4 w-full"
+        testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.POWERED_BY}
+      >
+        {strings(
+          'rewards.perps_trading_campaign.leaderboard_powered_by_prefix',
+        )}
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="text-primary-default"
+          onPress={handleHyperTrackerPress}
+        >
+          {strings(
+            'rewards.perps_trading_campaign.leaderboard_hypertracker_brand',
+          )}
+        </Text>
+      </Text>
     </Box>
   );
 };

@@ -8613,6 +8613,8 @@
       "leaderboard_error_loading": "Failed to load leaderboard",
       "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
+      "leaderboard_powered_by_prefix": "Powered by ",
+      "leaderboard_hypertracker_brand": "HyperTracker",
       "prize_pool_title": "Prize pool",
       "prize_pool_current_label": "Current",
       "prize_pool_next_label": "Next",

@@ -19,6 +19,7 @@ import {
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
+import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PerpsTradingCampaignLeaderboardRouteParams = {
@@ -72,6 +73,9 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
         : null,
     [position],
   );
+
+  const isCampaignComplete =
+    campaign != null && getCampaignStatus(campaign) === 'complete';
 
   return (
     <ErrorBoundary
@@ -128,6 +132,7 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
               currentUserReferralCode={referralCode}
               userPosition={leaderboardUserPosition}
               campaignId={campaignId}
+              isCampaignComplete={isCampaignComplete}
             />
           </Box>
         </ScrollView>

@@ -290,6 +290,7 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
         },
         campaignId: CAMPAIGN_ID,
         onRetry: leaderboardHookDefaults.refetch,
+        isCampaignComplete: false,
       }),
     );
   });

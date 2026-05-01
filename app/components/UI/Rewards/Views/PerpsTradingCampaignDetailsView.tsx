@@ -343,6 +343,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                       userPosition={leaderboardUserPosition}
                       maxEntries={5}
                       campaignId={effectiveCampaignId}
+                      isCampaignComplete={isComplete}
                     />
                   </Box>
                 </>
