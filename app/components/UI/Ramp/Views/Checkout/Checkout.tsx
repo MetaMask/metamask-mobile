@@ -138,7 +138,7 @@ const Checkout = () => {
   ]);
 
   const handleNavigationStateChange = useCallback(
-    async (navState: WebViewNavigation) => {
+    (navState: WebViewNavigation) => {
       if (
         !hasCallbackFlow ||
         isRedirectionHandledRef.current ||
