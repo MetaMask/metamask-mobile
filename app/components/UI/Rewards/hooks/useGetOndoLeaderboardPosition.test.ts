@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetOndoLeaderboardPosition } from './useGetOndoLeaderboardPosition';
 import Engine from '../../../../core/Engine';
@@ -203,17 +203,14 @@ describe('useGetOndoLeaderboardPosition', () => {
   it('returns loading state', async () => {
     mockCall.mockResolvedValue(MOCK_POSITION as never);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useGetOndoLeaderboardPosition(CAMPAIGN_ID),
     );
 
     // Wait for the fetch to complete
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
-
-    // After fetch completes, check the final state
-    expect(result.current.isLoading).toBe(false);
   });
 
   it('returns error state', async () => {
