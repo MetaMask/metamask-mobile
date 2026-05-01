@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -68,42 +68,39 @@ describe('useOndoCampaignParticipantOutcome', () => {
 
   it('returns null outcome and no loading when campaignId is undefined', async () => {
     setupSelectors();
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useOndoCampaignParticipantOutcome(undefined),
     );
-    await act(async () => {
-      await waitForNextUpdate().catch(() => undefined);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
     expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
     expect(mockCall).not.toHaveBeenCalled();
   });
 
   it('returns null outcome when subscriptionId is missing', async () => {
     setupSelectors({ subscriptionId: null });
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useOndoCampaignParticipantOutcome(CAMPAIGN_ID),
     );
-    await act(async () => {
-      await waitForNextUpdate().catch(() => undefined);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
     expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
     expect(mockCall).not.toHaveBeenCalled();
   });
 
   it('returns null outcome when user is not opted in', async () => {
     setupSelectors({ isOptedIn: false });
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useOndoCampaignParticipantOutcome(CAMPAIGN_ID),
     );
-    await act(async () => {
-      await waitForNextUpdate().catch(() => undefined);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
     expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
     expect(mockCall).not.toHaveBeenCalled();
   });
@@ -112,12 +109,13 @@ describe('useOndoCampaignParticipantOutcome', () => {
     setupSelectors();
     mockCall.mockResolvedValue(MOCK_OUTCOME);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useOndoCampaignParticipantOutcome(CAMPAIGN_ID),
     );
 
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.outcome).toEqual(MOCK_OUTCOME);
     });
 
     expect(mockCall).toHaveBeenCalledWith(
@@ -125,8 +123,6 @@ describe('useOndoCampaignParticipantOutcome', () => {
       CAMPAIGN_ID,
       SUBSCRIPTION_ID,
     );
-    expect(result.current.outcome).toEqual(MOCK_OUTCOME);
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
   });
 
@@ -134,16 +130,15 @@ describe('useOndoCampaignParticipantOutcome', () => {
     setupSelectors();
     mockCall.mockRejectedValue(new Error('fetch failed'));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useOndoCampaignParticipantOutcome(CAMPAIGN_ID),
     );
 
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(true);
   });
 });
