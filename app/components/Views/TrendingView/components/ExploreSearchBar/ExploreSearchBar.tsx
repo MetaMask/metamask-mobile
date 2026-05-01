@@ -84,7 +84,10 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
         </TouchableOpacity>
       ) : (
         <>
-          <Box twClassName="flex-1">
+          <Box
+            twClassName="flex-1"
+            testID={TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT}
+          >
             <TextFieldSearch
               value={props.searchQuery}
               onChangeText={props.onSearchChange}
@@ -96,7 +99,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               clearButtonProps={{ testID: 'explore-search-clear-button' }}
               inputProps={{
                 autoCapitalize: 'none',
-                testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT,
+                testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
               }}
             />
           </Box>
