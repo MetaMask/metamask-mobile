@@ -341,11 +341,7 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockGoToBuy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        assetId: expect.stringContaining('eip155:59144'),
-      }),
-    );
+    expect(mockGoToBuy).toHaveBeenCalledWith();
   });
 
   it('renders component correctly', () => {

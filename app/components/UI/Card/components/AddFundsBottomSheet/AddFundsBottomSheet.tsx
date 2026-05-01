@@ -34,8 +34,6 @@ import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import useRampsUnifiedV1Enabled from '../../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
-import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
-import type { RampIntent } from '../../../Ramp/types';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
@@ -56,22 +54,6 @@ export const createAddFundsModalNavigationDetails =
     Routes.CARD.MODALS.ID,
     Routes.CARD.MODALS.ADD_FUNDS,
   );
-
-function getRampBuyIntentFromPriorityToken(
-  token: CardFundingToken | undefined,
-): RampIntent | undefined {
-  if (!token?.address || !token.caipChainId) {
-    return undefined;
-  }
-  const chainReference = token.caipChainId.split(':').pop();
-  if (!chainReference) {
-    return undefined;
-  }
-  return parseRampIntent({
-    chainId: chainReference,
-    address: token.address,
-  });
-}
 
 const AddFundsBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -106,7 +88,7 @@ const AddFundsBottomSheet: React.FC = () => {
 
   const handleFundWithCash = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      goToBuy(getRampBuyIntentFromPriorityToken(priorityToken));
+      goToBuy();
     });
     trackEvent(
       createEventBuilder(
