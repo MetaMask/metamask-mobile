@@ -16,7 +16,7 @@ function isEvmAccountType(type: string): boolean {
 
 export function findEvmAccount(
   accounts: (InternalAccount | PerpsInternalAccount)[],
-): { address: string; type: string } | null {
+): InternalAccount | PerpsInternalAccount | null {
   const evmAccount = accounts.find(
     (account) =>
       account && isEvmAccountType(account.type as InternalAccount['type']),
@@ -90,10 +90,16 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
-// Spot coins counted toward currently supported funded-state gating.
-// Today the in-app HyperLiquid market surface is USDC-collateralized only,
-// so USDH must not inflate the shared funded-state path that hides Add Funds.
-// Non-stablecoin spot assets (HYPE, PURR, …) also remain excluded.
+export type AddSpotBalanceOptions = {
+  /**
+   * Whether the user's abstraction mode folds spot balances into perps
+   * collateral. Standard / DEX abstraction keep spot separate.
+   */
+  foldIntoCollateral?: boolean;
+};
+
+// The release-branch balance bridge is USDC-only. Non-USDC spot assets must
+// not inflate the balances shown or validated by withdraw/payment flows.
 const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
 
 export function getSpotBalance(
@@ -137,7 +143,12 @@ export function getSpotHold(
 export function addSpotBalanceToAccountState(
   accountState: AccountState,
   spotState?: SpotClearinghouseStateResponse | null,
+  options?: AddSpotBalanceOptions,
 ): AccountState {
+  // Fail-closed default: align with `hyperLiquidModeFoldsSpot(null) → false`.
+  // A caller that omits `options` should NOT silently fold spot — that would
+  // over-report withdrawable funds for Standard / dexAbstraction users.
+  const foldIntoCollateral = options?.foldIntoCollateral ?? false;
   const spotBalance = getSpotBalance(spotState);
   const spotHold = getSpotHold(spotState);
   const freeSpot = Math.max(0, spotBalance - spotHold);
@@ -160,9 +171,19 @@ export function addSpotBalanceToAccountState(
     };
   }
 
-  const availableToTrade = Number.isFinite(currentAvailable)
-    ? (currentAvailable + freeSpot).toString()
-    : freeSpot.toString();
+  // Folding is gated strictly on the resolved abstraction mode. Standard /
+  // DEX-abstraction users keep perps and spot independent, so spot must NOT
+  // surface as a perps-withdrawable balance for them — withdraw3 only draws
+  // from the perps ledger in those modes. Unified / portfolio-margin users
+  // get the fold; live callers fail-CLOSED via `hyperLiquidModeFoldsSpot`
+  // when mode is unresolved (avoids over-reporting funds withdraw3 cannot
+  // actually draw during the initial subscription window).
+  let availableToTrade = accountState.availableBalance;
+  if (foldIntoCollateral) {
+    availableToTrade = Number.isFinite(currentAvailable)
+      ? (currentAvailable + freeSpot).toString()
+      : freeSpot.toString();
+  }
 
   // Subtract spotHold to avoid double-counting on Unified/PM accounts:
   // marginSummary.accountValue already includes the margin that HL
