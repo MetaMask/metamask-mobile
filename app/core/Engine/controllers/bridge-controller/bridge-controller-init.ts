@@ -111,7 +111,31 @@ export const handleBridgeFetch = async (
       );
     }
 
-    return expoFetch(target, options);
+    // Wrap `expoFetch` so we can observe what the native URLSession does
+    // with the rewritten URL. CI logs show the URL is correct
+    // (proxyBase=http://localhost:<port> rewritten=true), but Mockttp
+    // never sees the request — meaning expo/fetch's URLSession.ephemeral
+    // is silently failing to reach localhost (ATS? IPv6? proxy bypass?).
+    // These probes will tell us exactly what's happening.
+    let response: Response | undefined;
+    try {
+      response = await expoFetch(target, options);
+      debugProbe(
+        'expoFetch-resolved',
+        `ok=${response?.ok}-status=${response?.status}-hasBody=${Boolean(
+          response?.body,
+        )}`,
+      );
+      return response;
+    } catch (err) {
+      debugProbe(
+        'expoFetch-threw',
+        `name=${(err as Error)?.name ?? 'Unknown'}-msg=${
+          (err as Error)?.message ?? 'unknown'
+        }`,
+      );
+      throw err;
+    }
   }
   return handleFetch(url, options);
 };
