@@ -6,11 +6,17 @@ import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
 import { handleFetch } from '@metamask/controller-utils';
+import Routes from '../../../../constants/navigation/Routes';
+import ClipboardManager from '../../../../core/ClipboardManager';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+const mockGetState = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
+const mockTraderPriceChart = jest.fn();
 
 interface MockRouteParams {
   positionId?: string;
@@ -82,6 +88,10 @@ jest.mock('@metamask/controller-utils', () => ({
   handleFetch: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('../../../../core/ClipboardManager', () => ({
+  setString: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../../../../util/haptics', () => {
   const actual = jest.requireActual<typeof import('../../../../util/haptics')>(
     '../../../../util/haptics',
@@ -132,6 +142,16 @@ jest.mock('../../../UI/AssetOverview/PriceChart', () => {
     },
   };
 });
+jest.mock('./components/TraderPriceChart', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockTraderPriceChart(props);
+      return <View testID="trader-price-chart-mock" />;
+    },
+  };
+});
 jest.mock('../../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
   const ReactActual = jest.requireActual('react');
   return {
@@ -156,7 +176,12 @@ jest.mock('@react-navigation/native', () => {
 
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      replace: mockReplace,
+      getState: mockGetState,
+    }),
     useRoute: () => ({
       params: mockRouteParams,
     }),
@@ -176,6 +201,7 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetState.mockReturnValue({ routes: [{ name: 'Home' }], index: 0 });
     mockHandleFetch.mockResolvedValue({});
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -209,7 +235,36 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
-  it('calls goBack when the back button is pressed', () => {
+  it('replaces the current screen with the trader profile when the back button is pressed and no profile is in the back stack (deeplink)', () => {
+    // default mockGetState has no profile route behind the position screen
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+      },
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('calls goBack when the back button is pressed and the trader profile is already in the stack', () => {
+    mockGetState.mockReturnValue({
+      routes: [
+        { name: 'Home' },
+        { name: Routes.SOCIAL_LEADERBOARD.VIEW },
+        { name: Routes.SOCIAL_LEADERBOARD.PROFILE },
+        { name: Routes.SOCIAL_LEADERBOARD.POSITION },
+      ],
+      index: 3,
+    });
+
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
@@ -217,6 +272,8 @@ describe('TraderPositionView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
@@ -229,7 +286,7 @@ describe('TraderPositionView', () => {
       screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
     ).toBeOnTheScreen();
     // Price chart should not be rendered in the fallback state
-    expect(screen.queryByTestId('price-chart-mock')).toBeNull();
+    expect(screen.queryByTestId('trader-price-chart-mock')).toBeNull();
   });
 
   it('renders the skeleton while a positionId fetch is in flight', () => {
@@ -296,7 +353,9 @@ describe('TraderPositionView', () => {
 
     await waitFor(() => {
       const lastCall =
-        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
       expect(lastCall).toMatchObject({ isLoading: false });
     });
   });
@@ -307,6 +366,19 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('forwards the filtered trades to the chart component', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    await waitFor(() => {
+      const lastCall =
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
+      expect(lastCall).toHaveProperty('trades');
+      expect(Array.isArray(lastCall.trades)).toBe(true);
+    });
   });
 
   it('fires a medium impact haptic when the buy button is pressed', () => {
@@ -343,6 +415,22 @@ describe('TraderPositionView', () => {
       '0x1234567890123456789012345678901234567890',
       'eip155:8453',
     );
+  });
+
+  it('copies the token address when the token address button is pressed', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(
+        TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(ClipboardManager.setString).toHaveBeenCalledWith(
+        '0x1234567890123456789012345678901234567890',
+      );
+    });
   });
 
   it('skips token image URL resolution when the position chain is unsupported', () => {
@@ -487,7 +575,9 @@ describe('TraderPositionView', () => {
 
     await waitFor(() => {
       const lastCall =
-        mockPriceChart.mock.calls[mockPriceChart.mock.calls.length - 1]?.[0];
+        mockTraderPriceChart.mock.calls[
+          mockTraderPriceChart.mock.calls.length - 1
+        ]?.[0];
 
       expect(lastCall).toMatchObject({
         prices: weeklyPrices,
