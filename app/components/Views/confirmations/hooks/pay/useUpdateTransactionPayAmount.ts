@@ -39,6 +39,7 @@ export function useUpdateTransactionPayAmount() {
             );
           });
         }
+        return;
       }
 
       updateTokenAmount(amountHuman);
