@@ -95,7 +95,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
