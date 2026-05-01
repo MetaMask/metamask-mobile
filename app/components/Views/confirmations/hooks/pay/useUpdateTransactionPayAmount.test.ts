@@ -91,7 +91,7 @@ describe('useUpdateTransactionPayAmount', () => {
       transactionIndex: 2,
       transactionData: '0xbbbb',
     });
-    expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    expect(updateTokenAmountMock).toHaveBeenCalledWith('1.23');
   });
 
   it('does not call updateAtomicBatchData when no updates are returned', () => {

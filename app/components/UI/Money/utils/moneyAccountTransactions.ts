@@ -5,7 +5,6 @@ import {
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
-import { UpdateAmountCall } from '../../../Views/confirmations/hooks/pay/useUpdateTransactionPayAmount';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 
@@ -164,6 +163,11 @@ export async function buildMoneyAccountDepositBatch({
       type: TransactionType.moneyAccountDeposit,
     },
   };
+}
+
+export interface UpdateAmountCall {
+  nestedTransactionIndex: number;
+  transactionData: Hex;
 }
 
 /**
