@@ -58,7 +58,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
@@ -66,6 +66,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -90,6 +91,12 @@ export interface CustomAmountInfoProps {
    * When true, the account selector is shown.
    */
   supportAccountSelection?: boolean;
+  /**
+   * Adds bottom space to the bottom block (rows + keyboard/confirm button).
+   * Used by Perps Withdraw on Android, where this screen has one extra
+   * balance line and otherwise clips behind the system gesture bar.
+   */
+  hasExtraBottomPadding?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -99,6 +106,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disableConfirm,
     disablePay,
     hasMax,
+    hasExtraBottomPadding,
     onAmountSubmit,
     hidePayTokenAmount,
     preferredToken,
@@ -208,7 +216,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {!hidePayTokenAmount && children}
         </Box>
-        <Box gap={16}>
+        <Box
+          gap={16}
+          testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
+          style={hasExtraBottomPadding && styles.extraBottomPadding}
+        >
           <AlertMessage alertMessage={alertMessage} />
           {!isResultReady && (
             <>
@@ -352,7 +364,7 @@ function ConfirmButton({
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const isLoading = useIsTransactionPayLoading();
-  const { onConfirm } = useTransactionConfirm();
+  const { onConfirm } = useConfirmActions();
   const disabled = hasBlockingAlerts || isLoading || Boolean(disableConfirm);
   const buttonLabel = useButtonLabel();
 

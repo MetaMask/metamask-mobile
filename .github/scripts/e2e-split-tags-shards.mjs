@@ -27,7 +27,7 @@ const env = {
   RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
 };
-// Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
+// Example of format of CHANGED_FILES: app/components/Foo.tsx tests/e2e/specs/Bar.js
 
 const QA_STATS_WORKFLOW_FILE = 'qa-stats.yml';
 const QA_STATS_ARTIFACT_NAME = 'qa-stats';
@@ -108,9 +108,9 @@ async function shouldSkipFlakinessDetection() {
     );
 
     const labels = data?.repository?.pullRequest?.labels?.nodes || [];
-    const labelFound = labels.some((l) => String(l?.name).toLowerCase() === 'skip-e2e-quality-gate');
+    const labelFound = labels.some((l) => String(l?.name).toLowerCase() === 'skip-e2e-flakiness-detection');
     if (labelFound) {
-      console.log('⏭️  Found "skip-e2e-quality-gate" label → SKIPPING flakiness detection');
+      console.log('⏭️  Found "skip-e2e-flakiness-detection" label → SKIPPING flakiness detection');
     }
     return labelFound;
   } catch (e) {
