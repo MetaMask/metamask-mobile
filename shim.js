@@ -293,6 +293,13 @@ if (enableApiCallLogs || isTest) {
       if (available) {
         MOCKTTP_URL = testUrl;
         isMockServerAvailable = true;
+        // Expose the resolved Mockttp base URL so non-shim callers
+        // (e.g. BridgeController in `bridge-controller-init.ts`) can
+        // route their own requests through the proxy without redoing
+        // the discovery dance — this avoids platform-specific
+        // discrepancies (LaunchArguments availability, etc.) in the
+        // bridge SSE URL rewrite.
+        global.__E2E_MOCK_PROXY_URL = MOCKTTP_URL;
         // eslint-disable-next-line no-console
         console.log(`[E2E SHIM] Mock server connected via ${host}`);
         break;

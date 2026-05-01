@@ -39,80 +39,47 @@ const { version: clientVersion } = packageJSON;
  */
 const LOG_PREFIX = '[E2E BRIDGE]';
 
-let mockProxyUrlPromise: Promise<string | null> | undefined;
-const resolveMockProxyUrl = (): Promise<string | null> => {
-  if (!isE2E) return Promise.resolve(null);
-  if (mockProxyUrlPromise) return mockProxyUrlPromise;
-  mockProxyUrlPromise = (async () => {
-    try {
-      // Lazy-required to keep these imports off the production module-init
-      // path and to avoid Hermes inlining anything we want to look up at
-      // runtime in E2E.
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const { Platform } = require('react-native');
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const { LaunchArguments } = require('react-native-launch-arguments');
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const defaultMockPortJson = require('../../../../../tests/api-mocking/mock-config/mockUrlCollection.json');
-      const defaultMockPort = defaultMockPortJson?.defaultMockPort;
+/**
+ * Diagnostic probe.
+ *
+ * Production builds strip every `console.*` call via
+ * `babel-plugin-transform-remove-console`, so console-based logging is
+ * invisible on iOS release (where Hermes runs the bundle). To get any
+ * E2E diagnostics out of the device we instead fire-and-forget an HTTP
+ * request to a sentinel host. Whether it reaches Mockttp via the patched
+ * `global.fetch` (URL-rewrite) or via the iOS system proxy
+ * (`https://e2e-bridge-debug.invalid/...`), Mockttp will log it as
+ * `Allowed URL: ...` and we see it in Detox stdout.
+ *
+ * `console.log` is kept too — useful on Android logcat and dev builds.
+ */
+const debugProbe = (event: string, detail?: string) => {
+  const safe = encodeURIComponent(detail ?? '').slice(0, 200);
+  // eslint-disable-next-line no-console
+  console.log(`${LOG_PREFIX} ${event} ${detail ?? ''}`);
+  try {
+    const probeUrl = `http://e2e-bridge-debug.invalid/${event}/${safe}`;
+    // Use `global.fetch` (post-shim if available, raw otherwise). Either
+    // path reaches Mockttp on E2E.
+    void global.fetch(probeUrl).catch(() => undefined);
+  } catch {
+    // Never let diagnostics affect product behavior.
+  }
+};
 
-      const raw = LaunchArguments.value?.() ?? {};
-      const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
-
-      const hosts: string[] = ['localhost'];
-      if (Platform.OS === 'android') hosts.push('10.0.2.2');
-
-      // `global.fetch` is patched by shim.js to route through the proxy once
-      // discovered, but at this point we may run before that patch (or it may
-      // not have applied). Use the original fetch saved by shim.js if present,
-      // otherwise fall back to whatever `global.fetch` currently is.
-      const probeFetch =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (global as any).__originalFetch ?? global.fetch;
-
-      // eslint-disable-next-line no-console
-      console.log(
-        `${LOG_PREFIX} resolveMockProxyUrl: platform=${Platform.OS} port=${mockServerPort} hosts=${hosts.join(',')} usingOriginalFetch=${Boolean(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (global as any).__originalFetch,
-        )}`,
-      );
-
-      for (const host of hosts) {
-        const candidate = `http://${host}:${mockServerPort}`;
-        try {
-          const res = await probeFetch(`${candidate}/health-check`);
-          // eslint-disable-next-line no-console
-          console.log(
-            `${LOG_PREFIX} health-check ${candidate} -> ok=${res?.ok} status=${res?.status}`,
-          );
-          if (res?.ok) return candidate;
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.log(
-            `${LOG_PREFIX} health-check ${candidate} threw: ${
-              (err as Error)?.message ?? err
-            }`,
-          );
-        }
-      }
-      // eslint-disable-next-line no-console
-      console.log(`${LOG_PREFIX} no reachable mock server`);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log(
-        `${LOG_PREFIX} resolveMockProxyUrl crashed: ${
-          (error as Error)?.message ?? error
-        }`,
-      );
-      Logger.error(
-        error as Error,
-        'BridgeController: failed to resolve mock proxy URL',
-      );
-    }
-    return null;
-  })();
-  return mockProxyUrlPromise;
+/**
+ * Read the Mockttp proxy URL stashed by `shim.js` once its async mock-server
+ * discovery completes. We deliberately do NOT redo the discovery here —
+ * shim.js already does it on every E2E boot, and any duplication risks
+ * platform-specific drift (LaunchArguments availability, port mismatches,
+ * etc.). If the global isn't set yet, the SSE call falls through to the
+ * real backend — which is the same behavior we had before this fix.
+ */
+const resolveMockProxyUrl = (): string | null => {
+  if (!isE2E) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fromShim = (global as any).__E2E_MOCK_PROXY_URL as string | undefined;
+  return fromShim ?? null;
 };
 
 export const handleBridgeFetch = async (
@@ -132,16 +99,15 @@ export const handleBridgeFetch = async (
 
     const original = url.toString();
     let target = original;
+    debugProbe('handleBridgeFetch-stream-entered', `isE2E=${isE2E}`);
     if (isE2E) {
-      const proxyBase = await resolveMockProxyUrl();
+      const proxyBase = resolveMockProxyUrl();
       if (proxyBase && !target.startsWith(proxyBase)) {
         target = `${proxyBase}/proxy?url=${encodeURIComponent(target)}`;
       }
-      // eslint-disable-next-line no-console
-      console.log(
-        `${LOG_PREFIX} handleBridgeFetch SSE proxyBase=${proxyBase ?? 'null'} rewritten=${
-          target !== original
-        } url=${target}`,
+      debugProbe(
+        'handleBridgeFetch-rewrite',
+        `proxyBase=${proxyBase ?? 'null'}-rewritten=${target !== original}`,
       );
     }
 

@@ -161,11 +161,12 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
   ],
-  env: {
-    production: {
-      plugins: ['transform-remove-console'],
-    },
-  },
+  // NOTE: `babel-plugin-transform-remove-console` was previously enabled in
+  // the `production` env block, which strips every `console.*` call from
+  // release builds. That made E2E diagnostics on iOS Hermes invisible (no
+  // way to confirm `shim.js` / `handleBridgeFetch` code paths). Removed
+  // while we work through the RN 0.81 E2E upgrade — re-evaluate once the
+  // suite is green.
   comments: false,
   compact: true,
 };
