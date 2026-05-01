@@ -19,8 +19,7 @@ import {
   DEFAULT_CLOB_BASE_URL,
   EIP712Domain,
   HASH_ZERO_BYTES32,
-  LEGACY_V2_CLOB_BASE_URL,
-  MATIC_CONTRACTS,
+  MATIC_CONTRACTS_V2,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
@@ -28,17 +27,10 @@ import {
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import {
   ApiKeyCreds,
-  ClobHeaders,
-  ClobOrderObject,
   L2HeaderArgs,
-  OrderData,
-  OrderResponse,
-  OrderType,
   PolymarketApiEvent,
   PolymarketApiMarket,
   PolymarketPosition,
-  SignatureType,
-  UtilsSide,
 } from './types';
 import { GetMarketsParams } from '../types';
 import {
@@ -58,8 +50,6 @@ import {
   getMarketsFromPolymarketApi,
   getParsedMarketsFromPolymarketApi,
   getOrderBook,
-  getFeeRateBps,
-  getOrderTypedData,
   getPolymarketEndpoints,
   getPredictPositionStatus,
   GROUP_ORDER,
@@ -68,7 +58,6 @@ import {
   parsePolymarketActivity,
   priceValid,
   SPORTS_MARKET_TYPE_TO_GROUP,
-  submitClobOrder,
   decimalPlaces,
   roundNormal,
   roundDown,
@@ -406,38 +395,17 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('defaults v2 API key derivation to the canonical CLOB endpoint', async () => {
+    it('uses the canonical CLOB endpoint', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
       };
       mockFetch.mockResolvedValue(mockResponse);
 
-      await deriveApiKey({ address: mockAddress, clobVersion: 'v2' });
+      await deriveApiKey({ address: mockAddress });
 
       expect(mockFetch).toHaveBeenCalledWith(
         `${DEFAULT_CLOB_BASE_URL}/auth/derive-api-key`,
-        expect.objectContaining({
-          method: 'GET',
-        }),
-      );
-    });
-
-    it('uses the temporary v2 CLOB host override when provided', async () => {
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockApiKey),
-      };
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await deriveApiKey({
-        address: mockAddress,
-        clobVersion: 'v2',
-        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${LEGACY_V2_CLOB_BASE_URL}/auth/derive-api-key`,
         expect.objectContaining({
           method: 'GET',
         }),
@@ -478,7 +446,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('defaults v2 API key creation to the canonical CLOB endpoint', async () => {
+    it('uses the canonical CLOB endpoint', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
@@ -486,33 +454,10 @@ describe('polymarket utils', () => {
       };
       mockFetch.mockResolvedValue(mockResponse);
 
-      await createApiKey({ address: mockAddress, clobVersion: 'v2' });
+      await createApiKey({ address: mockAddress });
 
       expect(mockFetch).toHaveBeenCalledWith(
         `${DEFAULT_CLOB_BASE_URL}/auth/api-key`,
-        expect.objectContaining({
-          method: 'POST',
-          body: '',
-        }),
-      );
-    });
-
-    it('uses the temporary v2 CLOB host override for API key creation when provided', async () => {
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockApiKey),
-        status: 200,
-      };
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await createApiKey({
-        address: mockAddress,
-        clobVersion: 'v2',
-        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${LEGACY_V2_CLOB_BASE_URL}/auth/api-key`,
         expect.objectContaining({
           method: 'POST',
           body: '',
@@ -539,40 +484,6 @@ describe('polymarket utils', () => {
 
       expect(result).toEqual(mockApiKey);
       expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
-
-    it('derives from the provided v2 CLOB host when v2 creation returns 400', async () => {
-      const createResponse = {
-        ok: false,
-        json: jest.fn().mockResolvedValue({}),
-        status: 400,
-      };
-      const deriveResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockApiKey),
-      };
-
-      mockFetch
-        .mockResolvedValueOnce(createResponse)
-        .mockResolvedValueOnce(deriveResponse);
-
-      const result = await createApiKey({
-        address: mockAddress,
-        clobVersion: 'v2',
-        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
-      });
-
-      expect(result).toEqual(mockApiKey);
-      expect(mockFetch).toHaveBeenNthCalledWith(
-        1,
-        `${LEGACY_V2_CLOB_BASE_URL}/auth/api-key`,
-        expect.objectContaining({ method: 'POST' }),
-      );
-      expect(mockFetch).toHaveBeenNthCalledWith(
-        2,
-        `${LEGACY_V2_CLOB_BASE_URL}/auth/derive-api-key`,
-        expect.objectContaining({ method: 'GET' }),
-      );
     });
 
     it('handle creation errors', async () => {
@@ -645,7 +556,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('defaults the v2 order book to the canonical CLOB endpoint', async () => {
+    it('uses the canonical CLOB endpoint', async () => {
       const mockOrderBook = {
         bids: [],
         asks: [],
@@ -656,33 +567,10 @@ describe('polymarket utils', () => {
       };
       mockFetch.mockResolvedValue(mockResponse);
 
-      await getOrderBook({ tokenId: 'test-token', clobVersion: 'v2' });
+      await getOrderBook({ tokenId: 'test-token' });
 
       expect(mockFetch).toHaveBeenCalledWith(
         `${DEFAULT_CLOB_BASE_URL}/book?token_id=test-token`,
-        { method: 'GET' },
-      );
-    });
-
-    it('uses the temporary v2 CLOB host override for order book reads when provided', async () => {
-      const mockOrderBook = {
-        bids: [],
-        asks: [],
-      };
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockOrderBook),
-      };
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await getOrderBook({
-        tokenId: 'test-token',
-        clobVersion: 'v2',
-        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${LEGACY_V2_CLOB_BASE_URL}/book?token_id=test-token`,
         { method: 'GET' },
       );
     });
@@ -723,45 +611,6 @@ describe('polymarket utils', () => {
     });
   });
 
-  describe('getFeeRateBps', () => {
-    it('returns fee rate from CLOB fee-rate endpoint', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ base_fee: 30 }),
-      });
-
-      const result = await getFeeRateBps({ tokenId: 'test-token' });
-
-      expect(result).toBe('30');
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/fee-rate?token_id=test-token',
-        { method: 'GET' },
-      );
-    });
-
-    it('returns zero fee rate when fee-rate endpoint responds with error', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 404,
-        json: jest
-          .fn()
-          .mockResolvedValue({ error: 'fee rate not found for market' }),
-      });
-
-      const result = await getFeeRateBps({ tokenId: 'test-token' });
-
-      expect(result).toBe('0');
-    });
-
-    it('returns zero fee rate when fee-rate endpoint throws', async () => {
-      mockFetch.mockRejectedValue(new Error('Network error'));
-
-      const result = await getFeeRateBps({ tokenId: 'test-token' });
-
-      expect(result).toBe('0');
-    });
-  });
-
   describe('generateSalt', () => {
     it('generate a valid hex salt', () => {
       const salt = generateSalt();
@@ -782,67 +631,13 @@ describe('polymarket utils', () => {
   describe('getContractConfig', () => {
     it('return Polygon mainnet contracts', () => {
       const config = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-      expect(config).toEqual(MATIC_CONTRACTS);
+      expect(config).toEqual(MATIC_CONTRACTS_V2);
     });
 
     it('throw error for unsupported chain', () => {
       expect(() => getContractConfig(999)).toThrow(
         'MetaMask Predict is only supported on Polygon mainnet',
       );
-    });
-  });
-
-  describe('getOrderTypedData', () => {
-    const orderData: OrderData & { salt: string } = {
-      salt: '12345',
-      maker: mockAddress,
-      signer: mockAddress,
-      taker: '0x0000000000000000000000000000000000000000',
-      tokenId: 'test-token',
-      makerAmount: '100000000',
-      takerAmount: '50000000',
-      expiration: '0',
-      nonce: '0',
-      feeRateBps: '0',
-      side: UtilsSide.BUY,
-      signatureType: SignatureType.EOA,
-    };
-
-    it('generate correct typed data structure', () => {
-      const result = getOrderTypedData({
-        order: orderData,
-        chainId: POLYGON_MAINNET_CHAIN_ID,
-        verifyingContract: '0x1234567890123456789012345678901234567890',
-      });
-
-      expect(result.primaryType).toBe('Order');
-      expect(result.domain).toEqual({
-        name: 'Polymarket CTF Exchange',
-        version: '1',
-        chainId: POLYGON_MAINNET_CHAIN_ID,
-        verifyingContract: '0x1234567890123456789012345678901234567890',
-      });
-      expect(result.types).toEqual({
-        EIP712Domain: [
-          ...EIP712Domain,
-          { name: 'verifyingContract', type: 'address' },
-        ],
-        Order: [
-          { name: 'salt', type: 'uint256' },
-          { name: 'maker', type: 'address' },
-          { name: 'signer', type: 'address' },
-          { name: 'taker', type: 'address' },
-          { name: 'tokenId', type: 'uint256' },
-          { name: 'makerAmount', type: 'uint256' },
-          { name: 'takerAmount', type: 'uint256' },
-          { name: 'expiration', type: 'uint256' },
-          { name: 'nonce', type: 'uint256' },
-          { name: 'feeRateBps', type: 'uint256' },
-          { name: 'side', type: 'uint8' },
-          { name: 'signatureType', type: 'uint8' },
-        ],
-      });
-      expect(result.message).toEqual(orderData);
     });
   });
 
@@ -867,358 +662,6 @@ describe('polymarket utils', () => {
 
       expect(typeof result).toBe('string');
       expect(result.startsWith('0x')).toBe(true);
-    });
-  });
-
-  describe('submitClobOrder', () => {
-    const mockHeaders: ClobHeaders = {
-      POLY_ADDRESS: mockAddress,
-      POLY_SIGNATURE: 'test-signature_',
-      POLY_TIMESTAMP: '1704067200',
-      POLY_API_KEY: 'test-api-key',
-      POLY_PASSPHRASE: 'test-passphrase',
-    };
-
-    const mockClobOrder: ClobOrderObject = {
-      order: {
-        maker: mockAddress,
-        signer: mockAddress,
-        taker: '0x0000000000000000000000000000000000000000',
-        tokenId: 'test-token',
-        makerAmount: '100000000',
-        takerAmount: '50000000',
-        expiration: '0',
-        nonce: '0',
-        feeRateBps: '0',
-        side: Side.BUY,
-        signatureType: SignatureType.EOA,
-        signature: 'mock-signature',
-        salt: 12345,
-      },
-      owner: mockAddress,
-      orderType: OrderType.FOK,
-    };
-
-    const mockOrderResponse: OrderResponse = {
-      errorMsg: '',
-      makingAmount: '100000000',
-      orderID: 'order-123',
-      status: 'success',
-      success: true,
-      takingAmount: '50000000',
-      transactionsHashes: [],
-    };
-
-    beforeEach(() => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockOrderResponse),
-      });
-    });
-
-    it('submit CLOB order successfully', async () => {
-      const result = await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      expect(result).toEqual({
-        success: true,
-        response: mockOrderResponse,
-      });
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://predict.api.cx.metamask.io/order',
-        {
-          method: 'POST',
-          headers: {
-            POLY_ADDRESS: mockAddress,
-            POLY_SIGNATURE: 'test-signature_',
-            POLY_TIMESTAMP: '1704067200',
-            POLY_API_KEY: 'test-api-key',
-            POLY_PASSPHRASE: 'test-passphrase',
-            'POLY-ADDRESS': mockAddress,
-            'POLY-SIGNATURE': 'test-signature_',
-            'POLY-TIMESTAMP': '1704067200',
-            'POLY-API-KEY': 'test-api-key',
-            'POLY-PASSPHRASE': 'test-passphrase',
-          },
-          body: JSON.stringify({
-            ...mockClobOrder,
-            feeAuthorization: undefined,
-          }),
-        },
-      );
-    });
-
-    it('handle fetch errors', async () => {
-      const error = new Error('Network error');
-      mockFetch.mockRejectedValue(error);
-
-      const result = await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Failed to submit CLOB order: Network error',
-      });
-    });
-
-    it('includes feeAuthorization in request body when provided', async () => {
-      const feeAuthorization = {
-        type: 'safe-transaction' as const,
-        authorization: {
-          tx: {
-            to: '0xCollateralAddress',
-            operation: 0,
-            data: '0xdata',
-            value: '0',
-          },
-          sig: '0xsig',
-        },
-      };
-
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-        feeAuthorization,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://predict.api.cx.metamask.io/order',
-        {
-          method: 'POST',
-          headers: {
-            POLY_ADDRESS: mockAddress,
-            POLY_SIGNATURE: 'test-signature_',
-            POLY_TIMESTAMP: '1704067200',
-            POLY_API_KEY: 'test-api-key',
-            POLY_PASSPHRASE: 'test-passphrase',
-            'POLY-ADDRESS': mockAddress,
-            'POLY-SIGNATURE': 'test-signature_',
-            'POLY-TIMESTAMP': '1704067200',
-            'POLY-API-KEY': 'test-api-key',
-            'POLY-PASSPHRASE': 'test-passphrase',
-          },
-          body: JSON.stringify({ ...mockClobOrder, feeAuthorization }),
-        },
-      );
-    });
-
-    it('omits feeAuthorization when undefined', async () => {
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://predict.api.cx.metamask.io/order',
-        {
-          method: 'POST',
-          headers: {
-            POLY_ADDRESS: mockAddress,
-            POLY_SIGNATURE: 'test-signature_',
-            POLY_TIMESTAMP: '1704067200',
-            POLY_API_KEY: 'test-api-key',
-            POLY_PASSPHRASE: 'test-passphrase',
-            'POLY-ADDRESS': mockAddress,
-            'POLY-SIGNATURE': 'test-signature_',
-            'POLY-TIMESTAMP': '1704067200',
-            'POLY-API-KEY': 'test-api-key',
-            'POLY-PASSPHRASE': 'test-passphrase',
-          },
-          body: JSON.stringify({
-            ...mockClobOrder,
-            feeAuthorization: undefined,
-          }),
-        },
-      );
-    });
-
-    it('serializes feeAuthorization correctly to JSON', async () => {
-      const feeAuthorization = {
-        type: 'safe-transaction' as const,
-        authorization: {
-          tx: {
-            to: '0x1234567890123456789012345678901234567890',
-            operation: 0,
-            data: '0xabcdef',
-            value: '100',
-          },
-          sig: '0xdeadbeef',
-        },
-      };
-
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-        feeAuthorization,
-      });
-
-      const callArgs = mockFetch.mock.calls[0];
-      const bodyString = callArgs[1].body;
-      const parsedBody = JSON.parse(bodyString);
-
-      expect(parsedBody).toHaveProperty('feeAuthorization');
-      expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
-    });
-
-    it('uses CLOB_RELAYER endpoint when feeAuthorization is not provided for BUY orders', async () => {
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://predict.api.cx.metamask.io/order',
-        {
-          method: 'POST',
-          headers: {
-            POLY_ADDRESS: mockAddress,
-            POLY_SIGNATURE: 'test-signature_',
-            POLY_TIMESTAMP: '1704067200',
-            POLY_API_KEY: 'test-api-key',
-            POLY_PASSPHRASE: 'test-passphrase',
-            'POLY-ADDRESS': mockAddress,
-            'POLY-SIGNATURE': 'test-signature_',
-            'POLY-TIMESTAMP': '1704067200',
-            'POLY-API-KEY': 'test-api-key',
-            'POLY-PASSPHRASE': 'test-passphrase',
-          },
-          body: JSON.stringify({
-            ...mockClobOrder,
-            feeAuthorization: undefined,
-          }),
-        },
-      );
-    });
-
-    it('uses CLOB_RELAYER endpoint for SELL orders with feeAuthorization', async () => {
-      const sellClobOrder: ClobOrderObject = {
-        ...mockClobOrder,
-        order: {
-          ...mockClobOrder.order,
-          side: Side.SELL,
-        },
-      };
-
-      const feeAuthorization = {
-        type: 'safe-transaction' as const,
-        authorization: {
-          tx: {
-            to: '0xCollateralAddress',
-            operation: 0,
-            data: '0xdata',
-            value: '0',
-          },
-          sig: '0xsig',
-        },
-      };
-
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: sellClobOrder,
-        feeAuthorization,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://predict.api.cx.metamask.io/order',
-        {
-          method: 'POST',
-          headers: {
-            POLY_ADDRESS: mockAddress,
-            POLY_SIGNATURE: 'test-signature_',
-            POLY_TIMESTAMP: '1704067200',
-            POLY_API_KEY: 'test-api-key',
-            POLY_PASSPHRASE: 'test-passphrase',
-            'POLY-ADDRESS': mockAddress,
-            'POLY-SIGNATURE': 'test-signature_',
-            'POLY-TIMESTAMP': '1704067200',
-            'POLY-API-KEY': 'test-api-key',
-            'POLY-PASSPHRASE': 'test-passphrase',
-          },
-          body: JSON.stringify({
-            ...sellClobOrder,
-            feeAuthorization,
-          }),
-        },
-      );
-    });
-
-    it('includes executor in request body when provided', async () => {
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-        executor: '0x1111111111111111111111111111111111111111',
-      });
-
-      const callArgs = mockFetch.mock.calls[0];
-      const bodyString = callArgs[1].body;
-      const parsedBody = JSON.parse(bodyString);
-
-      expect(parsedBody.executor).toBe(
-        '0x1111111111111111111111111111111111111111',
-      );
-    });
-
-    it('supports Permit2 fee authorization payload in request body', async () => {
-      const feeAuthorization = {
-        type: 'safe-permit2' as const,
-        authorization: {
-          permit: {
-            permitted: {
-              token: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-              amount: '1000000',
-            },
-            nonce: '0',
-            deadline: '1700000000',
-          },
-          spender: '0x1111111111111111111111111111111111111111',
-          signature: '0xabc',
-        },
-      };
-
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-        feeAuthorization,
-      });
-
-      const callArgs = mockFetch.mock.calls[0];
-      const bodyString = callArgs[1].body;
-      const parsedBody = JSON.parse(bodyString);
-
-      expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
-    });
-
-    it('includes allowancesTx in request body when provided', async () => {
-      const allowancesTx = { to: '0xSafeAddress', data: '0xallowanceData' };
-
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-        allowancesTx,
-      });
-
-      const callArgs = mockFetch.mock.calls[0];
-      const bodyString = callArgs[1].body;
-      const parsedBody = JSON.parse(bodyString);
-
-      expect(parsedBody.allowancesTx).toEqual(allowancesTx);
-    });
-
-    it('omits allowancesTx from request body when not provided', async () => {
-      await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      const callArgs = mockFetch.mock.calls[0];
-      const bodyString = callArgs[1].body;
-      const parsedBody = JSON.parse(bodyString);
-
-      expect(parsedBody).not.toHaveProperty('allowancesTx');
     });
   });
 
@@ -3710,114 +3153,6 @@ describe('polymarket utils', () => {
     });
   });
 
-  describe('submitClobOrder error handling', () => {
-    const mockHeaders: ClobHeaders = {
-      POLY_ADDRESS: mockAddress,
-      POLY_SIGNATURE: 'test-signature_',
-      POLY_TIMESTAMP: '1704067200',
-      POLY_API_KEY: 'test-api-key',
-      POLY_PASSPHRASE: 'test-passphrase',
-    };
-
-    const mockClobOrder: ClobOrderObject = {
-      order: {
-        maker: mockAddress,
-        signer: mockAddress,
-        taker: '0x0000000000000000000000000000000000000000',
-        tokenId: 'test-token',
-        makerAmount: '100000000',
-        takerAmount: '50000000',
-        expiration: '0',
-        nonce: '0',
-        feeRateBps: '0',
-        side: Side.BUY,
-        signatureType: SignatureType.EOA,
-        signature: 'mock-signature',
-        salt: 12345,
-      },
-      owner: mockAddress,
-      orderType: OrderType.FOK,
-    };
-
-    it('handle 403 geoblock response with specific error message', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 403,
-        statusText: 'Forbidden',
-        json: jest.fn().mockResolvedValue({}),
-      });
-
-      const result = await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      expect(result).toEqual({
-        success: false,
-        error: 'You are unable to access this provider.',
-      });
-    });
-
-    it('handle non-403 error with JSON error message', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 400,
-        statusText: 'Bad Request',
-        json: jest.fn().mockResolvedValue({
-          errorMsg: 'Invalid order parameters',
-        }),
-      });
-
-      const result = await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Invalid order parameters',
-      });
-    });
-
-    it('handle non-403 error without JSON error field, use statusText', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
-        json: jest.fn().mockResolvedValue({}),
-      });
-
-      const result = await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Internal Server Error',
-      });
-    });
-
-    it('handle non-JSON error response (HTML body)', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 502,
-        statusText: 'Bad Gateway',
-        json: jest.fn().mockRejectedValue(new Error('Unexpected token <')),
-      });
-
-      const result = await submitClobOrder({
-        headers: mockHeaders,
-        clobOrder: mockClobOrder,
-      });
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Bad Gateway',
-      });
-    });
-  });
-
   describe('parsePolymarketActivity', () => {
     // Type guard helpers for better type safety
     const isBuyEntry = (
@@ -4106,11 +3441,6 @@ describe('polymarket utils', () => {
         json: async () => mockOrderBook,
       });
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ base_fee: 30 }),
-      });
-
       const result = await previewOrder({
         marketId: 'market-1',
         outcomeId: 'outcome-1',
@@ -4124,7 +3454,7 @@ describe('polymarket utils', () => {
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.maxAmountSpent).toBeGreaterThan(0);
       expect(result.slippage).toBeDefined();
-      expect(result.feeRateBps).toBe('30');
+      expect(result.feeRateBps).toBe('0');
     });
 
     it('previews SELL order successfully', async () => {
@@ -4145,11 +3475,6 @@ describe('polymarket utils', () => {
         json: async () => mockOrderBook,
       });
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ base_fee: 15 }),
-      });
-
       const result = await previewOrder({
         marketId: 'market-1',
         outcomeId: 'outcome-1',
@@ -4162,10 +3487,10 @@ describe('polymarket utils', () => {
       expect(result.marketId).toBe('market-1');
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.fees).toBeUndefined();
-      expect(result.feeRateBps).toBe('15');
+      expect(result.feeRateBps).toBe('0');
     });
 
-    it('uses the v2 order book endpoint and zero fee rate for v2 previews', async () => {
+    it('returns zero fee rate and calls the canonical CLOB order book endpoint', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -4189,44 +3514,12 @@ describe('polymarket utils', () => {
         outcomeTokenId: 'token-1',
         side: Side.BUY,
         size: 50,
-        isV2: true,
       });
 
       expect(result.feeRateBps).toBe('0');
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
         `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,
-        { method: 'GET' },
-      );
-    });
-
-    it('uses the provided v2 CLOB host override during preview', async () => {
-      const mockOrderBook = {
-        min_order_size: '5',
-        tick_size: '0.01',
-        timestamp: '2025-02-08T00:00:00.000Z',
-        neg_risk: false,
-        asks: [{ price: '0.50', size: '100' }],
-        bids: [],
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockOrderBook,
-      });
-
-      await previewOrder({
-        marketId: 'market-1',
-        outcomeId: 'outcome-1',
-        outcomeTokenId: 'token-1',
-        side: Side.BUY,
-        size: 50,
-        isV2: true,
-        clobBaseUrl: LEGACY_V2_CLOB_BASE_URL,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${LEGACY_V2_CLOB_BASE_URL}/book?token_id=token-1`,
         { method: 'GET' },
       );
     });
