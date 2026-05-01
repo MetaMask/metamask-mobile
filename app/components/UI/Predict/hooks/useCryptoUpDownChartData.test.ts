@@ -235,6 +235,41 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.data).toEqual([{ time: 1700000000, value: 51000 }]);
     });
 
+    it('uses the latest market end date for a retained live callback', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T00:00:30.000Z',
+      });
+      const expiredMarket = createMarket({
+        id: 'market-2',
+        endDate: '2025-12-31T23:59:59.000Z',
+      });
+      const chartRef = createMockChartRef();
+      historicalData = [];
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket, chartRef),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+      const retainedLiveUpdateHandler = liveUpdateHandler;
+
+      rerender({ activeMarket: expiredMarket });
+
+      act(() => {
+        retainedLiveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 100,
+        });
+      });
+
+      expect(result.current.data).toEqual([]);
+    });
+
     it('clears live state and chart data after market id changes', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();

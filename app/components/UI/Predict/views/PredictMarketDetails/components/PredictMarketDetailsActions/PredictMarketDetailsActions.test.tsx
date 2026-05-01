@@ -144,10 +144,10 @@ describe('PredictMarketDetailsActions', () => {
     renderWithProvider(<PredictMarketDetailsActions {...props} />);
 
     expect(screen.getByText('$100.00 -> $153.85')).toBeOnTheScreen();
-    expect(screen.getByText('$100.00 -> $25,000.00')).toBeOnTheScreen();
+    expect(screen.getByText('$100.00 -> --')).toBeOnTheScreen();
   });
 
-  it('formats payout estimates for large USD values', () => {
+  it('hides payout estimates for prices outside the display range', () => {
     const props = createProps({
       showPayoutEstimate: true,
       openOutcomes: [
@@ -162,7 +162,7 @@ describe('PredictMarketDetailsActions', () => {
 
     renderWithProvider(<PredictMarketDetailsActions {...props} />);
 
-    expect(screen.getByText('$100.00 -> $78,000.00')).toBeOnTheScreen();
+    expect(screen.getAllByText('$100.00 -> --')).toHaveLength(2);
   });
 
   it('renders skeleton while market details are loading', () => {

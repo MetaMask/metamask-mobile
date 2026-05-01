@@ -29,6 +29,8 @@ import { formatCurrencyValue } from '../../../../utils/format';
 const LONG_OUTCOME_LABEL_THRESHOLD = 12;
 const TALL_ACTION_BUTTON_MIN_HEIGHT = 48;
 const DEFAULT_PAYOUT_INVESTMENT_AMOUNT = 100;
+const MIN_PAYOUT_ESTIMATE_PRICE = 0.01;
+const MAX_PAYOUT_ESTIMATE_PRICE = 0.99;
 
 const shouldUseStackedActionButtonLabel = (title?: string) =>
   Boolean(title && title.length > LONG_OUTCOME_LABEL_THRESHOLD);
@@ -39,7 +41,12 @@ const formatPayoutEstimate = (
 ) => {
   const investmentAmountDisplay = formatCurrencyValue(investmentAmount) ?? '--';
 
-  if (typeof price !== 'number' || !Number.isFinite(price) || price <= 0) {
+  if (
+    typeof price !== 'number' ||
+    !Number.isFinite(price) ||
+    price < MIN_PAYOUT_ESTIMATE_PRICE ||
+    price > MAX_PAYOUT_ESTIMATE_PRICE
+  ) {
     return `${investmentAmountDisplay} -> --`;
   }
 

@@ -65,9 +65,15 @@ export const useCryptoUpDownChartData = (
   const variant = getVariant(recurrence);
   const eventStartTime = getEventStartTime(market.endDate, recurrence);
   const durationSecs = RECURRENCE_TO_DURATION_SECS[recurrence] ?? 300;
-  const isLive = market.endDate
-    ? Date.now() < new Date(market.endDate).getTime()
-    : false;
+  const marketEndDateMs = market.endDate
+    ? new Date(market.endDate).getTime()
+    : undefined;
+  const liveEndDateMs =
+    typeof marketEndDateMs === 'number' && Number.isFinite(marketEndDateMs)
+      ? marketEndDateMs
+      : undefined;
+  const isLive =
+    typeof liveEndDateMs === 'number' ? Date.now() < liveEndDateMs : false;
 
   const [liveLoading, setLiveLoading] = useState(true);
   const liveLoadingRef = useRef(true);
@@ -76,6 +82,10 @@ export const useCryptoUpDownChartData = (
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const fallbackStartPointRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const frozenRef = useRef(false);
+  const durationSecsRef = useRef(durationSecs);
+  const liveEndDateMsRef = useRef(liveEndDateMs);
+  durationSecsRef.current = durationSecs;
+  liveEndDateMsRef.current = liveEndDateMs;
 
   const prevMarketIdRef = useRef(market.id);
   useEffect(() => {
@@ -94,35 +104,36 @@ export const useCryptoUpDownChartData = (
     chartRef?.current?.clearData();
   }, [chartRef, market.id]);
 
-  const handleLiveUpdate = useCallback(
-    (update: CryptoPriceUpdate) => {
-      if (market.endDate && Date.now() >= new Date(market.endDate).getTime()) {
-        frozenRef.current = true;
-      }
+  const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
+    const currentLiveEndDateMs = liveEndDateMsRef.current;
+    if (
+      typeof currentLiveEndDateMs === 'number' &&
+      Date.now() >= currentLiveEndDateMs
+    ) {
+      frozenRef.current = true;
+    }
 
-      if (frozenRef.current) {
-        return;
-      }
+    if (frozenRef.current) {
+      return;
+    }
 
-      const timeSecs = toTimestampSeconds(update.timestamp);
-      const point: LivelinePoint = {
-        time: timeSecs,
-        value: update.price,
-      };
+    const timeSecs = toTimestampSeconds(update.timestamp);
+    const point: LivelinePoint = {
+      time: timeSecs,
+      value: update.price,
+    };
 
-      setLiveValue(update.price);
-      setLivePoints((points) => {
-        const nextPoints = mergeLivelinePoints(points, [point]);
-        const cutoff = timeSecs - durationSecs * 2;
-        return nextPoints.filter((nextPoint) => nextPoint.time >= cutoff);
-      });
-      if (liveLoadingRef.current) {
-        liveLoadingRef.current = false;
-        setLiveLoading(false);
-      }
-    },
-    [durationSecs, market.endDate],
-  );
+    setLiveValue(update.price);
+    setLivePoints((points) => {
+      const nextPoints = mergeLivelinePoints(points, [point]);
+      const cutoff = timeSecs - durationSecsRef.current * 2;
+      return nextPoints.filter((nextPoint) => nextPoint.time >= cutoff);
+    });
+    if (liveLoadingRef.current) {
+      liveLoadingRef.current = false;
+      setLiveLoading(false);
+    }
+  }, []);
 
   const wsSymbol = isLive && symbol ? `${symbol.toLowerCase()}usdt` : '';
 
