@@ -250,6 +250,11 @@ if (enableApiCallLogs || isTest) {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
     const { fetch: originalFetch } = global;
+    // Expose the un-patched fetch so non-shim callers (e.g.
+    // BridgeController's mock-server discovery in
+    // `bridge-controller-init.ts`) can probe the mock server without
+    // recursing through the patched `global.fetch` proxy wrapper.
+    global.__originalFetch = originalFetch;
 
     // eslint-disable-next-line no-console
     console.log(
