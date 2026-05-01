@@ -8710,6 +8710,8 @@
   },
   "trending": {
     "title": "Explore",
+    "crypto_movers": "Crypto movers",
+    "perps_movers": "Perps movers",
     "trending_tokens": "Trending",
     "stocks": "Stocks",
     "price_change": "Price change",
@@ -8721,6 +8723,17 @@
     "1_hour": "1 hour",
     "5_minutes": "5 minutes",
     "networks": "Networks",
+    "ecosystems": "Ecosystems",
+    "ecosystems_subtitle": "Explore dApps, tokens, and NFTs across chains on MetaMask Portfolio",
+    "all_sports": "Popular sports",
+    "basketball": "Basketball",
+    "football": "Football",
+    "soccer": "Soccer",
+    "tennis": "Tennis",
+    "f1": "F1",
+    "golf": "Golf",
+    "all_sports_no_markets": "No open markets in this category yet. Check back soon or pick another sport above.",
+    "load_more": "Load more",
     "sort_by": "Sort by",
     "volume": "Volume",
     "market_cap": "Market cap",
@@ -8730,8 +8743,17 @@
     "search_placeholder": "Search tokens, sites, URLs",
     "cancel": "Cancel",
     "perps": "Perps",
+    "rwa_perps_section": "Markets",
+    "macro_stocks_commodity_perps": "Stocks & commodities",
+    "macro_pill_stocks": "Stocks",
+    "macro_pill_commodities": "Commodities",
+    "rwa_pill_commodities": "Commodities",
+    "rwa_pill_stocks": "Stocks",
+    "rwa_pill_forex": "Forex",
+    "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
+    "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
@@ -8747,6 +8769,14 @@
     "empty_search_result_state": {
       "title": "No tokens found",
       "description": "We were not able to find this token"
+    },
+    "tabs": {
+      "now": "Now",
+      "macro": "Macro",
+      "rwas": "RWAs",
+      "crypto": "Crypto",
+      "sports": "Sports",
+      "dapps": "Sites"
     }
   },
   "ota_update_modal": {
@@ -8881,5 +8911,8 @@
       "unable_to_load": "Unable to load {{section}}",
       "retry": "Retry"
     }
+  },
+  "sites": {
+    "popular": "Popular"
   }
 }
