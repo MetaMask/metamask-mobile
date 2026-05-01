@@ -3473,11 +3473,6 @@ describe('polymarket utils', () => {
         json: async () => mockOrderBook,
       });
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ base_fee: 30 }),
-      });
-
       const result = await previewOrder({
         marketId: 'market-1',
         outcomeId: 'outcome-1',
@@ -3491,7 +3486,7 @@ describe('polymarket utils', () => {
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.maxAmountSpent).toBeGreaterThan(0);
       expect(result.slippage).toBeDefined();
-      expect(result.feeRateBps).toBe('30');
+      expect(result.feeRateBps).toBe('0');
     });
 
     it('previews SELL order successfully', async () => {
@@ -3512,11 +3507,6 @@ describe('polymarket utils', () => {
         json: async () => mockOrderBook,
       });
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ base_fee: 15 }),
-      });
-
       const result = await previewOrder({
         marketId: 'market-1',
         outcomeId: 'outcome-1',
@@ -3529,7 +3519,7 @@ describe('polymarket utils', () => {
       expect(result.marketId).toBe('market-1');
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.fees).toBeUndefined();
-      expect(result.feeRateBps).toBe('15');
+      expect(result.feeRateBps).toBe('0');
     });
 
     it('uses the v2 order book endpoint and zero fee rate for v2 previews', async () => {
