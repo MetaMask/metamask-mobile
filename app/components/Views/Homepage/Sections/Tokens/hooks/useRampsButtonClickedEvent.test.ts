@@ -22,18 +22,6 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => mockUseRampsButtonClickData(),
 }));
 
-const mockUseRampsUnifiedV1Enabled = jest.fn();
-jest.mock('../../../../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV1Enabled(),
-}));
-
-const mockUseRampsUnifiedV2Enabled = jest.fn();
-jest.mock('../../../../../UI/Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV2Enabled(),
-}));
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (...args: unknown[]) => unknown) =>
     selector({} as never),
@@ -55,11 +43,9 @@ describe('useRampsButtonClickedEvent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRampsButtonClickData.mockReturnValue(defaultButtonClickData);
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
   });
 
-  it('fires RAMPS_BUTTON_CLICKED with ramp_type BUY when both unified flags are off', () => {
+  it('fires RAMPS_BUTTON_CLICKED with ramp_type UNIFIED_BUY_2', () => {
     const { result } = renderHook(() => useRampsButtonClickedEvent());
 
     act(() => {
@@ -72,7 +58,7 @@ describe('useRampsButtonClickedEvent', () => {
     expect(mockAddProperties).toHaveBeenCalledWith({
       button_text: 'Buy',
       location: 'TokensSection',
-      ramp_type: 'BUY',
+      ramp_type: 'UNIFIED_BUY_2',
       region: 'US',
       ramp_routing: 'SMART_ROUTING',
       is_authenticated: false,
@@ -104,35 +90,6 @@ describe('useRampsButtonClickedEvent', () => {
 
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({ asset_symbol: undefined }),
-    );
-  });
-
-  it('fires with ramp_type UNIFIED_BUY when V1 is enabled', () => {
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-
-    const { result } = renderHook(() => useRampsButtonClickedEvent());
-
-    act(() => {
-      result.current.trackBuyButtonClicked();
-    });
-
-    expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({ ramp_type: 'UNIFIED_BUY' }),
-    );
-  });
-
-  it('fires with ramp_type UNIFIED_BUY_2 when V2 is enabled', () => {
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-
-    const { result } = renderHook(() => useRampsButtonClickedEvent());
-
-    act(() => {
-      result.current.trackBuyButtonClicked();
-    });
-
-    expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
     );
   });
 

@@ -78,23 +78,12 @@ const getInitRampsDebugBridgeMock = (): jest.Mock =>
   ).initRampsDebugBridge;
 
 const createMockInitMessenger = (
-  overrides: {
-    enabled?: boolean;
-    minimumVersion?: string | null;
-  } = {},
+  overrides: Partial<RampsControllerInitMessenger> = {},
 ): RampsControllerInitMessenger => {
-  const { enabled = false, minimumVersion = null } = overrides;
-
   return {
-    call: jest.fn().mockReturnValue({
-      remoteFeatureFlags: {
-        rampsUnifiedBuyV2: {
-          enabled,
-          minimumVersion,
-        },
-      },
-    }),
+    call: jest.fn(),
     subscribe: jest.fn(),
+    ...overrides,
   } as unknown as RampsControllerInitMessenger;
 };
 
@@ -211,115 +200,35 @@ describe('ramps controller init', () => {
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
   });
 
-  describe('when V2 feature flag is enabled', () => {
-    it('calls init at startup', async () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        enabled: true,
-        minimumVersion: '1.0.0',
-      });
+  it('calls init at startup', async () => {
+    rampsControllerInit(initRequestMock);
 
-      rampsControllerInit(initRequestMock);
-
-      await waitFor(() => {
-        expect(mockInit).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('calls init when remote flags were off at startup then V2 enables on RemoteFeatureFlagController:stateChange', async () => {
-      let remoteEnabled = false;
-      const subscribeMock = jest.fn();
-      const initMessenger = {
-        call: jest.fn(() => ({
-          remoteFeatureFlags: {
-            rampsUnifiedBuyV2: remoteEnabled
-              ? { enabled: true, minimumVersion: '1.0.0' }
-              : { enabled: false },
-          },
-        })),
-        subscribe: subscribeMock,
-      } as unknown as RampsControllerInitMessenger;
-
-      initRequestMock.initMessenger = initMessenger;
-
-      rampsControllerInit(initRequestMock);
-
-      expect(mockInit).not.toHaveBeenCalled();
-
-      const stateChangeHandler = subscribeMock.mock.calls.find(
-        (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
-      )?.[1] as () => void;
-
-      expect(stateChangeHandler).toBeDefined();
-
-      remoteEnabled = true;
-      stateChangeHandler();
-
-      await waitFor(() => {
-        expect(mockInit).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('handles init failure gracefully', async () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        enabled: true,
-        minimumVersion: '1.0.0',
-      });
-      mockInit.mockRejectedValue(new Error('Network error'));
-
-      expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
-
-      await waitFor(() => {
-        expect(mockInit).toHaveBeenCalledTimes(1);
-      });
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('when V2 feature flag is disabled', () => {
-    it('does not call init at startup', async () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        enabled: false,
-      });
+  it('does not subscribe to remote feature flag state changes', () => {
+    rampsControllerInit(initRequestMock);
 
-      rampsControllerInit(initRequestMock);
+    expect(initRequestMock.initMessenger.subscribe).not.toHaveBeenCalledWith(
+      'RemoteFeatureFlagController:stateChange',
+      expect.any(Function),
+    );
+  });
 
-      await waitFor(() => {
-        expect(mockInit).not.toHaveBeenCalled();
-      });
-    });
+  it('handles init failure gracefully', async () => {
+    mockInit.mockRejectedValue(new Error('Network error'));
 
-    it('does not call init when enabled is true but minimumVersion is missing', async () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        enabled: true,
-        minimumVersion: null,
-      });
+    expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
 
-      rampsControllerInit(initRequestMock);
-
-      await waitFor(() => {
-        expect(mockInit).not.toHaveBeenCalled();
-      });
-    });
-
-    it('does not call init when RemoteFeatureFlagController throws', async () => {
-      initRequestMock.initMessenger = {
-        call: jest.fn().mockImplementation(() => {
-          throw new Error('Controller not ready');
-        }),
-        subscribe: jest.fn(),
-      } as unknown as RampsControllerInitMessenger;
-
-      rampsControllerInit(initRequestMock);
-
-      await waitFor(() => {
-        expect(mockInit).not.toHaveBeenCalled();
-      });
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('always returns the controller instance regardless of flag state', () => {
-    initRequestMock.initMessenger = createMockInitMessenger({
-      enabled: false,
-    });
+  it('always returns the controller instance', () => {
+    initRequestMock.initMessenger = createMockInitMessenger();
 
     const result = rampsControllerInit(initRequestMock);
 
@@ -353,9 +262,7 @@ describe('ramps controller init', () => {
 
     it('requires RampsDebugBridge and calls initRampsDebugBridge with controller and messenger', () => {
       process.env.RAMPS_DEBUG_DASHBOARD = 'true';
-      initRequestMock.initMessenger = createMockInitMessenger({
-        enabled: false,
-      });
+      initRequestMock.initMessenger = createMockInitMessenger();
 
       const { controller } = rampsControllerInit(initRequestMock);
       const initRampsDebugBridge = getInitRampsDebugBridgeMock();
@@ -369,9 +276,7 @@ describe('ramps controller init', () => {
 
     it('does not load RampsDebugBridge when RAMPS_DEBUG_DASHBOARD is false', () => {
       process.env.RAMPS_DEBUG_DASHBOARD = 'false';
-      initRequestMock.initMessenger = createMockInitMessenger({
-        enabled: false,
-      });
+      initRequestMock.initMessenger = createMockInitMessenger();
 
       rampsControllerInit(initRequestMock);
 
@@ -379,9 +284,7 @@ describe('ramps controller init', () => {
     });
 
     it('does not load RampsDebugBridge when RAMPS_DEBUG_DASHBOARD is unset', () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        enabled: false,
-      });
+      initRequestMock.initMessenger = createMockInitMessenger();
 
       rampsControllerInit(initRequestMock);
 

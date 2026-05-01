@@ -103,10 +103,6 @@ jest.mock('../../Ramp/hooks/useRampsButtonClickData', () => ({
   }),
 }));
 
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () =>
-  jest.fn(() => false),
-);
-
 jest.mock('../../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: () => ({
     sendNonEvmAsset: jest.fn().mockResolvedValue(false),

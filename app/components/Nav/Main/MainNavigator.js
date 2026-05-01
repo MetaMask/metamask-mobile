@@ -1157,14 +1157,6 @@ const MainNavigator = () => {
         component={TokenListRoutes}
       />
       <Stack.Screen
-        name={Routes.RAMP.BUY}
-        options={{
-          cardStyle: { backgroundColor: colors.background.default },
-        }}
-      >
-        {() => <RampRoutes rampType={RampType.BUY} />}
-      </Stack.Screen>
-      <Stack.Screen
         name={Routes.RAMP.SELL}
         options={{
           cardStyle: { backgroundColor: colors.background.default },

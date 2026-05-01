@@ -1,5 +1,9 @@
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
+import {
+  isRampsOrderTypeBuy,
+  isRampsOrderTypeSell,
+} from '../../../../util/ramps/normalizeRampsOrderTypeForFiatOrder';
 import { AnalyticsEvents } from '../Aggregator/types';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
@@ -25,7 +29,18 @@ const getRampsV2AnalyticsPayload = (
   fiatOrder: FiatOrder,
 ): [EventName, EventParams] => {
   const data = fiatOrder.data as RampsOrder | undefined;
-  const isBuy = fiatOrder.orderType === 'BUY';
+  const orderTypeToken = String(fiatOrder.orderType ?? '');
+  const isSell = isRampsOrderTypeSell(orderTypeToken);
+  const isBuy = isRampsOrderTypeBuy(orderTypeToken);
+
+  const isTerminalState =
+    fiatOrder.state === FIAT_ORDER_STATES.FAILED ||
+    fiatOrder.state === FIAT_ORDER_STATES.CANCELLED ||
+    fiatOrder.state === FIAT_ORDER_STATES.COMPLETED;
+
+  if (isTerminalState && !isBuy && !isSell) {
+    return [null, null];
+  }
 
   let failedOrCancelledParams:
     | AnalyticsEvents['ONRAMP_PURCHASE_FAILED']

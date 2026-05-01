@@ -16,6 +16,7 @@ import {
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import NavigationService from '../../../NavigationService';
+import { createBuyNavigationDetails } from '../../../../components/UI/Ramp/Aggregator/routes/utils';
 
 const getClientType = (chainId: string) => {
   let clientType: WalletClientType;
@@ -89,11 +90,6 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
     return;
   }
 
-  // if there are account in scope bu non of them have funds, navigate to ramps
-  NavigationService.navigation.navigate(Routes.RAMP.BUY, {
-    screen: Routes.RAMP.GET_STARTED,
-    params: {
-      chainId,
-    },
-  });
+  // If there are accounts in scope but none of them have funds, navigate to buy.
+  NavigationService.navigation.navigate(...createBuyNavigationDetails());
 }

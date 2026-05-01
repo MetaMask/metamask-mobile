@@ -24,12 +24,6 @@ jest.mock('../../../../core/redux', () => ({
   },
 }));
 
-const mockIsRampsUnifiedV2Enabled = jest.fn();
-jest.mock('../utils/isRampsUnifiedV2Enabled', () => ({
-  isRampsUnifiedV2Enabled: (state: unknown) =>
-    mockIsRampsUnifiedV2Enabled(state),
-}));
-
 const mockGetRampRoutingDecision = jest.fn();
 jest.mock('../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../reducers/fiatOrders'),
@@ -106,7 +100,7 @@ describe('handleRampUrl', () => {
     jest.clearAllMocks();
     (NavigationService.navigation.navigate as jest.Mock).mockClear();
     (handleRedirection as jest.Mock).mockClear();
-    mockIsRampsUnifiedV2Enabled.mockReturnValue(false);
+    mockGetRampRoutingDecision.mockReturnValue(null);
   });
 
   it('handles redirection with the paths', () => {
@@ -121,14 +115,15 @@ describe('handleRampUrl', () => {
     );
   });
 
-  it('navigates to Buy route when rampType is BUY, redirectPaths length is 0 and query params do not have allowed fields', () => {
+  it('navigates to TokenSelection when rampType is BUY and query params do not have allowed fields', () => {
     handleRampUrl({
       rampPath: '?as=example',
       rampType: RampType.BUY,
     });
     expect(handleRedirection).not.toHaveBeenCalled();
+    expect(mockCreateTokenSelectionNavDetails).toHaveBeenCalled();
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      Routes.RAMP.BUY,
+      'TOKEN_SELECTION_ROUTE',
     );
   });
 
@@ -143,23 +138,18 @@ describe('handleRampUrl', () => {
     );
   });
 
-  it('navigates to Buy route when rampType is BUY, redirectPaths length is 0 and query param is intent', () => {
+  it('navigates to BuildQuote when rampType is BUY and query param is intent', () => {
     handleRampUrl({
       rampPath: '?chainId=1&address=0x123456',
       rampType: RampType.BUY,
     });
     expect(handleRedirection).not.toHaveBeenCalled();
+    expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+      assetId: 'eip155:1/erc20:0x123456',
+    });
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      Routes.RAMP.BUY,
-      {
-        screen: Routes.RAMP.ID,
-        params: {
-          screen: Routes.RAMP.BUILD_QUOTE,
-          params: {
-            assetId: 'eip155:1/erc20:0x123456',
-          },
-        },
-      },
+      'BUILD_QUOTE_ROUTE',
+      { assetId: 'eip155:1/erc20:0x123456' },
     );
   });
 
@@ -183,11 +173,7 @@ describe('handleRampUrl', () => {
     );
   });
 
-  describe('when Ramps Unified V2 is enabled', () => {
-    beforeEach(() => {
-      mockIsRampsUnifiedV2Enabled.mockReturnValue(true);
-    });
-
+  describe('unified buy routing', () => {
     it('navigates to eligibility failed modal when routing decision is ERROR', () => {
       mockGetRampRoutingDecision.mockReturnValue(UnifiedRampRoutingType.ERROR);
       handleRampUrl({
@@ -220,7 +206,7 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('navigates to TokenSelection when V2 enabled and no assetId in intent', () => {
+    it('navigates to TokenSelection when no assetId is in the intent', () => {
       mockGetRampRoutingDecision.mockReturnValue(null);
       handleRampUrl({
         rampPath: '?as=example',
@@ -233,7 +219,7 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('navigates to BuildQuote when V2 enabled and ramp intent has assetId', () => {
+    it('navigates to BuildQuote when ramp intent has assetId', () => {
       mockGetRampRoutingDecision.mockReturnValue(null);
       mockResolveRampControllerAssetId.mockReturnValue(
         'eip155:1/erc20:0x123456',

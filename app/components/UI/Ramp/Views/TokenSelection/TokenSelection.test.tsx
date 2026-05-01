@@ -7,21 +7,17 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
 import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
-import { useRampTokens } from '../../hooks/useRampTokens';
 import { useRampsController } from '../../hooks/useRampsController';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockHeaderGoBack = jest.fn();
-const mockParentGoBack = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockHeaderGoBack,
-    getParent: () => ({
-      goBack: mockParentGoBack,
-    }),
   }),
 }));
 
@@ -35,59 +31,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-interface CustomTestState {
-  fiatOrders?: {
-    rampRoutingDecision?: UnifiedRampRoutingType;
-  };
-}
-
-function renderWithProvider(
-  component: React.ComponentType,
-  customState?: CustomTestState,
-) {
-  return renderScreen(
-    component,
-    {
-      name: 'TokenSelection',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-        fiatOrders: {
-          rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
-          ...customState?.fiatOrders,
-        },
-      },
-    },
-  );
-}
-
 jest.mock('../../Deposit/hooks/useSearchTokenResults', () => jest.fn());
-
-const mockGoToBuy = jest.fn();
-
-jest.mock('../../hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({
-    goToBuy: mockGoToBuy,
-  }),
-}));
-
-const mockUseRampsUnifiedV2Enabled = jest.fn();
-jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV2Enabled(),
-}));
-
-jest.mock('../../hooks/useRampTokens', () => ({
-  useRampTokens: jest.fn(),
-}));
-
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
-
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: <T,>(value: T) => value,
 }));
@@ -124,88 +71,90 @@ jest.mock('../../../../../selectors/networkController', () => ({
 }));
 
 const mockTokens = MOCK_CRYPTOCURRENCIES;
-const mockUseRampTokens = useRampTokens as jest.MockedFunction<
-  typeof useRampTokens
->;
 const mockUseRampsController = useRampsController as jest.MockedFunction<
   typeof useRampsController
 >;
 
-// Convert MockDepositCryptoCurrency to RampsToken format
 const convertToRampsTokens = (tokens: typeof mockTokens) =>
   tokens.map((token) => ({
     ...token,
     tokenSupported: !token.unsupported,
   }));
 
+function renderWithProvider(component: React.ComponentType) {
+  return renderScreen(
+    component,
+    {
+      name: 'TokenSelection',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+        fiatOrders: {
+          rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
+        },
+      },
+    },
+  );
+}
+
+const createRampsControllerValue = (
+  overrides: Partial<ReturnType<typeof useRampsController>> = {},
+): ReturnType<typeof useRampsController> => {
+  const rampsTokens = convertToRampsTokens(mockTokens);
+
+  return {
+    tokens: {
+      topTokens: rampsTokens,
+      allTokens: rampsTokens,
+    },
+    selectedToken: null,
+    setSelectedToken: jest.fn(),
+    tokensLoading: false,
+    tokensError: null,
+    userRegion: null,
+    setUserRegion: jest.fn(),
+    selectedProvider: null,
+    setSelectedProvider: jest.fn(),
+    providers: [],
+    providersLoading: false,
+    providersError: null,
+    countries: [],
+    countriesLoading: false,
+    countriesError: null,
+    paymentMethods: [],
+    selectedPaymentMethod: null,
+    setSelectedPaymentMethod: jest.fn(),
+    paymentMethodsLoading: false,
+    paymentMethodsError: null,
+    paymentMethodsFetching: false,
+    paymentMethodsStatus: 'idle',
+    getQuotes: jest.fn(),
+    getBuyWidgetData: jest.fn(),
+    orders: [],
+    getOrderById: jest.fn(),
+    addOrder: jest.fn(),
+    addPrecreatedOrder: jest.fn(),
+    removeOrder: jest.fn(),
+    refreshOrder: jest.fn(),
+    getOrderFromCallback: jest.fn(),
+    ...overrides,
+  };
+};
+
 describe('TokenSelection Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Return tokens with tokenSupported set so that items are not disabled.
-    // In React 19, fireEvent.press does not fire on disabled TouchableOpacity
-    // elements; without tokenSupported the isDisabled prop becomes true and
-    // press events are silently dropped.
     (useSearchTokenResults as jest.Mock).mockReturnValue(
       convertToRampsTokens(mockTokens),
     );
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false); // Default to V1 behavior
-
-    const rampsTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-
-    mockUseRampTokens.mockReturnValue({
-      topTokens: rampsTokens,
-      allTokens: rampsTokens,
-      isLoading: false,
-      error: null,
-    });
-
-    mockUseRampsController.mockReturnValue({
-      tokens: {
-        topTokens: rampsTokens,
-        allTokens: rampsTokens,
-      },
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: false,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
+    mockUseRampsController.mockReturnValue(createRampsControllerValue());
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('renders token list for legacy flow', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+  it('renders token list', () => {
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
 
     expect(
@@ -213,17 +162,7 @@ describe('TokenSelection Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders token list for V2 flow', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    expect(
-      getByPlaceholderText('Search token by name or address'),
-    ).toBeOnTheScreen();
-  });
-
-  it('calls navigation.goBack when header back is pressed (V2 loaded list)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('calls navigation.goBack when header back is pressed', () => {
     const { getByTestId } = renderWithProvider(TokenSelection);
 
     fireEvent.press(getByTestId('deposit-back-navbar-button'));
@@ -232,107 +171,16 @@ describe('TokenSelection Component', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('calls navigation.goBack when header back is pressed while tokens are loading (V2)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    mockUseRampsController.mockReturnValue({
-      tokens: null,
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: true,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
-
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    fireEvent.press(getByTestId('deposit-back-navbar-button'));
-
-    expect(mockHeaderGoBack).toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('displays empty state when no tokens match search', async () => {
-    (useSearchTokenResults as jest.Mock).mockReturnValue([]);
-    const { getByPlaceholderText, getByText } =
-      renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, 'Nonexistent Token');
-
-    await waitFor(() => {
-      expect(
-        getByText('No tokens match "Nonexistent Token"'),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  it('filters tokens by search string', async () => {
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, 'USDC');
-
-    await waitFor(() => {
-      expect(useSearchTokenResults).toHaveBeenCalledWith(
-        expect.objectContaining({
-          searchString: 'USDC',
-        }),
-      );
-    });
-  });
-
-  it('calls goToBuy and closes modal when token is pressed (V1 flow)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
-    fireEvent.press(firstToken);
-
-    expect(mockParentGoBack).toHaveBeenCalled();
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: mockTokens[0].assetId,
-    });
-  });
-
-  it('sets selected token and navigates directly to AMOUNT_INPUT without closing modal when token is pressed (V2 flow)', () => {
+  it('sets selected token and navigates directly to AMOUNT_INPUT when token is pressed', () => {
     const mockSetSelectedToken = jest.fn();
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    mockUseRampsController.mockReturnValue({
-      ...mockUseRampsController(),
-      setSelectedToken: mockSetSelectedToken,
-    });
+    mockUseRampsController.mockReturnValue(
+      createRampsControllerValue({ setSelectedToken: mockSetSelectedToken }),
+    );
     const { getByTestId } = renderWithProvider(TokenSelection);
 
     const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
     fireEvent.press(firstToken);
 
-    expect(mockParentGoBack).not.toHaveBeenCalled();
-    expect(mockGoToBuy).not.toHaveBeenCalled();
     expect(mockSetSelectedToken).toHaveBeenCalledWith(mockTokens[0].assetId);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.AMOUNT_INPUT, {
       assetId: mockTokens[0].assetId,
@@ -350,14 +198,14 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('displays loading indicator while fetching tokens (legacy)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    mockUseRampTokens.mockReturnValue({
-      topTokens: null,
-      allTokens: null,
-      isLoading: true,
-      error: null,
-    });
+  it('displays loading indicator while fetching tokens', () => {
+    mockUseRampsController.mockReturnValue(
+      createRampsControllerValue({
+        tokens: null,
+        tokensLoading: true,
+        tokensError: null,
+      }),
+    );
 
     const { getByTestId } = renderWithProvider(TokenSelection);
 
@@ -366,41 +214,14 @@ describe('TokenSelection Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('displays loading indicator while fetching tokens (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    mockUseRampsController.mockReturnValue({
-      tokens: null,
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: true,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
+  it('displays loading when tokens are not yet loaded', () => {
+    mockUseRampsController.mockReturnValue(
+      createRampsControllerValue({
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+      }),
+    );
 
     const { getByTestId } = renderWithProvider(TokenSelection);
 
@@ -409,192 +230,62 @@ describe('TokenSelection Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('displays loading when tokens not yet loaded (V2, null tokens and no error)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    mockUseRampsController.mockReturnValue({
-      tokens: null,
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: false,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
-
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    expect(
-      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
-  });
-
-  it('displays error message when token fetch fails (legacy)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    mockUseRampTokens.mockReturnValue({
-      topTokens: null,
-      allTokens: null,
-      isLoading: false,
-      error: new Error('Network error'),
-    });
+  it('displays error message when token fetch fails', () => {
+    mockUseRampsController.mockReturnValue(
+      createRampsControllerValue({
+        tokens: null,
+        tokensLoading: false,
+        tokensError: 'Failed to load tokens',
+      }),
+    );
 
     const { getByText } = renderWithProvider(TokenSelection);
 
-    expect(getByText(/unable to load tokens/i)).toBeOnTheScreen();
+    expect(
+      getByText('Unable to load tokens. Please try again later.'),
+    ).toBeOnTheScreen();
+    expect(getByText('Failed to load tokens')).toBeOnTheScreen();
   });
 
-  it('displays error message when token fetch fails (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    mockUseRampsController.mockReturnValue({
-      tokens: null,
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: false,
-      tokensError: 'Network error',
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
-
-    const { getByText } = renderWithProvider(TokenSelection);
-
-    expect(getByText(/unable to load tokens/i)).toBeOnTheScreen();
-  });
-
-  it('uses topTokens when search string is empty (legacy)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+  it('uses topTokens when search string is empty', () => {
     const topTokens = convertToRampsTokens([mockTokens[0]]);
     const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampTokens.mockReturnValue({
-      topTokens,
-      allTokens,
-      isLoading: false,
-      error: null,
-    });
+    mockUseRampsController.mockReturnValue(
+      createRampsControllerValue({
+        tokens: {
+          topTokens,
+          allTokens,
+        },
+      }),
+    );
 
     renderWithProvider(TokenSelection);
 
     expect(useSearchTokenResults).toHaveBeenCalledWith(
       expect.objectContaining({
         tokens: topTokens,
+        searchString: '',
       }),
     );
   });
 
-  it('uses topTokens when search string is empty (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('uses allTokens when user is searching', async () => {
     const topTokens = convertToRampsTokens([mockTokens[0]]);
     const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampsController.mockReturnValue({
-      tokens: {
-        topTokens,
-        allTokens,
-      },
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: false,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
-
-    renderWithProvider(TokenSelection);
-
-    expect(useSearchTokenResults).toHaveBeenCalledWith(
-      expect.objectContaining({
-        tokens: topTokens,
+    mockUseRampsController.mockReturnValue(
+      createRampsControllerValue({
+        tokens: {
+          topTokens,
+          allTokens,
+        },
       }),
     );
-  });
-
-  it('uses allTokens when user is searching (legacy)', async () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const topTokens = convertToRampsTokens([mockTokens[0]]);
-    const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampTokens.mockReturnValue({
-      topTokens,
-      allTokens,
-      isLoading: false,
-      error: null,
-    });
-
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
 
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, 'USDC');
+    fireEvent.changeText(
+      getByPlaceholderText('Search token by name or address'),
+      'USDC',
+    );
 
     await waitFor(() => {
       expect(useSearchTokenResults).toHaveBeenCalledWith(
@@ -606,212 +297,32 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('uses allTokens when user is searching (V2 enabled)', async () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    const topTokens = convertToRampsTokens([mockTokens[0]]);
-    const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampsController.mockReturnValue({
-      tokens: {
-        topTokens,
-        allTokens,
-      },
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: false,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
-
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, 'USDC');
-
-    await waitFor(() => {
-      expect(useSearchTokenResults).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tokens: allTokens,
-          searchString: 'USDC',
-        }),
-      );
-    });
-  });
-
-  it('uses topTokens when search string contains only whitespace (legacy)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const topTokens = convertToRampsTokens([mockTokens[0]]);
-    const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampTokens.mockReturnValue({
-      topTokens,
-      allTokens,
-      isLoading: false,
-      error: null,
-    });
-
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, '   ');
-
-    expect(useSearchTokenResults).toHaveBeenCalledWith(
-      expect.objectContaining({
-        tokens: topTokens,
-        searchString: '   ',
-      }),
-    );
-  });
-
-  it('uses topTokens when search string contains only whitespace (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    const topTokens = convertToRampsTokens([mockTokens[0]]);
-    const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampsController.mockReturnValue({
-      tokens: {
-        topTokens,
-        allTokens,
-      },
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: false,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
-
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, '   ');
-
-    expect(useSearchTokenResults).toHaveBeenCalledWith(
-      expect.objectContaining({
-        tokens: topTokens,
-        searchString: '   ',
-      }),
-    );
-  });
-
-  it('filters tokens to only include those for configured networks (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-
+  it('filters tokens to only include configured networks', () => {
     const allTokensWithUnconfiguredNetwork = convertToRampsTokens([
       ...mockTokens,
       {
         ...mockTokens[0],
         assetId: 'eip155:999/erc20:0x123',
         chainId: 'eip155:999',
-        symbol: 'UNCONFIGURED',
       },
     ]);
-
-    mockUseRampsController.mockReturnValue({
-      tokens: {
-        topTokens: allTokensWithUnconfiguredNetwork,
-        allTokens: allTokensWithUnconfiguredNetwork,
-      },
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: false,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'idle' as const,
-      getQuotes: jest.fn(),
-      getBuyWidgetData: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      addPrecreatedOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
+    mockUseRampsController.mockReturnValue(
+      createRampsControllerValue({
+        tokens: {
+          topTokens: allTokensWithUnconfiguredNetwork,
+          allTokens: allTokensWithUnconfiguredNetwork,
+        },
+      }),
+    );
 
     renderWithProvider(TokenSelection);
 
     expect(useSearchTokenResults).toHaveBeenCalledWith(
       expect.objectContaining({
-        tokens: expect.arrayContaining(
-          convertToRampsTokens(mockTokens).map((token) =>
-            expect.objectContaining({
-              chainId: token.chainId,
-            }),
-          ),
-        ),
+        tokens: expect.not.arrayContaining([
+          expect.objectContaining({ chainId: 'eip155:999' }),
+        ]),
       }),
     );
-
-    const tokensPassedToSearch = (useSearchTokenResults as jest.Mock).mock
-      .calls[0][0].tokens;
-    const unconfiguredToken = tokensPassedToSearch.find(
-      (token: (typeof mockTokens)[0]) => token.chainId === 'eip155:999',
-    );
-    expect(unconfiguredToken).toBeUndefined();
   });
 });

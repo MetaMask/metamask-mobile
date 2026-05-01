@@ -2,14 +2,10 @@ import handleRedirection from './handleRedirection';
 import getRedirectPathsAndParams from '../utils/getRedirectPathAndParams';
 import { RampType } from '../Aggregator/types';
 import parseRampIntent from '../utils/parseRampIntent';
-import {
-  createBuyNavigationDetails,
-  createSellNavigationDetails,
-} from '../Aggregator/routes/utils';
+import { createSellNavigationDetails } from '../Aggregator/routes/utils';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../../core/NavigationService';
 import ReduxService from '../../../../core/redux';
-import { isRampsUnifiedV2Enabled } from '../utils/isRampsUnifiedV2Enabled';
 import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
@@ -44,51 +40,56 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
       case RampType.BUY: {
         try {
           const state = ReduxService.store.getState();
-          if (isRampsUnifiedV2Enabled(state)) {
-            const routingDecision = getRampRoutingDecision(state);
-            if (routingDecision === UnifiedRampRoutingType.ERROR) {
-              NavigationService.navigation.navigate(
-                ...createEligibilityFailedModalNavigationDetails(),
-              );
-              return;
-            }
-            if (routingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
-              NavigationService.navigation.navigate(
-                ...createRampUnsupportedModalNavigationDetails(),
-              );
-              return;
-            }
-            if (rampIntent?.assetId) {
-              const allTokens = selectTokens(state).data?.allTokens ?? [];
-              const controllerAssetId = resolveRampControllerAssetId(
-                rampIntent.assetId,
-                allTokens,
-              );
-              try {
-                Engine.context.RampsController.setSelectedToken(
-                  controllerAssetId,
-                );
-              } catch {
-                // Token may not be in controller's list yet; navigate anyway
-              }
-              NavigationService.navigation.navigate(
-                ...createBuildQuoteNavDetails({
-                  assetId: controllerAssetId,
-                }),
-              );
-              return;
-            }
+          const routingDecision = getRampRoutingDecision(state);
+          if (routingDecision === UnifiedRampRoutingType.ERROR) {
             NavigationService.navigation.navigate(
-              ...createTokenSelectionNavDetails(),
+              ...createEligibilityFailedModalNavigationDetails(),
             );
             return;
           }
+          if (routingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
+            NavigationService.navigation.navigate(
+              ...createRampUnsupportedModalNavigationDetails(),
+            );
+            return;
+          }
+          if (rampIntent?.assetId) {
+            const allTokens = selectTokens(state).data?.allTokens ?? [];
+            const controllerAssetId = resolveRampControllerAssetId(
+              rampIntent.assetId,
+              allTokens,
+            );
+            try {
+              Engine.context.RampsController.setSelectedToken(
+                controllerAssetId,
+              );
+            } catch {
+              // Token may not be in controller's list yet; navigate anyway
+            }
+            NavigationService.navigation.navigate(
+              ...createBuildQuoteNavDetails({
+                assetId: controllerAssetId,
+              }),
+            );
+            return;
+          }
+          NavigationService.navigation.navigate(
+            ...createTokenSelectionNavDetails(),
+          );
+          return;
         } catch {
-          // Store may not be ready; fall through to legacy behavior
+          if (rampIntent?.assetId) {
+            NavigationService.navigation.navigate(
+              ...createBuildQuoteNavDetails({
+                assetId: rampIntent.assetId,
+              }),
+            );
+            return;
+          }
+          NavigationService.navigation.navigate(
+            ...createTokenSelectionNavDetails(),
+          );
         }
-        NavigationService.navigation.navigate(
-          ...createBuyNavigationDetails(rampIntent),
-        );
         break;
       }
       case RampType.SELL:

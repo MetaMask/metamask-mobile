@@ -6,9 +6,7 @@ import {
   isHexString,
 } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
-import { useRampTokens } from './useRampTokens';
 import { useRampsTokens } from './useRampsTokens';
-import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import parseRampIntent from '../utils/parseRampIntent';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -101,36 +99,28 @@ function getIsTokenBuyable(
 
 /**
  * Hook that determines if tokens can be bought via ramp services.
- * When unified V2 is enabled, checks against the RampsController's token list.
- * When V2 is disabled, uses the legacy token cache API.
+ * Checks against the RampsController's token list.
  */
 export const useTokensBuyability = (
   tokens: TokenI[],
 ): UseTokensBuyabilityResult => {
-  const isV2Enabled = useRampsUnifiedV2Enabled();
-  const { allTokens: legacyAllTokens, isLoading: legacyLoading } =
-    useRampTokens({
-      fetchOnMount: !isV2Enabled,
-    });
   const { tokens: controllerTokens, isLoading: controllerLoading } =
     useRampsTokens();
 
-  const isLoading = isV2Enabled ? controllerLoading : legacyLoading;
-
-  const rampsTokens = isV2Enabled
-    ? controllerTokens?.allTokens
-    : legacyAllTokens;
   const buyabilityByTokenKey = useMemo(
     () =>
       tokens.reduce<Record<string, boolean>>((accumulator, token) => {
         const tokenKey = getTokenBuyabilityKey(token);
-        accumulator[tokenKey] = getIsTokenBuyable(token, rampsTokens ?? null);
+        accumulator[tokenKey] = getIsTokenBuyable(
+          token,
+          controllerTokens?.allTokens ?? null,
+        );
         return accumulator;
       }, {}),
-    [tokens, rampsTokens],
+    [tokens, controllerTokens?.allTokens],
   );
 
-  return { buyabilityByTokenKey, isLoading };
+  return { buyabilityByTokenKey, isLoading: controllerLoading };
 };
 
 /**

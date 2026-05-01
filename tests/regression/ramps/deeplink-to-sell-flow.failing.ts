@@ -13,8 +13,6 @@ import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { Mockttp } from 'mockttp';
-import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
@@ -41,10 +39,6 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
             .withRampsSelectedPaymentMethod()
             .build(),
           testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureFlagRampsUnifiedEnabled(true),
-            );
             await setupRegionAwareOnRampMocks(mockServer, franceRegion);
           },
           restartDevice: true,
@@ -83,10 +77,6 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
             .withRampsSelectedPaymentMethod()
             .build(),
           testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureFlagRampsUnifiedEnabled(true),
-            );
             await setupRegionAwareOnRampMocks(
               mockServer,
               RampsRegions[RampsRegionsEnum.SAINT_LUCIA],

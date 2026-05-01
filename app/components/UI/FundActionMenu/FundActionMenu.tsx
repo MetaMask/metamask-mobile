@@ -32,8 +32,6 @@ import type {
   ActionConfig,
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
-import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
-import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 const FundActionMenu = () => {
@@ -51,10 +49,7 @@ const FundActionMenu = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
-  const { goToBuy, goToAggregator, goToSell, goToDeposit } =
-    useRampNavigation();
+  const { goToBuy, goToSell, goToDeposit } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
@@ -117,13 +112,13 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.buy_unified_description'),
           iconName: IconName.Add,
           testID: WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON,
-          isVisible: rampUnifiedV1Enabled,
+          isVisible: true,
           analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
           analyticsProperties: {
             button_text: 'Buy',
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
-            ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
+            ramp_type: 'UNIFIED_BUY_2',
             region: rampGeodetectedRegion,
             ramp_routing: rampsButtonClickData.ramp_routing,
             is_authenticated: rampsButtonClickData.is_authenticated,
@@ -144,7 +139,7 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.deposit_description'),
           iconName: IconName.Money,
           testID: WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON,
-          isVisible: isDepositEnabled && !rampUnifiedV1Enabled,
+          isVisible: isDepositEnabled,
           analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
           analyticsProperties: {
             button_text: 'Deposit',
@@ -159,35 +154,6 @@ const FundActionMenu = () => {
           },
           traceName: TraceName.LoadDepositExperience,
           navigationAction: () => goToDeposit(),
-        },
-        {
-          type: 'buy',
-          label: strings('fund_actionmenu.buy'),
-          description: strings('fund_actionmenu.buy_description'),
-          iconName: IconName.Add,
-          testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-          isVisible: !rampUnifiedV1Enabled,
-          analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
-          analyticsProperties: {
-            button_text: 'Buy',
-            location: 'FundActionMenu',
-            chain_id_destination: getChainIdForAsset(),
-            ramp_type: 'BUY',
-            region: rampGeodetectedRegion,
-            ramp_routing: rampsButtonClickData.ramp_routing,
-            is_authenticated: rampsButtonClickData.is_authenticated,
-            preferred_provider: rampsButtonClickData.preferred_provider,
-            order_count: rampsButtonClickData.order_count,
-          },
-          traceName: TraceName.LoadRampExperience,
-          traceProperties: { tags: { rampType: RampType.BUY } },
-          navigationAction: () => {
-            if (customOnBuy) {
-              customOnBuy();
-            } else {
-              goToAggregator({ assetId: assetContext?.assetId });
-            }
-          },
         },
         {
           type: 'sell',
@@ -216,8 +182,6 @@ const FundActionMenu = () => {
       ] as ActionConfig[],
     [
       isDepositEnabled,
-      rampUnifiedV1Enabled,
-      isV2UnifiedEnabled,
       chainId,
       rampGeodetectedRegion,
       getChainIdForAsset,
@@ -226,7 +190,6 @@ const FundActionMenu = () => {
       customOnBuy,
       assetContext,
       goToBuy,
-      goToAggregator,
       goToSell,
       goToDeposit,
       rampsButtonClickData,
