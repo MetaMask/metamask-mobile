@@ -3,7 +3,6 @@ import {
   BridgeController,
   BridgeControllerMessenger,
 } from '@metamask/bridge-controller';
-import { fetch as expoFetch } from 'expo/fetch';
 
 import {
   MessengerClientInitFunction,
@@ -30,7 +29,20 @@ export const handleBridgeFetch = async (
   options: RequestInit = {},
 ) => {
   if (url.toString().includes('Stream')) {
-    // @ts-expect-error - expoFetch has a different RequestInit type
+    // Resolve `expo/fetch` lazily on every call instead of via a top-level
+    // `import { fetch as expoFetch } from 'expo/fetch'`. Hermes' release
+    // bytecode optimizer can inline the static import binding in
+    // `handleBridgeFetch`, which prevents `shim.js`' E2E URL-rewrite patch
+    // (which mutates `mod.fetch` after boot) from taking effect — the
+    // bridge SSE request bypasses Mockttp's `/proxy` matcher and the
+    // gasless-swap / bridge quote tests time out waiting for a quote.
+    // Re-reading the property at the call site forces the patched fn to
+    // be used. `require()` is memoized, so this is just a cached property
+    // lookup — no real perf cost in production.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const { fetch: expoFetch } = require('expo/fetch') as {
+      fetch: (url: string, init?: RequestInit) => Promise<Response>;
+    };
     return expoFetch(url.toString(), options);
   }
   return handleFetch(url, options);
