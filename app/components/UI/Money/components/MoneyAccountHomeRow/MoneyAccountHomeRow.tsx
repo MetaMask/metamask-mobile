@@ -36,7 +36,6 @@ const MoneyAccountHomeRow = () => {
 
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
 
-  // TODO: Double check if this is necessary
   const apyLabel = isEmpty
     ? strings('homepage.sections.cash_empty_state.earn_apy', {
         percentage: apyPercent ?? '--',
