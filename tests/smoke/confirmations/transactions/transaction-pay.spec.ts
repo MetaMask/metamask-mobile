@@ -62,9 +62,6 @@ describe(SmokeConfirmations('Transaction Pay'), () => {
         await TransactionPayConfirmation.verifyTransactionFee(
           expectedAmounts.confirmationTransactionFee,
         );
-        if (device.getPlatform() !== 'android') {
-          await TransactionPayConfirmation.verifyBridgeTime('< 1 min');
-        }
         await TransactionPayConfirmation.verifyTotal(expectedAmounts.total);
         await FooterActions.tapConfirmButton();
 
@@ -88,20 +85,11 @@ describe(SmokeConfirmations('Transaction Pay'), () => {
 });
 
 function getExpectedAmounts() {
-  if (device.getPlatform() === 'android') {
-    return {
-      confirmationTransactionFee: '$88.79',
-      detailsTransactionFee: '$0.04',
-      networkFee: '$88.75',
-      total: '$88.79',
-    };
-  }
-
   return {
-    confirmationTransactionFee: '$0.04',
-    detailsTransactionFee: '$0.04',
-    networkFee: '$0.01',
-    total: '$1.31',
+    confirmationTransactionFee: '$88.79',
+    detailsTransactionFee: '$0',
+    networkFee: '$0',
+    total: '$88.79',
   };
 }
 

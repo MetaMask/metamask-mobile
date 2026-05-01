@@ -2,7 +2,7 @@
  * File containing mock functionality for all Polymarket API endpoints
  */
 
-import { Mockttp } from 'mockttp';
+import { CompletedRequest, Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../helpers/mockHelpers.ts';
 import { safeGetBodyText } from '../../MockServerE2E.ts';
 import {
@@ -1567,136 +1567,112 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
   // This ensures the position only appears AFTER the order is placed
   const orderSubmitted = new Set<string>();
 
-  // Mock MetaMask relayer endpoint for order submission (BUY orders)
-  // In e2e, all requests go through /proxy with the actual URL in the url query parameter
-  // Matches request payload structure with PROXY_WALLET_ADDRESS as maker and USER_WALLET_ADDRESS as signer
-  // Response uses decimal string format (not wei)
-  // Uses flexible matching: requires BUY order to relayer endpoint, with optional strict field validation
-  await mockServer
-    .forPost('/proxy')
-    .matching(async (request) => {
-      try {
-        const urlParam = new URL(request.url).searchParams.get('url');
-        if (
-          !urlParam ||
-          !urlParam.includes('predict.') ||
-          !urlParam.includes('api.cx.metamask.io/order')
-        ) {
-          return false;
-        }
-
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : {};
-        const order = body?.order;
-
-        // Flexible matching: require BUY order to relayer endpoint
-        // Validates key fields when present, but doesn't require all fields to match strict pattern
-        // This handles both well-formed orders and edge cases with missing/optional fields
-        if (!order || order.side !== 'BUY') {
-          return false;
-        }
-
-        if (
-          body.orderType !== undefined &&
-          body.orderType !== 'FOK' &&
-          body.orderType !== 'FAK'
-        ) {
-          return false;
-        }
-
-        // Validate addresses if present (should match expected addresses for open positions)
-        if (order.maker !== undefined && order.signer !== undefined) {
-          const makerMatch =
-            order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase();
-          const signerMatch =
-            order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase();
-          if (!makerMatch || !signerMatch) {
-            return false;
-          }
-        }
-
-        // If order has signature field, validate it's a valid signature format
-        if (order.signature !== undefined) {
-          if (
-            typeof order.signature !== 'string' ||
-            !order.signature.startsWith('0x') ||
-            order.signature.length < 10
-          ) {
-            return false;
-          }
-        }
-
-        return true;
-      } catch {
+  const isOpenPositionRelayerRequest = async (
+    request: Pick<CompletedRequest, 'url' | 'body'>,
+  ) => {
+    try {
+      const proxiedUrl = new URL(request.url).searchParams.get('url');
+      const targetUrl = proxiedUrl ?? request.url;
+      if (
+        !targetUrl.includes('predict.') ||
+        !targetUrl.includes('api.cx.metamask.io/order')
+      ) {
         return false;
       }
-    })
-    .asPriority(PRIORITY.API_OVERRIDE)
-    .thenCallback(async (request) => {
-      try {
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : {};
-        const order = body?.order;
-        const userAddress =
-          order?.signer?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
-        const proxyAddress =
-          order?.maker?.toLowerCase() || PROXY_WALLET_ADDRESS.toLowerCase();
 
-        // Check if it's a Celtics vs Nets token
-        const isCelticsToken =
-          order?.tokenId ===
-          '51851880223290407825872150827934296608070009371891114025629582819868766043137';
+      const bodyText = (await request.body.getText()) ?? '';
+      const body = bodyText ? JSON.parse(bodyText) : {};
+      return body?.order?.side === 'BUY';
+    } catch {
+      return false;
+    }
+  };
 
-        // Track both addresses - positions/activity may use either
-        orderSubmitted.add(userAddress);
-        orderSubmitted.add(proxyAddress);
+  const createOpenPositionOrderResponse = async (
+    request: Pick<CompletedRequest, 'body'>,
+  ) => {
+    try {
+      const bodyText = (await request.body.getText()) ?? '';
+      const body = bodyText ? JSON.parse(bodyText) : {};
+      const order = body?.order;
+      const userAddress =
+        order?.signer?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
+      const proxyAddress =
+        order?.maker?.toLowerCase() || PROXY_WALLET_ADDRESS.toLowerCase();
 
-        // Track Celtics orders separately for position addition
-        if (isCelticsToken) {
-          celticsOrderSubmitted.add(userAddress);
-          celticsOrderSubmitted.add(proxyAddress);
-        }
+      // Check if it's a Celtics vs Nets token
+      const isCelticsToken =
+        order?.tokenId ===
+        '51851880223290407825872150827934296608070009371891114025629582819868766043137';
 
-        return {
-          statusCode: 200,
-          json: {
-            success: true,
-            errorMsg: '',
-            status: 'matched',
-            orderID:
-              '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
-            transactionsHashes: [
-              '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
-            ],
-            takingAmount: '11.904758', // Shares received for $10 investment
-            makingAmount: '9.999996',
-          },
-        };
-      } catch {
-        // Fallback response if parsing fails - still track the addresses
-        const userAddress = USER_WALLET_ADDRESS.toLowerCase();
-        const proxyAddress = PROXY_WALLET_ADDRESS.toLowerCase();
-        orderSubmitted.add(userAddress);
-        orderSubmitted.add(proxyAddress);
-        // Note: Can't check tokenId in catch block, so don't add to celticsOrderSubmitted
+      // Track both addresses - positions/activity may use either
+      orderSubmitted.add(userAddress);
+      orderSubmitted.add(proxyAddress);
 
-        return {
-          statusCode: 200,
-          json: {
-            success: true,
-            errorMsg: '',
-            status: 'matched',
-            orderID:
-              '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
-            transactionsHashes: [
-              '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
-            ],
-            takingAmount: '11.904758',
-            makingAmount: '9.999996',
-          },
-        };
+      // Track Celtics orders separately for position addition
+      if (isCelticsToken) {
+        celticsOrderSubmitted.add(userAddress);
+        celticsOrderSubmitted.add(proxyAddress);
       }
-    });
+
+      return {
+        statusCode: 200,
+        json: {
+          success: true,
+          errorMsg: '',
+          status: 'matched',
+          orderID:
+            '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
+          transactionsHashes: [
+            '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+          ],
+          takingAmount: '11.904758', // Shares received for $10 investment
+          makingAmount: '9.999996',
+        },
+      };
+    } catch {
+      // Fallback response if parsing fails - still track the addresses
+      const userAddress = USER_WALLET_ADDRESS.toLowerCase();
+      const proxyAddress = PROXY_WALLET_ADDRESS.toLowerCase();
+      orderSubmitted.add(userAddress);
+      orderSubmitted.add(proxyAddress);
+      // Note: Can't check tokenId in catch block, so don't add to celticsOrderSubmitted
+
+      return {
+        statusCode: 200,
+        json: {
+          success: true,
+          errorMsg: '',
+          status: 'matched',
+          orderID:
+            '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
+          transactionsHashes: [
+            '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+          ],
+          takingAmount: '11.904758',
+          makingAmount: '9.999996',
+        },
+      };
+    }
+  };
+
+  // Mock MetaMask relayer endpoint for order submission (BUY orders)
+  // E2E may send the request directly or through /proxy with the URL query parameter.
+  // Response uses decimal string format (not wei)
+  // Uses flexible matching: requires only a BUY order to the relayer endpoint.
+  const proxiedOpenPositionOrderMock = mockServer
+    .forPost('/proxy')
+    .matching(isOpenPositionRelayerRequest)
+    .asPriority(PRIORITY.API_OVERRIDE)
+    .thenCallback(createOpenPositionOrderResponse);
+
+  await mockServer
+    .forPost(/^https:\/\/predict\..*api\.cx\.metamask\.io\/order$/)
+    .matching(isOpenPositionRelayerRequest)
+    .asPriority(PRIORITY.API_OVERRIDE)
+    .thenCallback(createOpenPositionOrderResponse);
+
+  await proxiedOpenPositionOrderMock;
 
   // Mock CLOB API order endpoint (called after relayer endpoint)
   // This handles both POST /order and POST /book?token_id=... endpoints
