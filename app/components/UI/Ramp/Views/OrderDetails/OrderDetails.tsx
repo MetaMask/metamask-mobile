@@ -34,8 +34,10 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
+import { handleOrderStatusChangedForMetrics } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
+import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
@@ -110,7 +112,26 @@ const OrderDetails = () => {
           });
           return;
         }
+        const priorOrder = getOrderById(fetchedOrder.providerOrderId);
+        const previousStatus =
+          priorOrder?.status ?? RampsOrderStatus.Precreated;
+
         addOrder(fetchedOrder);
+
+        if (previousStatus !== fetchedOrder.status) {
+          handleOrderStatusChangedForMetrics({
+            order: fetchedOrder,
+            previousStatus,
+          });
+        }
+
+        showV2OrderToast({
+          orderId: fetchedOrder.providerOrderId,
+          cryptocurrency:
+            fetchedOrder.cryptoCurrency?.symbol ?? params.cryptocurrency ?? '',
+          cryptoAmount: fetchedOrder.cryptoAmount,
+          status: fetchedOrder.status,
+        });
         navigation.setParams({
           orderId: fetchedOrder.providerOrderId,
           callbackUrl: undefined,
@@ -118,20 +139,30 @@ const OrderDetails = () => {
           walletAddress: undefined,
         });
       } catch (fetchError) {
-        Logger.error(fetchError as Error, {
+        const normalizedError =
+          fetchError instanceof Error
+            ? fetchError
+            : new Error(String(fetchError));
+        Logger.error(normalizedError, {
           message: `RampsOrderDetails: error fetching order from callback URL${logContext}`,
           callbackUrl,
         });
         setError(
-          fetchError instanceof Error && fetchError.message
-            ? fetchError.message
+          normalizedError.message
+            ? normalizedError.message
             : strings('ramps_order_details.error_message'),
         );
       } finally {
         setIsLoading(false);
       }
     },
-    [getOrderFromCallback, addOrder, navigation],
+    [
+      getOrderFromCallback,
+      getOrderById,
+      addOrder,
+      navigation,
+      params.cryptocurrency,
+    ],
   );
 
   const handleHeaderBack = useCallback(() => {

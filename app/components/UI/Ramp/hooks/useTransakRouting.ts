@@ -133,7 +133,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     getKycRequirement,
     getAdditionalRequirements,
     createOrder: transakCreateOrder,
-    getOrder,
     getUserLimits,
     requestOtt,
     generatePaymentWidgetUrl,
@@ -285,21 +284,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     [navigation],
   );
 
-  const navigateToOrderProcessingCallback = useCallback(
-    ({ orderId }: { orderId: string }) => {
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-            params: { orderId, showCloseButton: true },
-          },
-        ],
-      });
-    },
-    [navigation],
-  );
-
   const navigateToAdditionalVerificationCallback = useCallback(
     ({
       quote,
@@ -327,7 +311,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   );
 
   const handleNavigationStateChange = useCallback(
-    async ({ url }: { url: string }) => {
+    ({ url }: { url: string }) => {
       if (!url.startsWith(REDIRECTION_URL)) return;
 
       let orderId: string | null = null;
@@ -345,72 +329,24 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       if (!orderId || processingOrderIdRef.current === orderId) return;
       processingOrderIdRef.current = orderId;
 
-      try {
-        const depositOrder = await getOrder(orderId, walletAddress || '');
-
-        if (!depositOrder) {
-          throw new Error('Missing order');
-        }
-
-        const providerCode = normalizeProviderCode(
-          String(depositOrder.provider ?? 'transak-native'),
-        );
-        const rampsOrder = await refreshOrder(
-          providerCode,
-          depositOrder.providerOrderId,
-          walletAddress || depositOrder.walletAddress,
-        );
-
-        addOrder({
-          ...rampsOrder,
-          paymentDetails: depositOrder.paymentDetails,
-        });
-
-        showV2OrderToast({
-          orderId: rampsOrder.providerOrderId,
-          cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
-          cryptoAmount: rampsOrder.cryptoAmount,
-          status: rampsOrder.status,
-        });
-
-        navigateToOrderProcessingCallback({
-          orderId: rampsOrder.providerOrderId,
-        });
-
-        trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
-          amount_source: Number(rampsOrder.fiatAmount),
-          amount_destination: Number(rampsOrder.cryptoAmount),
-          exchange_rate: Number(rampsOrder.exchangeRate),
-          gas_fee: rampsOrder.networkFees ? Number(rampsOrder.networkFees) : 0,
-          processing_fee: rampsOrder.partnerFees
-            ? Number(rampsOrder.partnerFees)
-            : 0,
-          total_fee: Number(rampsOrder.totalFeesFiat),
-          payment_method_id: rampsOrder.paymentMethod?.id || '',
-          country: regionIsoCode,
-          chain_id: rampsOrder.network?.chainId || '',
-          currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
-          currency_destination_symbol: rampsOrder.cryptoCurrency?.symbol || '',
-          currency_destination_network: rampsOrder.network?.name || '',
-          currency_source: rampsOrder.fiatCurrency?.symbol || '',
-        });
-      } catch (error) {
-        processingOrderIdRef.current = null;
-        Logger.error(error as Error, {
-          message: 'useTransakRouting: Failed to process order after checkout',
-        });
-      }
+      // Same pattern as unified Buy WebView Checkout: leave the webview
+      // immediately; OrderDetails resolves the order via callback params.
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+            params: {
+              callbackUrl: url,
+              providerCode: normalizeProviderCode('transak-native'),
+              walletAddress: walletAddress || '',
+              showCloseButton: true,
+            },
+          },
+        ],
+      });
     },
-    [
-      getOrder,
-      walletAddress,
-      addOrder,
-      refreshOrder,
-      navigateToOrderProcessingCallback,
-      regionIsoCode,
-      trackEvent,
-    ],
+    [navigation, walletAddress],
   );
 
   const navigateToWebviewModalCallback = useCallback(

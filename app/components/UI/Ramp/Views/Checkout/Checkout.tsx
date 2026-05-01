@@ -25,8 +25,6 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
-import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
@@ -72,12 +70,9 @@ const Checkout = () => {
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
   const { styles } = useStyles(styleSheet, {});
-  const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
-    useRampsOrders();
+  const { addPrecreatedOrder } = useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const isV2Enabled = useRampsUnifiedV2Enabled();
-
   const {
     url: uri,
     providerCode,
@@ -87,6 +82,7 @@ const Checkout = () => {
     network,
     userAgent,
     onNavigationStateChange,
+    cryptocurrency,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
@@ -165,37 +161,21 @@ const Checkout = () => {
           throw new Error('No wallet address or provider code available');
         }
 
-        const rampsOrder = await getOrderFromCallback(
-          providerCode,
-          navState.url,
-          walletAddress,
-        );
-
-        if (!rampsOrder) {
-          throw new Error('Order could not be retrieved from callback');
-        }
-
-        addOrder(rampsOrder);
         dispatch(protectWalletModalVisible());
 
-        if (isV2Enabled) {
-          showV2OrderToast({
-            orderId: rampsOrder.providerOrderId,
-            cryptocurrency:
-              rampsOrder.cryptoCurrency?.symbol ?? params?.cryptocurrency ?? '',
-            cryptoAmount: rampsOrder.cryptoAmount,
-            status: rampsOrder.status,
-          });
-        }
-
+        // Unified buy stack only: leave the WebView immediately; OrderDetails
+        // resolves the order via callback params (same pattern as external-browser return).
         navigation.reset({
           index: 0,
           routes: [
             {
               name: Routes.RAMP.RAMPS_ORDER_DETAILS,
               params: {
-                orderId: rampsOrder.providerOrderId,
+                callbackUrl: navState.url,
+                providerCode,
+                walletAddress,
                 showCloseButton: true,
+                ...(cryptocurrency ? { cryptocurrency } : {}),
               },
             },
           ],
@@ -213,10 +193,7 @@ const Checkout = () => {
       providerCode,
       walletAddress,
       navigation,
-      addOrder,
-      getOrderFromCallback,
-      isV2Enabled,
-      params?.cryptocurrency,
+      cryptocurrency,
     ],
   );
 
