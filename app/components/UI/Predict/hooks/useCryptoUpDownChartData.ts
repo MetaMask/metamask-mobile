@@ -207,11 +207,7 @@ export const useCryptoUpDownChartData = (
     return {
       data: chartData,
       value: displayedLiveValue,
-      loading:
-        !symbol ||
-        (liveLoading &&
-          (!!eventStartTime || historicalQuery.isFetching) &&
-          !hasRenderableLiveData),
+      loading: !symbol || (liveLoading && !hasRenderableLiveData),
       isLive: true,
       window: durationSecs,
     };

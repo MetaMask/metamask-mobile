@@ -81,6 +81,16 @@ import { PredictFeeCollection } from '../../types/flags';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 
+const FOUR_HOUR_SERIES_SLUG_PATTERN = /(?:^|-)4h(?:-|$)/u;
+
+const getSeriesRecurrence = (
+  series: PolymarketApiEvent['series'][number],
+): string =>
+  series.recurrence === 'daily' &&
+  FOUR_HOUR_SERIES_SLUG_PATTERN.test(series.slug)
+    ? '4h'
+    : series.recurrence;
+
 export const getPolymarketEndpoints = () => {
   const API_ENDPOINT = 'https://polymarket.com/api';
 
@@ -1034,11 +1044,7 @@ export const parsePolymarketEvents = (
               id: event.series[0].id,
               slug: event.series[0].slug,
               title: event.series[0].title,
-              recurrence:
-                event.series[0].recurrence === 'daily' &&
-                event.series[0].slug.includes('4h')
-                  ? '4h'
-                  : event.series[0].recurrence,
+              recurrence: getSeriesRecurrence(event.series[0]),
             }
           : undefined;
 

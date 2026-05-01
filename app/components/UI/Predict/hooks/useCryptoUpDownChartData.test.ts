@@ -724,5 +724,19 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.loading).toBe(true);
       expect(result.current.value).toBe(0);
     });
+
+    it('keeps live data loading when event start time is unavailable', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      mockGetEventStartTime.mockReturnValue(undefined);
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      expect(result.current.isLive).toBe(true);
+      expect(result.current.loading).toBe(true);
+      expect(result.current.value).toBe(0);
+    });
   });
 });

@@ -1324,6 +1324,48 @@ describe('polymarket utils', () => {
       });
     });
 
+    it('normalizes daily series to 4h when slug has a 4h segment', () => {
+      const eventWithFourHourSeries: PolymarketApiEvent = {
+        ...mockEvent,
+        series: [
+          {
+            id: '1',
+            slug: 'btc-up-or-down-4h',
+            title: 'BTC Up or Down 4H',
+            recurrence: 'daily',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithFourHourSeries],
+        mockCategory,
+      );
+
+      expect(result[0].series?.recurrence).toBe('4h');
+    });
+
+    it('does not normalize daily series when 4h is part of a larger slug segment', () => {
+      const eventWithDailySeries: PolymarketApiEvent = {
+        ...mockEvent,
+        series: [
+          {
+            id: '1',
+            slug: 'btc-up-or-down-daily-jan-4th',
+            title: 'BTC Up or Down Daily',
+            recurrence: 'daily',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithDailySeries],
+        mockCategory,
+      );
+
+      expect(result[0].series?.recurrence).toBe('daily');
+    });
+
     it('handle closed events', () => {
       const closedEvent = {
         ...mockEvent,
