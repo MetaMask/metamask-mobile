@@ -1783,6 +1783,78 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
         };
       }
     });
+  // Also mock the direct relayer endpoint for environments where requests bypass the proxy.
+  // submitProtocolClobOrder() calls fetch('https://predict.api.cx.metamask.io/order') directly.
+  await mockServer
+    .forPost(
+      /^https:\/\/predict(?:\.dev-api|\.api)\.cx\.metamask\.io\/order($|\?)/,
+    )
+    .thenCallback(async (request) => {
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        const order = body?.order;
+
+        if (!order || order.side !== 'BUY') {
+          return {
+            statusCode: 200,
+            json: { success: false, errorMsg: 'Order not matched' },
+          };
+        }
+
+        const isCelticsToken =
+          order?.tokenId ===
+          '51851880223290407825872150827934296608070009371891114025629582819868766043137';
+
+        const userAddress =
+          order?.signer?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
+        const proxyAddress =
+          order?.maker?.toLowerCase() || PROXY_WALLET_ADDRESS.toLowerCase();
+
+        orderSubmitted.add(userAddress);
+        orderSubmitted.add(proxyAddress);
+
+        if (isCelticsToken) {
+          celticsOrderSubmitted.add(userAddress);
+          celticsOrderSubmitted.add(proxyAddress);
+        }
+
+        return {
+          statusCode: 200,
+          json: {
+            success: true,
+            errorMsg: '',
+            status: 'matched',
+            orderID:
+              '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
+            transactionsHashes: [
+              '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+            ],
+            takingAmount: '11.904758',
+            makingAmount: '9.999996',
+          },
+        };
+      } catch {
+        orderSubmitted.add(USER_WALLET_ADDRESS.toLowerCase());
+        orderSubmitted.add(PROXY_WALLET_ADDRESS.toLowerCase());
+        return {
+          statusCode: 200,
+          json: {
+            success: true,
+            errorMsg: '',
+            status: 'matched',
+            orderID:
+              '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
+            transactionsHashes: [
+              '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+            ],
+            takingAmount: '11.904758',
+            makingAmount: '9.999996',
+          },
+        };
+      }
+    });
+
   await POLYMARKET_ADD_CELTICS_POSITION_MOCKS(mockServer);
   await POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS(mockServer);
 };

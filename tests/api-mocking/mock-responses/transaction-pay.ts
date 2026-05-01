@@ -400,17 +400,40 @@ export const RELAY_STATUS_MOCK = {
   ],
 };
 
+function isRelayQuoteUrl(url: string) {
+  return (
+    url.includes('api.relay.link/quote') ||
+    url.includes('bridge.api.cx.metamask.io/relay/quote') ||
+    url.includes('bridge.dev-api.cx.metamask.io/relay/quote')
+  );
+}
+
+function isRelayStatusUrl(url: string) {
+  return (
+    url.includes('api.relay.link/intents/status') ||
+    url.includes('bridge.api.cx.metamask.io/relay/intents/status') ||
+    url.includes('bridge.dev-api.cx.metamask.io/relay/intents/status')
+  );
+}
+
 export async function mockRelayQuote(mockServer: Mockttp) {
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url?.includes('api.relay.link/quote') ||
-          url?.includes('bridge.api.cx.metamask.io/relay/quote') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
-      );
+      return Boolean(url && isRelayQuoteUrl(url));
     })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: RELAY_QUOTE_MOCK,
+    }));
+
+  // Relay fetches can bypass the app proxy in some E2E environments.
+  // Mock the direct endpoints too so Transaction Pay still receives a quote.
+  await mockServer
+    .forPost(
+      /^https:\/\/(api\.relay\.link\/quote|bridge(?:\.dev-api|\.api)\.cx\.metamask\.io\/relay\/quote(?:\/v2)?)($|\?)/,
+    )
     .thenCallback(() => ({
       statusCode: 200,
       json: RELAY_QUOTE_MOCK,
@@ -426,12 +449,17 @@ export async function mockRelayQuoteMainnetMusd(mockServer: Mockttp) {
     .forPost('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url?.includes('api.relay.link/quote') ||
-          url?.includes('bridge.api.cx.metamask.io/relay/quote') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
-      );
+      return Boolean(url && isRelayQuoteUrl(url));
     })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: MAINNET_MUSD_RELAY_QUOTE_MOCK,
+    }));
+
+  await mockServer
+    .forPost(
+      /^https:\/\/(api\.relay\.link\/quote|bridge(?:\.dev-api|\.api)\.cx\.metamask\.io\/relay\/quote(?:\/v2)?)($|\?)/,
+    )
     .thenCallback(() => ({
       statusCode: 200,
       json: MAINNET_MUSD_RELAY_QUOTE_MOCK,
@@ -443,12 +471,18 @@ export async function mockRelayStatus(mockServer: Mockttp) {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url?.includes('api.relay.link/intents/status') ||
-          url?.includes('bridge.api.cx.metamask.io/relay/intents/status') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/intents/status'),
-      );
+      return Boolean(url && isRelayStatusUrl(url));
     })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: RELAY_STATUS_MOCK,
+    }));
+
+  // Also mock direct relay status endpoint for environments where requests bypass the proxy.
+  await mockServer
+    .forGet(
+      /^https:\/\/(api\.relay\.link\/intents\/status|bridge(?:\.dev-api|\.api)\.cx\.metamask\.io\/relay\/intents\/status)($|\?)/,
+    )
     .thenCallback(() => ({
       statusCode: 200,
       json: RELAY_STATUS_MOCK,
