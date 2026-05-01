@@ -361,30 +361,6 @@ export const MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK = [
 ];
 
 /**
- * Selects the chain IDs on which the mUSD token should be eagerly registered
- * in TokensController at app mount (via useEnsureMusdTokenRegistered).
- *
- * Remote flag takes precedence over the local fallback.
- * An empty remote array is honoured (disabling registration); the fallback is
- * only used when the remote flag is absent or structurally invalid (i.e.
- * `chainIds` is missing or not an array).
- */
-export const selectMusdTokenRegistrationChainIds = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): string[] => {
-    const remoteFlag = remoteFeatureFlags?.earnMusdTokenRegistrationChainIds as
-      | { chainIds?: string[] }
-      | undefined;
-
-    if (Array.isArray(remoteFlag?.chainIds)) {
-      return remoteFlag.chainIds;
-    }
-
-    return MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK;
-  },
-);
-
-/**
  * Selector for Merkl campaign claiming feature flag
  * Controls visibility of Merkl rewards claiming functionality in the UI
  *
