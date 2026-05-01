@@ -149,10 +149,12 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     : 5 * 60 * 1000;
   const marketEndDateMs = getEndDateTime(market.endDate);
   const selectedEndDateMs = getEndDateTime(selectedMarket.endDate);
-  const currentTimeMs = Date.now();
-  const currentWindowMs = Number.isFinite(currentTimeMs)
-    ? Math.floor(currentTimeMs / durationMs) * durationMs
-    : 0;
+  const currentWindowMs = useMemo(() => {
+    const currentTimeMs = Date.now();
+    return Number.isFinite(currentTimeMs)
+      ? Math.floor(currentTimeMs / durationMs) * durationMs
+      : 0;
+  }, [durationMs]);
   const { endDateMin, endDateMax } = useMemo(() => {
     const seriesWindowAnchorMs = Math.max(
       currentWindowMs,
