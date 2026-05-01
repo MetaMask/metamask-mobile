@@ -305,6 +305,8 @@ jobs:
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          # Generate build-env.json capturing actual env values used in this build (non-critical)
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
 
       - name: Validate secrets
         env:
@@ -417,19 +419,13 @@ jobs:
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
-      # ios_simulator_path is set by scripts/rename-artifacts.js (staged under ios-simulator-upload/
-      # in CI so upload-artifact uploads a .zip file, not a .app directory).
       - name: Upload iOS simulator app
-        if: success() && matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_simulator_path }}
           if-no-files-found: error
-
-      - name: Remove iOS simulator staging directory
-        if: success() && matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
-        run: rm -rf ios-simulator-upload
 
       - name: Upload iOS IPA
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
@@ -495,6 +491,14 @@ jobs:
         with:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
+          if-no-files-found: warn
+
+      - name: Upload build environment JSON
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-env-${{ inputs.build_name }}-${{ matrix.platform }}
+          path: build-env.json
           if-no-files-found: warn
 
   # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).
