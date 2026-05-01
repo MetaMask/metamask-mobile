@@ -503,10 +503,11 @@ if (enableApiCallLogs || isTest) {
         );
       }
 
-      // (2) + (3) JS-level patches for log visibility and as a fallback
-      const patchExpoFetchModule = (modulePath, label) => {
+      // (2) + (3) JS-level patches for log visibility and as a fallback.
+      // NOTE: each `require(...)` call MUST use a string literal — Metro
+      // statically analyses requires and rejects variable paths.
+      const patchExpoFetchModuleObject = (mod, label) => {
         try {
-          const mod = require(modulePath);
           const originalExpoFetch = mod.fetch;
           if (typeof originalExpoFetch !== 'function') {
             // eslint-disable-next-line no-console
@@ -536,11 +537,30 @@ if (enableApiCallLogs || isTest) {
           console.warn(`[E2E SHIM] Failed to patch ${label}:`, e.message);
         }
       };
-      patchExpoFetchModule('expo/src/winter/fetch/fetch', 'expo/fetch source');
-      patchExpoFetchModule(
-        'expo/src/winter/fetch/index',
-        'expo/fetch re-exporter',
-      );
+      try {
+        patchExpoFetchModuleObject(
+          require('expo/src/winter/fetch/fetch'),
+          'expo/fetch source',
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[E2E SHIM] Failed to require expo/fetch source:',
+          e.message,
+        );
+      }
+      try {
+        patchExpoFetchModuleObject(
+          require('expo/src/winter/fetch/index'),
+          'expo/fetch re-exporter',
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[E2E SHIM] Failed to require expo/fetch re-exporter:',
+          e.message,
+        );
+      }
     }
   })();
 }
