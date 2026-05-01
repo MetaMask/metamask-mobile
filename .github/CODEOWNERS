@@ -334,6 +334,7 @@ tests/tools/                                                    @MetaMask/qa
 tests/websocket/                                                @MetaMask/qa
 
 # QA Team - CI
+.github/guidelines/E2E_DECISION_TREE.md                         @MetaMask/qa
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
 .github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
 .github/workflows/auto-label-not-ready-for-e2e.yml              @MetaMask/qa
