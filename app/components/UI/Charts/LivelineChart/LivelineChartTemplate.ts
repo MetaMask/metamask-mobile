@@ -182,7 +182,7 @@ export const createLivelineChartTemplate = (
               }
               delete incoming.data;
               delete incoming.value;
-              currentProps = Object.assign(currentProps || {}, incoming);
+              currentProps = incoming;
             } else {
               currentProps = msg.payload;
             }
