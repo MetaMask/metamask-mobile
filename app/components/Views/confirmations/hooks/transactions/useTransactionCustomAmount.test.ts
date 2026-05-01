@@ -11,7 +11,7 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { act } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useUpdateCustomTokenAmount } from './useUpdateCustomTokenAmount';
+import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import {
   TransactionMeta,
   TransactionType,
@@ -38,7 +38,7 @@ import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEve
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../tokens/useTokenFiatRates');
-jest.mock('../transactions/useUpdateCustomTokenAmount');
+jest.mock('../pay/useUpdateTransactionPayAmount');
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
@@ -103,8 +103,8 @@ function runHook({
 
 describe('useTransactionCustomAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
-  const useUpdateCustomTokenAmountMock = jest.mocked(
-    useUpdateCustomTokenAmount,
+  const useUpdateTransactionPayAmountMock = jest.mocked(
+    useUpdateTransactionPayAmount,
   );
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useParamsMock = jest.mocked(useParams);
@@ -127,9 +127,9 @@ describe('useTransactionCustomAmount', () => {
     useConfirmationMetricEvents,
   );
 
-  const updateCustomTokenAmountMock: ReturnType<
-    typeof useUpdateCustomTokenAmount
-  >['updateCustomTokenAmount'] = jest.fn();
+  const updateTransactionPayAmountMock: ReturnType<
+    typeof useUpdateTransactionPayAmount
+  >['updateTransactionPayAmount'] = jest.fn();
 
   const setConfirmationMetricMock = jest.fn();
 
@@ -138,9 +138,9 @@ describe('useTransactionCustomAmount', () => {
 
     useTokenFiatRateMock.mockReturnValue(2);
 
-    useUpdateCustomTokenAmountMock.mockReturnValue({
-      updateCustomTokenAmount: updateCustomTokenAmountMock,
-    } as ReturnType<typeof useUpdateCustomTokenAmountMock>);
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
@@ -257,7 +257,7 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('1'.repeat(27));
   });
 
-  it('updateTokenAmount delegates to updateCustomTokenAmount with the human amount', async () => {
+  it('updateTokenAmount delegates to updateTransactionPayAmount with the human amount', async () => {
     const { result } = runHook();
 
     await act(async () => {
@@ -268,7 +268,7 @@ describe('useTransactionCustomAmount', () => {
       result.current.updateTokenAmount();
     });
 
-    expect(updateCustomTokenAmountMock).toHaveBeenCalledWith('61.725');
+    expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('61.725');
   });
 
   it('sets mm_pay_quote_requested metric only when hasSourceAmount becomes true after updateTokenAmount was called', async () => {

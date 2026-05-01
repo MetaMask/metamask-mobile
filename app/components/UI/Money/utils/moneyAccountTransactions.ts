@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { UpdateAmountCall } from '../../../Views/confirmations/hooks/pay/useUpdateTransactionPayAmount';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 
@@ -165,11 +166,6 @@ export async function buildMoneyAccountDepositBatch({
   };
 }
 
-export interface MoneyAccountDepositTokenAmountUpdate {
-  nestedTransactionIndex: number;
-  transactionData: Hex;
-}
-
 /**
  * Returns the per-nested-call data updates required when the user changes
  * the deposit amount on a Money Account deposit confirmation.
@@ -182,7 +178,7 @@ export function updateMoneyAccountDepositTokenAmount(
   _transactionMeta: TransactionMeta,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _amountHuman: string,
-): MoneyAccountDepositTokenAmountUpdate[] {
+): UpdateAmountCall[] {
   return [];
 }
 

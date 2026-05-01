@@ -7,7 +7,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useUpdateCustomTokenAmount } from './useUpdateCustomTokenAmount';
+import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
@@ -80,7 +80,7 @@ export function useTransactionCustomAmount({
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
-  const { updateCustomTokenAmount } = useUpdateCustomTokenAmount();
+  const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
 
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
@@ -206,9 +206,9 @@ export function useTransactionCustomAmount({
   );
 
   const updateTokenAmount = useCallback(() => {
-    updateCustomTokenAmount(amountHuman);
+    updateTransactionPayAmount(amountHuman);
     setIsTokenAmountUpdated(true);
-  }, [amountHuman, updateCustomTokenAmount]);
+  }, [amountHuman, updateTransactionPayAmount]);
 
   useEffect(() => {
     if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
