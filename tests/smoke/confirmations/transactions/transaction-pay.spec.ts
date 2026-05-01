@@ -26,6 +26,8 @@ import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 
 describe(SmokeConfirmations('Transaction Pay'), () => {
   it('deposits to predict balance', async () => {
+    const expectedAmounts = getExpectedAmounts();
+
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -57,9 +59,11 @@ describe(SmokeConfirmations('Transaction Pay'), () => {
         await TransactionPayConfirmation.tapPayWithToken('LineaETH');
         await TransactionPayConfirmation.tapKeyboardAmount('1.23');
         await TransactionPayConfirmation.tapKeyboardContinueButton();
-        await TransactionPayConfirmation.verifyTransactionFee('$0.04');
+        await TransactionPayConfirmation.verifyTransactionFee(
+          expectedAmounts.confirmationTransactionFee,
+        );
         await TransactionPayConfirmation.verifyBridgeTime('< 1 min');
-        await TransactionPayConfirmation.verifyTotal('$1.31');
+        await TransactionPayConfirmation.verifyTotal(expectedAmounts.total);
         await FooterActions.tapConfirmButton();
 
         await PredictMarketList.tapBackButton();
@@ -67,15 +71,37 @@ describe(SmokeConfirmations('Transaction Pay'), () => {
         await Gestures.waitAndTap(ActivitiesView.predictDeposit, {
           elemDescription: 'Predict Deposit transaction item',
         });
-        await TransactionDetailsModal.verifyNetworkFee('$0.01');
+        await TransactionDetailsModal.verifyNetworkFee(
+          expectedAmounts.networkFee,
+        );
         await TransactionDetailsModal.verifyPaidWithSymbol('LineaETH');
-        await TransactionDetailsModal.verifyTotal('$1.31');
-        await TransactionDetailsModal.verifyTransactionFee('$0.04');
+        await TransactionDetailsModal.verifyTotal(expectedAmounts.total);
+        await TransactionDetailsModal.verifyTransactionFee(
+          expectedAmounts.detailsTransactionFee,
+        );
         await TransactionDetailsModal.verifyStatus('Confirmed');
       },
     );
   });
 });
+
+function getExpectedAmounts() {
+  if (device.getPlatform() === 'android') {
+    return {
+      confirmationTransactionFee: '$88.79',
+      detailsTransactionFee: '$0.04',
+      networkFee: '$88.75',
+      total: '$88.79',
+    };
+  }
+
+  return {
+    confirmationTransactionFee: '$0.04',
+    detailsTransactionFee: '$0.04',
+    networkFee: '$0.01',
+    total: '$1.31',
+  };
+}
 
 async function testSpecificMock(mockServer: Mockttp) {
   await setupRemoteFeatureFlagsMock(mockServer, {
