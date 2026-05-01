@@ -38,10 +38,10 @@ const MoneyAccountHomeRow = () => {
 
   const apyLabel = isEmpty
     ? strings('homepage.sections.cash_empty_state.earn_apy', {
-        percentage: apyPercent ?? '--',
+        percentage: apyPercent,
       })
     : strings('homepage.sections.cash_filled_state.apy', {
-        percentage: apyPercent ?? '--',
+        percentage: apyPercent,
       });
 
   const handleGetStartedPress = useCallback(() => {
