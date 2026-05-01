@@ -326,9 +326,11 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       ? currentPrice - validatedTargetPrice
       : undefined;
   const currentPriceDeltaColor =
-    typeof currentPriceDelta === 'number' && currentPriceDelta >= 0
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault;
+    typeof currentPriceDelta !== 'number'
+      ? TextColor.TextAlternative
+      : currentPriceDelta >= 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault;
   const currentPriceAccentColor =
     CRYPTO_SYMBOL_TO_ACCENT_COLOR[targetPriceSymbol ?? ''] ??
     DEFAULT_CRYPTO_ACCENT_COLOR;
