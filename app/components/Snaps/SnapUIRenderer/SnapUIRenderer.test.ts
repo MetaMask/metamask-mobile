@@ -62,6 +62,7 @@ describe('SnapUIRenderer', () => {
       { useFooter: true },
     );
 
+    expect(getByText('Hello world!')).toBeOnTheScreen();
     expect(getByText('Foo')).toBeOnTheScreen();
   });
 
@@ -73,6 +74,7 @@ describe('SnapUIRenderer', () => {
       { useFooter: true },
     );
 
+    expect(getByText('Hello world!')).toBeOnTheScreen();
     expect(getByText('Close')).toBeOnTheScreen();
   });
 
@@ -236,7 +238,13 @@ describe('SnapUIRenderer', () => {
     );
 
     expect(getRenderCount()).toBe(1);
+    expect(getByText('Key')).toBeOnTheScreen();
+    expect(getByText('Value')).toBeOnTheScreen();
+    expect(getByText('Extra')).toBeOnTheScreen();
     expect(getByText('CardTitle')).toBeOnTheScreen();
+    expect(getByText('CardDescription')).toBeOnTheScreen();
+    expect(getByText('CardValue')).toBeOnTheScreen();
+    expect(getByText('CardExtra')).toBeOnTheScreen();
     expect(getByText('Foo')).toBeOnTheScreen();
   });
 });

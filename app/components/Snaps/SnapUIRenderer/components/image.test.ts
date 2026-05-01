@@ -1,4 +1,5 @@
 import { Image } from '@metamask/snaps-sdk/jsx';
+import { Image as ExpoImage } from 'expo-image';
 import { renderInterface } from '../testUtils';
 
 jest.mock('../../../../core/Engine/Engine', () => ({
@@ -25,7 +26,7 @@ describe('image component', () => {
   });
 
   it('renders an external image', () => {
-    const { getByTestId } = renderInterface(
+    const { queryByTestId, UNSAFE_getByType } = renderInterface(
       Image({
         src: 'https://metamask.io/fox.png',
         borderRadius: 'full',
@@ -34,6 +35,8 @@ describe('image component', () => {
       }),
     );
 
-    expect(getByTestId('snap-ui-renderer__scrollview')).toBeOnTheScreen();
+    const image = UNSAFE_getByType(ExpoImage);
+    expect(image.props.source).toEqual({ uri: 'https://metamask.io/fox.png' });
+    expect(queryByTestId('snaps-ui-image')).toBeNull();
   });
 });
