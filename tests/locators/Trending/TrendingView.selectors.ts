@@ -22,7 +22,7 @@ export const TrendingViewSelectorsIDs = {
 export const TrendingViewSelectorsText = {
   // Section titles - must match the actual localized strings from sections.config.tsx
   SECTION_PREDICTIONS: 'Predictions',
-  SECTION_TOKENS: 'Trending tokens',
+  SECTION_TOKENS: 'Trending',
   SECTION_STOCKS: 'Stocks',
   SECTION_PERPS: 'Perps',
   SECTION_SITES: 'Sites',

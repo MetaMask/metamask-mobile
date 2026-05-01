@@ -146,7 +146,7 @@ class TrendingView {
    */
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
-      'Trending tokens': 'tokens',
+      Trending: 'tokens',
       Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
