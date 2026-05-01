@@ -95,6 +95,7 @@ export const useCryptoUpDownChartData = (
   frozenMarketIdRef.current = frozenMarketId;
 
   const prevMarketIdRef = useRef(market.id);
+  const isCurrentMarket = prevMarketIdRef.current === market.id;
   useEffect(() => {
     if (prevMarketIdRef.current === market.id) {
       return;
@@ -111,6 +112,19 @@ export const useCryptoUpDownChartData = (
     fallbackStartPointRef.current = EMPTY_DATA;
     chartRef?.current?.clearData();
   }, [chartRef, market.id]);
+
+  const hasExpiredLiveData =
+    isCurrentMarket && !isLiveByEndDate && livePoints.length > 0;
+
+  useEffect(() => {
+    if (!hasExpiredLiveData || frozenMarketId === market.id) {
+      return;
+    }
+
+    frozenRef.current = true;
+    frozenMarketIdRef.current = market.id;
+    setFrozenMarketId(market.id);
+  }, [frozenMarketId, hasExpiredLiveData, market.id]);
 
   const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
     const currentLiveEndDateMs = liveEndDateMsRef.current;
@@ -239,7 +253,7 @@ export const useCryptoUpDownChartData = (
     }
   }, [historicalValue, isLive]);
 
-  if (isLive || hasFrozenLiveData) {
+  if (isLive || hasFrozenLiveData || hasExpiredLiveData) {
     return {
       data: chartData,
       value: displayedLiveValue,
