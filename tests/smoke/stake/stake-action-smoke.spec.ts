@@ -10,7 +10,7 @@ import FixtureBuilder, {
 import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
-import { SmokeTrade } from '../../tags';
+import { SmokeStake } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import StakeView from '../../page-objects/Stake/StakeView';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
