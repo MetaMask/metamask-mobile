@@ -14,7 +14,6 @@ import { parseStandardTokenTransactionData } from '../../../Views/confirmations/
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import {
   createMusdConversionTransaction,
-  ensureMusdTokenRegistered,
   replaceMusdConversionTransactionForPayToken,
 } from './musdConversionTransaction';
 
@@ -759,119 +758,6 @@ describe('musdConversionTransaction', () => {
       expect(approvalControllerReject).not.toHaveBeenCalled();
       expect(mockedEngineService.flushState).not.toHaveBeenCalled();
       expect(newTransactionId).toBeUndefined();
-    });
-  });
-
-  describe('ensureMusdTokenRegistered', () => {
-    const MUSD_ADDRESS = '0xmusdAddress' as Hex;
-    const CHAIN_ID = '0x1' as Hex;
-    const NETWORK_CLIENT_ID = 'mainnet';
-
-    beforeEach(() => {
-      (MUSD_TOKEN_ADDRESS_BY_CHAIN as Record<string, Hex>)[CHAIN_ID] =
-        MUSD_ADDRESS;
-    });
-
-    describe('when mUSD token address is not configured for the chain', () => {
-      it('returns early without calling addToken', async () => {
-        const unknownChainId = '0xdead' as Hex;
-
-        await ensureMusdTokenRegistered({
-          chainId: unknownChainId,
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-
-        expect(tokensControllerAddToken).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when mUSD token is already registered for the chain', () => {
-      it('does not call addToken when the token exists for one account', async () => {
-        mockedEngine.context.TokensController = {
-          state: {
-            allTokens: {
-              [CHAIN_ID]: {
-                '0xaccountAddress': [{ address: MUSD_ADDRESS }],
-              },
-            },
-          },
-          addToken: tokensControllerAddToken,
-        };
-
-        await ensureMusdTokenRegistered({
-          chainId: CHAIN_ID,
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-
-        expect(tokensControllerAddToken).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when mUSD token is not yet registered', () => {
-      it('calls addToken with the correct token metadata and networkClientId', async () => {
-        mockedEngine.context.TokensController = {
-          state: { allTokens: {} },
-          addToken: tokensControllerAddToken,
-        };
-        tokensControllerAddToken.mockResolvedValue(undefined);
-
-        await ensureMusdTokenRegistered({
-          chainId: CHAIN_ID,
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-
-        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
-        expect(tokensControllerAddToken).toHaveBeenCalledWith({
-          address: MUSD_ADDRESS,
-          decimals: 6,
-          name: 'MetaMask USD',
-          symbol: 'mUSD',
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-      });
-
-      it('calls addToken when the chain entry exists but no accounts hold mUSD', async () => {
-        mockedEngine.context.TokensController = {
-          state: {
-            allTokens: {
-              [CHAIN_ID]: {
-                '0xaccountAddress': [{ address: '0xdifferentTokenAddress' }],
-              },
-            },
-          },
-          addToken: tokensControllerAddToken,
-        };
-        tokensControllerAddToken.mockResolvedValue(undefined);
-
-        await ensureMusdTokenRegistered({
-          chainId: CHAIN_ID,
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-
-        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
-        expect(tokensControllerAddToken).toHaveBeenCalledWith({
-          address: MUSD_ADDRESS,
-          decimals: 6,
-          name: 'MetaMask USD',
-          symbol: 'mUSD',
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-      });
-
-      it('calls addToken when allTokens has no entry for the chain', async () => {
-        mockedEngine.context.TokensController = {
-          state: { allTokens: { '0xe708': {} } },
-          addToken: tokensControllerAddToken,
-        };
-        tokensControllerAddToken.mockResolvedValue(undefined);
-
-        await ensureMusdTokenRegistered({
-          chainId: CHAIN_ID,
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-
-        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
-      });
     });
   });
 });

@@ -2903,16 +2903,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMusdTokenRegistrationChainIds: {
-    name: 'earnMusdTokenRegistrationChainIds',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      chainIds: [],
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnPooledStakingEnabled: {
     name: 'earnPooledStakingEnabled',
     type: FeatureFlagType.Remote,

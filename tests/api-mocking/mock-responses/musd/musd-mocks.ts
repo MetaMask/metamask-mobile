@@ -220,7 +220,7 @@ export async function setupMusdMocks(
       `token\\.api\\.cx\\.metamask\\.io/token/1\\?address=${MUSD_MAINNET}`,
       'i',
     ),
-    response: { ...MUSD_TOKEN_API_RESPONSE, chainId: 1 },
+    response: MUSD_TOKEN_API_RESPONSE,
     requestMethod: 'GET',
     responseCode: 200,
   });

@@ -144,46 +144,6 @@ function buildMusdConversionTx(params: {
   };
 }
 
-/**
- * Ensures the mUSD token is registered in TokensController for the given chain.
- *
- * The Pay controller discovers required tokens by looking up `txParams.to` in
- * TokensController synchronously when a transaction is added. If mUSD is not
- * in the registry (e.g. first-time users), the Pay controller cannot identify
- * it as a required token, which breaks the fee-handling flow.
- *
- * This must be called BEFORE `createMusdConversionTransaction` so the token
- * is present when the Pay controller processes the new transaction.
- */
-export async function ensureMusdTokenRegistered({
-  chainId,
-  networkClientId,
-}: {
-  chainId: Hex;
-  networkClientId: string;
-}): Promise<void> {
-  const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
-  if (!musdTokenAddress) {
-    return;
-  }
-
-  const { allTokens } = Engine.context.TokensController.state;
-  const accountTokens = Object.values(allTokens[chainId] ?? {}).flat();
-  const hasMusdToken = accountTokens.some(
-    (t) => t.address.toLowerCase() === musdTokenAddress.toLowerCase(),
-  );
-
-  if (!hasMusdToken) {
-    await Engine.context.TokensController.addToken({
-      address: musdTokenAddress,
-      decimals: MUSD_TOKEN.decimals,
-      name: MUSD_TOKEN.name,
-      symbol: MUSD_TOKEN.symbol,
-      networkClientId,
-    });
-  }
-}
-
 /* ============================================================
  * Controller integration (side-effects live here)
  * ============================================================
