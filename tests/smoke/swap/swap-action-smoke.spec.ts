@@ -3,7 +3,7 @@ import { LocalNodeType } from '../../framework/types';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { SmokeTrade } from '../../tags';
+import { SmokeSwap } from '../../tags';
 import {
   submitSwapUnifiedUI,
   checkSwapActivity,
@@ -15,7 +15,7 @@ import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactio
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 import { swapActionExpectations } from '../../helpers/analytics/expectations/swap-action.analytics';
 
-describe(SmokeTrade('Swap from Actions'), (): void => {
+describe(SmokeSwap('Swap from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(180000);
   });
