@@ -284,6 +284,32 @@ describe('PredictCryptoUpDownDetails', () => {
     });
   });
 
+  it('updates usePredictShare params when a different time slot is selected', () => {
+    const initialMarket = createMockMarket({
+      id: 'market-1',
+      slug: 'btc-up-or-down-5m',
+    });
+    const selectedMarket = createMockMarket({
+      id: 'market-2',
+      slug: 'btc-up-or-down-15m',
+      endDate: '2026-04-09T19:50:00Z',
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [initialMarket, selectedMarket],
+    });
+
+    render(
+      <PredictCryptoUpDownDetails market={initialMarket} onBack={mockOnBack} />,
+    );
+
+    fireEvent.press(screen.getByTestId('mock-time-slot-market-2'));
+
+    expect(mockUsePredictShare).toHaveBeenLastCalledWith({
+      marketId: 'market-2',
+      marketSlug: 'btc-up-or-down-15m',
+    });
+  });
+
   it('renders the title section with the series title text', () => {
     const market = createMockMarket({
       series: {
