@@ -330,6 +330,8 @@ describe('useCryptoUpDownChartData', () => {
 
       rerender({ activeMarket: nextMarket });
 
+      expect(result.current.data).toEqual([]);
+      expect(result.current.value).toBe(0);
       await waitFor(() => {
         expect(result.current.data).toEqual([]);
       });

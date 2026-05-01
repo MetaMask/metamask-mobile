@@ -464,6 +464,41 @@ describe('PredictCryptoUpDownDetails', () => {
     }
   });
 
+  it('refreshes series query params when the current recurrence window elapses', () => {
+    const now = Date.UTC(2026, 0, 1, 0, 1, 0);
+    jest.useFakeTimers();
+    jest.setSystemTime(now);
+    const market = createMockMarket({ endDate: undefined });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+    try {
+      render(
+        <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+      );
+      const initialQueryParams =
+        mockUsePredictSeries.mock.calls[
+          mockUsePredictSeries.mock.calls.length - 1
+        ][0];
+
+      act(() => {
+        jest.advanceTimersByTime(4 * 60 * 1000);
+      });
+
+      const updatedQueryParams =
+        mockUsePredictSeries.mock.calls[
+          mockUsePredictSeries.mock.calls.length - 1
+        ][0];
+      expect(updatedQueryParams.endDateMin).not.toBe(
+        initialQueryParams.endDateMin,
+      );
+      expect(updatedQueryParams.endDateMax).not.toBe(
+        initialQueryParams.endDateMax,
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('uses the selected market recurrence for series query window duration', () => {
     const now = Date.UTC(2026, 0, 1, 0, 0, 0);
     const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);

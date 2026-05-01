@@ -57,6 +57,15 @@ const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
 };
 
+const getCurrentWindowMs = (durationMs: number) => {
+  const currentTimeMs = Date.now();
+  if (!Number.isFinite(currentTimeMs) || durationMs <= 0) {
+    return 0;
+  }
+
+  return Math.floor(currentTimeMs / durationMs) * durationMs;
+};
+
 type PredictMarketWithSeries = PredictMarket & { series: PredictSeries };
 
 const getOpenOutcomes = (market: PredictMarket): PredictOutcome[] =>
@@ -149,12 +158,9 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     : 5 * 60 * 1000;
   const marketEndDateMs = getEndDateTime(market.endDate);
   const selectedEndDateMs = getEndDateTime(selectedMarket.endDate);
-  const currentWindowMs = useMemo(() => {
-    const currentTimeMs = Date.now();
-    return Number.isFinite(currentTimeMs)
-      ? Math.floor(currentTimeMs / durationMs) * durationMs
-      : 0;
-  }, [durationMs]);
+  const [currentWindowMs, setCurrentWindowMs] = useState(() =>
+    getCurrentWindowMs(durationMs),
+  );
   const { endDateMin, endDateMax } = useMemo(() => {
     const seriesWindowAnchorMs = Math.max(
       currentWindowMs,
@@ -209,6 +215,34 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const handleCurrentPriceChange = useCallback((value: number) => {
     setCurrentPrice(value);
   }, []);
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    const scheduleNextWindowRefresh = () => {
+      const currentTimeMs = Date.now();
+      const remainder =
+        Number.isFinite(currentTimeMs) && durationMs > 0
+          ? currentTimeMs % durationMs
+          : 0;
+      const timeUntilNextWindow =
+        remainder > 0 ? durationMs - remainder : durationMs;
+
+      timeout = setTimeout(() => {
+        setCurrentWindowMs(getCurrentWindowMs(durationMs));
+        scheduleNextWindowRefresh();
+      }, timeUntilNextWindow);
+    };
+
+    setCurrentWindowMs(getCurrentWindowMs(durationMs));
+    scheduleNextWindowRefresh();
+
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
+  }, [durationMs]);
 
   const handleBuyPress = useCallback(
     (token: PredictOutcomeToken) => {

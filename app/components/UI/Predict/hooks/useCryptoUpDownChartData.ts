@@ -253,6 +253,16 @@ export const useCryptoUpDownChartData = (
     }
   }, [historicalValue, isLive]);
 
+  if (!isCurrentMarket && isLive) {
+    return {
+      data: EMPTY_DATA,
+      value: 0,
+      loading: true,
+      isLive,
+      window: durationSecs,
+    };
+  }
+
   if (isLive || hasFrozenLiveData || hasExpiredLiveData) {
     return {
       data: chartData,
