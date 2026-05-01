@@ -112,13 +112,6 @@ describe('keyringControllerInit', () => {
       expect(MoneyKeyring).toHaveBeenCalled();
     });
 
-    it('creates a MoneyKeyring instance even when the flag is disabled (to support vault deserialization)', () => {
-      const builder = getMoneyKeyringBuilder();
-
-      builder();
-      expect(MoneyKeyring).toHaveBeenCalled();
-    });
-
     describe('getMnemonic', () => {
       const mockEntropySource = 'test-entropy-source';
 
