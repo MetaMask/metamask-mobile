@@ -1,5 +1,4 @@
 import { MessengerClientInitFunction } from '../../types';
-import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {

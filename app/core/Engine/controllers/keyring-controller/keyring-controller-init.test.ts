@@ -1,12 +1,4 @@
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
-
-jest.mock('../../../../lib/Money/feature-flags', () => ({
-  isMoneyAccountEnabled: jest.fn(),
-}));
-
-const mockIsMoneyAccountEnabled = jest.requireMock(
-  '../../../../lib/Money/feature-flags',
-).isMoneyAccountEnabled as jest.Mock;
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getKeyringControllerMessenger } from '../../messengers/keyring-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
@@ -72,7 +64,6 @@ function getInitRequestMock(): jest.Mocked<
 describe('keyringControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsMoneyAccountEnabled.mockReturnValue(true);
   });
 
   it('initializes the controller', () => {
@@ -108,32 +99,24 @@ describe('keyringControllerInit', () => {
       return builder;
     }
 
-    it('always includes a MoneyKeyring builder regardless of the flag', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(false);
-
+    it('always includes a MoneyKeyring builder', () => {
       const builder = getMoneyKeyringBuilder();
 
       expect(builder).toBeDefined();
     });
 
-    it('creates a MoneyKeyring instance when invoked and the flag is enabled', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(true);
-
+    it('creates a MoneyKeyring instance when invoked', () => {
       const builder = getMoneyKeyringBuilder();
 
       builder();
       expect(MoneyKeyring).toHaveBeenCalled();
     });
 
-    it('throws when invoked and the flag is disabled', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(true);
+    it('creates a MoneyKeyring instance even when the flag is disabled (to support vault deserialization)', () => {
       const builder = getMoneyKeyringBuilder();
 
-      mockIsMoneyAccountEnabled.mockReturnValue(false);
-
-      expect(() => builder()).toThrow(
-        'MoneyKeyring is not supported: Money accounts feature is disabled',
-      );
+      builder();
+      expect(MoneyKeyring).toHaveBeenCalled();
     });
 
     describe('getMnemonic', () => {
