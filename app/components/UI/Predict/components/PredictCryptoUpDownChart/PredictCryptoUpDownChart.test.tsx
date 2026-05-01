@@ -227,4 +227,26 @@ describe('PredictCryptoUpDownChart', () => {
 
     expect(onCurrentPriceChange).not.toHaveBeenCalled();
   });
+
+  it('does not report placeholder current price without chart data', () => {
+    const market = createMockMarket();
+    const onCurrentPriceChange = jest.fn();
+
+    mockUseCryptoUpDownChartData.mockReturnValueOnce({
+      data: [],
+      value: 0,
+      loading: false,
+      isLive: false,
+      window: 300,
+    });
+
+    render(
+      <PredictCryptoUpDownChart
+        market={market}
+        onCurrentPriceChange={onCurrentPriceChange}
+      />,
+    );
+
+    expect(onCurrentPriceChange).not.toHaveBeenCalled();
+  });
 });

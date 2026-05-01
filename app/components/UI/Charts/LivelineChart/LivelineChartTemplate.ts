@@ -146,6 +146,18 @@ export const createLivelineChartTemplate = (
       });
     }
 
+    function trimLivelineData(data, windowSecs) {
+      if (!windowSecs || data.length === 0) {
+        return data;
+      }
+
+      var latestTime = data[data.length - 1].time;
+      var cutoff = latestTime - windowSecs * 2;
+      return data.filter(function(point) {
+        return point.time >= cutoff;
+      });
+    }
+
     function render() {
       if (!currentProps) return;
       var formatValue = currentProps.formatValue;
@@ -179,6 +191,7 @@ export const createLivelineChartTemplate = (
               var incoming = Object.assign({}, msg.payload);
               if (Array.isArray(incoming.data) && incoming.data.length > 0) {
                 liveData = mergeLivelineData(incoming.data, liveData);
+                liveData = trimLivelineData(liveData, incoming.window);
               }
               delete incoming.data;
               delete incoming.value;
@@ -198,10 +211,7 @@ export const createLivelineChartTemplate = (
             liveData = mergeLivelineData(liveData, [msg.payload.point]);
             liveValue = msg.payload.value;
             if (currentProps && currentProps.window) {
-              var cutoff = msg.payload.point.time - currentProps.window * 2;
-              while (liveData.length > 0 && liveData[0].time < cutoff) {
-                liveData.shift();
-              }
+              liveData = trimLivelineData(liveData, currentProps.window);
             }
             var t0 = performance.now();
             render();

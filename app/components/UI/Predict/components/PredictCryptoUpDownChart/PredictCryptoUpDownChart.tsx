@@ -25,10 +25,10 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   const chartHeight = explicitHeight ?? measuredHeight;
 
   useEffect(() => {
-    if (!loading && Number.isFinite(value)) {
+    if (!loading && data.length > 0 && Number.isFinite(value)) {
       onCurrentPriceChange?.(value);
     }
-  }, [loading, onCurrentPriceChange, value]);
+  }, [data.length, loading, onCurrentPriceChange, value]);
 
   return (
     <Box
