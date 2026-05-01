@@ -555,8 +555,8 @@ generateIosBinary() {
 		# the App Store profile hardcoded in the Xcode project.
 		local archiveOverrides=""
 		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ]; then
-			archiveOverrides="CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER=development-metamask"
-			echo "Overriding signing: using development profile for Release archive"
+			archiveOverrides='CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER=development-metamask CODE_SIGN_IDENTITY=Apple Development'
+			echo "Overriding signing: using development certificate and profile for Release archive"
 		fi
 
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios $archiveOverrides
