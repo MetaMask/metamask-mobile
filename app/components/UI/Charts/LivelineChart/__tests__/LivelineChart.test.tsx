@@ -441,6 +441,34 @@ describe('LivelineChart', () => {
         readyPoint,
       ]);
     });
+
+    it('keeps appendPoint calls after a queued clearData reset', () => {
+      const chartRef = React.createRef<LivelineChartRef>();
+      const stalePoint = { time: 1700000060, value: 44 };
+      const freshPoint = { time: 1700000090, value: 45 };
+      const { getByTestId } = render(
+        <LivelineChart ref={chartRef} data={MOCK_DATA} value={43.1} />,
+      );
+
+      act(() => {
+        chartRef.current?.appendPoint(stalePoint, stalePoint.value);
+        chartRef.current?.clearData();
+        chartRef.current?.appendPoint(freshPoint, freshPoint.value);
+      });
+      makeReady(getByTestId('liveline-chart-webview'));
+
+      const flushedMessages = mockPostMessage.mock.calls
+        .map(([message]) => JSON.parse(message as string))
+        .filter((message) => message.type !== 'SET_PROPS');
+
+      expect(flushedMessages).toEqual([
+        { type: 'CLEAR_DATA' },
+        {
+          type: 'APPEND_POINT',
+          payload: { point: freshPoint, value: freshPoint.value },
+        },
+      ]);
+    });
   });
 });
 

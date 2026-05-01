@@ -93,7 +93,12 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
         },
         clearData: () => {
           if (!isChartReadyRef.current) {
-            pendingRef.current = [{ type: 'CLEAR_DATA' }];
+            pendingRef.current = pendingRef.current.filter(
+              (message) =>
+                message.type !== 'APPEND_POINT' &&
+                message.type !== 'CLEAR_DATA',
+            );
+            pendingRef.current.push({ type: 'CLEAR_DATA' });
             return;
           }
           postMessage({ type: 'CLEAR_DATA' });
