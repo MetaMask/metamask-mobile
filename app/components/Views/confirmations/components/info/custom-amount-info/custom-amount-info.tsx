@@ -2,6 +2,7 @@ import React, { ReactNode, memo, useCallback, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
+import { ProjectedFiveYearBalance } from '../../projected-five-year-balance';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
@@ -208,12 +209,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {!hidePayTokenAmount && disablePay !== true && (
-            <PayTokenAmount
-              amountHuman={amountHuman}
-              disabled={!hasTokens || isAccountSelectionNeeded}
-            />
-          )}
+          {!hidePayTokenAmount &&
+            disablePay !== true &&
+            (isMoneyAccountDeposit ? (
+              <ProjectedFiveYearBalance amountFiat={amountFiat} />
+            ) : (
+              <PayTokenAmount
+                amountHuman={amountHuman}
+                disabled={!hasTokens || isAccountSelectionNeeded}
+              />
+            ))}
           {!hidePayTokenAmount && children}
         </Box>
         <Box
