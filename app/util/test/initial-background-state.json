@@ -631,7 +631,6 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
-    "tokenSecurityTypeDestination": null,
     "tokenWarnings": []
   },
   "BridgeStatusController": {
@@ -754,7 +753,8 @@
     "accountMeta": {}
   },
   "AiDigestController": {
-    "marketInsights": {}
+    "marketInsights": {},
+    "marketOverview": null
   },
   "RampsController": {
     "userRegion": null,
