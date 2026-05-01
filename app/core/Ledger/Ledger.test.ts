@@ -218,6 +218,43 @@ describe('Ledger core', () => {
 
       expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
     });
+
+    it('throws before acquiring the keyring lock when the abort signal is already aborted', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const error = await connectLedgerHardware(
+        mockTransport,
+        'bar',
+        abortController.signal,
+      ).catch((caughtError) => caughtError);
+
+      expect(error).toMatchObject({
+        name: 'LedgerOperationAbortedError',
+      });
+
+      expect(
+        MockEngine.context.KeyringController.withKeyring,
+      ).not.toHaveBeenCalled();
+      expect(mockBridge.updateTransportMethod).not.toHaveBeenCalled();
+      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
+    });
+
+    it('throws when the resolved keyring is not a LedgerKeyring instance', async () => {
+      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+        async (_selector, operation) =>
+          operation({
+            // The withKeyring helper guards against the keyring controller
+            // resolving a non-Ledger keyring (e.g. due to a controller bug).
+            keyring: {} as unknown as LedgerKeyring,
+            metadata: { id: '1234', name: '' },
+          }),
+      );
+
+      await expect(connectLedgerHardware(mockTransport, 'bar')).rejects.toThrow(
+        'Expected LedgerKeyring',
+      );
+    });
   });
 
   describe('openEthereumAppOnLedger', () => {
