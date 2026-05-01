@@ -35,6 +35,8 @@ jest.mock('../utils/cryptoUpDown', () => ({
     '15m': 900,
     '1h': 3600,
   },
+  toTimestampSeconds: (timestamp: number) =>
+    timestamp > 9999999999 ? Math.floor(timestamp / 1000) : timestamp,
 }));
 
 type TestMarket = PredictMarket & { series: PredictSeries };

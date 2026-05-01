@@ -14,6 +14,7 @@ import {
   getVariant,
   getEventStartTime,
   RECURRENCE_TO_DURATION_SECS,
+  toTimestampSeconds,
 } from '../utils/cryptoUpDown';
 import type { PredictMarket, PredictSeries, CryptoPriceUpdate } from '../types';
 import type {
@@ -22,13 +23,6 @@ import type {
 } from '../../Charts/LivelineChart/LivelineChart.types';
 
 const EMPTY_DATA: LivelinePoint[] = [];
-const MILLISECOND_TIMESTAMP_THRESHOLD = 9999999999;
-
-const toTimestampSeconds = (timestamp: number) =>
-  timestamp > MILLISECOND_TIMESTAMP_THRESHOLD
-    ? Math.floor(timestamp / 1000)
-    : timestamp;
-
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
   liveData: LivelinePoint[],

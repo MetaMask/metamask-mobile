@@ -6,6 +6,7 @@ import {
   getVariant,
   getEventStartTime,
   RECURRENCE_TO_DURATION_SECS,
+  toTimestampSeconds,
 } from './cryptoUpDown';
 import { Recurrence, type PredictMarket } from '../types';
 
@@ -354,6 +355,16 @@ describe('cryptoUpDown utilities', () => {
       const result = getEventStartTime(endDate, 'unknown');
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('toTimestampSeconds', () => {
+    it('converts millisecond timestamps to seconds', () => {
+      expect(toTimestampSeconds(1777227900000)).toBe(1777227900);
+    });
+
+    it('preserves second timestamps', () => {
+      expect(toTimestampSeconds(1777227900)).toBe(1777227900);
     });
   });
 

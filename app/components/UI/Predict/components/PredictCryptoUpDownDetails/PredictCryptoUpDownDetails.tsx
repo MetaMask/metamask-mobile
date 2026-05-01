@@ -144,7 +144,9 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
   const previousMarketIdRef = useRef(market.id);
+  const marketRef = useRef(market);
   const [currentPrice, setCurrentPrice] = useState<number>();
+  marketRef.current = market;
 
   const { handleSharePress } = usePredictShare({
     marketId: selectedMarket.id,
@@ -289,17 +291,18 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   );
 
   useEffect(() => {
-    const propMarketChanged = previousMarketIdRef.current !== market.id;
-    previousMarketIdRef.current = market.id;
+    const nextMarket = marketRef.current;
+    const propMarketChanged = previousMarketIdRef.current !== nextMarket.id;
+    previousMarketIdRef.current = nextMarket.id;
 
     setSelectedMarket((currentMarket) => {
-      if (propMarketChanged || currentMarket.id === market.id) {
-        return market;
+      if (propMarketChanged || currentMarket.id === nextMarket.id) {
+        return nextMarket;
       }
 
       return currentMarket;
     });
-  }, [market]);
+  }, [market.id]);
 
   // Keep the selected market fresh when the series query updates, and advance
   // expired selections to the live slot when one exists.
