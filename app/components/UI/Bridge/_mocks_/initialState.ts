@@ -772,5 +772,7 @@ export const initialState = {
     bridgeViewMode: undefined,
     isSelectingRecipient: false,
     isSelectingToken: false,
+    popularTokensCache: {},
+    lastCleanupTime: 0,
   },
 };

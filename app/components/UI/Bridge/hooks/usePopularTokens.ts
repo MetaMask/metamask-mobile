@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { IncludeAsset, PopularToken } from '../types';
 
 interface UsePopularTokensParams {
@@ -24,26 +24,31 @@ export const usePopularTokens = ({
     PopularToken[] | undefined
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const abortController = new AbortController();
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
 
     setPopularTokens(undefined);
 
     setIsLoading(true);
-    fetchTokens(abortController.signal)
+    fetchTokens(abortControllerRef.current?.signal)
       .then((tokens?: PopularToken[]) => {
         setPopularTokens(tokens);
+      })
+      .catch((error) => {
+        console.error('Error fetching popular tokens:', error);
       })
       .finally(() => {
         setIsLoading(false);
       });
 
-    // Cleanup function: abort fetch and mark as cancelled when deps change
+    // Cleanup function: abort fetch when deps change
     return () => {
-      abortController.abort();
+      abortControllerRef.current?.abort();
     };
-  }, [fetchTokens, includeAssets]);
+  }, [fetchTokens]);
 
   return { popularTokens: popularTokens ?? includeAssets, isLoading };
 };

@@ -140,15 +140,16 @@ export const useInitialBridgeTokens = (
         );
 
         if (response.ok === false) {
-          throw new Error(
+          console.error(
             `Failed to fetch popular tokens with status ${response.status}`,
           );
+          return undefined;
         }
 
         const popularAssetsResponse: PopularToken[] = await response.json();
         const isValidTopLevelPayload = Array.isArray(popularAssetsResponse);
 
-        if (isValidTopLevelPayload) {
+        if (isValidTopLevelPayload && popularAssetsResponse.length > 0) {
           // Cache only valid top-level API payloads so malformed responses do
           // not suppress retries for the full cache TTL.
           dispatch(
@@ -165,14 +166,13 @@ export const useInitialBridgeTokens = (
       } catch (error) {
         // Ignore abort errors - request was intentionally cancelled
         if (error instanceof Error && error.name === 'AbortError') {
-          return undefined;
+          return;
         }
         console.error('Error fetching popular tokens:', error);
-        return undefined;
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [includeAssetsId, chainIdsToFetch, bearerToken, dispatch, cachedEntry],
+    [includeAssetsId, chainIdsToFetch, bearerToken, cachedEntry],
   );
 
   const searchQuery = searchString?.trim();
