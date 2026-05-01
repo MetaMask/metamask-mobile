@@ -30,8 +30,16 @@ export function useInsufficientPerpsBalanceAlert({
   const quotes = useTransactionPayQuotes();
   const hasQuotes = Boolean(quotes?.length);
 
+  // For Unified Account Mode users, `availableBalance` mirrors HL's
+  // `clearinghouseState.withdrawable` which is $0 (collateral lives in spot).
+  // `availableToTradeBalance` is the unified-aware value computed by
+  // `addSpotBalanceToAccountState` and matches what `withdraw3` actually draws
+  // from. Fall back to `availableBalance` for legacy / Standard-mode accounts
+  // where the unified field is undefined.
   const availableBalance = useSelector(
     (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.accountState
+        ?.availableToTradeBalance ??
       state.engine.backgroundState.PerpsController?.accountState
         ?.availableBalance,
   );
