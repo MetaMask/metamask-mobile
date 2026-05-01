@@ -643,7 +643,7 @@ const Wallet = ({
    * A string that represents the selected address
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  // TODO: Determine if this is necessary
+
   const isMoneyHomeScreenEnabled = useSelector(
     selectMoneyHomeScreenEnabledFlag,
   );
@@ -1056,10 +1056,9 @@ const Wallet = ({
   }, [navigation, trackEvent]);
 
   const handleActivityPress = useCallback(() => {
-    // TODO: Update this event. NAVIGATION_TAPS_TRANSACTION_HISTORY is not the correct event for this action since it relates to the bottom wallet actions bar.
     trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
+        MetaMetricsEvents.ACTIVITY_CLICKED,
       ).build(),
     );
     navigation.navigate(Routes.TRANSACTIONS_VIEW, {
