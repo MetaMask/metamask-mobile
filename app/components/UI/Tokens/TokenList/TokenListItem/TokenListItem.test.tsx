@@ -60,6 +60,7 @@ jest.mock('@tanstack/react-query', () => {
   return {
     ...actual,
     useQuery: jest.fn(() => ({ data: undefined })),
+    useQueryClient: jest.fn(() => ({ getQueryData: jest.fn() })),
   };
 });
 
