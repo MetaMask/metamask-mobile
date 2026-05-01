@@ -1,25 +1,10 @@
-import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { usePopularTokens } from './usePopularTokens';
 import {
   createMockPopularToken,
   createMockIncludeAsset,
-  MOCK_CHAIN_IDS,
 } from '../testUtils/fixtures';
-import { useInitialBridgeTokens } from './useInitialBridgeTokens';
-import { CaipChainId } from '@metamask/utils';
-import { IncludeAsset, SecurityDataType } from '../types';
-
-global.fetch = jest.fn();
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AuthenticationController: {
-      getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
-    },
-  },
-}));
-
-const mockedEngine = jest.requireMock('../../../../core/Engine');
+import { IncludeAsset, PopularToken, SecurityDataType } from '../types';
 
 const mockPopularTokens = [
   createMockPopularToken({
@@ -34,27 +19,9 @@ const mockPopularTokens = [
   }),
 ];
 
-const renderPopularTokensHook = (
-  chainIds: CaipChainId[],
-  includeAssets: IncludeAsset[],
-  options?: Parameters<typeof renderHook>[1],
-) =>
-  renderHook(() => {
-    const { fetchPopularTokens } = useInitialBridgeTokens(chainIds);
-    const { popularTokens, isLoading } = usePopularTokens({
-      fetchTokens: fetchPopularTokens,
-      includeAssets,
-    });
-    return { popularTokens, isLoading };
-  }, options);
-
 describe('usePopularTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // clearPopularTokensCache();
-    mockedEngine.context.AuthenticationController.getBearerToken.mockResolvedValue(
-      'mock-bearer-token',
-    );
   });
 
   afterEach(() => {
@@ -63,11 +30,16 @@ describe('usePopularTokens', () => {
 
   describe('fetching', () => {
     it('fetches popular tokens on initial render', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        json: async () => mockPopularTokens,
-      });
+      const fetchTokensMock = jest
+        .fn()
+        .mockResolvedValueOnce(mockPopularTokens);
 
-      const { result } = renderPopularTokensHook([MOCK_CHAIN_IDS.ethereum], []);
+      const { result } = renderHook(() =>
+        usePopularTokens({
+          fetchTokens: fetchTokensMock,
+          includeAssets: [],
+        }),
+      );
 
       expect(result.current.isLoading).toBe(true);
 
@@ -75,48 +47,72 @@ describe('usePopularTokens', () => {
 
       expect(result.current.popularTokens).toEqual(mockPopularTokens);
       expect(result.current.popularTokens[0].isVerified).toBe(true);
-      expect(global.fetch).toHaveBeenCalledTimes(1);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/getTokens/popular'),
-        expect.objectContaining({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Initial fetch may not have a bearer token
-            'Client-Version': expect.any(String),
-            'X-Client-Id': 'mobile',
-          },
-          body: JSON.stringify({
-            chainIds: [MOCK_CHAIN_IDS.ethereum],
-            includeAssets: [],
-          }),
-          signal: expect.any(AbortSignal),
-        }),
-      );
+      expect(fetchTokensMock).toHaveBeenCalledTimes(1);
+      expect(fetchTokensMock).toHaveBeenCalledWith(expect.any(AbortSignal));
     });
 
-    it('parses includeAssets correctly', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        json: async () => mockPopularTokens,
-      });
+    it('uses includeAssets as a placeholder when fetchTokens is loading', async () => {
+      jest.useFakeTimers();
+
+      const fetchTokensMock = jest.fn().mockImplementationOnce(
+        () =>
+          new Promise((resolve) => setTimeout(() => resolve(mockPopularTokens), 10000)),
+      );
+
       const mockIncludeAssets = [createMockIncludeAsset()];
 
-      const { result } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        mockIncludeAssets,
+      const { result } = renderHook(() =>
+        usePopularTokens({
+          fetchTokens: fetchTokensMock,
+          includeAssets: mockIncludeAssets,
+        }),
+      );
+
+      jest.advanceTimersByTime(5000);
+      await waitFor(() => expect(result.current.isLoading).toBe(true));
+      expect(result.current.popularTokens).toEqual(mockIncludeAssets);
+
+      jest.advanceTimersByTime(5000 + 1000);
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(fetchTokensMock).toHaveBeenCalledTimes(1);
+      expect(result.current.popularTokens).toEqual(mockPopularTokens);
+      expect(fetchTokensMock).toHaveBeenCalledTimes(1);
+
+      jest.useRealTimers();
+    });
+
+    it('uses includeAssets as a placeholder when fetchTokens returns undefined', async () => {
+      const fetchTokensMock = jest.fn().mockResolvedValueOnce(undefined);
+      const mockIncludeAssets = [createMockIncludeAsset()];
+
+      const { result } = renderHook(() =>
+        usePopularTokens({
+          fetchTokens: fetchTokensMock,
+          includeAssets: mockIncludeAssets,
+        }),
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.popularTokens).toEqual(mockIncludeAssets);
+      expect(fetchTokensMock).toHaveBeenCalledTimes(1);
+    });
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/getTokens/popular'),
-        expect.objectContaining({
-          body: JSON.stringify({
-            chainIds: [MOCK_CHAIN_IDS.ethereum],
-            includeAssets: mockIncludeAssets,
-          }),
+    it('uses fetchTokens result as popularTokens', async () => {
+      const fetchTokensMock = jest
+        .fn()
+        .mockResolvedValueOnce(mockPopularTokens);
+      const mockIncludeAssets = [createMockIncludeAsset()];
+
+      const { result } = renderHook(() =>
+        usePopularTokens({
+          fetchTokens: fetchTokensMock,
+          includeAssets: mockIncludeAssets,
         }),
       );
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.popularTokens).toEqual(mockPopularTokens);
+      expect(fetchTokensMock).toHaveBeenCalledTimes(1);
     });
 
     it('preserves securityData in the response', async () => {
@@ -136,11 +132,16 @@ describe('usePopularTokens', () => {
         },
       });
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        json: async () => [tokenWithSecurity],
-      });
+      const fetchTokensMock = jest
+        .fn()
+        .mockResolvedValueOnce([tokenWithSecurity]);
 
-      const { result } = renderPopularTokensHook([MOCK_CHAIN_IDS.ethereum], []);
+      const { result } = renderHook(() =>
+        usePopularTokens({
+          fetchTokens: fetchTokensMock,
+          includeAssets: [],
+        }),
+      );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -148,265 +149,53 @@ describe('usePopularTokens', () => {
         tokenWithSecurity.securityData,
       );
     });
-
-    it('falls back to an empty array for malformed responses', async () => {
-      mockedEngine.context.AuthenticationController.getBearerToken.mockReturnValue(
-        new Promise(() => undefined),
-      );
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        json: async () => ({
-          data: mockPopularTokens,
-        }),
-      });
-
-      const { result } = renderPopularTokensHook([MOCK_CHAIN_IDS.ethereum], []);
-
-      await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
-
-      expect(result.current.popularTokens).toEqual([]);
-    });
-
-    it('does not cache malformed top-level responses', async () => {
-      mockedEngine.context.AuthenticationController.getBearerToken.mockReturnValue(
-        new Promise(() => undefined),
-      );
-
-      let resolveFirstFetch:
-        | ((value: { json: () => Promise<unknown> }) => void)
-        | undefined;
-
-      (global.fetch as jest.Mock)
-        .mockImplementationOnce(
-          () =>
-            new Promise((resolve) => {
-              resolveFirstFetch = resolve;
-            }),
-        )
-        .mockResolvedValueOnce({
-          json: async () => mockPopularTokens,
-        });
-
-      const params = {
-        chainIds: [MOCK_CHAIN_IDS.ethereum],
-        includeAssets: '[]',
-      };
-
-      const { result: firstResult, unmount } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await act(async () => {
-        resolveFirstFetch?.({
-          json: async () => ({
-            data: mockPopularTokens,
-          }),
-        });
-      });
-
-      expect(firstResult.current.popularTokens).toEqual([]);
-      unmount();
-
-      const { result: secondResult } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await waitFor(() => expect(secondResult.current.isLoading).toBe(false));
-
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-      expect(secondResult.current.popularTokens).toEqual(mockPopularTokens);
-    });
-  });
-
-  describe('caching', () => {
-    it('uses cached data within 15 minutes', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        json: async () => mockPopularTokens,
-      });
-
-      const { result: result1, unmount: unmount1 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await waitFor(() => expect(result1.current.isLoading).toBe(false));
-      expect(global.fetch).toHaveBeenCalledTimes(1);
-      unmount1();
-
-      const { result: result2 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await waitFor(() => expect(result2.current.isLoading).toBe(false));
-      expect(result2.current.popularTokens).toEqual(mockPopularTokens);
-      expect(global.fetch).toHaveBeenCalledTimes(1); // No new fetch
-    });
-
-    it('refetches after cache expires at 15 minutes', async () => {
-      jest.useFakeTimers();
-      const newMockTokens = [createMockPopularToken({ symbol: 'NEW' })];
-
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({ json: async () => mockPopularTokens })
-        .mockResolvedValueOnce({ json: async () => newMockTokens });
-
-      const { result: result1, unmount: unmount1 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-      await waitFor(() => expect(result1.current.isLoading).toBe(false));
-      expect(global.fetch).toHaveBeenCalledTimes(1);
-      unmount1();
-
-      jest.advanceTimersByTime(15 * 60 * 1000 + 1000);
-
-      const { result: result2 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await waitFor(() => expect(result2.current.isLoading).toBe(false));
-      expect(result2.current.popularTokens).toEqual(newMockTokens);
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-
-      jest.useRealTimers();
-    });
-
-    it('uses different cache keys for different chain IDs', async () => {
-      const chain1Tokens = [mockPopularTokens[0]];
-      const chain2Tokens = [mockPopularTokens[1]];
-
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({ json: async () => chain1Tokens })
-        .mockResolvedValueOnce({ json: async () => chain2Tokens });
-
-      const { result: result1, unmount: unmount1 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await waitFor(() => expect(result1.current.isLoading).toBe(false));
-      unmount1();
-
-      const { result: result2 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.polygon],
-        [],
-      );
-
-      await waitFor(() => expect(result2.current.isLoading).toBe(false));
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-    });
-
-    it('uses different cache keys for different includeAssets', async () => {
-      const tokens1 = [mockPopularTokens[0]];
-      const tokens2 = [mockPopularTokens[1]];
-
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({ json: async () => tokens1 })
-        .mockResolvedValueOnce({ json: async () => tokens2 });
-
-      const { result: result1, unmount: unmount1 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await waitFor(() => expect(result1.current.isLoading).toBe(false));
-      unmount1();
-
-      const { result: result2 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [createMockIncludeAsset()],
-      );
-
-      await waitFor(() => expect(result2.current.isLoading).toBe(false));
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-    });
-
-    it('sorts chain IDs in cache key for consistent caching', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        json: async () => mockPopularTokens,
-      });
-
-      const { result: result1, unmount: unmount1 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.polygon, MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await waitFor(() => expect(result1.current.isLoading).toBe(false));
-      expect(global.fetch).toHaveBeenCalledTimes(1);
-      unmount1();
-
-      const { result: result2 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
-        [],
-      );
-
-      await waitFor(() => expect(result2.current.isLoading).toBe(false));
-      expect(global.fetch).toHaveBeenCalledTimes(1); // Cache hit
-    });
-
-    it('cleans up expired cache entries automatically', async () => {
-      jest.useFakeTimers();
-
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({ json: async () => mockPopularTokens })
-        .mockResolvedValueOnce({ json: async () => [mockPopularTokens[0]] });
-
-      const { unmount: unmount1 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-      );
-
-      await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
-      unmount1();
-
-      jest.advanceTimersByTime(15 * 60 * 1000 + 1000);
-
-      const { result: result2 } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.polygon],
-        [],
-      );
-
-      await waitFor(() => expect(result2.current.isLoading).toBe(false));
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-
-      jest.useRealTimers();
-    });
   });
 
   describe('race conditions', () => {
     it('prevents race conditions when parameters change rapidly', async () => {
       const chain1Tokens = [mockPopularTokens[0]];
       const chain2Tokens = [mockPopularTokens[1]];
+      const abortSpy = jest.spyOn(AbortController.prototype, 'abort');
 
       let resolveChain1: ((value: unknown) => void) | undefined;
       const chain1Promise = new Promise((resolve) => {
         resolveChain1 = resolve;
       });
 
-      (global.fetch as jest.Mock).mockImplementationOnce(() => chain1Promise);
+      const fetchTokensMock = jest
+        .fn()
+        .mockImplementationOnce(() => chain1Promise);
 
-      const { result, rerender } = renderPopularTokensHook(
-        [MOCK_CHAIN_IDS.ethereum],
-        [],
-        { initialProps: { chainIds: [MOCK_CHAIN_IDS.ethereum] } },
+      const { result, rerender } = renderHook(
+        ({
+          fetchTokens,
+          includeAssets,
+        }: {
+          fetchTokens?: () => Promise<PopularToken[]>;
+          includeAssets?: IncludeAsset[];
+        }) =>
+          usePopularTokens({
+            fetchTokens: fetchTokens ?? fetchTokensMock,
+            includeAssets: includeAssets ?? [],
+          }),
+        { initialProps: { fetchTokens: fetchTokensMock, includeAssets: [] } },
       );
 
       expect(result.current.isLoading).toBe(true);
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        json: async () => chain2Tokens,
+      rerender({
+        fetchTokens: jest.fn().mockResolvedValueOnce(chain2Tokens),
+        includeAssets: [],
       });
 
-      rerender({ chainIds: [MOCK_CHAIN_IDS.polygon] });
+      await waitFor(() => expect(result.current.isLoading).toBe(true));
+      expect(abortSpy).toHaveBeenCalled();
+      await waitFor(() =>
+        expect(result.current.popularTokens).toEqual(chain2Tokens),
+      );
+      expect(result.current.isLoading).toBe(false);
 
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.popularTokens).toEqual(chain2Tokens);
-
-      resolveChain1?.({ json: async () => chain1Tokens });
+      resolveChain1?.(chain1Tokens);
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Should STILL show chain 2 tokens

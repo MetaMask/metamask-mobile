@@ -108,8 +108,6 @@ export const useInitialBridgeTokens = (
 
   const fetchPopularTokens = useCallback(
     async (signal?: AbortSignal) => {
-      const abortSignal = signal ?? new AbortController().signal;
-
       // Cleanup expired entries before checking cache
       dispatch(cleanupExpiredEntries());
 
@@ -135,7 +133,7 @@ export const useInitialBridgeTokens = (
               chainIds: chainIdsToFetch,
               includeAssets: includeAssetsObject,
             }),
-            signal: abortSignal,
+            signal,
           },
         );
 
@@ -189,13 +187,6 @@ export const useInitialBridgeTokens = (
         : [],
     [tokensWithBalance, searchQuery],
   );
-
-  // Prefetch popular tokens
-  useEffect(() => {
-    if (isBasicFunctionalityEnabled) {
-      fetchPopularTokens();
-    }
-  }, [fetchPopularTokens, isBasicFunctionalityEnabled]);
 
   return {
     includeAssets: includeAssetsObject,

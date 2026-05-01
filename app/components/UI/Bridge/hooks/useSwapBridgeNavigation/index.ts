@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex, CaipChainId } from '@metamask/utils';
@@ -38,6 +38,7 @@ import {
   getDefaultDestToken,
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useInitialBridgeTokens } from '../useInitialBridgeTokens';
 
@@ -154,8 +155,10 @@ export const useSwapBridgeNavigation = ({
   );
   const currentNetworkInfo = useCurrentNetworkInfo();
 
-  // Pre-fetch popular tokens
-  useInitialBridgeTokens();
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const { fetchPopularTokens } = useInitialBridgeTokens();
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
@@ -312,6 +315,10 @@ export const useSwapBridgeNavigation = ({
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
+      // Prefetch popular tokens
+      if (isBasicFunctionalityEnabled) {
+        fetchPopularTokens();
+      }
       navigation.navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
         params,
@@ -367,6 +374,8 @@ export const useSwapBridgeNavigation = ({
       skipLocationUpdate,
       swapButtonEventLocationOverride,
       transactionActiveAbTests,
+      isBasicFunctionalityEnabled,
+      fetchPopularTokens,
     ],
   );
   const { networkModal } = useAddNetwork();

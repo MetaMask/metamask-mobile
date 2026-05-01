@@ -28,13 +28,17 @@ export const usePopularTokens = ({
 
   useEffect(() => {
     abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     setPopularTokens(undefined);
 
     setIsLoading(true);
-    fetchTokens(abortControllerRef.current?.signal)
+    fetchTokens(abortController.signal)
       .then((tokens?: PopularToken[]) => {
+        if (abortController.signal.aborted) {
+          return;
+        }
         setPopularTokens(tokens);
       })
       .catch((error) => {
