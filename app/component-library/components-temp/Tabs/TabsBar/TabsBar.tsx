@@ -293,7 +293,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   return (
     <Box
-      twClassName={`relative overflow-hidden px-4 ${hasIcons ? 'border-b border-border-muted' : ''} ${twClassName || ''}`}
+      twClassName={`relative overflow-hidden ${hasIcons ? 'border-b border-border-muted' : ''} ${twClassName || ''}`}
       testID={testID}
       onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
       {...boxProps}
@@ -304,7 +304,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           horizontal
           showsHorizontalScrollIndicator={false}
           style={tw.style('flex-grow-0')}
-          contentContainerStyle={tw.style('flex-row')}
+          contentContainerStyle={tw.style('flex-row px-4')}
           scrollsToTop={false}
         >
           <Box
@@ -349,7 +349,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           }}
           style={[
             tw.style(
-              `relative ${fillWidth ? 'flex-row items-center' : 'gap-6 flex-row items-center'} ${animatedHeight !== undefined ? 'overflow-hidden' : ''}`,
+              `relative ${fillWidth ? 'flex-row items-center' : 'gap-6 flex-row items-center relative'} ${animatedHeight !== undefined ? 'overflow-hidden' : ''}`,
             ),
             animatedHeight !== undefined
               ? { height: animatedHeight }

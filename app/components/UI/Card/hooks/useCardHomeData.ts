@@ -98,10 +98,13 @@ export const useCardHomeData = () => {
     [fundingTokensRaw, balanceMap],
   );
 
+  const hasData = data !== null;
+
   return {
     data,
-    isLoading: status === 'loading' || status === 'idle',
-    isError: status === 'error',
+    isLoading: !hasData && (status === 'loading' || status === 'idle'),
+    isRefreshing: hasData && status === 'loading',
+    isError: !hasData && status === 'error',
     refetch,
     primaryToken,
     availableTokens,

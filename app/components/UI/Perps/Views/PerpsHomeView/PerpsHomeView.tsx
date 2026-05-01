@@ -484,6 +484,11 @@ const PerpsHomeView = ({
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
       >
+        <PerpsHomeHeader
+          segment="title"
+          testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+        />
+
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}

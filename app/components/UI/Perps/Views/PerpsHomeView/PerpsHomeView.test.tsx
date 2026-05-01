@@ -285,16 +285,20 @@ jest.mock('../../components/PerpsHomeHeader', () => {
     jest.requireActual('react-native');
 
   interface MockPerpsHomeHeaderProps {
-    onSearchToggle: () => void;
-    onBack: () => void;
+    segment?: 'nav' | 'title';
+    screenTitle?: string;
+    onSearchToggle?: () => void;
+    onBack?: () => void;
     isSearchVisible?: boolean;
     searchQuery?: string;
     onSearchQueryChange?: (text: string) => void;
     onSearchClear?: () => void;
-    testID: string;
+    testID?: string;
   }
 
-  return function MockPerpsHomeHeader({
+  function MockPerpsHomeHeader({
+    segment = 'nav',
+    screenTitle = 'Perps',
     onSearchToggle,
     onBack,
     isSearchVisible = false,
@@ -302,6 +306,16 @@ jest.mock('../../components/PerpsHomeHeader', () => {
     onSearchQueryChange,
     testID,
   }: MockPerpsHomeHeaderProps) {
+    if (segment === 'title') {
+      return (
+        <View testID={testID}>
+          <Text testID={testID ? `${testID}-title` : undefined}>
+            {screenTitle}
+          </Text>
+        </View>
+      );
+    }
+
     if (isSearchVisible) {
       return (
         <View>
@@ -335,6 +349,11 @@ jest.mock('../../components/PerpsHomeHeader', () => {
         </TouchableOpacity>
       </View>
     );
+  }
+
+  return {
+    __esModule: true,
+    default: MockPerpsHomeHeader,
   };
 });
 jest.mock('../../components/PerpsHomeSection', () => {
