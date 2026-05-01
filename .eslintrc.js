@@ -165,7 +165,8 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'error',
         // Surface JSDoc @deprecated annotations at every use-site (warn for now;
         // ratchet to 'error' once the BN.js → BigInt migration is complete).
-        // Pairs with the no-restricted-imports fence on app/util/number below.
+        // Pairs with the `import-x/no-restricted-paths` fence on
+        // `app/util/number/index.js` in the app import-fence override below.
         '@typescript-eslint/no-deprecated': 'warn',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
@@ -591,7 +592,7 @@ module.exports = {
       },
     },
     {
-      // Default app import fences (expo-haptics, perps, deprecated util/number).
+      // Default app import fences (expo-haptics, perps, deprecated util/number/index.js).
       // `excludedFiles` applies to the whole override — listing burn-down paths
       // here would incorrectly skip expo/perps for those files, so burn-down is
       // excluded from *this* block only and picked up by the next override.
