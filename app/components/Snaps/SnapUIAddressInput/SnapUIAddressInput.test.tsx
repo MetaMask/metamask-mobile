@@ -195,7 +195,8 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId('textfield')).toBeOnTheScreen();
+    const input = getByTestId('input-snap-address-input');
+    expect(input.props.value).toBe('eip155:0:https://foobar.baz/foobar');
   });
 
   it('renders the matched address info in a disabled state', () => {
