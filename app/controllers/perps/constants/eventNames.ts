@@ -151,6 +151,10 @@ export const PERPS_EVENT_PROPERTY = {
   // Pay-with UI (PERPS_UI_INTERACTION)
   INITIAL_PAYMENT_METHOD: 'initial_payment_method',
   NEW_PAYMENT_METHOD: 'new_payment_method',
+
+  // Account setup / abstraction mode (PERPS_ACCOUNT_SETUP)
+  ABSTRACTION_MODE: 'abstraction_mode',
+  PREVIOUS_ABSTRACTION_MODE: 'previous_abstraction_mode',
 } as const;
 
 /**
@@ -354,6 +358,8 @@ export const PERPS_EVENT_VALUE = {
     PARTIALLY_FILLED: 'partially_filled',
     FAILED: 'failed',
     SUCCESS: 'success',
+    ALREADY_ENABLED: 'already_enabled',
+    MIGRATION_REQUIRED: 'migration_required',
   },
   SCREEN_TYPE: {
     MARKETS: 'markets',
