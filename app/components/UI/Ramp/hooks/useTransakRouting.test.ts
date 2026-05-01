@@ -1176,203 +1176,76 @@ describe('useTransakRouting', () => {
       expect(handler).not.toBeNull();
       if (!handler) return;
 
-      const depositOrder = {
-        id: 'order-123',
-        providerOrderId: 'order-123',
-        provider: 'transak-native',
-        walletAddress: MOCK_WALLET_ADDRESS,
-        paymentDetails: {},
-      };
-      mockGetOrder.mockResolvedValue(depositOrder);
-      mockRefreshOrder.mockResolvedValue({
-        providerOrderId: 'order-123',
-        cryptoCurrency: { symbol: 'ETH' },
-        cryptoAmount: '0.05',
-        status: 'Pending',
-        fiatAmount: 100,
-        exchangeRate: 2000,
-        networkFees: 0,
-        partnerFees: 0,
-        totalFeesFiat: 0,
-        paymentMethod: { id: 'card' },
-        network: { chainId: '1', name: 'Ethereum' },
-        fiatCurrency: { symbol: 'USD' },
-      });
-
       const url = 'https://redirect.example.com?orderId=order-123';
 
       await act(async () => {
         await handler({ url });
       });
 
-      expect(mockGetOrder).toHaveBeenCalledTimes(1);
-
       await act(async () => {
         await handler({ url });
       });
 
-      expect(mockGetOrder).toHaveBeenCalledTimes(1);
-    });
-
-    it('adds order, shows toast, navigates and tracks event on success', async () => {
-      const mockShowV2OrderToast = jest.requireMock('../utils/v2OrderToast')
-        .showV2OrderToast as jest.Mock;
-
-      const handler = await runApprovedFlowToCaptureCallback();
-      expect(handler).not.toBeNull();
-      if (!handler) return;
-
-      const depositOrder = {
-        id: 'order-123',
-        providerOrderId: 'order-123',
-        provider: 'transak-native',
-        walletAddress: MOCK_WALLET_ADDRESS,
-        paymentDetails: { instructions: 'Wire transfer' },
-      };
-      mockGetOrder.mockResolvedValue(depositOrder);
-      mockRefreshOrder.mockResolvedValue({
-        providerOrderId: 'order-123',
-        cryptoCurrency: { symbol: 'ETH' },
-        cryptoAmount: '0.05',
-        status: 'Pending',
-        fiatAmount: 100,
-        exchangeRate: 2000,
-        networkFees: 1,
-        partnerFees: 2,
-        totalFeesFiat: 3,
-        paymentMethod: { id: 'card' },
-        network: { chainId: '1', name: 'Ethereum' },
-        fiatCurrency: { symbol: 'USD' },
-      });
-
-      await act(async () => {
-        await handler({
-          url: 'https://redirect.example.com?orderId=order-123',
-        });
-      });
-
-      expect(mockGetOrder).toHaveBeenCalledWith(
-        'order-123',
-        MOCK_WALLET_ADDRESS,
-      );
-      expect(mockRefreshOrder).toHaveBeenCalledWith(
-        'transak-native',
-        'order-123',
-        MOCK_WALLET_ADDRESS,
-      );
-      expect(mockAddOrder).toHaveBeenCalledWith(
-        expect.objectContaining({
-          providerOrderId: 'order-123',
-          paymentDetails: { instructions: 'Wire transfer' },
-        }),
-      );
-      expect(mockShowV2OrderToast).toHaveBeenCalledWith({
-        orderId: 'order-123',
-        cryptocurrency: 'ETH',
-        cryptoAmount: '0.05',
-        status: 'Pending',
-      });
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 0,
           routes: [
             expect.objectContaining({
-              params: expect.objectContaining({ orderId: 'order-123' }),
+              name: 'RampsOrderDetails',
+              params: expect.objectContaining({
+                callbackUrl: url,
+                providerCode: 'transak-native',
+                walletAddress: MOCK_WALLET_ADDRESS,
+                showCloseButton: true,
+              }),
             }),
           ],
         }),
       );
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_TRANSACTION_CONFIRMED',
-        expect.objectContaining({
-          ramp_type: 'DEPOSIT',
-          amount_source: 100,
-          amount_destination: 0.05,
-          exchange_rate: 2000,
-        }),
-      );
+      expect(mockGetOrder).not.toHaveBeenCalled();
+
+      mockReset.mockClear();
+
+      await act(async () => {
+        await handler({ url });
+      });
+
+      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockGetOrder).not.toHaveBeenCalled();
     });
 
-    it('resets processingOrderIdRef and logs when getOrder fails', async () => {
-      const Logger = jest.requireMock('../../../../util/Logger');
-      const mockLoggerError = Logger.error as jest.Mock;
-
+    it('navigates to order details with callback params without fetching in the hook', async () => {
       const handler = await runApprovedFlowToCaptureCallback();
       expect(handler).not.toBeNull();
       if (!handler) return;
 
-      mockGetOrder.mockRejectedValue(new Error('Network error'));
+      const callbackUrl = 'https://redirect.example.com?orderId=order-123';
 
       await act(async () => {
         await handler({
-          url: 'https://redirect.example.com?orderId=order-123',
+          url: callbackUrl,
         });
       });
 
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.any(Error),
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(mockRefreshOrder).not.toHaveBeenCalled();
+      expect(mockAddOrder).not.toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'useTransakRouting: Failed to process order after checkout',
+          index: 0,
+          routes: [
+            expect.objectContaining({
+              name: 'RampsOrderDetails',
+              params: {
+                callbackUrl,
+                providerCode: 'transak-native',
+                walletAddress: MOCK_WALLET_ADDRESS,
+                showCloseButton: true,
+              },
+            }),
+          ],
         }),
       );
-      expect(mockAddOrder).not.toHaveBeenCalled();
-    });
-
-    it('resets processingOrderIdRef and logs when depositOrder is null', async () => {
-      const Logger = jest.requireMock('../../../../util/Logger');
-      const mockLoggerError = Logger.error as jest.Mock;
-
-      const handler = await runApprovedFlowToCaptureCallback();
-      expect(handler).not.toBeNull();
-      if (!handler) return;
-
-      mockGetOrder.mockResolvedValue(null);
-
-      await act(async () => {
-        await handler({
-          url: 'https://redirect.example.com?orderId=order-123',
-        });
-      });
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: 'useTransakRouting: Failed to process order after checkout',
-        }),
-      );
-      expect(mockAddOrder).not.toHaveBeenCalled();
-    });
-
-    it('resets processingOrderIdRef and logs when refreshOrder fails', async () => {
-      const Logger = jest.requireMock('../../../../util/Logger');
-      const mockLoggerError = Logger.error as jest.Mock;
-
-      const handler = await runApprovedFlowToCaptureCallback();
-      expect(handler).not.toBeNull();
-      if (!handler) return;
-
-      mockGetOrder.mockResolvedValue({
-        id: 'order-123',
-        providerOrderId: 'order-123',
-        provider: 'transak-native',
-        walletAddress: MOCK_WALLET_ADDRESS,
-        paymentDetails: {},
-      });
-      mockRefreshOrder.mockRejectedValue(new Error('Refresh failed'));
-
-      await act(async () => {
-        await handler({
-          url: 'https://redirect.example.com?orderId=order-123',
-        });
-      });
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: 'useTransakRouting: Failed to process order after checkout',
-        }),
-      );
-      expect(mockAddOrder).not.toHaveBeenCalled();
     });
   });
 });

@@ -43,6 +43,19 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 
+jest.mock('../../utils/v2OrderToast', () => ({
+  showV2OrderToast: jest.fn(),
+}));
+
+const mockHandleOrderStatusChangedForMetrics = jest.fn();
+jest.mock(
+  '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    handleOrderStatusChangedForMetrics: (...args: unknown[]) =>
+      mockHandleOrderStatusChangedForMetrics(...args),
+  }),
+);
+
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -206,6 +219,43 @@ describe('OrderDetails', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
+  it('shows V2 order toast when callback fetch succeeds', async () => {
+    const { showV2OrderToast } = jest.requireMock(
+      '../../utils/v2OrderToast',
+    ) as { showV2OrderToast: jest.Mock };
+    const completedOrder = {
+      providerOrderId: 'ord-cb-1',
+      status: RampsOrderStatus.Completed,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(completedOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(showV2OrderToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'ord-cb-1',
+          cryptocurrency: 'ETH',
+        }),
+      );
+    });
+
+    expect(mockHandleOrderStatusChangedForMetrics).toHaveBeenCalledWith({
+      order: completedOrder,
+      previousStatus: RampsOrderStatus.Precreated,
+    });
+  });
+
   it('shows error state with retry when initial callback fetch fails', async () => {
     mockUseParams.mockReturnValue({
       callbackUrl: 'metamask://on-ramp/providers/paypal?orderId=abc',
@@ -222,6 +272,7 @@ describe('OrderDetails', () => {
     await waitFor(() => {
       expect(getByText('Network request failed')).toBeOnTheScreen();
     });
+    expect(mockHandleOrderStatusChangedForMetrics).not.toHaveBeenCalled();
     expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
 
     await act(async () => {
