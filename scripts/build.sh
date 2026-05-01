@@ -550,16 +550,20 @@ generateIosBinary() {
 	if [ "$IS_DEVICE_BUILD" = "true" ] || [ -z "$IS_SIM_BUILD" ]; then
 		echo "Binary build type: Device"
 
-		# When PROFILE=development, override the profile specifier
-		# so a Release archive can be signed with the development profile instead of
-		# the App Store profile hardcoded in the Xcode project.
-		local archiveOverrides=""
+		# When PROFILE=development, override the signing settings so a Release
+		# archive can be signed with the development certificate and profile
+		# instead of the distribution identity hardcoded in the Xcode project.
+		local -a archiveOverrides=()
 		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ]; then
-			archiveOverrides='CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER=development-metamask CODE_SIGN_IDENTITY=Apple Development'
+			archiveOverrides=(
+				CODE_SIGN_STYLE=Manual
+				"PROVISIONING_PROFILE_SPECIFIER=development-metamask"
+				"CODE_SIGN_IDENTITY=Apple Development"
+			)
 			echo "Overriding signing: using development certificate and profile for Release archive"
 		fi
 
-		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios $archiveOverrides
+		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}"
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
