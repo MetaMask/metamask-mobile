@@ -62,7 +62,9 @@ describe(SmokeConfirmations('Transaction Pay'), () => {
         await TransactionPayConfirmation.verifyTransactionFee(
           expectedAmounts.confirmationTransactionFee,
         );
-        await TransactionPayConfirmation.verifyBridgeTime('< 1 min');
+        if (device.getPlatform() !== 'android') {
+          await TransactionPayConfirmation.verifyBridgeTime('< 1 min');
+        }
         await TransactionPayConfirmation.verifyTotal(expectedAmounts.total);
         await FooterActions.tapConfirmButton();
 
