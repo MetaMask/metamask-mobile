@@ -161,6 +161,39 @@ describe('useLiveCryptoPrices', () => {
       expect(onUpdate1).not.toHaveBeenCalled();
       expect(onUpdate2).toHaveBeenCalledWith(update);
     });
+
+    it('marks the stream connected when the first update arrives', () => {
+      let capturedCallback: (update: CryptoPriceUpdate) => void = jest.fn();
+      mockSubscribeToCryptoPrices.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+      mockGetConnectionStatus.mockReturnValue({
+        rtdsConnected: false,
+        sportsConnected: false,
+        marketConnected: false,
+      });
+
+      const onUpdate = jest.fn();
+      const { result } = renderHook(() =>
+        useLiveCryptoPrices('btcusdt', onUpdate),
+      );
+
+      expect(result.current.isConnected).toBe(false);
+
+      const update: CryptoPriceUpdate = {
+        symbol: 'btcusdt',
+        price: 67234.5,
+        timestamp: 1700000000,
+      };
+
+      act(() => {
+        capturedCallback(update);
+      });
+
+      expect(result.current.isConnected).toBe(true);
+      expect(onUpdate).toHaveBeenCalledWith(update);
+    });
   });
 
   describe('connection status', () => {

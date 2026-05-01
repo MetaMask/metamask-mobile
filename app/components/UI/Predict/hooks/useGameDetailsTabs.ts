@@ -43,18 +43,26 @@ export function useGameDetailsTabs({
         key: 'positions',
       });
     }
-    result.push({
-      label: strings('predict.tabs.outcomes'),
-      key: 'outcomes',
-    });
+    if (enabled) {
+      result.push({
+        label: strings('predict.tabs.outcomes'),
+        key: 'outcomes',
+      });
+    }
     return result;
-  }, [hasPositions]);
+  }, [enabled, hasPositions]);
 
   const handleTabPress = useCallback((tabIndex: number) => {
     setActiveTab(tabIndex);
   }, []);
 
-  const showTabBar = enabled && hasPositions;
+  const showTabBar = hasPositions;
+
+  useEffect(() => {
+    if (activeTab >= tabs.length) {
+      setActiveTab(0);
+    }
+  }, [activeTab, tabs.length]);
 
   const chips = useMemo(() => toChips(outcomeGroups), [outcomeGroups]);
 
