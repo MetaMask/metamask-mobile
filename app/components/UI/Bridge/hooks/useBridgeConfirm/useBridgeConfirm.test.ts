@@ -5,6 +5,9 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
+import { BigNumber } from 'ethers';
+import { isHardwareAccount } from '../../../../../util/address';
+import { HardwareWalletsSwapsStatus } from '../../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -24,6 +27,11 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../selectors/bridge', () => ({
   ...jest.requireActual('../../../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
 }));
 
 // useSubmitBridgeTx
@@ -67,6 +75,7 @@ describe('useBridgeConfirm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockSubmitBridgeTx.mockResolvedValue({ success: true });
   });
 
@@ -130,6 +139,75 @@ describe('useBridgeConfirm', () => {
             .isSubmittingTx,
         ).toBe(false);
       });
+    });
+
+    it('passes latestSourceAtomicBalance to useBridgeQuoteData', () => {
+      renderHook();
+
+      expect(jest.mocked(useBridgeQuoteData)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          latestSourceAtomicBalance: mockLatestSourceBalance.atomicBalance,
+        }),
+      );
+    });
+
+    it('passes undefined atomicBalance when latestSourceBalance is undefined', () => {
+      renderHook({ ...defaultParams, latestSourceBalance: undefined });
+
+      expect(jest.mocked(useBridgeQuoteData)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          latestSourceAtomicBalance: undefined,
+        }),
+      );
+    });
+
+    it('navigates hardware wallet submissions to progress view', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      jest.mocked(useBridgeQuoteData).mockReturnValue({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          approval: {},
+        },
+      } as ReturnType<typeof useBridgeQuoteData>);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { status: string };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.status,
+      ).toBe(HardwareWalletsSwapsStatus.Waiting);
+    });
+
+    it('starts one-step progress for hardware wallet submissions without approval', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { totalSteps: number };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.totalSteps,
+      ).toBe(1);
     });
   });
 
@@ -227,6 +305,27 @@ describe('useBridgeConfirm', () => {
             .isSubmittingTx,
         ).toBe(false);
       });
+    });
+
+    it('shows rejected progress for hardware wallet submissions after the error', async () => {
+      jest.spyOn(console, 'error').mockImplementation();
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { status: string };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.status,
+      ).toBe(HardwareWalletsSwapsStatus.Rejected);
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
   });
 });

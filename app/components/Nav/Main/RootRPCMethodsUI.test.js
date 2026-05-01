@@ -8,11 +8,21 @@ import Engine, { controllerMessenger } from '../../../core/Engine';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import Logger from '../../../util/Logger';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
+import { HardwareWalletsSwapsStatus } from '../../UI/Bridge/Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 let capturedAutoSign;
 const SOFTWARE_ADDRESS = '0x1111111111111111111111111111111111111111';
 const LEDGER_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
 const QR_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const mockDispatch = jest.fn();
+let mockBridgeState = {
+  hardwareWalletsSwaps: {
+    status: HardwareWalletsSwapsStatus.Idle,
+    currentStep: 0,
+    totalSteps: 0,
+    steps: [],
+  },
+};
 
 jest.mock('./onUnapprovedTransaction', () => ({
   onUnapprovedTransaction: jest.fn((_, { autoSign }) => {
@@ -34,6 +44,11 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
+  useSelector: (selector) => selector({ bridge: mockBridgeState }),
+}));
+
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ event: 'built' }));
 const mockCreateEventBuilder = jest.fn(() => ({ build: mockBuild }));
@@ -50,21 +65,28 @@ jest.mock('../../../util/Logger', () => ({
 }));
 
 const mockExecuteHardwareWalletOperation = jest.fn();
+const mockEnsureDeviceReady = jest.fn();
+const mockSetPendingOperationAddress = jest.fn();
+const mockShowAwaitingConfirmation = jest.fn();
+const mockHideAwaitingConfirmation = jest.fn();
+const mockShowHardwareWalletError = jest.fn();
 
 jest.mock('../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
-    ensureDeviceReady: jest.fn(),
-    setPendingOperationAddress: jest.fn(),
-    showAwaitingConfirmation: jest.fn(),
-    hideAwaitingConfirmation: jest.fn(),
-    showHardwareWalletError: jest.fn(),
+    ensureDeviceReady: mockEnsureDeviceReady,
+    setPendingOperationAddress: mockSetPendingOperationAddress,
+    showAwaitingConfirmation: mockShowAwaitingConfirmation,
+    hideAwaitingConfirmation: mockHideAwaitingConfirmation,
+    showHardwareWalletError: mockShowHardwareWalletError,
   }),
   executeHardwareWalletOperation: (...args) =>
     mockExecuteHardwareWalletOperation(...args),
 }));
 
 const mockGetHardwareWalletTypeForAddress = jest.fn();
+const mockGetDeviceIdForAddress = jest.fn();
 jest.mock('../../../core/HardwareWallet/helpers', () => ({
+  getDeviceIdForAddress: (...args) => mockGetDeviceIdForAddress(...args),
   getHardwareWalletTypeForAddress: (...args) =>
     mockGetHardwareWalletTypeForAddress(...args),
 }));
@@ -94,7 +116,7 @@ jest.mock(
 jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
   createQRSigningTransactionModalNavDetails: jest
     .fn()
-    .mockReturnValue(['QRSigningModal', {}]),
+    .mockImplementation((params) => ['QRSigningModal', params]),
 }));
 
 describe('RootRPCMethodsUI', () => {
@@ -105,7 +127,17 @@ describe('RootRPCMethodsUI', () => {
     mockGetHardwareWalletTypeForAddress.mockReturnValue(
       HardwareWalletType.Ledger,
     );
+    mockGetDeviceIdForAddress.mockResolvedValue('device-id');
     mockExecuteHardwareWalletOperation.mockResolvedValue(true);
+    mockEnsureDeviceReady.mockResolvedValue(true);
+    mockBridgeState = {
+      hardwareWalletsSwaps: {
+        status: HardwareWalletsSwapsStatus.Idle,
+        currentStep: 0,
+        totalSteps: 0,
+        steps: [],
+      },
+    };
   });
 
   describe('autoSign', () => {
@@ -176,6 +208,52 @@ describe('RootRPCMethodsUI', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('suppresses the global awaiting confirmation sheet during active Bridge progress', async () => {
+      mockBridgeState = {
+        hardwareWalletsSwaps: {
+          status: HardwareWalletsSwapsStatus.Waiting,
+          currentStep: 1,
+          totalSteps: 2,
+          steps: [],
+        },
+      };
+
+      const mockNavigate = jest.fn();
+      render(<RootRPCMethodsUI navigation={{ navigate: mockNavigate }} />);
+
+      const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
+      const handleUnapprovedTransaction = subscribeCall[1];
+      handleUnapprovedTransaction({
+        id: 'tx-ledger-progress',
+        type: 'swapApproval',
+        txParams: { from: LEDGER_ADDRESS },
+      });
+
+      await capturedAutoSign({
+        id: 'tx-ledger-progress',
+        type: 'swapApproval',
+        txParams: { from: LEDGER_ADDRESS },
+      });
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockShowAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(
+        Engine.context.ApprovalController.acceptRequest,
+      ).toHaveBeenCalledWith('tx-ledger-progress', undefined, {
+        waitForResult: true,
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({ type: 'SIGNING' }),
+        }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({ type: 'SIGNED' }),
+        }),
+      );
+    });
+
     it('still routes QR auto-sign through the QR signing modal', async () => {
       mockGetHardwareWalletTypeForAddress.mockReturnValue(
         HardwareWalletType.Qr,
@@ -198,6 +276,44 @@ describe('RootRPCMethodsUI', () => {
 
       expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('advances active Bridge progress after QR confirmation completes', async () => {
+      mockBridgeState = {
+        hardwareWalletsSwaps: {
+          status: HardwareWalletsSwapsStatus.Waiting,
+          currentStep: 1,
+          totalSteps: 2,
+          steps: [],
+        },
+      };
+      mockGetHardwareWalletTypeForAddress.mockReturnValue(
+        HardwareWalletType.Qr,
+      );
+      const mockNavigate = jest.fn();
+      render(<RootRPCMethodsUI navigation={{ navigate: mockNavigate }} />);
+
+      const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
+      const handleUnapprovedTransaction = subscribeCall[1];
+      handleUnapprovedTransaction({
+        id: 'tx-qr-progress',
+        type: 'swap',
+        txParams: { from: QR_ADDRESS },
+      });
+
+      await capturedAutoSign({
+        id: 'tx-qr-progress',
+        type: 'swap',
+        txParams: { from: QR_ADDRESS },
+      });
+      const qrParams = mockNavigate.mock.calls[0][1];
+      qrParams.onConfirmationComplete(true);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({ type: 'SIGNED' }),
+        }),
+      );
     });
 
     it('surfaces unexpected errors from hardware wallet type lookup', async () => {

@@ -1,6 +1,8 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { Alert } from 'react-native';
 import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -23,8 +25,19 @@ import {
   useHardwareWallet,
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
-import { getHardwareWalletTypeForAddress } from '../../../core/HardwareWallet/helpers';
+import {
+  getDeviceIdForAddress,
+  getHardwareWalletTypeForAddress,
+} from '../../../core/HardwareWallet/helpers';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import {
+  selectHardwareWalletsSwaps,
+  updateHardwareWalletsSwaps,
+} from '../../../core/redux/slices/bridge';
+import {
+  HardwareWalletsSwapsStatus,
+  HardwareWalletsSwapsStepKind,
+} from '../../UI/Bridge/Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -35,6 +48,9 @@ import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomName
 ///: END:ONLY_INCLUDE_IF
 
 const RootRPCMethodsUI = (props) => {
+  const dispatch = useDispatch();
+  const hardwareWalletsSwaps = useSelector(selectHardwareWalletsSwaps);
+  const hardwareWalletsSwapsStatusRef = useRef(hardwareWalletsSwaps.status);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     ensureDeviceReady,
@@ -89,6 +105,93 @@ const RootRPCMethodsUI = (props) => {
     [isCancelledError, trackTransactionCancelledEvent],
   );
 
+  useEffect(() => {
+    hardwareWalletsSwapsStatusRef.current = hardwareWalletsSwaps.status;
+  }, [hardwareWalletsSwaps.status]);
+
+  const getProgressStepKind = useCallback((transactionType) => {
+    if (
+      transactionType === TransactionType.bridgeApproval ||
+      transactionType === TransactionType.swapApproval
+    ) {
+      return HardwareWalletsSwapsStepKind.Approval;
+    }
+
+    return HardwareWalletsSwapsStepKind.Transaction;
+  }, []);
+
+  const rejectPendingTransaction = useCallback((transactionId) => {
+    Engine.rejectPendingApproval(
+      transactionId,
+      new Error('User rejected the transaction'),
+      { ignoreMissing: true, logErrors: false },
+    );
+  }, []);
+
+  const autoSignWithBridgeProgress = useCallback(
+    async (transactionMeta) => {
+      const stepKind = getProgressStepKind(transactionMeta.type);
+      const from = transactionMeta.txParams.from;
+
+      setPendingOperationAddress(from);
+
+      try {
+        const deviceId = await getDeviceIdForAddress(from);
+        const isReady = await ensureDeviceReady(deviceId);
+
+        if (!isReady) {
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: 'REJECTED',
+              payload: { stepKind },
+            }),
+          );
+          rejectPendingTransaction(transactionMeta.id);
+          return;
+        }
+
+        dispatch(
+          updateHardwareWalletsSwaps({
+            type: 'SIGNING',
+            payload: { stepKind },
+          }),
+        );
+        await Engine.context.ApprovalController.acceptRequest(
+          transactionMeta.id,
+          undefined,
+          {
+            waitForResult: true,
+          },
+        );
+        dispatch(
+          updateHardwareWalletsSwaps({
+            type: 'SIGNED',
+            payload: { stepKind },
+          }),
+        );
+      } catch (error) {
+        dispatch(
+          updateHardwareWalletsSwaps({
+            type: 'REJECTED',
+            payload: { stepKind },
+          }),
+        );
+        handleAutoSignError(error);
+        rejectPendingTransaction(transactionMeta.id);
+      } finally {
+        setPendingOperationAddress(null);
+      }
+    },
+    [
+      dispatch,
+      ensureDeviceReady,
+      getProgressStepKind,
+      handleAutoSignError,
+      rejectPendingTransaction,
+      setPendingOperationAddress,
+    ],
+  );
+
   const autoSign = useCallback(
     async (transactionMeta) => {
       try {
@@ -105,14 +208,41 @@ const RootRPCMethodsUI = (props) => {
         // for the next tick to make sure the approval request is present when auto-approve it
         await new Promise((resolve) => setTimeout(resolve, 0));
 
+        const isBridgeProgressActive =
+          hardwareWalletsSwaps.status === HardwareWalletsSwapsStatus.Waiting;
+
         if (walletType === HardwareWalletType.Qr) {
           props.navigation.navigate(
             ...createQRSigningTransactionModalNavDetails({
               transactionId: transactionMeta.id,
-              // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
+              onConfirmationComplete: (confirmed) => {
+                if (
+                  hardwareWalletsSwapsStatusRef.current !==
+                  HardwareWalletsSwapsStatus.Waiting
+                ) {
+                  return;
+                }
+
+                dispatch(
+                  updateHardwareWalletsSwaps({
+                    type: confirmed ? 'SIGNED' : 'REJECTED',
+                    payload: {
+                      stepKind: getProgressStepKind(transactionMeta.type),
+                    },
+                  }),
+                );
+
+                if (!confirmed) {
+                  rejectPendingTransaction(transactionMeta.id);
+                }
+              },
             }),
           );
+          return;
+        }
+
+        if (isBridgeProgressActive) {
+          await autoSignWithBridgeProgress(transactionMeta);
           return;
         }
 
@@ -135,11 +265,7 @@ const RootRPCMethodsUI = (props) => {
             );
           },
           onRejected: () => {
-            Engine.rejectPendingApproval(
-              transactionMeta.id,
-              new Error('User rejected the transaction'),
-              { ignoreMissing: true, logErrors: false },
-            );
+            rejectPendingTransaction(transactionMeta.id);
           },
         });
       } catch (error) {
@@ -155,6 +281,12 @@ const RootRPCMethodsUI = (props) => {
       showHardwareWalletError,
       handleAutoSignError,
       showAutoSignError,
+      hardwareWalletsSwaps.status,
+      dispatch,
+      getProgressStepKind,
+      rejectPendingTransaction,
+      autoSignWithBridgeProgress,
+      hardwareWalletsSwapsStatusRef,
     ],
   );
 
@@ -186,7 +318,6 @@ const RootRPCMethodsUI = (props) => {
       function cleanup() {
         Engine.context.TokensController?.hub?.removeAllListeners();
       },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 

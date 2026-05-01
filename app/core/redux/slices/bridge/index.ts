@@ -29,6 +29,12 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
+import {
+  HardwareWalletsSwapsEvent,
+  HardwareWalletsSwapsState,
+  hardwareWalletsSwapsReducer,
+  initialHardwareWalletsSwapsState,
+} from '../../../../components/UI/Bridge/Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
@@ -90,6 +96,7 @@ export interface BridgeState {
    * When undefined, the recommended quote (best quote) is used.
    */
   selectedQuoteRequestId: string | undefined;
+  hardwareWalletsSwaps: HardwareWalletsSwapsState;
 }
 
 export const initialState: BridgeState = {
@@ -113,6 +120,7 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
 };
 
 const name = 'bridge';
@@ -244,6 +252,18 @@ const slice = createSlice({
       action: PayloadAction<string | undefined>,
     ) => {
       state.selectedQuoteRequestId = action.payload;
+    },
+    updateHardwareWalletsSwaps: (
+      state,
+      action: PayloadAction<HardwareWalletsSwapsEvent>,
+    ) => {
+      state.hardwareWalletsSwaps = hardwareWalletsSwapsReducer(
+        state.hardwareWalletsSwaps,
+        action.payload,
+      );
+    },
+    resetHardwareWalletsSwaps: (state) => {
+      state.hardwareWalletsSwaps = initialHardwareWalletsSwapsState;
     },
   },
   extraReducers: (builder) => {
@@ -634,6 +654,11 @@ export const selectIsSubmittingTx = createSelector(
   (bridgeState) => bridgeState.isSubmittingTx,
 );
 
+export const selectHardwareWalletsSwaps = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.hardwareWalletsSwaps,
+);
+
 export const selectIsSelectingRecipient = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSelectingRecipient,
@@ -750,4 +775,6 @@ export const {
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
+  updateHardwareWalletsSwaps,
+  resetHardwareWalletsSwaps,
 } = actions;

@@ -18,6 +18,7 @@ import {
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
+import { HardwareWalletsSwaps } from './Views/HardwareWalletsSwaps/HardwareWalletsSwaps';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -33,6 +34,11 @@ export const BridgeScreenStack = () => (
     <Stack.Screen
       name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
       component={QuoteSelectorView}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
+      component={HardwareWalletsSwaps}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

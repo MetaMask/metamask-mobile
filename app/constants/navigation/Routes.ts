@@ -307,6 +307,7 @@ const Routes = {
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
+    HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     MODALS: {
       ROOT: 'BridgeModals',
       DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
