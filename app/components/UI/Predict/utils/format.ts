@@ -379,6 +379,10 @@ export const formatCurrencyValue = (
     return formatted;
   }
 
+  if (value === 0) {
+    return formatted;
+  }
+
   if (value > 0) {
     return `+${formatted}`;
   }
