@@ -40,20 +40,21 @@ export function useIsGaslessSupported() {
       return isRelaySupported(chainId as Hex);
     }, [chainId, shouldCheck7702Eligibility]);
 
-  const is7702Supported = Boolean(
-    relaySupportsChain &&
-      // contract deployments can't be delegated
-      txParams?.to !== undefined,
-  );
-
   const fromAddress = txParams?.from;
   const isHardwareWallet = Boolean(
     fromAddress && isHardwareAccount(fromAddress),
   );
 
-  const isSupported =
+  const is7702Supported = Boolean(
     !isHardwareWallet &&
-    Boolean(isSmartTransactionAndBundleSupported || is7702Supported);
+      relaySupportsChain &&
+      // contract deployments can't be delegated
+      txParams?.to !== undefined,
+  );
+
+  const isSupported = Boolean(
+    isSmartTransactionAndBundleSupported || is7702Supported,
+  );
 
   const isPending =
     smartTransactionPending || (shouldCheck7702Eligibility && relayPending);
