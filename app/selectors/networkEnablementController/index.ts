@@ -26,7 +26,8 @@ export const selectEvmEnabledCaipNetworks = createDeepEqualSelector(
   selectEVMEnabledNetworks,
   (chainIds) =>
     (chainIds ?? []).map(
-      (chainId) => `${KnownCaipNamespace.Eip155}:${Number.parseInt(chainId, 16)}`,
+      (chainId) =>
+        `${KnownCaipNamespace.Eip155}:${Number.parseInt(chainId, 16)}`,
     ),
 );
 
