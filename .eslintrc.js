@@ -624,25 +624,33 @@ module.exports = {
                   'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
               },
               {
-                // gitignore-style: `**/util/number` matches the whole subtree and
-                // incorrectly flags `util/number/bignumber`, `bigint`, etc. Restrict
-                // everything under `util/number/` except allowed non-deprecated modules.
-                group: [
-                  '**/util/number/**',
-                  '!**/util/number/bignumber',
-                  '!**/util/number/bignumber/**',
-                  '!**/util/number/bigint',
-                  '!**/util/number/bigint/**',
-                  '!**/util/number/subscriptNotation',
-                  '!**/util/number/subscriptNotation/**',
-                ],
-                message:
-                  'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
-              },
-              {
                 group: ['expo-haptics/*'],
                 message:
                   'Import from app/util/haptics instead of expo-haptics directly.',
+              },
+            ],
+          },
+        ],
+        // Fences the deprecated `app/util/number/index.js` module. We use
+        // `import-x/no-restricted-paths` (not `no-restricted-imports`) because
+        // it resolves each import to its absolute file, which means a single
+        // entry catches every spelling that lands on `index.js` — bare
+        // (`from '../util/number'`), explicit (`'../util/number/index'`),
+        // and explicit-with-extension. Sibling modules like `bigint`,
+        // `bignumber`, and `subscriptNotation` resolve to different files
+        // and are unaffected, so no negation list is needed. Inherits the
+        // burn-down allowlist from this override's `excludedFiles`; the
+        // burn-down override below intentionally does not re-declare this
+        // rule, so allow-listed files remain exempt.
+        'import-x/no-restricted-paths': [
+          'error',
+          {
+            zones: [
+              {
+                target: 'app',
+                from: 'app/util/number/index.js',
+                message:
+                  'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
               },
             ],
           },
