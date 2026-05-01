@@ -215,6 +215,12 @@ export const createLivelineChartTemplate = (
             liveData = [];
             liveValue = 0;
             inLiveMode = false;
+            if (currentProps) {
+              currentProps = Object.assign({}, currentProps, {
+                data: [],
+                value: 0,
+              });
+            }
             render();
             break;
         }
