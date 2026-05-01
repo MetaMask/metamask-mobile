@@ -78,6 +78,8 @@ The table below maps each burndown path to the GitHub team(s) from [`.github/COD
 - `app/components/Views/confirmations/legacy/components/WatchAssetRequest/index.js`
 - `app/components/Views/confirmations/utils/send.ts`
 - `app/core/Engine/controllers/gas-fee-controller/gas-fee-controller-init.test.ts`
+- `app/util/confirm-tx.js`
+- `app/util/conversions.js`
 - `app/util/confirmation/gas.ts`
 - `app/util/confirmation/transactions.ts`
 - `app/util/custom-gas/index.js`

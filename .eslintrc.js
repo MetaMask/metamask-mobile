@@ -118,8 +118,11 @@ const utilNumberImportBurndownFiles = [
   'app/selectors/assets/assets-list.ts',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
-  // `app/util/**` importers of `../number` (resolves to `index.js`); same burndown
-  // contract as feature files — remove when migrated to `../number/bigint`.
+  // `app/util/**` importers of `./number` or `../number` (resolves to `index.js`);
+  // same burndown contract as feature files — remove when migrated to
+  // `../number/bigint` (or `./number/bigint` from `app/util/`).
+  'app/util/confirm-tx.js',
+  'app/util/conversions.js',
   'app/util/confirmation/gas.ts',
   'app/util/confirmation/transactions.ts',
   'app/util/custom-gas/index.js',
