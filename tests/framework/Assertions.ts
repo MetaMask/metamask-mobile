@@ -34,7 +34,9 @@ export default class Assertions {
         } else if (device.getPlatform() === 'ios') {
           await waitFor(el).toExist().withTimeout(100);
         } else {
-          await waitFor(el).toBeVisible().withTimeout(100);
+          // `(1)`: Fabric `RCTViewComponentView` parents break the default
+          // 75% area threshold on Android. See Utilities.checkElementReadyState.
+          await waitFor(el).toBeVisible(1).withTimeout(100);
         }
       },
       {
@@ -206,7 +208,7 @@ export default class Assertions {
         if (device.getPlatform() === 'ios') {
           await waitFor(textElement).toExist().withTimeout(100);
         } else {
-          await waitFor(textElement).toBeVisible().withTimeout(100);
+          await waitFor(textElement).toBeVisible(1).withTimeout(100);
         }
       },
       {

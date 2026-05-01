@@ -51,16 +51,28 @@ subprojects { subproject ->
 	}
 }
 
-// Braze Android SDK 41.x transitively pulls Kotlin 2.1-era stdlib and kotlinx-serialization
-// artifacts whose metadata the project's Kotlin 1.9.x compiler cannot read.
-// We force compatible versions on:
-//   - Braze modules  : so the Braze bridge itself compiles against 1.9 metadata.
-//   - :app           : because Braze declares its SDK dependency with `api` scope, Gradle's
-//                       "highest version wins" strategy promotes kotlin-stdlib 2.1 into :app's
-//                       compile classpath, breaking every .kt file in the app module.
+// Pin the Kotlin stdlib that ends up in the APK to the same version as the
+// project compiler (kotlin_version, defined above). The compiler was bumped to
+// 2.1.20 alongside the RN 0.81 upgrade, so the previous 1.9.25 pin is now a
+// downgrade — code compiled against the 2.1 stdlib (e.g. expo-modules-core,
+// expo-file-system, expo-updates, expo-dev-launcher) imports `kotlin.time.*`
+// APIs that don't exist in 1.9.x and hits NoClassDefFoundError at runtime.
+//
+// We apply the force on:
+//   - Braze modules : Braze 41.x transitively pulls a Kotlin 2.1-era stdlib;
+//                     keep an explicit pin so its compile/runtime classpath
+//                     stays aligned with the rest of the project.
+//   - :app          : Braze declares its SDK dependency with `api` scope,
+//                     so without a pin the "highest version wins" strategy
+//                     could promote stdlib past the project compiler version
+//                     and break .kt files in the app module.
 // Other subprojects (react-native, expo, firebase, etc.) are left untouched.
-def brazeKotlinStdlibVersion = "1.9.25"
-def brazeKotlinxSerializationVersion = "1.6.3"
+//
+// kotlinx-serialization is no longer force-pinned: the original pin existed
+// only because the 1.9 compiler couldn't read 2.1 serialization metadata.
+// With the 2.1.20 compiler that constraint is gone, so we let Gradle resolve
+// to whatever Braze and other consumers actually need.
+def brazeKotlinStdlibVersion = kotlin_version
 subprojects { subproject ->
 	subproject.afterEvaluate {
 		def name = subproject.name.toLowerCase()
@@ -71,10 +83,6 @@ subprojects { subproject ->
 				force "org.jetbrains.kotlin:kotlin-stdlib:${brazeKotlinStdlibVersion}"
 				force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${brazeKotlinStdlibVersion}"
 				force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${brazeKotlinStdlibVersion}"
-				force "org.jetbrains.kotlinx:kotlinx-serialization-core:${brazeKotlinxSerializationVersion}"
-				force "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${brazeKotlinxSerializationVersion}"
-				force "org.jetbrains.kotlinx:kotlinx-serialization-json:${brazeKotlinxSerializationVersion}"
-				force "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${brazeKotlinxSerializationVersion}"
 			}
 		}
 	}
