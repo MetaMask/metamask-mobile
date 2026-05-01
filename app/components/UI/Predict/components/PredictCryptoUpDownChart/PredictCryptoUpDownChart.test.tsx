@@ -166,4 +166,65 @@ describe('PredictCryptoUpDownChart', () => {
     const chart = screen.getByTestId('mock-liveline-chart');
     expect(chart.props.referenceLine).toBeUndefined();
   });
+
+  it('reports zero and negative current prices after loading completes', () => {
+    const market = createMockMarket();
+    const onCurrentPriceChange = jest.fn();
+
+    mockUseCryptoUpDownChartData.mockReturnValueOnce({
+      data: [{ time: 1, value: 0 }],
+      value: 0,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+
+    const { rerender } = render(
+      <PredictCryptoUpDownChart
+        market={market}
+        onCurrentPriceChange={onCurrentPriceChange}
+      />,
+    );
+
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(0);
+
+    mockUseCryptoUpDownChartData.mockReturnValueOnce({
+      data: [{ time: 2, value: -1 }],
+      value: -1,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+
+    rerender(
+      <PredictCryptoUpDownChart
+        market={market}
+        onCurrentPriceChange={onCurrentPriceChange}
+      />,
+    );
+
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(-1);
+  });
+
+  it('does not report placeholder current price while loading', () => {
+    const market = createMockMarket();
+    const onCurrentPriceChange = jest.fn();
+
+    mockUseCryptoUpDownChartData.mockReturnValueOnce({
+      data: [],
+      value: 0,
+      loading: true,
+      isLive: true,
+      window: 300,
+    });
+
+    render(
+      <PredictCryptoUpDownChart
+        market={market}
+        onCurrentPriceChange={onCurrentPriceChange}
+      />,
+    );
+
+    expect(onCurrentPriceChange).not.toHaveBeenCalled();
+  });
 });
