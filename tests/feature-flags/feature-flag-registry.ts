@@ -2981,11 +2981,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  exploreSectionsOrder: {
-    name: 'exploreSectionsOrder',
+  explorePageV2Enabled: {
+    name: 'explorePageV2Enabled',
     type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {},
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
