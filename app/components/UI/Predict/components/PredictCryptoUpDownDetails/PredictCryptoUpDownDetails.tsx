@@ -142,7 +142,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     marketSlug: selectedMarket.slug,
   });
 
-  const recurrence = market.series.recurrence;
+  const recurrence = selectedMarket.series.recurrence;
   const durationSecs = RECURRENCE_TO_DURATION_SECS[recurrence] ?? 5 * 60;
   const durationMs = Number.isFinite(durationSecs)
     ? durationSecs * 1000
@@ -273,9 +273,18 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     setSelectedMarket((currentMarket) => getNextSelectedMarket(currentMarket));
   }, [getNextSelectedMarket, seriesMarkets]);
 
-  const advanceExpiredSelection = useCallback(() => {
-    setSelectedMarket((currentMarket) => getNextSelectedMarket(currentMarket));
-  }, [getNextSelectedMarket]);
+  const advanceExpiredSelection = useCallback(
+    (expectedMarketId?: string) => {
+      setSelectedMarket((currentMarket) => {
+        if (expectedMarketId && currentMarket.id !== expectedMarketId) {
+          return currentMarket;
+        }
+
+        return getNextSelectedMarket(currentMarket);
+      });
+    },
+    [getNextSelectedMarket],
+  );
 
   useEffect(() => {
     const selectedEndDateTime = getEndDateTime(selectedMarket.endDate);
@@ -283,20 +292,30 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       return undefined;
     }
 
-    if (Date.now() >= selectedEndDateTime) {
-      advanceExpiredSelection();
+    const selectedMarketId = selectedMarket.id;
+    const nowMs = Date.now();
+    if (nowMs >= selectedEndDateTime) {
+      advanceExpiredSelection(selectedMarketId);
       return undefined;
     }
 
-    const delayMs = selectedEndDateTime - Date.now() + 1000;
+    const delayMs = selectedEndDateTime - nowMs + 1000;
     if (delayMs > MARKET_ROLLOVER_TIMEOUT_MAX_MS) {
       return undefined;
     }
 
-    const timeout = setTimeout(advanceExpiredSelection, delayMs);
+    const timeout = setTimeout(
+      () => advanceExpiredSelection(selectedMarketId),
+      delayMs,
+    );
 
     return () => clearTimeout(timeout);
-  }, [advanceExpiredSelection, selectedMarket.endDate, seriesMarkets]);
+  }, [
+    advanceExpiredSelection,
+    selectedMarket.endDate,
+    selectedMarket.id,
+    seriesMarkets,
+  ]);
 
   const title = selectedMarket.series.title;
   const subtitle = selectedMarket.endDate

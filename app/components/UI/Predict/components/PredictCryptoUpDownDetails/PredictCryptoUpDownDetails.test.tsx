@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from '@testing-library/react-native';
 import PredictCryptoUpDownDetails from './PredictCryptoUpDownDetails';
 import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
 import {
@@ -432,6 +438,57 @@ describe('PredictCryptoUpDownDetails', () => {
     }
   });
 
+  it('uses the selected market recurrence for series query window duration', () => {
+    const now = Date.UTC(2026, 0, 1, 0, 0, 0);
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    const fiveMinuteMarket = createMockMarket({
+      id: 'market-5m',
+      endDate: new Date(now + 5 * 60 * 1000).toISOString(),
+      series: {
+        id: 's1',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down - 5 Minutes',
+        recurrence: '5m',
+      },
+    });
+    const fifteenMinuteMarket = createMockMarket({
+      id: 'market-15m',
+      endDate: new Date(now + 15 * 60 * 1000).toISOString(),
+      series: {
+        id: 's1',
+        slug: 'btc-up-or-down-15m',
+        title: 'BTC Up or Down - 15 Minutes',
+        recurrence: '15m',
+      },
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [fiveMinuteMarket, fifteenMinuteMarket],
+    });
+
+    try {
+      render(
+        <PredictCryptoUpDownDetails
+          market={fiveMinuteMarket}
+          onBack={mockOnBack}
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('mock-time-slot-market-15m'));
+
+      const selectedQueryParams =
+        mockUsePredictSeries.mock.calls[
+          mockUsePredictSeries.mock.calls.length - 1
+        ][0];
+      const queryWindowMs =
+        new Date(selectedQueryParams.endDateMax).getTime() -
+        new Date(selectedQueryParams.endDateMin).getTime();
+
+      expect(queryWindowMs).toBe(13 * 15 * 60 * 1000);
+    } finally {
+      dateNowSpy.mockRestore();
+    }
+  });
+
   it('passes selected market to chart component and updates subtitle when a different time slot is selected', () => {
     const market = createMockMarket();
 
@@ -464,8 +521,9 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(getChartMarketId()).toBe('market-3');
   });
 
-  it('auto-advances to the live market slot when the initial market has already ended', () => {
-    // Date.now() is mocked to 123 ms (near epoch) in the global test setup.
+  it('auto-advances to the live market slot when the initial market has already ended', async () => {
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(123);
+    // Date.now() is mocked to 123 ms (near epoch).
     // An endDate of new Date(0).toISOString() (epoch zero) is in the past relative
     // to Date.now()=123, so hasEnded is true and the hook auto-advances to the
     // live market returned by findLiveMarket (market-2 whose endDate 2026-04-09
@@ -475,15 +533,23 @@ describe('PredictCryptoUpDownDetails', () => {
       endDate: new Date(0).toISOString(), // epoch 0 is in the past vs Date.now()=123
     });
 
-    render(
-      <PredictCryptoUpDownDetails market={expiredMarket} onBack={mockOnBack} />,
-    );
+    try {
+      render(
+        <PredictCryptoUpDownDetails
+          market={expiredMarket}
+          onBack={mockOnBack}
+        />,
+      );
 
-    // findLiveMarket picks market-1 (closest future endDate from epoch 123)
-    expect(getChartMarketId()).toBe('market-1');
+      // findLiveMarket picks market-1 (closest future endDate from epoch 123)
+      await waitFor(() => expect(getChartMarketId()).toBe('market-1'));
+    } finally {
+      dateNowSpy.mockRestore();
+    }
   });
 
-  it('auto-advances to the live market when an expired slot is selected', () => {
+  it('auto-advances to the live market when an expired slot is selected', async () => {
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(123);
     const liveMarket = createMockMarket({ id: 'live-market' });
     const expiredMarket = createMockMarket({
       id: 'expired-market',
@@ -493,13 +559,17 @@ describe('PredictCryptoUpDownDetails', () => {
       data: [liveMarket, expiredMarket],
     });
 
-    render(
-      <PredictCryptoUpDownDetails market={liveMarket} onBack={mockOnBack} />,
-    );
+    try {
+      render(
+        <PredictCryptoUpDownDetails market={liveMarket} onBack={mockOnBack} />,
+      );
 
-    fireEvent.press(screen.getByTestId('mock-time-slot-expired-market'));
+      fireEvent.press(screen.getByTestId('mock-time-slot-expired-market'));
 
-    expect(getChartMarketId()).toBe('live-market');
+      await waitFor(() => expect(getChartMarketId()).toBe('live-market'));
+    } finally {
+      dateNowSpy.mockRestore();
+    }
   });
 
   it('keeps the current slot when an old rollover callback runs', () => {
