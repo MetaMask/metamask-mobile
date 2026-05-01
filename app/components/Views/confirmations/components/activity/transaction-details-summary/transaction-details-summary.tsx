@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import { Box } from '../../../../../UI/Box/Box';
+import { Box } from '@metamask/design-system-react-native';
 import {
   selectTransactionsByBatchId,
   selectTransactionsByIds,
