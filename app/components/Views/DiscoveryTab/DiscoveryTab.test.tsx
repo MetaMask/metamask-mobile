@@ -543,7 +543,7 @@ describe('DiscoveryTab', () => {
         expect.objectContaining({
           openNewTab: expect.any(Function),
         }),
-        {},
+        undefined,
       );
 
       // Call the newTab callback
@@ -672,7 +672,7 @@ describe('DiscoveryTab', () => {
           sessionENSNames: {},
           favicon: { uri: '' },
         }),
-        {},
+        undefined,
       );
     });
   });
