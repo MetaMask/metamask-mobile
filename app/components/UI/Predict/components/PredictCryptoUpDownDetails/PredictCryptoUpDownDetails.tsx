@@ -57,6 +57,8 @@ const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
 };
 
+type PredictMarketWithSeries = PredictMarket & { series: PredictSeries };
+
 const getOpenOutcomes = (market: PredictMarket): PredictOutcome[] =>
   market.outcomes.filter(
     (outcome) => outcome.status === PredictMarketStatus.OPEN,
@@ -130,9 +132,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     CHART_HEIGHT_MAX,
     Math.max(CHART_HEIGHT_MIN, Math.round(windowHeight * 0.45)),
   );
-  const [selectedMarket, setSelectedMarket] = useState<
-    PredictMarket & { series: PredictSeries }
-  >(market);
+  const [selectedMarket, setSelectedMarket] =
+    useState<PredictMarketWithSeries>(market);
   const previousMarketIdRef = useRef(market.id);
   const [currentPrice, setCurrentPrice] = useState<number>();
 
@@ -219,11 +220,36 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   }, [selectedMarket.id]);
 
   const attachSeries = useCallback(
-    (nextMarket: PredictMarket): PredictMarket & { series: PredictSeries } => ({
+    (nextMarket: PredictMarket): PredictMarketWithSeries => ({
       ...nextMarket,
       series: nextMarket.series ?? market.series,
     }),
     [market.series],
+  );
+
+  const getNextSelectedMarket = useCallback(
+    (currentMarket: PredictMarketWithSeries): PredictMarketWithSeries => {
+      if (!seriesMarkets?.length) {
+        return currentMarket;
+      }
+
+      const currentMarketFromSeries = seriesMarkets.find(
+        (seriesMarket) => seriesMarket.id === currentMarket.id,
+      );
+      const marketToEvaluate = currentMarketFromSeries ?? currentMarket;
+
+      if (hasMarketEnded(marketToEvaluate)) {
+        const liveMarket = findLiveMarket(seriesMarkets);
+        if (liveMarket && liveMarket.id !== marketToEvaluate.id) {
+          return attachSeries(liveMarket);
+        }
+      }
+
+      return currentMarketFromSeries
+        ? attachSeries(currentMarketFromSeries)
+        : currentMarket;
+    },
+    [attachSeries, seriesMarkets],
   );
 
   useEffect(() => {
@@ -244,56 +270,12 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   useEffect(() => {
     if (!seriesMarkets?.length) return;
 
-    setSelectedMarket((currentMarket) => {
-      const currentMarketFromSeries = seriesMarkets.find(
-        (seriesMarket) => seriesMarket.id === currentMarket.id,
-      );
-      const marketToEvaluate = currentMarketFromSeries ?? currentMarket;
-      const liveMarket = findLiveMarket(seriesMarkets);
-
-      if (
-        hasMarketEnded(marketToEvaluate) &&
-        liveMarket &&
-        liveMarket.id !== marketToEvaluate.id
-      ) {
-        return attachSeries(liveMarket);
-      }
-
-      if (currentMarketFromSeries) {
-        return attachSeries(currentMarketFromSeries);
-      }
-
-      return currentMarket;
-    });
-  }, [attachSeries, seriesMarkets]);
+    setSelectedMarket((currentMarket) => getNextSelectedMarket(currentMarket));
+  }, [getNextSelectedMarket, seriesMarkets]);
 
   const advanceExpiredSelection = useCallback(() => {
-    if (!seriesMarkets?.length) {
-      return;
-    }
-
-    setSelectedMarket((currentMarket) => {
-      const currentMarketFromSeries = seriesMarkets.find(
-        (seriesMarket) => seriesMarket.id === currentMarket.id,
-      );
-      const marketToEvaluate = currentMarketFromSeries ?? currentMarket;
-
-      if (!hasMarketEnded(marketToEvaluate)) {
-        return currentMarketFromSeries
-          ? attachSeries(currentMarketFromSeries)
-          : currentMarket;
-      }
-
-      const liveMarket = findLiveMarket(seriesMarkets);
-      if (liveMarket && liveMarket.id !== marketToEvaluate.id) {
-        return attachSeries(liveMarket);
-      }
-
-      return currentMarketFromSeries
-        ? attachSeries(currentMarketFromSeries)
-        : currentMarket;
-    });
-  }, [attachSeries, seriesMarkets]);
+    setSelectedMarket((currentMarket) => getNextSelectedMarket(currentMarket));
+  }, [getNextSelectedMarket]);
 
   useEffect(() => {
     const selectedEndDateTime = getEndDateTime(selectedMarket.endDate);

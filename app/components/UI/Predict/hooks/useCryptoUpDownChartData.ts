@@ -72,9 +72,10 @@ export const useCryptoUpDownChartData = (
     typeof marketEndDateMs === 'number' && Number.isFinite(marketEndDateMs)
       ? marketEndDateMs
       : undefined;
-  const isLive =
+  const isLiveByEndDate =
     typeof liveEndDateMs === 'number' ? Date.now() < liveEndDateMs : false;
 
+  const [hasFrozenLiveData, setHasFrozenLiveData] = useState(false);
   const [liveLoading, setLiveLoading] = useState(true);
   const liveLoadingRef = useRef(true);
   const [liveValue, setLiveValue] = useState(0);
@@ -95,6 +96,7 @@ export const useCryptoUpDownChartData = (
 
     prevMarketIdRef.current = market.id;
     frozenRef.current = false;
+    setHasFrozenLiveData(false);
     liveLoadingRef.current = true;
     setLiveLoading(true);
     setLiveValue(0);
@@ -111,6 +113,7 @@ export const useCryptoUpDownChartData = (
       Date.now() >= currentLiveEndDateMs
     ) {
       frozenRef.current = true;
+      setHasFrozenLiveData(true);
     }
 
     if (frozenRef.current) {
@@ -134,6 +137,8 @@ export const useCryptoUpDownChartData = (
       setLiveLoading(false);
     }
   }, []);
+
+  const isLive = isLiveByEndDate && !hasFrozenLiveData;
 
   const wsSymbol = isLive && symbol ? `${symbol.toLowerCase()}usdt` : '';
 
@@ -203,12 +208,12 @@ export const useCryptoUpDownChartData = (
     }
   }, [historicalValue, isLive]);
 
-  if (isLive) {
+  if (isLive || hasFrozenLiveData) {
     return {
       data: chartData,
       value: displayedLiveValue,
-      loading: !symbol || (liveLoading && !hasRenderableLiveData),
-      isLive: true,
+      loading: isLive && (!symbol || (liveLoading && !hasRenderableLiveData)),
+      isLive,
       window: durationSecs,
     };
   }

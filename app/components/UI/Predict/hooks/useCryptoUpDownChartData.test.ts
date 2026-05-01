@@ -270,6 +270,35 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.data).toEqual([]);
     });
 
+    it('stops live refetching when a live update arrives after market end', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T00:00:30.000Z',
+      });
+      const chartRef = createMockChartRef();
+      historicalData = [];
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        jest.setSystemTime(new Date('2026-01-01T00:00:31.000Z'));
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 100,
+        });
+      });
+
+      expect(result.current.isLive).toBe(false);
+      expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+        '',
+        expect.any(Function),
+      );
+    });
+
     it('clears live state and chart data after market id changes', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();

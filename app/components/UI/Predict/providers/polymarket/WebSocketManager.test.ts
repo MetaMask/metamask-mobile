@@ -393,7 +393,7 @@ describe('WebSocketManager', () => {
       expect(endTrace).not.toHaveBeenCalled();
     });
 
-    it('clears the crypto price buffer and ends trace when a callback throws', () => {
+    it('continues flushing buffered prices when a callback throws', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn().mockImplementationOnce(() => {
         throw new Error('subscriber failed');
@@ -409,10 +409,22 @@ describe('WebSocketManager', () => {
         timestamp: 1700000000,
         payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
       });
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000001,
+        payload: { symbol: 'ethusdt', timestamp: 1700000001, value: 3500 },
+      });
 
-      expect(() => jest.advanceTimersByTime(16)).toThrow('subscriber failed');
+      expect(() => jest.advanceTimersByTime(16)).not.toThrow();
       expect(endTrace).toHaveBeenCalledWith({
         name: TraceName.CryptoUpDownBufferFlush,
+      });
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'ethusdt',
+        price: 3500,
+        timestamp: 1700000001,
       });
 
       callback.mockClear();

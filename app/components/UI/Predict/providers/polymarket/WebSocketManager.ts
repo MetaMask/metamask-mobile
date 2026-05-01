@@ -627,7 +627,19 @@ export class WebSocketManager {
 
         this.cryptoPriceBuffer.forEach((update, symbol) => {
           if (subscribedSymbols.has(symbol)) {
-            callbacks.forEach((callback) => callback(update));
+            callbacks.forEach((callback) => {
+              try {
+                callback(update);
+              } catch (error) {
+                DevLogger.log(
+                  'WebSocketManager: Crypto price subscriber failed',
+                  {
+                    error,
+                    symbol,
+                  },
+                );
+              }
+            });
           }
         });
       });
