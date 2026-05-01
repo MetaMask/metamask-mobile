@@ -1231,6 +1231,7 @@ export enum PerpsAnalyticsEvent {
   UiInteraction = 'Perp UI Interaction',
   RiskManagement = 'Perp Risk Management',
   PerpsError = 'Perp Error',
+  AccountSetup = 'Perp Account Setup',
 }
 
 /**
