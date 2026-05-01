@@ -64,17 +64,6 @@ export function getVariant(recurrence: string): string {
 }
 
 /**
- * Map of series recurrence to duration in milliseconds.
- */
-const RECURRENCE_TO_DURATION_MS: Record<string, number> = {
-  '5m': 5 * 60 * 1000,
-  '15m': 15 * 60 * 1000,
-  '1h': 60 * 60 * 1000,
-  '4h': 4 * 60 * 60 * 1000,
-  daily: 24 * 60 * 60 * 1000,
-};
-
-/**
  * Map of series recurrence to duration in seconds.
  */
 export const RECURRENCE_TO_DURATION_SECS: Record<string, number> = {
@@ -84,6 +73,15 @@ export const RECURRENCE_TO_DURATION_SECS: Record<string, number> = {
   '4h': 4 * 60 * 60,
   daily: 24 * 60 * 60,
 };
+
+/**
+ * Map of series recurrence to duration in milliseconds.
+ */
+const RECURRENCE_TO_DURATION_MS: Record<string, number> = Object.fromEntries(
+  Object.entries(RECURRENCE_TO_DURATION_SECS).map(
+    ([recurrence, durationSecs]) => [recurrence, durationSecs * 1000],
+  ),
+);
 
 /**
  * Computes the event start time from the market's endDate and its series recurrence.

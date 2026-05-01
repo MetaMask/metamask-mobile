@@ -2,6 +2,7 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -169,24 +170,42 @@ export const useCryptoUpDownChartData = (
 
   const historicalValue = historicalQuery.data?.at(-1)?.value;
   const historicalData = historicalQuery.data ?? EMPTY_DATA;
-  if (historicalData.length > 0) {
-    stableHistoricalDataRef.current = historicalData;
-  }
-  const stableHistoricalData = stableHistoricalDataRef.current;
+  const stableHistoricalData =
+    historicalData.length > 0
+      ? historicalData
+      : stableHistoricalDataRef.current;
+
+  useEffect(() => {
+    if (historicalData.length > 0) {
+      stableHistoricalDataRef.current = historicalData;
+    }
+  }, [historicalData]);
+
   const eventStartTimeSecs = eventStartTime
     ? Math.floor(new Date(eventStartTime).getTime() / 1000)
     : undefined;
-  const fallbackStartPoint =
-    isLive &&
-    typeof targetPrice === 'number' &&
-    targetPrice > 0 &&
-    typeof eventStartTimeSecs === 'number' &&
-    Number.isFinite(eventStartTimeSecs)
-      ? [{ time: eventStartTimeSecs, value: targetPrice }]
-      : EMPTY_DATA;
-  if (fallbackStartPoint.length > 0) {
-    fallbackStartPointRef.current = fallbackStartPoint;
-  }
+  const fallbackStartPoint = useMemo(
+    () =>
+      isLive &&
+      typeof targetPrice === 'number' &&
+      targetPrice > 0 &&
+      typeof eventStartTimeSecs === 'number' &&
+      Number.isFinite(eventStartTimeSecs)
+        ? [{ time: eventStartTimeSecs, value: targetPrice }]
+        : EMPTY_DATA,
+    [eventStartTimeSecs, isLive, targetPrice],
+  );
+  const stableFallbackStartPoint =
+    fallbackStartPoint.length > 0
+      ? fallbackStartPoint
+      : fallbackStartPointRef.current;
+
+  useEffect(() => {
+    if (fallbackStartPoint.length > 0) {
+      fallbackStartPointRef.current = fallbackStartPoint;
+    }
+  }, [fallbackStartPoint]);
+
   const firstLivePointTime = livePoints[0]?.time;
   const livePointOffsetFromEventStart =
     typeof firstLivePointTime === 'number' &&
@@ -200,7 +219,7 @@ export const useCryptoUpDownChartData = (
   const shouldUseFallbackStartPoint =
     stableHistoricalData.length > 0 || firstLivePointIsNearEventStart;
   const baseHistoricalData = mergeLivelinePoints(
-    shouldUseFallbackStartPoint ? fallbackStartPointRef.current : EMPTY_DATA,
+    shouldUseFallbackStartPoint ? stableFallbackStartPoint : EMPTY_DATA,
     stableHistoricalData,
   );
   const chartData = mergeLivelinePoints(baseHistoricalData, livePoints);
