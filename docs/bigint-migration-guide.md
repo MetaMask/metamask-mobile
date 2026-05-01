@@ -49,7 +49,9 @@ import { hexToBigInt, bigIntToHex, fromWei, toWei, ... } from '../util/number/bi
 
 ESLint still allows a fixed set of files to import the deprecated BN.js module `app/util/number/index.js`. That allowlist lives in `.eslintrc.js` as `utilNumberImportBurndownFiles`. After migrating a file to `app/util/number/bigint`, remove its path from that array so new legacy imports cannot creep back in.
 
-The table below maps each burndown path to the GitHub team(s) from [`.github/CODEOWNERS`](../.github/CODEOWNERS) using the same rule as GitHub: the **last** pattern in the file that matches the path wins. If your area is not covered, add or tighten a `CODEOWNERS` entry in a follow-up PR.
+Imports that resolve to the same file count too: for example `from '../util/number'`, `from '../util/number/index'`, and (from under `app/util/`) `from '../number'` all resolve to `index.js` and are subject to the same fence unless the file is on the allowlist.
+
+The table below maps each burndown path to the GitHub team(s) from [`.github/CODEOWNERS`](../.github/CODEOWNERS) using the same rule as GitHub: the **last** pattern in the file that matches the path wins. Shared `app/util/confirmation/`, `app/util/custom-gas/`, `app/util/networks/`, and `app/util/transactions/` have explicit owner lines so burndown PRs route like adjacent product code. If your area is not covered, add or tighten a `CODEOWNERS` entry in a follow-up PR.
 
 ### @MetaMask/card
 
@@ -76,6 +78,9 @@ The table below maps each burndown path to the GitHub team(s) from [`.github/COD
 - `app/components/Views/confirmations/legacy/components/WatchAssetRequest/index.js`
 - `app/components/Views/confirmations/utils/send.ts`
 - `app/core/Engine/controllers/gas-fee-controller/gas-fee-controller-init.test.ts`
+- `app/util/confirmation/gas.ts`
+- `app/util/confirmation/transactions.ts`
+- `app/util/custom-gas/index.js`
 
 ### @MetaMask/confirmations and @MetaMask/earn (co-owned)
 
@@ -139,6 +144,7 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 - `app/components/UI/TransactionElement/utils-gas.js`
 - `app/components/UI/TransactionElement/utils.js`
 - `app/components/Views/UnifiedTransactionsView/useUnifiedTxActions.test.ts`
+- `app/util/networks/index.js`
 
 ### @MetaMask/mobile-platform
 
@@ -187,6 +193,11 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 - `app/components/UI/Bridge/utils/formatNetworkFee.test.ts`
 - `app/components/UI/Bridge/utils/formatNetworkFee.ts`
 - `app/components/UI/Bridge/utils/transaction-history.ts`
+
+### @MetaMask/transactions and @MetaMask/confirmations (co-owned)
+
+- `app/util/transactions/index.js`
+- `app/util/transactions/index.test.ts`
 
 ### No matching `CODEOWNERS` rule yet
 
