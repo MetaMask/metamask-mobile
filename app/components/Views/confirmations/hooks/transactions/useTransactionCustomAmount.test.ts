@@ -11,7 +11,6 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { act } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { useUpdateCustomTokenAmount } from './useUpdateCustomTokenAmount';
 import {
   TransactionMeta,
@@ -39,7 +38,6 @@ import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEve
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../tokens/useTokenFiatRates');
-jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../transactions/useUpdateCustomTokenAmount');
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
@@ -105,7 +103,6 @@ function runHook({
 
 describe('useTransactionCustomAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
-  const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const useUpdateCustomTokenAmountMock = jest.mocked(
     useUpdateCustomTokenAmount,
   );
@@ -130,10 +127,6 @@ describe('useTransactionCustomAmount', () => {
     useConfirmationMetricEvents,
   );
 
-  const updateTokenAmountMock: ReturnType<
-    typeof useUpdateTokenAmount
-  >['updateTokenAmount'] = jest.fn();
-
   const updateCustomTokenAmountMock: ReturnType<
     typeof useUpdateCustomTokenAmount
   >['updateCustomTokenAmount'] = jest.fn();
@@ -144,10 +137,6 @@ describe('useTransactionCustomAmount', () => {
     jest.resetAllMocks();
 
     useTokenFiatRateMock.mockReturnValue(2);
-
-    useUpdateTokenAmountMock.mockReturnValue({
-      updateTokenAmount: updateTokenAmountMock,
-    } as ReturnType<typeof useUpdateTokenAmountMock>);
 
     useUpdateCustomTokenAmountMock.mockReturnValue({
       updateCustomTokenAmount: updateCustomTokenAmountMock,
@@ -268,7 +257,7 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('1'.repeat(27));
   });
 
-  it('updateTokenAmount updates token amount in transaction data', async () => {
+  it('updateTokenAmount delegates to updateCustomTokenAmount with the human amount', async () => {
     const { result } = runHook();
 
     await act(async () => {
@@ -279,27 +268,7 @@ describe('useTransactionCustomAmount', () => {
       result.current.updateTokenAmount();
     });
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith('61.725');
-    expect(updateCustomTokenAmountMock).not.toHaveBeenCalled();
-  });
-
-  it('updateTokenAmount calls updateCustomTokenAmount for moneyAccountDeposit', async () => {
-    const { result } = runHook({
-      transactionMeta: {
-        type: TransactionType.moneyAccountDeposit,
-      } as Partial<TransactionMeta>,
-    });
-
-    await act(async () => {
-      result.current.updatePendingAmount('123.45');
-    });
-
-    await act(async () => {
-      result.current.updateTokenAmount();
-    });
-
     expect(updateCustomTokenAmountMock).toHaveBeenCalledWith('61.725');
-    expect(updateTokenAmountMock).not.toHaveBeenCalled();
   });
 
   it('sets mm_pay_quote_requested metric only when hasSourceAmount becomes true after updateTokenAmount was called', async () => {

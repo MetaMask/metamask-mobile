@@ -1,15 +1,28 @@
 import { useCallback } from 'react';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
 import { updateAtomicBatchData } from '../../../../../util/transaction-controller';
 import { updateMoneyAccountDepositTokenAmount } from '../../../../UI/Money/utils/moneyAccountTransactions';
+import { hasTransactionType } from '../../utils/transaction';
 import Logger from '../../../../../util/Logger';
 
-export function useUpdateCustomTokenAmount() {
+export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
+  const { updateTokenAmount } = useUpdateTokenAmount();
 
-  const updateCustomTokenAmount = useCallback(
+  const updateTransactionPayAmount = useCallback(
     (amountHuman: string) => {
       if (!transactionMeta) {
+        return;
+      }
+
+      const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountDeposit,
+      ]);
+
+      if (!isMoneyAccountDeposit) {
+        updateTokenAmount(amountHuman);
         return;
       }
 
@@ -26,13 +39,13 @@ export function useUpdateCustomTokenAmount() {
         }).catch((error) => {
           Logger.error(
             error,
-            'Failed to update custom token amount in nested transaction',
+            'Failed to update transaction pay amount in nested transaction',
           );
         });
       }
     },
-    [transactionMeta],
+    [transactionMeta, updateTokenAmount],
   );
 
-  return { updateCustomTokenAmount };
+  return { updateTransactionPayAmount };
 }

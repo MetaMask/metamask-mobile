@@ -7,7 +7,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { useUpdateCustomTokenAmount } from './useUpdateCustomTokenAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -67,9 +66,6 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const payTokenFiatRate =
     useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
@@ -84,8 +80,6 @@ export function useTransactionCustomAmount({
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
-  const { updateTokenAmount: updateTokenAmountCallback } =
-    useUpdateTokenAmount();
   const { updateCustomTokenAmount } = useUpdateCustomTokenAmount();
 
   const amountFiat = useMemo(() => {
@@ -212,18 +206,9 @@ export function useTransactionCustomAmount({
   );
 
   const updateTokenAmount = useCallback(() => {
-    if (isMoneyAccountDeposit) {
-      updateCustomTokenAmount(amountHuman);
-    } else {
-      updateTokenAmountCallback(amountHuman);
-    }
+    updateCustomTokenAmount(amountHuman);
     setIsTokenAmountUpdated(true);
-  }, [
-    amountHuman,
-    isMoneyAccountDeposit,
-    updateCustomTokenAmount,
-    updateTokenAmountCallback,
-  ]);
+  }, [amountHuman, updateCustomTokenAmount]);
 
   useEffect(() => {
     if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
