@@ -142,20 +142,30 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   });
 
   const recurrence = market.series.recurrence;
-  const durationMs = (RECURRENCE_TO_DURATION_SECS[recurrence] ?? 5 * 60) * 1000;
+  const durationSecs = RECURRENCE_TO_DURATION_SECS[recurrence] ?? 5 * 60;
+  const durationMs = Number.isFinite(durationSecs)
+    ? durationSecs * 1000
+    : 5 * 60 * 1000;
   const marketEndDateMs = getEndDateTime(market.endDate);
   const selectedEndDateMs = getEndDateTime(selectedMarket.endDate);
-  const seriesWindowAnchorMs = Math.max(
-    Date.now(),
-    marketEndDateMs ?? Number.NEGATIVE_INFINITY,
-    selectedEndDateMs ?? Number.NEGATIVE_INFINITY,
-  );
-  const endDateMin = new Date(
-    seriesWindowAnchorMs - 3 * durationMs,
-  ).toISOString();
-  const endDateMax = new Date(
-    seriesWindowAnchorMs + 10 * durationMs,
-  ).toISOString();
+  const currentTimeMs = Date.now();
+  const currentWindowMs = Number.isFinite(currentTimeMs)
+    ? Math.floor(currentTimeMs / durationMs) * durationMs
+    : 0;
+  const { endDateMin, endDateMax } = useMemo(() => {
+    const seriesWindowAnchorMs = Math.max(
+      currentWindowMs,
+      marketEndDateMs ?? Number.NEGATIVE_INFINITY,
+      selectedEndDateMs ?? Number.NEGATIVE_INFINITY,
+    );
+
+    return {
+      endDateMin: new Date(seriesWindowAnchorMs - 3 * durationMs).toISOString(),
+      endDateMax: new Date(
+        seriesWindowAnchorMs + 10 * durationMs,
+      ).toISOString(),
+    };
+  }, [currentWindowMs, durationMs, marketEndDateMs, selectedEndDateMs]);
 
   const { data: seriesMarkets } = usePredictSeries({
     seriesId: market.series.id,

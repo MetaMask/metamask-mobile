@@ -402,6 +402,36 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(screen.getByText('-$1.23')).toBeOnTheScreen();
   });
 
+  it('keeps series query params stable across live price updates in the same window', () => {
+    const now = Date.UTC(2026, 0, 1, 0, 0, 0);
+    const previousDateNow = Date.now;
+    const dateNowMock = jest.fn(() => now);
+    Date.now = dateNowMock;
+    const market = createMockMarket();
+    mockChartCurrentPrice = 78010;
+
+    try {
+      render(
+        <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+      );
+      const initialQueryParams =
+        mockUsePredictSeries.mock.calls[
+          mockUsePredictSeries.mock.calls.length - 1
+        ][0];
+
+      dateNowMock.mockReturnValue(now + 1000);
+      fireEvent.press(screen.getByTestId('mock-predict-crypto-up-down-chart'));
+
+      const updatedQueryParams =
+        mockUsePredictSeries.mock.calls[
+          mockUsePredictSeries.mock.calls.length - 1
+        ][0];
+      expect(updatedQueryParams).toEqual(initialQueryParams);
+    } finally {
+      Date.now = previousDateNow;
+    }
+  });
+
   it('passes selected market to chart component and updates subtitle when a different time slot is selected', () => {
     const market = createMockMarket();
 
