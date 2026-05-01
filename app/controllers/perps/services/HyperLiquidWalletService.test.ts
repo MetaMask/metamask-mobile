@@ -318,11 +318,11 @@ describe('HyperLiquidWalletService', () => {
       expect(address).toBe(mockEvmAccount.address);
     });
 
-    it('should return false when selected account is a software wallet', () => {
+    it('returns false for software wallet', () => {
       expect(service.isSelectedHardwareWallet()).toBe(false);
     });
 
-    it('should return true when selected account is a Ledger hardware wallet', () => {
+    it('returns true for Ledger hardware wallet', () => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
         if (
           action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
@@ -343,7 +343,7 @@ describe('HyperLiquidWalletService', () => {
       expect(service.isSelectedHardwareWallet()).toBe(true);
     });
 
-    it('should return true when selected account is a QR hardware wallet', () => {
+    it('returns true for QR hardware wallet', () => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
         if (
           action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
