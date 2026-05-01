@@ -13,8 +13,6 @@ import { PopularNetworksList } from '../../resources/networks.e2e';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 // This test is failing because we do not have any UI related to navigating to an unsupported network
 // We shall update once there is a decision on what that UI looks like.
@@ -39,10 +37,6 @@ describe(SmokeRamps('Buy Crypto Deeplinks - Unsupported Network'), () => {
           .withRampsSelectedPaymentMethod()
           .build(),
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagRampsUnifiedEnabled(true),
-          );
           await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
         },
         restartDevice: true,

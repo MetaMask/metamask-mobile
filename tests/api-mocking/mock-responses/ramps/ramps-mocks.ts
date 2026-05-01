@@ -110,26 +110,12 @@ export const RAMPS_CATALOG_MOCKS = async (mockServer: Mockttp) => {
       responseCode: 200,
       response: RAMPS_PROVIDERS_RESPONSE,
     },
-    // Tokens (legacy)
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/[^/]+\/tokens\?.*$/,
-      responseCode: 200,
-      response: RAMPS_TOP_TOKENS_RESPONSE,
-    },
     // Payments V2
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/payments\?.*$/,
       responseCode: 200,
       response: RAMPS_PAYMENTS_V2_RESPONSE,
-    },
-    // Tokens fallback (handles malformed region paths from legacy useRampTokens)
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/.*\/tokens\?.*$/,
-      responseCode: 200,
-      response: RAMPS_TOP_TOKENS_RESPONSE,
     },
   ]);
 

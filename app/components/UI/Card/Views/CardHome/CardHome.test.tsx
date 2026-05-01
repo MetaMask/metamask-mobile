@@ -292,7 +292,6 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
 
 jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
 }));
 
 jest.mock('../../hooks/useIsSwapEnabledForPriorityToken', () => ({

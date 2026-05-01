@@ -44,7 +44,6 @@ import { useSendNavigation } from '../../../Views/confirmations/hooks/useSendNav
 import parseRampIntent from '../../Ramp/utils/parseRampIntent';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
-import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
 import { TokenDetailsSource } from '../constants/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -145,7 +144,6 @@ export const useTokenActions = ({
   const { navigateToSendPage } = useSendNavigation();
   const { goToBuy } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   // Swap/Bridge navigation
   const { sourceToken, destToken } = getSwapTokens(token);
@@ -309,7 +307,7 @@ export const useTokenActions = ({
           button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
           ramp_routing: rampsButtonClickData.ramp_routing,
           is_authenticated: rampsButtonClickData.is_authenticated,
@@ -326,7 +324,6 @@ export const useTokenActions = ({
     createEventBuilder,
     token.address,
     chainId,
-    rampUnifiedV1Enabled,
     rampGeodetectedRegion,
     rampsButtonClickData,
     goToBuy,

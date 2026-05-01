@@ -9,8 +9,6 @@ import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import Assertions from '../../framework/Assertions';
 
 describe(SmokeRamps('OffRamps Deeplinks'), () => {
@@ -33,10 +31,6 @@ describe(SmokeRamps('OffRamps Deeplinks'), () => {
           .withRampsSelectedRegion(selectedRegion)
           .build(),
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagRampsUnifiedEnabled(true),
-          );
           await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
         },
         restartDevice: true,

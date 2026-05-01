@@ -15,7 +15,6 @@ import { RootState } from '../../../../reducers';
 const mockDispatch = jest.fn();
 const mockUseSelector = jest.fn();
 const mockFetch = jest.fn();
-const mockUseRampsUnifiedV1Enabled = jest.fn();
 
 globalThis.fetch = mockFetch;
 
@@ -26,11 +25,6 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: (selector: (state: RootState) => RootState['fiatOrders']) =>
     mockUseSelector(selector),
-}));
-
-jest.mock('./useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
 let mockOrders: FiatOrder[] = [];
@@ -102,7 +96,6 @@ describe('useRampsSmartRouting', () => {
       aggregator: false,
       global: true,
     });
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
 
     mockUseSelector.mockImplementation((selector) => {
       const state = {
@@ -123,41 +116,6 @@ describe('useRampsSmartRouting', () => {
 
   afterAll(() => {
     process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
-  });
-
-  describe('Feature flag check', () => {
-    it('does nothing when unifiedV1Enabled is false', async () => {
-      mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
-      mockApiResponse({
-        deposit: true,
-        aggregator: false,
-        global: true,
-      });
-      mockOrders = [];
-
-      renderHook(() => useRampsSmartRouting());
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
-
-    it('executes normally when unifiedV1Enabled is true', async () => {
-      mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-      mockApiResponse({
-        deposit: true,
-        aggregator: false,
-        global: true,
-      });
-      mockOrders = [];
-
-      renderHook(() => useRampsSmartRouting());
-
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalled();
-      });
-    });
   });
 
   afterEach(() => {

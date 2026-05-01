@@ -422,7 +422,7 @@ describe('MainNavigator', () => {
       expect(cardScreen).toBeDefined();
     });
 
-    it('includes Ramp BUY route', () => {
+    it('does not include legacy Ramp BUY route', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
@@ -432,7 +432,7 @@ describe('MainNavigator', () => {
         (screen) => screen?.name === Routes.RAMP.BUY,
       );
 
-      expect(rampBuyScreen).toBeDefined();
+      expect(rampBuyScreen).toBeUndefined();
     });
 
     it('includes Ramp SELL route', () => {

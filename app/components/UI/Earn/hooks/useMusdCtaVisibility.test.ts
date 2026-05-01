@@ -10,9 +10,8 @@ import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { useMusdConversionEligibility } from './useMusdConversionEligibility';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNetworksByCustomNamespace } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
+import type { RampsToken } from '@metamask/ramps-controller';
 import useRampsTokens from '../../Ramp/hooks/useRampsTokens';
-import useRampsUnifiedV2Enabled from '../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../constants/musd';
 import { createMockToken } from '../../Stake/testUtils';
 import {
@@ -36,9 +35,7 @@ jest.mock('./useMusdConversionTokens');
 jest.mock('./useMusdConversionEligibility');
 jest.mock('../../../hooks/useCurrentNetworkInfo');
 jest.mock('../../../hooks/useNetworksByNamespace/useNetworksByNamespace');
-jest.mock('../../Ramp/hooks/useRampTokens');
 jest.mock('../../Ramp/hooks/useRampsTokens');
-jest.mock('../../Ramp/hooks/useRampsUnifiedV2Enabled');
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -66,16 +63,9 @@ const mockUseNetworksByCustomNamespace =
   useNetworksByCustomNamespace as jest.MockedFunction<
     typeof useNetworksByCustomNamespace
   >;
-const mockUseRampTokens = useRampTokens as jest.MockedFunction<
-  typeof useRampTokens
->;
 const mockUseRampsTokens = useRampsTokens as jest.MockedFunction<
   typeof useRampsTokens
 >;
-const mockUseRampsUnifiedV2Enabled =
-  useRampsUnifiedV2Enabled as jest.MockedFunction<
-    typeof useRampsUnifiedV2Enabled
-  >;
 const mockUseMusdConversionTokens =
   useMusdConversionTokens as jest.MockedFunction<
     typeof useMusdConversionTokens
@@ -142,13 +132,26 @@ describe('useMusdCtaVisibility', () => {
   };
 
   const defaultRampTokens = {
-    topTokens: null,
+    topTokens: [],
     allTokens: [
       createMusdRampToken(CHAIN_IDS.MAINNET),
       createMusdRampToken(CHAIN_IDS.LINEA_MAINNET),
     ],
     isLoading: false,
     error: null,
+  };
+
+  const mockControllerTokens = (
+    allTokens: RampsToken[] | null,
+    topTokens: RampsToken[] = [],
+  ): void => {
+    mockUseRampsTokens.mockReturnValue({
+      tokens: allTokens === null ? null : { topTokens, allTokens },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
+      isLoading: false,
+      error: null,
+    });
   };
 
   let mockIsMusdCtaEnabled = true;
@@ -220,15 +223,16 @@ describe('useMusdCtaVisibility', () => {
     mockUseNetworksByCustomNamespace.mockReturnValue(
       defaultNetworksByNamespace,
     );
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
     mockUseRampsTokens.mockReturnValue({
-      tokens: null,
+      tokens: {
+        topTokens: defaultRampTokens.topTokens,
+        allTokens: defaultRampTokens.allTokens,
+      },
       selectedToken: null,
       setSelectedToken: jest.fn(),
       isLoading: false,
       error: null,
     });
-    mockUseRampTokens.mockReturnValue(defaultRampTokens);
     mockUseMusdConversionTokens.mockReturnValue({
       tokens: [],
       filterAllowedTokens: jest.fn(),
@@ -391,10 +395,7 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta false when MUSD is not buyable on any chain', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [],
-        });
+        mockControllerTokens([]);
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -488,13 +489,10 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta false when MUSD not buyable in region for mainnet', () => {
-          mockUseRampTokens.mockReturnValue({
-            ...defaultRampTokens,
-            allTokens: [
-              createMusdRampToken(CHAIN_IDS.MAINNET, false), // tokenSupported = false
-              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET),
-            ],
-          });
+          mockControllerTokens([
+            createMusdRampToken(CHAIN_IDS.MAINNET, false), // tokenSupported = false
+            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET),
+          ]);
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -506,13 +504,10 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta false when MUSD not buyable anywhere', () => {
-          mockUseRampTokens.mockReturnValue({
-            ...defaultRampTokens,
-            allTokens: [
-              createMusdRampToken(CHAIN_IDS.MAINNET, false),
-              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false),
-            ],
-          });
+          mockControllerTokens([
+            createMusdRampToken(CHAIN_IDS.MAINNET, false),
+            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false),
+          ]);
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -555,13 +550,10 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta false when MUSD not buyable in region for Linea', () => {
-          mockUseRampTokens.mockReturnValue({
-            ...defaultRampTokens,
-            allTokens: [
-              createMusdRampToken(CHAIN_IDS.MAINNET),
-              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false), // tokenSupported = false
-            ],
-          });
+          mockControllerTokens([
+            createMusdRampToken(CHAIN_IDS.MAINNET),
+            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false), // tokenSupported = false
+          ]);
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -737,13 +729,10 @@ describe('useMusdCtaVisibility', () => {
         });
 
         // Selected chain is not buyable on Ramp (no supported token route).
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable on selected chain
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable elsewhere
-          ],
-        });
+        mockControllerTokens([
+          createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable on selected chain
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable elsewhere
+        ]);
 
         mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
 
@@ -905,10 +894,7 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: true,
         });
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: null,
-        });
+        mockControllerTokens(null);
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -928,13 +914,10 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: true,
         });
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable
-          ],
-        });
+        mockControllerTokens([
+          createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable
+        ]);
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();

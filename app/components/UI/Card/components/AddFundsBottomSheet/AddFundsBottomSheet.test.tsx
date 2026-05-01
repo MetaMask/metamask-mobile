@@ -84,8 +84,6 @@ jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
-jest.mock('../../../Ramp/hooks/useRampsUnifiedV2Enabled');
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -239,7 +237,7 @@ describe('AddFundsBottomSheet', () => {
         button_text: 'Fund with cash',
         location: 'CardHome',
         chain_id_destination: '59144',
-        ramp_type: 'DEPOSIT',
+        ramp_type: 'UNIFIED_BUY_2',
         ramp_routing: undefined,
         is_authenticated: false,
         preferred_provider: undefined,

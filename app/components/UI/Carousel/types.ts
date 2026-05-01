@@ -4,6 +4,7 @@ import { CaipChainId } from '@metamask/utils';
 
 interface NavigationParams {
   address?: string;
+  assetId?: string;
   chainId?: string;
   amount?: string;
   currency?: string;

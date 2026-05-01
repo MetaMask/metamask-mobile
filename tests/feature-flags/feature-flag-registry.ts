@@ -3569,28 +3569,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rampsUnifiedBuyV1: {
-    name: 'rampsUnifiedBuyV1',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      active: true,
-      minimumVersion: '7.61.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  rampsUnifiedBuyV2: {
-    name: 'rampsUnifiedBuyV2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   rewardsAnnouncementModalEnabled: {
     name: 'rewardsAnnouncementModalEnabled',
     type: FeatureFlagType.Remote,
