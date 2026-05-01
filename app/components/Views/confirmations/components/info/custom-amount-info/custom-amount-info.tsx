@@ -17,7 +17,6 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
-import { useUpdateCustomTokenAmount } from '../../../hooks/transactions/useUpdateCustomTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
   SetPayTokenRequest,
@@ -135,9 +134,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]);
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -162,8 +158,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
-    const { updateCustomTokenAmount } = useUpdateCustomTokenAmount();
-
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
       isKeyboardVisible,
@@ -178,8 +172,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             fp.amountFiat = amountFiat;
           },
         });
-      } else if (isMoneyAccountDeposit) {
-        updateCustomTokenAmount(amountHuman);
       } else {
         updateTokenAmount();
       }
@@ -189,12 +181,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit?.();
     }, [
       amountFiat,
-      amountHuman,
-      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
-      updateCustomTokenAmount,
       updateTokenAmount,
     ]);
 

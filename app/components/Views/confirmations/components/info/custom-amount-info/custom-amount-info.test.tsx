@@ -37,7 +37,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useUpdateCustomTokenAmount } from '../../../hooks/transactions/useUpdateCustomTokenAmount';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
@@ -59,7 +58,6 @@ jest.mock('../../../hooks/pay/useTransactionPayHasSourceAmount');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
-jest.mock('../../../hooks/transactions/useUpdateCustomTokenAmount');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   useTransactionPayWithdraw: jest.fn(() => ({
     isWithdraw: false,
@@ -198,10 +196,6 @@ describe('CustomAmountInfo', () => {
     useTransactionMetadataRequest,
   );
 
-  const useUpdateCustomTokenAmountMock = jest.mocked(
-    useUpdateCustomTokenAmount,
-  );
-
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
   const useTransactionAccountOverrideMock = jest.mocked(
@@ -210,10 +204,6 @@ describe('CustomAmountInfo', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-
-    useUpdateCustomTokenAmountMock.mockReturnValue({
-      updateCustomTokenAmount: jest.fn(),
-    });
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
@@ -466,7 +456,7 @@ describe('CustomAmountInfo', () => {
     expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('calls updateTokenAmount when Done is pressed for non-moneyAccountDeposit transactions', async () => {
+  it('calls updateTokenAmount when Done is pressed', async () => {
     const updateTokenAmountMock = jest.fn();
     useTransactionCustomAmountMock.mockReturnValue({
       amountFiat: '123.45',
@@ -486,72 +476,6 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not call updateTokenAmount when Done is pressed for moneyAccountDeposit transactions', async () => {
-    const updateTokenAmountMock = jest.fn();
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      hasInput: true,
-      isInputChanged: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: noop,
-      updateTokenAmount: updateTokenAmountMock,
-    });
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountDeposit,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByText } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-
-    await act(async () => {
-      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-    });
-
-    expect(updateTokenAmountMock).not.toHaveBeenCalled();
-  });
-
-  it('calls updateCustomTokenAmount when Done is pressed for moneyAccountDeposit transactions', async () => {
-    const updateCustomTokenAmountMock = jest.fn();
-    useUpdateCustomTokenAmountMock.mockReturnValue({
-      updateCustomTokenAmount: updateCustomTokenAmountMock,
-    });
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountDeposit,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByText } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-
-    await act(async () => {
-      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-    });
-
-    expect(updateCustomTokenAmountMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not call updateCustomTokenAmount when Done is pressed for non-moneyAccountDeposit transactions', async () => {
-    const updateCustomTokenAmountMock = jest.fn();
-    useUpdateCustomTokenAmountMock.mockReturnValue({
-      updateCustomTokenAmount: updateCustomTokenAmountMock,
-    });
-
-    const { getByText } = render();
-
-    await act(async () => {
-      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-    });
-
-    expect(updateCustomTokenAmountMock).not.toHaveBeenCalled();
   });
 
   it('renders PayAccountSelector when supportAccountSelection is true', () => {
