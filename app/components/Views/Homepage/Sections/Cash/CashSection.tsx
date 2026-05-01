@@ -18,6 +18,8 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
+import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
+import MoneyAccountHomeRow from '../../../../UI/Money/components/MoneyAccountHomeRow';
 import MusdAggregatedRow from './MusdAggregatedRow';
 import { useCashNavigation } from './useCashNavigation';
 
@@ -42,6 +44,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     const isMusdConversionEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
     const { navigateToCash } = useCashNavigation();
@@ -85,7 +88,11 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <SectionHeader title={title} onPress={navigateToCash} />
-          {!hasMusdBalanceOnAnyChain ? (
+          {isMoneyHomeEnabled ? (
+            <SectionRow>
+              <MoneyAccountHomeRow key={`money-cash-${refreshVersion}`} />
+            </SectionRow>
+          ) : !hasMusdBalanceOnAnyChain ? (
             <SectionRow>
               <CashGetMusdEmptyState key={`cash-empty-${refreshVersion}`} />
             </SectionRow>

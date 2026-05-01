@@ -5,7 +5,7 @@ import MoneyConvertStablecoins from './MoneyConvertStablecoins';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
-import { ConvertTokenRowTestIds } from '../../../Earn/components/Musd/ConvertTokenRow';
+import { MusdConversionAssetRowTestIds } from '../../../Earn/components/Musd/MusdConversionAssetRow';
 import {
   selectHasUnapprovedMusdConversion,
   selectHasInFlightMusdConversion,
@@ -13,10 +13,12 @@ import {
 } from '../../../Earn/selectors/musdConversionStatus';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents';
+import { MONEY_EVENTS_CONSTANTS } from '../../constants/moneyEvents';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
 
-const TEST_LOCATION = 'money_hub';
+const TEST_LOCATION = MONEY_EVENT_LOCATIONS.MONEY_HUB;
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -81,9 +83,9 @@ jest.mock(
   },
 );
 
-jest.mock('../../../Earn/components/Musd/ConvertTokenRow', () => {
+jest.mock('../../../Earn/components/Musd/MusdConversionAssetRow', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  const MockConvertTokenRow = ({
+  const MockMusdConversionAssetRow = ({
     token,
     onMaxPress,
     onEditPress,
@@ -92,27 +94,27 @@ jest.mock('../../../Earn/components/Musd/ConvertTokenRow', () => {
     onMaxPress: (t: unknown) => void;
     onEditPress: (t: unknown) => void;
   }) => (
-    <TouchableOpacity testID="convert-token-row-container">
-      <Text testID="convert-token-row-token-name">{token.symbol}</Text>
+    <TouchableOpacity testID="musd-conversion-asset-row-container">
+      <Text testID="musd-conversion-asset-row-token-name">{token.symbol}</Text>
       <TouchableOpacity
-        testID="convert-token-row-max-button"
+        testID="musd-conversion-asset-row-max-button"
         onPress={() => onMaxPress(token)}
       />
       <TouchableOpacity
-        testID="convert-token-row-edit-button"
+        testID="musd-conversion-asset-row-edit-button"
         onPress={() => onEditPress(token)}
       />
     </TouchableOpacity>
   );
-  MockConvertTokenRow.displayName = 'ConvertTokenRow';
+  MockMusdConversionAssetRow.displayName = 'MusdConversionAssetRow';
   return {
     __esModule: true,
-    default: MockConvertTokenRow,
-    ConvertTokenRowTestIds: {
-      CONTAINER: 'convert-token-row-container',
-      TOKEN_NAME: 'convert-token-row-token-name',
-      MAX_BUTTON: 'convert-token-row-max-button',
-      EDIT_BUTTON: 'convert-token-row-edit-button',
+    default: MockMusdConversionAssetRow,
+    MusdConversionAssetRowTestIds: {
+      CONTAINER: 'musd-conversion-asset-row-container',
+      TOKEN_NAME: 'musd-conversion-asset-row-token-name',
+      MAX_BUTTON: 'musd-conversion-asset-row-max-button',
+      EDIT_BUTTON: 'musd-conversion-asset-row-edit-button',
     },
   };
 });
@@ -201,12 +203,12 @@ describe('MoneyConvertStablecoins', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders a ConvertTokenRow for each token', () => {
+    it('renders a MusdConversionAssetRow for each token', () => {
       const { getAllByTestId } = render(
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      const rows = getAllByTestId(ConvertTokenRowTestIds.CONTAINER);
+      const rows = getAllByTestId(MusdConversionAssetRowTestIds.CONTAINER);
       expect(rows).toHaveLength(3);
     });
 
@@ -225,7 +227,9 @@ describe('MoneyConvertStablecoins', () => {
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      const maxButtons = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON);
+      const maxButtons = getAllByTestId(
+        MusdConversionAssetRowTestIds.MAX_BUTTON,
+      );
       fireEvent.press(maxButtons[0]);
 
       expect(mockInitiateMaxConversion).toHaveBeenCalledWith(MOCK_USDC);
@@ -248,7 +252,9 @@ describe('MoneyConvertStablecoins', () => {
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      const editButtons = getAllByTestId(ConvertTokenRowTestIds.EDIT_BUTTON);
+      const editButtons = getAllByTestId(
+        MusdConversionAssetRowTestIds.EDIT_BUTTON,
+      );
       fireEvent.press(editButtons[1]);
 
       expect(mockInitiateCustomConversion).toHaveBeenCalledWith(
@@ -330,7 +336,7 @@ describe('MoneyConvertStablecoins', () => {
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      expect(queryByTestId(ConvertTokenRowTestIds.CONTAINER)).toBeNull();
+      expect(queryByTestId(MusdConversionAssetRowTestIds.CONTAINER)).toBeNull();
     });
   });
 });

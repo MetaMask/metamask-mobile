@@ -21,10 +21,7 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { FlashListAssetKey } from '../TokenList';
-import {
-  selectMusdQuickConvertEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -95,7 +92,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
@@ -251,10 +247,6 @@ export const TokenListItem = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
-    const isQuickConvertEnabled = useSelector(
-      selectMusdQuickConvertEnabledFlag,
-    );
-
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
@@ -341,9 +333,7 @@ export const TokenListItem = React.memo(
             return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
           }
 
-          return isQuickConvertEnabled
-            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+          return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
         };
 
         trackEvent(
@@ -381,7 +371,6 @@ export const TokenListItem = React.memo(
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -397,7 +386,6 @@ export const TokenListItem = React.memo(
       createEventBuilder,
       hasSeenConversionEducationScreen,
       initiateCustomConversion,
-      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);

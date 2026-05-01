@@ -29,10 +29,6 @@ const styles = StyleSheet.create({
 });
 
 interface MoneyMusdEmptyBalanceRowProps {
-  /**
-   * Handler fired when the row is tapped. Navigates to the mUSD asset detail
-   * page.
-   */
   onPress?: () => void;
 }
 

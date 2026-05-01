@@ -23,7 +23,7 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { buildTokenIconUrl } from '../../../Card/util/buildTokenIconUrl';
-import ConvertTokenRow from '../../../Earn/components/Musd/ConvertTokenRow';
+import MusdConversionAssetRow from '../../../Earn/components/Musd/MusdConversionAssetRow';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -36,7 +36,6 @@ import {
 } from '../../../Earn/selectors/musdConversionStatus';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents';
@@ -207,7 +206,6 @@ const MoneyConvertStablecoins = ({
             address: token.address as Hex,
             chainId: token.chainId as Hex,
           },
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
         });
       } catch (error) {
         Logger.error(error as Error, {
@@ -272,7 +270,7 @@ const MoneyConvertStablecoins = ({
         <Box twClassName="mt-3">
           {tokens.map((token) => (
             <Box key={`${token.address}-${token.chainId}`} twClassName="px-4">
-              <ConvertTokenRow
+              <MusdConversionAssetRow
                 token={token}
                 onMaxPress={handleMaxPress}
                 onEditPress={handleEditPress}
