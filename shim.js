@@ -430,54 +430,117 @@ if (enableApiCallLogs || isTest) {
       }
 
       // Patch expo/fetch so its native networking routes through the mock
-      // proxy. The re-export in `expo/src/winter/fetch/index.ts` uses
-      // `export * from` which Babel compiles to a non-configurable getter, so
-      // patching the re-exporter's property silently fails — we have to patch
-      // the SOURCE module (`expo/src/winter/fetch/fetch`). The re-export
-      // getter reads from the source, so all consumers (including
-      // bridge-controller's SSE `getQuoteStream`) pick up the patched fn.
+      // proxy. Bridge-controller's SSE `getQuoteStream` (and any other expo
+      // fetch consumer) MUST hit the mock or the swap/bridge E2E quote
+      // mocks never fire and tests time out waiting for "Rate" /
+      // "Network fee".
       //
-      // In `expo@54` (bundled with RN 0.81) `fetch` in the source module is
-      // `export async function fetch()`. After Babel/Metro transpilation that
-      // can become a non-writable property on the CJS exports object, in
-      // which case a plain `module.fetch = ...` assignment is silently
-      // dropped. Use `Object.defineProperty` so the patch survives a
-      // non-writable getter, and verify post-assignment that the reference
-      // was actually swapped — without this the bridge SSE quote goes direct
-      // to the real bridge API and the swap/bridge E2E mocks never fire.
+      // Defence-in-depth: we patch THREE places because we cannot rely on
+      // any single one surviving Metro/Babel transpilation in `expo@54`:
+      //
+      //   1. The native module prototype `ExpoFetchModule.NativeRequest
+      //      .prototype.start(url, init, body)`. This is the lowest layer
+      //      that EVERY expo fetch ultimately calls, regardless of how
+      //      `import { fetch } from 'expo/fetch'` was bundled or which
+      //      module captured the reference. Bulletproof.
+      //   2. The re-exporter `expo/src/winter/fetch/index` (what
+      //      `expo/fetch` resolves to). Catches consumers that destructure
+      //      the binding from the re-exporter at module load time.
+      //   3. The source module `expo/src/winter/fetch/fetch`. Catches
+      //      consumers that read through the live `export *` getter.
+      //
+      // If we miss the JS-level patches but get the native one, requests
+      // still get redirected — they just won't show the [E2E SHIM] log
+      // line at the JS layer.
+      const buildProxyUrl = (url) =>
+        `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+      const shouldProxy = (url) => {
+        if (typeof url !== 'string') return false;
+        if (!url.startsWith('http://') && !url.startsWith('https://'))
+          return false;
+        if (url.startsWith(MOCKTTP_URL)) return false;
+        return true;
+      };
+
+      // (1) Native prototype — bulletproof
       try {
-        const fetchSourceModule = require('expo/src/winter/fetch/fetch');
-        const originalExpoFetch = fetchSourceModule.fetch;
-        const patchedExpoFetch = (url, options) => {
-          const proxyUrl = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+        const {
+          ExpoFetchModule,
+        } = require('expo/src/winter/fetch/ExpoFetchModule');
+        const NativeRequest = ExpoFetchModule?.NativeRequest;
+        const proto = NativeRequest?.prototype;
+        if (proto && typeof proto.start === 'function' && !proto.__e2ePatched) {
+          const originalStart = proto.start;
+          proto.start = function patchedStart(url, init, body) {
+            const targetUrl = shouldProxy(url) ? buildProxyUrl(url) : url;
+            if (targetUrl !== url) {
+              // eslint-disable-next-line no-console
+              console.log(
+                `[E2E SHIM] expo/fetch (native): ${url} → ${targetUrl}`,
+              );
+            }
+            return originalStart.call(this, targetUrl, init, body);
+          };
+          proto.__e2ePatched = true;
           // eslint-disable-next-line no-console
-          console.log(`[E2E SHIM] expo/fetch: ${url} → ${proxyUrl}`);
-          return originalExpoFetch(proxyUrl, options);
-        };
-        Object.defineProperty(fetchSourceModule, 'fetch', {
-          configurable: true,
-          enumerable: true,
-          writable: true,
-          value: patchedExpoFetch,
-        });
-        const installed = fetchSourceModule.fetch === patchedExpoFetch;
-        // eslint-disable-next-line no-console
-        console.log(
-          `[E2E SHIM] Patched expo/fetch source module (installed=${installed})`,
-        );
-        if (!installed) {
+          console.log(
+            '[E2E SHIM] Patched ExpoFetchModule.NativeRequest.prototype.start',
+          );
+        } else if (proto?.__e2ePatched) {
+          // eslint-disable-next-line no-console
+          console.log('[E2E SHIM] NativeRequest.start already patched');
+        } else {
           // eslint-disable-next-line no-console
           console.warn(
-            '[E2E SHIM] expo/fetch patch did not stick — bridge SSE will not be intercepted',
+            '[E2E SHIM] ExpoFetchModule.NativeRequest.prototype.start not patchable',
           );
         }
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn(
-          '[E2E SHIM] Failed to patch expo/fetch source:',
+          '[E2E SHIM] Failed to patch ExpoFetchModule native prototype:',
           e.message,
         );
       }
+
+      // (2) + (3) JS-level patches for log visibility and as a fallback
+      const patchExpoFetchModule = (modulePath, label) => {
+        try {
+          const mod = require(modulePath);
+          const originalExpoFetch = mod.fetch;
+          if (typeof originalExpoFetch !== 'function') {
+            // eslint-disable-next-line no-console
+            console.warn(`[E2E SHIM] ${label}: no fetch export to patch`);
+            return;
+          }
+          const patchedExpoFetch = (url, options) => {
+            if (!shouldProxy(url)) {
+              return originalExpoFetch(url, options);
+            }
+            const proxyUrl = buildProxyUrl(url);
+            // eslint-disable-next-line no-console
+            console.log(`[E2E SHIM] ${label}: ${url} → ${proxyUrl}`);
+            return originalExpoFetch(proxyUrl, options);
+          };
+          Object.defineProperty(mod, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: patchedExpoFetch,
+          });
+          const installed = mod.fetch === patchedExpoFetch;
+          // eslint-disable-next-line no-console
+          console.log(`[E2E SHIM] Patched ${label} (installed=${installed})`);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn(`[E2E SHIM] Failed to patch ${label}:`, e.message);
+        }
+      };
+      patchExpoFetchModule('expo/src/winter/fetch/fetch', 'expo/fetch source');
+      patchExpoFetchModule(
+        'expo/src/winter/fetch/index',
+        'expo/fetch re-exporter',
+      );
     }
   })();
 }
