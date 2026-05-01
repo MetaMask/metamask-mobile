@@ -11,6 +11,33 @@ export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
 
+  const updateMoneyAccountDepositAmount = useCallback(
+    (amountHuman: string) => {
+      if (!transactionMeta) {
+        return;
+      }
+
+      const updates = updateMoneyAccountDepositTokenAmount(
+        transactionMeta,
+        amountHuman,
+      );
+
+      for (const { nestedTransactionIndex, transactionData } of updates) {
+        updateAtomicBatchData({
+          transactionId: transactionMeta.id,
+          transactionIndex: nestedTransactionIndex,
+          transactionData,
+        }).catch((error) => {
+          Logger.error(
+            error,
+            'Failed to update transaction pay amount in nested transaction',
+          );
+        });
+      }
+    },
+    [transactionMeta],
+  );
+
   const updateTransactionPayAmount = useCallback(
     (amountHuman: string) => {
       if (!transactionMeta) {
@@ -22,29 +49,13 @@ export function useUpdateTransactionPayAmount() {
       ]);
 
       if (isMoneyAccountDeposit) {
-        const updates = updateMoneyAccountDepositTokenAmount(
-          transactionMeta,
-          amountHuman,
-        );
-
-        for (const { nestedTransactionIndex, transactionData } of updates) {
-          updateAtomicBatchData({
-            transactionId: transactionMeta.id,
-            transactionIndex: nestedTransactionIndex,
-            transactionData,
-          }).catch((error) => {
-            Logger.error(
-              error,
-              'Failed to update transaction pay amount in nested transaction',
-            );
-          });
-        }
+        updateMoneyAccountDepositAmount(amountHuman);
         return;
       }
 
       updateTokenAmount(amountHuman);
     },
-    [transactionMeta, updateTokenAmount],
+    [transactionMeta, updateMoneyAccountDepositAmount, updateTokenAmount],
   );
 
   return { updateTransactionPayAmount };
