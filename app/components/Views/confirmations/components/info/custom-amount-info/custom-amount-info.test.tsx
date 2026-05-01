@@ -40,6 +40,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useUpdateCustomTokenAmount } from '../../../hooks/transactions/useUpdateCustomTokenAmount';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
@@ -65,6 +66,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
     canSelectWithdrawToken: false,
   })),
 }));
+jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -202,6 +204,9 @@ describe('CustomAmountInfo', () => {
 
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
+  const useTransactionAccountOverrideMock = jest.mocked(
+    useTransactionAccountOverride,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
