@@ -78,21 +78,10 @@ export const keyringControllerInit: MessengerClientInitFunction<
   additionalKeyrings.push(hdKeyringBuilder);
 
   // The builder is always registered so the KeyringController can recognise the
-  // MoneyKeyring type during vault deserialization. If the flag is disabled at
-  // invocation time the builder throws, which the KeyringController treats as an
-  // unsupported keyring. addNewKeyring() will also fail at runtime when the flag
-  // is disabled — this is intentional.
-  const moneyKeyringBuilder = () => {
-    const { remoteFeatureFlags } = getMessengerClient(
-      'RemoteFeatureFlagController',
-    ).state;
-
-    if (!isMoneyAccountEnabled(remoteFeatureFlags)) {
-      throw new Error(
-        'MoneyKeyring is not supported: Money accounts feature is disabled',
-      );
-    }
-    return new MoneyKeyring({
+  // MoneyKeyring type during vault deserialization (even if the feature flag is
+  // disabled at that time).
+  const moneyKeyringBuilder = () =>
+    new MoneyKeyring({
       cryptographicFunctions,
       getMnemonic: async (entropySource: string) =>
         // This builder needs the controller itself, so we re-use `getMessengerClient` to access
@@ -114,7 +103,6 @@ export const keyringControllerInit: MessengerClientInitFunction<
           },
         ),
     });
-  };
   moneyKeyringBuilder.type = MoneyKeyring.type;
   additionalKeyrings.push(moneyKeyringBuilder);
 
