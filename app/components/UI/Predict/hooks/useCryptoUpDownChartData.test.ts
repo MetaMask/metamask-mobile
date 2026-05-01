@@ -707,7 +707,7 @@ describe('useCryptoUpDownChartData', () => {
       });
     });
 
-    it('uses an empty websocket symbol when no matching symbol is available', () => {
+    it('keeps live data loading when no matching symbol is available', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
       mockGetCryptoSymbol.mockReturnValue(undefined);
@@ -721,7 +721,8 @@ describe('useCryptoUpDownChartData', () => {
         expect.any(Function),
       );
       expect(result.current.isLive).toBe(true);
-      expect(result.current.loading).toBe(false);
+      expect(result.current.loading).toBe(true);
+      expect(result.current.value).toBe(0);
     });
   });
 });
