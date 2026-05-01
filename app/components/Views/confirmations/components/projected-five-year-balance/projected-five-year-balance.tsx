@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import BigNumber from 'bignumber.js';
-import Text, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
@@ -44,9 +45,9 @@ export function ProjectedFiveYearBalance({
 
   return (
     <View testID="projected-five-year-balance">
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('confirm.custom_amount.projected_five_year_balance')}{' '}
-        <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
           {formatFiat(projected)}
         </Text>
       </Text>
