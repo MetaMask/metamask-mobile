@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -31,32 +30,10 @@ import Animated, {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
-import { Image } from 'expo-image';
-import moneyHowItWorksHeaderImage from '../../../../../images/money-how-it-works-header.png';
-
-/**
- * Header graphic height. Overlay gradient fades top/bottom into `background.default`
- * so the asset blends with the nav bar and body (avoids a hard seam under the title row).
- */
-const HEADER_IMAGE_HEIGHT = 140;
-
-/** Transparent overlay stop — same RGB as background.default (#131416) at 0 alpha. */
-const HEADER_GRADIENT_TRANSPARENT = 'rgba(19,20,22,0)';
 
 const localStyles = StyleSheet.create({
   safeArea: { flex: 1 },
   headerSpacer: { width: 40 },
-  headerImageContainer: {
-    width: '100%',
-    height: HEADER_IMAGE_HEIGHT,
-    position: 'relative',
-  },
-  headerImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  headerGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
 });
 
 const SectionDivider = () => <Box twClassName="h-px bg-border-muted my-5" />;
@@ -184,26 +161,6 @@ const MoneyHowItWorksView = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       >
-        <Box style={localStyles.headerImageContainer}>
-          <Image
-            source={moneyHowItWorksHeaderImage}
-            style={localStyles.headerImage}
-            contentFit="cover"
-            testID={MoneyHowItWorksViewTestIds.HEADER_IMAGE}
-          />
-          <LinearGradient
-            pointerEvents="none"
-            colors={[
-              themeColors.background.default,
-              HEADER_GRADIENT_TRANSPARENT,
-              HEADER_GRADIENT_TRANSPARENT,
-              themeColors.background.default,
-            ]}
-            locations={[0, 0.2, 0.82, 1]}
-            style={localStyles.headerGradient}
-          />
-        </Box>
-
         <Box twClassName="px-4 pt-6 pb-3 gap-3">
           <Text
             variant={TextVariant.HeadingMd}

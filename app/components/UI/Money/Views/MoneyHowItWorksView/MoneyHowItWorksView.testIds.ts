@@ -1,7 +1,6 @@
 export const MoneyHowItWorksViewTestIds = {
   CONTAINER: 'money-how-it-works-view-container',
   BACK_BUTTON: 'money-how-it-works-view-back',
-  HEADER_IMAGE: 'money-how-it-works-view-header-image',
   TITLE: 'money-how-it-works-view-title',
   SECTION_TITLE: 'money-how-it-works-view-section-title',
   DESCRIPTION_1: 'money-how-it-works-view-description-1',
