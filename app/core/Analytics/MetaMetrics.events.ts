@@ -703,6 +703,9 @@ enum EVENT_NAME {
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
+
+  // Activity
+  ACTIVITY_CLICKED = 'Activity Clicked',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -1833,6 +1836,7 @@ const events = {
   MONEY_HUB_BUY_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MONEY_HUB_BUY_BUTTON_CLICKED,
   ),
+  ACTIVITY_CLICKED: generateOpt(EVENT_NAME.ACTIVITY_CLICKED),
 };
 
 /**
