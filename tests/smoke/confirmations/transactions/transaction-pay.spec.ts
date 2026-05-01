@@ -8,7 +8,10 @@ import {
 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { POLYMARKET_COMPLETE_MOCKS } from '../../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import {
+  POLYMARKET_COMPLETE_MOCKS,
+  POLYMARKET_PUSD_BALANCE_MOCKS,
+} from '../../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../../page-objects/Predict/PredictAddFunds';
 import {
   mockRelayQuote,
@@ -84,6 +87,14 @@ async function testSpecificMock(mockServer: Mockttp) {
   });
 
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
+  // This confirmation spec exercises add-funds from an external token, so the
+  // Predict balance must start empty. The shared Predict mocks default to a
+  // funded pUSD balance for smoke flows, which would make the required token
+  // skippable and collapse Transaction Pay into a gas-only path.
+  await POLYMARKET_PUSD_BALANCE_MOCKS(
+    mockServer,
+    '0x0000000000000000000000000000000000000000000000000000000000000000',
+  );
   await mockRelayQuote(mockServer);
   await mockRelayStatus(mockServer);
   // Mock all token-by-address lookups on Polygon (chainId 137) to avoid
@@ -93,6 +104,27 @@ async function testSpecificMock(mockServer: Mockttp) {
 }
 
 async function mockPolygonTokenByAddress(mockServer: Mockttp) {
+  const knownPolygonTokens: Record<
+    string,
+    { symbol: string; decimals: number; name: string }
+  > = {
+    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb': {
+      symbol: 'pUSD',
+      decimals: 6,
+      name: 'Polymarket USD',
+    },
+    '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359': {
+      symbol: 'USDC',
+      decimals: 6,
+      name: 'USD Coin',
+    },
+    '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
+      symbol: 'USDC.e',
+      decimals: 6,
+      name: 'USD Coin (PoS)',
+    },
+  };
+
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -102,15 +134,23 @@ async function mockPolygonTokenByAddress(mockServer: Mockttp) {
     .thenCallback((request) => {
       const urlParam = new URL(request.url).searchParams.get('url') || '';
       const tokenUrl = new URL(urlParam);
-      const address = tokenUrl.searchParams.get('address') ?? '';
+      const address = (
+        tokenUrl.searchParams.get('address') ?? ''
+      ).toLowerCase();
+      const knownToken = knownPolygonTokens[address];
       return {
         statusCode: 200,
-        json: {
-          address: address.toLowerCase(),
-          symbol: 'UNKNOWN',
-          decimals: 18,
-          name: 'Unknown Token',
-        },
+        json: knownToken
+          ? {
+              address,
+              ...knownToken,
+            }
+          : {
+              address,
+              symbol: 'UNKNOWN',
+              decimals: 18,
+              name: 'Unknown Token',
+            },
       };
     });
 }
