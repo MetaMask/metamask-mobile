@@ -99,6 +99,13 @@ jobs:
             exit 1
           fi
 
+      # TEMPORARY: `${{ github.run_id }}` makes every key unique per workflow
+      # run so we always get a fresh build during the RN 0.81 upgrade — the
+      # `yarn fingerprint:generate` heuristic doesn't track every native input
+      # being changed (yarn patches, MainApplication, Podfile shims, etc.) so
+      # the branch cache can serve a stale .apk and only the JS gets repacked.
+      # Remove the trailing `-${{ github.run_id }}` from each `key:` below
+      # once the upgrade is settled and fingerprint covers the touched paths.
       - name: Restore APKs matching fingerprint from branch cache
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
@@ -113,7 +120,7 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
 
       - name: Restore APKs matching fingerprint from main cache
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
@@ -130,7 +137,7 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
 
       - name: Restore Gradle dependencies from branch cache
         id: gradle-cache-restore
@@ -149,7 +156,7 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: gradle-${{ github.ref_name }}-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ github.ref_name }}-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
 
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
@@ -167,7 +174,7 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
 
       - name: Build Android E2E APKs
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
