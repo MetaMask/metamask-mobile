@@ -56,6 +56,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.perps_trading_campaign.prize_pool_next_label': 'Next',
       'rewards.perps_trading_campaign.prize_pool_volume_subtext':
         '{{current}} of {{target}} volume',
+      'rewards.perps_trading_campaign.prize_pool_max_tier_subtext':
+        '{{maxThreshold}}+ volume — all milestones reached',
       'rewards.perps_trading_campaign.prize_pool_max_badge': 'Max prize',
     };
     let result = t[key] ?? key;
@@ -151,6 +153,11 @@ describe('PerpsTradingCampaignPrizePool', () => {
     const progressBar = getByTestId(PERPS_PRIZE_POOL_TEST_IDS.PROGRESS_BAR);
     const innerBar = progressBar.props.children;
     expect(innerBar.props.style).toEqual({ width: '100%' });
+
+    const subtext = getByTestId(PERPS_PRIZE_POOL_TEST_IDS.SUBTEXT);
+    expect(subtext.props.children).toBe(
+      '$40M+ volume — all milestones reached',
+    );
   });
 
   it('does not show max badge below top tier', () => {

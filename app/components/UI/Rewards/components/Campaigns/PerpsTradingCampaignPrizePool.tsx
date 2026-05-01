@@ -13,6 +13,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { formatCompactUsd, formatUsd } from '../../utils/formatUtils';
+import { computePrizePoolProgress } from '../../utils/prizePoolUtils';
 import { strings } from '../../../../../../locales/i18n';
 
 export const PERPS_PRIZE_POOL_TEST_IDS = {
@@ -35,44 +36,6 @@ export const PERPS_PRIZE_POOL_MILESTONES = [
   { notionalVolume: 35_000_000, prize: 45_000 },
   { notionalVolume: 40_000_000, prize: 50_000 },
 ] as const;
-
-function computeProgress(
-  milestones: readonly { notionalVolume: number; prize: number }[],
-  totalUsdVolume: number,
-) {
-  let currentIndex = 0;
-  for (let i = milestones.length - 1; i >= 0; i--) {
-    if (totalUsdVolume >= milestones[i].notionalVolume) {
-      currentIndex = i;
-      break;
-    }
-  }
-
-  const current = milestones[currentIndex];
-  const next = milestones[currentIndex + 1];
-
-  if (!next) {
-    return {
-      progress: 1,
-      currentPrize: current.prize,
-      nextPrize: null as number | null,
-      nextThreshold: current.notionalVolume,
-      isMaxTier: true,
-    };
-  }
-
-  const rangeVolume = next.notionalVolume - current.notionalVolume;
-  const progressInRange = totalUsdVolume - current.notionalVolume;
-  const progress = Math.min(progressInRange / rangeVolume, 1);
-
-  return {
-    progress,
-    currentPrize: current.prize,
-    nextPrize: next.prize as number | null,
-    nextThreshold: next.notionalVolume,
-    isMaxTier: false,
-  };
-}
 
 interface PerpsTradingCampaignPrizePoolProps {
   totalNotionalVolume: string | null;
@@ -100,9 +63,10 @@ const PerpsTradingCampaignPrizePool: React.FC<
           isMaxTier: false,
         };
       }
-      return computeProgress(
+      return computePrizePoolProgress(
         PERPS_PRIZE_POOL_MILESTONES,
         parseFloat(totalNotionalVolume),
+        (m) => m.notionalVolume,
       );
     }, [totalNotionalVolume]);
 
@@ -210,10 +174,20 @@ const PerpsTradingCampaignPrizePool: React.FC<
         color={TextColor.TextAlternative}
         testID={PERPS_PRIZE_POOL_TEST_IDS.SUBTEXT}
       >
-        {strings('rewards.perps_trading_campaign.prize_pool_volume_subtext', {
-          current: formatCompactUsd(currentVolume),
-          target: formatCompactUsd(nextThreshold),
-        })}
+        {isMaxTier
+          ? strings(
+              'rewards.perps_trading_campaign.prize_pool_max_tier_subtext',
+              {
+                maxThreshold: formatCompactUsd(nextThreshold),
+              },
+            )
+          : strings(
+              'rewards.perps_trading_campaign.prize_pool_volume_subtext',
+              {
+                current: formatCompactUsd(currentVolume),
+                target: formatCompactUsd(nextThreshold),
+              },
+            )}
       </Text>
     </Box>
   );

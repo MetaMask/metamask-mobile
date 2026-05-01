@@ -104,7 +104,13 @@ const OndoLeaderboardView: React.FC = () => {
   });
 
   const prizePoolValue = deposits?.totalUsdDeposited
-    ? formatUsd(getCurrentPrize(parseFloat(deposits.totalUsdDeposited)))
+    ? formatUsd(
+        computePrizePoolProgress(
+          BREAKPOINTS,
+          parseFloat(deposits.totalUsdDeposited),
+          (m) => m.deposit,
+        ).currentPrize,
+      )
     : undefined;
 
   const {
