@@ -278,7 +278,7 @@
     "@metamask/json-rpc-middleware-stream": "^8.0.7",
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/keyring-api": "^21.6.0",
-    "@metamask/keyring-controller": "^25.2.0",
+    "@metamask/keyring-controller": "^25.4.0",
     "@metamask/keyring-internal-api": "^10.0.0",
     "@metamask/keyring-sdk": "^1.1.0",
     "@metamask/keyring-snap-client": "^8.2.1",
