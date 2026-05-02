@@ -45,6 +45,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
 
+      # Hermes engine on Android is built from source (not the prebuilt AAR)
+      # because `android/settings.gradle` has `includeBuild('../node_modules/react-native')`
+      # to apply our react-native patch. That source build invokes CMake on
+      # Hermes, which requires ICU dev headers — not present on this Linux runner
+      # by default — and otherwise fails with `CMake Error: Unable to find ICU.`
+      - name: Install ICU dev libraries (required by Hermes from-source build)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libicu-dev
+        shell: bash
+
       - name: Restore .metamask folder (Foundry download cache for install:foundryup)
         uses: actions/cache@v4
         with:
