@@ -180,7 +180,7 @@ export default class Gestures {
         const el = (await elem) as Detox.IndexableNativeElement;
         const itemElementAtIndex = el.atIndex(index);
         await waitFor(itemElementAtIndex)
-          .toBeVisible(1)
+          .toBeVisible()
           .withTimeout(innerTimeout);
         await itemElementAtIndex.tap();
         const successMessage = elemDescription
@@ -526,7 +526,7 @@ export default class Gestures {
         if (device.getPlatform() === 'android') {
           const scrollableElement = element(scrollable);
           try {
-            await waitFor(target).toBeVisible(1).withTimeout(100);
+            await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
             await scrollableElement.scroll(
@@ -535,7 +535,7 @@ export default class Gestures {
               startPositionX,
               startPositionY,
             );
-            await waitFor(target).toBeVisible(1).withTimeout(100);
+            await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {
           await waitFor(target)
