@@ -48,7 +48,7 @@ export const withLedgerKeyring = async <CallbackResult = void>(
   }) => Promise<CallbackResult>,
 ): Promise<CallbackResult> => {
   const keyringController = Engine.context.KeyringController;
-  return await keyringController.withKeyring(
+  return await keyringController.withKeyringV2(
     { type: ExtendedKeyringTypes.ledger },
     operation,
     // TODO: Refactor this to stop creating the keyring on-demand

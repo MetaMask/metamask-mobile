@@ -21,7 +21,7 @@ export const withQrKeyring = async <CallbackResult = void>(
     metadata: KeyringMetadata;
   }) => Promise<CallbackResult>,
 ): Promise<CallbackResult> =>
-  await Engine.context.KeyringController.withKeyring(
+  await Engine.context.KeyringController.withKeyringV2(
     { type: ExtendedKeyringTypes.qr },
     operation,
     // TODO: Refactor this to stop creating the keyring on-demand

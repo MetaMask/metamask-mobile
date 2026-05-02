@@ -1121,7 +1121,7 @@ class AuthenticationService {
     );
     const entropySource = wallet.entropySource;
 
-    const [newAccountAddress] = await KeyringController.withKeyring(
+    const [newAccountAddress] = await KeyringController.withKeyringV2(
       { id: entropySource },
       async ({ keyring }) => keyring.getAccounts(),
     );

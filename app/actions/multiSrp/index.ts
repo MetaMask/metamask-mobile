@@ -50,7 +50,7 @@ export async function importNewSecretRecoveryPhrase(
   });
   const entropySource = wallet.entropySource;
 
-  const [newAccountAddress] = await KeyringController.withKeyring(
+  const [newAccountAddress] = await KeyringController.withKeyringV2(
     {
       id: entropySource,
     },
@@ -141,22 +141,6 @@ export async function importNewSecretRecoveryPhrase(
   }
 
   return { address: newAccountAddress, discoveredAccountsCount };
-}
-
-export async function createNewSecretRecoveryPhrase() {
-  const { KeyringController } = Engine.context;
-  const newHdkeyring = await KeyringController.addNewKeyring(
-    ExtendedKeyringTypes.hd,
-  );
-
-  const [newAccountAddress] = await KeyringController.withKeyring(
-    {
-      id: newHdkeyring.id,
-    },
-    async ({ keyring }) => keyring.getAccounts(),
-  );
-
-  return Engine.setSelectedAddress(newAccountAddress);
 }
 
 export async function addNewHdAccount(
