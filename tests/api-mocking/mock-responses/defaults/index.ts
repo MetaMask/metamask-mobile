@@ -31,6 +31,8 @@ import { TRENDING_API_MOCKS } from '../trending-api-mocks.ts';
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
 import { DIGEST_API_MOCKS } from './digest-api.ts';
 import { MONEY_ACCOUNT_MOCKS } from './money-account.ts';
+import { STATIC_ASSETS_MOCKS } from './static-assets.ts';
+import { SIGNATURE_INSIGHTS_MOCKS } from './signature-insights.ts';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -59,6 +61,7 @@ export const DEFAULT_MOCKS = {
     ...(TRENDING_API_MOCKS.GET || []),
     ...(DIGEST_API_MOCKS.GET || []),
     ...(MONEY_ACCOUNT_MOCKS.GET || []),
+    ...(STATIC_ASSETS_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',
@@ -151,6 +154,7 @@ export const DEFAULT_MOCKS = {
     ...(METAMETRICS_API_MOCKS.POST || []),
     ...(DEFAULT_RPC_ENDPOINT_MOCKS.POST || []),
     ...(INFURA_MOCKS.POST || []),
+    ...(SIGNATURE_INSIGHTS_MOCKS.POST || []),
     {
       urlEndpoint: 'https://api.mixpanel.com/track',
       responseCode: 200,
@@ -205,4 +209,5 @@ export const DEFAULT_MOCKS = {
   ],
   DELETE: [],
   PATCH: [],
+  HEAD: [...(STATIC_ASSETS_MOCKS.HEAD || [])],
 };
