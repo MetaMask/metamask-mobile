@@ -178,25 +178,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placementId]);
 
-  const dismiss = useCallback(() => {
-    if (!banner || dismissedRef.current) return;
-
-    const bannerName = getRawStringProp(banner, PROP_BANNER_NAME);
-    const variantName = getRawStringProp(banner, PROP_VARIANT_NAME);
-
-    dismissedRef.current = true;
-    setStatus('dismissed');
-
-    // Persist the dismissal and notify Braze unless this is a test send.
-    if (bannerName !== null && !banner.isTestSend) {
-      dispatch(setLastDismissedBrazeBanner(bannerName));
-      dismissBrazeBanner({
-        [PROP_BANNER_NAME]: bannerName,
-        ...(variantName !== null && { [PROP_VARIANT_NAME]: variantName }),
-      });
-    }
-  }, [banner, dispatch]);
-
   const bannerName = banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null;
   const deeplink = banner ? getRawStringProp(banner, PROP_DEEPLINK) : null;
   const title = banner ? getRawStringProp(banner, PROP_TITLE) : null;
@@ -219,6 +200,20 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         : null,
     [bannerName, variantName],
   );
+
+  const dismiss = useCallback(() => {
+    // we don't dismiss again if it has already been dismissed
+    if (!banner || dismissedRef.current) return;
+
+    dismissedRef.current = true;
+    setStatus('dismissed');
+
+    // Persist the dismissal and notify Braze unless this is a test send.
+    if (eventProperties && !banner.isTestSend) {
+      dispatch(setLastDismissedBrazeBanner(bannerName));
+      dismissBrazeBanner(eventProperties);
+    }
+  }, [banner, bannerName, eventProperties, dispatch]);
 
   return {
     status,

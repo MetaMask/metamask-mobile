@@ -206,7 +206,7 @@ import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { Carousel } from '../../UI/Carousel';
-import { selectBrazeBannerHomeFlag } from '../../UI/BrazeBanner/selectors/featureFlags';
+import { selectBrazeBannerHomeFlag } from '../../../selectors/featureFlagController/brazeBannerHome';
 import { SolScope } from '@metamask/keyring-api';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
@@ -1058,11 +1058,11 @@ const Wallet = ({
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
   const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
   const isBrazeBannerHomeEnabled = useSelector(selectBrazeBannerHomeFlag);
-  const homeBanner: 'braze' | 'carousel' | 'none' = isBrazeBannerHomeEnabled
+  const homeBanner: 'braze' | 'carousel' | null = isBrazeBannerHomeEnabled
     ? 'braze'
     : isCarouselBannersEnabled
       ? 'carousel'
-      : 'none';
+      : null;
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
