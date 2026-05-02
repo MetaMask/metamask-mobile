@@ -177,14 +177,24 @@ class Browser {
     // dismiss a modal (e.g. transaction confirmation) the URL bar focus can
     // be restored under RN 0.81 / React 19, leaving the close button missing.
     // Defensively dismiss the URL editor if the Cancel button is visible.
+    await this.dismissUrlEditorIfOpen();
+    await Gestures.waitAndTap(this.closeBrowserButton, {
+      elemDescription: 'Close browser button',
+    });
+  }
+
+  /**
+   * Tap the URL bar "Cancel" button if the URL editor / autocomplete overlay
+   * is currently open. Used defensively before tapping any of the top-bar
+   * action buttons (network/account avatar, close button, etc.) which are
+   * unmounted while the URL editor is focused.
+   */
+  async dismissUrlEditorIfOpen(): Promise<void> {
     if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
       await Gestures.waitAndTap(this.cancelUrlInputButton, {
         elemDescription: 'Cancel URL input (dismiss URL editor)',
       });
     }
-    await Gestures.waitAndTap(this.closeBrowserButton, {
-      elemDescription: 'Close browser button',
-    });
   }
 
   // Legacy methods for backward compatibility with existing tests
@@ -317,6 +327,18 @@ class Browser {
       hideKeyboard: true,
       elemDescription: 'URL input box',
     });
+    // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
+    // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
+    // on Android. The result is that the URL editor "Cancel" button stays
+    // mounted while the navigation completes, and the right-side action
+    // buttons in the top bar (close, network/account avatar) remain hidden.
+    // Defensively tap Cancel to drop the URL bar back into its non-editing
+    // state so subsequent gestures can target those buttons.
+    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+      await Gestures.waitAndTap(this.cancelUrlInputButton, {
+        elemDescription: 'Cancel URL input (dismiss URL editor)',
+      });
+    }
     await device.enableSynchronization(); // re-enabling synchronization
   }
 
