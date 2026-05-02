@@ -12,7 +12,7 @@ import {
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Assertions, Gestures, Matchers } from '../../framework';
+import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -62,6 +62,12 @@ class Browser {
 
   get clearURLButton(): DetoxElement {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
+  }
+
+  get cancelUrlInputButton(): DetoxElement {
+    return Matchers.getElementByID(
+      BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
+    );
   }
 
   get backToSafetyButton(): DetoxElement {
@@ -165,6 +171,17 @@ class Browser {
   }
 
   async tapCloseBrowserButton(): Promise<void> {
+    // The close button (`browser-tab-close-button`) is conditionally rendered
+    // and is removed from the tree while the URL bar is focused (i.e. the
+    // URL editor / "Recents" autocomplete overlay is open). After flows that
+    // dismiss a modal (e.g. transaction confirmation) the URL bar focus can
+    // be restored under RN 0.81 / React 19, leaving the close button missing.
+    // Defensively dismiss the URL editor if the Cancel button is visible.
+    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+      await Gestures.waitAndTap(this.cancelUrlInputButton, {
+        elemDescription: 'Cancel URL input (dismiss URL editor)',
+      });
+    }
     await Gestures.waitAndTap(this.closeBrowserButton, {
       elemDescription: 'Close browser button',
     });
