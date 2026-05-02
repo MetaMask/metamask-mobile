@@ -1,8 +1,6 @@
 import React, { useCallback } from 'react';
 import { Pressable, TouchableOpacity } from 'react-native';
-import { Spinner } from '@metamask/design-system-react-native/spinner';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
+import { Spinner ,
   Box,
   Text,
   TextVariant,
@@ -15,6 +13,7 @@ import {
   AvatarTokenSize,
   IconColor,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';

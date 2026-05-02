@@ -210,6 +210,21 @@ jobs:
           fi
 
           chmod +x "$APP_PATH/$BUNDLE_EXEC"
+
+          # actions/upload-artifact strips execute permissions from ALL files, not just the
+          # main binary. Framework dylibs and binaries inside Frameworks/ also need +x or
+          # SpringBoard (SBMainWorkspace) will refuse to launch the app with:
+          #   FBSOpenApplicationServiceErrorDomain code=1: denied by service delegate
+          if [ -d "$APP_PATH/Frameworks" ]; then
+            find "$APP_PATH/Frameworks" -type d -name "*.framework" | while IFS= read -r fw; do
+              binary="$fw/$(basename "$fw" .framework)"
+              if [ -f "$binary" ]; then
+                chmod +x "$binary"
+              fi
+            done
+            find "$APP_PATH/Frameworks" -type f -name "*.dylib" -exec chmod +x {} \;
+          fi
+          echo "✅ Restored execute permissions on main binary and all framework binaries"
         shell: bash
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests

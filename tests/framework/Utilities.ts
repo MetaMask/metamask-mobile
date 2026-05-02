@@ -252,7 +252,14 @@ export default class Utilities {
       if (device.getPlatform() === 'ios') {
         await waitFor(el).toExist().withTimeout(visibilityTimeout);
       } else {
-        await waitFor(el).toBeVisible().withTimeout(visibilityTimeout);
+        // Detox's `toBeVisible()` defaults to Espresso's
+        // `isDisplayingAtLeast(75)`. With Fabric (RN 0.81+) targets are now
+        // wrapped in `RCTViewComponentView` parents whose bounds frequently
+        // miss that threshold even when the element is plainly on screen,
+        // breaking the pre-tap gate. Espresso still requires the view to be
+        // in the visible region with `(1)`, we just stop demanding ≥75%
+        // area coverage on a wrapper we don't control.
+        await waitFor(el).toBeVisible(1).withTimeout(visibilityTimeout);
         await this.checkElementNotObscured(Promise.resolve(el)); // Ensure element is not obscured
       }
     }
@@ -315,7 +322,10 @@ export default class Utilities {
     } else if (device.getPlatform() === 'ios') {
       await waitFor(el).toExist().withTimeout(timeout);
     } else {
-      await waitFor(el).toBeVisible().withTimeout(timeout);
+      // See checkElementReadyState for rationale on the `1` percent
+      // threshold (Fabric `RCTViewComponentView` wrapper bounds break the
+      // default ≥75% rule).
+      await waitFor(el).toBeVisible(1).withTimeout(timeout);
     }
   }
 

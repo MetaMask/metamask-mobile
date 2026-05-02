@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
-      CACHE_GENERATION: v2 # Increment this to bust the cache (v1, v2, v3, etc.)
+      CACHE_GENERATION: v3 # Increment this to bust the cache (v1, v2, v3, etc.)
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
@@ -99,6 +99,13 @@ jobs:
             exit 1
           fi
 
+      # TEMPORARY: `${{ github.run_id }}` makes every key unique per workflow
+      # run so we always get a fresh build during the RN 0.81 upgrade — the
+      # `yarn fingerprint:generate` heuristic doesn't track every native input
+      # being changed (yarn patches, MainApplication, Podfile shims, etc.) so
+      # the branch cache can serve a stale .apk and only the JS gets repacked.
+      # Remove the trailing `-${{ github.run_id }}` from each `key:` below
+      # once the upgrade is settled and fingerprint covers the touched paths.
       - name: Restore APKs matching fingerprint from branch cache
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
@@ -113,7 +120,7 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
 
       - name: Restore APKs matching fingerprint from main cache
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
@@ -130,7 +137,7 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
 
       - name: Restore Gradle dependencies from branch cache
         id: gradle-cache-restore
@@ -149,7 +156,7 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: gradle-${{ github.ref_name }}-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ github.ref_name }}-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
 
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
@@ -167,7 +174,7 @@ jobs:
           # - "Restore APKs matching fingerprint from main cache"
           # - "Restore Gradle dependencies from branch cache"
           # - "Restore Gradle dependencies from main cache"
-          key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
 
       - name: Build Android E2E APKs
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
@@ -189,6 +196,12 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=4096'
           # Limit Metro workers to prevent OOM (each worker uses ~3GB)
           METRO_MAX_WORKERS: '4'
+          # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
+          # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
+          # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-
+          # download missing components, causing CXX1300. RN's CMakeLists.txt files
+          # only require >= 3.13, so 3.22.1 is fully sufficient.
+          CMAKE_VERSION: '3.22.1'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
