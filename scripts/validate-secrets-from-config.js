@@ -1,66 +1,63 @@
 #!/usr/bin/env node
 /**
  * Validates that all secrets required by the current build (from builds.yml)
- * are defined and applied. Used in CI before "Set secrets" to fail fast and
- * cancel the build if any required secret is missing or empty.
+ * are defined, non-empty, and free of common paste artifacts (trailing
+ * newlines, Windows line endings, invisible characters, etc.). Runs in CI
+ * before "Set secrets" to fail fast and prevent a malformed value from being
+ * written to GITHUB_ENV and baked into the build.
  *
- * CI-agnostic: secrets are resolved from process.env by default. Pass
- * SECRETS_JSON (a JSON object mapping secret name → value) to override,
- * e.g. when the CI platform exposes all secrets as a single JSON blob rather
- * than individual env vars.
- *
- * Fails when:
- * - A secret is absent (not in env / not in SECRETS_JSON).
- * - A secret is present but empty (defined but not set in the CI environment).
+ * Secrets are resolved from SECRETS_JSON when present (e.g. GitHub's
+ * toJSON(secrets) blob) and fall back to individual process.env lookups so
+ * the script works on any CI without extra wiring.
  *
  * Reads CONFIG_SECRETS (same format as set-secrets-from-config.js):
  *   { "ENV_VAR_NAME": "SECRET_NAME", ... }
  *
- * Exits 0 if every secret has a non-empty value; exits 1 otherwise.
+ * Exits 0 if every secret is present and clean; exits 1 otherwise, listing
+ * every offender in a single pass so operators can fix them all at once.
+ *
+ * Never logs secret values or any substring of them. Reports only names,
+ * byte lengths, offsets, and control-character code points.
  */
 
+const { checkValue } = require('./lib/validate-value');
+
 const secretsMapping = JSON.parse(process.env.CONFIG_SECRETS || '{}');
-// SECRETS_JSON lets callers pass all secrets as a JSON blob (e.g. GitHub's
-// toJSON(secrets)); falls back to individual process.env lookups so the script
-// works on any CI without extra wiring.
 const secretsSource = process.env.SECRETS_JSON
   ? JSON.parse(process.env.SECRETS_JSON)
   : process.env;
-const missing = [];
-const notApplied = [];
+
+const offenders = [];
 
 for (const [envVar, secretName] of Object.entries(secretsMapping)) {
-  const value = secretsSource[secretName];
-  if (value === undefined || value === null) {
-    missing.push({ envVar, secretName });
-  } else if (String(value).trim() === '') {
-    notApplied.push({ envVar, secretName });
+  const issues = checkValue(secretName, secretsSource[secretName]);
+  if (issues.length > 0) {
+    offenders.push({ envVar, secretName, issues });
   }
 }
 
-const invalid = missing.length + notApplied.length;
-if (invalid > 0) {
+if (offenders.length > 0) {
   console.error(
-    'Build validation failed: required secrets are not defined or not applied from GitHub.',
+    'Build validation failed: one or more required secrets are missing or malformed.',
   );
-  if (missing.length > 0) {
-    console.error('Not in environment:');
-    missing.forEach(({ envVar, secretName }) => {
-      console.error(`  - ${secretName} (for ${envVar})`);
-    });
+  console.error('');
+  for (const { envVar, secretName, issues } of offenders) {
+    for (const issue of issues) {
+      // GitHub Actions annotation so the error surfaces on the run summary.
+      console.error(`::error title=Malformed secret::${issue.message} (mapped to ${envVar})`);
+    }
+    console.error(`  - ${secretName} (for ${envVar})`);
   }
-  if (notApplied.length > 0) {
-    console.error('In environment but empty (not set in GitHub Environment):');
-    notApplied.forEach(({ envVar, secretName }) => {
-      console.error(`  - ${secretName} (for ${envVar})`);
-    });
-  }
+  console.error('');
   console.error(
-    'Ensure these secrets are set in the GitHub Environment for this build.',
+    'Fix each secret in GitHub > Settings > Environments > <this build\'s environment> > edit the listed secret.',
+  );
+  console.error(
+    'Common cause: pasting a value with a trailing newline or Windows (CRLF) line endings. Re-paste the value carefully and ensure no surrounding whitespace.',
   );
   process.exit(1);
 }
 
 console.log(
-  `All ${Object.keys(secretsMapping).length} required secret(s) are defined and applied.`,
+  `All ${Object.keys(secretsMapping).length} required secret(s) are defined and well-formed.`,
 );
