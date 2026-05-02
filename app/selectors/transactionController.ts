@@ -21,14 +21,6 @@ interface MetaMaskPayToken {
 
 type LocalTransaction = TransactionMeta | SmartTransaction;
 
-const transactionPendingStatuses = new Set([
-  'submitted',
-  'signed',
-  'unapproved',
-  'approved',
-  'pending',
-]);
-
 // Extracted from UnifiedTransactionsView
 function dedupeTransactions(transactions: LocalTransaction[]) {
   const seenTransactions = new Set<string>();
@@ -47,7 +39,7 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
       ? `${dedupeKeyPrefix}-${nonce}`
       : `${dedupeKeyPrefix}-${actionId}`;
 
-    // Keep only the first local pending transaction for each dedupe key
+    // Keep only the first local transaction for each dedupe key
     if (seenTransactions.has(dedupeKey)) {
       return false;
     }
@@ -173,23 +165,14 @@ export const selectLocalTransactions = createDeepEqualSelector(
     selectEvmAddress,
   ],
   (nonReplacedTransactions, pendingSmartTransactions, activeEvmAddress) => {
-    const pendingTransactions = nonReplacedTransactions.filter(
-      (transaction) => {
-        // Only keep local EVM transactions that are pending-like
-        // Extracted from UnifiedTransactionsView submittedTxs filter
-        if (!transactionPendingStatuses.has(transaction.status)) {
-          return false;
-        }
+    const transactions = nonReplacedTransactions.filter((transaction) => {
+      const fromAddress = transaction.txParams?.from;
+      if (!fromAddress || !activeEvmAddress) {
+        return false;
+      }
 
-        const fromAddress = transaction.txParams?.from;
-        if (!fromAddress || !activeEvmAddress) {
-          return false;
-        }
-
-        // Only keep pending transactions sent from the active EVM account
-        return areAddressesEqual(fromAddress, activeEvmAddress);
-      },
-    );
+      return areAddressesEqual(fromAddress, activeEvmAddress);
+    });
 
     const pendingSmartTransactionsForActiveAddress =
       pendingSmartTransactions.filter((transaction) => {
@@ -198,12 +181,11 @@ export const selectLocalTransactions = createDeepEqualSelector(
           return false;
         }
 
-        // Only keep pending transactions sent from the active EVM account
         return areAddressesEqual(fromAddress, activeEvmAddress);
       });
 
     return dedupeTransactions([
-      ...pendingTransactions,
+      ...transactions,
       ...pendingSmartTransactionsForActiveAddress,
     ]).sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
   },
