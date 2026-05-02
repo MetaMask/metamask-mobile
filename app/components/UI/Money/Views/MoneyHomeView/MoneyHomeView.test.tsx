@@ -96,7 +96,7 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
   BadgeVariant: { Network: 'Network' },
 }));
 
-jest.mock('../../components/YourBonusCard', () => ({
+jest.mock('../../../Earn/components/AssetOverviewClaimBonus', () => ({
   __esModule: true,
   default: () => null,
 }));

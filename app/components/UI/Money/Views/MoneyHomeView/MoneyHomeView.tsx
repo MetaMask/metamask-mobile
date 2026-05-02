@@ -10,7 +10,9 @@ import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
-import YourBonusCard from '../../components/YourBonusCard';
+import AssetOverviewClaimBonus from '../../../Earn/components/AssetOverviewClaimBonus';
+import { LINEA_MUSD_ASSET_FOR_MERKL , MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
+import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
@@ -28,7 +30,6 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
@@ -169,8 +170,10 @@ const MoneyHomeView = () => {
         />
         <Divider />
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
-        <Divider />
-        <YourBonusCard />
+        <AssetOverviewClaimBonus
+          asset={LINEA_MUSD_ASSET_FOR_MERKL}
+          location={MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB}
+        />
         {!isMilestone && (
           <>
             <MoneyHowItWorks
