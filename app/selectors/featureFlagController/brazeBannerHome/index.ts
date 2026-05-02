@@ -5,7 +5,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
 /**
  * Registry / client-config key for the Braze banner shown on the home/wallet screen.
  */
-export const BRAZE_BANNER_HOME_FLAG_KEY = 'brazeBannerHome' as const;
+export const BRAZE_BANNER_HOME_FLAG_KEY = 'brazeBannerHomeMinVersion' as const;
 
 /**
  * Whether the Braze banner should be shown on the home/wallet screen.

@@ -30,7 +30,7 @@ describe('selectBrazeBannerHomeFlag', () => {
   });
 
   it('exposes the client-config flag key for registry alignment', () => {
-    expect(BRAZE_BANNER_HOME_FLAG_KEY).toBe('brazeBannerHome');
+    expect(BRAZE_BANNER_HOME_FLAG_KEY).toBe('brazeBannerHomeMinVersion');
   });
 
   it('returns true when enabled is true and minimum version passes', () => {
