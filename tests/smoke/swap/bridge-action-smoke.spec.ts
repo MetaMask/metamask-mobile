@@ -5,7 +5,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { SmokeTrade } from '../../tags';
+import { SmokeSwap } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
@@ -17,7 +17,7 @@ import { ActivitiesViewSelectorsText } from '../../../app/components/Views/Activ
 import { bridgeActionAnalyticsExpectations } from '../../helpers/analytics/expectations/bridge-action-smoke.analytics';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeTrade('Bridge functionality'), () => {
+describe(SmokeSwap('Bridge functionality'), () => {
   jest.setTimeout(180000);
 
   it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {

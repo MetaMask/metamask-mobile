@@ -6,6 +6,12 @@ import {
 } from '@metamask/bridge-controller';
 import { selectRemoteFeatureFlags } from '../featureFlagController';
 import { analytics } from '../../util/analytics/analytics';
+import {
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+} from '../assets/assets-migration';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState.BridgeController;
@@ -22,9 +28,17 @@ export const selectBridgeAppState = (state: RootState) => ({
   gasFeeEstimatesByChainId:
     state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
     {},
-  ...state.engine.backgroundState.MultichainAssetsRatesController,
-  ...state.engine.backgroundState.TokenRatesController,
-  ...state.engine.backgroundState.CurrencyRateController,
+  ...{
+    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
+    historicalPrices: {},
+  },
+  ...{
+    marketData: getTokenRatesControllerMarketData(state),
+  },
+  ...{
+    currencyRates: getCurrencyRateControllerCurrencyRates(state),
+    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
+  },
   participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
