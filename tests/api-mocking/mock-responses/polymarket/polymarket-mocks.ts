@@ -492,6 +492,56 @@ export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
 }
 
 /**
+ * Mock for the Polymarket CLOB API key endpoints used by the order signing
+ * flow (`getApiKey` → `createApiKey` → `deriveApiKey` in
+ * `app/components/UI/Predict/providers/polymarket/utils.ts`).
+ *
+ * Without this mock the request falls through to the live
+ * `https://clob.polymarket.com/auth/api-key` endpoint which returns a
+ * Cloudflare HTML interstitial (HTTP 403). The app's `await response.json()`
+ * then throws "JSON Parse error: Unexpected character: <" and surfaces as a
+ * generic "Failed to place order" toast.
+ *
+ * We mock both the create (POST) and derive (GET) variants because the app
+ * falls back from POST to GET when POST returns 400.
+ */
+export const POLYMARKET_API_KEY_MOCKS = async (mockServer: Mockttp) => {
+  const apiKeyResponse = {
+    apiKey: '00000000-0000-0000-0000-000000000001',
+    secret: 'mock-clob-api-secret',
+    passphrase: 'mock-clob-api-passphrase',
+  };
+
+  // POST clob.polymarket.com/auth/api-key  → create credentials
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      return Boolean(urlParam?.includes('clob.polymarket.com/auth/api-key'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: apiKeyResponse,
+    }));
+
+  // GET clob.polymarket.com/auth/derive-api-key → derive existing credentials
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        urlParam?.includes('clob.polymarket.com/auth/derive-api-key'),
+      );
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: apiKeyResponse,
+    }));
+};
+
+/**
  * Mock for Polymarket CLOB prices API
  * Returns BUY (best ask) and SELL (best bid) prices for outcome tokens
  * This is used to display current market prices in the UI
@@ -2142,4 +2192,5 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
+  await POLYMARKET_API_KEY_MOCKS(mockServer); // Mock for CLOB API key endpoints used by order signing
 };
