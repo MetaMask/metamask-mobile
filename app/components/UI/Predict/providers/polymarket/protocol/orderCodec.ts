@@ -1,8 +1,14 @@
+import {
+  SignTypedDataVersion,
+  type TypedMessageParams,
+} from '@metamask/keyring-controller';
 import { Hex } from '@metamask/utils';
-import { Interface, parseUnits } from 'ethers/lib/utils';
+import { ethers } from 'ethers';
+import { Interface, parseUnits, toUtf8Bytes } from 'ethers/lib/utils';
 import { Side, type OrderPreview } from '../../../types';
 import {
   EIP712Domain,
+  HASH_ZERO_BYTES32,
   POLYGON_MAINNET_CHAIN_ID,
   ROUNDING_CONFIG,
 } from '../constants';
@@ -69,6 +75,23 @@ export type ProtocolRelayerOrder = ClobOrderObject | ClobOrderObjectV2;
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const ORDER_PRIMARY_TYPE = 'Order';
 const ORDER_DOMAIN_NAME = 'Polymarket CTF Exchange';
+const DEPOSIT_WALLET_DOMAIN_NAME = 'DepositWallet';
+const DEPOSIT_WALLET_DOMAIN_VERSION = '1';
+const ORDER_TYPE_STRING =
+  'Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)';
+const V2_ORDER_TYPES = [
+  { name: 'salt', type: 'uint256' },
+  { name: 'maker', type: 'address' },
+  { name: 'signer', type: 'address' },
+  { name: 'tokenId', type: 'uint256' },
+  { name: 'makerAmount', type: 'uint256' },
+  { name: 'takerAmount', type: 'uint256' },
+  { name: 'side', type: 'uint8' },
+  { name: 'signatureType', type: 'uint8' },
+  { name: 'timestamp', type: 'uint256' },
+  { name: 'metadata', type: 'bytes32' },
+  { name: 'builder', type: 'bytes32' },
+];
 const ORDER_DOMAIN_TYPES = [
   ...EIP712Domain,
   { name: 'verifyingContract', type: 'address' },
@@ -95,19 +118,7 @@ function getProtocolOrderTypes(protocol: PolymarketProtocolDefinition) {
   if (protocol.key === 'v2') {
     return {
       EIP712Domain: ORDER_DOMAIN_TYPES,
-      Order: [
-        { name: 'salt', type: 'uint256' },
-        { name: 'maker', type: 'address' },
-        { name: 'signer', type: 'address' },
-        { name: 'tokenId', type: 'uint256' },
-        { name: 'makerAmount', type: 'uint256' },
-        { name: 'takerAmount', type: 'uint256' },
-        { name: 'side', type: 'uint8' },
-        { name: 'signatureType', type: 'uint8' },
-        { name: 'timestamp', type: 'uint256' },
-        { name: 'metadata', type: 'bytes32' },
-        { name: 'builder', type: 'bytes32' },
-      ],
+      Order: V2_ORDER_TYPES,
     };
   }
 
@@ -158,12 +169,14 @@ export function buildProtocolUnsignedOrder({
   preview,
   makerAddress,
   signerAddress,
+  signatureType,
   nowInSeconds,
 }: {
   protocol: V1ProtocolDefinition;
   preview: OrderPreview;
   makerAddress: string;
   signerAddress: string;
+  signatureType?: SignatureType;
   nowInSeconds?: number;
 }): ProtocolUnsignedOrderV1;
 export function buildProtocolUnsignedOrder({
@@ -171,12 +184,14 @@ export function buildProtocolUnsignedOrder({
   preview,
   makerAddress,
   signerAddress,
+  signatureType,
   nowInSeconds,
 }: {
   protocol: V2ProtocolDefinition;
   preview: OrderPreview;
   makerAddress: string;
   signerAddress: string;
+  signatureType?: SignatureType;
   nowInSeconds?: number;
 }): ProtocolUnsignedOrderV2;
 export function buildProtocolUnsignedOrder({
@@ -184,12 +199,14 @@ export function buildProtocolUnsignedOrder({
   preview,
   makerAddress,
   signerAddress,
+  signatureType = SignatureType.POLY_GNOSIS_SAFE,
   nowInSeconds = Math.floor(Date.now() / 1000),
 }: {
   protocol: PolymarketProtocolDefinition;
   preview: OrderPreview;
   makerAddress: string;
   signerAddress: string;
+  signatureType?: SignatureType;
   nowInSeconds?: number;
 }): ProtocolUnsignedOrder {
   // NOTE: Field order matters for EIP-712 signing. Do NOT use object spread
@@ -205,7 +222,6 @@ export function buildProtocolUnsignedOrder({
   ).toString();
   const takerAmount = getTakerAmountWithSlippage(preview);
   const side = preview.side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL;
-  const signatureType = SignatureType.POLY_GNOSIS_SAFE;
 
   if (protocol.key === 'v2') {
     const builder = protocol.order.getBuilderCode?.();
@@ -279,6 +295,86 @@ export function getProtocolOrderTypedData({
     types: getProtocolOrderTypes(protocol),
     message: order,
   };
+}
+
+export async function signProtocolOrderForDepositWallet({
+  order,
+  domain,
+  signTypedMessage,
+  from,
+}: {
+  order: ProtocolUnsignedOrderV2;
+  domain: ReturnType<typeof buildProtocolOrderDomain>;
+  signTypedMessage: (
+    params: TypedMessageParams,
+    version: SignTypedDataVersion,
+  ) => Promise<string>;
+  from: string;
+}): Promise<string> {
+  if (!order.signer) {
+    throw new Error('Deposit wallet order signer is required');
+  }
+
+  if (order.signatureType === undefined) {
+    throw new Error('Deposit wallet order signature type is required');
+  }
+
+  const orderTypes = { Order: V2_ORDER_TYPES };
+  const orderMessage = {
+    salt: order.salt,
+    maker: order.maker,
+    signer: order.signer,
+    tokenId: order.tokenId,
+    makerAmount: order.makerAmount,
+    takerAmount: order.takerAmount,
+    side: order.side,
+    signatureType: order.signatureType,
+    timestamp: order.timestamp,
+    metadata: order.metadata,
+    builder: order.builder,
+  };
+  const contentsHash = ethers.utils._TypedDataEncoder.hashStruct(
+    ORDER_PRIMARY_TYPE,
+    orderTypes,
+    orderMessage,
+  );
+  const appDomainSeparator = ethers.utils._TypedDataEncoder.hashDomain(domain);
+  const data = {
+    domain,
+    types: {
+      EIP712Domain: ORDER_DOMAIN_TYPES,
+      TypedDataSign: [
+        { name: 'contents', type: ORDER_PRIMARY_TYPE },
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' },
+        { name: 'salt', type: 'bytes32' },
+      ],
+      Order: orderTypes.Order,
+    },
+    primaryType: 'TypedDataSign',
+    message: {
+      contents: orderMessage,
+      name: DEPOSIT_WALLET_DOMAIN_NAME,
+      version: DEPOSIT_WALLET_DOMAIN_VERSION,
+      chainId: domain.chainId,
+      verifyingContract: order.signer,
+      salt: HASH_ZERO_BYTES32,
+    },
+  };
+  const innerSignature = await signTypedMessage(
+    { data, from },
+    SignTypedDataVersion.V4,
+  );
+  const orderTypeHex = ethers.utils.hexlify(toUtf8Bytes(ORDER_TYPE_STRING));
+  const orderTypeLengthHex = ORDER_TYPE_STRING.length
+    .toString(16)
+    .padStart(4, '0');
+
+  return `0x${innerSignature.slice(2)}${appDomainSeparator.slice(
+    2,
+  )}${contentsHash.slice(2)}${orderTypeHex.slice(2)}${orderTypeLengthHex}`;
 }
 
 export function serializeProtocolRelayerOrder({

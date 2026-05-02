@@ -4,6 +4,11 @@ import {
   POLYMARKET_PROVIDER_ID,
   USDC_E_ADDRESS,
 } from './constants';
+import {
+  deriveDepositWalletAddress,
+  requestDepositWalletCreate,
+  syncDepositWalletClobBalanceAllowance,
+} from './depositWallet';
 // Mock external dependencies
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -150,6 +155,22 @@ jest.mock('./protocol/transport', () => ({
   submitProtocolClobOrder: jest.fn(),
 }));
 
+jest.mock('./depositWallet', () => ({
+  createDepositWalletPermit2FeeAuthorization: jest.fn(),
+  deriveDepositWalletAddress: jest.fn(),
+  executeDepositWalletBatch: jest.fn(),
+  requestDepositWalletCreate: jest.fn(),
+  syncDepositWalletClobBalanceAllowance: jest.fn(),
+  toDepositWalletCalls: jest.fn((txs) =>
+    txs.map((tx: { to: string; value: string; data: string }) => ({
+      target: tx.to,
+      value: tx.value,
+      data: tx.data,
+    })),
+  ),
+  waitForDepositWalletTransaction: jest.fn(),
+}));
+
 jest.mock('./safe/utils', () => ({
   computeProxyAddress: jest.fn(),
   createPermit2FeeAuthorization: jest.fn(),
@@ -274,6 +295,10 @@ const mockPreviewOrder = previewOrder as jest.Mock;
 const mockGetBalance = getBalance as jest.Mock;
 const mockGetRawBalance = getRawBalance as jest.Mock;
 const mockSubmitProtocolClobOrder = submitProtocolClobOrder as jest.Mock;
+const mockDeriveDepositWalletAddress = deriveDepositWalletAddress as jest.Mock;
+const mockRequestDepositWalletCreate = requestDepositWalletCreate as jest.Mock;
+const mockSyncDepositWalletClobBalanceAllowance =
+  syncDepositWalletClobBalanceAllowance as jest.Mock;
 const mockIsLiveSportsEvent = isLiveSportsEvent as jest.Mock;
 const mockGetEventLeague = getEventLeague as jest.Mock;
 const mockFetchChildEventsFromGammaApi =
@@ -991,6 +1016,12 @@ describe('PolymarketProvider', () => {
     mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
+    (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+    mockHasAllowances.mockResolvedValue(true);
+    mockRequestDepositWalletCreate.mockResolvedValue({
+      transactionID: 'wallet-create-1',
+    });
+    mockSyncDepositWalletClobBalanceAllowance.mockResolvedValue(undefined);
     mockCreateSafeFeeAuthorization.mockResolvedValue({
       type: 'safe-transaction',
       authorization: {
@@ -1357,6 +1388,7 @@ describe('PolymarketProvider', () => {
         clobVersion: 'v2',
         clobBaseUrl: DEFAULT_CLOB_BASE_URL,
       });
+      expect(mockSyncDepositWalletClobBalanceAllowance).not.toHaveBeenCalled();
       expect(submitArgs.clobOrder).toEqual(
         expect.objectContaining({
           orderType: 'FAK',
@@ -1368,6 +1400,35 @@ describe('PolymarketProvider', () => {
       );
       expect(submitArgs.clobOrder.order).not.toHaveProperty('feeRateBps');
       expect(mockSubmitClobOrder).not.toHaveBeenCalled();
+    });
+
+    it('syncs CLOB balance allowance before deposit-wallet order submission', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        predictClobV2Enabled: true,
+      });
+      jest.spyOn(provider, 'getAccountState').mockResolvedValue({
+        address: '0x3333333333333333333333333333333333333333',
+        isDeployed: true,
+        hasAllowances: true,
+        walletType: 'deposit-wallet',
+      });
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview: createMockOrderPreview({ side: Side.BUY, fees: undefined }),
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockSyncDepositWalletClobBalanceAllowance).toHaveBeenCalledWith({
+        protocol: expect.objectContaining({ key: 'v2' }),
+        signerAddress: mockSigner.address,
+        apiKey: {
+          apiKey: 'test-api-key',
+          secret: 'test-secret',
+          passphrase: 'test-passphrase',
+        },
+      });
+      expect(mockSubmitProtocolClobOrder).toHaveBeenCalled();
     });
 
     it('reuses the protocol resolved in placeOrder for v1 submission', async () => {
@@ -5124,6 +5185,43 @@ describe('PolymarketProvider', () => {
       });
       expect(getProxyWalletAllowancesTransaction).not.toHaveBeenCalled();
     });
+
+    it('creates a deposit wallet and deposits pUSD for new CLOB v2 users', async () => {
+      const provider = createProvider({ predictClobV2Enabled: true });
+      jest.spyOn(provider, 'getAccountState').mockResolvedValue({
+        address: '0x3333333333333333333333333333333333333333',
+        isDeployed: false,
+        hasAllowances: false,
+        walletType: 'deposit-wallet',
+      });
+      mockRequestDepositWalletCreate.mockResolvedValue({
+        transactionID: 'wallet-create-1',
+      });
+
+      const result = await provider.prepareDeposit({
+        signer: {
+          ...mockSigner,
+          address: '0x1111111111111111111111111111111111111111',
+        },
+      });
+
+      expect(mockRequestDepositWalletCreate).toHaveBeenCalledWith({
+        ownerAddress: '0x1111111111111111111111111111111111111111',
+      });
+      expect(result.transactions).toEqual([
+        {
+          params: {
+            to: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+            data: '0xtransferData',
+          },
+          type: 'predictDeposit',
+        },
+      ]);
+      expect(generateTransferData).toHaveBeenCalledWith('transfer', {
+        toAddress: '0x3333333333333333333333333333333333333333',
+        amount: '0x0',
+      });
+    });
   });
 
   describe('Rate Limiting', () => {
@@ -5340,6 +5438,7 @@ describe('PolymarketProvider', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
+      mockDeriveDepositWalletAddress.mockReturnValue('0xDepositWalletAddress');
     });
 
     it('returns account state for an undeployed wallet', async () => {
@@ -5358,6 +5457,7 @@ describe('PolymarketProvider', () => {
         address: '0xSafeAddress',
         isDeployed: false,
         hasAllowances: false,
+        walletType: 'safe',
       });
     });
 
@@ -5377,6 +5477,7 @@ describe('PolymarketProvider', () => {
         address: '0xSafeAddress',
         isDeployed: true,
         hasAllowances: true,
+        walletType: 'safe',
       });
     });
 
@@ -5451,6 +5552,29 @@ describe('PolymarketProvider', () => {
       });
     });
 
+    it('uses a deposit wallet for v2 users without an existing Safe', async () => {
+      const provider = createProvider({ predictClobV2Enabled: true });
+      (isSmartContractAddress as jest.Mock)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false);
+      mockGetRawBalance.mockResolvedValue(0n);
+
+      const result = await provider.getAccountState({
+        ownerAddress: '0x1111111111111111111111111111111111111111',
+      });
+
+      expect(result).toEqual({
+        address: '0xDepositWalletAddress',
+        isDeployed: false,
+        hasAllowances: true,
+        walletType: 'deposit-wallet',
+      });
+      expect(mockDeriveDepositWalletAddress).toHaveBeenCalledWith(
+        '0x1111111111111111111111111111111111111111',
+      );
+      expect(hasAllowances).not.toHaveBeenCalled();
+    });
+
     it('throws error when ownerAddress is missing', async () => {
       const provider = createProvider();
 
@@ -5482,7 +5606,7 @@ describe('PolymarketProvider', () => {
     it('throws error when checking account state fails', async () => {
       const provider = createProvider();
       (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
-      (isSmartContractAddress as jest.Mock).mockRejectedValue(
+      (isSmartContractAddress as jest.Mock).mockRejectedValueOnce(
         new Error('Network error'),
       );
 
@@ -5540,6 +5664,8 @@ describe('PolymarketProvider', () => {
       jest.clearAllMocks();
       const provider = createProvider({ predictClobV2Enabled: true });
       (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
       mockGetBalance.mockResolvedValueOnce(12.5).mockResolvedValueOnce(7.25);
 
       const result = await provider.getBalance({
