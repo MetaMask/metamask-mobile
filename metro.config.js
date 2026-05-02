@@ -29,6 +29,19 @@ const getPolyfills = () => [
   // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
   require.resolve('reflect-metadata'),
+  // Expo's `expo/fetch` (used by @metamask/bridge-controller for SSE
+  // `getQuoteStream`) constructs a `ReadableStream` for the response
+  // body. Hermes does not ship `ReadableStream`, and Expo expects Metro
+  // to inject one as a global (see
+  // node_modules/expo/src/winter/runtime.native.ts L17-18:
+  //   "// ReadableStream is injected by Metro as a global").
+  // The official `expo/metro-config` defaults wire this in
+  // automatically; because we bootstrap from `@react-native/js-polyfills`
+  // we have to opt in explicitly. Without this, `expo/fetch` rejects
+  // every request with `ReferenceError: Property 'ReadableStream'
+  // doesn't exist`, breaking bridge SSE quotes silently on iOS Hermes
+  // (and every other expo/fetch consumer).
+  require.resolve('expo/virtual/streams'),
 ];
 
 // We should replace path for react-native-fs

@@ -57,6 +57,27 @@ import 'react-native-url-polyfill/auto';
 // Needed to polyfill browser
 require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-commonjs
 
+// Force Expo's WHATWG runtime install loop (`expo/src/winter/runtime.native.ts`)
+// to execute, regardless of which app code happens to import from `expo`.
+//
+// Importing the package's main entry triggers the side-effect chain
+// `expo/Expo.ts` → `Expo.fx.tsx` → `winter/index.ts` → `runtime.native.ts`,
+// which installs `TextDecoder`, `TextDecoderStream`, `TextEncoderStream`,
+// `URL`, `URLSearchParams`, `structuredClone`, `__ExpoImportMetaRegistry`,
+// the `FormData` patch, and the `Symbol.asyncIterator` fallback onto
+// `globalThis`. We previously relied on this chain being triggered
+// transitively by feature code (e.g. `useOTAUpdates`,
+// `Authentication/utils`, OAuth handlers). That's fragile: a refactor that
+// switches every consumer to sub-path imports like `expo/fetch` or
+// `expo-image` would silently drop these globals because sub-paths do not
+// load `Expo.fx`.
+//
+// Note: `ReadableStream` and friends are NOT installed here in SDK 54+ —
+// Expo moved those to a Metro polyfill (`expo/virtual/streams.js`) which we
+// inject from `metro.config.js`. See the comment in `runtime.native.ts`:
+//   "// ReadableStream is injected by Metro as a global"
+import 'expo';
+
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (isE2E) {
   // eslint-disable-next-line no-console
