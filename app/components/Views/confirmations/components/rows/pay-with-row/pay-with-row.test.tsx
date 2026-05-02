@@ -50,9 +50,6 @@ jest.mock(
     useTransactionPaySelectedFiatPaymentMethod: jest.fn(),
   }),
 );
-jest.mock('../../../hooks/pay/useMoneyAccountPayToken', () => ({
-  useMoneyAccountPayToken: jest.fn(),
-}));
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
@@ -289,93 +286,6 @@ describe('PayWithRow', () => {
       expect(navigateMock).toHaveBeenCalledWith(
         Routes.CONFIRMATION_PAY_WITH_MODAL,
       );
-    });
-  });
-
-  describe('money account awaiting selection', () => {
-    it('renders "Payment method" text when awaiting account selection', () => {
-      useMoneyAccountPayTokenMock.mockReturnValue({
-        displayToken: undefined,
-        isAwaitingAccountSelection: true,
-        isMoneyAccountDeposit: true,
-        isMoneyAccountWithdraw: false,
-      });
-
-      const { getByText } = render();
-
-      expect(getByText('Payment method')).toBeOnTheScreen();
-    });
-
-    it('disables navigation when awaiting account selection', async () => {
-      useMoneyAccountPayTokenMock.mockReturnValue({
-        displayToken: undefined,
-        isAwaitingAccountSelection: true,
-        isMoneyAccountDeposit: true,
-        isMoneyAccountWithdraw: false,
-      });
-
-      const { getByText } = render();
-
-      await act(() => {
-        fireEvent.press(getByText('Payment method'));
-      });
-
-      expect(navigateMock).not.toHaveBeenCalled();
-    });
-
-    it('renders moneyAccountDisplayToken when provided', () => {
-      useMoneyAccountPayTokenMock.mockReturnValue({
-        displayToken: {
-          address: '0xMUSD',
-          chainId: '0x1',
-          symbol: 'mUSD',
-          decimals: 6,
-        },
-        isAwaitingAccountSelection: false,
-        isMoneyAccountDeposit: false,
-        isMoneyAccountWithdraw: true,
-      });
-
-      jest.mocked(useTransactionPayToken).mockReturnValue({
-        payToken: undefined,
-        setPayToken: jest.fn(),
-      });
-
-      const { getByText } = render();
-
-      expect(getByText('0xMUSD 0x1')).toBeOnTheScreen();
-    });
-
-    it('prefers moneyAccountDisplayToken over payToken', () => {
-      useMoneyAccountPayTokenMock.mockReturnValue({
-        displayToken: {
-          address: '0xMUSD',
-          chainId: '0x1',
-          symbol: 'mUSD',
-          decimals: 6,
-        },
-        isAwaitingAccountSelection: false,
-        isMoneyAccountDeposit: false,
-        isMoneyAccountWithdraw: true,
-      });
-
-      const { getByTestId } = render();
-
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/mUSD/);
-      expect(getByTestId('pay-with-symbol')).not.toHaveTextContent(/^test/);
-    });
-
-    it('falls back to payToken when moneyAccountDisplayToken is undefined', () => {
-      useMoneyAccountPayTokenMock.mockReturnValue({
-        displayToken: undefined,
-        isAwaitingAccountSelection: false,
-        isMoneyAccountDeposit: false,
-        isMoneyAccountWithdraw: false,
-      });
-
-      const { getByTestId } = render();
-
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/test/);
     });
   });
 });

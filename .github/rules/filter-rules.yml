@@ -24,6 +24,10 @@ low_level_test_files: &low_level_test_files
   - '**/*.stories.*'
   - '**/*.snap'
 
+# LOCALE TRANSLATION FILES
+locale_translation_files: &locale_translation_files
+  - 'locales/languages/**/*.json'
+
 # CONFIG FILES
 config_files: &config_files
   - '.eslint*'
@@ -47,6 +51,7 @@ e2e_ignorable:
   - *documentation_files
   - *asset_files
   - *low_level_test_files
+  - *locale_translation_files
   - *config_files
   - *ci_files
 
@@ -74,6 +79,7 @@ android_or_ignorable:
   - *documentation_files
   - *asset_files
   - *low_level_test_files
+  - *locale_translation_files
   - *config_files
   - *ci_files
 
@@ -82,6 +88,7 @@ ios_or_ignorable:
   - *documentation_files
   - *asset_files
   - *low_level_test_files
+  - *locale_translation_files
   - *config_files
   - *ci_files
 
