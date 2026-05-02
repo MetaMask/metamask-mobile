@@ -101,6 +101,12 @@ describe('polymarket protocol definitions', () => {
   });
 
   it('routes v2 claims through the collateral adapters', () => {
+    expect(CTF_COLLATERAL_ADAPTER_ADDRESS).toBe(
+      '0xAdA100Db00Ca00073811820692005400218FcE1f',
+    );
+    expect(NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS).toBe(
+      '0xadA2005600Dec949baf300f4C6120000bDB6eAab',
+    );
     expect(POLYMARKET_V2_PROTOCOL.claim).toEqual({
       standardTarget: CTF_COLLATERAL_ADAPTER_ADDRESS,
       negRiskTarget: NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,

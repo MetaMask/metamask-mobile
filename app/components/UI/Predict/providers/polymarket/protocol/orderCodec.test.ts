@@ -1,5 +1,5 @@
 import { Side, type OrderPreview } from '../../../types';
-import { OrderType } from '../types';
+import { OrderType, SignatureType } from '../types';
 import { POLYMARKET_V1_PROTOCOL, POLYMARKET_V2_PROTOCOL } from './definitions';
 import {
   buildProtocolUnsignedOrder,
@@ -9,6 +9,7 @@ import {
   getProtocolOrderTypedData,
   getProtocolVerifyingContract,
   serializeProtocolRelayerOrder,
+  signProtocolOrderForDepositWallet,
 } from './orderCodec';
 
 const preview: OrderPreview = {
@@ -118,6 +119,73 @@ describe('polymarket protocol order codec', () => {
         expect.objectContaining({ name: 'builder', type: 'bytes32' }),
       ]),
     );
+  });
+
+  it('builds v2 deposit wallet orders with POLY_1271 and wallet signer', () => {
+    const depositWalletAddress = '0x3333333333333333333333333333333333333333';
+    const order = buildProtocolUnsignedOrder({
+      protocol: protocolV2,
+      preview,
+      makerAddress: depositWalletAddress,
+      signerAddress: depositWalletAddress,
+      signatureType: SignatureType.POLY_1271,
+      nowInSeconds: 456,
+    });
+
+    expect(order).toEqual(
+      expect.objectContaining({
+        maker: depositWalletAddress,
+        signer: depositWalletAddress,
+        signatureType: SignatureType.POLY_1271,
+      }),
+    );
+  });
+
+  it('wraps v2 deposit wallet order signatures for ERC-1271 validation', async () => {
+    const depositWalletAddress = '0x3333333333333333333333333333333333333333';
+    const innerSignature = `0x${'11'.repeat(65)}`;
+    const signTypedMessage = jest.fn().mockResolvedValue(innerSignature);
+    const order = buildProtocolUnsignedOrder({
+      protocol: protocolV2,
+      preview,
+      makerAddress: depositWalletAddress,
+      signerAddress: depositWalletAddress,
+      signatureType: SignatureType.POLY_1271,
+      nowInSeconds: 456,
+    });
+    const typedData = getProtocolOrderTypedData({
+      protocol: protocolV2,
+      order,
+      verifyingContract: getProtocolVerifyingContract({
+        protocol: protocolV2,
+        negRisk: false,
+      }),
+    });
+
+    const signature = await signProtocolOrderForDepositWallet({
+      order,
+      domain: typedData.domain,
+      signTypedMessage,
+      from: '0x2222222222222222222222222222222222222222',
+    });
+
+    expect(signTypedMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: '0x2222222222222222222222222222222222222222',
+        data: expect.objectContaining({
+          primaryType: 'TypedDataSign',
+          message: expect.objectContaining({
+            name: 'DepositWallet',
+            version: '1',
+            verifyingContract: depositWalletAddress,
+          }),
+        }),
+      }),
+      'V4',
+    );
+    expect(signature).toMatch(/^0x[0-9a-f]+$/u);
+    expect(signature.startsWith(innerSignature)).toBe(true);
+    expect(signature.length).toBeGreaterThan(innerSignature.length);
   });
 
   it('serializes signed orders into the relayer body shape', () => {

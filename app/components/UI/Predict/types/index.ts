@@ -615,6 +615,7 @@ export interface AccountState {
   address: Hex;
   isDeployed: boolean;
   hasAllowances: boolean;
+  walletType?: 'safe' | 'deposit-wallet';
 }
 
 export interface GeoBlockResponse {
