@@ -16,7 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
-import { BANNER_HEIGHT } from './BrazeBanner.constants';
+import { BANNER_HEIGHT, BANNER_IMAGE_SIZE } from './BrazeBanner.constants';
 
 interface BrazeBannerCardProps {
   title: string | null;
@@ -31,7 +31,7 @@ interface BrazeBannerCardProps {
  * the title visual priority. CTA label is intentionally not rendered here.
  */
 const BannerWithTitle = ({ title, body }: { title: string; body: string }) => (
-  <Box twClassName="flex-1 h-full justify-center">
+  <Box twClassName="flex-1 pr-6">
     <Text
       testID={BRAZE_BANNER_TEST_IDS.TITLE}
       variant={TextVariant.BodySm}
@@ -61,7 +61,7 @@ const BannerWithCta = ({
   body: string;
   ctaLabel: string | null;
 }) => (
-  <Box twClassName="flex-1 h-full justify-center pr-6">
+  <Box twClassName="flex-1 pr-6">
     <Text
       testID={BRAZE_BANNER_TEST_IDS.BODY}
       variant={TextVariant.BodySm}
@@ -111,12 +111,12 @@ const BrazeBannerCard = ({
       backgroundColor={BoxBackgroundColor.BackgroundMuted}
       gap={4}
       twClassName="w-full rounded-xl px-4 py-3"
-      style={{ height: BANNER_HEIGHT }}
+      style={{ minHeight: BANNER_HEIGHT }}
     >
       {imageUrl && (
         <Box
-          twClassName="self-stretch h-full overflow-hidden rounded-xl"
-          style={tw.style('aspect-square')}
+          twClassName="overflow-hidden rounded-xl"
+          style={{ width: BANNER_IMAGE_SIZE, height: BANNER_IMAGE_SIZE }}
         >
           <RNImage
             testID={BRAZE_BANNER_TEST_IDS.IMAGE}
