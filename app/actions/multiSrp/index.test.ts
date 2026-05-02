@@ -1,11 +1,7 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
-import {
-  importNewSecretRecoveryPhrase,
-  createNewSecretRecoveryPhrase,
-  addNewHdAccount,
-} from './';
+import { importNewSecretRecoveryPhrase, addNewHdAccount } from './';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
@@ -471,33 +467,6 @@ describe('MultiSRP Actions', () => {
           discoveredAccountsCount: 3,
         });
       });
-    });
-  });
-
-  describe('createNewSecretRecoveryPhrase', () => {
-    it('creates new SRP', async () => {
-      mockAddNewKeyring.mockResolvedValue({
-        getAccounts: () => Promise.resolve([mockAddress]),
-      });
-
-      await createNewSecretRecoveryPhrase();
-
-      expect(mockAddNewKeyring).toHaveBeenCalledWith(
-        KeyringTypes.hd,
-        undefined,
-      );
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-    });
-
-    it('Does not set selected address or gets accounts on errors', async () => {
-      mockAddNewKeyring.mockRejectedValue(new Error('Test error'));
-
-      await expect(
-        async () => await createNewSecretRecoveryPhrase(),
-      ).rejects.toThrow('Test error');
-
-      expect(mockGetAccounts).not.toHaveBeenCalled();
-      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
     });
   });
 
