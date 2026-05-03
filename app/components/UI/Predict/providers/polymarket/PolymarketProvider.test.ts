@@ -334,6 +334,18 @@ describe('PolymarketProvider', () => {
       }),
     });
 
+  // Helper to create a mock fetch Response with text() and headers
+  function createMockFetchResponse(data: unknown, ok = true, status = 200) {
+    const jsonStr = JSON.stringify(data);
+    return {
+      ok,
+      status,
+      json: jest.fn().mockResolvedValue(data),
+      text: jest.fn().mockResolvedValue(jsonStr),
+      headers: new Map([['content-type', 'application/json']]),
+    };
+  }
+
   it('exposes the correct providerId', () => {
     const provider = createProvider();
     expect(provider.providerId).toBe(POLYMARKET_PROVIDER_ID);
@@ -453,10 +465,7 @@ describe('PolymarketProvider', () => {
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
     (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
       .fn()
-      .mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue([]),
-      });
+      .mockResolvedValue(createMockFetchResponse([]));
 
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon-network-client');
     mockGetNetworkClientById.mockReturnValue({
@@ -537,10 +546,7 @@ describe('PolymarketProvider', () => {
 
     (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
       .fn()
-      .mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockApiResponse),
-      });
+      .mockResolvedValue(createMockFetchResponse(mockApiResponse));
 
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon-network-client');
     mockGetNetworkClientById.mockReturnValue({
@@ -574,10 +580,7 @@ describe('PolymarketProvider', () => {
   it('getPositions uses default pagination and correct query params', async () => {
     const provider = createProvider();
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue([]),
-    });
+    const mockFetch = jest.fn().mockResolvedValue(createMockFetchResponse([]));
     (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
 
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon-network-client');
@@ -614,10 +617,7 @@ describe('PolymarketProvider', () => {
   it('getPositions applies offset and uses provided limit in the request', async () => {
     const provider = createProvider();
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue([]),
-    });
+    const mockFetch = jest.fn().mockResolvedValue(createMockFetchResponse([]));
     (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
 
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon-network-client');
@@ -709,10 +709,7 @@ describe('PolymarketProvider', () => {
   it('getPositions uses claimable parameter correctly', async () => {
     const provider = createProvider();
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue([]),
-    });
+    const mockFetch = jest.fn().mockResolvedValue(createMockFetchResponse([]));
     (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
 
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon-network-client');
@@ -741,10 +738,7 @@ describe('PolymarketProvider', () => {
   it('getPositions includes marketId in query when provided', async () => {
     const provider = createProvider();
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue([]),
-    });
+    const mockFetch = jest.fn().mockResolvedValue(createMockFetchResponse([]));
     (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
 
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon-network-client');
@@ -866,10 +860,7 @@ describe('PolymarketProvider', () => {
 
     (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
       .fn()
-      .mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockApiResponse),
-      });
+      .mockResolvedValue(createMockFetchResponse(mockApiResponse));
 
     mockParsePolymarketPositions.mockResolvedValue(mockParsedPositions);
 
@@ -2548,7 +2539,14 @@ describe('PolymarketProvider', () => {
   describe('getActivity', () => {
     it('fetches activity and resolves without throwing', async () => {
       const provider = createProvider();
-      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => [] });
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue({
+          ok: true,
+          json: () => [],
+          text: () => Promise.resolve(JSON.stringify([])),
+          headers: new Map([['content-type', 'application/json']]),
+        });
       const getAccountStateSpy = jest
         .spyOn(
           provider as unknown as {
@@ -2579,7 +2577,14 @@ describe('PolymarketProvider', () => {
 
     it('fetches account state when not cached', async () => {
       const provider = createProvider();
-      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => [] });
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue({
+          ok: true,
+          json: () => [],
+          text: () => Promise.resolve(JSON.stringify([])),
+          headers: new Map([['content-type', 'application/json']]),
+        });
 
       mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
       (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
@@ -5797,9 +5802,8 @@ describe('PolymarketProvider', () => {
         // Mock fetch for getPositions
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue([
+          .mockResolvedValue(
+            createMockFetchResponse([
               {
                 id: 'position-1',
                 market: 'market-1',
@@ -5813,7 +5817,7 @@ describe('PolymarketProvider', () => {
                 value: '200',
               },
             ]),
-          });
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -5863,9 +5867,8 @@ describe('PolymarketProvider', () => {
 
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue([
+          .mockResolvedValue(
+            createMockFetchResponse([
               {
                 id: 'position-1',
                 market: 'market-1',
@@ -5873,7 +5876,7 @@ describe('PolymarketProvider', () => {
                 value: '100',
               },
             ]),
-          });
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -5908,10 +5911,7 @@ describe('PolymarketProvider', () => {
         const { provider, mockAddress, mockFetch } =
           setupOptimisticUpdateTest();
 
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         mockMarketDetailsForOptimistic({
@@ -5968,10 +5968,7 @@ describe('PolymarketProvider', () => {
           initialValue: 5,
         });
 
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([existingPosition]);
 
         const preview = createMockOrderPreview({
@@ -6013,10 +6010,7 @@ describe('PolymarketProvider', () => {
         const { provider, mockAddress, mockFetch } =
           setupOptimisticUpdateTest();
 
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         mockMarketDetailsForOptimistic({
@@ -6090,9 +6084,8 @@ describe('PolymarketProvider', () => {
         // Mock fetch to return 3 positions
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue([
+          .mockResolvedValue(
+            createMockFetchResponse([
               {
                 id: 'position-1',
                 market: 'market-1',
@@ -6112,7 +6105,7 @@ describe('PolymarketProvider', () => {
                 value: '300',
               },
             ]),
-          });
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -6209,9 +6202,8 @@ describe('PolymarketProvider', () => {
         // Mock fetch to return positions
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue([
+          .mockResolvedValue(
+            createMockFetchResponse([
               {
                 id: 'old-position',
                 market: 'market-1',
@@ -6231,7 +6223,7 @@ describe('PolymarketProvider', () => {
                 value: '200',
               },
             ]),
-          });
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -6319,15 +6311,14 @@ describe('PolymarketProvider', () => {
 
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue([
+          .mockResolvedValue(
+            createMockFetchResponse([
               { id: 'position-1', market: 'market-1' },
               { id: 'position-2', market: 'market-1' },
               { id: 'position-3', market: 'market-1' },
               { id: 'position-4', market: 'market-1' },
             ]),
-          });
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -6412,13 +6403,12 @@ describe('PolymarketProvider', () => {
         // Mock fetch for address A
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue([
+          .mockResolvedValue(
+            createMockFetchResponse([
               { id: 'position-1', market: 'market-1' },
               { id: 'position-2', market: 'market-1' },
             ]),
-          });
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -6451,16 +6441,15 @@ describe('PolymarketProvider', () => {
 
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue([
+          .mockResolvedValue(
+            createMockFetchResponse([
               { id: 'position-1', market: 'market-1' },
               { id: 'position-2', market: 'market-1' },
               { id: 'position-3', market: 'market-1' },
               { id: 'position-4', market: 'market-1' },
               { id: 'position-5', market: 'market-1' },
             ]),
-          });
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -6510,12 +6499,9 @@ describe('PolymarketProvider', () => {
 
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest
-              .fn()
-              .mockResolvedValue([{ id: 'position-1', market: 'market-1' }]),
-          });
+          .mockResolvedValue(
+            createMockFetchResponse([{ id: 'position-1', market: 'market-1' }]),
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -6557,12 +6543,11 @@ describe('PolymarketProvider', () => {
         // Assert - subsequent getPositions should filter out the sold position
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest
-              .fn()
-              .mockResolvedValue([{ id: 'position-123', market: 'market-1' }]),
-          });
+          .mockResolvedValue(
+            createMockFetchResponse([
+              { id: 'position-123', market: 'market-1' },
+            ]),
+          );
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
@@ -6634,10 +6619,7 @@ describe('PolymarketProvider', () => {
         // Assert - getPositions should return API position OR optimistic position
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
-          .mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue([]),
-          });
+          .mockResolvedValue(createMockFetchResponse([]));
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([]);
@@ -6743,10 +6725,7 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({ signer: mockSigner, preview });
 
         // Assert
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
 
         mockParsePolymarketPositions.mockResolvedValue([]);
 
@@ -6864,10 +6843,7 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({ signer: mockSigner, preview });
 
         // Assert
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         const positions = await provider.getPositions({
@@ -6965,10 +6941,7 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({ signer: mockSigner, preview });
 
         // Assert
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         const positions = await provider.getPositions({
@@ -7139,10 +7112,7 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({ signer: mockSigner, preview });
 
         // Assert - order still succeeds
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         const positions = await provider.getPositions({
@@ -7160,9 +7130,8 @@ describe('PolymarketProvider', () => {
         // Arrange
         const { provider, mockSigner, mockFetch } = setupOptimisticUpdateTest();
 
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([
+        mockFetch.mockResolvedValue(
+          createMockFetchResponse([
             {
               id: 'position-1',
               market: 'market-1',
@@ -7170,7 +7139,7 @@ describe('PolymarketProvider', () => {
               value: '100',
             },
           ]),
-        });
+        );
 
         mockParsePolymarketPositions.mockResolvedValue([
           createMockPosition({
@@ -7345,10 +7314,7 @@ describe('PolymarketProvider', () => {
         });
 
         // Assert
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         const positions = await provider.getPositions({
@@ -7471,10 +7437,7 @@ describe('PolymarketProvider', () => {
         });
 
         // Assert
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         const positions = await provider.getPositions({
@@ -7601,10 +7564,7 @@ describe('PolymarketProvider', () => {
         });
 
         // Assert
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         const positions = await provider.getPositions({
@@ -7701,10 +7661,7 @@ describe('PolymarketProvider', () => {
           preview: firstPreview,
         });
 
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         const positionsAfterFirst = await provider.getPositions({
@@ -7846,10 +7803,7 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({ signer: mockSigner, preview });
 
         // Assert - Position is optimistic
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         let positions = await provider.getPositions({
@@ -7862,9 +7816,8 @@ describe('PolymarketProvider', () => {
         expect(optimisticPos?.optimistic).toBe(true);
 
         // Act - API now returns the confirmed position
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([
+        mockFetch.mockResolvedValue(
+          createMockFetchResponse([
             {
               id: 'position-123',
               market: 'market-integration',
@@ -7872,7 +7825,7 @@ describe('PolymarketProvider', () => {
               value: '100',
             },
           ]),
-        });
+        );
         mockParsePolymarketPositions.mockResolvedValue([
           createMockPosition({
             id: 'position-123',
@@ -7973,10 +7926,7 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({ signer: mockSigner, preview });
 
         // Assert - Position is optimistic
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([]),
-        });
+        mockFetch.mockResolvedValue(createMockFetchResponse([]));
         mockParsePolymarketPositions.mockResolvedValue([]);
 
         let positions = await provider.getPositions({
@@ -8083,9 +8033,8 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({ signer: mockSigner, preview: buyPreview });
 
         // API returns the bought position
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([
+        mockFetch.mockResolvedValue(
+          createMockFetchResponse([
             {
               id: 'position-buysell',
               market: 'market-buysell',
@@ -8093,7 +8042,7 @@ describe('PolymarketProvider', () => {
               value: '100',
             },
           ]),
-        });
+        );
         mockParsePolymarketPositions.mockResolvedValue([
           createMockPosition({
             id: 'position-buysell',
@@ -8130,9 +8079,8 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({ signer: mockSigner, preview: sellPreview });
 
         // Assert - Position should be marked for removal
-        mockFetch.mockResolvedValue({
-          ok: true,
-          json: jest.fn().mockResolvedValue([
+        mockFetch.mockResolvedValue(
+          createMockFetchResponse([
             {
               id: 'position-buysell',
               market: 'market-buysell',
@@ -8140,7 +8088,7 @@ describe('PolymarketProvider', () => {
               value: '100',
             },
           ]),
-        });
+        );
         mockParsePolymarketPositions.mockResolvedValue([
           createMockPosition({
             id: 'position-buysell',
