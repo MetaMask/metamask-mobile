@@ -21,7 +21,10 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import Input from '../../../component-library/components/Form/TextField/foundation/Input';
+import {
+  Input,
+  TextVariant as DesignSystemTextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddNewAccount.styles';
 import { useSelector } from 'react-redux';
@@ -54,8 +57,7 @@ const AddNewAccount = ({
   onBack,
 }: AddNewAccountProps) => {
   const { navigate } = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
@@ -198,14 +200,13 @@ const AddNewAccount = ({
               <View style={styles.accountInputContainer}>
                 <Input
                   testID={AddNewAccountIds.NAME_INPUT}
-                  textVariant={TextVariant.BodyMDMedium}
+                  textVariant={DesignSystemTextVariant.BodyMdMedium}
                   style={styles.accountInput}
-                  value={accountName}
+                  value={accountName ?? ''}
                   onChangeText={(newName: string) => {
                     setAccountName(newName);
                   }}
                   placeholder={accountName}
-                  placeholderTextColor={colors.text.default}
                   onSubmitEditing={onSubmit}
                 />
               </View>
