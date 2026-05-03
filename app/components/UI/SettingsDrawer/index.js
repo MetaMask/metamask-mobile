@@ -80,6 +80,16 @@ const propTypes = {
   titleColor: PropTypes.string,
 };
 
+/**
+ * @param {object} props
+ * @param {any} props.title
+ * @param {any} [props.description]
+ * @param {() => void} props.onPress
+ * @param {string} [props.warning]
+ * @param {boolean} [props.renderArrowRight]
+ * @param {string} [props.testID]
+ * @param {any} [props.titleColor]
+ */
 const SettingsDrawer = ({
   title,
   description,

@@ -177,6 +177,14 @@ export const getDescription = (status, { amount = null, type = null }) => {
 /**
  * BaseNotification component used to render in-app notifications
  */
+/**
+ * @param {object} props
+ * @param {string} [props.status]
+ * @param {{ description?: string | null, title?: string | null }} [props.data]
+ * @param {() => void} [props.onPress]
+ * @param {() => void} [props.onHide]
+ * @param {boolean} [props.autoDismiss]
+ */
 const BaseNotification = ({
   status,
   data = null,

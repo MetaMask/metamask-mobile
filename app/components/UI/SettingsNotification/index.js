@@ -76,10 +76,17 @@ const propTypes = {
 
 const DEFAULT_STYLE = {};
 
+/**
+ * @param {object} props
+ * @param {object} [props.style]
+ * @param {boolean} [props.isWarning]
+ * @param {boolean} [props.isNotification]
+ * @param {React.ReactNode} [props.children]
+ */
 const SettingsNotification = ({
   style = DEFAULT_STYLE,
   isWarning = false,
-  isNotification,
+  isNotification = false,
   children,
 }) => {
   const { colors } = useTheme();
