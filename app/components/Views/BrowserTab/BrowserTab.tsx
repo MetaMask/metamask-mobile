@@ -187,15 +187,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const loadingUrlRef = useRef('');
     const submittedUrlRef = useRef('');
     const titleRef = useRef<string>('');
-    const iconRef = useRef<ImageSourcePropType | undefined>();
+    const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
     const sessionENSNamesRef = useRef<SessionENSNames>({});
     const ensIgnoreListRef = useRef<string[]>([]);
-    const backgroundBridgeRef = useRef<{
-      url: string;
-      sendNotificationEip1193: (payload: unknown) => void;
-      onDisconnect: () => void;
-      onMessage: (message: Record<string, unknown>) => void;
-    }>();
+    const backgroundBridgeRef = useRef<
+      | {
+          url: string;
+          sendNotificationEip1193: (payload: unknown) => void;
+          onDisconnect: () => void;
+          onMessage: (message: Record<string, unknown>) => void;
+        }
+      | undefined
+    >(undefined);
     const searchEngine = useSelector(selectSearchEngine);
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {

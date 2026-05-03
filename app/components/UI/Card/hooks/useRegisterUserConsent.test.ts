@@ -830,7 +830,7 @@ describe('useRegisterUserConsent', () => {
         reset: result.current.reset,
       };
 
-      rerender();
+      rerender(undefined);
 
       expect(result.current.createOnboardingConsent).toBe(
         initialFunctions.createOnboardingConsent,
@@ -859,7 +859,7 @@ describe('useRegisterUserConsent', () => {
         } as unknown as CardSDK,
       });
 
-      rerender();
+      rerender(undefined);
 
       // Function is different due to SDK dependency change
       expect(result.current.createOnboardingConsent).not.toBe(
@@ -882,7 +882,7 @@ describe('useRegisterUserConsent', () => {
         } as unknown as CardSDK,
       });
 
-      rerender();
+      rerender(undefined);
 
       // Function is different due to SDK dependency change
       expect(result.current.linkUserToConsent).not.toBe(initialLinkFunction);
@@ -903,7 +903,7 @@ describe('useRegisterUserConsent', () => {
         } as unknown as CardSDK,
       });
 
-      rerender();
+      rerender(undefined);
 
       expect(result.current.getOnboardingConsentSetByOnboardingId).not.toBe(
         initialGetFunction,

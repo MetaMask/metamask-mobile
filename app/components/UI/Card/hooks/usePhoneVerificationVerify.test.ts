@@ -440,7 +440,7 @@ describe('usePhoneVerificationVerify', () => {
         reset: result.current.reset,
       };
 
-      rerender();
+      rerender(undefined);
 
       expect(result.current.verifyPhoneVerification).toBe(
         firstRenderFunctions.verifyPhoneVerification,

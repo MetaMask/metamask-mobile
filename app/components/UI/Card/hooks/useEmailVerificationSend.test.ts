@@ -390,7 +390,7 @@ describe('useEmailVerificationSend', () => {
         reset: result.current.reset,
       };
 
-      rerender();
+      rerender(undefined);
 
       expect(result.current.sendEmailVerification).toBe(
         firstRenderFunctions.sendEmailVerification,

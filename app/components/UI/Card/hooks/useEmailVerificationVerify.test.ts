@@ -514,7 +514,7 @@ describe('useEmailVerificationVerify', () => {
         reset: result.current.reset,
       };
 
-      rerender();
+      rerender(undefined);
 
       expect(result.current.verifyEmailVerification).toBe(
         firstRenderFunctions.verifyEmailVerification,

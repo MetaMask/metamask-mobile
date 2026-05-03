@@ -30,7 +30,7 @@ export const useToAddressValidation = () => {
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
-  const prevAddressValidated = useRef<string>();
+  const prevAddressValidated = useRef<string | undefined>(undefined);
   const unmountedRef = useRef(false);
 
   useEffect(

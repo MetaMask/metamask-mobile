@@ -54,7 +54,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     },
     ref,
   ) => {
-    const postCallback = useRef<BottomSheetPostCallback>();
+    const postCallback = useRef<BottomSheetPostCallback | undefined>(undefined);
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const didNavigateBackRef = useRef(false);
     const closeRequestedRef = useRef(false);

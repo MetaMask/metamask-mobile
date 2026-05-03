@@ -423,7 +423,7 @@ describe('usePhoneVerificationSend', () => {
       const initialClearError = result.current.clearError;
       const initialReset = result.current.reset;
 
-      rerender();
+      rerender(undefined);
 
       expect(result.current.sendPhoneVerification).toBe(
         initialSendPhoneVerification,
