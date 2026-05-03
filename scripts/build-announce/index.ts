@@ -1,5 +1,7 @@
 // RC Build Announce - Posts RC build comments to GitHub PRs with build links and AI test plan
 
+import { existsSync, readdirSync } from 'fs';
+import { join } from 'path';
 import { Octokit } from '@octokit/rest';
 import {
   RC_BUILD_COMMENT_MARKER,
@@ -16,7 +18,12 @@ import {
   buildTestPlanSection,
   buildTestPlanFailureSection,
 } from './test-plan-section';
-import type { BuildInfo, TestPlanResult } from './types';
+import {
+  buildEnvValidationSection,
+  buildEnvValidationFailureSection,
+} from './env-validation-section';
+import { validateEnv } from './validate-env';
+import type { BuildInfo, TestPlanResult, EnvValidationResult } from './types';
 
 /**
  * Builds the build links section of the comment
@@ -71,11 +78,79 @@ function buildMoreInfoSection(buildInfo: BuildInfo): string {
 }
 
 /**
+ * Look for build-env.json artifacts and extract environment values
+ */
+function performEnvValidation(): {
+  androidResult?: EnvValidationResult;
+  iosResult?: EnvValidationResult;
+  error?: string;
+} {
+  const artifactsDir = 'build-env-artifacts';
+
+  if (!existsSync(artifactsDir)) {
+    console.log('No build-env-artifacts directory found, skipping env extraction');
+    return {};
+  }
+
+  const results: {
+    androidResult?: EnvValidationResult;
+    iosResult?: EnvValidationResult;
+    error?: string;
+  } = {};
+
+  try {
+    // Check for flat path first (in case merge-multiple flattens all artifacts)
+    const flatPath = join(artifactsDir, 'build-env.json');
+    if (existsSync(flatPath)) {
+      console.log(`Found build-env.json at ${flatPath}`);
+      const result = validateEnv(flatPath);
+      results.androidResult = result;
+      return results;
+    }
+
+    // Otherwise look in subdirectories
+    const dirs = readdirSync(artifactsDir, { withFileTypes: true });
+
+    for (const dir of dirs) {
+      if (!dir.isDirectory()) continue;
+
+      const buildEnvPath = join(artifactsDir, dir.name, 'build-env.json');
+
+      if (!existsSync(buildEnvPath)) {
+        continue;
+      }
+
+      console.log(`Found build-env.json at ${buildEnvPath}`);
+
+      // Determine platform from directory name
+      const platform = dir.name.includes('android') ? 'android' : 'ios';
+      const result = validateEnv(buildEnvPath);
+
+      if (platform === 'android') {
+        results.androidResult = result;
+      } else {
+        results.iosResult = result;
+      }
+    }
+  } catch (error) {
+    results.error = error instanceof Error ? error.message : String(error);
+    console.error(`Environment extraction failed: ${results.error}`);
+  }
+
+  return results;
+}
+
+/**
  * Builds the complete PR comment body
  */
 function buildCommentBody(
   buildInfo: BuildInfo,
   testPlan: TestPlanResult | null,
+  envValidation: {
+    androidResult?: EnvValidationResult;
+    iosResult?: EnvValidationResult;
+    error?: string;
+  },
   testPlanError?: string,
 ): string {
   let body = `${RC_BUILD_COMMENT_MARKER}
@@ -86,6 +161,15 @@ ${buildBuildLinksSection(buildInfo)}
 ${buildMoreInfoSection(buildInfo)}
 
 `;
+
+  // Add environment section
+  if (envValidation.androidResult || envValidation.iosResult) {
+    body += `---\n\n`;
+    body += buildEnvValidationSection(envValidation.androidResult, envValidation.iosResult);
+  } else if (envValidation.error) {
+    body += `---\n\n`;
+    body += buildEnvValidationFailureSection(envValidation.error);
+  }
 
   // Add test plan section
   if (testPlan) {
@@ -163,8 +247,22 @@ async function main(): Promise<void> {
     console.log('\nNo AI API keys found, skipping test plan generation');
   }
 
+  // Extract environment values from build artifacts
+  console.log('\n=== Build Environment ===\n');
+  const envValidation = performEnvValidation();
+
+  if (envValidation.androidResult || envValidation.iosResult) {
+    const result = envValidation.androidResult || envValidation.iosResult;
+    console.log(`  - Build Name: ${result?.buildName}`);
+    console.log(`  - Environment: ${result?.extractedValues.METAMASK_ENVIRONMENT}`);
+  } else if (envValidation.error) {
+    console.log(`  - Error: ${envValidation.error}`);
+  } else {
+    console.log('  - No build-env artifacts found');
+  }
+
   // Build the comment body
-  const commentBody = buildCommentBody(buildInfo, testPlan, testPlanError);
+  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, testPlanError);
 
   // Post comment and minimize old ones
   console.log(`\n=== Posting Comment to PR #${prNumber} ===\n`);

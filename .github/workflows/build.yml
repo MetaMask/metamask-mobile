@@ -63,6 +63,7 @@ on:
           - main-e2e
           - main-exp
           - main-dev
+          - main-dev-expo
           - flask-prod
           - flask-test
           - flask-e2e
@@ -113,6 +114,7 @@ jobs:
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
+      script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
     steps:
       - uses: actions/checkout@v4
@@ -142,6 +144,7 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || '${{ inputs.build_name }}') + '\n');
           "
 
   # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
@@ -305,6 +308,8 @@ jobs:
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          # Generate build-env.json capturing actual env values used in this build (non-critical)
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
 
       - name: Validate secrets
         env:
@@ -406,8 +411,8 @@ jobs:
           command: |
             export NODE_OPTIONS='--max-old-space-size=4096'
             export METRO_MAX_WORKERS='4'
-            BUILD_NAME="${{ inputs.build_name }}"
-            SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
+            SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
+            SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
       # Rename build artifacts (ios_simulator_path / ios_ipa_path / ios_archive_path / android_*_path outputs)
@@ -417,19 +422,13 @@ jobs:
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
-      # ios_simulator_path is set by scripts/rename-artifacts.js (staged under ios-simulator-upload/
-      # in CI so upload-artifact uploads a .zip file, not a .app directory).
       - name: Upload iOS simulator app
-        if: success() && matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_simulator_path }}
           if-no-files-found: error
-
-      - name: Remove iOS simulator staging directory
-        if: success() && matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
-        run: rm -rf ios-simulator-upload
 
       - name: Upload iOS IPA
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
@@ -495,6 +494,14 @@ jobs:
         with:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
+          if-no-files-found: warn
+
+      - name: Upload build environment JSON
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-env-${{ inputs.build_name }}-${{ matrix.platform }}
+          path: build-env.json
           if-no-files-found: warn
 
   # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).

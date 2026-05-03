@@ -281,6 +281,7 @@ runs:
       with:
         path: |
           node_modules
+          .yarn/install-state.gz
         key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
     - name: Install JavaScript dependencies with retry
