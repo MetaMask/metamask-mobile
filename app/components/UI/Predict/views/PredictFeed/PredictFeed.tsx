@@ -138,8 +138,8 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
 interface AnimatedHeaderProps {
   headerTranslateY: SharedValue<number>;
   headerHeight: number;
-  headerRef: React.RefObject<View>;
-  tabBarRef: React.RefObject<View>;
+  headerRef: React.RefObject<View | null>;
+  tabBarRef: React.RefObject<View | null>;
   tabs: FeedTab[];
   activeIndex: number;
   onTabPress: (index: number) => void;

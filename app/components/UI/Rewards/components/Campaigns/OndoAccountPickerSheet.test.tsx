@@ -160,7 +160,7 @@ const mockSheetRef = {
     onOpenBottomSheet: jest.fn(),
     onCloseBottomSheet: mockOnCloseBottomSheet,
   },
-} as unknown as React.RefObject<BottomSheetRef>;
+} as unknown as React.RefObject<BottomSheetRef | null>;
 
 const renderSheet = (
   overrides?: Partial<React.ComponentProps<typeof OndoAccountPickerSheet>>,

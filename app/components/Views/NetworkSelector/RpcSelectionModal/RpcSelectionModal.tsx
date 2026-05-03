@@ -43,7 +43,7 @@ interface RpcSelectionModalProps {
     networkName: string;
   };
   closeRpcModal: () => void;
-  rpcMenuSheetRef: React.RefObject<BottomSheetRef>;
+  rpcMenuSheetRef: React.RefObject<BottomSheetRef | null>;
   networkConfigurations: Record<string, NetworkConfiguration>;
   styles: StyleSheet.NamedStyles<{
     baseHeader: unknown;
