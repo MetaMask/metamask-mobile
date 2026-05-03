@@ -127,6 +127,7 @@ describe('polymarket utils', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: jest.fn().mockResolvedValue({}),
+      text: jest.fn().mockResolvedValue('{}'),
     } as any);
 
     // Setup default mock implementations
@@ -388,6 +389,7 @@ describe('polymarket utils', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
+        text: jest.fn().mockResolvedValue(JSON.stringify(mockApiKey)),
       };
       mockFetch.mockResolvedValue(mockResponse);
 
@@ -410,6 +412,7 @@ describe('polymarket utils', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
+        text: jest.fn().mockResolvedValue(JSON.stringify(mockApiKey)),
       };
       mockFetch.mockResolvedValue(mockResponse);
 
@@ -427,6 +430,7 @@ describe('polymarket utils', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
+        text: jest.fn().mockResolvedValue(JSON.stringify(mockApiKey)),
       };
       mockFetch.mockResolvedValue(mockResponse);
 
@@ -459,6 +463,7 @@ describe('polymarket utils', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
+        text: jest.fn().mockResolvedValue(JSON.stringify(mockApiKey)),
         status: 200,
       };
       mockFetch.mockResolvedValue(mockResponse);
@@ -482,6 +487,7 @@ describe('polymarket utils', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
+        text: jest.fn().mockResolvedValue(JSON.stringify(mockApiKey)),
         status: 200,
       };
       mockFetch.mockResolvedValue(mockResponse);
@@ -501,6 +507,7 @@ describe('polymarket utils', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
+        text: jest.fn().mockResolvedValue(JSON.stringify(mockApiKey)),
         status: 200,
       };
       mockFetch.mockResolvedValue(mockResponse);
@@ -524,11 +531,13 @@ describe('polymarket utils', () => {
       const createResponse = {
         ok: false,
         json: jest.fn().mockResolvedValue({}),
+        text: jest.fn().mockResolvedValue('{}'),
         status: 400,
       };
       const deriveResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
+        text: jest.fn().mockResolvedValue(JSON.stringify(mockApiKey)),
       };
 
       mockFetch
@@ -545,11 +554,13 @@ describe('polymarket utils', () => {
       const createResponse = {
         ok: false,
         json: jest.fn().mockResolvedValue({}),
+        text: jest.fn().mockResolvedValue('{}'),
         status: 400,
       };
       const deriveResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
+        text: jest.fn().mockResolvedValue(JSON.stringify(mockApiKey)),
       };
 
       mockFetch
