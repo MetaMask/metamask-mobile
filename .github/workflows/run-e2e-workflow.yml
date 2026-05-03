@@ -29,10 +29,11 @@ on:
         type: number
         default: 1
       test-timeout-minutes:
+        # Hard cap on the `Run E2E tests` step — when it elapses, GitHub kills the whole suite.
         description: 'The timeout in minutes for the test command'
         required: false
         type: number
-        default: 30
+        default: 40
       build_type:
         description: 'The type of build to perform'
         required: false
