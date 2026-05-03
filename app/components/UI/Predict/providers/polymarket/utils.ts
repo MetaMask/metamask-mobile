@@ -81,6 +81,34 @@ import { PredictFeeCollection } from '../../types/flags';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 
+/**
+ * Parse a fetch `Response` body as JSON, raising a contextual error when the
+ * body is not valid JSON. Without this wrapper the bare
+ * `await response.json()` call only surfaces "JSON Parse error: Unexpected
+ * character: <" with no clue which endpoint returned HTML, which masks the
+ * underlying problem (e.g. an upstream proxy/error page reaching the client).
+ */
+async function parseJsonOrThrow<T>(
+  response: Response,
+  url: string,
+): Promise<T> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch (parseError) {
+    const snippet = text.slice(0, 200).replace(/\s+/gu, ' ');
+    DevLogger.log('Polymarket: non-JSON response from endpoint', {
+      url,
+      status: response.status,
+      contentType: response.headers.get('content-type'),
+      bodySnippet: snippet,
+    });
+    throw new Error(
+      `Polymarket fetch returned non-JSON (status ${response.status}) from ${url}: ${snippet}`,
+    );
+  }
+}
+
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
   CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
@@ -229,18 +257,16 @@ export const deriveApiKey = async ({
   clobBaseUrl?: string;
 }) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(
-    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/derive-api-key`,
-    {
-      method: 'GET',
-      headers,
-    },
-  );
+  const url = `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/derive-api-key`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers,
+  });
   if (!response.ok) {
     throw new Error('Failed to derive API key');
   }
-  const apiKeyRaw = await response.json();
-  return apiKeyRaw as ApiKeyCreds;
+  const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
+  return apiKeyRaw;
 };
 
 export const createApiKey = async ({
@@ -253,19 +279,17 @@ export const createApiKey = async ({
   clobBaseUrl?: string;
 }) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(
-    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`,
-    {
-      method: 'POST',
-      headers,
-      body: '',
-    },
-  );
+  const url = `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: '',
+  });
   if (response.status === 400) {
     return await deriveApiKey({ address, clobVersion, clobBaseUrl });
   }
-  const apiKeyRaw = await response.json();
-  return apiKeyRaw as ApiKeyCreds;
+  const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
+  return apiKeyRaw;
 };
 
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
