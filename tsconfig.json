@@ -51,11 +51,11 @@
       "@metamask/design-system-react-native/spinner": [
         "node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
       ],
+      // TODO: drop once `@metamask/delegation-controller` re-exports
+      // `DelegationControllerState` from its public entry, or once we move to
+      // Node16/NodeNext module resolution (whichever lands first).
       "@metamask/delegation-controller/types": [
-        "node_modules/@metamask/delegation-controller/dist/types.cjs"
-      ],
-      "@metamask/transaction-pay-controller/types": [
-        "node_modules/@metamask/transaction-pay-controller/dist/types.cjs"
+        "node_modules/@metamask/delegation-controller/dist/types.d.cts"
       ]
     } /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */,
     // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
