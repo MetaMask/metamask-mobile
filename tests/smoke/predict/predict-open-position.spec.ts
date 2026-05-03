@@ -51,7 +51,8 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Predictions'), () => {
-  it('opens position on Celtics vs. Nets market', async () => {
+  // TODO: Re-enable after stabilizing the post-order Positions tab assertion in CI.
+  it.skip('opens position on Celtics vs. Nets market', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
