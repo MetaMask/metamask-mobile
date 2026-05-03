@@ -3,7 +3,8 @@ import {
   IconSize as ReactNativeDsIconSize,
   Text,
   TextVariant,
- Spinner } from '@metamask/design-system-react-native';
+  Spinner,
+} from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   playNotification,

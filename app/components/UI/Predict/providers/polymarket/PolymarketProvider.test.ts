@@ -2539,14 +2539,12 @@ describe('PolymarketProvider', () => {
   describe('getActivity', () => {
     it('fetches activity and resolves without throwing', async () => {
       const provider = createProvider();
-      global.fetch = jest
-        .fn()
-        .mockResolvedValue({
-          ok: true,
-          json: () => [],
-          text: () => Promise.resolve(JSON.stringify([])),
-          headers: new Map([['content-type', 'application/json']]),
-        });
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => [],
+        text: () => Promise.resolve(JSON.stringify([])),
+        headers: new Map([['content-type', 'application/json']]),
+      });
       const getAccountStateSpy = jest
         .spyOn(
           provider as unknown as {
@@ -2577,14 +2575,12 @@ describe('PolymarketProvider', () => {
 
     it('fetches account state when not cached', async () => {
       const provider = createProvider();
-      global.fetch = jest
-        .fn()
-        .mockResolvedValue({
-          ok: true,
-          json: () => [],
-          text: () => Promise.resolve(JSON.stringify([])),
-          headers: new Map([['content-type', 'application/json']]),
-        });
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => [],
+        text: () => Promise.resolve(JSON.stringify([])),
+        headers: new Map([['content-type', 'application/json']]),
+      });
 
       mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
       (isSmartContractAddress as jest.Mock).mockResolvedValue(true);

@@ -3,7 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
- Spinner } from '@metamask/design-system-react-native';
+  Spinner,
+} from '@metamask/design-system-react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';

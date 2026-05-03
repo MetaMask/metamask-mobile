@@ -10,7 +10,8 @@ import {
 import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
- Spinner } from '@metamask/design-system-react-native';
+  Spinner,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,

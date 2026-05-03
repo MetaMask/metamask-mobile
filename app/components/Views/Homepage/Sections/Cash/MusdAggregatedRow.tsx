@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable, TouchableOpacity } from 'react-native';
-import { Spinner ,
+import {
+  Spinner,
   Box,
   Text,
   TextVariant,
