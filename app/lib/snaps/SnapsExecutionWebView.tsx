@@ -11,50 +11,21 @@ import {
 import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
 // eslint-disable-next-line import-x/no-unresolved
-import WebViewHTMLRaw from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
+import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
 import { EmptyObject } from '@metamask/snaps-sdk';
 import { assert, hasProperty } from '@metamask/utils';
 import Logger from '../../util/Logger';
 
 const styles = createStyles();
 
-// LavaMoat scuttling inside the snap iframe locks down `globalThis` after
-// `lockdown()` runs. Any property of `globalThis` that is not in the
-// scuttling allow-list throws when accessed (see Sentry issue #19735).
-//
-// Several first-party snaps (`bitcoin-wallet-snap`, `tron-wallet-snap`,
-// `ethereum-provider-example-snap`, …) — and any third-party snap whose
-// bundle pulls in libraries that touch the DOM serialization APIs —
-// transitively reach for `XMLSerializer` / `DOMParser` during startup,
-// which currently kills the snap with `code: -32603` and surfaces in CI as
-// "The Snap … has been terminated during execution.".
-//
-// We extend the bundled `scuttleGlobalThis.exceptions` array to keep these
-// browser intrinsics reachable from inside the snap sandbox. The fix is
-// applied to the imported HTML string at module load time so it survives
-// upgrades of `@metamask/snaps-execution-environments` for as long as the
-// generated allow-list shape stays the same.
-const SCUTTLING_EXCEPTIONS_ORIGINAL =
-  'scuttleGlobalThis:{enabled:!0,exceptions:["Object","postMessage","Reflect","Set","JSON","ReactNativeWebView","String","webpackChunk_metamask_snaps_execution_environments"]}';
-const SCUTTLING_EXCEPTIONS_PATCHED =
-  'scuttleGlobalThis:{enabled:!0,exceptions:["Object","postMessage","Reflect","Set","JSON","ReactNativeWebView","String","XMLSerializer","DOMParser","webpackChunk_metamask_snaps_execution_environments"]}';
-
-const patchSnapsWebViewHTML = (html: string): string => {
-  if (!html.includes(SCUTTLING_EXCEPTIONS_ORIGINAL)) {
-    if (!html.includes('"XMLSerializer"')) {
-      Logger.log(
-        'SnapsExecutionWebView: scuttleGlobalThis exceptions list shape changed; XMLSerializer/DOMParser patch was not applied. See Sentry #19735.',
-      );
-    }
-    return html;
-  }
-  return html.replace(
-    SCUTTLING_EXCEPTIONS_ORIGINAL,
-    SCUTTLING_EXCEPTIONS_PATCHED,
-  );
-};
-
-const WebViewHTML = patchSnapsWebViewHTML(WebViewHTMLRaw as string);
+// The bundled `index.html` ships a LavaMoat scuttling allow-list that does
+// not include `XMLSerializer` / `DOMParser`, which several first-party
+// snaps (`bitcoin-wallet-snap`, `tron-wallet-snap`, …) need at startup.
+// We extend that allow-list via a Yarn patch on
+// `@metamask/snaps-execution-environments` (see
+// `.yarn/patches/@metamask-snaps-execution-environments-npm-*.patch`).
+// TODO: drop the patch once the upstream package adds those globals to the
+// scuttling exceptions list.
 
 // This is a hack to allow us to asynchronously await the creation of the WebView.
 // eslint-disable-next-line import-x/no-mutable-exports

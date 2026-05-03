@@ -10139,7 +10139,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-execution-environments@npm:^11.0.2":
+"@metamask/snaps-execution-environments@npm:11.0.2":
   version: 11.0.2
   resolution: "@metamask/snaps-execution-environments@npm:11.0.2"
   dependencies:
@@ -10154,6 +10154,24 @@ __metadata:
     "@metamask/utils": "npm:^11.10.0"
     readable-stream: "npm:^3.6.2"
   checksum: 10/9faa7bba96688fe1430bbe7797df1693e7f3a67c7d993fdba2731fa6ce062910ab48eecb36188e7448d452d5642bafe42a5bf9ab6abeb3b0e31962fe24495993
+  languageName: node
+  linkType: hard
+
+"@metamask/snaps-execution-environments@patch:@metamask/snaps-execution-environments@npm%3A11.0.2#~/.yarn/patches/@metamask-snaps-execution-environments-npm-11.0.2-83df58c486.patch":
+  version: 11.0.2
+  resolution: "@metamask/snaps-execution-environments@patch:@metamask/snaps-execution-environments@npm%3A11.0.2#~/.yarn/patches/@metamask-snaps-execution-environments-npm-11.0.2-83df58c486.patch::version=11.0.2&hash=63f4dc"
+  dependencies:
+    "@metamask/json-rpc-engine": "npm:^10.2.3"
+    "@metamask/object-multiplex": "npm:^2.1.0"
+    "@metamask/post-message-stream": "npm:^10.0.0"
+    "@metamask/providers": "npm:^22.1.1"
+    "@metamask/rpc-errors": "npm:^7.0.3"
+    "@metamask/snaps-sdk": "npm:^11.0.0"
+    "@metamask/snaps-utils": "npm:^12.1.2"
+    "@metamask/superstruct": "npm:^3.2.1"
+    "@metamask/utils": "npm:^11.10.0"
+    readable-stream: "npm:^3.6.2"
+  checksum: 10/089284a0dcaebffaaf6c696593069a7bd039f0b46929e74b520b2017665f6cd5fa36e9579a678ac46dd6bc878d0ba49ca40e42614028ec16931feb0c410a1dac
   languageName: node
   linkType: hard
 
@@ -35946,7 +35964,7 @@ __metadata:
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^24.0.0"
     "@metamask/snaps-controllers": "npm:^20.0.3"
-    "@metamask/snaps-execution-environments": "npm:^11.0.2"
+    "@metamask/snaps-execution-environments": "patch:@metamask/snaps-execution-environments@npm%3A11.0.2#~/.yarn/patches/@metamask-snaps-execution-environments-npm-11.0.2-83df58c486.patch"
     "@metamask/snaps-rpc-methods": "npm:^15.1.1"
     "@metamask/snaps-sdk": "npm:^11.1.0"
     "@metamask/snaps-utils": "npm:^12.2.0"
