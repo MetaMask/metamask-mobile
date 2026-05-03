@@ -1,7 +1,6 @@
 import {
   ExecutionService,
   ExecutionServiceMessenger,
-  AbstractExecutionService,
 } from '@metamask/snaps-controllers';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
@@ -17,7 +16,7 @@ type WebViewExecutionServiceCtor = new (args: {
   setupSnapProvider: (snapId: string, connectionStream: Duplex) => void;
   createWebView: typeof createWebView;
   removeWebView: typeof removeWebView;
-}) => AbstractExecutionService<unknown>;
+}) => ExecutionService<unknown>;
 
 const ensureMessageEventShim = () => {
   const globalScope = globalThis as typeof globalThis & {
@@ -81,8 +80,8 @@ const ensureMessageEventShim = () => {
 const getWebViewExecutionServiceCtor = (): WebViewExecutionServiceCtor => {
   ensureMessageEventShim();
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const snapsControllersRN =
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     require('@metamask/snaps-controllers/react-native') as {
       WebViewExecutionService?: WebViewExecutionServiceCtor;
     };

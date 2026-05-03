@@ -44,7 +44,7 @@ export interface ConnectionProps {
   // Only userful in case of reconnection
   trigger?: 'deeplink' | 'resume' | 'reconnect';
   initialConnection?: boolean;
-  navigation?: NavigationContainerRef;
+  navigation?: NavigationContainerRef<ParamListBase>;
   originatorInfo?: OriginatorInfo;
   connected?: boolean;
   validUntil?: number;
@@ -61,7 +61,7 @@ export class Connection extends EventEmitter2 {
   remote: RemoteCommunication;
   origin: string;
   host: string;
-  navigation?: NavigationContainerRef;
+  navigation?: NavigationContainerRef<ParamListBase>;
   hideReturnToApp?: boolean;
   protocolVersion: number;
   originatorInfo?: OriginatorInfo;

@@ -430,7 +430,7 @@ describe('Login', () => {
       expect(
         queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
       ).not.toBeOnTheScreen();
-      const images = UNSAFE_root.findAllByType(Image);
+      const images = UNSAFE_root.findAllByType(Image as never);
       const hasMetaMaskLogo = images.some(
         (img) => img.props.source === METAMASK_NAME,
       );
@@ -751,7 +751,7 @@ describe('Login', () => {
         ).toBeNull();
 
         // Assert - metaMask logo is rendered
-        const images = UNSAFE_root.findAllByType(Image);
+        const images = UNSAFE_root.findAllByType(Image as never);
         const hasMetaMaskLogo = images.some(
           (img) => img.props.source === METAMASK_NAME,
         );

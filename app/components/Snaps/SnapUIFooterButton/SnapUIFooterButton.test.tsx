@@ -61,7 +61,7 @@ describe('SnapUIFooterButton', () => {
   it('shows loading state', () => {
     render(<SnapUIFooterButton {...defaultProps} loading />);
     const button = screen.getByRole('button', { name: 'Test Button' });
-    expect(button.findByType(ActivityIndicator)).toBeTruthy();
+    expect(button.findByType(ActivityIndicator as never)).toBeTruthy();
   });
 
   it('applies correct variant based on disabled state', () => {

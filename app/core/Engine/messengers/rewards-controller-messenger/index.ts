@@ -144,6 +144,12 @@ export function getRewardsControllerMessenger(
     parent: rootMessenger,
   });
 
+  // The RewardsController delegation has so many `RewardsDataService:*`
+  // actions that TypeScript fails with TS2590 ("union type too complex") when
+  // checking the `delegate()` argument shape. We suppress the diagnostic on
+  // the single big call rather than splitting it up, because each split call
+  // still hits the same complexity ceiling.
+  // @ts-expect-error TS2590 — see comment above.
   rootMessenger.delegate({
     messenger,
     actions: [
