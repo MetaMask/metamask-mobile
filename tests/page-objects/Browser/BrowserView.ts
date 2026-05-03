@@ -321,7 +321,10 @@ class Browser {
     });
   }
 
-  async navigateToURL(url: string): Promise<void> {
+  async navigateToURL(
+    url: string,
+    options: { skipUrlEditorDismissal?: boolean } = {},
+  ): Promise<void> {
     await device.disableSynchronization(); // because animations makes typing into the browser slow
     await Gestures.typeText(this.urlInputBoxID, url, {
       hideKeyboard: true,
@@ -334,10 +337,18 @@ class Browser {
     // buttons in the top bar (close, network/account avatar) remain hidden.
     // Defensively tap Cancel to drop the URL bar back into its non-editing
     // state so subsequent gestures can target those buttons.
-    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
-      await Gestures.waitAndTap(this.cancelUrlInputButton, {
-        elemDescription: 'Cancel URL input (dismiss URL editor)',
-      });
+    //
+    // Callers can opt-out via `skipUrlEditorDismissal: true` when the
+    // dismissal would race with concurrent app work that breaks Detox sync —
+    // notably `browser-phishing.spec.ts`, where phishing detection triggers
+    // AsyncStorage v2 writes that interact badly with Detox's
+    // `AsyncStorageIdlingResource` if dismissal taps land on top of them.
+    if (!options.skipUrlEditorDismissal) {
+      if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+        await Gestures.waitAndTap(this.cancelUrlInputButton, {
+          elemDescription: 'Cancel URL input (dismiss URL editor)',
+        });
+      }
     }
     await device.enableSynchronization(); // re-enabling synchronization
   }
