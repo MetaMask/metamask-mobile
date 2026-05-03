@@ -388,7 +388,7 @@ import {
   DelegationControllerActions,
   DelegationControllerEvents,
   DelegationControllerState,
-} from '@metamask/delegation-controller/types';
+} from '@metamask/delegation-controller/dist/types.cjs';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
@@ -422,7 +422,7 @@ import {
 import {
   TransactionPayControllerActions,
   TransactionPayControllerEvents,
-} from '@metamask/transaction-pay-controller/types';
+} from '@metamask/transaction-pay-controller/dist/types.cjs';
 import {
   AiDigestController,
   AiDigestControllerActions,
