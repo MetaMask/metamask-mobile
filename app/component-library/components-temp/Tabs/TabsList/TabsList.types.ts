@@ -16,7 +16,6 @@ type BoxComponentProps = React.ComponentProps<typeof Box>;
 
 // Internal dependencies.
 import { TabsBarProps } from '../TabsBar/TabsBar.types';
-import { IconName } from '../../../components/Icons/Icon/Icon.types';
 
 /**
  * Individual tab item data interface
@@ -27,8 +26,6 @@ export interface TabItem {
   content: React.ReactNode;
   isDisabled?: boolean;
   testID?: string;
-  iconName?: IconName;
-  keepMounted?: boolean;
 }
 
 /**
@@ -38,9 +35,6 @@ export interface TabViewProps {
   tabLabel: string;
   key?: string;
   isDisabled?: boolean;
-  tabIcon?: IconName;
-  keepMounted?: boolean;
-  testID?: string;
 }
 
 /**
