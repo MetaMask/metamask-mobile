@@ -97,6 +97,7 @@ import {
   presentIosGoogleLoginVersionWarningSheet,
 } from './OnboardingIosPrompt';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getWalletSetupCompletedAttributionProperties } from '../../../util/analytics/getWalletSetupCompletedAttributionProperties';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 import {
@@ -460,6 +461,7 @@ const Onboarding = () => {
 
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
+        ...getWalletSetupCompletedAttributionProperties(store.getState()),
       });
       if (createWallet) {
         if (result.existingUser) {

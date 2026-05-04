@@ -258,6 +258,13 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
     .MetaMetricsEvents,
 }));
 
+jest.mock(
+  '../../../util/analytics/getWalletSetupCompletedAttributionProperties',
+  () => ({
+    getWalletSetupCompletedAttributionProperties: jest.fn().mockReturnValue({}),
+  }),
+);
+
 interface EventBuilder {
   addProperties: () => EventBuilder;
   build: () => Record<string, unknown>;
@@ -3055,6 +3062,127 @@ describe('Onboarding', () => {
       });
 
       Platform.OS = 'ios';
+    });
+
+    describe('Social Login Completed attribution', () => {
+      const mockGetWalletSetupCompletedAttributionProperties = jest.requireMock(
+        '../../../util/analytics/getWalletSetupCompletedAttributionProperties',
+      ).getWalletSetupCompletedAttributionProperties;
+
+      beforeEach(() => {
+        mockSeedlessOnboardingEnabled.mockReturnValue(true);
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+        (Device.isIos as jest.Mock).mockReturnValue(false);
+        (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
+        Platform.OS = 'android';
+        mockGetWalletSetupCompletedAttributionProperties.mockClear();
+      });
+
+      afterEach(() => {
+        jest.clearAllMocks();
+        mockNavigate.mockReset();
+        mockSeedlessOnboardingEnabled.mockReset();
+        Platform.OS = 'ios';
+      });
+
+      it('reads attribution properties from store when Social Login Completed fires with persisted attribution', async () => {
+        const mockUtmProperties = {
+          utm_source: 'google_ads',
+          utm_medium: 'cpc',
+          utm_campaign: 'mobile_acquisition',
+        };
+        mockGetWalletSetupCompletedAttributionProperties.mockReturnValue(
+          mockUtmProperties,
+        );
+
+        const mockCreateLoginHandlerLocal = jest.requireMock(
+          '../../../core/OAuthService/OAuthLoginHandlers',
+        ).createLoginHandler;
+        const mockOAuthServiceLocal = jest.requireMock(
+          '../../../core/OAuthService/OAuthService',
+        ).default;
+
+        mockCreateLoginHandlerLocal.mockReturnValue('mockGoogleHandler');
+        mockOAuthServiceLocal.handleOAuthLogin.mockResolvedValue({
+          type: 'success',
+          existingUser: false,
+          accountName: 'test@example.com',
+        });
+
+        const { getByTestId } = renderScreen(
+          Onboarding,
+          { name: 'Onboarding' },
+          { state: mockInitialState },
+        );
+
+        const createWalletButton = getByTestId(
+          OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+        );
+        await act(async () => {
+          fireEvent.press(createWalletButton);
+        });
+
+        const navCall = mockNavigate.mock.calls.find(
+          (call) =>
+            call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+            call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        );
+        const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+        await act(async () => {
+          await googleOAuthFunction(true);
+        });
+
+        expect(
+          mockGetWalletSetupCompletedAttributionProperties,
+        ).toHaveBeenCalledWith(mockInitialState);
+      });
+
+      it('reads attribution properties from store when Apple Social Login Completed fires', async () => {
+        mockGetWalletSetupCompletedAttributionProperties.mockReturnValue({});
+
+        const mockCreateLoginHandlerLocal = jest.requireMock(
+          '../../../core/OAuthService/OAuthLoginHandlers',
+        ).createLoginHandler;
+        const mockOAuthServiceLocal = jest.requireMock(
+          '../../../core/OAuthService/OAuthService',
+        ).default;
+
+        mockCreateLoginHandlerLocal.mockReturnValue('mockAppleHandler');
+        mockOAuthServiceLocal.handleOAuthLogin.mockResolvedValue({
+          type: 'success',
+          existingUser: false,
+          accountName: 'test@icloud.com',
+        });
+
+        const { getByTestId } = renderScreen(
+          Onboarding,
+          { name: 'Onboarding' },
+          { state: mockInitialState },
+        );
+
+        const createWalletButton = getByTestId(
+          OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+        );
+        await act(async () => {
+          fireEvent.press(createWalletButton);
+        });
+
+        const navCall = mockNavigate.mock.calls.find(
+          (call) =>
+            call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+            call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        );
+        const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+        await act(async () => {
+          await appleOAuthFunction(true);
+        });
+
+        expect(
+          mockGetWalletSetupCompletedAttributionProperties,
+        ).toHaveBeenCalledWith(mockInitialState);
+      });
     });
   });
 
