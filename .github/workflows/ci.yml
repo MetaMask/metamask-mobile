@@ -483,14 +483,22 @@ jobs:
           android-api-level: 36
           target: qa
 
-      # React Native is an includeBuild(); it reads node_modules/react-native/gradle.properties,
-      # not android/gradle.properties — without this, ReactAndroid CMake builds all ABIs and can OOM the daemon.
-      - name: Limit ReactAndroid to a single ABI for CI
+      # React Native is an includeBuild() with its own settings root; cap ABI + Gradle there so the
+      # composite build does not default to all ABIs or ignore android/gradle.properties.
+      - name: Tune included React Native build for CI memory
         run: |
           set -euo pipefail
           RN_GP="node_modules/react-native/gradle.properties"
-          if ! grep -q '^reactNativeArchitectures=' "$RN_GP"; then
-            printf '\n# CI (android-lint): one ABI to limit native compile memory\nreactNativeArchitectures=x86_64\n' >> "$RN_GP"
+          if ! grep -qF '# metamask-mobile android-lint CI' "$RN_GP"; then
+            {
+              echo ''
+              echo '# metamask-mobile android-lint CI'
+              echo 'reactNativeArchitectures=x86_64'
+              echo 'org.gradle.parallel=false'
+              echo 'org.gradle.workers.max=1'
+              echo 'org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=384m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8'
+              echo 'kotlin.daemon.jvmargs=-Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError'
+            } >> "$RN_GP"
           fi
 
       - name: Restore Gradle dependencies
@@ -515,12 +523,24 @@ jobs:
         working-directory: android
         env:
           NODE_OPTIONS: --max-old-space-size=4096
+          # ReactAndroid CMake invokes Ninja with high parallelism by default; cap native compile RAM.
+          CMAKE_BUILD_PARALLEL_LEVEL: 1
+          NINJAFLAGS: -j1
         run: |
           set -euo pipefail
           cp gradle.properties.github gradle.properties
+          # github file targets 48GB runners; shrink JVM + workers on smaller self-hosted runners.
+          sed -i \
+            -e 's/^org.gradle.parallel=.*/org.gradle.parallel=false/' \
+            -e 's/^org.gradle.workers.max=.*/org.gradle.workers.max=1/' \
+            -e 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=384m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8/' \
+            -e 's/^kotlin.daemon.jvmargs=.*/kotlin.daemon.jvmargs=-Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError/' \
+            gradle.properties
+          ./gradlew --stop || true
           SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew :app:lintProdRelease \
             -PreactNativeArchitectures=x86_64 \
-            --max-workers=2
+            --max-workers=1 \
+            --no-daemon
 
       - name: Require clean working directory
         shell: bash
