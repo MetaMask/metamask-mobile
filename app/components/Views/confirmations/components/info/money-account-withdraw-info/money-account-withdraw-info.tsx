@@ -16,7 +16,7 @@ import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccoun
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountWithdrawInfo() {
-  useNavbar(strings('confirm.title.money_account_withdraw'));
+  useNavbar(strings('confirm.title.money_account_transfer_money'));
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
