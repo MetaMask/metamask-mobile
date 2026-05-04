@@ -34,7 +34,8 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   // Use ref to store previous token array
   const previousTokensRef = useRef<PerpsToken[]>([]);
 
-  // Get Hyperliquid account balance
+  // Get Hyperliquid account balance from the reshaped balance contract.
+  // `spendableBalance` is the Unified-aware tradeable amount.
   const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
   const hyperliquidBalance = Number.parseFloat(

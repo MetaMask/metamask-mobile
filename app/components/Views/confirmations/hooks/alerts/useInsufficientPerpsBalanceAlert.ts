@@ -30,6 +30,8 @@ export function useInsufficientPerpsBalanceAlert({
   const quotes = useTransactionPayQuotes();
   const hasQuotes = Boolean(quotes?.length);
 
+  // `withdrawableBalance` is the Unified-aware value populated by
+  // `addSpotBalanceToAccountState` and matches what `withdraw3` draws from.
   const withdrawableBalance = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.accountState

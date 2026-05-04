@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { Position } from '@metamask/social-controllers';
@@ -64,11 +64,19 @@ jest.mock('./QuickBuyHeader', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ position }: { position: Position }) =>
+    default: ({
+      position,
+      marketCap,
+    }: {
+      position: Position;
+      marketCap?: number;
+    }) =>
       ReactMock.createElement(
         Text,
         { testID: 'mock-header' },
-        position.tokenSymbol,
+        marketCap != null
+          ? `${position.tokenSymbol}:${marketCap}`
+          : position.tokenSymbol,
       ),
   };
 });
@@ -94,6 +102,28 @@ jest.mock('./QuickBuyFooter', () => {
     __esModule: true,
     default: () =>
       ReactMock.createElement(Text, { testID: 'mock-footer' }, 'footer'),
+  };
+});
+
+jest.mock('./QuickBuyConfirmButton', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      label,
+      onPress,
+      testID,
+    }: {
+      label: string;
+      onPress: () => void;
+      testID?: string;
+    }) =>
+      ReactMock.createElement(
+        TouchableOpacity,
+        { testID, onPress },
+        ReactMock.createElement(Text, null, label),
+      ),
   };
 });
 
@@ -256,6 +286,19 @@ describe('QuickBuyBottomSheet', () => {
       expect(screen.getByText('PEPE')).toBeOnTheScreen();
     });
 
+    it('forwards the marketCap prop to the header', () => {
+      renderWithProvider(
+        <QuickBuyBottomSheet
+          isVisible
+          position={createPosition({ tokenSymbol: 'PEPE' })}
+          marketCap={2_300_000}
+          onClose={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByText('PEPE:2300000')).toBeOnTheScreen();
+    });
+
     it('renders the skeleton body before deferred content becomes ready', () => {
       renderWithProvider(
         <QuickBuyBottomSheet
@@ -295,7 +338,7 @@ describe('QuickBuyBottomSheet', () => {
       expect(screen.queryByTestId('mock-footer')).not.toBeOnTheScreen();
     });
 
-    it('renders the amount input and footer for a supported chain', () => {
+    it('renders the amount input, footer details, and sticky confirm button for a supported chain', () => {
       (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(
         buildHookResult({ isUnsupportedChain: false }),
       );
@@ -313,6 +356,29 @@ describe('QuickBuyBottomSheet', () => {
 
       expect(screen.getByTestId('mock-amount-input')).toBeOnTheScreen();
       expect(screen.getByTestId('mock-footer')).toBeOnTheScreen();
+      expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
+    });
+
+    it('calls handleConfirm from the sticky confirm button', () => {
+      const handleConfirm = jest.fn();
+      (useQuickBuyBottomSheet as jest.Mock).mockReturnValue(
+        buildHookResult({ isUnsupportedChain: false, handleConfirm }),
+      );
+
+      renderWithProvider(
+        <QuickBuyBottomSheet
+          isVisible
+          position={createPosition()}
+          onClose={jest.fn()}
+        />,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      fireEvent.press(screen.getByTestId('quick-buy-confirm-button'));
+
+      expect(handleConfirm).toHaveBeenCalledTimes(1);
     });
   });
 });

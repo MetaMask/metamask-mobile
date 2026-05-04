@@ -1,8 +1,13 @@
+import { TokenSecurityData } from '@metamask/assets-controllers';
 import { IconColor, IconName } from '@metamask/design-system-react-native';
 import { TagSeverity } from '../../../../component-library/base-components/TagBase';
 import { strings } from '../../../../../locales/i18n';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
-import { SecurityDataType } from '../hooks/usePopularTokens';
+import {
+  SecurityData,
+  SecurityDataType,
+  SecurityFeature,
+} from '../hooks/usePopularTokens';
 import { BridgeToken } from '../types';
 
 /**
@@ -13,6 +18,31 @@ export const getSecurityWarnings = (
   token: BridgeToken | undefined | null,
 ): string[] =>
   token?.securityData?.metadata?.features?.map((f) => f.description) ?? [];
+
+/**
+ * Adapts the trending-API security shape (`TokenSecurityData`) to the bridge's
+ * legacy `SecurityData` shape consumed by Bridge UI and analytics.
+ *
+ * Returns `undefined` if the input is missing. Unknown `resultType` strings are
+ * passed through cast as `SecurityDataType`; downstream consumers already
+ * tolerate unrecognized values via default branches in
+ * `getBridgeTokenSecurityConfig`, `isNegativeSecurityType`, etc.
+ */
+export const adaptTokenSecurityData = (
+  data: TokenSecurityData | undefined,
+): SecurityData | undefined => {
+  if (!data) return undefined;
+  return {
+    type: data.resultType as SecurityDataType,
+    metadata: {
+      features: (data.features ?? []).map((f) => ({
+        featureId: f.featureId,
+        type: f.type as SecurityDataType,
+        description: f.description,
+      })) as SecurityFeature[],
+    },
+  };
+};
 
 export interface BridgeTokenSecurityConfig {
   iconName: IconName;

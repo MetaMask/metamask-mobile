@@ -23,9 +23,10 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
+import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import { useTopTraders } from './hooks';
 
-const HOME_TRADER_LIMIT = 3;
+const HOME_TRADER_LIMIT = 10;
 const SKELETON_KEYS = Array.from(
   { length: HOME_TRADER_LIMIT },
   (_, i) => `home-trader-skeleton-${i}`,
@@ -40,7 +41,7 @@ interface TopTradersSectionProps {
  * TopTradersSection -- Social leaderboard entry point on the homepage.
  *
  * Renders a section header plus a horizontally scrollable row of the
- * top 3 trader cards. Tapping the header chevron navigates to the
+ * top 10 trader cards. Tapping the header chevron navigates to the
  * full TopTradersView.
  */
 const TopTradersSection = forwardRef<
@@ -131,7 +132,7 @@ const TopTradersSection = forwardRef<
           {!isLoading && traders.length > 0 && (
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName="w-[200px] h-[180px]"
+              twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-auto`}
               testID="top-traders-view-more-card"
             />
           )}

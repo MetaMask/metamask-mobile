@@ -3196,6 +3196,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
         includeMarketData: true,
       });
+      await jest.runAllTimersAsync();
 
       const initialCallCount = mockSubscriptionClient.assetCtxs
         ? (mockSubscriptionClient.assetCtxs as jest.Mock).mock.calls.length
@@ -3759,6 +3760,102 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe();
     });
 
+    it('preserves the abstraction REST result when WS spot push arrives first, and re-aggregates with the correct fold', async () => {
+      // Setup: first userAbstraction call hangs until we manually resolve it.
+      // This simulates a slow REST response while the WS spot subscription
+      // pushes a snapshot first, bumping #spotStateGeneration so the in-flight
+      // refresh would otherwise discard the abstraction result.
+      let resolveAbstraction: (mode: 'unifiedAccount') => void = jest.fn();
+      const abstractionPromise = new Promise<'unifiedAccount'>((resolve) => {
+        resolveAbstraction = resolve;
+      });
+      let resolveAbstractionStarted: () => void = jest.fn();
+      const abstractionStarted = new Promise<void>((resolve) => {
+        resolveAbstractionStarted = resolve;
+      });
+      const userAbstractionMock = jest.fn().mockImplementationOnce(() => {
+        resolveAbstractionStarted();
+        return abstractionPromise;
+      });
+
+      let spotListener: ((event: any) => void) | undefined;
+      let resolveSpotStateSubscribed: () => void = jest.fn();
+      const spotStateSubscribed = new Promise<void>((resolve) => {
+        resolveSpotStateSubscribed = resolve;
+      });
+      mockSubscriptionClient.spotState.mockImplementationOnce(
+        (_params: any, callback: any) => {
+          spotListener = callback;
+          resolveSpotStateSubscribed();
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction: userAbstractionMock,
+      })) as never;
+
+      const accountCallback = jest.fn();
+      const unsubscribe = service.subscribeToAccount({
+        callback: accountCallback,
+      });
+      await Promise.all([abstractionStarted, spotStateSubscribed]);
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      // Simulate the WS spot push arriving before REST userAbstraction
+      // resolves. The WS callback bumps #spotStateGeneration so the
+      // in-flight refresh's spot result would be discarded by the
+      // generation guard.
+      expect(spotListener).toBeDefined();
+      spotListener?.({
+        user: '0x123',
+        spotState: {
+          balances: [
+            {
+              coin: 'USDC',
+              token: 0,
+              hold: '0',
+              total: '123.45',
+              entryNtl: '123.45',
+            },
+          ],
+        },
+      });
+      await jest.runAllTimersAsync();
+
+      // Resolve the REST userAbstraction. The refresh path must record the
+      // mode (it's user-keyed, independent of spot generation) and trigger
+      // a re-aggregation so the active subscriber sees folded balance —
+      // not wait for another subscribe/action to repair the state.
+      accountCallback.mockClear();
+      resolveAbstraction('unifiedAccount');
+      await jest.runAllTimersAsync();
+
+      expect(accountCallback).toHaveBeenCalled();
+      const recoveredCall = accountCallback.mock.calls.at(-1)?.[0];
+      // unifiedAccount → fold=true → spot USDC ($123.45) folds into
+      // spendable/withdrawable (default $1000 perps + $123.45 spot ≈ $1123.45).
+      expect(parseFloat(recoveredCall?.spendableBalance)).toBeCloseTo(
+        1123.45,
+        2,
+      );
+      expect(parseFloat(recoveredCall?.withdrawableBalance)).toBeCloseTo(
+        1123.45,
+        2,
+      );
+
+      // A subsequent subscribe must take the fast path — the cache is now
+      // sealed for this user, so no redundant userAbstraction REST round-trip.
+      service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+    });
+
     it('ignores spotState events for a different user', async () => {
       const unsubscribe = service.subscribeToAccount({
         callback: jest.fn(),
@@ -3958,6 +4055,115 @@ describe('HyperLiquidSubscriptionService', () => {
     });
   });
 
+  describe('setUserAbstractionMode', () => {
+    it('does not throw for an address with no prior cache entry', async () => {
+      expect(() =>
+        service.setUserAbstractionMode('0x123', 'unifiedAccount'),
+      ).not.toThrow();
+    });
+
+    it('lowercases the key so checksummed addresses hit the cached entry', async () => {
+      expect(() =>
+        service.setUserAbstractionMode(
+          '0xABCDEF1234567890ABCDEF1234567890ABCDEF12',
+          'unifiedAccount',
+        ),
+      ).not.toThrow();
+    });
+
+    it('flips the fold state and notifies subscribers when the mode changes', async () => {
+      // Start without a resolved mode — the spot WS push and REST fetch run
+      // through the standard subscribeToAccount path. The default mock
+      // resolves userAbstraction = 'unifiedAccount' so the initial subscribe
+      // already records that mode and folds spot. Setting back to
+      // dexAbstraction should flip the fold off and re-notify.
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+      })) as never;
+
+      const accountCallback = jest.fn();
+      const unsubscribe = service.subscribeToAccount({
+        callback: accountCallback,
+      });
+      await jest.runAllTimersAsync();
+
+      expect(accountCallback).toHaveBeenCalled();
+      accountCallback.mockClear();
+
+      // Switch the recorded mode to dexAbstraction (no fold). Account state
+      // hash flips because spendable/withdrawable drop the folded spot.
+      service.setUserAbstractionMode('0x123', 'dexAbstraction');
+      await jest.runAllTimersAsync();
+
+      expect(accountCallback).toHaveBeenCalled();
+      const lastCall = accountCallback.mock.calls.at(-1)?.[0];
+      expect(lastCall?.spendableBalance).toBeDefined();
+      expect(lastCall?.withdrawableBalance).toBeDefined();
+
+      unsubscribe();
+    });
+  });
+
+  describe('userAbstraction fetch failure handling', () => {
+    it('does not seal the spot cache when userAbstraction fails, so the next refresh retries', async () => {
+      // Without this guard, a transient userAbstraction failure leaves
+      // #cachedSpotStateUserAddress set, the early-return in #ensureSpotState
+      // takes the fast path forever, and Standard / dexAbstraction users
+      // keep seeing spot folded into availableToTradeBalance via the
+      // fail-open Unified default.
+      const userAbstractionMock = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('transient HL outage'))
+        .mockResolvedValueOnce('dexAbstraction');
+
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction: userAbstractionMock,
+      })) as never;
+
+      const unsub1 = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      // Second subscribe (same user) must trigger another refresh because
+      // the prior failure left the cache unsealed.
+      const unsub2 = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(2);
+
+      unsub1();
+      unsub2();
+    });
+
+    it('seals the cache normally once a prior abstraction mode has been resolved', async () => {
+      // Sanity check: when userAbstraction has already resolved successfully,
+      // a subsequent refresh failure must not force pointless retries.
+      const userAbstractionMock = jest
+        .fn()
+        .mockResolvedValueOnce('dexAbstraction')
+        .mockRejectedValueOnce(new Error('transient HL outage'));
+
+      mockClientService.getInfoClient = jest.fn(() => ({
+        spotClearinghouseState: mockSpotClearinghouseState,
+        userAbstraction: userAbstractionMock,
+      })) as never;
+
+      const unsub1 = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      // Subsequent subscribe takes the early-return path; the second mock
+      // entry (the rejection) is never consumed.
+      const unsub2 = service.subscribeToAccount({ callback: jest.fn() });
+      await jest.runAllTimersAsync();
+      expect(userAbstractionMock).toHaveBeenCalledTimes(1);
+
+      unsub1();
+      unsub2();
+    });
+  });
+
   describe('spot-adjusted account balance parity', () => {
     it('includes spot balance exactly once in streamed totalBalance across multiple DEXs', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
@@ -4036,6 +4242,80 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       });
       expect(mockSpotClearinghouseState).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+    });
+
+    it('does not use non-USDC spot coins in streamed spendable/withdrawable', async () => {
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        spendableBalance: '0',
+        withdrawableBalance: '0',
+        totalBalance: '0',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      }));
+
+      const infoClient = {
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [
+            { coin: 'mUSD', hold: '10', total: '100' },
+            { coin: 'HYPE', hold: '0', total: '999' },
+          ],
+        }),
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+      };
+      mockClientService.getInfoClient = jest.fn(() => infoClient) as never;
+
+      mockSubscriptionClient.clearinghouseState.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              dex: _params.dex || '',
+              clearinghouseState: {
+                assetPositions: [],
+                marginSummary: {
+                  accountValue: '0',
+                  totalMarginUsed: '0',
+                },
+                withdrawable: '0',
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+      mockSubscriptionClient.openOrders.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => callback({ dex: _params.dex || '', orders: [] }), 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const hip3Service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        mockDeps,
+        true,
+      );
+
+      await hip3Service.updateFeatureFlags(true, ['xyz'], [], []);
+
+      const mockCallback = jest.fn();
+      const unsubscribe = hip3Service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await jest.runAllTimersAsync();
+
+      const accountState = mockCallback.mock.calls.at(-1)[0];
+      expect(accountState.spendableBalance).toBe('0');
+      expect(accountState.withdrawableBalance).toBe('0');
+      expect(accountState.totalBalance).toBe('0');
 
       unsubscribe();
     });

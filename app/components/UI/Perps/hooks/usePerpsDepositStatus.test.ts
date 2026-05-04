@@ -16,7 +16,7 @@ import {
 } from '@metamask/transaction-controller';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../util/haptics';
 import {
   USDC_ARBITRUM_MAINNET_ADDRESS,
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
@@ -121,7 +121,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Deposit successful', isBold: true },
               { label: 'Your deposit has been processed' },
             ],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           })),
           error: {
             variant: ToastVariants.Icon,
@@ -131,7 +131,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Deposit failed', isBold: true },
               { label: 'Your deposit could not be processed' },
             ],
-            hapticsType: NotificationFeedbackType.Error,
+            hapticsType: NotificationMoment.Error,
           } as PerpsToastOptions,
           inProgress: jest.fn(() => ({
             variant: ToastVariants.Icon,
@@ -141,7 +141,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Deposit in progress', isBold: true },
               { label: 'Processing your deposit...' },
             ],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           })),
           takingLonger: {
             variant: ToastVariants.Icon,
@@ -151,7 +151,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Deposit taking longer', isBold: true },
               { label: 'Your deposit is still processing' },
             ],
-            hapticsType: NotificationFeedbackType.Warning,
+            hapticsType: NotificationMoment.Warning,
           } as PerpsToastOptions,
           tradeCanceled: {
             variant: ToastVariants.Icon,
@@ -161,7 +161,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Trade canceled', isBold: true },
               { label: 'Funds returned to account' },
             ],
-            hapticsType: NotificationFeedbackType.Warning,
+            hapticsType: NotificationMoment.Warning,
           } as PerpsToastOptions,
         },
         oneClickTrade: {
@@ -176,7 +176,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Withdrawal in progress', isBold: true },
               { label: 'Processing your withdrawal...' },
             ],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           } as PerpsToastOptions,
           withdrawalSuccess: jest.fn(() => ({
             variant: ToastVariants.Icon,
@@ -186,7 +186,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Withdrawal successful', isBold: true },
               { label: 'Your withdrawal has been processed' },
             ],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           })),
           withdrawalFailed: jest.fn(() => ({
             variant: ToastVariants.Icon,
@@ -196,7 +196,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Withdrawal failed', isBold: true },
               { label: 'Your withdrawal could not be processed' },
             ],
-            hapticsType: NotificationFeedbackType.Error,
+            hapticsType: NotificationMoment.Error,
           })),
         },
       },
@@ -310,7 +310,7 @@ describe('usePerpsDepositStatus', () => {
           { label: 'Deposit in progress', isBold: true },
           { label: 'Processing your deposit...' },
         ],
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
@@ -487,7 +487,7 @@ describe('usePerpsDepositStatus', () => {
           { label: 'Deposit successful', isBold: true },
           { label: 'Your deposit has been processed' },
         ],
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.success,
@@ -631,7 +631,7 @@ describe('usePerpsDepositStatus', () => {
           { label: 'Deposit failed', isBold: true },
           { label: 'Your deposit could not be processed' },
         ],
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
       });
     });
 

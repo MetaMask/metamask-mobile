@@ -209,6 +209,28 @@ describe('usePerpsBalanceTokenFilter', () => {
       }
     });
 
+    it('uses spendableBalance for Unified Account users', () => {
+      // Unified Account / Portfolio Margin: collateral lives in spot. The
+      // provider folds free spot USDC into spendableBalance via
+      // addSpotBalanceToAccountState, so the Pay-with sheet's synthetic
+      // Perps row sees the unified total without branching on mode.
+      mockUseSelector.mockReturnValue({
+        spendableBalance: '2500.00',
+        withdrawableBalance: '2500.00',
+      });
+      const inputTokens: AssetType[] = [];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(true);
+      if (isHighlightedItemOutsideAssetList(output[0])) {
+        expect(output[0].name_description).toBe('$2500.00');
+        expect(output[0].fiat).toBe('$2500.00');
+      }
+    });
+
     it('uses zero balance when perps account is null', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {

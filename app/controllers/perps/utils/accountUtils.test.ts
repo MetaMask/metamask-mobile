@@ -200,12 +200,16 @@ describe('spot balance helpers', () => {
       returnOnEquity: '0',
     };
 
-    const result = addSpotBalanceToAccountState(accountState, {
-      balances: [
-        { coin: 'USDC', total: '25.5' },
-        { coin: 'HYPE', total: '0.5' },
-      ],
-    } as never);
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [
+          { coin: 'USDC', total: '25.5' },
+          { coin: 'HYPE', total: '0.5' },
+        ],
+      } as never,
+      { foldIntoCollateral: true },
+    );
 
     // Only USDC contributes — non-stablecoin spot assets are not convertible
     // to perps collateral and must not inflate balances.
@@ -265,17 +269,71 @@ describe('spot balance helpers', () => {
       returnOnEquity: '0',
     };
 
-    const result = addSpotBalanceToAccountState(accountState, {
-      balances: [
-        { coin: 'USDC', total: '20' },
-        { coin: 'USDH', total: '30' },
-        { coin: 'HYPE', total: '9999' },
-      ],
-    } as never);
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [
+          { coin: 'USDC', total: '20' },
+          { coin: 'USDH', total: '30' },
+          { coin: 'HYPE', total: '9999' },
+        ],
+      } as never,
+      { foldIntoCollateral: true },
+    );
 
     expect(result.totalBalance).toBe('30');
     expect(result.spendableBalance).toBe('20');
     expect(result.withdrawableBalance).toBe('20');
+  });
+
+  it('does not fold USDC spot collateral into spendable/withdrawable for Standard modes', () => {
+    const accountState: AccountState = {
+      spendableBalance: '7',
+      withdrawableBalance: '7',
+      totalBalance: '10',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [{ coin: 'USDC', total: '25', hold: '5' }],
+      } as never,
+      { foldIntoCollateral: false },
+    );
+
+    expect(result.totalBalance).toBe('30');
+    expect(result.spendableBalance).toBe('7');
+    expect(result.withdrawableBalance).toBe('7');
+  });
+
+  it('keeps spot USDC separate from withdrawable even when withdrawable=0 in Standard mode', () => {
+    // Standard / DEX-abstraction users with $0 perps withdrawable but free
+    // spot USDC must NOT see spot fold into withdrawable — withdraw3 only
+    // draws from the perps ledger in those modes. Folding would surface a
+    // withdrawable amount the API can't actually fulfill.
+    const accountState: AccountState = {
+      spendableBalance: '0',
+      withdrawableBalance: '0',
+      totalBalance: '0',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [{ coin: 'USDC', total: '2500', hold: '0' }],
+      } as never,
+      { foldIntoCollateral: false },
+    );
+
+    expect(result.spendableBalance).toBe('0');
+    expect(result.withdrawableBalance).toBe('0');
+    expect(result.totalBalance).toBe('2500');
   });
 
   it('subtracts spot hold from total and only folds free spot into spendable/withdrawable', () => {
@@ -288,9 +346,13 @@ describe('spot balance helpers', () => {
       returnOnEquity: '0',
     };
 
-    const result = addSpotBalanceToAccountState(accountState, {
-      balances: [{ coin: 'USDC', total: '40', hold: '15' }],
-    } as never);
+    const result = addSpotBalanceToAccountState(
+      accountState,
+      {
+        balances: [{ coin: 'USDC', total: '40', hold: '15' }],
+      } as never,
+      { foldIntoCollateral: true },
+    );
 
     // totalBalance += spotTotal - spotHold = 100 + 40 - 15 = 125
     expect(parseFloat(result.totalBalance)).toBe(125);
@@ -341,7 +403,7 @@ describe('spot balance helpers', () => {
     expect(result.withdrawableBalance).toBe('5');
   });
 
-  it('folds spot into spendable/withdrawable when foldIntoCollateral is explicitly true (parity with default)', () => {
+  it('folds spot into spendable/withdrawable when foldIntoCollateral is explicitly true', () => {
     const accountState: AccountState = {
       spendableBalance: '5',
       withdrawableBalance: '5',

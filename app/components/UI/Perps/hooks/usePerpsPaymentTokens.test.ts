@@ -296,6 +296,27 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
     });
 
+    it('uses spendableBalance for Unified Account users', () => {
+      // Unified Account / Portfolio Margin: collateral lives in spot. The
+      // provider folds free spot USDC into spendableBalance via
+      // addSpotBalanceToAccountState, so the Pay-with sheet sees the unified
+      // total without branching on mode.
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccountState,
+          spendableBalance: '2500.00',
+          withdrawableBalance: '2500.00',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsPaymentTokens());
+
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.balance).toBe('2500000000');
+      expect(hyperliquidUsdc.balanceFiat).toBe('$2500.00');
+    });
+
     it('handles null account state', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: null,

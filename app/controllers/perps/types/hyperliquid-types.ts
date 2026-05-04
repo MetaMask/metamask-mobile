@@ -24,42 +24,58 @@ import type {
  * HL account abstraction mode returned by the `userAbstraction` info endpoint.
  * Re-exported here to keep HL-specific types centralised.
  *
- * `unifiedAccount` / `portfolioMargin` / `default`: spot is unified with perps;
+ * `unifiedAccount` / `portfolioMargin`: spot is unified with perps;
  * `withdraw3` draws from the unified ledger, spot folds into perps collateral.
  *
- * `disabled` (Standard) / `dexAbstraction` (deprecated): spot and perps are
- * separate ledgers; spot is NOT auto-collateral.
+ * `disabled` (Standard) / `dexAbstraction` (deprecated) / `default` (unset):
+ * spot and perps are separate ledgers; spot is NOT auto-collateral until the
+ * user is migrated to unified mode.
  */
 export type HyperLiquidAbstractionMode = UserAbstractionResponse;
+
+/**
+ * Wire codes accepted by `agentSetAbstraction({ abstraction })`. The SDK
+ * types these as a `"i" | "u" | "p"` literal union with no exported constant.
+ *
+ * Only `unifiedAccount` is referenced by the current migration flow; the
+ * other entries document the full SDK wire format so a future caller
+ * (e.g. emergency rollback to `disabled`, or opting into `portfolioMargin`)
+ * does not have to re-discover the codes.
+ */
+export const HL_ABSTRACTION_WIRE = {
+  disabled: 'i',
+  unifiedAccount: 'u',
+  portfolioMargin: 'p',
+} as const;
+
+/**
+ * Long-form abstraction-mode value targeted by the migration. Used as the
+ * `abstraction` parameter for `userSetAbstraction` and as the success / target
+ * value reported by Account Setup analytics.
+ */
+export const HL_UNIFIED_ACCOUNT_MODE = 'unifiedAccount' as const;
 
 /**
  * True when the given HL abstraction mode treats spot USDC as perps collateral.
  * Used by the provider + subscription service to gate `addSpotBalanceToAccountState`'s
  * `foldIntoCollateral` option.
  *
- * When the mode is unknown (null/undefined — e.g. `userAbstraction` fetch
- * failed or hasn't completed yet) this returns `true` (Unified semantics).
- * HL's app.hyperliquid.xyz defaults new accounts to `unifiedAccount`, and
- * `default` also falls back to Unified on HL's side, so the overwhelming
- * majority of mobile users are Unified. Under-reporting a Unified user's
- * combined balance would make them see $0 during a transient endpoint
- * failure — a trust break. Over-reporting a Standard user still results
- * in a clear HL-side rejection with a retry path, which is preferable.
+ * Fail-CLOSED on missing mode: until userAbstraction has been resolved we do
+ * NOT fold spot, because over-reporting withdrawable funds for Standard /
+ * dexAbstraction users (which `withdraw3` cannot actually draw) is worse than
+ * briefly under-reporting for Unified users during the initial subscription
+ * window or a transient REST outage.
  *
  * @param mode - Abstraction mode from `userAbstraction` endpoint; null/undefined means unknown.
- * @returns `true` when spot folds into spendable/withdrawable (Unified / Portfolio / default / unknown); `false` for Standard / DEX abstraction.
+ * @returns `true` when spot folds into spendable/withdrawable (Unified / Portfolio); `false` for Standard / DEX abstraction / unknown.
  */
 export function hyperLiquidModeFoldsSpot(
   mode?: HyperLiquidAbstractionMode | null,
 ): boolean {
   if (mode === null || mode === undefined) {
-    return true;
+    return false;
   }
-  return (
-    mode === 'unifiedAccount' ||
-    mode === 'portfolioMargin' ||
-    mode === 'default'
-  );
+  return mode === 'unifiedAccount' || mode === 'portfolioMargin';
 }
 
 // Clearinghouse (Account) Types
@@ -87,4 +103,5 @@ export type {
   MetaAndAssetCtxsResponse,
   PredictedFundingsResponse,
   SpotMetaResponse,
+  UserAbstractionResponse,
 };

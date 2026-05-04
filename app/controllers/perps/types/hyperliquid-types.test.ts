@@ -1,31 +1,34 @@
 import { hyperLiquidModeFoldsSpot } from './hyperliquid-types';
 
 describe('hyperLiquidModeFoldsSpot', () => {
-  it('returns true for unifiedAccount (spot is unified with perps)', () => {
+  it('folds for unifiedAccount', () => {
     expect(hyperLiquidModeFoldsSpot('unifiedAccount')).toBe(true);
   });
 
-  it('returns true for portfolioMargin (spot borrows against perps collateral)', () => {
+  it('folds for portfolioMargin', () => {
     expect(hyperLiquidModeFoldsSpot('portfolioMargin')).toBe(true);
   });
 
-  it('returns true for default (app.hyperliquid.xyz defaults to unifiedAccount)', () => {
-    expect(hyperLiquidModeFoldsSpot('default')).toBe(true);
-  });
-
-  it('returns false for disabled (Standard mode; spot is a separate ledger)', () => {
-    expect(hyperLiquidModeFoldsSpot('disabled')).toBe(false);
-  });
-
-  it('returns false for dexAbstraction (deprecated; treats USDC as perps, other collateral as spot with no fold)', () => {
+  it('does not fold for dexAbstraction', () => {
     expect(hyperLiquidModeFoldsSpot('dexAbstraction')).toBe(false);
   });
 
-  it('returns true when mode is unknown (null) — HL defaults to Unified; under-reporting would hide funds from users', () => {
-    expect(hyperLiquidModeFoldsSpot(null)).toBe(true);
+  it('does not fold for default', () => {
+    expect(hyperLiquidModeFoldsSpot('default')).toBe(false);
   });
 
-  it('returns true when mode is undefined — same Unified fallback, covers pre-first-fetch window', () => {
-    expect(hyperLiquidModeFoldsSpot(undefined)).toBe(true);
+  it('does not fold for disabled', () => {
+    expect(hyperLiquidModeFoldsSpot('disabled')).toBe(false);
+  });
+
+  it('fail-closes (no fold) when mode is null', () => {
+    // Critical: must not over-report withdrawable funds for Standard /
+    // dexAbstraction users when the abstraction mode hasn't been resolved
+    // yet (e.g. WS spot push arrives before REST userAbstraction completes).
+    expect(hyperLiquidModeFoldsSpot(null)).toBe(false);
+  });
+
+  it('fail-closes (no fold) when mode is undefined', () => {
+    expect(hyperLiquidModeFoldsSpot(undefined)).toBe(false);
   });
 });
