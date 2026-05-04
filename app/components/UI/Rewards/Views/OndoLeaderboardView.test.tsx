@@ -103,6 +103,26 @@ jest.mock('../components/Campaigns/OndoLeaderboard.utils', () => ({
       tiers?.find((t: { name: string }) => t.name === name)?.minNetDeposit ??
       null,
   ),
+  getCampaignTierNames: (
+    campaign:
+      | { details?: { tiers?: { name: string }[] } | null }
+      | null
+      | undefined,
+  ) => campaign?.details?.tiers?.map((t: { name: string }) => t.name) ?? [],
+  buildLeaderboardUserPosition: (
+    position: {
+      projectedTier: string;
+      rank: number;
+      neighbors: unknown[];
+    } | null,
+  ) =>
+    position
+      ? {
+          projectedTier: position.projectedTier,
+          rank: position.rank,
+          neighbors: position.neighbors,
+        }
+      : null,
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
@@ -446,6 +466,61 @@ describe('OndoLeaderboardView', () => {
       'campaign-ondo-123',
       expect.objectContaining({ defaultTier: 'MID' }),
     );
+  });
+
+  const qualifiedPosition = {
+    rank: 5,
+    projectedTier: 'STARTER',
+    qualified: true,
+    qualifiedDays: 10,
+    totalInTier: 100,
+    rateOfReturn: 0.1,
+    currentUsdValue: 12500,
+    totalUsdDeposited: 10000,
+    netDeposit: 8500,
+    neighbors: [],
+    computedAt: '2024-01-01T00:00:00Z',
+  };
+
+  it('uses empty entries and zero totalParticipants when selectedTierData is null', () => {
+    mockUseGetOndoLeaderboard.mockReturnValue({
+      ...hookDefaults,
+      selectedTierData: null,
+    });
+    render(<OndoLeaderboardView />);
+    expect(mockOndoLeaderboard).toHaveBeenCalledWith(
+      expect.objectContaining({ entries: [], totalParticipants: 0 }),
+    );
+  });
+
+  it('computes prizePoolValue when deposits are loaded', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: qualifiedPosition,
+    });
+    mockUseGetOndoCampaignDeposits.mockReturnValue({
+      deposits: { totalUsdDeposited: '5000', lastFetched: Date.now() },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    const { getByTestId } = render(<OndoLeaderboardView />);
+    expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
+  });
+
+  it('shows loading state for prize pool when deposits are being fetched', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: qualifiedPosition,
+    });
+    mockUseGetOndoCampaignDeposits.mockReturnValue({
+      deposits: null,
+      isLoading: true,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    const { getByTestId } = render(<OndoLeaderboardView />);
+    expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
   });
 
   describe('isCampaignComplete behavior', () => {

@@ -24,7 +24,11 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
-import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  buildLeaderboardUserPosition,
+  formatTierDisplayName,
+  getCampaignTierNames,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import {
   formatRewardsTimeOnly,
   formatPercentChange,
@@ -127,10 +131,7 @@ const OndoLeaderboardView: React.FC = () => {
     defaultTier: position?.projectedTier,
   });
 
-  const tierNames = useMemo(
-    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
-    [campaign],
-  );
+  const tierNames = useMemo(() => getCampaignTierNames(campaign), [campaign]);
 
   const tierOptions = useMemo(
     () =>
@@ -166,14 +167,7 @@ const OndoLeaderboardView: React.FC = () => {
   ]);
 
   const leaderboardUserPosition = useMemo(
-    () =>
-      position
-        ? {
-            projectedTier: position.projectedTier,
-            rank: position.rank,
-            neighbors: position.neighbors ?? [],
-          }
-        : null,
+    () => buildLeaderboardUserPosition(position),
     [position],
   );
 
@@ -278,14 +272,14 @@ const OndoLeaderboardView: React.FC = () => {
               tierNames={tierNames}
               selectedTier={selectedTier}
               onTierChange={setSelectedTier}
+              currentUserReferralCode={referralCode}
               entries={selectedTierData?.entries ?? []}
               totalParticipants={selectedTierData?.totalParticipants ?? 0}
               isLoading={isLeaderboardLoading}
+              userPosition={leaderboardUserPosition}
               hasError={hasLeaderboardError}
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
-              currentUserReferralCode={referralCode}
-              userPosition={leaderboardUserPosition}
               campaignId={campaignId}
               isCampaignComplete={isCampaignComplete}
               hideTierHeader
