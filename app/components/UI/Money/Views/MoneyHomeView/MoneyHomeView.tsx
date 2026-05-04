@@ -307,8 +307,8 @@ const MoneyHomeView = () => {
             onLearnMorePress={handleLearnMorePress}
           />
         )}
+        <MoneyFooter onAddMoneyPress={handleAddPress} />
       </ScrollView>
-      <MoneyFooter onAddMoneyPress={handleAddPress} />
     </Box>
   );
 };
