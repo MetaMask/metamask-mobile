@@ -273,12 +273,17 @@ const OndoCampaignDetailsView: React.FC = () => {
           onPress: handleTurnOnNotifications,
         }),
       );
+
+      return () => {
+        toastRef?.current?.closeToast();
+      };
     }, [
       RewardsToastOptions,
       handleTurnOnNotifications,
       isMetaMaskPushNotificationsEnabled,
       isMetamaskNotificationsEnabled,
       showToast,
+      toastRef,
     ]),
   );
 
