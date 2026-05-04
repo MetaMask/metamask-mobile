@@ -960,10 +960,6 @@ describe('useNetworkSelection', () => {
       await result.current.selectAllPopularNetworks(mockCallback);
 
       expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
-      expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:1');
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledWith('mainnet-client-id');
       expect(mockCallback).toHaveBeenCalled();
     });
 
@@ -977,10 +973,6 @@ describe('useNetworkSelection', () => {
       ).resolves.toBeUndefined();
 
       expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
-      expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:1');
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledWith('mainnet-client-id');
     });
 
     it('enables all popular networks', async () => {
@@ -991,10 +983,6 @@ describe('useNetworkSelection', () => {
       await result.current.selectAllPopularNetworks();
 
       expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
-      expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:1');
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledWith('mainnet-client-id');
     });
   });
 
@@ -1370,7 +1358,6 @@ describe('useNetworkSelection', () => {
         ).rejects.toThrow('Callback error');
 
         expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
-        expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:1');
         expect(mockCallback).toHaveBeenCalled();
       });
     });
@@ -1640,10 +1627,6 @@ describe('useNetworkSelection', () => {
       await Promise.all([promise1, promise2]);
 
       expect(mockEnableAllPopularNetworks).toHaveBeenCalledTimes(2);
-      expect(mockEnableNetwork).toHaveBeenCalledTimes(2);
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledTimes(2);
     });
   });
 

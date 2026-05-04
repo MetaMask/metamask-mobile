@@ -203,13 +203,10 @@ export const useNetworkSelection = ({
   const selectAllPopularNetworks = useCallback(
     async (onComplete?: () => void) => {
       await enableAllPopularNetworks();
-      // After non-EVM (e.g. Solana), MultichainNetworkController may still have
-      // isEvmSelected false. Sync active chain to Ethereum mainnet so EVM-gated
-      // UI (e.g. Activity Perps tab) matches "all popular networks" mode.
-      await selectPopularNetwork('eip155:1' as CaipChainId);
+
       onComplete?.();
     },
-    [enableAllPopularNetworks, selectPopularNetwork],
+    [enableAllPopularNetworks],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */

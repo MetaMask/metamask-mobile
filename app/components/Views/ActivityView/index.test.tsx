@@ -131,12 +131,19 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+let mockAreAllEvmPopularNetworksEnabled = false;
+
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
     networks: [],
+    areAllNetworksSelected: false,
     selectNetwork: jest.fn(),
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
+  }),
+  useNetworksByCustomNamespace: () => ({
+    networks: [],
+    areAllNetworksSelected: mockAreAllEvmPopularNetworksEnabled,
   }),
   NetworkType: {
     Popular: 'popular',
@@ -461,11 +468,24 @@ describe('ActivityView', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       mockRoute.params = {};
+      mockAreAllEvmPopularNetworksEnabled = false;
     });
 
     it('includes Perps tab when feature flag is enabled on EVM network', () => {
       mockPerpsEnabled = true;
       mockIsEvmSelected = true;
+
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('tab-perps')).toBeOnTheScreen();
+      expect(queryByTestId('perps-transactions-view')).toBeNull();
+      expect(getRenderedTabs()).toContain('perps');
+    });
+
+    it('includes Perps tab when all popular EVM networks are enabled while on non-EVM', () => {
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = false;
+      mockAreAllEvmPopularNetworksEnabled = true;
 
       const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
 
@@ -486,6 +506,7 @@ describe('ActivityView', () => {
     it('excludes Perps tab on non-EVM network even with feature flag enabled', () => {
       mockPerpsEnabled = true;
       mockIsEvmSelected = false;
+      mockAreAllEvmPopularNetworksEnabled = false;
 
       renderComponent(mockInitialState);
 
