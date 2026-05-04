@@ -480,6 +480,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
           message: 'Scanned QR code is not in UR format',
         }),
       );
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('resumes scanning after forwarding an existing inline error to an external callback', async () => {
@@ -949,6 +950,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
             device_type: HardwareDeviceTypes.QR,
           }),
         );
+        expect(mockTrackEvent).toHaveBeenCalledWith({});
       });
     });
 
