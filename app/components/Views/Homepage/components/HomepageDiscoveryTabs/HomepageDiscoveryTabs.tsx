@@ -26,6 +26,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './HomepageDiscoveryTabs.styles';
 import { useDiscoveryScrollManager } from '../../../../UI/Predict/hooks/useDiscoveryScrollManager';
 import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import { TabIconAnimationContext } from '../../../../../component-library/components-temp/Tabs/Tab/TabIconAnimationContext';
 
 // Tab indices — kept as a const so future tabs can be added without renumbering.
@@ -139,7 +140,7 @@ const HomepageDiscoveryTabs = forwardRef<
     const tw = useTailwind();
     const { styles } = useStyles(styleSheet, {});
     const { themeAppearance } = useTheme();
-    const isDarkMode = themeAppearance === 'dark';
+    const isDarkMode = themeAppearance === AppThemeKey.dark;
     // One Animated.Value per tab — pre-rendered at mount so no re-render is needed
     // during a tab switch. Portfolio starts fully visible; others start at 0.
     const tabGradientOpacities = useRef(

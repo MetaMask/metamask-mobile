@@ -349,7 +349,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           }}
           style={[
             tw.style(
-              `relative ${fillWidth ? 'flex-row items-center' : 'gap-6 flex-row items-center relative'} ${animatedHeight !== undefined ? 'overflow-hidden' : ''}`,
+              `relative ${fillWidth ? 'flex-row items-center' : 'px-4 gap-6 flex-row items-center relative'} ${animatedHeight !== undefined ? 'overflow-hidden' : ''}`,
             ),
             animatedHeight !== undefined
               ? { height: animatedHeight }

@@ -167,7 +167,11 @@ const PerpsHomeView = ({
   useEffect(() => {
     if (tabEnterCallbackRef) {
       tabEnterCallbackRef.current = perpsOnTabEnter;
+      return () => {
+        tabEnterCallbackRef.current = null;
+      };
     }
+    return undefined;
   }, [tabEnterCallbackRef, perpsOnTabEnter]);
 
   // Get balance state directly from Redux
