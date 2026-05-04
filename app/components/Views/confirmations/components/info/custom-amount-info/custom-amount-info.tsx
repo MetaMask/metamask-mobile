@@ -61,6 +61,7 @@ import { AlertKeys } from '../../../constants/alerts';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
@@ -165,20 +166,27 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(async () => {
-      if (selectedFiatPaymentMethodId && transactionId) {
-        Engine.context.TransactionPayController.updateFiatPayment({
-          transactionId,
-          callback: (fp) => {
-            fp.amountFiat = amountFiat;
-          },
-        });
-      } else {
-        await updateTokenAmount();
+      try {
+        if (selectedFiatPaymentMethodId && transactionId) {
+          Engine.context.TransactionPayController.updateFiatPayment({
+            transactionId,
+            callback: (fp) => {
+              fp.amountFiat = amountFiat;
+            },
+          });
+        } else {
+          await updateTokenAmount();
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Failed to apply custom amount on Done press',
+        );
+      } finally {
+        EngineService.flushState();
+        setIsKeyboardVisible(false);
+        onAmountSubmit?.();
       }
-
-      EngineService.flushState();
-      setIsKeyboardVisible(false);
-      onAmountSubmit?.();
     }, [
       amountFiat,
       onAmountSubmit,
