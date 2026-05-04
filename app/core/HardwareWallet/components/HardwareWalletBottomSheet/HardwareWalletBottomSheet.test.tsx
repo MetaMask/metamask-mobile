@@ -640,6 +640,116 @@ describe('HardwareWalletBottomSheet', () => {
       expect(mockActions.retryEnsureDeviceReady).not.toHaveBeenCalled();
     });
 
+    it('does not auto-open the QR scanner after retrying a pairing QR scan error', async () => {
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.ErrorState,
+        error: createQRHardwareScanError({
+          errorType: QRHardwareScanErrorType.NonURQrScanned,
+          purpose: QrScanRequestType.PAIR,
+          isUrFormat: false,
+        }),
+      });
+
+      const { rerender } = render(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      await act(async () => {
+        await (
+          lastErrorContentProps.onContinue as (() => Promise<void>) | undefined
+        )?.();
+      });
+
+      expect(mockActions.onRetryQrScan).toHaveBeenCalled();
+      expect(mockActions.retryEnsureDeviceReady).not.toHaveBeenCalled();
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.Disconnected,
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: 'device-123',
+        operationType: 'transaction',
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      expect(lastAwaitingConfirmationProps.openQrScannerOnMount).toBe(false);
+    });
+
+    it('clears QR scanner auto-open state before retrying non-QR scan errors', async () => {
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.ErrorState,
+        error: createQRHardwareScanError({
+          errorType: QRHardwareScanErrorType.WrongURType,
+          purpose: QrScanRequestType.SIGN,
+          receivedUrType: 'crypto-account',
+          isUrFormat: true,
+        }),
+      });
+
+      const { rerender } = render(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      await act(async () => {
+        await (
+          lastErrorContentProps.onContinue as (() => Promise<void>) | undefined
+        )?.();
+      });
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.ErrorState,
+        error: new HardwareWalletError('Test error', {
+          code: ErrorCode.Unknown,
+          severity: Severity.Err,
+          category: Category.Unknown,
+          userMessage: 'Test error',
+        }),
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      await act(async () => {
+        await (
+          lastErrorContentProps.onContinue as (() => Promise<void>) | undefined
+        )?.();
+      });
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: 'device-123',
+        operationType: 'transaction',
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      expect(lastAwaitingConfirmationProps.openQrScannerOnMount).toBe(false);
+    });
+
     it('auto-opens the QR scanner after retrying a QR scan error', async () => {
       Object.assign(mockConnectionState, {
         status: ConnectionStatus.ErrorState,
