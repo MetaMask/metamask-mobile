@@ -17,6 +17,12 @@ import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
 import { FeatureFlagOverrideProvider } from '../../contexts/FeatureFlagOverrideContext';
+import { UIMessengerProvider } from '../../contexts/ui-messenger';
+import { createMockUIMessenger } from './mock-ui-messenger';
+import {
+  RouteMessengerContext,
+  LegacyRouteMessengerProvider,
+} from '../../contexts/route-messenger';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
@@ -40,6 +46,8 @@ export default function renderWithProvider(
   providerValues?: ProviderValues,
   includeNavigationContainer = true,
   includeFeatureFlagOverrideProvider = true,
+  uiMessenger = createMockUIMessenger(),
+  routeMessenger = null,
 ) {
   const { state = {}, theme = mockTheme } = providerValues ?? {};
   const store = configureStore(state);
@@ -55,11 +63,24 @@ export default function renderWithProvider(
         </FeatureFlagOverrideProvider>
       );
     }
+
+    if (routeMessenger) {
+      wrappedChildren = (
+        <RouteMessengerContext.Provider value={routeMessenger}>
+          <LegacyRouteMessengerProvider>
+            {children}
+          </LegacyRouteMessengerProvider>
+        </RouteMessengerContext.Provider>
+      );
+    }
+
     return (
       <Provider store={store}>
-        <ThemeContext.Provider value={theme}>
-          {wrappedChildren}
-        </ThemeContext.Provider>
+        <UIMessengerProvider value={uiMessenger}>
+          <ThemeContext.Provider value={theme}>
+            {wrappedChildren}
+          </ThemeContext.Provider>
+        </UIMessengerProvider>
       </Provider>
     );
   };

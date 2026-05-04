@@ -35488,6 +35488,7 @@ __metadata:
     "@react-native/metro-config": "npm:0.81.5"
     "@react-native/typescript-config": "npm:0.76.9"
     "@react-navigation/bottom-tabs": "npm:^6.5.0"
+    "@react-navigation/core": "npm:^6.4.17"
     "@react-navigation/native": "npm:^6.1.0"
     "@react-navigation/native-stack": "npm:^6.0.0"
     "@react-navigation/stack": "npm:^6.3.0"
