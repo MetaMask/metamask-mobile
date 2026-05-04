@@ -96,6 +96,13 @@ const buildQuoteRequest = ({
     destWalletAddress: destAddress ?? walletAddress,
     gasIncluded,
     gasIncluded7702,
+    // Always quote as if balance is insufficient. The bridge API otherwise
+    // uses the user's wallet balance to simulate the trade and returns no
+    // quotes (or fee-less quotes) when funds are short — leaving QuickBuy
+    // showing a $0 total. We surface "insufficient balance" via the Buy
+    // button's disabled state instead, so the user can still preview what
+    // they'd receive at the entered USD amount.
+    insufficientBal: true,
   };
 };
 

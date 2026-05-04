@@ -148,20 +148,46 @@ export function useQuickBuyBottomSheet(
     isUnsupportedChain,
   } = useQuickBuySetup(position);
 
-  const { options: sourceTokenOptions } = useSourceTokenOptions(destChainId);
+  const { options: sourceTokenOptions, fallback: fallbackSourceToken } =
+    useSourceTokenOptions(destChainId);
   const [selectedSourceToken, setSelectedSourceToken] = useState<
     BridgeToken | undefined
   >(undefined);
   const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
 
-  // Auto-select default source token using smart priority rules (see selectDefaultSourceToken)
+  // Auto-select the default source token from balance-bearing options using
+  // smart priority rules (see selectDefaultSourceToken). When the user has no
+  // balance-bearing options, fall back to the destination chain's native token
+  // so the sheet can still fetch a quote — the Buy button will surface the
+  // "insufficient balance" error and stay disabled.
   useEffect(() => {
-    if (sourceTokenOptions.length > 0 && !selectedSourceToken) {
-      setSelectedSourceToken(
-        selectDefaultSourceToken(sourceTokenOptions, destChainId),
+    if (sourceTokenOptions.length > 0) {
+      if (!selectedSourceToken) {
+        setSelectedSourceToken(
+          selectDefaultSourceToken(sourceTokenOptions, destChainId),
+        );
+        return;
+      }
+      // Upgrade from the zero-balance fallback if real balances arrive later.
+      const isCurrentInOptions = sourceTokenOptions.some(
+        (token) =>
+          token.address === selectedSourceToken.address &&
+          token.chainId === selectedSourceToken.chainId,
       );
+      if (!isCurrentInOptions) {
+        setSelectedSourceToken(
+          selectDefaultSourceToken(sourceTokenOptions, destChainId),
+        );
+      }
+    } else if (fallbackSourceToken && !selectedSourceToken) {
+      setSelectedSourceToken(fallbackSourceToken);
     }
-  }, [sourceTokenOptions, selectedSourceToken, destChainId]);
+  }, [
+    sourceTokenOptions,
+    selectedSourceToken,
+    destChainId,
+    fallbackSourceToken,
+  ]);
 
   const sourceToken = selectedSourceToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;

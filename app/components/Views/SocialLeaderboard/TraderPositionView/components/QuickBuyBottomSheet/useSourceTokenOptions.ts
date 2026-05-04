@@ -16,6 +16,7 @@ import {
   selectMultichainAssetsRates,
 } from '../../../../../../selectors/multichain/multichain';
 import { getSourceTokenCandidates } from './sourceTokenCandidates';
+import { getNativeSourceToken } from '../../../../../UI/Bridge/utils/tokenUtils';
 import { toChecksumAddress } from '../../../../../../util/address';
 import { EVM_SCOPE } from '../../../../../UI/Earn/constants/networks';
 
@@ -101,8 +102,13 @@ const getTokenPrice = (
 };
 
 /**
- * Returns the list of source token options for QuickBuy,
- * filtered to only tokens where the user has a non-zero balance.
+ * Returns source token options for QuickBuy.
+ *
+ * `options` is filtered to tokens where the user has a non-zero balance.
+ * `fallback` is the destination chain's native token (with `balance: '0'`)
+ * used as a placeholder when the user has no balance-bearing options, so the
+ * sheet can still fetch a quote for the entered USD amount and surface an
+ * "insufficient balance" CTA instead of showing a $0 total.
  *
  * Reads cached balances from Redux only:
  * - native balances from AccountTrackerController
@@ -110,7 +116,11 @@ const getTokenPrice = (
  */
 export const useSourceTokenOptions = (
   destChainId: Hex | CaipChainId | undefined,
-): { options: BridgeToken[]; isLoading: boolean } => {
+): {
+  options: BridgeToken[];
+  fallback: BridgeToken | undefined;
+  isLoading: boolean;
+} => {
   const candidates = useMemo(
     () => getSourceTokenCandidates(destChainId),
     [destChainId],
@@ -279,5 +289,45 @@ export const useSourceTokenOptions = (
     allNetworkConfigs,
   ]);
 
-  return { options, isLoading: false };
+  // Zero-balance placeholder so the sheet can still quote when the user has
+  // no balance-bearing source tokens. We pick the destination chain's native
+  // asset because no bridge hop is needed — the quote then reflects the pure
+  // swap a funded user would see at the same USD amount.
+  const fallback = useMemo<BridgeToken | undefined>(() => {
+    if (!destChainId) return undefined;
+
+    const nativeToken = getNativeSourceToken(destChainId);
+
+    if (isSolanaChainId(nativeToken.chainId)) {
+      const rateStr = (
+        multichainRates as Record<string, { rate?: string } | undefined>
+      )?.[nativeToken.address]?.rate;
+      const rateNum = rateStr ? parseFloat(rateStr) : NaN;
+      if (isNaN(rateNum) || rateNum <= 0) return undefined;
+      return {
+        ...nativeToken,
+        balance: '0',
+        balanceFiat: '$0.00',
+        tokenFiatAmount: 0,
+        currencyExchangeRate: rateNum,
+      };
+    }
+
+    const chainId = nativeToken.chainId as Hex;
+    const networkConfig = allNetworkConfigs?.[chainId];
+    const nativeTicker = networkConfig?.nativeCurrency;
+    const exchangeRate = nativeTicker
+      ? (currencyRates?.[nativeTicker]?.usdConversionRate ?? 0)
+      : 0;
+    if (exchangeRate <= 0) return undefined;
+    return {
+      ...nativeToken,
+      balance: '0',
+      balanceFiat: '$0.00',
+      tokenFiatAmount: 0,
+      currencyExchangeRate: exchangeRate,
+    };
+  }, [destChainId, allNetworkConfigs, currencyRates, multichainRates]);
+
+  return { options, fallback, isLoading: false };
 };

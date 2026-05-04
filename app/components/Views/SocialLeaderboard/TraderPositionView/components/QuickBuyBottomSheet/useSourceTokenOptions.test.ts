@@ -86,6 +86,7 @@ describe('useSourceTokenOptions', () => {
     expect(result.current).toEqual({
       isLoading: false,
       options: [],
+      fallback: undefined,
     });
     expect(mockGetSourceTokenCandidates).toHaveBeenCalledWith('0x89');
   });
@@ -352,9 +353,47 @@ describe('useSourceTokenOptions', () => {
 
     const { result } = renderHook(() => useSourceTokenOptions('0x1'));
 
-    expect(result.current).toEqual({
-      isLoading: false,
-      options: [],
+    expect(result.current.options).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+    // Fallback is the dest-chain native (ETH) so the sheet can still quote.
+    expect(result.current.fallback).toMatchObject({
+      symbol: 'ETH',
+      balance: '0',
+      currencyExchangeRate: 2000,
     });
+  });
+
+  it('exposes a zero-balance fallback for the destination chain native token', () => {
+    mockGetSourceTokenCandidates.mockReturnValue([]);
+    mockSelectorValues({
+      currencyRates: {
+        ETH: { usdConversionRate: 1500 },
+      },
+      allNetworkConfigs: {
+        '0x1': { nativeCurrency: 'ETH' },
+      },
+    });
+
+    const { result } = renderHook(() => useSourceTokenOptions('0x1'));
+
+    expect(result.current.options).toEqual([]);
+    expect(result.current.fallback).toMatchObject({
+      symbol: 'ETH',
+      balance: '0',
+      balanceFiat: '$0.00',
+      tokenFiatAmount: 0,
+      currencyExchangeRate: 1500,
+    });
+  });
+
+  it('returns no fallback when the destination native exchange rate is unavailable', () => {
+    mockGetSourceTokenCandidates.mockReturnValue([]);
+    mockSelectorValues({
+      // No currencyRates / allNetworkConfigs → exchange rate cannot be derived.
+    });
+
+    const { result } = renderHook(() => useSourceTokenOptions('0x1'));
+
+    expect(result.current.fallback).toBeUndefined();
   });
 });
