@@ -36,17 +36,23 @@ export function useUpdateTransactionPayAmount() {
       try {
         const updates = await updater(transactionMeta, amountHuman);
 
-        for (const { nestedTransactionIndex, transactionData } of updates) {
-          updateAtomicBatchData({
-            transactionId: transactionMeta.id,
-            transactionIndex: nestedTransactionIndex,
-            transactionData,
-          }).catch((error) => {
+        const results = await Promise.allSettled(
+          updates.map(({ nestedTransactionIndex, transactionData }) =>
+            updateAtomicBatchData({
+              transactionId: transactionMeta.id,
+              transactionIndex: nestedTransactionIndex,
+              transactionData,
+            }),
+          ),
+        );
+
+        for (const result of results) {
+          if (result.status === 'rejected') {
             Logger.error(
-              error,
+              result.reason as Error,
               'Failed to update transaction pay amount in nested transaction',
             );
-          });
+          }
         }
       } catch (error) {
         Logger.error(error as Error, preparationErrorMessage);
