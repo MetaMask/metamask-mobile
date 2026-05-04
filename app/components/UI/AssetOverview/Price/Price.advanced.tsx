@@ -224,11 +224,14 @@ const PriceAdvanced = ({
     vsCurrency: currentCurrency,
   });
 
+  const refetchChartRef = useRef(refetchChart);
+  refetchChartRef.current = refetchChart;
+
   useEffect(() => {
     if (chartRefreshKey && chartRefreshKey > 0) {
-      refetchChart();
+      refetchChartRef.current();
     }
-  }, [chartRefreshKey, refetchChart]);
+  }, [chartRefreshKey]);
 
   const ohlcvPagination = useMemo(
     () => ({
