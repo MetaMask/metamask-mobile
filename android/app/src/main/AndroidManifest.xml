@@ -6,6 +6,7 @@
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-feature android:name="android.hardware.camera" android:required="false" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
@@ -17,6 +18,9 @@
     android:name="android.permission.ACCESS_FINE_LOCATION"
     android:maxSdkVersion="30"
     tools:replace="android:maxSdkVersion" />
+  <uses-permission
+    android:name="android.permission.ACCESS_COARSE_LOCATION"
+    android:maxSdkVersion="30" />
   <uses-permission-sdk-23
     android:name="android.permission.ACCESS_FINE_LOCATION"
     tools:node="remove" />
@@ -120,7 +124,7 @@
 				<data android:scheme="https" />
 				<data android:host="link-test.metamask.io" />
 			</intent-filter>
-			<intent-filter android:autoVerify="true">
+			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
@@ -163,7 +167,7 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
-      		<intent-filter android:autoVerify="true">
+      		<intent-filter>
 				<data android:scheme="expo-metamask" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -208,11 +212,5 @@
 			/>
 		</provider>
 
-		<!-- Disable Notifee's BlockStateBroadcastReceiver to prevent crash during cold start -->
-		<!-- This receiver tries to access React Native before it's initialized -->
-		<receiver
-			android:name="app.notifee.core.BlockStateBroadcastReceiver"
-			android:enabled="false"
-			tools:node="remove" />
 	</application>
 </manifest>
