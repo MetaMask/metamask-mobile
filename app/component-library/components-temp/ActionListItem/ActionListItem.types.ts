@@ -51,4 +51,9 @@ export interface ActionListItemProps extends Omit<PressableProps, 'disabled'> {
    * When true, applies 50% opacity and disables interactions.
    */
   isDisabled?: boolean;
+  /**
+   * Whether to render the default row background and pressed background.
+   * When false, the row renders transparently.
+   */
+  hasBackground?: boolean;
 }

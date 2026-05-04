@@ -35,6 +35,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   descriptionTextProps,
   iconProps,
   isDisabled = false,
+  hasBackground = true,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -98,11 +99,12 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   const getStyle = useCallback(
     ({ pressed }: { pressed: boolean }) =>
       tw.style(
-        'bg-default px-4 py-3',
-        pressed && !isDisabled && 'bg-default-pressed',
+        'px-4 py-3',
+        hasBackground && 'bg-default',
+        hasBackground && pressed && !isDisabled && 'bg-default-pressed',
         isDisabled && 'opacity-50',
       ),
-    [tw, isDisabled],
+    [tw, hasBackground, isDisabled],
   );
 
   return (

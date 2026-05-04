@@ -270,13 +270,14 @@ function TradeWalletActions() {
             >
               <Box
                 style={tw.style(
-                  'bg-default p-4 rounded-2xl mx-4',
+                  'bg-alternative p-4 rounded-2xl mx-4',
                   `pb-[${bottomMaskHeight - 12}px]`,
                   `px-0`,
                 )}
               >
                 {AppConstants.SWAPS.ACTIVE && (
                   <ActionListItem
+                    hasBackground={false}
                     label={strings('asset_overview.swap')}
                     description={strings('asset_overview.swap_description')}
                     iconName={IconName.SwapVertical}
@@ -287,6 +288,7 @@ function TradeWalletActions() {
                 )}
                 {isPerpsEnabled && (
                   <ActionListItem
+                    hasBackground={false}
                     label={strings('asset_overview.perps_button')}
                     description={strings('asset_overview.perps_description')}
                     iconName={IconName.Candlestick}
@@ -297,6 +299,7 @@ function TradeWalletActions() {
                 )}
                 {isPredictEnabled && (
                   <ActionListItem
+                    hasBackground={false}
                     label={strings('asset_overview.predict_button')}
                     description={strings('asset_overview.predict_description')}
                     iconName={IconName.Speedometer}
@@ -307,6 +310,7 @@ function TradeWalletActions() {
                 )}
                 {isEarnWalletActionEnabled && isEarnEligible && (
                   <ActionListItem
+                    hasBackground={false}
                     label={strings('asset_overview.earn_button')}
                     description={strings('asset_overview.earn_description')}
                     iconName={IconName.Stake}
