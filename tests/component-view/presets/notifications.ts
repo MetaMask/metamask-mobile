@@ -151,6 +151,6 @@ export function buildNotificationsState(
           selectedAccountGroup: NOTIFICATIONS_HD_GROUP_ID,
         },
       },
-    } as DeepPartial<RootState>['engine'],
+    } as unknown as DeepPartial<RootState>['engine'],
   };
 }
