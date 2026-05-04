@@ -358,10 +358,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <AvatarToken
               name={token.symbol}
               imageSource={getTokenImageSource(
-                token.address,
-                token.chainId,
                 token.symbol,
                 token.image,
+                token.address,
+                token.chainId,
               )}
               size={AvatarSize.Lg}
               testID={

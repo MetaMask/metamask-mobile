@@ -46,7 +46,7 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
-import { SecurityDataType } from '../../hooks/usePopularTokens';
+import { SecurityDataType } from '../../types';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';

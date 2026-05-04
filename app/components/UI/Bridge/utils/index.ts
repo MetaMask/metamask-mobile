@@ -59,10 +59,10 @@ export const getTokenIconUrl = (
  * @returns ImageSourcePropType - Either a local require() result or { uri: string }
  */
 export const getTokenImageSource = (
-  address: string,
-  chainId: Hex | CaipChainId,
   symbol: string | undefined,
   imageUrl: string | undefined,
+  address?: string,
+  chainId?: Hex | CaipChainId,
 ): ImageSourcePropType | undefined => {
   // Check if we have a local icon for this symbol
   if (symbol && Object.keys(imageIcons).includes(symbol)) {
@@ -79,10 +79,13 @@ export const getTokenImageSource = (
       uri: imageUrl,
     };
   }
-  const url = getTokenIconUrl(
-    formatAddressToAssetId(address, chainId),
-    isNonEvmChainId(chainId),
-  );
+  const url =
+    address && chainId
+      ? getTokenIconUrl(
+          formatAddressToAssetId(address, chainId),
+          isNonEvmChainId(chainId),
+        )
+      : undefined;
   if (url) {
     return {
       uri: url,
