@@ -14,7 +14,6 @@ import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
-import { analytics } from './analytics/analytics';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
