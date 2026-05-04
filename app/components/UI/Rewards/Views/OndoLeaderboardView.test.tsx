@@ -494,8 +494,11 @@ describe('OndoLeaderboardView', () => {
         summary: {
           portfolioPnlPercent: '0.05',
           totalCurrentValue: '12500',
+          totalBookValue: '12000',
+          totalUsdDeposited: '10000',
           netDeposit: '10000',
           totalCashedOut: '0',
+          portfolioPnl: '500',
         },
       },
       isLoading: false,
