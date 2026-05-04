@@ -15,7 +15,7 @@ interface MoneyFooterProps {
 const MoneyFooter = ({
   onAddMoneyPress = () => undefined,
 }: MoneyFooterProps) => (
-  <Box twClassName="px-4 mt-6 mb-6" testID={MoneyFooterTestIds.CONTAINER}>
+  <Box twClassName="px-4 py-3" testID={MoneyFooterTestIds.CONTAINER}>
     <Button
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
