@@ -234,8 +234,11 @@ const OndoCampaignDetailsView: React.FC = () => {
       if (sessionNotificationsNudgeShown) {
         return;
       }
+      const didShowNudge = showEnableNotificationsNudge();
+      if (!didShowNudge) {
+        return;
+      }
       sessionNotificationsNudgeShown = true;
-      showEnableNotificationsNudge();
 
       return () => {
         closeEnableNotificationsNudge();

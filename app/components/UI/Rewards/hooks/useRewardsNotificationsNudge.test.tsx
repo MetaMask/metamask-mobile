@@ -231,6 +231,20 @@ describe('useRewardsNotificationsNudge', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
+  it('returns false from showEnableNotificationsNudge when the nudge is unavailable', () => {
+    mockSelectors({ notificationsEnabled: false });
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(false);
+    const { result } = renderNudgeHook();
+
+    let didShow = true;
+    act(() => {
+      didShow = result.current.showEnableNotificationsNudge();
+    });
+
+    expect(didShow).toBe(false);
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
   it('clears pending deferred action when the nudge is dismissed', async () => {
     let notificationsEnabled = false;
     mockSelectors({ notificationsEnabled });
