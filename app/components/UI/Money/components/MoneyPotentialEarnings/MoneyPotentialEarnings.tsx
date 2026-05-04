@@ -68,7 +68,7 @@ const MoneyPotentialEarnings = ({
   // useMusdConversionTokens; strip zero-balance entries defensively — the
   // feature flag threshold may be set to 0 in some environments.
   const eligibleTokens = useMemo(
-    () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
+    () => tokens.filter((token) => tokenFiatValue(token) > 0),
     [tokens],
   );
   const visibleTokens = useMemo(

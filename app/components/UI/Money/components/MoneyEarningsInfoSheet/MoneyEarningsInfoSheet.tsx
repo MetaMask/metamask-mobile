@@ -55,17 +55,17 @@ const MoneyEarningsInfoSheet = () => {
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMd}>
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {strings('money.earnings_tooltip.lifetime_heading')}
+            {strings('money.earnings_tooltip.monthly_heading')}
           </Text>
           {'\n'}
-          {strings('money.earnings_tooltip.lifetime_body')}
+          {strings('money.earnings_tooltip.monthly_body')}
         </Text>
         <Text variant={TextVariant.BodyMd}>
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {strings('money.earnings_tooltip.projected_heading')}
+            {strings('money.earnings_tooltip.yearly_heading')}
           </Text>
           {'\n'}
-          {strings('money.earnings_tooltip.projected_body')}
+          {strings('money.earnings_tooltip.yearly_body')}
         </Text>
         <Text variant={TextVariant.BodyMd}>
           {strings('money.earnings_tooltip.disclaimer', { percentage: apy })}

@@ -92,37 +92,37 @@ describe('MoneyEarningsInfoSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the lifetime section heading', () => {
+  it('renders the monthly section heading', () => {
     const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
     expect(
-      getByText(strings('money.earnings_tooltip.lifetime_heading')),
+      getByText(strings('money.earnings_tooltip.monthly_heading')),
     ).toBeOnTheScreen();
   });
 
-  it('renders the lifetime section body', () => {
+  it('renders the monthly section body', () => {
     const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
     expect(
-      getByText(strings('money.earnings_tooltip.lifetime_body'), {
+      getByText(strings('money.earnings_tooltip.monthly_body'), {
         exact: false,
       }),
     ).toBeOnTheScreen();
   });
 
-  it('renders the projected section heading', () => {
+  it('renders the yearly section heading', () => {
     const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
     expect(
-      getByText(strings('money.earnings_tooltip.projected_heading')),
+      getByText(strings('money.earnings_tooltip.yearly_heading')),
     ).toBeOnTheScreen();
   });
 
-  it('renders the projected section body', () => {
+  it('renders the yearly section body', () => {
     const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
     expect(
-      getByText(strings('money.earnings_tooltip.projected_body'), {
+      getByText(strings('money.earnings_tooltip.yearly_body'), {
         exact: false,
       }),
     ).toBeOnTheScreen();
