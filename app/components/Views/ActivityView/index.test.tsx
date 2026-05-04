@@ -270,6 +270,7 @@ describe('ActivityView', () => {
     mockIsEvmSelected = true;
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
+    mockAreAllEvmPopularNetworksEnabled = false;
     clearRenderedTabs();
     mockRoute.params = {};
   });
@@ -468,7 +469,6 @@ describe('ActivityView', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       mockRoute.params = {};
-      mockAreAllEvmPopularNetworksEnabled = false;
     });
 
     it('includes Perps tab when feature flag is enabled on EVM network', () => {
