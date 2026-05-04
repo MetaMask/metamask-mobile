@@ -258,14 +258,8 @@ function useTokenBalance(tokenUsdRate: number) {
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
-    // Prefer `availableToTradeBalance` so Unified Account / Portfolio Margin
-    // users see the correct balance behind the percentage buttons. Falls back
-    // to `availableBalance` for Standard-mode accounts where the unified
-    // field isn't populated.
-    const availableBalance =
-      perpsState?.accountState?.availableToTradeBalance ??
-      perpsState?.accountState?.availableBalance;
-    return availableBalance ? parseFloat(availableBalance) : 0;
+    const withdrawableBalance = perpsState?.accountState?.withdrawableBalance;
+    return withdrawableBalance ? parseFloat(withdrawableBalance) : 0;
   }
 
   if (
