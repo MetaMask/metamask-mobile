@@ -11,7 +11,7 @@ import {
   selectIsSolanaSourced,
 } from '../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../locales/i18n';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -55,9 +55,7 @@ export const BridgeViewFooter = ({
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
 
   const { activeQuote, isLoading, blockaidError, needsNewQuote } =
-    useBridgeQuoteData({
-      latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-    });
+    useBridgeQuoteDataContext();
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;

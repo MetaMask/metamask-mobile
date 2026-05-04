@@ -407,7 +407,6 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
-      QUICK_CONVERT: 'EarnMusdQuickConvert',
     },
     MODALS: {
       ROOT: 'EarnModals',
@@ -420,9 +419,14 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
+    POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
+      MORE_SHEET: 'MoneyMoreSheet',
+      TRANSFER_MONEY_SHEET: 'MoneyTransferSheet',
+      APY_INFO_SHEET: 'MoneyApyInfoSheet',
+      EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
