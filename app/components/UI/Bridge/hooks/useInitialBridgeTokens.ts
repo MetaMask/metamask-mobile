@@ -7,18 +7,16 @@ import { tokenMatchesQuery, tokenToIncludeAsset } from '../utils/tokenUtils';
 import { getBaseSemVerVersion } from '../../../../util/version';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  cleanupExpiredEntries,
-  selectAllowedChainRanking,
-  selectPopularTokensCache,
-  setPopularTokensCache,
-} from '../../../../core/redux/slices/bridge';
+import { selectAllowedChainRanking } from '../../../../core/redux/slices/bridge';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import type { IncludeAsset, PopularToken } from '../types';
 import {
+  cleanupExpiredEntries,
   getCacheKey,
   getMinimalIncludedAssets,
   isCacheValid,
+  popularTokensCache,
+  setPopularTokensCache,
 } from '../utils/cacheUtils';
 
 /**
@@ -40,7 +38,6 @@ export const useInitialBridgeTokens = (
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
-  const popularTokensCache = useSelector(selectPopularTokensCache);
 
   const chainIdsToFetch = useMemo(() => {
     if (chainIds) {
@@ -103,13 +100,13 @@ export const useInitialBridgeTokens = (
 
   const cachedEntry = useMemo(() => {
     const cacheKey = getCacheKey(chainIdsToFetch, includeAssetsObject);
-    return popularTokensCache[cacheKey];
-  }, [popularTokensCache, chainIdsToFetch, includeAssetsObject]);
+    return popularTokensCache.get(cacheKey);
+  }, [chainIdsToFetch, includeAssetsObject]);
 
   const fetchPopularTokens = useCallback(
     async (signal?: AbortSignal) => {
       // Cleanup expired entries before checking cache
-      dispatch(cleanupExpiredEntries());
+      cleanupExpiredEntries();
 
       // Check if we have a valid cached response
       if (cachedEntry && isCacheValid(cachedEntry)) {
@@ -150,13 +147,11 @@ export const useInitialBridgeTokens = (
         if (isValidTopLevelPayload && popularAssetsResponse.length > 0) {
           // Cache only valid top-level API payloads so malformed responses do
           // not suppress retries for the full cache TTL.
-          dispatch(
-            setPopularTokensCache({
-              includeAssets: includeAssetsObject,
-              chainIds: chainIdsToFetch,
-              popularTokens: popularAssetsResponse,
-            }),
-          );
+          setPopularTokensCache({
+            includeAssets: includeAssetsObject,
+            chainIds: chainIdsToFetch,
+            popularTokens: popularAssetsResponse,
+          });
           return popularAssetsResponse;
         }
 

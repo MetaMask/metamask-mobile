@@ -5,6 +5,7 @@ import { SecurityDataType } from '../types';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { initialState } from '../_mocks_/initialState';
 import { CaipChainId } from '@metamask/utils';
+import { popularTokensCache } from '../utils/cacheUtils';
 
 let globalFetchSpy: jest.SpyInstance;
 
@@ -44,6 +45,7 @@ describe('useInitialBridgeTokens', () => {
     mockGetBearerToken.mockResolvedValue('mock-bearer-token');
     globalFetchSpy = jest.spyOn(global, 'fetch');
     mockHasMinimumRequiredVersion.mockReturnValue(true);
+    popularTokensCache.clear();
   });
 
   afterEach(() => {
@@ -95,7 +97,7 @@ describe('useInitialBridgeTokens', () => {
         json: async () => mockPopularTokens,
       });
 
-      const { result, store } = renderHookWithProvider(
+      const { result } = renderHookWithProvider(
         () => useInitialBridgeTokens([MOCK_CHAIN_IDS.ethereum]),
         { state: initialState },
       );
@@ -119,13 +121,17 @@ describe('useInitialBridgeTokens', () => {
           signal: abortSignal,
         }),
       );
-      expect(store.getState().bridge.popularTokensCache).toStrictEqual({
-        'eip155:1_eip155:1/erc20:0x0000000000000000000000000000000000000002,eip155:1/erc20:0x0000000000000000000000000000000000000001,eip155:1/slip44:60':
-          {
-            data: mockPopularTokens,
-            timestamp: 123,
-          },
-      });
+      expect(popularTokensCache).toStrictEqual(
+        new Map([
+          [
+            'eip155:1_eip155:1/erc20:0x0000000000000000000000000000000000000002,eip155:1/erc20:0x0000000000000000000000000000000000000001,eip155:1/slip44:60',
+            {
+              data: mockPopularTokens,
+              timestamp: 123,
+            },
+          ],
+        ]),
+      );
     });
 
     it('preserves securityData in the response', async () => {
@@ -183,37 +189,25 @@ describe('useInitialBridgeTokens', () => {
     it('does not cache malformed top-level responses', async () => {
       mockGetBearerToken.mockReturnValue(new Promise(() => undefined));
 
-      let resolveFirstFetch:
-        | ((value: { json: () => Promise<unknown> }) => void)
-        | undefined;
-
       globalFetchSpy
-        .mockImplementationOnce(
-          () =>
-            new Promise((resolve) => {
-              resolveFirstFetch = resolve;
-            }),
-        )
+        .mockResolvedValueOnce({
+          json: async () => ({
+            data: mockPopularTokens,
+          }),
+        })
         .mockResolvedValueOnce({
           json: async () => mockPopularTokens,
         });
 
-      const { result, unmount, rerender, store } = renderHookWithProvider(
+      const { result, unmount, rerender } = renderHookWithProvider(
         (chainIds?: CaipChainId[]) =>
           useInitialBridgeTokens(chainIds ?? [MOCK_CHAIN_IDS.ethereum]),
         { state: initialState },
       );
 
-      await act(async () => {
-        resolveFirstFetch?.({
-          json: async () => ({
-            data: mockPopularTokens,
-          }),
-        });
-      });
-
-      await expect(result.current.fetchPopularTokens()).resolves.toBeUndefined();
-      expect(store.getState().bridge.popularTokensCache).toStrictEqual({});
+      const tokens = await result.current.fetchPopularTokens();
+      await waitFor(() => expect(tokens).toBeUndefined());
+      expect(popularTokensCache).toStrictEqual(new Map([]));
       unmount();
 
       rerender([MOCK_CHAIN_IDS.ethereum]);
@@ -222,13 +216,17 @@ describe('useInitialBridgeTokens', () => {
       );
 
       await waitFor(() => expect(globalFetchSpy).toHaveBeenCalledTimes(2));
-      expect(store.getState().bridge.popularTokensCache).toStrictEqual({
-        'eip155:1_eip155:1/erc20:0x0000000000000000000000000000000000000002,eip155:1/erc20:0x0000000000000000000000000000000000000001,eip155:1/slip44:60':
-          {
-            data: mockPopularTokens,
-            timestamp: 123,
-          },
-      });
+      expect(popularTokensCache).toStrictEqual(
+        new Map([
+          [
+            'eip155:1_eip155:1/erc20:0x0000000000000000000000000000000000000002,eip155:1/erc20:0x0000000000000000000000000000000000000001,eip155:1/slip44:60',
+            {
+              data: mockPopularTokens,
+              timestamp: 123,
+            },
+          ],
+        ]),
+      );
     });
   });
 
@@ -312,7 +310,7 @@ describe('useInitialBridgeTokens', () => {
         .mockResolvedValueOnce({ json: async () => chain1Tokens })
         .mockResolvedValueOnce({ json: async () => chain2Tokens });
 
-      const { result, rerender, store } = renderHookWithProvider(
+      const { result, rerender } = renderHookWithProvider(
         (chainIds?: CaipChainId[]) =>
           useInitialBridgeTokens(chainIds ?? [MOCK_CHAIN_IDS.ethereum]),
         { state: initialState },
@@ -321,13 +319,17 @@ describe('useInitialBridgeTokens', () => {
       const tokens1 = await result.current.fetchPopularTokens();
       expect(tokens1).toStrictEqual(chain1Tokens);
       expect(globalFetchSpy).toHaveBeenCalledTimes(1);
-      expect(store.getState().bridge.popularTokensCache).toStrictEqual({
-        'eip155:1_eip155:1/erc20:0x0000000000000000000000000000000000000002,eip155:1/erc20:0x0000000000000000000000000000000000000001,eip155:1/slip44:60':
-          {
-            data: chain1Tokens,
-            timestamp: 123,
-          },
-      });
+      expect(popularTokensCache).toStrictEqual(
+        new Map([
+          [
+            'eip155:1_eip155:1/erc20:0x0000000000000000000000000000000000000002,eip155:1/erc20:0x0000000000000000000000000000000000000001,eip155:1/slip44:60',
+            {
+              data: chain1Tokens,
+              timestamp: 123,
+            },
+          ],
+        ]),
+      );
 
       rerender([MOCK_CHAIN_IDS.polygon]);
 
@@ -335,17 +337,24 @@ describe('useInitialBridgeTokens', () => {
       await waitFor(() => expect(globalFetchSpy).toHaveBeenCalledTimes(2));
       expect(tokens2).toStrictEqual(chain2Tokens);
 
-      expect(store.getState().bridge.popularTokensCache).toStrictEqual({
-        'eip155:1_eip155:1/erc20:0x0000000000000000000000000000000000000002,eip155:1/erc20:0x0000000000000000000000000000000000000001,eip155:1/slip44:60':
-          {
-            data: chain1Tokens,
-            timestamp: 123,
-          },
-        'eip155:137_': {
-          data: chain2Tokens,
-          timestamp: 123,
-        },
-      });
+      expect(popularTokensCache).toStrictEqual(
+        new Map([
+          [
+            'eip155:1_eip155:1/erc20:0x0000000000000000000000000000000000000002,eip155:1/erc20:0x0000000000000000000000000000000000000001,eip155:1/slip44:60',
+            {
+              data: chain1Tokens,
+              timestamp: 123,
+            },
+          ],
+          [
+            'eip155:137_',
+            {
+              data: chain2Tokens,
+              timestamp: 123,
+            },
+          ],
+        ]),
+      );
     });
 
     it('sorts chain IDs in cache key for consistent caching', async () => {
