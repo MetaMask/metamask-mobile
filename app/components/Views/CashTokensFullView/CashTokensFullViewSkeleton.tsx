@@ -115,10 +115,10 @@ const BonusSectionSkeleton = () => (
 );
 
 /**
- * Mirrors a single ConvertTokenRow: 32px token icon, name + balance text,
+ * Mirrors a single MusdConversionAssetRow: 32px token icon, name + balance text,
  * and action button placeholders on the right.
  */
-const ConvertTokenRowSkeleton = () => (
+const MusdConversionAssetRowSkeleton = () => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
@@ -172,7 +172,7 @@ const ConvertSectionSkeleton = ({ tokenCount }: { tokenCount: number }) => (
     {tokenCount > 0 && (
       <Box twClassName="mt-3">
         {Array.from({ length: Math.min(tokenCount, 3) }, (_, index) => (
-          <ConvertTokenRowSkeleton key={`convert-row-${index}`} />
+          <MusdConversionAssetRowSkeleton key={`convert-row-${index}`} />
         ))}
       </Box>
     )}
