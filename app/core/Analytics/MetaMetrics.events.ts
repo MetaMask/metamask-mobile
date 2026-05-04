@@ -645,6 +645,7 @@ enum EVENT_NAME {
   REWARDS_VERSION_GUARD_VIEWED = 'Rewards Version Guard Viewed',
   REWARDS_VERSION_GUARD_UPDATE_CLICKED = 'Rewards Version Guard Update Clicked',
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED = 'Rewards Campaign Opt In Completed',
+  REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED = 'Rewards Campaign Reminder Subscribed',
   REWARDS_PAGE_VIEWED = 'Rewards Page Viewed',
 
   // Predict
@@ -1749,6 +1750,9 @@ const events = {
   ),
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED: generateOpt(
     EVENT_NAME.REWARDS_CAMPAIGN_OPT_IN_COMPLETED,
+  ),
+  REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED: generateOpt(
+    EVENT_NAME.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
   ),
   REWARDS_PAGE_VIEWED: generateOpt(EVENT_NAME.REWARDS_PAGE_VIEWED),
   // Predict
