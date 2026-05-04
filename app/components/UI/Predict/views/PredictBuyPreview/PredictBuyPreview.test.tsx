@@ -18,6 +18,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackPredictOrderEvent: jest.fn(),
+      trackBetslipDismissed: jest.fn(),
     },
   },
 }));

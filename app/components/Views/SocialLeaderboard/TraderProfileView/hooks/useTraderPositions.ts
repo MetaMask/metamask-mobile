@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   PositionsResponse,
@@ -12,6 +13,7 @@ import {
   categoriseSocialError,
   extractHttpStatus,
 } from '../../../../../util/social/socialServiceTelemetry';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 
 const EMPTY_POSITIONS: Position[] = [];
 
@@ -31,6 +33,7 @@ export const useTraderPositions = (
   addressOrId: string,
   options?: UseTraderPositionsOptions,
 ): UseTraderPositionsResult => {
+  const isUnlocked = useSelector(selectIsUnlocked);
   const fetchOptions: FetchPositionsOptions = { addressOrId };
 
   const {
@@ -39,7 +42,7 @@ export const useTraderPositions = (
     error: openError,
   } = useQuery<PositionsResponse>({
     queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
-    enabled: Boolean(addressOrId),
+    enabled: Boolean(addressOrId) && isUnlocked,
     refetchInterval: options?.refetchInterval,
   });
 
@@ -49,7 +52,7 @@ export const useTraderPositions = (
     error: closedError,
   } = useQuery<PositionsResponse>({
     queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
-    enabled: Boolean(addressOrId),
+    enabled: Boolean(addressOrId) && isUnlocked,
   });
 
   const openPositions = openData?.positions ?? EMPTY_POSITIONS;

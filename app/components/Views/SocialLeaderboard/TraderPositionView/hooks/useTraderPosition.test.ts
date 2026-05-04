@@ -1,9 +1,19 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { addBreadcrumb } from '@sentry/react-native';
 import type { Position } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { useTraderPosition } from './useTraderPosition';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/keyringController', () => ({
+  selectIsUnlocked: jest.fn(),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -18,6 +28,7 @@ jest.mock('@sentry/react-native', () => ({
 const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -48,6 +59,10 @@ const mockPosition: Position = {
 describe('useTraderPosition', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) return true;
+      return undefined;
+    });
   });
 
   it('calls useQuery with the SocialService:fetchPositionById key', () => {
@@ -70,6 +85,20 @@ describe('useTraderPosition', () => {
     mockUseQuery.mockReturnValue(makeQueryResult());
 
     renderHook(() => useTraderPosition(undefined));
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('disables the query when wallet is locked', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) return false;
+      return undefined;
+    });
+    mockUseQuery.mockReturnValue(makeQueryResult());
+
+    renderHook(() => useTraderPosition('position-uuid-1'));
 
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image, StyleSheet } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -7,17 +8,16 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import moneyAccountCoins from '../../../../../images/money-account-coins.png';
 import { strings } from '../../../../../../locales/i18n';
 import MoneyProgressBar from '../MoneyProgressBar';
 import { MoneyOnboardingCardTestIds } from './MoneyOnboardingCard.testIds';
+import { useStyles } from '../../../../../component-library/hooks';
+import stylesheet from './MoneyOnboardingCard.styles';
 
 const NOOP = () => undefined;
 
@@ -72,6 +72,8 @@ const MoneyOnboardingCard = ({
   totalSteps = 2,
   variant = 'get-card',
 }: MoneyOnboardingCardProps) => {
+  const { styles } = useStyles(stylesheet, {});
+
   const isLinkCard = variant === 'link-card' && currentStep === 2;
   const content = isLinkCard
     ? STEP_2_LINK_CARD
@@ -105,13 +107,13 @@ const MoneyOnboardingCard = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="h-[202px]"
+        twClassName="h-[200px]"
         testID={MoneyOnboardingCardTestIds.COIN_ILLUSTRATION}
       >
-        <Icon
-          name={IconName.Stake}
-          size={IconSize.Xl}
-          color={IconColor.IconAlternative}
+        <Image
+          source={moneyAccountCoins}
+          style={styles.coinIllustration}
+          resizeMode="cover"
         />
       </Box>
 

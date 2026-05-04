@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   LeaderboardResponse,
@@ -6,6 +7,7 @@ import type {
 } from '@metamask/social-controllers';
 import Logger from '../../../../../../util/Logger';
 import { useFollowToggleMany } from '../../../../../hooks/useFollowToggle';
+import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import type { TopTrader } from '../types';
 import {
   addSocialBreadcrumb,
@@ -31,6 +33,8 @@ interface UseTopTradersOptions {
 export const useTopTraders = (
   options?: UseTopTradersOptions,
 ): UseTopTradersResult => {
+  const isUnlocked = useSelector(selectIsUnlocked);
+
   const fetchOptions: FetchLeaderboardOptions | null = options?.limit
     ? { limit: options.limit }
     : null;
@@ -43,7 +47,7 @@ export const useTopTraders = (
   const { data, isLoading, isFetching, error, refetch } =
     useQuery<LeaderboardResponse>({
       queryKey,
-      enabled: options?.enabled ?? true,
+      enabled: (options?.enabled ?? true) && isUnlocked,
     });
 
   const { isFollowing, toggleFollow } = useFollowToggleMany();

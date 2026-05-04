@@ -24,10 +24,7 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
-import {
-  TOP_TRADER_CARD_HEIGHT,
-  TOP_TRADER_CARD_WIDTH,
-} from './components/TopTraderCard';
+import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import { useTopTraders } from './hooks';
 
 const HOME_TRADER_LIMIT = 10;
@@ -173,7 +170,7 @@ const TopTradersSection = forwardRef<
           {showViewMore && (
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-[${TOP_TRADER_CARD_HEIGHT}px]`}
+              twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-auto`}
               testID="top-traders-view-more-card"
             />
           )}
