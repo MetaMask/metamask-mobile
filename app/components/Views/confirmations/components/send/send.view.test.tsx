@@ -2,24 +2,22 @@ import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
-import {
-  buildAddressBookOverridesWithEvmContact,
-  buildTronSendFixture,
-  sendViewOverrides,
-} from '../../../../../../tests/component-view/presets/send';
+import { sendViewOverrides } from '../../../../../../tests/component-view/presets/send';
 import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenStandard } from '../../types/token';
+import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/HardwareWalletProvider';
 import {
   getNftRowTestId,
   getRecipientAvatarTestId,
   getRecipientRowTestId,
-  getSelectedRecipientTestId,
   RedesignedSendViewSelectorsIDs,
 } from './RedesignedSendView.testIds';
 import { Send } from './send';
 import { SendAlertModalSelectorIDs } from './send-alert-modal/send-alert-modal.testIds';
+import { strings } from '../../../../../../locales/i18n';
+import { ConfirmationLoaderSelectorIDs } from '../../ConfirmationView.testIds';
 
 /** A minimal ETH asset with 2 ETH balance, suitable for EVM send tests. */
 const EVM_ETH_ASSET = {
@@ -55,217 +53,15 @@ const EVM_USDC_ASSET = {
   standard: TokenStandard.ERC20,
 };
 
-const BTC_MAINNET_CHAIN_ID = 'bip122:000000000019d6689c085ae165831e93' as const;
-
-const SOLANA_MAINNET_CHAIN_ID =
-  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
-
-/** Native SOL (smoke `send-solana-token` / non-EVM send tests). */
-const SOLANA_NATIVE_ASSET = {
-  address: `${SOLANA_MAINNET_CHAIN_ID}/native`,
-  chainId: SOLANA_MAINNET_CHAIN_ID,
-  symbol: 'SOL',
-  decimals: 9,
-  balance: '100',
-  rawBalance: '100',
-};
-
-/** Native BTC with 1 satoshi on-chain balance — any full-unit input exceeds it. */
-const MINIMAL_BTC_BALANCE_ASSET = {
-  address: `${BTC_MAINNET_CHAIN_ID}/slip44:0`,
-  chainId: BTC_MAINNET_CHAIN_ID,
-  symbol: 'BTC',
-  decimals: 8,
-  balance: '0.00000001',
-  rawBalance: '0x1',
-  isNative: true,
-};
+function SendFlowWithHardwareWalletProvider() {
+  return (
+    <HardwareWalletProvider>
+      <Send />
+    </HardwareWalletProvider>
+  );
+}
 
 describeForPlatforms('Send', () => {
-  describe('Non-EVM', () => {
-    // Regression test for Issue #22789 and related to #23251
-    // TRON send flow: selecting a destination account must move the flow forward
-    // (previously it stayed on the recipient list and did not navigate).
-    it('TRON send: selecting destination account updates selection', async () => {
-      const { tronOverrides, recipientAddresses } = buildTronSendFixture();
-
-      const state = initialStateWallet().withOverrides(tronOverrides).build();
-
-      const TRON_MAINNET_CHAIN_ID = 'tron:728126428';
-
-      const tronAsset = {
-        address: `${TRON_MAINNET_CHAIN_ID}/native`,
-        chainId: TRON_MAINNET_CHAIN_ID,
-        symbol: 'TRX',
-        decimals: 6,
-        balance: '100',
-        rawBalance: '0x64',
-        accountId: 'tron-acc-1',
-      };
-
-      const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
-        { name: Routes.SEND.DEFAULT },
-        [],
-        { state },
-        { screen: Routes.SEND.AMOUNT, params: { asset: tronAsset } },
-      );
-
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
-
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
-      );
-      fireEvent.press(getByRole('button', { name: 'Continue' }));
-
-      expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        ),
-      ).toBeOnTheScreen();
-
-      const recipientItem = await findByTestId(
-        getRecipientRowTestId(recipientAddresses[0]),
-        {},
-        { timeout: 10000 },
-      );
-      fireEvent.press(recipientItem);
-
-      expect(
-        await findByTestId(
-          getSelectedRecipientTestId(recipientAddresses[0]),
-          {},
-          { timeout: 10000 },
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    /**
-     * Regression test for issue #22205
-     * EVM contacts must not appear in non-EVM (e.g. Solana, BTC) send flow Recipient screen.
-     * Only contacts for the current chain/protocol should be shown.
-     */
-    it('Solana send Recipient screen does not show EVM contacts', async () => {
-      const EVM_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
-
-      const addressBookOverrides =
-        buildAddressBookOverridesWithEvmContact(EVM_CONTACT_ADDRESS);
-
-      const state = initialStateWallet()
-        .withOverrides(sendViewOverrides)
-        .withOverrides(addressBookOverrides)
-        .build();
-
-      const { findByTestId, queryByTestId } = renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
-        { name: Routes.SEND.DEFAULT },
-        [],
-        { state },
-        {
-          screen: Routes.SEND.RECIPIENT,
-          params: { asset: SOLANA_NATIVE_ASSET },
-        },
-      );
-
-      expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        ),
-      ).toBeOnTheScreen();
-
-      const evmContactRow = queryByTestId(
-        getRecipientRowTestId(EVM_CONTACT_ADDRESS),
-      );
-      expect(evmContactRow).not.toBeOnTheScreen();
-    });
-
-    /**
-     * Smoke `send-solana-token`: Amount screen shows the Send header title and SOL
-     * symbol (same text checks as E2E; no transfer).
-     */
-    it('Solana native: Amount screen shows Send title and SOL', async () => {
-      const nonEvmNetworkOverride = {
-        engine: {
-          backgroundState: {
-            MultichainNetworkController: {
-              isEvmSelected: false,
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>;
-
-      const state = initialStateWallet()
-        .withOverrides(sendViewOverrides)
-        .withOverrides(nonEvmNetworkOverride)
-        .build();
-
-      const { getByTestId } = renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
-        { name: Routes.SEND.DEFAULT },
-        [],
-        { state },
-        { screen: Routes.SEND.AMOUNT, params: { asset: SOLANA_NATIVE_ASSET } },
-      );
-
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
-      // Title and/or other copy may repeat "Send" — mirror E2E "text displayed" checks
-      expect(screen.getAllByText('Send').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('SOL').length).toBeGreaterThanOrEqual(1);
-    });
-
-    /**
-     * Bitcoin send Amount: entering an amount above balance shows “Insufficient funds”
-     * on Continue (input validation only; no transaction). Aligns with smoke
-     * `send-btc-token` insufficient-funds coverage.
-     */
-    it('Bitcoin Amount: exceeding balance shows Insufficient funds', async () => {
-      const nonEvmNetworkOverride = {
-        engine: {
-          backgroundState: {
-            MultichainNetworkController: {
-              isEvmSelected: false,
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>;
-
-      const state = initialStateWallet()
-        .withOverrides(sendViewOverrides)
-        .withOverrides(nonEvmNetworkOverride)
-        .build();
-
-      const { getByTestId, getByText, findByRole } = renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
-        { name: Routes.SEND.DEFAULT },
-        [],
-        { state },
-        {
-          screen: Routes.SEND.AMOUNT,
-          params: { asset: MINIMAL_BTC_BALANCE_ASSET },
-        },
-      );
-
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
-
-      // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance
-      fireEvent.press(getByText('1'));
-
-      expect(
-        await findByRole(
-          'button',
-          { name: 'Insufficient funds' },
-          { timeout: 5000 },
-        ),
-      ).toBeOnTheScreen();
-    });
-  });
-
   describe('ERC-721', () => {
     /**
      * Regression test for issue #12317
@@ -439,18 +235,30 @@ describeForPlatforms('Send', () => {
     });
 
     /**
-     * Native ETH keyed amount — first segment of smoke `send-native-token` (5 ETH
-     * then Continue; E2E also runs 50% and Max in the same spec). Same screens and
-     * hooks as `ERC-20 USDC: digit 5` but `0x…0` native asset (18 decimals).
+     * Native ETH keyed amount mirrors the smoke `send-native-token` happy path:
+     * 5 ETH -> Continue -> Recipient -> Review -> transfer confirmation route.
      */
-    it('Native ETH: digit 5 → Continue → Recipient screen', async () => {
+    it('Native ETH: digit 5 submits and opens transfer confirmation route', async () => {
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
         .build();
 
+      const engineMock = jest.requireMock(
+        '../../../../../../app/core/Engine',
+      ) as unknown as {
+        default: {
+          context: {
+            TransactionController: { addTransaction: jest.Mock };
+          };
+        };
+      };
+      const addTransactionSpy =
+        engineMock.default.context.TransactionController.addTransaction;
+      addTransactionSpy.mockClear();
+
       const { getByTestId, getByText, getByRole, findByTestId } =
         renderScreenWithRoutes(
-          Send as unknown as React.ComponentType,
+          SendFlowWithHardwareWalletProvider as unknown as React.ComponentType,
           { name: Routes.SEND.DEFAULT },
           [],
           { state },
@@ -467,59 +275,57 @@ describeForPlatforms('Send', () => {
       fireEvent.press(getByText('5'));
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
+      const recipientInput = await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        {},
+        { timeout: 5000 },
+      );
+      fireEvent.changeText(recipientInput, VALID_EVM_RECIPIENT);
+
+      const reviewButton = await findByTestId(
+        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        {},
+        { timeout: 5000 },
+      );
+
+      await waitFor(() => expect(reviewButton).toBeEnabled(), {
+        timeout: 5000,
+      });
+      fireEvent.press(reviewButton);
+
+      await waitFor(() => {
+        expect(addTransactionSpy).toHaveBeenCalledTimes(1);
+      });
+
       expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-          {},
-          { timeout: 5000 },
-        ),
+        await findByTestId(ConfirmationLoaderSelectorIDs.TRANSFER),
       ).toBeOnTheScreen();
     });
 
     /**
-     * Covers smoke `send-erc20-token`: enter a fixed USDC amount (5) and advance
-     * to Recipient — validates amount keyboard + Continue without broadcasting.
+     * Covers smoke `send-erc20-token`: 50% of balance through Recipient / Review
+     * into the transfer confirmation route.
      */
-    it('ERC-20 USDC: digit 5 → Continue → Recipient screen', async () => {
+    it('ERC-20 USDC: 50% submits and opens transfer confirmation route', async () => {
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
         .build();
 
-      const { getByTestId, getByText, getByRole, findByTestId } =
-        renderScreenWithRoutes(
-          Send as unknown as React.ComponentType,
-          { name: Routes.SEND.DEFAULT },
-          [],
-          { state },
-          { screen: Routes.SEND.AMOUNT, params: { asset: EVM_USDC_ASSET } },
-        );
-
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
-
-      fireEvent.press(getByText('5'));
-      fireEvent.press(getByRole('button', { name: 'Continue' }));
-
-      expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-          {},
-          { timeout: 5000 },
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    /**
-     * Covers smoke `send-erc20-token`: 50% of balance → Continue → Recipient.
-     */
-    it('ERC-20 USDC: 50% → Continue → Recipient screen', async () => {
-      const state = initialStateWallet()
-        .withOverrides(sendViewOverrides)
-        .build();
+      const engineMock = jest.requireMock(
+        '../../../../../../app/core/Engine',
+      ) as unknown as {
+        default: {
+          context: {
+            TransactionController: { addTransaction: jest.Mock };
+          };
+        };
+      };
+      const addTransactionSpy =
+        engineMock.default.context.TransactionController.addTransaction;
+      addTransactionSpy.mockClear();
 
       const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
+        SendFlowWithHardwareWalletProvider as unknown as React.ComponentType,
         { name: Routes.SEND.DEFAULT },
         [],
         { state },
@@ -535,53 +341,37 @@ describeForPlatforms('Send', () => {
       );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
-      expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-          {},
-          { timeout: 5000 },
-        ),
-      ).toBeOnTheScreen();
-    });
+      const recipientInput = await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        {},
+        { timeout: 5000 },
+      );
+      fireEvent.changeText(recipientInput, VALID_EVM_RECIPIENT);
 
-    /**
-     * Smoke `send-erc20-token`: Max balance → Continue → Recipient (third segment
-     * of the E2E spec alongside digit 5 and 50%).
-     */
-    it('ERC-20 USDC: Max → Continue → Recipient screen', async () => {
-      const state = initialStateWallet()
-        .withOverrides(sendViewOverrides)
-        .build();
-
-      const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
-        { name: Routes.SEND.DEFAULT },
-        [],
-        { state },
-        { screen: Routes.SEND.AMOUNT, params: { asset: EVM_USDC_ASSET } },
+      const reviewButton = await findByTestId(
+        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        {},
+        { timeout: 5000 },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      await waitFor(() => expect(reviewButton).toBeEnabled(), {
+        timeout: 5000,
+      });
+      fireEvent.press(reviewButton);
 
-      fireEvent.press(getByRole('button', { name: 'Max' }));
-      fireEvent.press(getByRole('button', { name: 'Continue' }));
+      await waitFor(() => {
+        expect(addTransactionSpy).toHaveBeenCalledTimes(1);
+      });
 
       expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-          {},
-          { timeout: 5000 },
-        ),
+        await findByTestId(ConfirmationLoaderSelectorIDs.TRANSFER),
       ).toBeOnTheScreen();
     });
 
     /**
-     * Smoke `send-native-token`: Max ETH → Continue → Recipient (same flow as 5 ETH
-     * and 50% in the consolidated E2E case).
+     * Send Max ETH → Continue → Recipient
      */
-    it('Native ETH: Max → Continue → Recipient screen', async () => {
+    it('Send Max → Continue → Recipient screen', async () => {
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
         .build();
@@ -645,6 +435,13 @@ describeForPlatforms('Send', () => {
       await waitFor(() => expect(reviewButton).toBeDisabled(), {
         timeout: 5000,
       });
+      expect(
+        await screen.findByRole(
+          'button',
+          { name: strings('send.invalid_address') },
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
     });
 
     /**

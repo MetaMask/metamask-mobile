@@ -8,7 +8,7 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../flows/wallet.flow';
 
 describe(SmokeConfirmations('Send TRX token'), () => {
-  // Moved to cv tests (send.view.test.tsx)
+  // Moved to cv tests (send.non-evm.view.test.tsx)
   it.skip('shows insufficient funds', async () => {
     await withFixtures(
       {

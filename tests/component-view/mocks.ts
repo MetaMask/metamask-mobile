@@ -6,6 +6,7 @@
 // Engine mock (singleton default export)
 jest.mock('../../app/core/Engine', () => {
   const engine = {
+    acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
     context: {
       KeyringController: {
         state: {

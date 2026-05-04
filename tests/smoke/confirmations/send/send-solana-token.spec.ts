@@ -9,10 +9,8 @@ import { Assertions } from '../../../framework';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 
-// const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
-
 describe(SmokeConfirmations('Send SOL token'), () => {
-  // Moved to cv tests (send.view.test.tsx)
+  // Moved to cv tests (send.non-evm.view.test.tsx)
   it.skip('should send solana to an address', async () => {
     await withFixtures(
       {

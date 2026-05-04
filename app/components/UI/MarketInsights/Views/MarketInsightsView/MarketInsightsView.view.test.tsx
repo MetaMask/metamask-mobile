@@ -1,6 +1,9 @@
 /**
- * Component view tests for token (non-Perps) MarketInsightsView: content, swap/buy navigation, thumbs up.
- * Mirrors smoke: tests/smoke/assets/market-insights/view-market-insights.spec.ts (cases 7, 10, 11).
+ * Component view tests for token (non-Perps) MarketInsightsView: content,
+ * swap/buy navigation, trend sources sheet, thumbs up.
+ * Mirrors smoke: tests/smoke/assets/market-insights/view-market-insights.spec.ts
+ * (cases 7, 10, 11, 12). Entry card visibility cases (8, 9) are covered by
+ * AssetOverviewContent.view.test.tsx.
  * Run: yarn test:view:one MarketInsightsView.view.test.tsx
  */
 import '../../../../../../tests/component-view/mocks';
@@ -76,6 +79,22 @@ describeForPlatforms('MarketInsightsView (token flow)', () => {
 
     expect(
       await screen.findByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows sources bottom sheet when tapping a trend item', async () => {
+    renderMarketInsightsViewWithNavigation({
+      initialParams: ETH_MAINNET_ROUTE_PARAMS,
+    });
+
+    await screen.findByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER);
+
+    fireEvent.press(
+      await screen.findByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`),
+    );
+
+    expect(
+      await screen.findByText('Spot Ethereum ETFs See Record Weekly Inflows'),
     ).toBeOnTheScreen();
   });
 

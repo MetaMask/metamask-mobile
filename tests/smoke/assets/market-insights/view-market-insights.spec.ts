@@ -86,7 +86,7 @@ describe(
       );
     });
 
-    // Moved to cv tests (AssetDetails.view.test.tsx)
+    // Moved to cv tests (AssetOverviewContent.view.test.tsx)
     it.skip('does not display entry card when API returns no data', async () => {
       await withFixtures(
         {
@@ -120,7 +120,7 @@ describe(
       );
     });
 
-    // Moved to cv tests (AssetDetails.view.test.tsx)
+    // Moved to cv tests (AssetOverviewContent.view.test.tsx)
     it.skip('does not display entry card when feature flag is disabled', async () => {
       await withFixtures(
         {
@@ -177,7 +177,7 @@ describe(
       );
     });
 
-    // Moved to cv tests (PerpsMarketDetailsView.view.test.tsx)
+    // Moved to cv tests (MarketInsightsView.view.test.tsx)
     it.skip('shows sources bottom sheet when tapping a trend item', async () => {
       await withFixtures(
         {

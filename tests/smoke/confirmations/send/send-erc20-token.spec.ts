@@ -273,7 +273,7 @@ async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
 }
 
 describe(SmokeConfirmations('Send ERC20 asset'), () => {
-  // Moved to cv tests (send.view.test.tsx)
+  // Moved to cv tests (send.view.test.tsx, EVM coverage)
   it.skip('should send USDC amount 5 to an address', async () => {
     await withFixtures(
       {
@@ -338,7 +338,7 @@ describe(SmokeConfirmations('Send ERC20 asset'), () => {
     );
   });
 
-  // Moved to cv tests (send.view.test.tsx)
+  // Moved to cv tests (send.view.test.tsx, EVM coverage)
   it.skip('should send USDC amount 50% to an address', async () => {
     await withFixtures(
       {
@@ -403,7 +403,7 @@ describe(SmokeConfirmations('Send ERC20 asset'), () => {
     );
   });
 
-  // Moved to cv tests (send.view.test.tsx)
+  // Moved to cv tests (send.view.test.tsx, EVM coverage)
   it.skip('should send USDC send maxto an address', async () => {
     await withFixtures(
       {

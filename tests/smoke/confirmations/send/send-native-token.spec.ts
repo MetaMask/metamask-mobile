@@ -20,7 +20,7 @@ import { validateTransactionHashInTransactionFinalizedEvent } from './metricsVal
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
 describe(SmokeConfirmations('Send native asset'), () => {
-  // Moved to cv tests (send.view.test.tsx)
+  // Moved to cv tests (send.view.test.tsx, EVM coverage)
   it.skip('should send ETH to an address', async () => {
     await withFixtures(
       {

@@ -96,7 +96,7 @@ const defiDetailsState = {
 };
 
 describeForPlatforms('DeFi position details (read-only)', () => {
-  it('shows protocol header, Supplied rows, and token symbols (Aave V3)', () => {
+  it('shows Aave V3 supplied assets with token symbols and fiat amounts', () => {
     const { getByTestId, getByText, getAllByText, UNSAFE_getByType } =
       renderComponentViewScreen(
         DeFiProtocolPositionDetails,
@@ -117,10 +117,10 @@ describeForPlatforms('DeFi position details (read-only)', () => {
       getByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
     ).toHaveTextContent('$14.74');
 
-    // One "Supplied" label per supplied position group (same copy as smoke E2E).
-    expect(getAllByText('Supplied').length).toBeGreaterThanOrEqual(1);
-    expect(getAllByText('USDT').length).toBeGreaterThanOrEqual(1);
-    expect(getAllByText('WETH').length).toBeGreaterThanOrEqual(1);
+    // Smoke parity for details checks: Supplied + USDT + WETH + $14.74 + $0.30.
+    expect(getAllByText('Supplied')).toHaveLength(2);
+    expect(getAllByText('USDT')).toHaveLength(1);
+    expect(getAllByText('$14.74').length).toBeGreaterThanOrEqual(2);
 
     const list = UNSAFE_getByType(FlatList);
     act(() => {
@@ -133,6 +133,7 @@ describeForPlatforms('DeFi position details (read-only)', () => {
       });
     });
 
-    expect(getByText('USDT')).toBeOnTheScreen();
+    expect(getByText('WETH')).toBeOnTheScreen();
+    expect(getByText('$0.30')).toBeOnTheScreen();
   });
 });
