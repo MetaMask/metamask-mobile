@@ -1,8 +1,5 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
-import packageJson from '../../../../package.json';
-
-const APP_VERSION = packageJson.version;
 
 /**
  * Assets unify state feature flag

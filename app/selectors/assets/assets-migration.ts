@@ -605,14 +605,12 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
-    getCurrencyRateControllerCurrentCurrency,
   ],
   (
     isAssetsUnifyStateEnabled: boolean,
     currencyRates: CurrencyRateState['currencyRates'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsPrice: AssetsControllerState['assetsPrice'],
-    currentCurrency: CurrencyRateState['currentCurrency'],
   ): CurrencyRateState['currencyRates'] => {
     if (!isAssetsUnifyStateEnabled) {
       return currencyRates;

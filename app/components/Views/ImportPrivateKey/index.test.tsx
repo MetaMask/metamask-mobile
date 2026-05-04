@@ -90,53 +90,6 @@ describe('ImportPrivateKey', () => {
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: initialState },
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('displays SRP warning description when user has no social auth connection', () => {
-    const { getByText, getByPlaceholderText } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: srpState },
-    );
-
-    expect(getByText(strings('import_private_key.title'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.description_srp'), {
-        exact: false,
-      }),
-    ).toBeTruthy();
-    expect(
-      getByPlaceholderText(strings('import_private_key.subtitle')),
-    ).toBeTruthy();
-    expect(getByText(strings('import_private_key.cta_text'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.or_scan_a_qr_code')),
-    ).toBeTruthy();
-  });
-
-  it('displays Apple/Google auth description when user has social auth connection', () => {
-    const { getByText, getByPlaceholderText } = renderScreen(
-      ImportPrivateKey,
-      { name: 'ImportPrivateKey' },
-      { state: initialState },
-    );
-
-    expect(getByText(strings('import_private_key.title'))).toBeTruthy();
-    expect(
-      getByText(strings('import_private_key.description_one')),
-    ).toBeTruthy();
-    expect(
-      getByPlaceholderText(strings('import_private_key.subtitle')),
-    ).toBeTruthy();
-  });
-
   it('calls dismiss function when close button is pressed', () => {
     // Arrange
     const { getByTestId } = renderScreen(

@@ -8,7 +8,7 @@ import EarnLendingView from '../../page-objects/Earn/EarnLendingView';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import { SmokeTrade } from '../../tags';
+import { SmokeStake } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
@@ -18,7 +18,7 @@ import {
   type LendingFixtureOptions,
 } from './helpers/lending-fixture';
 
-describe(SmokeTrade('Lending Deposit from Wallet'), (): void => {
+describe(SmokeStake('Lending Deposit from Wallet'), (): void => {
   const DEPOSIT_AMOUNT = '100';
 
   beforeEach(async (): Promise<void> => {

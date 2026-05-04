@@ -12,8 +12,6 @@ import {
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
 
-jest.mock('./TokenSelectorItem.config', () => ({ SHOW_TOKEN_WARNINGS: true }));
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => []),
 }));

@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
@@ -22,7 +23,6 @@ import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativ
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectIsMusdConversionFlowEnabledFlag,
-  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
@@ -68,6 +68,7 @@ import {
   selectNativeCurrencyByChainId,
   selectProviderType,
 } from '../../../../../selectors/networkController';
+import { selectTokenListSecurityBadgesEnabled } from '../../../../../selectors/featureFlagController/tokenListSecurityBadges';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
@@ -94,7 +95,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
+import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
+import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
+import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -110,7 +113,8 @@ const createStyles = (colors: Colors) =>
     },
     assetName: {
       flexDirection: 'row',
-      gap: 8,
+      alignItems: 'center',
+      gap: 4,
       flexShrink: 1,
     },
     assetNameText: {
@@ -181,6 +185,39 @@ export const TokenListItem = React.memo(
 
     const { isStockToken } = useRWAToken();
 
+    const basicFunctionalityEnabled = useSelector(
+      (state: RootState) => state.settings.basicFunctionalityEnabled,
+    );
+
+    const isTokenListSecurityBadgesEnabled = useSelector(
+      selectTokenListSecurityBadgesEnabled,
+    );
+
+    const skipTokenListSecurityBadge = useMemo(() => {
+      if (!asset) {
+        return true;
+      }
+      return isStockToken(asset as BridgeToken);
+    }, [asset, isStockToken]);
+
+    const shouldResolveCaipForSecurityBadge =
+      basicFunctionalityEnabled &&
+      isTokenListSecurityBadgesEnabled &&
+      !skipTokenListSecurityBadge;
+
+    const { data: caipAssetIdForSecurity } = useQuery({
+      queryKey: tokenListSecurityBadgeKeys.caipFromToken({
+        chainId: asset?.chainId,
+        address: asset?.address,
+        isNative: asset?.isNative,
+        isETH: asset?.isETH,
+      }),
+      queryFn: () => getCaipAssetIdForToken(asset),
+      enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
+      staleTime: Infinity,
+      cacheTime: Infinity,
+    });
+
     const chainId = asset?.chainId as Hex;
 
     const nativeCurrency = useSelector((state: RootState) =>
@@ -205,10 +242,6 @@ export const TokenListItem = React.memo(
 
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
-    );
-
-    const isQuickConvertEnabled = useSelector(
-      selectMusdQuickConvertEnabledFlag,
     );
 
     const isMusdConversionFlowEnabled = useSelector(
@@ -304,9 +337,7 @@ export const TokenListItem = React.memo(
             return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
           }
 
-          return isQuickConvertEnabled
-            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+          return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
         };
 
         trackEvent(
@@ -344,7 +375,6 @@ export const TokenListItem = React.memo(
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -360,7 +390,6 @@ export const TokenListItem = React.memo(
       createEventBuilder,
       hasSeenConversionEducationScreen,
       initiateCustomConversion,
-      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);
@@ -559,6 +588,12 @@ export const TokenListItem = React.memo(
                 {label && (
                   <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
                 )}
+                {shouldResolveCaipForSecurityBadge &&
+                  caipAssetIdForSecurity && (
+                    <TokenListSecurityBadge
+                      caipAssetId={caipAssetIdForSecurity}
+                    />
+                  )}
               </View>
 
               {renderEarnCta()}
