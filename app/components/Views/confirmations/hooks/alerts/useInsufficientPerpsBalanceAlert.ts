@@ -30,18 +30,12 @@ export function useInsufficientPerpsBalanceAlert({
   const quotes = useTransactionPayQuotes();
   const hasQuotes = Boolean(quotes?.length);
 
-  // For Unified Account Mode users, `availableBalance` mirrors HL's
-  // `clearinghouseState.withdrawable` which is $0 (collateral lives in spot).
-  // `availableToTradeBalance` is the unified-aware value computed by
-  // `addSpotBalanceToAccountState` and matches what `withdraw3` actually draws
-  // from. Fall back to `availableBalance` for legacy / Standard-mode accounts
-  // where the unified field is undefined.
-  const availableBalance = useSelector(
+  // `withdrawableBalance` is the Unified-aware value populated by
+  // `addSpotBalanceToAccountState` and matches what `withdraw3` draws from.
+  const withdrawableBalance = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.accountState
-        ?.availableToTradeBalance ??
-      state.engine.backgroundState.PerpsController?.accountState
-        ?.availableBalance,
+        ?.withdrawableBalance,
   );
 
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
@@ -54,9 +48,9 @@ export function useInsufficientPerpsBalanceAlert({
     if (!isPerpsWithdraw) return false;
 
     if (
-      availableBalance !== undefined &&
-      availableBalance !== null &&
-      new BigNumber(availableBalance).isLessThan(amountHuman)
+      withdrawableBalance !== undefined &&
+      withdrawableBalance !== null &&
+      new BigNumber(withdrawableBalance).isLessThan(amountHuman)
     ) {
       return true;
     }
@@ -86,7 +80,7 @@ export function useInsufficientPerpsBalanceAlert({
     hasQuotes,
     isPendingInput,
     isPerpsWithdraw,
-    availableBalance,
+    withdrawableBalance,
     totals,
   ]);
 

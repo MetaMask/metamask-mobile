@@ -90,14 +90,6 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
-export type AddSpotBalanceOptions = {
-  /**
-   * Whether the user's abstraction mode folds spot balances into perps
-   * collateral. Standard / DEX abstraction keep spot separate.
-   */
-  foldIntoCollateral?: boolean;
-};
-
 // The release-branch balance bridge is USDC-only. Non-USDC spot assets must
 // not inflate the balances shown or validated by withdraw/payment flows.
 const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
@@ -140,6 +132,40 @@ export function getSpotHold(
   );
 }
 
+/**
+ * Options controlling how `addSpotBalanceToAccountState` folds spot balance
+ * into the three-field AccountState contract.
+ */
+export type AddSpotBalanceOptions = {
+  /**
+   * When `true`, free spot USDC contributes to both `spendableBalance` and
+   * `withdrawableBalance` in addition to `totalBalance` — appropriate for
+   * venues where spot is automatically used as perps collateral (e.g.
+   * HyperLiquid Unified/Portfolio mode, where `withdraw3` draws from the
+   * unified ledger).
+   *
+   * When `false`, free spot contributes to `totalBalance` only; spendable
+   * and withdrawable stay perps-only — appropriate for venues where spot
+   * is a separate ledger the backend cannot auto-draw from (e.g. HL
+   * Standard mode). The caller is responsible for translating
+   * provider-specific state into this flag.
+   *
+   * Defaults to `true` for backward compatibility with call sites that
+   * haven't yet been wired with provider-specific context.
+   */
+  foldIntoCollateral?: boolean;
+};
+
+/**
+ * Add spot USDC to the AccountState contract. Caller decides whether the
+ * spot balance counts as perps collateral via `options.foldIntoCollateral`
+ * — the util stays provider-agnostic.
+ *
+ * @param accountState - Base AccountState produced by a provider adapter.
+ * @param spotState - Raw spot clearinghouse response (HL-shaped); null or missing means no spot balance and the state is returned unchanged.
+ * @param options - See {@link AddSpotBalanceOptions}.
+ * @returns AccountState with spot folded into `totalBalance` always, and into spendable/withdrawable when `foldIntoCollateral` is true.
+ */
 export function addSpotBalanceToAccountState(
   accountState: AccountState,
   spotState?: SpotClearinghouseStateResponse | null,
@@ -149,12 +175,14 @@ export function addSpotBalanceToAccountState(
   // A caller that omits `options` should NOT silently fold spot — that would
   // over-report withdrawable funds for Standard / dexAbstraction users.
   const foldIntoCollateral = options?.foldIntoCollateral ?? false;
+
   const spotBalance = getSpotBalance(spotState);
   const spotHold = getSpotHold(spotState);
   const freeSpot = Math.max(0, spotBalance - spotHold);
 
   const currentTotal = parseFloat(accountState.totalBalance);
-  const currentAvailable = parseFloat(accountState.availableBalance);
+  const currentSpendable = parseFloat(accountState.spendableBalance);
+  const currentWithdrawable = parseFloat(accountState.withdrawableBalance);
 
   // Preserve sentinel totals (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--')
   // rather than coercing them to NaN.
@@ -163,38 +191,63 @@ export function addSpotBalanceToAccountState(
   }
 
   if (spotBalance === 0) {
-    return {
-      ...accountState,
-      availableToTradeBalance: Number.isFinite(currentAvailable)
-        ? currentAvailable.toString()
-        : accountState.availableBalance,
-    };
+    // No spot wealth means no hold either in the HL payload shape, so the
+    // later totalBalance adjustment would also be a no-op.
+    return accountState;
   }
 
-  // Folding is gated strictly on the resolved abstraction mode. Standard /
-  // DEX-abstraction users keep perps and spot independent, so spot must NOT
-  // surface as a perps-withdrawable balance for them — withdraw3 only draws
-  // from the perps ledger in those modes. Unified / portfolio-margin users
-  // get the fold; live callers fail-CLOSED via `hyperLiquidModeFoldsSpot`
-  // when mode is unresolved (avoids over-reporting funds withdraw3 cannot
-  // actually draw during the initial subscription window).
-  let availableToTrade = accountState.availableBalance;
-  if (foldIntoCollateral) {
-    availableToTrade = Number.isFinite(currentAvailable)
-      ? (currentAvailable + freeSpot).toString()
-      : freeSpot.toString();
-  }
+  // Folding is gated strictly on the resolved abstraction mode (see callers'
+  // `foldIntoCollateral` argument). Standard / DEX-abstraction users keep
+  // perps and spot independent, so spot must NOT surface as a perps-
+  // withdrawable balance for them — withdraw3 only draws from the perps
+  // ledger in those modes. Unified / portfolio-margin users get the fold;
+  // live callers fail-CLOSED via `hyperLiquidModeFoldsSpot` when mode is
+  // unresolved.
+  const nextSpendable = resolveFoldedBalance(
+    currentSpendable,
+    accountState.spendableBalance,
+    freeSpot,
+    foldIntoCollateral,
+  );
+  const nextWithdrawable = resolveFoldedBalance(
+    currentWithdrawable,
+    accountState.withdrawableBalance,
+    freeSpot,
+    foldIntoCollateral,
+  );
 
-  // Subtract spotHold to avoid double-counting on Unified/PM accounts:
-  // marginSummary.accountValue already includes the margin that HL
-  // surfaces via spot.hold. Standard mode has spotHold = 0, no-op.
+  // Total always reflects combined wealth: subtract spotHold to avoid
+  // double-counting on Unified/PM accounts where marginSummary.accountValue
+  // already includes the margin that HL surfaces via spot.hold. Standard
+  // mode has spotHold = 0 by construction, so the subtraction is a no-op.
   const nextTotal = currentTotal + spotBalance - spotHold;
 
   return {
     ...accountState,
     totalBalance: nextTotal.toString(),
-    availableToTradeBalance: availableToTrade,
+    spendableBalance: nextSpendable,
+    withdrawableBalance: nextWithdrawable,
   };
+}
+
+function resolveFoldedBalance(
+  currentNumeric: number,
+  currentRaw: string,
+  freeSpot: number,
+  foldIntoCollateral: boolean,
+): string {
+  if (!foldIntoCollateral) {
+    return currentRaw;
+  }
+  if (Number.isFinite(currentNumeric)) {
+    return (currentNumeric + freeSpot).toString();
+  }
+  // Non-finite currentNumeric means the adapter passed a sentinel like
+  // `PERPS_CONSTANTS.FallbackDataDisplay` ("--") during loading. Preserve
+  // the sentinel rather than synthesising a numeric fold; the caller's
+  // UI treats "--" as "loading" and would otherwise show a misleading
+  // spot-only figure while the per-DEX perps fetch is still in flight.
+  return currentRaw;
 }
 
 /**
@@ -206,7 +259,8 @@ export function addSpotBalanceToAccountState(
  */
 export function aggregateAccountStates(states: AccountState[]): AccountState {
   const fallback: AccountState = {
-    availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    spendableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    withdrawableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
     unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
@@ -221,25 +275,15 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
     if (index === 0) {
       return { ...state };
     }
-    const accAvailableToTrade = parseFloat(
-      acc.availableToTradeBalance ?? acc.availableBalance,
-    );
-    const stateAvailableToTrade = parseFloat(
-      state.availableToTradeBalance ?? state.availableBalance,
-    );
-    const availableToTradeSum =
-      Number.isFinite(accAvailableToTrade) &&
-      Number.isFinite(stateAvailableToTrade)
-        ? (accAvailableToTrade + stateAvailableToTrade).toString()
-        : undefined;
 
     return {
-      availableBalance: (
-        parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
+      spendableBalance: (
+        parseFloat(acc.spendableBalance) + parseFloat(state.spendableBalance)
       ).toString(),
-      ...(availableToTradeSum !== undefined && {
-        availableToTradeBalance: availableToTradeSum,
-      }),
+      withdrawableBalance: (
+        parseFloat(acc.withdrawableBalance) +
+        parseFloat(state.withdrawableBalance)
+      ).toString(),
       totalBalance: (
         parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)
       ).toString(),
