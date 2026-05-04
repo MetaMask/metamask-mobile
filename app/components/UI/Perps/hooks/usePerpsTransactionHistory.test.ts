@@ -185,7 +185,9 @@ describe('usePerpsTransactionHistory', () => {
     // Mock Redux selectors: first call = wallet transactions, second = selected address
     mockUseSelector.mockImplementation(() => {
       const len = mockUseSelector.mock.calls.length;
-      return len % 2 === 1 ? [] : '0x1234567890123456789012345678901234567890';
+      return len % 2 === 1
+        ? []
+        : { address: '0x1234567890123456789012345678901234567890' };
     });
 
     // Mock provider
@@ -327,7 +329,7 @@ describe('usePerpsTransactionHistory', () => {
                 txParams: { from: selectedAddr },
               },
             ]
-          : selectedAddr;
+          : { address: selectedAddr };
       });
 
       const { result } = renderHook(() =>
@@ -396,7 +398,7 @@ describe('usePerpsTransactionHistory', () => {
                 txParams: { from: selectedAddr },
               },
             ]
-          : selectedAddr;
+          : { address: selectedAddr };
       });
 
       const { result } = renderHook(() =>
@@ -466,7 +468,7 @@ describe('usePerpsTransactionHistory', () => {
                 nestedTransactions: [{ type: 'perpsWithdraw' }],
               },
             ]
-          : selectedAddr;
+          : { address: selectedAddr };
       });
 
       const { result } = renderHook(() =>
@@ -547,7 +549,7 @@ describe('usePerpsTransactionHistory', () => {
                 nestedTransactions: [{ type: 'perpsWithdraw' }],
               },
             ]
-          : selectedAddr;
+          : { address: selectedAddr };
       });
 
       const { result } = renderHook(() =>
