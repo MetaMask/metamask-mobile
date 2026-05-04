@@ -160,7 +160,7 @@ describe('MoneyHomeView', () => {
     mockInitiateCustomConversion.mockResolvedValue(undefined);
     mockUseMusdConversion.mockReturnValue({
       initiateCustomConversion: mockInitiateCustomConversion,
-    } as ReturnType<typeof useMusdConversion>);
+    } as unknown as ReturnType<typeof useMusdConversion>);
 
     mockSelectIsCardholder.mockReturnValue(false);
 
