@@ -186,6 +186,7 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
+  selectMusdConversionBlockedCountries: jest.fn(() => []),
 }));
 
 afterEach(() => {

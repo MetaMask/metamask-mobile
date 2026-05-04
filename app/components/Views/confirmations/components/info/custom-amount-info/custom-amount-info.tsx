@@ -65,6 +65,7 @@ import { useSelector } from 'react-redux';
 import AccountSelector from '../../AccountSelector';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -85,6 +86,12 @@ export interface CustomAmountInfoProps {
    * When true, the confirm/continue button is disabled regardless of alert state.
    */
   disableConfirm?: boolean;
+  /**
+   * Adds bottom space to the bottom block (rows + keyboard/confirm button).
+   * Used by Perps Withdraw on Android, where this screen has one extra
+   * balance line and otherwise clips behind the system gesture bar.
+   */
+  hasExtraBottomPadding?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -94,6 +101,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disableConfirm,
     disablePay,
     hasMax,
+    hasExtraBottomPadding,
     onAmountSubmit,
     hidePayTokenAmount,
     preferredToken,
@@ -234,7 +242,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {!hidePayTokenAmount && children}
         </Box>
-        <Box gap={16}>
+        <Box
+          gap={16}
+          testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
+          style={hasExtraBottomPadding && styles.extraBottomPadding}
+        >
           <AlertMessage alertMessage={alertMessage} />
           {!hidePayTokenAmount && (
             <>
