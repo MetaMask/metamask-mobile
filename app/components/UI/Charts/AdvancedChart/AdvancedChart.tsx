@@ -578,7 +578,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (!onSkeletonHidden) {
         return;
       }
-      if (showSkeleton) {
+      // Check actual state variables, not derived `showSkeleton`, to avoid stale closure race
+      if (isLoading || !isChartReady || layoutSettling) {
         return;
       }
       if (skeletonHiddenReportedRef.current) {
@@ -586,7 +587,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
       skeletonHiddenReportedRef.current = true;
       onSkeletonHidden();
-    }, [showSkeleton, webViewError, onSkeletonHidden]);
+    }, [
+      isLoading,
+      isChartReady,
+      layoutSettling,
+      webViewError,
+      onSkeletonHidden,
+    ]);
 
     // ---- Render ----
 
