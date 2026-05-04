@@ -8,13 +8,17 @@ import { RPC_METHODS } from '../../../core/SDKConnect/SDKConnectConstants.ts';
 let mockRouteParams: {
   method?: string;
   origin?: string;
+  dappName?: string;
   hideReturnToApp?: boolean;
 } = {};
 
 jest.mock('../../../../locales/i18n.js', () => ({
-  strings: jest.fn().mockImplementation((key: string) => key),
+  strings: jest
+    .fn()
+    .mockImplementation((key: string, params?: { dappName?: string }) =>
+      params?.dappName ? `${key}:${params.dappName}` : key,
+    ),
 }));
-
 const mockWait = jest.fn(() => Promise.resolve());
 jest.mock('../../../core/SDKConnect/utils/wait.util.ts', () => ({
   wait: (_: number) => mockWait(),
@@ -87,7 +91,7 @@ describe('ReturnToAppNotification', () => {
     expect(toastRef.current.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: ToastVariants.App,
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppGenericLabel' }]
         appIconSource: { uri: 'https://example.com/favicon.png' },
         hasNoTimeout: false,
       }),
@@ -104,7 +108,7 @@ describe('ReturnToAppNotification', () => {
 
     expect(toastRef.current.showToast).not.toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppGenericLabel' }],
       }),
     );
   });
@@ -218,7 +222,7 @@ describe('ReturnToAppNotification', () => {
 
     expect(toastRef.current.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppGenericLabel' }],
       }),
     );
   });
@@ -245,7 +249,7 @@ describe('ReturnToAppNotification', () => {
     expect(toastRef.current.showToast).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppGenericLabel' }],
       }),
     );
   });
@@ -306,7 +310,7 @@ describe('ReturnToAppNotification', () => {
     expect(toastRef.current.showToast).toHaveBeenCalledTimes(1);
     expect(toastRef.current.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppGenericLabel' }],
       }),
     );
   });
@@ -375,4 +379,45 @@ describe('ReturnToAppNotification', () => {
       }),
     );
   });
+
+  it('shows return-to-app toast with dapp name when hideReturnToApp is not set', async () => {
+    mockRouteParams = {
+      origin: 'https://example.com',
+      dappName: 'Example Dapp',
+    };
+
+    const { toastRef } = renderComponent();
+
+    await flushPromises();
+
+    expect(toastRef.current.showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: ToastVariants.App,
+        labelOptions: [
+          { label: 'sdk_return_to_app_toast.returnToAppLabel:Example Dapp' },
+        ],
+        appIconSource: { uri: 'https://example.com/favicon.png' },
+        hasNoTimeout: false,
+      }),
+    );
+  });
+
+  it('shows generic return-to-app toast when dapp name is missing', async () => {
+    mockRouteParams = {
+      origin: 'https://example.com',
+    };
+
+    const { toastRef } = renderComponent();
+
+    await flushPromises();
+
+    expect(toastRef.current.showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [
+          { label: 'sdk_return_to_app_toast.returnToAppGenericLabel' },
+        ],
+      }),
+    );
+  });
+
 });

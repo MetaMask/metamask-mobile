@@ -3664,7 +3664,8 @@
     "cancel": "Cancel"
   },
   "sdk_return_to_app_toast": {
-    "returnToAppLabel": "Now you can return to app",
+    "returnToAppLabel": "Now you can return to {{dappName}}",
+    "returnToAppGenericLabel": "Now you can return to the app",
     "networkSwitchMethodLabel": "Network successfully switched"
   },
   "sdk_feedback_modal": {
