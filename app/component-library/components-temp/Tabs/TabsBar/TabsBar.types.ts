@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { Animated } from 'react-native';
 
 // External dependencies.
 import { Box } from '@metamask/design-system-react-native';
@@ -14,6 +15,9 @@ import { Box } from '@metamask/design-system-react-native';
 // https://github.com/MetaMask/metamask-design-system/issues/1115
 type BoxComponentProps = React.ComponentProps<typeof Box>;
 
+// Internal dependencies.
+import { IconName } from 'app/component-library/components/Icons/Icon/Icon.types';
+
 /**
  * Individual tab item data interface
  */
@@ -23,6 +27,10 @@ export interface TabItem {
   content: React.ReactNode;
   isDisabled?: boolean;
   testID?: string;
+  /**
+   * Optional icon rendered above the tab label.
+   */
+  iconName?: IconName;
 }
 
 /**
@@ -49,4 +57,14 @@ export interface TabsBarProps extends BoxComponentProps {
    * Tailwind CSS classes to apply to the main container
    */
   twClassName?: string;
+  /**
+   * When true, each tab stretches equally to fill the full container width.
+   * Disables horizontal scrolling and gap spacing. Defaults to false.
+   */
+  fillWidth?: boolean;
+  /**
+   * Optional Animated.Value (0=visible, 1=hidden) that collapses the tab row height to zero.
+   * Requires useNativeDriver: false on the driving animation.
+   */
+  collapseAnim?: Animated.Value;
 }

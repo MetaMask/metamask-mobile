@@ -26,6 +26,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   onTabPress,
   testID,
   twClassName,
+  fillWidth = false,
+  collapseAnim,
   ...boxProps
 }) => {
   const tw = useTailwind();
@@ -35,7 +37,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
 
   const underlineAnimated = useRef(new Animated.Value(0)).current;
-  const underlineWidthAnimated = useRef(new Animated.Value(0)).current;
+  const [underlineWidth, setUnderlineWidth] = useState(0);
   const tabLayouts = useRef<{ x: number; width: number }[]>([]);
   const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
   const rafCallbackId = useRef<number | null>(null);
@@ -46,6 +48,18 @@ const TabsBar: React.FC<TabsBarProps> = ({
   // State for automatic overflow detection
   const [scrollEnabled, setScrollEnabled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+
+  const hasIcons = tabs.some((tab) => tab.iconName);
+
+  // Height collapse animation state
+  const [tabRowHeight, setTabRowHeight] = useState(0);
+  const animatedHeight =
+    collapseAnim && tabRowHeight > 0
+      ? collapseAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [tabRowHeight, 0],
+        })
+      : undefined;
 
   // Keep activeIndexRef in sync with activeIndex
   useEffect(() => {
@@ -114,25 +128,27 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
       const isFirstTime = !isInitialized;
 
+      const targetWidth = hasIcons
+        ? activeTabLayout.width * 0.75
+        : activeTabLayout.width;
+      const targetX =
+        activeTabLayout.x + (hasIcons ? activeTabLayout.width * 0.125 : 0);
+
       if (isFirstTime) {
         // First time - set position immediately
-        underlineAnimated.setValue(activeTabLayout.x);
-        underlineWidthAnimated.setValue(activeTabLayout.width);
+        underlineAnimated.setValue(targetX);
+        setUnderlineWidth(targetWidth);
         setIsInitialized(true);
       } else {
-        // Animate to new position
-        const animation = Animated.parallel([
-          Animated.timing(underlineAnimated, {
-            toValue: activeTabLayout.x,
-            duration: 200,
-            useNativeDriver: false,
-          }),
-          Animated.timing(underlineWidthAnimated, {
-            toValue: activeTabLayout.width,
-            duration: 200,
-            useNativeDriver: false,
-          }),
-        ]);
+        // Snap width instantly (no layout animation = native thread safe),
+        // then slide position on the native thread via translateX.
+        setUnderlineWidth(targetWidth);
+
+        const animation = Animated.timing(underlineAnimated, {
+          toValue: targetX,
+          duration: 200,
+          useNativeDriver: true,
+        });
 
         currentAnimation.current = animation;
         animation.start((finished) => {
@@ -150,13 +166,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         });
       }
     },
-    [
-      scrollEnabled,
-      underlineAnimated,
-      underlineWidthAnimated,
-      tabs.length,
-      isInitialized,
-    ],
+    [scrollEnabled, underlineAnimated, tabs.length, isInitialized, hasIcons],
   );
 
   // Animate when activeIndex changes and layouts are ready
@@ -166,8 +176,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
     }
   }, [activeIndex, layoutsReady, animateToTab]);
 
-  // Check if content overflows and update scroll state
+  // Check if content overflows and update scroll state.
+  // Skipped when fillWidth is true — tabs always fill available space without scrolling.
   useEffect(() => {
+    if (fillWidth) return;
     if (containerWidth > 0 && tabLayouts.current.length === tabs.length) {
       // Validate that all tab layouts are defined (prevent sparse array issues)
       const allLayoutsDefined = tabLayouts.current.every(
@@ -188,7 +200,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         setScrollEnabled(shouldScroll);
       }
     }
-  }, [containerWidth, tabs.length]);
+  }, [fillWidth, containerWidth, tabs.length]);
 
   // Handle container layout to measure available width
   const handleContainerLayout = (layoutEvent: LayoutChangeEvent) => {
@@ -281,7 +293,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   return (
     <Box
-      twClassName={`relative overflow-hidden ${twClassName || ''}`}
+      twClassName={`relative overflow-hidden ${hasIcons ? 'border-b border-border-muted' : ''} ${twClassName || ''}`}
       testID={testID}
       onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
       {...boxProps}
@@ -304,55 +316,73 @@ const TabsBar: React.FC<TabsBarProps> = ({
               <Tab
                 key={tab.key}
                 label={tab.label}
+                iconName={tab.iconName}
                 isActive={index === activeIndex}
                 isDisabled={tab.isDisabled}
                 onPress={() => handleTabPress(index)}
                 onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
                 testID={tab.testID ?? `${testID}-tab-${index}`}
+                style={hasIcons ? tw.style('py-2') : tw.style('py-1')}
               />
             ))}
 
             {/* Animated underline for scrollable tabs */}
             {activeIndex >= 0 && isInitialized && (
               <Animated.View
-                style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                  width: underlineWidthAnimated,
-                  transform: [{ translateX: underlineAnimated }],
-                })}
+                style={tw.style(
+                  `absolute ${hasIcons ? '-bottom-2px h-1' : 'bottom-0 h-0.5'} bg-icon-default z-1`,
+                  {
+                    width: underlineWidth,
+                    transform: [{ translateX: underlineAnimated }],
+                  },
+                )}
               />
             )}
           </Box>
         </ScrollView>
       ) : (
-        <Box twClassName="px-4">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="relative gap-6"
-          >
-            {tabs.map((tab, index) => (
-              <Tab
-                key={tab.key}
-                label={tab.label}
-                isActive={index === activeIndex}
-                isDisabled={tab.isDisabled}
-                onPress={() => handleTabPress(index)}
-                onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
-                testID={tab.testID ?? `${testID}-tab-${index}`}
-              />
-            ))}
+        <Animated.View
+          onLayout={({ nativeEvent }) => {
+            if (tabRowHeight === 0 && nativeEvent.layout.height > 0) {
+              setTabRowHeight(nativeEvent.layout.height);
+            }
+          }}
+          style={[
+            tw.style(
+              `relative ${fillWidth ? 'flex-row items-center' : 'px-4 gap-6 flex-row items-center relative'} ${animatedHeight !== undefined ? 'overflow-hidden' : ''}`,
+            ),
+            animatedHeight !== undefined
+              ? { height: animatedHeight }
+              : undefined,
+          ]}
+        >
+          {tabs.map((tab, index) => (
+            <Tab
+              key={tab.key}
+              label={tab.label}
+              iconName={tab.iconName}
+              isActive={index === activeIndex}
+              isDisabled={tab.isDisabled}
+              onPress={() => handleTabPress(index)}
+              onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
+              testID={tab.testID ?? `${testID}-tab-${index}`}
+              fillWidth={fillWidth}
+            />
+          ))}
 
-            {/* Animated underline for non-scrollable tabs */}
-            {activeIndex >= 0 && isInitialized && (
-              <Animated.View
-                style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                  width: underlineWidthAnimated,
+          {/* Animated underline for non-scrollable tabs */}
+          {activeIndex >= 0 && isInitialized && (
+            <Animated.View
+              style={tw.style(
+                `absolute ${hasIcons ? '-bottom-2px h-1' : 'bottom-0 h-0.5'} bg-icon-default z-1`,
+                {
+                  width: underlineWidth,
                   transform: [{ translateX: underlineAnimated }],
-                })}
-              />
-            )}
-          </Box>
-        </Box>
+                },
+              )}
+            />
+          )}
+        </Animated.View>
       )}
     </Box>
   );
