@@ -1,10 +1,12 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import {
   ActivityIndicator,
   Animated,
@@ -41,6 +43,7 @@ import onboardChecklistV05Animation from '../../../animations/onboard_checklist_
 import { isE2E } from '../../../util/test/utils';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
   WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS,
@@ -48,6 +51,7 @@ import {
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_DOWN_OUT_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_IN_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS,
+  WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
   WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS,
   walletHomeOnboardingChecklistSlideDownExitDistancePx,
 } from './walletHomeOnboardingChecklistRive';
@@ -138,8 +142,9 @@ export interface WalletHomeOnboardingStepsProps {
 
 /**
  * Multi-step onboarding flow for newly onboarded users with zero aggregated balance.
- * Primary on trade/notifications runs optional commit handlers (e.g. navigate) then advances;
- * Skip advances only.
+ * Primary on trade/notifications with navigation callbacks defers advance until the user
+ * returns to the wallet, briefly holds on the completed step, then runs outro + transition.
+ * Skip advances immediately (no navigation).
  * Step 1 (fund) has no Skip — users must use Add to continue.
  */
 const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
@@ -151,6 +156,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   onNotificationsPrimaryPress,
 }) => {
   const tw = useTailwind();
+  const isFocused = useIsFocused();
   const checklistRiveRef = useRef<RiveRef>(null);
   const prevSuspendRiveForCurtainRef = useRef(false);
   const checklistFadeOpacity = useRef(new Animated.Value(1)).current;
@@ -178,9 +184,38 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const outroHoldTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  /** Primary opened trade / notifications screen — advance only after user returns and a short hold. */
+  const deferAdvanceUntilReturnRef = useRef(false);
+  const sawBlurWhileDeferredRef = useRef(false);
+  const resumeHoldAfterReturnTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  /**
+   * After returning from trade / notifications (deferred advance), skip replaying the checklist
+   * Rive intro: autoplay off until this flag is cleared when the step index advances (see layout
+   * effect below) or in {@link finishAdvance} (so we do not flip autoplay back on during the resume
+   * hold and replay intro before outro).
+   */
+  const [skipIntroAfterDeferredNavReturn, setSkipIntroAfterDeferredNavReturn] =
+    useState(false);
+
+  /**
+   * After trade + swap return, `skipIntroAfterDeferredNavReturn` stays true until `finishAdvance`
+   * at slide-in end. Redux already advanced to the next step, so the new step's Rive mounted with
+   * autoplay off and the settle effect did not re-run — notifications looked blank until returning
+   * from settings. Clear skip-intro synchronously when the step index changes so the new artboard
+   * autoplays before paint.
+   */
+  useLayoutEffect(() => {
+    setSkipIntroAfterDeferredNavReturn(false);
+  }, [stepIndex]);
 
   const [progressTrackWidth, setProgressTrackWidth] = useState(0);
   const [isStepTransitioning, setIsStepTransitioning] = useState(false);
+  /** True after returning from swap/onramp/settings until the resume hold ends and advance starts. */
+  const [isAwaitingDeferredNavResumeHold, setIsAwaitingDeferredNavResumeHold] =
+    useState(false);
   const stepIndexRef = useRef(stepIndex);
   const isLastStepRef = useRef(stepIndex >= VISIBLE_STEPS.length - 1);
   /** Kept in sync with `stepIndex` + `isAwaitingBalance` so Primary commit matches `goNextOrComplete` ref reads. */
@@ -200,6 +235,10 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       if (outroHoldTimeoutRef.current !== null) {
         clearTimeout(outroHoldTimeoutRef.current);
         outroHoldTimeoutRef.current = null;
+      }
+      if (resumeHoldAfterReturnTimerRef.current !== null) {
+        clearTimeout(resumeHoldAfterReturnTimerRef.current);
+        resumeHoldAfterReturnTimerRef.current = null;
       }
     },
     [],
@@ -224,6 +263,46 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     }
   }, [dispatch, stepIndex]);
 
+  /**
+   * When leaving this screen (swaps / settings / onramp), mark blur even if `useIsFocused` does
+   * not flip for nested navigators — otherwise resume hold + disabled buttons never run on return.
+   */
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        if (deferAdvanceUntilReturnRef.current) {
+          sawBlurWhileDeferredRef.current = true;
+        }
+      },
+      [],
+    ),
+  );
+
+  useLayoutEffect(() => {
+    if (!skipIntroAfterDeferredNavReturn || isE2E || isAwaitingBalance) {
+      return;
+    }
+    const timeoutId = setTimeout(() => {
+      try {
+        checklistRiveRef.current?.fireState(
+          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
+        );
+        checklistRiveRef.current?.play();
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to settle checklist Rive at main after deferred nav',
+        );
+      }
+      // Keep skip-intro through the resume hold + outro; cleared in {@link finishAdvance}.
+    }, 50);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn]);
+
   const totalSteps = VISIBLE_STEPS.length;
   const currentStep = VISIBLE_STEPS[visualStepIndexForProgress];
 
@@ -245,6 +324,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const finishAdvance = useCallback(() => {
     advanceLockRef.current = false;
     setIsStepTransitioning(false);
+    setSkipIntroAfterDeferredNavReturn(false);
   }, []);
 
   const goNextOrComplete = useCallback(() => {
@@ -269,8 +349,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 
     advanceLockRef.current = true;
     setIsStepTransitioning(true);
-
-    const useCoordinatedLastExit = Boolean(onCoordinatedFlowExit && fromIsLast);
 
     const runSlideOutThenCommit = () => {
       if (fromIsLast) {
@@ -340,26 +418,25 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     };
 
     const scheduleOutroHoldThenSlide = () => {
-      if (!useCoordinatedLastExit) {
-        try {
-          checklistRiveRef.current?.fireState(
-            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
-            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
-          );
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
-          );
-        }
+      // Always run checklist Rive outro before leaving the step (including last step with
+      // coordinated Wallet fade — previously outro was skipped and hold was 0, so returning
+      // from notification settings showed intro replay then no outro).
+      try {
+        checklistRiveRef.current?.fireState(
+          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
+        );
       }
 
       if (outroHoldTimeoutRef.current !== null) {
         clearTimeout(outroHoldTimeoutRef.current);
       }
-      const outroHoldMs = useCoordinatedLastExit
-        ? 0
-        : WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS;
+      const outroHoldMs = WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS;
       outroHoldTimeoutRef.current = setTimeout(() => {
         outroHoldTimeoutRef.current = null;
         runSlideOutThenCommit();
@@ -394,12 +471,81 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     checklistFadeOpacity,
   ]);
 
+  useLayoutEffect(() => {
+    if (isE2E) {
+      return;
+    }
+    if (
+      !isFocused ||
+      !deferAdvanceUntilReturnRef.current ||
+      !sawBlurWhileDeferredRef.current
+    ) {
+      return;
+    }
+    setSkipIntroAfterDeferredNavReturn(true);
+  }, [isFocused]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      if (deferAdvanceUntilReturnRef.current) {
+        sawBlurWhileDeferredRef.current = true;
+      }
+      if (resumeHoldAfterReturnTimerRef.current !== null) {
+        clearTimeout(resumeHoldAfterReturnTimerRef.current);
+        resumeHoldAfterReturnTimerRef.current = null;
+      }
+      setIsAwaitingDeferredNavResumeHold(false);
+      return;
+    }
+
+    if (
+      !deferAdvanceUntilReturnRef.current ||
+      !sawBlurWhileDeferredRef.current
+    ) {
+      return;
+    }
+
+    setIsAwaitingDeferredNavResumeHold(true);
+
+    const holdMs = isE2E ? 0 : WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS;
+    resumeHoldAfterReturnTimerRef.current = setTimeout(() => {
+      resumeHoldAfterReturnTimerRef.current = null;
+      deferAdvanceUntilReturnRef.current = false;
+      sawBlurWhileDeferredRef.current = false;
+      setIsAwaitingDeferredNavResumeHold(false);
+      goNextOrComplete();
+    }, holdMs);
+
+    return () => {
+      if (resumeHoldAfterReturnTimerRef.current !== null) {
+        clearTimeout(resumeHoldAfterReturnTimerRef.current);
+        resumeHoldAfterReturnTimerRef.current = null;
+      }
+      setIsAwaitingDeferredNavResumeHold(false);
+    };
+  }, [goNextOrComplete, isFocused]);
+
   const handlePrimaryPress = useCallback(() => {
     const kind = currentStepKindRef.current;
+    const shouldDeferAdvanceUntilReturn =
+      !isE2E &&
+      ((kind === 'trade' && Boolean(onTradePrimaryPress)) ||
+        (kind === 'notifications' && Boolean(onNotificationsPrimaryPress)));
+
+    if (shouldDeferAdvanceUntilReturn) {
+      deferAdvanceUntilReturnRef.current = true;
+      sawBlurWhileDeferredRef.current = false;
+      setIsAwaitingDeferredNavResumeHold(true);
+    }
+
     if (kind === 'trade' && onTradePrimaryPress) {
       onTradePrimaryPress();
     } else if (kind === 'notifications' && onNotificationsPrimaryPress) {
       onNotificationsPrimaryPress();
+    }
+
+    if (shouldDeferAdvanceUntilReturn) {
+      return;
     }
     goNextOrComplete();
   }, [goNextOrComplete, onNotificationsPrimaryPress, onTradePrimaryPress]);
@@ -433,12 +579,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 
   const heroContainerClassName =
     'relative h-52 w-full rounded-2xl overflow-hidden';
-
-  /** Last step with coordinated Wallet exit — no inner slide once settled (fade handles exit). While `isStepTransitioning`, keep the animated wrapper so the slide-in from step N−1 still runs after `stepIndex` updates. */
-  const useStaticStepBody =
-    Boolean(onCoordinatedFlowExit) &&
-    stepIndex >= VISIBLE_STEPS.length - 1 &&
-    !isStepTransitioning;
 
   const renderChecklistStepBody = () => (
     <>
@@ -487,7 +627,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               style={HERO_MEDIA_LAYOUT_STYLE}
               fit={Fit.Contain}
               alignment={Alignment.Center}
-              autoplay
+              autoplay={!skipIntroAfterDeferredNavReturn}
               stateMachineName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE
               }
@@ -526,7 +666,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             size={ButtonSize.Lg}
             onPress={handlePrimaryPress}
             isFullWidth
-            isDisabled={isStepTransitioning || isAwaitingBalance}
+            isDisabled={
+              isStepTransitioning ||
+              isAwaitingBalance ||
+              isAwaitingDeferredNavResumeHold
+            }
             testID={primaryTestID}
           >
             {primaryLabelForKind(currentStep.kind)}
@@ -543,7 +687,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               size={ButtonSize.Lg}
               onPress={goNextOrComplete}
               twClassName="min-w-0 flex-1"
-              isDisabled={isStepTransitioning || isAwaitingBalance}
+              isDisabled={
+                isStepTransitioning ||
+                isAwaitingBalance ||
+                isAwaitingDeferredNavResumeHold
+              }
               testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
             >
               {strings('wallet.home_onboarding_steps.skip')}
@@ -552,7 +700,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               size={ButtonSize.Lg}
               onPress={handlePrimaryPress}
               twClassName="min-w-0 flex-1"
-              isDisabled={isStepTransitioning || isAwaitingBalance}
+              isDisabled={
+                isStepTransitioning ||
+                isAwaitingBalance ||
+                isAwaitingDeferredNavResumeHold
+              }
               testID={primaryTestID}
             >
               {primaryLabelForKind(currentStep.kind)}
@@ -615,20 +767,20 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           </Box>
         </Box>
 
-        {useStaticStepBody ? (
-          <View style={tw.style('w-full flex flex-col gap-4')}>
-            {renderChecklistStepBody()}
-          </View>
-        ) : (
-          <Animated.View
-            style={[
-              tw.style('w-full flex flex-col gap-4'),
-              { transform: [{ translateX: slideX }, { translateY: slideY }] },
-            ]}
-          >
-            {renderChecklistStepBody()}
-          </Animated.View>
-        )}
+        {/*
+          Always use the same Animated.View wrapper for the step body. Switching between
+          View vs Animated.View when `isStepTransitioning` flips on the last step remounted
+          Rive and cleared checklistRiveRef before Outro could fire (notification step looked
+          like it skipped outro).
+        */}
+        <Animated.View
+          style={[
+            tw.style('w-full flex flex-col gap-4'),
+            { transform: [{ translateX: slideX }, { translateY: slideY }] },
+          ]}
+        >
+          {renderChecklistStepBody()}
+        </Animated.View>
       </Box>
     </Animated.View>
   );

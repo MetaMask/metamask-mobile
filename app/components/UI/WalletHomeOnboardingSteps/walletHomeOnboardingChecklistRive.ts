@@ -10,11 +10,20 @@ import type { WalletHomeOnboardingStepHeroKind } from './walletHomeOnboardingSte
 export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE =
   'State Machine 1';
 
+/** Trigger on {@link WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE} to enter the main (post-intro) pose. */
+export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER = 'Main';
+
 /** Trigger on {@link WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE} before leaving the step. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER = 'Outro';
 
 /** Time after firing outro before the slide-out starts (lets Rive outro read on screen). */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS = 920;
+
+/**
+ * After the user returns from trade / notification settings, pause on the completed step
+ * before running the outro and advancing.
+ */
+export const WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS = 550;
 
 /** Slide current step off to the left. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS = 300;
