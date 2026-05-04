@@ -19,7 +19,7 @@ import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -55,11 +55,6 @@ export const SwapsConfirmButton = ({
   transactionActiveAbTests,
 }: Props) => {
   const navigation = useNavigation();
-  const handleConfirm = useBridgeConfirm({
-    latestSourceBalance,
-    location,
-    transactionActiveAbTests,
-  });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
@@ -90,8 +85,12 @@ export const SwapsConfirmButton = ({
     quoteFetchError,
     isNoQuotesAvailable,
     isActiveQuoteForCurrentTokenPair,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  } = useBridgeQuoteDataContext();
+
+  const handleConfirm = useBridgeConfirm({
+    activeQuote,
+    location,
+    transactionActiveAbTests,
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
