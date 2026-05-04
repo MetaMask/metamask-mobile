@@ -17,7 +17,15 @@ import Overlay from '../../../component-library/components/Overlay';
 import { useParams } from '../../../util/navigation/navUtils';
 import { Box } from '../../UI/Box/Box';
 
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  ActionListItem,
+  FontWeight,
+  IconName,
+  Tag,
+  TagSeverity,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useSafeAreaFrame,
@@ -26,7 +34,6 @@ import {
 import { useSelector } from 'react-redux';
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
-import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
@@ -60,6 +67,7 @@ import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
+const MULTI_SWAP_ENABLED = true;
 
 interface TradeWalletActionsParams {
   onDismiss?: () => void;
@@ -133,6 +141,15 @@ function TradeWalletActions() {
     };
     handleNavigateBack();
   }, [goToSwapsBase, handleNavigateBack]);
+
+  const onBatchSell = useCallback(() => {
+    postCallback.current = () => {
+      navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.MULTI_SWAP_TOKEN_SELECT,
+      });
+    };
+    handleNavigateBack();
+  }, [handleNavigateBack, navigate]);
 
   const onPerps = useCallback(() => {
     postCallback.current = () => {
@@ -275,6 +292,32 @@ function TradeWalletActions() {
                   `px-0`,
                 )}
               >
+                {MULTI_SWAP_ENABLED && AppConstants.SWAPS.ACTIVE && (
+                  <ActionListItem
+                    label={
+                      <View style={tw.style('flex-row items-center gap-2')}>
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          fontWeight={FontWeight.Medium}
+                        >
+                          {strings('asset_overview.batch_sell')}
+                        </Text>
+                        <Tag severity={TagSeverity.Info}>
+                          {strings('asset_overview.batch_sell_new_label')}
+                        </Tag>
+                      </View>
+                    }
+                    description={strings(
+                      'asset_overview.batch_sell_description',
+                    )}
+                    iconName={IconName.Receive}
+                    onPress={onBatchSell}
+                    testID={
+                      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON
+                    }
+                    isDisabled={!isSwapsEnabled}
+                  />
+                )}
                 {AppConstants.SWAPS.ACTIVE && (
                   <ActionListItem
                     label={strings('asset_overview.swap')}
