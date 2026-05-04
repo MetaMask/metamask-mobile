@@ -34,6 +34,7 @@ import {
   formatPercentChange,
   formatUsd,
   formatRewardsTimeOnly,
+  getPortfolioReturnColor,
 } from '../utils/formatUtils';
 import {
   ONDO_GM_REQUIRED_QUALIFIED_DAYS,
@@ -126,11 +127,9 @@ const OndoCampaignStatsView: React.FC = () => {
     ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
     : '-';
 
-  const returnColor = portfolioData?.summary
-    ? parseFloat(portfolioData.summary.portfolioPnlPercent) < 0
-      ? TextColor.ErrorDefault
-      : TextColor.SuccessDefault
-    : TextColor.TextDefault;
+  const returnColor = getPortfolioReturnColor(
+    portfolioData?.summary?.portfolioPnlPercent,
+  );
 
   const marketValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.totalCurrentValue)

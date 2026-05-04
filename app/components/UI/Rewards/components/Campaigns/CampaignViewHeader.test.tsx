@@ -26,7 +26,7 @@ jest.mock(
       title: string;
       onBack: () => void;
       backButtonProps?: { testID?: string };
-      endButtonIconProps?: Array<{ testID?: string; onPress: () => void }>;
+      endButtonIconProps?: { testID?: string; onPress: () => void }[];
     }) =>
       ReactActual.createElement(
         View,

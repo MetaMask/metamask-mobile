@@ -29,6 +29,7 @@ import {
   formatRewardsTimeOnly,
   formatPercentChange,
   formatUsd,
+  getPortfolioReturnColor,
 } from '../utils/formatUtils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
@@ -104,11 +105,9 @@ const OndoLeaderboardView: React.FC = () => {
     ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
     : undefined;
 
-  const returnColor = portfolioData?.summary
-    ? parseFloat(portfolioData.summary.portfolioPnlPercent) < 0
-      ? TextColor.ErrorDefault
-      : TextColor.SuccessDefault
-    : TextColor.TextDefault;
+  const returnColor = getPortfolioReturnColor(
+    portfolioData?.summary?.portfolioPnlPercent,
+  );
 
   const prizePoolValue = deposits?.totalUsdDeposited
     ? formatUsd(getCurrentPrize(parseFloat(deposits.totalUsdDeposited)))
