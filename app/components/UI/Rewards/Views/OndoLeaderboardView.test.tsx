@@ -482,6 +482,31 @@ describe('OndoLeaderboardView', () => {
     computedAt: '2024-01-01T00:00:00Z',
   };
 
+  it('computes returnValue when portfolioData has a summary', () => {
+    mockUseGetCampaignParticipantStatus.mockReturnValue({
+      status: { optedIn: true, participantCount: 1 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      portfolio: {
+        summary: {
+          portfolioPnlPercent: '0.05',
+          totalCurrentValue: '12500',
+          netDeposit: '10000',
+          totalCashedOut: '0',
+        },
+      },
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+    const { getByTestId } = render(<OndoLeaderboardView />);
+    expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
+  });
+
   it('uses empty entries and zero totalParticipants when selectedTierData is null', () => {
     mockUseGetOndoLeaderboard.mockReturnValue({
       ...hookDefaults,
@@ -499,7 +524,7 @@ describe('OndoLeaderboardView', () => {
       position: qualifiedPosition,
     });
     mockUseGetOndoCampaignDeposits.mockReturnValue({
-      deposits: { totalUsdDeposited: '5000', lastFetched: Date.now() },
+      deposits: { totalUsdDeposited: '5000' },
       isLoading: false,
       hasError: false,
       refetch: jest.fn(),
