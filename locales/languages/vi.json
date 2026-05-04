@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "Thu nhập",
-      "lifetime": "Thu nhập trọn đời",
-      "projected": "Thu nhập dự kiến"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "Cách hoạt động",

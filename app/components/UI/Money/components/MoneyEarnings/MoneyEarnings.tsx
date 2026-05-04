@@ -4,10 +4,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -19,14 +15,15 @@ import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
 
 interface MoneyEarningsProps {
   /**
-   * Cumulative yield earned to date, formatted in the user's selected currency.
-   */
-  lifetimeEarnings: string;
-  /**
-   * Forward-looking earnings based on current balance and APY, formatted in
+   * Estimated monthly earnings based on current balance and APY, formatted in
    * the user's selected currency.
    */
-  projectedEarnings: string;
+  monthlyEarnings: string;
+  /**
+   * Estimated yearly earnings based on current balance and APY, formatted in
+   * the user's selected currency.
+   */
+  yearlyEarnings: string;
   /**
    * Render skeletons in place of the two earnings values while data is being
    * fetched.
@@ -42,16 +39,13 @@ interface MoneyEarningsProps {
 const ValueText = ({
   children,
   testID,
-  color,
 }: {
   children: string;
   testID: string;
-  color?: TextColor;
 }) => (
   <Text
     variant={TextVariant.BodyMd}
     fontWeight={FontWeight.Medium}
-    color={color}
     testID={testID}
   >
     {children}
@@ -59,8 +53,8 @@ const ValueText = ({
 );
 
 const MoneyEarnings = ({
-  lifetimeEarnings,
-  projectedEarnings,
+  monthlyEarnings,
+  yearlyEarnings,
   isLoading = false,
   onInfoPress,
 }: MoneyEarningsProps) => (
@@ -76,30 +70,23 @@ const MoneyEarnings = ({
       alignItems={BoxAlignItems.Start}
       twClassName="mt-3 gap-4"
     >
-      <Box twClassName="flex-1 gap-0.5" testID={MoneyEarningsTestIds.LIFETIME}>
+      <Box twClassName="flex-1 gap-0.5" testID={MoneyEarningsTestIds.MONTHLY}>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
         >
-          {strings('money.earnings.lifetime')}
+          {strings('money.earnings.estimated_monthly')}
         </Text>
         {isLoading ? (
           <Skeleton
             height={24}
             width={80}
-            testID={MoneyEarningsTestIds.LIFETIME_SKELETON}
+            testID={MoneyEarningsTestIds.MONTHLY_SKELETON}
           />
         ) : (
-          <ValueText
-            testID={MoneyEarningsTestIds.LIFETIME_VALUE}
-            color={
-              lifetimeEarnings.startsWith('+')
-                ? TextColor.SuccessDefault
-                : undefined
-            }
-          >
-            {lifetimeEarnings}
+          <ValueText testID={MoneyEarningsTestIds.MONTHLY_VALUE}>
+            {monthlyEarnings}
           </ValueText>
         )}
       </Box>
@@ -115,18 +102,18 @@ const MoneyEarnings = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
           >
-            {strings('money.earnings.projected')}
+            {strings('money.earnings.estimated_yearly')}
           </Text>
         </Box>
         {isLoading ? (
           <Skeleton
             height={24}
             width={80}
-            testID={MoneyEarningsTestIds.PROJECTED_SKELETON}
+            testID={MoneyEarningsTestIds.YEARLY_SKELETON}
           />
         ) : (
-          <ValueText testID={MoneyEarningsTestIds.PROJECTED_VALUE}>
-            {projectedEarnings}
+          <ValueText testID={MoneyEarningsTestIds.YEARLY_VALUE}>
+            {yearlyEarnings}
           </ValueText>
         )}
       </Box>

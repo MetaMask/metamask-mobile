@@ -1,8 +1,8 @@
 export const MoneyEarningsTestIds = {
   CONTAINER: 'money-earnings-container',
-  LIFETIME: 'money-earnings-lifetime',
-  LIFETIME_VALUE: 'money-earnings-lifetime-value',
-  LIFETIME_SKELETON: 'money-earnings-lifetime-skeleton',
-  PROJECTED_VALUE: 'money-earnings-projected-value',
-  PROJECTED_SKELETON: 'money-earnings-projected-skeleton',
+  MONTHLY: 'money-earnings-monthly',
+  MONTHLY_VALUE: 'money-earnings-monthly-value',
+  MONTHLY_SKELETON: 'money-earnings-monthly-skeleton',
+  YEARLY_VALUE: 'money-earnings-yearly-value',
+  YEARLY_SKELETON: 'money-earnings-yearly-skeleton',
 } as const;

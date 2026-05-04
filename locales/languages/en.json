@@ -6540,8 +6540,8 @@
     },
     "earnings": {
       "title": "Earnings",
-      "lifetime": "Lifetime earnings",
-      "projected": "Projected earnings",
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings",
       "info_label": "Earnings info"
     },
     "how_it_works": {

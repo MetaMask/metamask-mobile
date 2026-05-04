@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "수익",
-      "lifetime": "누적 수익",
-      "projected": "예상 수익"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "작동 방식",

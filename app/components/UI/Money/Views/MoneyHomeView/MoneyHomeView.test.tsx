@@ -335,18 +335,28 @@ describe('MoneyHomeView', () => {
     });
   });
 
-  describe('projected earnings', () => {
-    it('passes the formatted projected earnings to MoneyEarnings', () => {
+  describe('monthly and yearly earnings', () => {
+    it('passes the formatted monthly earnings to MoneyEarnings', () => {
       mockMoneyFormatFiat.mockReturnValue('$0.12');
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(
-        getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE),
-      ).toHaveTextContent('$0.12');
+      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
+        '$0.12',
+      );
     });
 
-    it('displays the zero-formatted value for projected earnings when totalFiatRaw is absent', () => {
+    it('passes the formatted yearly earnings to MoneyEarnings', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.12');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
+        '$0.12',
+      );
+    });
+
+    it('displays the zero-formatted value for monthly earnings when totalFiatRaw is absent', () => {
       mockMoneyFormatFiat.mockReturnValue('$0.00');
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
@@ -365,9 +375,9 @@ describe('MoneyHomeView', () => {
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(
-        getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE),
-      ).toHaveTextContent('$0.00');
+      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
+        '$0.00',
+      );
     });
   });
 

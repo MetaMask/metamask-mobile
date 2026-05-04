@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "收益",
-      "lifetime": "累计收益",
-      "projected": "预估收益"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "如何运行",

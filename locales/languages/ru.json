@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "Заработок",
-      "lifetime": "Заработок за все время",
-      "projected": "Прогнозируемый заработок"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "Как это работает",

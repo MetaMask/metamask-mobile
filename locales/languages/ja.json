@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "収益",
-      "lifetime": "累積報酬額",
-      "projected": "予想収益"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "報酬獲得の仕組み",

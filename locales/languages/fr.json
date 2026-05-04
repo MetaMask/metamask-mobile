@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "Bénéfices",
-      "lifetime": "Gains cumulés",
-      "projected": "Bénéfices prévus"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "Comment ça marche ",

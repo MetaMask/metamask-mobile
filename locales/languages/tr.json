@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "Kazançlar",
-      "lifetime": "Toplam kazançlar",
-      "projected": "Öngörülen kazançlar"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "Nasıl çalışır?",

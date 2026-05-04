@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "Κέρδη",
-      "lifetime": "Συνολικά κέρδη",
-      "projected": "Εκτιμώμενα κέρδη"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "Πώς λειτουργεί",

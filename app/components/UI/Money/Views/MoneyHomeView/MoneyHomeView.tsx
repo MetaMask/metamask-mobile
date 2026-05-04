@@ -83,11 +83,28 @@ const MoneyHomeView = () => {
     [currentCurrency],
   );
 
-  const projectedEarnings = useMemo(() => {
+  const monthlyEarnings = useMemo(() => {
     if (!totalFiatRaw || !apyPercent) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
-    const earnings = calculateProjectedEarnings(balance.toNumber(), apyPercent);
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1 / 12,
+    );
+    if (!Number.isFinite(earnings)) return formattedZero;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+
+  const yearlyEarnings = useMemo(() => {
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1,
+    );
     if (!Number.isFinite(earnings)) return formattedZero;
     return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
@@ -245,8 +262,8 @@ const MoneyHomeView = () => {
         />
         <Divider />
         <MoneyEarnings
-          lifetimeEarnings={formattedZero}
-          projectedEarnings={projectedEarnings}
+          monthlyEarnings={monthlyEarnings}
+          yearlyEarnings={yearlyEarnings}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
         />
@@ -282,7 +299,6 @@ const MoneyHomeView = () => {
             <MoneyPotentialEarnings
               tokens={conversionTokens}
               apy={apyPercent}
-              condensed={isMilestone}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}

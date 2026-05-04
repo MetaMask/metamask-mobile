@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "Ganancias",
-      "lifetime": "Ganancias totales",
-      "projected": "Ganancias proyectadas"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "Cómo funciona",

@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "Pendapatan",
-      "lifetime": "Penghasilan seumur hidup",
-      "projected": "Proyeksi pendapatan"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "Cara kerjanya",

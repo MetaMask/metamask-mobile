@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "Mga Kita",
-      "lifetime": "Panghabambuhay na kita",
-      "projected": "Mga tinatayang kita"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "Paano ito gumagana",

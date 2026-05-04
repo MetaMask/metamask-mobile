@@ -6498,8 +6498,8 @@
     },
     "earnings": {
       "title": "कमाई",
-      "lifetime": "जीवन भर की कमाई",
-      "projected": "अनुमानित कमाई"
+      "estimated_monthly": "Est. monthly earnings",
+      "estimated_yearly": "Est. yearly earnings"
     },
     "how_it_works": {
       "title": "ये कैसे काम करता है",
