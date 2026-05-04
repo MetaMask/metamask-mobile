@@ -137,12 +137,9 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     [handleError],
   );
 
-  const setQrScanRetryHandler = useCallback(
-    (handler: (() => void) | null) => {
-      qrScanRetryHandlerRef.current = handler;
-    },
-    [],
-  );
+  const setQrScanRetryHandler = useCallback((handler: (() => void) | null) => {
+    qrScanRetryHandlerRef.current = handler;
+  }, []);
 
   const showAwaitingConfirmation = useCallback(
     (operationType: 'transaction' | 'message', onReject?: () => void) => {

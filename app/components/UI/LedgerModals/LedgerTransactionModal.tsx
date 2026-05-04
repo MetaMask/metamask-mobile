@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
-import { normalizeReplacementGasFeeParams } from '../../../util/confirmation/gas';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import {
   createNavigationDetails,
@@ -50,7 +49,7 @@ const LedgerTransactionModal = () => {
   }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
-    const gasFeeParams = normalizeReplacementGasFeeParams(replacementParams);
+    const gasFeeParams = getReplacementGasFeeParams(replacementParams);
 
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
       await speedUpTransaction(transactionId, gasFeeParams);
@@ -65,8 +64,14 @@ const LedgerTransactionModal = () => {
 
     onConfirmationComplete(true);
     goBack();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onConfirmationComplete, goBack]);
+  }, [
+    ApprovalController,
+    TransactionController,
+    goBack,
+    onConfirmationComplete,
+    replacementParams,
+    transactionId,
+  ]);
 
   const onRejection = useCallback(() => {
     try {

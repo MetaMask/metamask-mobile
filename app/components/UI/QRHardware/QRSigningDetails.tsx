@@ -155,9 +155,9 @@ const QRSigningDetails = ({
     resetError();
   };
 
-  const hideScanner = () => {
+  const hideScanner = useCallback(() => {
     setScannerVisible(false);
-  };
+  }, []);
 
   const onCancel = useCallback(async () => {
     if (pendingScanRequest) {
@@ -168,7 +168,7 @@ const QRSigningDetails = ({
     setSentOrCanceled(true);
     hideScanner();
     cancelCallback?.();
-  }, [pendingScanRequest, cancelCallback]);
+  }, [pendingScanRequest, hideScanner, cancelCallback]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
@@ -204,6 +204,7 @@ const QRSigningDetails = ({
       successCallback,
       trackEvent,
       createEventBuilder,
+      hideScanner,
     ],
   );
   const onScanError = useCallback(
@@ -212,7 +213,7 @@ const QRSigningDetails = ({
       setErrorMessage(_errorMessage);
       failureCallback?.(_errorMessage);
     },
-    [failureCallback],
+    [hideScanner, failureCallback],
   );
 
   const onQRHardwareScanError = useCallback((error: HardwareWalletError) => {

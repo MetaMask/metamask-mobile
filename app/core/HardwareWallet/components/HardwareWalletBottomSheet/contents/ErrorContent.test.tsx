@@ -21,6 +21,7 @@ import {
 import {
   createQRHardwareScanError,
   QRHardwareScanErrorType,
+  isQRHardwareScanError as actualIsQRHardwareScanError,
 } from '../../../errors';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
@@ -40,17 +41,26 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../errors', () => ({
-  ...jest.requireActual('../../../errors/qrScan'),
-  getIconForErrorCode: jest.fn().mockReturnValue('Danger'),
-  getIconColorForErrorCode: jest.fn().mockReturnValue('Error'),
-  getTitleForErrorCode: jest.fn().mockReturnValue('Error Title'),
-  getRecoveryActionForErrorCode: jest.fn().mockReturnValue('retry'),
-  RecoveryAction: {
-    RETRY: 'retry',
-    ACKNOWLEDGE: 'acknowledge',
-  },
-}));
+jest.mock('../../../errors', () => {
+  const actual = jest.requireActual('../../../errors/qrScan');
+  const actualQr = jest.requireActual('../../../errors/qrHardwareScanError');
+  return {
+    ...actual,
+    ...actualQr,
+    getIconForErrorCode: jest.fn().mockReturnValue('Danger'),
+    getIconColorForErrorCode: jest.fn().mockReturnValue('Error'),
+    getTitleForErrorCode: jest.fn().mockReturnValue('Error Title'),
+    getRecoveryActionForErrorCode: jest.fn().mockReturnValue('retry'),
+    getQRHardwareScanErrorTitle: jest
+      .fn()
+      .mockReturnValue('QR Scan Error Title'),
+    RecoveryAction: {
+      RETRY: 'retry',
+      ACKNOWLEDGE: 'acknowledge',
+      OPEN_SETTINGS: 'open_settings',
+    },
+  };
+});
 
 // Mock component library
 jest.mock('../../../../../component-library/components/Texts/Text', () => {
@@ -364,5 +374,63 @@ describe('ErrorContent', () => {
     await waitFor(() => {
       expect(onContinue).toHaveBeenCalled();
     });
+  });
+
+  it('calls onDismiss when continue pressed for ACKNOWLEDGE recovery action', async () => {
+    const onDismiss = jest.fn();
+    const { getRecoveryActionForErrorCode } =
+      jest.requireMock('../../../errors');
+    getRecoveryActionForErrorCode.mockReturnValue('acknowledge');
+    const error = createError('Test error');
+
+    const { getByTestId } = render(
+      <ErrorContent
+        error={error}
+        onDismiss={onDismiss}
+        deviceType={HardwareWalletType.Ledger}
+      />,
+    );
+
+    fireEvent.press(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('opens device settings when continue pressed for OPEN_SETTINGS recovery action', async () => {
+    const openSettingsSpy = jest.spyOn(Linking, 'openSettings');
+    openSettingsSpy.mockResolvedValueOnce(undefined);
+    const { getRecoveryActionForErrorCode } =
+      jest.requireMock('../../../errors');
+    getRecoveryActionForErrorCode.mockReturnValue('open_settings');
+    const error = createError('Test error');
+
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
+    );
+
+    fireEvent.press(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(openSettingsSpy).toHaveBeenCalledTimes(1);
+    });
+
+    openSettingsSpy.mockRestore();
+  });
+
+  it('renders view settings label for OPEN_SETTINGS recovery action', () => {
+    const { getRecoveryActionForErrorCode } =
+      jest.requireMock('../../../errors');
+    getRecoveryActionForErrorCode.mockReturnValue('open_settings');
+    const error = createError('Test error');
+
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
+    );
+
+    expect(
+      getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID),
+    ).toBeOnTheScreen();
   });
 });
