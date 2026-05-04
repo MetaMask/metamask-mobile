@@ -496,7 +496,7 @@ jobs:
               echo 'reactNativeArchitectures=x86_64'
               echo 'org.gradle.parallel=false'
               echo 'org.gradle.workers.max=1'
-              echo 'org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=384m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8'
+              echo 'org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8'
               echo 'kotlin.daemon.jvmargs=-Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError'
             } >> "$RN_GP"
           fi
@@ -533,7 +533,7 @@ jobs:
           sed -i \
             -e 's/^org.gradle.parallel=.*/org.gradle.parallel=false/' \
             -e 's/^org.gradle.workers.max=.*/org.gradle.workers.max=1/' \
-            -e 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=384m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8/' \
+            -e 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8/' \
             -e 's/^kotlin.daemon.jvmargs=.*/kotlin.daemon.jvmargs=-Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError/' \
             gradle.properties
           ./gradlew --stop || true
