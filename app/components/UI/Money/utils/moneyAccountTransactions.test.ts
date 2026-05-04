@@ -177,27 +177,28 @@ describe('moneyAccountTransactions', () => {
   });
 
   describe('updateMoneyAccountDepositTokenAmount', () => {
-    it('returns an empty array (stub implementation)', () => {
+    it('resolves to an empty array (stub implementation)', async () => {
       const transactionMeta = {
         id: 'tx-1',
         nestedTransactions: [],
       } as unknown as TransactionMeta;
 
-      expect(
+      await expect(
         updateMoneyAccountDepositTokenAmount(transactionMeta, '1.23'),
-      ).toEqual([]);
+      ).resolves.toEqual([]);
     });
 
-    it('returns an array regardless of transactionMeta shape', () => {
+    it('resolves to an array regardless of transactionMeta shape', async () => {
       const transactionMeta = {
         id: 'tx-2',
       } as unknown as TransactionMeta;
 
-      expect(
-        Array.isArray(
-          updateMoneyAccountDepositTokenAmount(transactionMeta, '1.23'),
-        ),
-      ).toBe(true);
+      const result = await updateMoneyAccountDepositTokenAmount(
+        transactionMeta,
+        '1.23',
+      );
+
+      expect(Array.isArray(result)).toBe(true);
     });
   });
 

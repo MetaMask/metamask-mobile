@@ -65,8 +65,13 @@ describe('useUpdateTransactionPayAmount', () => {
     });
   });
 
-  it('calls updateAtomicBatchData for each update returned from updateMoneyAccountDepositTokenAmount', () => {
-    updateMoneyAccountDepositTokenAmountMock.mockReturnValue([
+  async function flushPromises() {
+    await Promise.resolve();
+    await Promise.resolve();
+  }
+
+  it('calls updateAtomicBatchData for each update returned from updateMoneyAccountDepositTokenAmount', async () => {
+    updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([
       { nestedTransactionIndex: 0, transactionData: '0xaaaa' },
       { nestedTransactionIndex: 2, transactionData: '0xbbbb' },
     ]);
@@ -74,6 +79,8 @@ describe('useUpdateTransactionPayAmount', () => {
     const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
 
     result.current.updateTransactionPayAmount('1.23');
+
+    await flushPromises();
 
     expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
     expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledWith(
@@ -94,17 +101,19 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(updateTokenAmountMock).not.toHaveBeenCalled();
   });
 
-  it('does not call updateAtomicBatchData when no updates are returned', () => {
-    updateMoneyAccountDepositTokenAmountMock.mockReturnValue([]);
+  it('does not call updateAtomicBatchData when no updates are returned', async () => {
+    updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([]);
 
     const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
 
     result.current.updateTransactionPayAmount('1.23');
 
+    await flushPromises();
+
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
   });
 
-  it('does not call updateMoneyAccountDepositTokenAmount when there is no transaction meta', () => {
+  it('does not call updateMoneyAccountDepositTokenAmount when there is no transaction meta', async () => {
     const { result } = renderHookWithProvider(useUpdateTransactionPayAmount, {
       state: merge(
         {},
@@ -121,6 +130,8 @@ describe('useUpdateTransactionPayAmount', () => {
     });
 
     result.current.updateTransactionPayAmount('1.23');
+
+    await flushPromises();
 
     expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
@@ -140,7 +151,7 @@ describe('useUpdateTransactionPayAmount', () => {
   it('logs an error when updateAtomicBatchData rejects', async () => {
     const error = new Error('boom');
     updateAtomicBatchDataMock.mockRejectedValue(error);
-    updateMoneyAccountDepositTokenAmountMock.mockReturnValue([
+    updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([
       { nestedTransactionIndex: 0, transactionData: '0xaaaa' },
     ]);
 
@@ -148,11 +159,30 @@ describe('useUpdateTransactionPayAmount', () => {
 
     result.current.updateTransactionPayAmount('1.23');
 
-    await Promise.resolve();
+    await flushPromises();
 
     expect(loggerErrorMock).toHaveBeenCalledWith(
       error,
-      expect.stringContaining('Failed to update transaction pay amount'),
+      expect.stringContaining(
+        'Failed to update transaction pay amount in nested transaction',
+      ),
+    );
+  });
+
+  it('logs an error when updateMoneyAccountDepositTokenAmount rejects', async () => {
+    const error = new Error('rpc failure');
+    updateMoneyAccountDepositTokenAmountMock.mockRejectedValue(error);
+
+    const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
+
+    result.current.updateTransactionPayAmount('1.23');
+
+    await flushPromises();
+
+    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    expect(loggerErrorMock).toHaveBeenCalledWith(
+      error,
+      expect.stringContaining('Failed to prepare Money Account deposit'),
     );
   });
 });

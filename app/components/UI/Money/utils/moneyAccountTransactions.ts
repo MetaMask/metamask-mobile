@@ -174,11 +174,11 @@ export async function buildMoneyAccountDepositBatch({
  * batch re-encoding logic is wired in.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function updateMoneyAccountDepositTokenAmount(
+export async function updateMoneyAccountDepositTokenAmount(
   _transactionMeta: TransactionMeta,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _amountHuman: string,
-): UpdateTransactionPayAmountCall[] {
+): Promise<UpdateTransactionPayAmountCall[]> {
   return [];
 }
 

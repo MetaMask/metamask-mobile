@@ -12,27 +12,34 @@ export function useUpdateTransactionPayAmount() {
   const { updateTokenAmount } = useUpdateTokenAmount();
 
   const updateMoneyAccountDepositAmount = useCallback(
-    (amountHuman: string) => {
+    async (amountHuman: string) => {
       if (!transactionMeta) {
         return;
       }
 
-      const updates = updateMoneyAccountDepositTokenAmount(
-        transactionMeta,
-        amountHuman,
-      );
+      try {
+        const updates = await updateMoneyAccountDepositTokenAmount(
+          transactionMeta,
+          amountHuman,
+        );
 
-      for (const { nestedTransactionIndex, transactionData } of updates) {
-        updateAtomicBatchData({
-          transactionId: transactionMeta.id,
-          transactionIndex: nestedTransactionIndex,
-          transactionData,
-        }).catch((error) => {
-          Logger.error(
-            error,
-            'Failed to update transaction pay amount in nested transaction',
-          );
-        });
+        for (const { nestedTransactionIndex, transactionData } of updates) {
+          updateAtomicBatchData({
+            transactionId: transactionMeta.id,
+            transactionIndex: nestedTransactionIndex,
+            transactionData,
+          }).catch((error) => {
+            Logger.error(
+              error,
+              'Failed to update transaction pay amount in nested transaction',
+            );
+          });
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Failed to prepare Money Account deposit amount update',
+        );
       }
     },
     [transactionMeta],
