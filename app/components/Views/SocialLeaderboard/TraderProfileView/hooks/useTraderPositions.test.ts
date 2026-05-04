@@ -1,7 +1,17 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import Logger from '../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { useTraderPositions } from './useTraderPositions';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/keyringController', () => ({
+  selectIsUnlocked: jest.fn(),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -10,6 +20,7 @@ jest.mock('../../../../../util/Logger', () => ({
 jest.mock('@metamask/react-data-query');
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -64,6 +75,10 @@ describe('useTraderPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) return true;
+      return undefined;
+    });
   });
 
   describe('query configuration', () => {
@@ -90,7 +105,7 @@ describe('useTraderPositions', () => {
       );
     });
 
-    it('enables both queries when addressOrId is non-empty', () => {
+    it('enables both queries when addressOrId is non-empty and wallet is unlocked', () => {
       renderHook(() => useTraderPositions('trader-1'));
 
       expect(mockUseQuery.mock.calls[0][0]).toEqual(
@@ -103,6 +118,21 @@ describe('useTraderPositions', () => {
 
     it('disables both queries when addressOrId is empty', () => {
       renderHook(() => useTraderPositions(''));
+
+      expect(mockUseQuery.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(mockUseQuery.mock.calls[1][0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('disables both queries when wallet is locked', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return false;
+        return undefined;
+      });
+      renderHook(() => useTraderPositions('trader-1'));
 
       expect(mockUseQuery.mock.calls[0][0]).toEqual(
         expect.objectContaining({ enabled: false }),

@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type { Position } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 
 export interface UseTraderPositionResult {
   position: Position | undefined;
@@ -17,6 +19,7 @@ export interface UseTraderPositionResult {
 export const useTraderPosition = (
   positionId: string | undefined,
 ): UseTraderPositionResult => {
+  const isUnlocked = useSelector(selectIsUnlocked);
   const fetchOptions = { positionId: positionId ?? '' };
 
   const queryKey: [string, { positionId: string }] = [
@@ -26,7 +29,7 @@ export const useTraderPosition = (
 
   const { data, isLoading, error } = useQuery<Position>({
     queryKey,
-    enabled: Boolean(positionId),
+    enabled: Boolean(positionId) && isUnlocked,
   });
 
   useEffect(() => {
