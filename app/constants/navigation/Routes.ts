@@ -21,6 +21,7 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     HEADLESS_PLAYGROUND: 'RampHeadlessPlayground',
+    HEADLESS_HOST: 'RampHeadlessHost',
     AMOUNT_INPUT: 'RampAmountInput',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
@@ -406,7 +407,6 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
-      QUICK_CONVERT: 'EarnMusdQuickConvert',
     },
     MODALS: {
       ROOT: 'EarnModals',
@@ -419,9 +419,14 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
+    POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
+      MORE_SHEET: 'MoneyMoreSheet',
+      TRANSFER_MONEY_SHEET: 'MoneyTransferSheet',
+      APY_INFO_SHEET: 'MoneyApyInfoSheet',
+      EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
@@ -464,13 +469,10 @@ const Routes = {
   ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
-    CARD_MAIN_ROUTES: 'CardMainRoutes',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'CardSpendingLimit',
-    CHANGE_ASSET: 'CardChangeAsset',
-    VERIFYING_REGISTRATION: 'VerifyingRegistration',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
@@ -485,7 +487,6 @@ const Routes = {
       VERIFYING_VERIFF_KYC: 'CardOnboardingVerifyingVeriffKYC',
       PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
-      MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',

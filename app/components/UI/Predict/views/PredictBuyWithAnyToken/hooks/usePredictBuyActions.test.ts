@@ -115,12 +115,16 @@ jest.mock('../../../hooks/usePredictTrading', () => ({
   }),
 }));
 
+const mockTrackBetslipDismissed = jest.fn();
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
       trackPredictOrderEvent: (...args: unknown[]) =>
         mockTrackPredictOrderEvent(...args),
+      trackBetslipDismissed: (...args: unknown[]) =>
+        mockTrackBetslipDismissed(...args),
       initPayWithAnyToken: (...args: unknown[]) =>
         mockInitPayWithAnyToken(...args),
       setSelectedPaymentToken: (...args: unknown[]) =>

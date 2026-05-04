@@ -41,7 +41,7 @@ describe('StatsRow', () => {
 
   it('renders formatted PnL when pnl30d is non-null and positive', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
-    expect(screen.getByText('+$21K')).toBeOnTheScreen();
+    expect(screen.getByText('+$20,610.00')).toBeOnTheScreen();
   });
 
   it('renders dash when pnl30d is null', () => {
@@ -54,13 +54,19 @@ describe('StatsRow', () => {
   it('renders negative PnL correctly', () => {
     const stats = { ...baseStats, pnl30d: -5000 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('-$5K')).toBeOnTheScreen();
+    expect(screen.getByText('-$5,000.00')).toBeOnTheScreen();
   });
 
   it('renders PnL for small values without K suffix', () => {
     const stats = { ...baseStats, pnl30d: 500 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('+$500')).toBeOnTheScreen();
+    expect(screen.getByText('+$500.00')).toBeOnTheScreen();
+  });
+
+  it('rounds decimal PnL values to two places', () => {
+    const stats = { ...baseStats, pnl30d: 500.236 };
+    renderWithProvider(<StatsRow stats={stats} />);
+    expect(screen.getByText('+$500.24')).toBeOnTheScreen();
   });
 
   it('renders both null winRate and null pnl as dashes', () => {

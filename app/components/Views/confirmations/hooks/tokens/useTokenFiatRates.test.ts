@@ -11,6 +11,7 @@ const CHAIN_ID_1_MOCK = '0x123';
 const CHAIN_ID_2_MOCK = '0x456';
 const ADDRESS_1_MOCK = '0x789';
 const ADDRESS_2_MOCK = '0xabc';
+const POLYGON_PUSD_ADDRESS_MOCK = '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
 const PRICE_1_MOCK = 2;
 const PRICE_2_MOCK = 3;
 const TICKER_1_MOCK = 'USD';
@@ -111,6 +112,20 @@ describe('useTokenFiatRates', () => {
         {
           address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
           chainId: CHAIN_IDS.ARBITRUM,
+          currency: 'usd',
+        },
+      ],
+    });
+
+    expect(result).toEqual([1]);
+  });
+
+  it('returns fixed exchange rate for Polygon pUSD when currency is USD', () => {
+    const result = runHook({
+      requests: [
+        {
+          address: POLYGON_PUSD_ADDRESS_MOCK,
+          chainId: CHAIN_IDS.POLYGON,
           currency: 'usd',
         },
       ],

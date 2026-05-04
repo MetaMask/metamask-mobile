@@ -342,7 +342,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Button should have loading prop set
+      // Assert - Button should be disabled and show closing text when loading
       const confirmButton = getByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
       );
