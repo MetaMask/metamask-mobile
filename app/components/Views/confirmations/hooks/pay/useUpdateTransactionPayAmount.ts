@@ -46,7 +46,7 @@ export function useUpdateTransactionPayAmount() {
   );
 
   const updateTransactionPayAmount = useCallback(
-    (amountHuman: string) => {
+    async (amountHuman: string) => {
       if (!transactionMeta) {
         return;
       }
@@ -56,7 +56,7 @@ export function useUpdateTransactionPayAmount() {
       ]);
 
       if (isMoneyAccountDeposit) {
-        updateMoneyAccountDepositAmount(amountHuman);
+        await updateMoneyAccountDepositAmount(amountHuman);
         return;
       }
 

@@ -164,7 +164,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingTokenAmount: amountHumanDebounced,
     });
 
-    const handleDone = useCallback(() => {
+    const handleDone = useCallback(async () => {
       if (selectedFiatPaymentMethodId && transactionId) {
         Engine.context.TransactionPayController.updateFiatPayment({
           transactionId,
@@ -173,7 +173,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           },
         });
       } else {
-        updateTokenAmount();
+        await updateTokenAmount();
       }
 
       EngineService.flushState();

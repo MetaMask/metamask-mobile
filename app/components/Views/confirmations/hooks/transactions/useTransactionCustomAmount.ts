@@ -205,8 +205,8 @@ export function useTransactionCustomAmount({
     ],
   );
 
-  const updateTokenAmount = useCallback(() => {
-    updateTransactionPayAmount(amountHuman);
+  const updateTokenAmount = useCallback(async () => {
+    await updateTransactionPayAmount(amountHuman);
     setIsTokenAmountUpdated(true);
   }, [amountHuman, updateTransactionPayAmount]);
 
