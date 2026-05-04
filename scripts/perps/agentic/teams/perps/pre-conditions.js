@@ -86,7 +86,7 @@ const REGISTRY = {
   'perps.sufficient_balance': {
     description: 'Perps account has a non-zero available balance',
     async: true,
-    expression: 'Engine.context.PerpsController.getAccountState().then(function(r){ return JSON.stringify({balance: parseFloat(r.availableBalance||"0")}); })',
+    expression: 'Engine.context.PerpsController.getAccountState().then(function(r){ return JSON.stringify({balance: parseFloat(r.withdrawableBalance||"0")}); })',
     assert: { operator: 'gt', field: 'balance', value: 0 },
     hint: 'Deposit funds into your Perps account before placing orders.',
     fixtures: {
