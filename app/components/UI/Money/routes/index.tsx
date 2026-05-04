@@ -6,7 +6,12 @@ import { useTheme } from '../../../../util/theme';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
+import MoneyPotentialEarningsView from '../Views/MoneyPotentialEarningsView';
 import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
+import MoneyMoreSheet from '../components/MoneyMoreSheet';
+import MoneyTransferSheet from '../components/MoneyTransferSheet';
+import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
+import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
@@ -34,6 +39,10 @@ const MoneyScreenStack = () => {
         component={MoneyHowItWorksView}
       />
       <Stack.Screen
+        name={Routes.MONEY.POTENTIAL_EARNINGS}
+        component={MoneyPotentialEarningsView}
+      />
+      <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
         component={Confirm}
@@ -52,6 +61,26 @@ const MoneyModalStack = () => (
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.ADD_MONEY_SHEET}
       component={MoneyAddMoneySheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.MORE_SHEET}
+      component={MoneyMoreSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET}
+      component={MoneyTransferSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.APY_INFO_SHEET}
+      component={MoneyApyInfoSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.EARNINGS_INFO_SHEET}
+      component={MoneyEarningsInfoSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>
