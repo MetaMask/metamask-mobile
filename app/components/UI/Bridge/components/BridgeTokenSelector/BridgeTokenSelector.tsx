@@ -55,7 +55,6 @@ import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   type BridgeToken,
-  type IncludeAsset,
   TokenSelectorType,
 } from '../../types';
 import { usePopularTokens } from '../../hooks/usePopularTokens';
@@ -64,7 +63,6 @@ import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
-import { tokenMatchesQuery, tokenToIncludeAsset } from '../../utils/tokenUtils';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 
