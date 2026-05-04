@@ -314,9 +314,11 @@ describe('PerpsWithdrawView', () => {
     it('uses withdrawableBalance for the displayed Unified Account balance', () => {
       const mockUsePerpsLiveAccount =
         jest.requireMock('../../hooks/stream').usePerpsLiveAccount;
+      // Diverge spendable from withdrawable so the assertion proves the view
+      // reads `withdrawableBalance` specifically (not `spendableBalance`).
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          spendableBalance: '2500.00',
+          spendableBalance: '0.00',
           withdrawableBalance: '2500.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
