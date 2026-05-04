@@ -27,7 +27,7 @@ import styleSheet from './HomepageDiscoveryTabs.styles';
 import { useDiscoveryScrollManager } from '../../../../UI/Predict/hooks/useDiscoveryScrollManager';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
-import { TabIconAnimationContext } from '../../../../../component-library/components-temp/Tabs/Tab/TabIconAnimationContext';
+import { TabIconAnimationContext } from '../../../../../component-library/components-temp/Tabs/TabsIconTab/TabsIconAnimationContext';
 
 // Tab indices — kept as a const so future tabs can be added without renumbering.
 const TAB_INDEX = {
