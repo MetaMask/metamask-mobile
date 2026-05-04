@@ -1,0 +1,76 @@
+{
+  "title": "Benchmark: Perps Position Stop Loss — open long ETH with SL, verify SL set",
+  "description": "Mirrors smoke/perps/perps-position-stop-loss.spec.ts. Opens a long ETH position, sets a stop loss via tpsl-create flow. Detox spec uses custom SL price (2300) and pushes price to trigger; recipe uses SL preset and verifies SL is set (price trigger requires E2E mock).",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.ready_to_trade", "perps.sufficient_balance"],
+      "setup": [
+        { "id": "setup-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ],
+      "entry": "ensure-testnet",
+      "nodes": {
+        "ensure-testnet": {
+          "action": "call",
+          "ref": "setup-testnet",
+          "next": "clear-eth-position"
+        },
+        "clear-eth-position": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p)return JSON.stringify({cleared:true});return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({cleared:true})})})",
+          "assert": { "operator": "eq", "field": "cleared", "value": true },
+          "next": "open-long-eth"
+        },
+        "open-long-eth": {
+          "action": "call",
+          "ref": "trade-open-market-controller",
+          "params": { "symbol": "ETH", "side": "long", "usdAmount": "10" },
+          "next": "wait-position"
+        },
+        "wait-position": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p})})",
+          "assert": { "operator": "eq", "field": "found", "value": true },
+          "timeout_ms": 15000,
+          "next": "create-sl"
+        },
+        "create-sl": {
+          "action": "call",
+          "ref": "tpsl-create",
+          "params": { "symbol": "ETH", "tpPreset": "50", "slPreset": "-25" },
+          "next": "verify-sl"
+        },
+        "verify-sl": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({hasSl:!!(p&&p.stopLossPrice),slPrice:p?p.stopLossPrice:null})})",
+          "assert": { "operator": "eq", "field": "hasSl", "value": true },
+          "timeout_ms": 10000,
+          "next": "screenshot-sl-set"
+        },
+        "screenshot-sl-set": {
+          "action": "screenshot",
+          "filename": "evidence-stop-loss-set.png",
+          "next": "cleanup"
+        },
+        "cleanup": {
+          "action": "call",
+          "ref": "trade-close-position",
+          "params": { "symbol": "ETH" },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      },
+      "teardown": [
+        {
+          "id": "teardown-close-eth",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p)return JSON.stringify({clean:true});return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({clean:true})})})",
+          "assert": { "operator": "not_null" }
+        },
+        { "id": "teardown-nav-home", "action": "navigate", "target": "PerpsHomeView" }
+      ]
+    }
+  }
+}

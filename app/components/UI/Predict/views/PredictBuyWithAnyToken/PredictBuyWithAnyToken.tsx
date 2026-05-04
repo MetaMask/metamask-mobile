@@ -185,7 +185,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       maxBetAmount,
       isConfirming,
       isPayFeesLoading,
-      isInputFocused,
       blockingPayAlertMessage,
     });
 

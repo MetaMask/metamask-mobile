@@ -1,23 +1,3 @@
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
-  IconName,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import {
-  normalizeProviderCode,
-  RampsOrderStatus,
-} from '@metamask/ramps-controller';
-import type { CaipChainId } from '@metamask/utils';
-import {
-  useFocusEffect,
-  useIsFocused,
-  useNavigation,
-} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -25,47 +5,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, Linking, View } from 'react-native';
+import { Linking, Animated, View } from 'react-native';
+import {
+  useNavigation,
+  useFocusEffect,
+  useIsFocused,
+} from '@react-navigation/native';
+import type { CaipChainId } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import Routes from '../../../../../constants/navigation/Routes';
-import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
-import Device from '../../../../../util/device';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-import { useFormatters } from '../../../../hooks/useFormatters';
-import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { PROVIDER_LINKS } from '../../Aggregator/types';
-import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
-import PaymentMethodPill from '../../components/PaymentMethodPill';
-import QuickAmounts from '../../components/QuickAmounts';
-import TruncatedError from '../../components/TruncatedError';
-import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
-import { useProviderLimits } from '../../hooks/useProviderLimits';
-import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { useRampsController } from '../../hooks/useRampsController';
-import { useRampsQuotes } from '../../hooks/useRampsQuotes';
-import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import { useTransakController } from '../../hooks/useTransakController';
-import { useTransakRouting } from '../../hooks/useTransakRouting';
-import {
-  getQuoteBuyUserAgent,
-  getQuoteProviderName,
-  isCustomAction,
-  isNativeProvider,
-} from '../../types';
 import {
   buildQuoteWithRedirectUrl,
   getCheckoutContext,
@@ -73,19 +21,74 @@ import {
 } from '../../utils/buildQuoteWithRedirectUrl';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import { normalizeAssetIdForApi } from '../../utils/normalizeAssetIdForApi';
-import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
-import { createCheckoutNavDetails } from '../Checkout';
-import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
-import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
-import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
-import { createV2VerifyIdentityNavDetails } from '../NativeFlow/VerifyIdentity';
+import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
+import { normalizeAssetIdForApi } from '../../utils/normalizeAssetIdForApi';
+import { useProviderLimits } from '../../hooks/useProviderLimits';
+import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
+import PaymentMethodPill from '../../components/PaymentMethodPill';
+import QuickAmounts from '../../components/QuickAmounts';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { getFontSizeForInputLength } from './getFontSizeForInputLength';
+import { useFormatters } from '../../../../hooks/useFormatters';
+import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
+import {
+  RampsOrderStatus,
+  normalizeProviderCode,
+} from '@metamask/ramps-controller';
+import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsQuotes } from '../../hooks/useRampsQuotes';
+import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
+import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
+import { createCheckoutNavDetails } from '../Checkout';
+import {
+  isNativeProvider,
+  isCustomAction,
+  getQuoteProviderName,
+  getQuoteBuyUserAgent,
+} from '../../types';
+import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
+import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { useTransakController } from '../../hooks/useTransakController';
+import { useTransakRouting } from '../../hooks/useTransakRouting';
+import { createV2VerifyIdentityNavDetails } from '../NativeFlow/VerifyIdentity';
+import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useSelector } from 'react-redux';
+import {
+  getRampRoutingDecision,
+  selectHasAgreedTransakNativePolicy,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
+import Device from '../../../../../util/device';
+import TruncatedError from '../../components/TruncatedError';
+import { PROVIDER_LINKS } from '../../Aggregator/types';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -113,6 +116,17 @@ export interface BuildQuoteParams {
   buyFlowOrigin?: BuyFlowOrigin;
   /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
   amount?: number;
+  /**
+   * Active headless buy session id, if the screen was opened via
+   * `useHeadlessBuy().startHeadlessBuy(...)`. Threaded through navigation so
+   * downstream routing helpers can look up the session in
+   * `sessionRegistry` and fire the consumer's lifecycle callbacks instead of
+   * navigating to the order-processing screen.
+   *
+   * Phase 3 only plumbs this param — the screen itself does not branch on
+   * it yet.
+   */
+  headlessSessionId?: string;
 }
 
 /**
@@ -188,6 +202,9 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const hasAgreedTransakNativePolicy = useSelector(
+    selectHasAgreedTransakNativePolicy,
+  );
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -418,7 +435,8 @@ function BuildQuote() {
     selectedToken?.assetId &&
     tokenStateIsSettled &&
     debouncedPollingAmount > 0 &&
-    !amountLimitError
+    !amountLimitError &&
+    !isTokenUnavailable
   );
 
   /*
@@ -641,6 +659,14 @@ function BuildQuote() {
           throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
         await transakRouteAfterAuth(quote, amountAsNumber);
+      } else if (hasAgreedTransakNativePolicy) {
+        navigation.navigate(
+          ...createV2EnterEmailNavDetails({
+            amount: String(amountAsNumber),
+            currency,
+            assetId: selectedToken?.assetId,
+          }),
+        );
       } else {
         navigation.navigate(
           ...createV2VerifyIdentityNavDetails({
@@ -671,6 +697,7 @@ function BuildQuote() {
     transakGetBuyQuote,
     transakRouteAfterAuth,
     navigation,
+    hasAgreedTransakNativePolicy,
   ]);
 
   /**
@@ -909,7 +936,7 @@ function BuildQuote() {
         />
       );
     }
-    if (selectedProvider) {
+    if (selectedProvider && !isTokenUnavailable && tokenStateIsSettled) {
       return (
         <Text variant={TextVariant.BodySm} style={styles.poweredByText}>
           {strings('fiat_on_ramp.powered_by_provider', {
@@ -1022,7 +1049,12 @@ function BuildQuote() {
                   onPress={handleContinuePress}
                   isFullWidth
                   isDisabled={!canContinue}
-                  isLoading={selectedQuoteLoading || isContinueLoading}
+                  isLoading={
+                    selectedQuoteLoading ||
+                    isContinueLoading ||
+                    isTokenUnavailable ||
+                    !tokenStateIsSettled
+                  }
                   testID={BuildQuoteSelectors.CONTINUE_BUTTON}
                 >
                   {strings('fiat_on_ramp.continue')}

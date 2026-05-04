@@ -141,6 +141,12 @@ describe('usePredictMarketData', () => {
     jest.clearAllMocks();
   });
 
+  it('does not fetch when enabled is false', () => {
+    renderHook(() => usePredictMarketData({ enabled: false }));
+
+    expect(mockGetMarkets).not.toHaveBeenCalled();
+  });
+
   it('should fetch market data successfully', async () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 

@@ -56,6 +56,7 @@ jest.mock('../../../../core/Engine', () => ({
     PerpsController: {
       getActiveProvider: jest.fn(),
       getActiveProviderOrNull: jest.fn(),
+      getOrderFills: jest.fn().mockResolvedValue([]),
     },
   },
 }));
@@ -980,6 +981,9 @@ describe('usePerpsHomeData', () => {
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
+      (
+        Engine.context.PerpsController.getOrderFills as jest.Mock
+      ).mockImplementation(mockGetOrderFills);
 
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
@@ -1015,6 +1019,9 @@ describe('usePerpsHomeData', () => {
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
+      (
+        Engine.context.PerpsController.getOrderFills as jest.Mock
+      ).mockImplementation(mockGetOrderFills);
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
         isInitialLoading: false,
@@ -1083,6 +1090,9 @@ describe('usePerpsHomeData', () => {
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
+      (
+        Engine.context.PerpsController.getOrderFills as jest.Mock
+      ).mockImplementation(mockGetOrderFills);
 
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
@@ -1132,6 +1142,9 @@ describe('usePerpsHomeData', () => {
       ).mockReturnValue({
         getOrderFills: mockGetOrderFills,
       });
+      (
+        Engine.context.PerpsController.getOrderFills as jest.Mock
+      ).mockImplementation(mockGetOrderFills);
 
       // WS fill with same key but no detailedOrderType
       const wsFill = createMockOrderFill({

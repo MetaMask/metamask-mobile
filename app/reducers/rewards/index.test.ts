@@ -4847,47 +4847,50 @@ describe('setCampaignsError', () => {
 });
 
 describe('setCampaignParticipantStatus', () => {
-  it('should set participant status for a campaign', () => {
+  it('should set participant status keyed by subscriptionId:campaignId', () => {
     const action = setCampaignParticipantStatus({
+      subscriptionId: 'sub-1',
       campaignId: 'campaign-1',
       status: { optedIn: true, participantCount: 42 },
     });
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignParticipantStatuses['campaign-1']).toEqual({
+    expect(state.campaignParticipantStatuses['sub-1:campaign-1']).toEqual({
       optedIn: true,
       participantCount: 42,
     });
   });
 
-  it('should update existing participant status for a campaign', () => {
+  it('should update existing participant status for the same subscriptionId:campaignId', () => {
     const stateWithStatus: RewardsState = {
       ...initialState,
       campaignParticipantStatuses: {
-        'campaign-1': { optedIn: false, participantCount: 10 },
+        'sub-1:campaign-1': { optedIn: false, participantCount: 10 },
       },
     };
 
     const action = setCampaignParticipantStatus({
+      subscriptionId: 'sub-1',
       campaignId: 'campaign-1',
       status: { optedIn: true, participantCount: 50 },
     });
 
     const state = rewardsReducer(stateWithStatus, action);
 
-    expect(state.campaignParticipantStatuses['campaign-1']).toEqual({
+    expect(state.campaignParticipantStatuses['sub-1:campaign-1']).toEqual({
       optedIn: true,
       participantCount: 50,
     });
   });
 
-  it('should store statuses for multiple campaigns independently', () => {
+  it('should store statuses independently per subscriptionId:campaignId', () => {
     let currentState = initialState;
 
     currentState = rewardsReducer(
       currentState,
       setCampaignParticipantStatus({
+        subscriptionId: 'sub-1',
         campaignId: 'campaign-1',
         status: { optedIn: true, participantCount: 42 },
       }),
@@ -4896,16 +4899,21 @@ describe('setCampaignParticipantStatus', () => {
     currentState = rewardsReducer(
       currentState,
       setCampaignParticipantStatus({
-        campaignId: 'campaign-2',
+        subscriptionId: 'sub-2',
+        campaignId: 'campaign-1',
         status: { optedIn: false, participantCount: 0 },
       }),
     );
 
-    expect(currentState.campaignParticipantStatuses['campaign-1']).toEqual({
+    expect(
+      currentState.campaignParticipantStatuses['sub-1:campaign-1'],
+    ).toEqual({
       optedIn: true,
       participantCount: 42,
     });
-    expect(currentState.campaignParticipantStatuses['campaign-2']).toEqual({
+    expect(
+      currentState.campaignParticipantStatuses['sub-2:campaign-1'],
+    ).toEqual({
       optedIn: false,
       participantCount: 0,
     });

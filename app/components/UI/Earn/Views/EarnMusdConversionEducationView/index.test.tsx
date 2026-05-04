@@ -1301,68 +1301,6 @@ describe('EarnMusdConversionEducationView', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
-    it('includes redirects_to money_hub when secondary button pressed with deeplink, Money Hub enabled, and geo-eligible', () => {
-      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
-      mockUseParams.mockReturnValue({ isDeeplink: true });
-
-      const { getByTestId } = renderWithProvider(
-        <EarnMusdConversionEducationView />,
-        { state: {} },
-      );
-
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
-      mockBuild.mockClear();
-
-      fireEvent.press(
-        getByTestId(
-          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
-        ),
-      );
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location:
-          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-        button_type: 'secondary',
-        button_text: strings('earn.musd_conversion.education.secondary_button'),
-        redirects_to: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
-      });
-    });
-
-    it('omits redirects_to when secondary button pressed in normal non-deeplink flow', () => {
-      mockUseParams.mockReturnValue({ isDeeplink: false });
-
-      const { getByTestId } = renderWithProvider(
-        <EarnMusdConversionEducationView />,
-        { state: {} },
-      );
-
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
-      mockBuild.mockClear();
-
-      fireEvent.press(
-        getByTestId(
-          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
-        ),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location:
-          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-        button_type: 'secondary',
-        button_text: strings('earn.musd_conversion.education.secondary_button'),
-      });
-      expect(mockAddProperties).not.toHaveBeenCalledWith(
-        expect.objectContaining({ redirects_to: expect.anything() }),
-      );
-    });
-
     it('tracks money_hub redirect when continue is pressed with returnTo', async () => {
       mockUseParams.mockReturnValue({
         returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },

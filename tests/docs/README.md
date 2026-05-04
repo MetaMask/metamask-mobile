@@ -18,6 +18,7 @@
 - **Selectors (`tests/selectors/`)**: Element selectors organized by feature
 - **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
 - **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
+- **WebSocket Mocking (`tests/websocket/`)**: Local WebSocket server for mocking real-time connections ([docs](WEBSOCKET_MOCKING.md))
 
 **Core E2E Framework Classes:**
 
