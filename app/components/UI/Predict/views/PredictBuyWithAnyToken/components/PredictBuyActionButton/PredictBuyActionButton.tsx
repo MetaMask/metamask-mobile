@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Box,
   ButtonSize as ButtonSizeHero,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -25,6 +26,9 @@ interface PredictBuyActionButtonProps {
   outcomeTokenTitle: string;
   sharePrice: number;
   isSheetMode?: boolean;
+  isRetry?: boolean;
+  isChangePaymentMode?: boolean;
+  isAddFundsMode?: boolean;
   testID?: string;
 }
 
@@ -36,9 +40,50 @@ const PredictBuyActionButton = ({
   outcomeTokenTitle,
   sharePrice,
   isSheetMode = false,
+  isRetry = false,
+  isChangePaymentMode = false,
+  isAddFundsMode = false,
   testID,
 }: PredictBuyActionButtonProps) => {
   const tw = useTailwind();
+
+  if (isChangePaymentMode) {
+    return (
+      <ButtonHero
+        testID={testID}
+        onPress={onPress}
+        size={ButtonSizeHero.Lg}
+        twClassName="w-full"
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.PrimaryInverse}
+        >
+          {strings('predict.payment.change_payment_method')}
+        </Text>
+      </ButtonHero>
+    );
+  }
+
+  if (isAddFundsMode) {
+    return (
+      <ButtonHero
+        testID={testID}
+        onPress={onPress}
+        size={ButtonSizeHero.Lg}
+        style={tw.style('w-full bg-muted')}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.ErrorDefault}
+          fontWeight={FontWeight.Medium}
+        >
+          {strings('predict.payment.add_funds')}
+        </Text>
+      </ButtonHero>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -78,9 +123,11 @@ const PredictBuyActionButton = ({
         variant={TextVariant.BodyMd}
         style={tw.style('text-white font-medium')}
       >
-        {isSheetMode
-          ? strings('predict.order.confirm')
-          : `${outcomeTokenTitle} · ${formatCents(sharePrice)}`}
+        {isRetry
+          ? strings('predict.order.retry')
+          : isSheetMode
+            ? strings('predict.order.confirm')
+            : `${outcomeTokenTitle} · ${formatCents(sharePrice)}`}
       </Text>
     </ButtonHero>
   );

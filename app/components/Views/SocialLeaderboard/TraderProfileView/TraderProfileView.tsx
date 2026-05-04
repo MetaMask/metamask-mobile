@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -39,6 +39,13 @@ import {
   PositionRowSkeleton,
 } from './components/Skeletons';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
+import TraderNotificationsBottomSheet, {
+  type TraderNotificationsBottomSheetRef,
+} from './components/TraderNotificationsBottomSheet';
+import TopTradersNotificationsSetupBottomSheet, {
+  type TopTradersNotificationsSetupBottomSheetRef,
+} from './components/TopTradersNotificationsSetupBottomSheet';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -80,8 +87,7 @@ const TraderProfileView = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
-
-  const { traderId, traderName } = route.params;
+  const { traderId, traderName, rank } = route.params;
 
   const {
     profile,
@@ -94,26 +100,48 @@ const TraderProfileView = () => {
   const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
     useTraderPositions(traderId, { refetchInterval: 30_000 });
 
+  const {
+    preferences,
+    isLoading: isLoadingPreferences,
+    setEnabled,
+    setTxAmountLimit,
+    toggleTraderNotification,
+    isTraderNotificationEnabled,
+  } = useNotificationPreferences();
+
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
+
+  const notificationsSheetRef = useRef<TraderNotificationsBottomSheetRef>(null);
+  const setupSheetRef =
+    useRef<TopTradersNotificationsSetupBottomSheetRef>(null);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleNotificationPress = useCallback(() => {
-    // TBD — notification preferences not yet wired
-  }, []);
+    // Don't open any sheet while preferences are still loading — the enabled
+    // default is false, which would incorrectly route to the setup sheet for
+    // users who already have notifications enabled.
+    if (isLoadingPreferences) return;
+    if (preferences.enabled) {
+      notificationsSheetRef.current?.onOpenBottomSheet();
+    } else {
+      setupSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isLoadingPreferences, preferences.enabled]);
 
   const handlePositionPress = useCallback(
     (position: Position) => {
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
         traderId,
         traderName,
+        traderImageUrl: profile?.profile.imageUrl ?? undefined,
         tokenSymbol: position.tokenSymbol,
         position,
       });
     },
-    [navigation, traderId, traderName],
+    [navigation, traderId, traderName, profile?.profile.imageUrl],
   );
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =
@@ -177,13 +205,18 @@ const TraderProfileView = () => {
               <ProfileHeader
                 profile={profile.profile}
                 followerCount={profile.followerCount}
+                twitterHandle={profile.socialHandles?.twitter}
+                rank={rank}
               />
             )}
 
             {isLoading || !profile ? (
               <StatsRowSkeleton />
             ) : (
-              <StatsRow stats={profile.stats} />
+              <StatsRow
+                stats={profile.stats}
+                holdTimeMinutes={profile.stats.medianHoldMinutes}
+              />
             )}
 
             {!isLoading && profile && (
@@ -192,8 +225,8 @@ const TraderProfileView = () => {
                   <Button
                     variant={
                       isFollowing
-                        ? ButtonVariant.Primary
-                        : ButtonVariant.Secondary
+                        ? ButtonVariant.Secondary
+                        : ButtonVariant.Primary
                     }
                     isFullWidth
                     onPress={toggleFollow}
@@ -258,6 +291,22 @@ const TraderProfileView = () => {
           </>
         )}
       </ScrollView>
+
+      <TopTradersNotificationsSetupBottomSheet
+        ref={setupSheetRef}
+        preferences={preferences}
+        setEnabled={setEnabled}
+        setTxAmountLimit={setTxAmountLimit}
+      />
+
+      <TraderNotificationsBottomSheet
+        ref={notificationsSheetRef}
+        traderId={traderId}
+        traderName={profile?.profile.name ?? traderName}
+        preferences={preferences}
+        isTraderNotificationEnabled={isTraderNotificationEnabled}
+        toggleTraderNotification={toggleTraderNotification}
+      />
     </SafeAreaView>
   );
 };

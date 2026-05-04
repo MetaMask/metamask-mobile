@@ -1,4 +1,5 @@
 import React from 'react';
+import { Circle } from 'react-native-svg';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import GraphCursor, { GraphCursorProps } from '.';
 import { mockTheme } from '../../../../../../../util/theme';
@@ -14,7 +15,7 @@ describe('GraphCursor', () => {
   const MOCK_Y = () => 33.17441726994484;
   const MOCK_COLOR = mockTheme.brandColors.green600;
 
-  it('render matches snapshot', () => {
+  it('renders graph cursor with circle indicator', () => {
     const props: GraphCursorProps = {
       data: MOCK_DATA,
       currentX: MOCK_CURRENT_X,
@@ -23,8 +24,8 @@ describe('GraphCursor', () => {
       color: MOCK_COLOR,
     };
 
-    const { toJSON } = renderWithProvider(<GraphCursor {...props} />);
+    const { UNSAFE_getByType } = renderWithProvider(<GraphCursor {...props} />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(UNSAFE_getByType(Circle)).toBeTruthy();
   });
 });

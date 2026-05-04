@@ -41,7 +41,7 @@ describe('StatsRow', () => {
 
   it('renders formatted PnL when pnl30d is non-null and positive', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
-    expect(screen.getByText('+$21K')).toBeOnTheScreen();
+    expect(screen.getByText('+$20,610.00')).toBeOnTheScreen();
   });
 
   it('renders dash when pnl30d is null', () => {
@@ -54,13 +54,19 @@ describe('StatsRow', () => {
   it('renders negative PnL correctly', () => {
     const stats = { ...baseStats, pnl30d: -5000 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('-$5K')).toBeOnTheScreen();
+    expect(screen.getByText('-$5,000.00')).toBeOnTheScreen();
   });
 
   it('renders PnL for small values without K suffix', () => {
     const stats = { ...baseStats, pnl30d: 500 };
     renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('+$500')).toBeOnTheScreen();
+    expect(screen.getByText('+$500.00')).toBeOnTheScreen();
+  });
+
+  it('rounds decimal PnL values to two places', () => {
+    const stats = { ...baseStats, pnl30d: 500.236 };
+    renderWithProvider(<StatsRow stats={stats} />);
+    expect(screen.getByText('+$500.24')).toBeOnTheScreen();
   });
 
   it('renders both null winRate and null pnl as dashes', () => {
@@ -78,26 +84,26 @@ describe('StatsRow', () => {
   });
 
   describe('avg. hold time', () => {
-    it('renders a dash when avgHoldMinutes is null', () => {
-      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={null} />);
+    it('renders a dash when holdTimeMinutes is null', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={null} />);
 
       expect(screen.getByText('\u2014')).toBeOnTheScreen();
     });
 
-    it('renders minutes when avgHoldMinutes is less than 60', () => {
-      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={45} />);
+    it('renders minutes when holdTimeMinutes is less than 60', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={45} />);
 
       expect(screen.getByText('45m')).toBeOnTheScreen();
     });
 
-    it('renders hours when avgHoldMinutes is 60 or more but less than 1440', () => {
-      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={90} />);
+    it('renders hours when holdTimeMinutes is 60 or more but less than 1440', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={90} />);
 
       expect(screen.getByText('1.5 hrs')).toBeOnTheScreen();
     });
 
-    it('renders days when avgHoldMinutes is 1440 or more', () => {
-      renderWithProvider(<StatsRow stats={baseStats} avgHoldMinutes={2880} />);
+    it('renders days when holdTimeMinutes is 1440 or more', () => {
+      renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={2880} />);
 
       expect(screen.getByText('2 days')).toBeOnTheScreen();
     });
@@ -115,9 +121,9 @@ describe('StatsRow', () => {
     expect(screen.getByText('30D P&L')).toBeOnTheScreen();
   });
 
-  it('renders avg hold label', () => {
+  it('renders hold time label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('avg. hold')).toBeOnTheScreen();
+    expect(screen.getByText('hold time')).toBeOnTheScreen();
   });
 });

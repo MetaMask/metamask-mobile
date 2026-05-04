@@ -13,6 +13,10 @@ import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  PASSWORD_GUIDE_URL,
+  RESET_PASSWORD_GUIDE_URL,
+} from '../../../constants/urls';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import { Alert, InteractionManager } from 'react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -103,9 +107,12 @@ jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -292,13 +299,6 @@ describe('ResetPassword', () => {
     mockExportSeedPhrase.mockClear();
     mockTrackEvent.mockClear();
     mockNavigation.push.mockClear();
-  });
-
-  it('render matches snapshot', async () => {
-    const component = renderComponent();
-    await flushMicrotasks();
-
-    expect(component.toJSON()).toMatchSnapshot();
   });
 
   describe('confirm current password view', () => {
@@ -499,10 +499,10 @@ describe('ResetPassword', () => {
 
       expect(
         within(newPasswordField).getByDisplayValue('NewPassword'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         within(confirmPasswordField).getByDisplayValue('NewPassword123'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('clears confirm password when new password is emptied', async () => {
@@ -526,7 +526,9 @@ describe('ResetPassword', () => {
         fireEvent.changeText(newPasswordField, '');
       });
 
-      expect(within(confirmPasswordField).getByDisplayValue('')).toBeTruthy();
+      expect(
+        within(confirmPasswordField).getByDisplayValue(''),
+      ).toBeOnTheScreen();
     });
 
     it('toggles password visibility for new password field', async () => {
@@ -620,7 +622,7 @@ describe('ResetPassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+          url: PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });
@@ -639,7 +641,7 @@ describe('ResetPassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+          url: RESET_PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });
@@ -801,7 +803,6 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:passcodeDisabled',
       );
-      expect(component).toBeTruthy();
     });
 
     it('sets biometry type and triggers reauthentication when biometrics available', async () => {
@@ -824,7 +825,6 @@ describe('ResetPassword', () => {
       });
 
       expect(Authentication.getType).toHaveBeenCalled();
-      expect(component).toBeTruthy();
     });
 
     it('auto-reauthenticates with biometric credentials when available', async () => {
@@ -858,7 +858,6 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:biometryChoiceDisabled',
       );
-      expect(component).toBeTruthy();
     });
   });
 

@@ -14,7 +14,19 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import { useStyles } from '../../../../../component-library/hooks';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import {
+  getBridgeTokenSecurityConfig,
+  isNegativeSecurityType,
+} from '../../utils/tokenSecurityUtils';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -32,15 +44,11 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
-  selectDestTokenWarning,
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
-import { TokenFeatureType } from '@metamask/bridge-controller';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { SecurityDataType } from '../../hooks/usePopularTokens';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
+import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
   useNavigation,
@@ -56,7 +64,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import {
+  BridgeQuoteDataProvider,
+  useBridgeQuoteDataContext,
+} from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
@@ -100,10 +111,15 @@ import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index
 import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
-const BridgeView = () => {
+interface BridgeViewContentProps {
+  latestSourceBalance: ReturnType<typeof useLatestBalance>;
+}
+
+const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -145,7 +161,10 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
-  const tokenWarning = useSelector(selectDestTokenWarning);
+  const destTokenSecurityData = destToken?.securityData;
+  const tokenWarning = isNegativeSecurityType(destTokenSecurityData?.type)
+    ? destTokenSecurityData
+    : undefined;
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(
@@ -168,6 +187,7 @@ const BridgeView = () => {
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location = route.params?.location;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -220,13 +240,6 @@ const BridgeView = () => {
 
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-  });
-
   const updateQuoteParams = useBridgeQuoteRequest({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -240,9 +253,7 @@ const BridgeView = () => {
     quoteFetchError,
     shouldShowPriceImpactWarning,
     needsNewQuote,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
+  } = useBridgeQuoteDataContext();
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -481,8 +492,8 @@ const BridgeView = () => {
                       style={quoteStreamErrorBannerStyle}
                       startAccessory={
                         <Icon
-                          name={IconName.Danger}
-                          color={colors.error.default}
+                          name={IconName.Error}
+                          color={IconColor.ErrorDefault}
                           size={IconSize.Lg}
                         />
                       }
@@ -494,10 +505,10 @@ const BridgeView = () => {
                 })()
               : null}
 
-            {contentMode === 'quote' && tokenWarning
+            {tokenWarning
               ? (() => {
                   const isMalicious =
-                    tokenWarning.type === TokenFeatureType.MALICIOUS;
+                    tokenWarning.type === SecurityDataType.Malicious;
                   const bannerColors = isMalicious
                     ? colors.error
                     : colors.warning;
@@ -507,12 +518,15 @@ const BridgeView = () => {
                     backgroundColor: bannerColors.muted,
                     paddingLeft: 8,
                   };
+                  const securityConfig = getBridgeTokenSecurityConfig(
+                    tokenWarning.type,
+                  );
                   const navigateToModal = () =>
                     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
                       screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
                       params: {
                         warningType: tokenWarning.type,
-                        description: tokenWarning.description,
+                        features: tokenWarning.metadata?.features ?? [],
                         mode: TokenWarningModalMode.Info,
                         location,
                       },
@@ -523,10 +537,8 @@ const BridgeView = () => {
                         style={bannerStyle}
                         startAccessory={
                           <Icon
-                            name={
-                              isMalicious ? IconName.Danger : IconName.Warning
-                            }
-                            color={bannerColors.default}
+                            name={securityConfig.iconName}
+                            color={securityConfig.iconColor}
                             size={IconSize.Lg}
                           />
                         }
@@ -543,12 +555,22 @@ const BridgeView = () => {
                               )
                         }
                         onClose={navigateToModal}
-                        closeButtonProps={{ iconName: IconName.ArrowRight }}
+                        closeButtonProps={{ iconName: CLIconName.ArrowRight }}
                       />
                     </Pressable>
                   );
                 })()
               : null}
+
+            {contentMode === 'quote' &&
+            activeQuote &&
+            hasMissingPriceData(activeQuote) ? (
+              <BannerAlert
+                severity={BannerAlertSeverity.Danger}
+                description={strings('swaps.market_price_unavailable')}
+                testID={BridgeViewSelectorsIDs.MISSING_PRICE_BANNER}
+              />
+            ) : null}
           </Box>
 
           <Box
@@ -579,6 +601,7 @@ const BridgeView = () => {
         <BridgeViewFooter
           location={location}
           latestSourceBalance={latestSourceBalance}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         <SwapsKeypad
@@ -592,6 +615,7 @@ const BridgeView = () => {
             <SwapsConfirmButton
               location={location}
               latestSourceBalance={latestSourceBalance}
+              transactionActiveAbTests={transactionActiveAbTests}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
             />
           ) : (
@@ -606,6 +630,24 @@ const BridgeView = () => {
         </SwapsKeypad>
       </Box>
     </ScreenView>
+  );
+};
+
+const BridgeView = () => {
+  const sourceToken = useSelector(selectSourceToken);
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
+  });
+
+  return (
+    <BridgeQuoteDataProvider
+      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+    >
+      <BridgeViewContent latestSourceBalance={latestSourceBalance} />
+    </BridgeQuoteDataProvider>
   );
 };
 

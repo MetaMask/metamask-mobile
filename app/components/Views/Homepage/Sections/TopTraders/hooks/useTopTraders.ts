@@ -1,21 +1,21 @@
-import { useMemo, useCallback, useState, useEffect } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
 } from '@metamask/social-controllers';
 import Logger from '../../../../../../util/Logger';
+import { useFollowToggleMany } from '../../../../../hooks/useFollowToggle';
+import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import type { TopTrader } from '../types';
 
-/**
- * Result interface for the useTopTraders hook.
- */
 export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  toggleFollow: (traderId: string) => void;
+  toggleFollow: (addressOrId: string) => void;
 }
 
 interface UseTopTradersOptions {
@@ -23,20 +23,11 @@ interface UseTopTradersOptions {
   enabled?: boolean;
 }
 
-/**
- * Hook that provides top traders data for the social leaderboard.
- *
- * Uses the Data Services Pattern -- `useQuery` from `@metamask/react-data-query`
- * resolves the `SocialService:fetchLeaderboard` query key through the messenger
- * adapter, so the SocialService handles caching, de-duplication, and retries.
- *
- * @param options - Optional configuration.
- * @param options.limit - Maximum number of traders to return.
- * @returns Object with traders, isLoading, error, refresh, toggleFollow
- */
 export const useTopTraders = (
   options?: UseTopTradersOptions,
 ): UseTopTradersResult => {
+  const isUnlocked = useSelector(selectIsUnlocked);
+
   const fetchOptions: FetchLeaderboardOptions | null = options?.limit
     ? { limit: options.limit }
     : null;
@@ -48,12 +39,10 @@ export const useTopTraders = (
 
   const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
     queryKey,
-    enabled: options?.enabled ?? true,
+    enabled: (options?.enabled ?? true) && isUnlocked,
   });
 
-  const [localFollowOverrides, setLocalFollowOverrides] = useState<
-    Record<string, boolean>
-  >({});
+  const { isFollowing, toggleFollow } = useFollowToggleMany();
 
   const traders: TopTrader[] = useMemo(() => {
     if (!data?.traders) {
@@ -63,14 +52,15 @@ export const useTopTraders = (
     return data.traders.map((entry) => ({
       id: entry.profileId,
       rank: entry.rank,
+      overallRank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
       percentageChange: (entry.roiPercent30d ?? 0) * 100,
       pnlValue: entry.pnl30d,
       pnlPerChain: entry.pnlPerChain ?? {},
-      isFollowing: localFollowOverrides[entry.profileId] ?? false,
+      isFollowing: isFollowing(entry.profileId),
     }));
-  }, [data, localFollowOverrides]);
+  }, [data, isFollowing]);
 
   const refresh = useCallback(async () => {
     try {
@@ -80,13 +70,6 @@ export const useTopTraders = (
       throw err;
     }
   }, [refetch]);
-
-  const toggleFollow = useCallback((traderId: string) => {
-    setLocalFollowOverrides((prev) => ({
-      ...prev,
-      [traderId]: !prev[traderId],
-    }));
-  }, []);
 
   useEffect(() => {
     if (error) {

@@ -18,6 +18,12 @@ interface PerformanceFixtures {
   performanceTracker: PerformanceTracker;
 }
 
+/**
+ * @deprecated Use PlaywrightHelpers.getBrowserStackRecordingUrl() instead
+ * @param sessionId - The session ID
+ * @param projectName - The project name
+ * @returns The browser stack recording URL
+ */
 async function getBrowserStackRecordingUrl(
   sessionId: string | null,
   projectName: string,
@@ -39,6 +45,11 @@ async function getBrowserStackRecordingUrl(
   }
 }
 
+/**
+ * @deprecated Use PlaywrightHelpers.getSessionIdFromAnnotations() instead
+ * @param annotations - The annotations
+ * @returns The session ID
+ */
 function getSessionIdFromAnnotations(
   annotations?: { type: string; description?: string }[],
 ): string | null {
@@ -48,7 +59,10 @@ function getSessionIdFromAnnotations(
   );
 }
 
-// Create a custom test fixture that handles performance tracking and cleanup
+/**
+ * @deprecated Use PlaywrightHelpers.test() instead
+ * @param performanceTracker - The performance tracker
+ */
 export const test = base.extend<PerformanceFixtures>({
   // eslint-disable-next-line no-empty-pattern
   performanceTracker: async ({}, use, testInfo) => {
@@ -191,6 +205,7 @@ export const test = base.extend<PerformanceFixtures>({
 });
 
 /**
+ * @deprecated Use PlaywrightHelpers.expect() instead
  * Extend the test expect with a toBeVisible matcher.
  * @param locator - The locator to check.
  * @param options - The options to pass to the isVisible method.

@@ -30,32 +30,47 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
+import { useDispatch } from 'react-redux';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
 import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import { setHasAgreedTransakNativePolicy } from '../../../../../reducers/fiatOrders';
 
 export interface V2VerifyIdentityParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  /**
+   * When present, the screen is part of a headless buy flow and should
+   * forward this id down the auth loop so post-OTP routing can land
+   * back on `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote.
+   */
+  headlessSessionId?: string;
 }
 
 export const createV2VerifyIdentityNavDetails =
   createNavigationDetails<V2VerifyIdentityParams>(Routes.RAMP.VERIFY_IDENTITY);
 
 const V2VerifyIdentity = () => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
-  const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
+  const { amount, currency, assetId, headlessSessionId } =
+    useParams<V2VerifyIdentityParams>();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const navigateToEnterEmail = useCallback(() => {
     navigation.navigate(
-      ...createV2EnterEmailNavDetails({ amount, currency, assetId }),
+      ...createV2EnterEmailNavDetails({
+        amount,
+        currency,
+        assetId,
+        headlessSessionId,
+      }),
     );
-  }, [navigation, amount, currency, assetId]);
+  }, [navigation, amount, currency, assetId, headlessSessionId]);
 
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();
@@ -83,7 +98,7 @@ const V2VerifyIdentity = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_TERMS_CONSENT_CLICKED)
         .addProperties({
@@ -92,8 +107,9 @@ const V2VerifyIdentity = () => {
         })
         .build(),
     );
+    dispatch(setHasAgreedTransakNativePolicy(true));
     navigateToEnterEmail();
-  }, [navigateToEnterEmail, trackEvent, createEventBuilder]);
+  }, [dispatch, navigateToEnterEmail, trackEvent, createEventBuilder]);
 
   const handleTransakLink = useCallback(() => {
     let urlDomain: string = TRANSAK_URL;

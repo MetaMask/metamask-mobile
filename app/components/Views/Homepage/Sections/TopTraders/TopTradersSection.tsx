@@ -1,3 +1,7 @@
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   forwardRef,
   useCallback,
@@ -6,25 +10,24 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import { SectionRefreshHandle } from '../../types';
-import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import { strings } from '../../../../../../locales/i18n';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { RootStackParamList } from '../../../../../core/NavigationService/types';
+import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import ViewMoreCard from '../../components/ViewMoreCard';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
-import { TopTraderCard, TopTraderCardSkeleton } from './components';
-import { useTopTraders } from './hooks';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { SectionRefreshHandle } from '../../types';
+import { TopTraderCard, TopTraderCardSkeleton } from './components';
+import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
+import { useTopTraders } from './hooks';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
-const HOME_TRADER_LIMIT = 3;
+const HOME_TRADER_LIMIT = 10;
 const SKELETON_KEYS = Array.from(
   { length: HOME_TRADER_LIMIT },
   (_, i) => `home-trader-skeleton-${i}`,
@@ -39,7 +42,7 @@ interface TopTradersSectionProps {
  * TopTradersSection -- Social leaderboard entry point on the homepage.
  *
  * Renders a section header plus a horizontally scrollable row of the
- * top 3 trader cards. Tapping the header chevron navigates to the
+ * top 10 trader cards. Tapping the header chevron navigates to the
  * full TopTradersView.
  */
 const TopTradersSection = forwardRef<
@@ -65,8 +68,10 @@ const TopTradersSection = forwardRef<
     [refresh],
   );
 
+  const willRender = isEnabled && (isLoading || traders.length > 0);
+
   const { onLayout } = useHomeViewedEvent({
-    sectionRef: sectionViewRef,
+    sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
@@ -88,10 +93,11 @@ const TopTradersSection = forwardRef<
   }, [navigation]);
 
   const handleTraderPress = useCallback(
-    (traderId: string, traderName: string) => {
+    (traderId: string, traderName: string, rank: number) => {
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
+        rank,
       });
     },
     [navigation],
@@ -108,7 +114,11 @@ const TopTradersSection = forwardRef<
       testID="homepage-top-traders-section-root"
     >
       <Box gap={3}>
-        <SectionHeader title={title} onPress={handleViewAll} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAll}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
+        />
 
         <ScrollView
           horizontal
@@ -126,6 +136,13 @@ const TopTradersSection = forwardRef<
                   onTraderPress={handleTraderPress}
                 />
               ))}
+          {!isLoading && traders.length > 0 && (
+            <ViewMoreCard
+              onPress={handleViewAll}
+              twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-auto`}
+              testID="top-traders-view-more-card"
+            />
+          )}
         </ScrollView>
       </Box>
     </View>

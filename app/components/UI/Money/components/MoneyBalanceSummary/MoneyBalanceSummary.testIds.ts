@@ -6,4 +6,5 @@ export const MoneyBalanceSummaryTestIds = {
   APY: 'money-balance-summary-apy',
   APY_TAG: 'money-balance-summary-apy-tag',
   APY_INFO_BUTTON: 'money-balance-summary-apy-info-button',
+  APY_SKELETON: 'money-balance-summary-apy-skeleton',
 } as const;

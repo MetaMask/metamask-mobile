@@ -14,6 +14,7 @@ import {
   type AssetsControllerInitMessenger,
 } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 
@@ -128,11 +129,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
-    state: persistedState?.AssetsController ?? {
-      assetPreferences: {},
-      assetsInfo: {},
-      assetsBalance: {},
-    },
+    state: persistedState?.AssetsController,
     isBasicFunctionality: () =>
       selectBasicFunctionalityEnabled(store.getState()),
     isEnabled,
@@ -151,6 +148,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
     },
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,
+    isOnboarded: () => selectCompletedOnboarding(store.getState()),
   });
 
   return { controller };

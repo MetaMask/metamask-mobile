@@ -76,7 +76,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
-  const { marketId, entryPoint, title, image } = route.params || {};
+  const { marketId, entryPoint, title, image, transactionActiveAbTests } =
+    route.params || {};
   const resolvedMarketId = marketId;
 
   const { executeGuardedAction } = usePredictActionGuard({
@@ -125,6 +126,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refetch: refetchActivePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
+    childMarketIds: market?.childMarketIds,
     claimable: false,
     enabled: !isMarketLoading && Boolean(resolvedMarketId),
   });
@@ -136,6 +138,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refetch: refetchClaimablePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
+    childMarketIds: market?.childMarketIds,
     claimable: true,
     enabled: !isMarketLoading && Boolean(resolvedMarketId),
   });
@@ -210,6 +213,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           outcomeToken: token,
           entryPoint:
             entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
         });
       },
       {

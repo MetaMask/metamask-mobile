@@ -16,8 +16,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en-US' },
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
 }));
@@ -57,6 +55,13 @@ jest.mock('../../hooks/useTransakController', () => ({
     logoutFromProvider: mockLogoutFromProvider,
     patchUser: mockPatchUser,
     submitSsnDetails: mockSubmitSsnDetails,
+  }),
+}));
+
+jest.mock('../../hooks/useRampsController', () => ({
+  __esModule: true,
+  default: () => ({
+    selectedToken: { assetId: 'eip155:1/erc20:0xmock' },
   }),
 }));
 

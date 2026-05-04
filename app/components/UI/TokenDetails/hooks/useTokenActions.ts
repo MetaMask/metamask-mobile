@@ -35,7 +35,6 @@ import {
 } from '../../Bridge/utils/tokenUtils';
 import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
 import {
-  formatAddressToAssetId,
   formatChainIdToCaip,
   isNativeAddress,
 } from '@metamask/bridge-controller';
@@ -46,7 +45,9 @@ import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
+import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { TokenDetailsSource } from '../constants/constants';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -68,6 +69,7 @@ export const getSwapTokens = (
     symbol: token.symbol,
     name: token.name,
     image: token.image,
+    securityData: adaptTokenSecurityData(token.securityData),
   };
 
   if (wantsToBuyToken) {
@@ -101,7 +103,9 @@ export interface UseTokenActionsResult {
 }
 
 export interface UseTokenActionsParams {
-  token: TokenI;
+  token: TokenI & {
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  };
   networkName?: string;
   /** Optional up-to-date token balance from Token Details balance hook */
   currentTokenBalance?: string;
@@ -157,6 +161,7 @@ export const useTokenActions = ({
     sourceToken,
     destToken,
     abTestContext: {},
+    transactionActiveAbTests: token.transactionActiveAbTests,
     skipLocationUpdate: isFromBridgeAssetPicker,
   });
 
@@ -311,6 +316,7 @@ export const useTokenActions = ({
           is_authenticated: rampsButtonClickData.is_authenticated,
           preferred_provider: rampsButtonClickData.preferred_provider,
           order_count: rampsButtonClickData.order_count,
+          asset_symbol: token.symbol,
         })
         .build(),
     );
@@ -325,6 +331,7 @@ export const useTokenActions = ({
     rampGeodetectedRegion,
     rampsButtonClickData,
     goToBuy,
+    token.symbol,
   ]);
 
   // Convert current token to BridgeToken format (used as dest for Buy, source for Sell)
@@ -336,6 +343,8 @@ export const useTokenActions = ({
       symbol: token.symbol,
       name: token.name,
       image: token.image,
+      securityData: adaptTokenSecurityData(token.securityData),
+      rwaData: token.rwaData,
     }),
     [
       token.address,
@@ -344,6 +353,8 @@ export const useTokenActions = ({
       token.symbol,
       token.name,
       token.image,
+      token.securityData,
+      token.rwaData,
     ],
   );
 

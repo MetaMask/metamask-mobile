@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import {
   type CaipAssetType,
   type CaipChainId,
@@ -402,6 +402,29 @@ export const isPercentChangeNonNegative = (value: string | number): boolean => {
   return !Number.isNaN(num) && num >= 0;
 };
 
+// ── Ordinal rank (English) ─────────────────────────────────────────────
+
+/**
+ * Formats a 1-based rank as an English ordinal suffix (e.g. `3` → `"3rd"`).
+ * Pair with localized copy such as `"{{place}} place"`.
+ */
+export function formatOrdinalRank(rank: number): string {
+  const n = Math.floor(Math.abs(rank));
+  const mod100 = n % 100;
+  const mod10 = n % 10;
+  let suffix = 'th';
+  if (mod100 < 11 || mod100 > 13) {
+    if (mod10 === 1) {
+      suffix = 'st';
+    } else if (mod10 === 2) {
+      suffix = 'nd';
+    } else if (mod10 === 3) {
+      suffix = 'rd';
+    }
+  }
+  return `${n}${suffix}`;
+}
+
 // ── Timestamp formatting ────────────────────────────────────────────────
 
 /**
@@ -498,4 +521,13 @@ export function sanitizeOndoTokenName(raw: string): string {
     .trim();
   if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
   return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+}
+
+export function getPortfolioReturnColor(
+  portfolioPnlPercent: string | undefined,
+): TextColor {
+  if (!portfolioPnlPercent) return TextColor.TextDefault;
+  return parseFloat(portfolioPnlPercent) < 0
+    ? TextColor.ErrorDefault
+    : TextColor.SuccessDefault;
 }

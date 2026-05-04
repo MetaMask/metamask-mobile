@@ -19,9 +19,7 @@ import {
   StakingInfoBodyText,
   StakingInfoStrings,
 } from '../../../../Stake/components/LearnMoreModal';
-
-const TRON_STAKING_FAQ_URL =
-  'https://support.metamask.io/metamask-portfolio/move-crypto/stake/';
+import { TRON_STAKING_FAQ_URL } from '../../../../../../constants/urls';
 
 const TronStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});

@@ -5,12 +5,12 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeTrade } from '../../tags.js';
+import { SmokeSwap } from '../../tags.js';
 import WalletView from '../../page-objects/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
 
-describe(SmokeTrade('Trade: Unified UI Wallet Actions'), () => {
+describe(SmokeSwap('Trade: Unified UI Wallet Actions'), () => {
   let mockServer: Mockttp | undefined;
 
   beforeAll(async () => {

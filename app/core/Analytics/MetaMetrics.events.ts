@@ -67,6 +67,7 @@ enum EVENT_NAME {
 
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
+  REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
@@ -98,6 +99,11 @@ enum EVENT_NAME {
   CHART_EMPTY_DISPLAYED = 'chart_empty_displayed',
   SECURITY_TRUST_BOTTOM_SHEET_OPENED = 'Security Trust BottomSheet Opened',
   SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN = 'Security Trust BottomSheet Action Taken',
+  TOKEN_DETAILS_SECURITY_SECTION_VIEWED = 'token_details_security_section_viewed',
+  TOKEN_DETAILS_SECURITY_SECTION_CLICKED = 'token_details_security_section_clicked',
+  SECURITY_PAGE_VIEWED = 'security_page_viewed',
+  SECURITY_PAGE_CTA_CLICKED = 'security_page_cta_clicked',
+  SECURITY_PAGE_DISMISSED = 'security_page_dismissed',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -173,6 +179,8 @@ enum EVENT_NAME {
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
   SOCIAL_LOGIN_FAILED = 'Social Login Failed',
+  SOCIAL_LOGIN_IOS_SUCCESS_VIEWED = 'Social Login iOS Success Viewed',
+  SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED = 'Social Login iOS Success CTA Clicked',
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
   ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
@@ -589,6 +597,7 @@ enum EVENT_NAME {
   PERPS_UI_INTERACTION = 'Perp UI Interaction',
   PERPS_RISK_MANAGEMENT = 'Perp Risk Management',
   PERPS_ERROR = 'Perp Error',
+  PERPS_ACCOUNT_SETUP = 'Perp Account Setup',
 
   // Card
   CARD_BUTTON_VIEWED = 'Card Button Viewed',
@@ -636,10 +645,12 @@ enum EVENT_NAME {
   REWARDS_VERSION_GUARD_VIEWED = 'Rewards Version Guard Viewed',
   REWARDS_VERSION_GUARD_UPDATE_CLICKED = 'Rewards Version Guard Update Clicked',
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED = 'Rewards Campaign Opt In Completed',
+  REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED = 'Rewards Campaign Reminder Subscribed',
   REWARDS_PAGE_VIEWED = 'Rewards Page Viewed',
 
   // Predict
   PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
+  PREDICT_BETSLIP_DISMISSED = 'Predict Betslip Dismissed',
   PREDICT_MARKET_DETAILS_OPENED = 'Predict Market Details Opened',
   PREDICT_POSITION_VIEWED = 'Predict Position Viewed',
   PREDICT_ACTIVITY_VIEWED = 'Predict Activity Viewed',
@@ -678,10 +689,8 @@ enum EVENT_NAME {
   MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
   MUSD_CLAIM_BONUS_CTA_DISPLAYED = 'mUSD Claim Bonus CTA Displayed',
   MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
-  MUSD_QUICK_CONVERT_SCREEN_VIEWED = 'mUSD Quick Convert Screen Viewed',
   MUSD_BONUS_TERMS_OF_USE_PRESSED = 'mUSD Bonus Terms of Use Pressed',
   MUSD_BONUS_LEARN_MORE_PRESSED = 'mUSD Bonus Learn More Pressed',
-  MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED = 'mUSD Quick Convert Token Row Button Clicked',
 
   // Money Hub
   MONEY_HUB_SCREEN_VIEWED = 'Money Hub Screen Viewed',
@@ -693,6 +702,9 @@ enum EVENT_NAME {
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
+
+  // Activity
+  ACTIVITY_CLICKED = 'Activity Clicked',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -806,6 +818,9 @@ const events = {
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECTION_REQUEST_RECEIVED: generateOpt(
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
+  ),
+  REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
   ),
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
@@ -931,6 +946,12 @@ const events = {
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
   SOCIAL_LOGIN_FAILED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_FAILED),
+  SOCIAL_LOGIN_IOS_SUCCESS_VIEWED: generateOpt(
+    EVENT_NAME.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
+  ),
+  SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED: generateOpt(
+    EVENT_NAME.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED,
+  ),
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
     EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
   ),
@@ -1553,6 +1574,15 @@ const events = {
   SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN: generateOpt(
     EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
   ),
+  TOKEN_DETAILS_SECURITY_SECTION_VIEWED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_SECURITY_SECTION_VIEWED,
+  ),
+  TOKEN_DETAILS_SECURITY_SECTION_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_SECURITY_SECTION_CLICKED,
+  ),
+  SECURITY_PAGE_VIEWED: generateOpt(EVENT_NAME.SECURITY_PAGE_VIEWED),
+  SECURITY_PAGE_CTA_CLICKED: generateOpt(EVENT_NAME.SECURITY_PAGE_CTA_CLICKED),
+  SECURITY_PAGE_DISMISSED: generateOpt(EVENT_NAME.SECURITY_PAGE_DISMISSED),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1604,6 +1634,7 @@ const events = {
   PERPS_UI_INTERACTION: generateOpt(EVENT_NAME.PERPS_UI_INTERACTION),
   PERPS_RISK_MANAGEMENT: generateOpt(EVENT_NAME.PERPS_RISK_MANAGEMENT),
   PERPS_ERROR: generateOpt(EVENT_NAME.PERPS_ERROR),
+  PERPS_ACCOUNT_SETUP: generateOpt(EVENT_NAME.PERPS_ACCOUNT_SETUP),
 
   // Asset Filter
   ASSET_FILTER_SELECTED: generateOpt(EVENT_NAME.ASSET_FILTER_SELECTED),
@@ -1720,9 +1751,13 @@ const events = {
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED: generateOpt(
     EVENT_NAME.REWARDS_CAMPAIGN_OPT_IN_COMPLETED,
   ),
+  REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED: generateOpt(
+    EVENT_NAME.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
+  ),
   REWARDS_PAGE_VIEWED: generateOpt(EVENT_NAME.REWARDS_PAGE_VIEWED),
   // Predict
   PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
+  PREDICT_BETSLIP_DISMISSED: generateOpt(EVENT_NAME.PREDICT_BETSLIP_DISMISSED),
   PREDICT_MARKET_DETAILS_OPENED: generateOpt(
     EVENT_NAME.PREDICT_MARKET_DETAILS_OPENED,
   ),
@@ -1775,17 +1810,11 @@ const events = {
   MUSD_CLAIM_BONUS_STATUS_UPDATED: generateOpt(
     EVENT_NAME.MUSD_CLAIM_BONUS_STATUS_UPDATED,
   ),
-  MUSD_QUICK_CONVERT_SCREEN_VIEWED: generateOpt(
-    EVENT_NAME.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
-  ),
   MUSD_BONUS_TERMS_OF_USE_PRESSED: generateOpt(
     EVENT_NAME.MUSD_BONUS_TERMS_OF_USE_PRESSED,
   ),
   MUSD_BONUS_LEARN_MORE_PRESSED: generateOpt(
     EVENT_NAME.MUSD_BONUS_LEARN_MORE_PRESSED,
-  ),
-  MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED: generateOpt(
-    EVENT_NAME.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
   ),
   MONEY_HUB_SCREEN_VIEWED: generateOpt(EVENT_NAME.MONEY_HUB_SCREEN_VIEWED),
   MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED: generateOpt(
@@ -1803,6 +1832,7 @@ const events = {
   MONEY_HUB_BUY_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MONEY_HUB_BUY_BUTTON_CLICKED,
   ),
+  ACTIVITY_CLICKED: generateOpt(EVENT_NAME.ACTIVITY_CLICKED),
 };
 
 /**

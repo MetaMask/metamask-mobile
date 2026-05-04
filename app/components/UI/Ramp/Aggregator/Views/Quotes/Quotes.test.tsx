@@ -47,6 +47,31 @@ function render(Component: React.ComponentType) {
   );
 }
 
+jest.mock('../../components/LoadingAnimation', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockLoadingAnimation({
+    title,
+    finish,
+    onAnimationEnd,
+  }: {
+    title: string;
+    finish: boolean;
+    onAnimationEnd?: () => void;
+  }) {
+    ReactMock.useEffect(() => {
+      if (finish && onAnimationEnd) {
+        onAnimationEnd();
+      }
+    }, [finish, onAnimationEnd]);
+    return (
+      <View>
+        <Text>{title}</Text>
+      </View>
+    );
+  };
+});
+
 jest.unmock('react-redux');
 
 const mockSetOptions = jest.fn();
@@ -874,6 +899,59 @@ describe('Quotes', () => {
       jest.clearAllTimers();
     });
     expect(mockQueryGetQuotes).toHaveBeenCalledTimes(1);
+    act(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+  });
+
+  it('does not fetch new quotes while a quote is being processed', async () => {
+    if (!mockUseQuotesAndCustomActionsInitialValues.recommendedQuote) {
+      throw new Error('No recommended quote found');
+    }
+
+    const mockedRecommendedQuote = {
+      ...mockUseQuotesAndCustomActionsInitialValues.recommendedQuote,
+    } as QuoteResponse;
+
+    const mockQuoteProviderName = mockedRecommendedQuote.provider
+      ?.name as string;
+
+    mockedRecommendedQuote.buy = () => new Promise(() => undefined);
+
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      recommendedQuote: mockedRecommendedQuote,
+    };
+
+    render(Quotes);
+
+    // Advance past loading animation so polling starts
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+
+    const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
+    fireEvent.press(quoteToSelect);
+
+    const quoteContinueButton = screen.getByRole('button', {
+      name: `Continue with ${mockQuoteProviderName}`,
+    });
+
+    // Press Continue — this sets isQuoteLoading to true, pausing the timer
+    await act(async () => {
+      fireEvent.press(quoteContinueButton);
+    });
+
+    mockQueryGetQuotes.mockClear();
+
+    // Advance well past the polling interval; timer should NOT trigger a fetch
+    act(() => {
+      jest.advanceTimersByTime(15000);
+      jest.clearAllTimers();
+    });
+
+    expect(mockQueryGetQuotes).not.toHaveBeenCalled();
+
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });

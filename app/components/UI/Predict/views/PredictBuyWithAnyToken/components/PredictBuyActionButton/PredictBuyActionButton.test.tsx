@@ -1,17 +1,19 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
-    if (key === 'predict.order.placing_prediction') {
-      return 'Placing prediction';
-    }
-    if (key === 'predict.order.confirm') {
-      return 'Confirm';
-    }
-    return key;
+    const map: Record<string, string> = {
+      'predict.order.placing_prediction': 'Placing prediction',
+      'predict.order.confirm': 'Confirm',
+      'predict.order.retry': 'Retry',
+      'predict.payment.change_payment_method': 'Change Payment Method',
+      'predict.payment.add_funds': 'Add Funds',
+    };
+    return map[key] ?? key;
   }),
 }));
 
@@ -25,7 +27,12 @@ jest.mock(
     const { View: RNView, Text: RNText } = jest.requireActual('react-native');
     return function MockButtonHero(props: Record<string, unknown>) {
       return (
-        <RNView testID={props.testID as string}>
+        <RNView
+          testID={props.testID as string}
+          style={props.style}
+          accessible
+          accessibilityState={{ disabled: props.disabled as boolean }}
+        >
           <RNText onPress={props.onPress as () => void}>
             {props.children as React.ReactNode}
           </RNText>
@@ -43,21 +50,6 @@ describe('PredictBuyActionButton', () => {
   });
 
   describe('when isLoading is true', () => {
-    it('displays loading state with ActivityIndicator', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity={false}
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-        />,
-      );
-
-      expect(screen.getByText(/Placing prediction/)).toBeOnTheScreen();
-    });
-
     it('displays placing prediction text', () => {
       renderWithProvider(
         <PredictBuyActionButton
@@ -73,6 +65,21 @@ describe('PredictBuyActionButton', () => {
       expect(screen.getByText(/Placing prediction/)).toBeOnTheScreen();
     });
 
+    it('displays ActivityIndicator', () => {
+      const { UNSAFE_getByType } = renderWithProvider(
+        <PredictBuyActionButton
+          isLoading
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+        />,
+      );
+
+      UNSAFE_getByType(ActivityIndicator);
+    });
+
     it('renders button with disabled state', () => {
       renderWithProvider(
         <PredictBuyActionButton
@@ -86,7 +93,7 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByRole('button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('applies reduced opacity style', () => {
@@ -169,8 +176,7 @@ describe('PredictBuyActionButton', () => {
         />,
       );
 
-      const button = screen.getByTestId('action-button');
-      expect(button).toBeOnTheScreen();
+      expect(screen.getByTestId('action-button')).toBeDisabled();
     });
 
     it('applies reduced opacity when showReducedOpacity is true', () => {
@@ -187,7 +193,9 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByTestId('action-button');
-      expect(button).toBeOnTheScreen();
+      expect(button.props.style).toEqual(
+        expect.objectContaining({ opacity: 0.5 }),
+      );
     });
 
     it('does not apply reduced opacity when showReducedOpacity is false', () => {
@@ -204,7 +212,9 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByTestId('action-button');
-      expect(button).toBeOnTheScreen();
+      expect(button.props.style).not.toEqual(
+        expect.objectContaining({ opacity: 0.5 }),
+      );
     });
 
     it('calls onPress when button is pressed', () => {
@@ -322,6 +332,153 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByText(/Yes/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('when isChangePaymentMode is true', () => {
+    it('renders Change Payment Method label', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isChangePaymentMode
+          testID="action-button"
+        />,
+      );
+
+      expect(screen.getByText('Change Payment Method')).toBeOnTheScreen();
+    });
+
+    it('does not render outcome or share price', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isChangePaymentMode
+        />,
+      );
+
+      expect(screen.queryByText(/0\.65¢/)).toBeNull();
+      expect(screen.queryByText(/Yes · /)).toBeNull();
+    });
+
+    it('calls onPress when pressed', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isChangePaymentMode
+          testID="action-button"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('action-button'));
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('when isAddFundsMode is true', () => {
+    it('renders Add Funds label', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isAddFundsMode
+          testID="action-button"
+        />,
+      );
+
+      expect(screen.getByText('Add Funds')).toBeOnTheScreen();
+    });
+
+    it('does not render outcome or share price', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isAddFundsMode
+        />,
+      );
+
+      expect(screen.queryByText(/0\.65¢/)).toBeNull();
+      expect(screen.queryByText(/Yes · /)).toBeNull();
+    });
+
+    it('calls onPress when pressed', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isAddFundsMode
+          testID="action-button"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('action-button'));
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('when isRetry is true', () => {
+    it('renders Retry label instead of outcome title and price', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isRetry
+        />,
+      );
+
+      expect(screen.getByText('Retry')).toBeOnTheScreen();
+      expect(screen.queryByText(/Yes/)).not.toBeOnTheScreen();
+    });
+
+    it('renders Retry label even when isSheetMode is also true', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isSheetMode
+          isRetry
+        />,
+      );
+
+      expect(screen.getByText('Retry')).toBeOnTheScreen();
+      expect(screen.queryByText('Confirm')).not.toBeOnTheScreen();
     });
   });
 });

@@ -13,8 +13,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import { useTheme } from '../../../../../util/theme';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
@@ -293,20 +293,22 @@ const CardAuthentication = () => {
         <>
           <Box>
             <TextField
-              autoCapitalize={'none'}
               onChangeText={handleOtpValueChange}
-              numberOfLines={1}
               value={confirmCode}
-              keyboardType="number-pad"
-              textContentType="oneTimeCode"
-              autoComplete={autoComplete}
-              maxLength={CODE_LENGTH}
-              accessibilityLabel={strings(
-                'card.card_otp_authentication.confirm_code_label',
-              )}
               isError={!!error}
-              testID="otp-code-field"
               autoFocus
+              inputProps={{
+                autoCapitalize: 'none',
+                numberOfLines: 1,
+                keyboardType: 'number-pad',
+                textContentType: 'oneTimeCode',
+                autoComplete,
+                maxLength: CODE_LENGTH,
+                accessibilityLabel: strings(
+                  'card.card_otp_authentication.confirm_code_label',
+                ),
+                testID: 'otp-code-field',
+              }}
             />
             {error && (
               <Text
@@ -406,36 +408,27 @@ const CardAuthentication = () => {
           <Box>
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
-              autoCapitalize={'none'}
-              autoComplete="one-time-code"
               onChangeText={handleEmailChange}
-              numberOfLines={1}
               value={email}
-              returnKeyType={'next'}
-              keyboardType="email-address"
-              maxLength={255}
-              accessibilityLabel={strings(
-                'card.card_authentication.email_label',
-              )}
-              testID="email-field"
+              inputProps={{
+                autoCapitalize: 'none',
+                autoComplete: 'username',
+                numberOfLines: 1,
+                returnKeyType: 'next',
+                keyboardType: 'email-address',
+                maxLength: 255,
+                accessibilityLabel: strings(
+                  'card.card_authentication.email_label',
+                ),
+                testID: 'email-field',
+              }}
             />
           </Box>
           <Box>
             <Label>{strings('card.card_authentication.password_label')}</Label>
             <TextField
-              autoCapitalize={'none'}
               onChangeText={handlePasswordChange}
-              autoComplete="one-time-code"
-              numberOfLines={1}
               value={password}
-              maxLength={255}
-              returnKeyType={'done'}
-              onSubmitEditing={() => performLogin()}
-              secureTextEntry={!isPasswordVisible}
-              accessibilityLabel={strings(
-                'card.card_authentication.password_label',
-              )}
-              testID="password-field"
               endAccessory={
                 <TouchableOpacity
                   onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -447,6 +440,19 @@ const CardAuthentication = () => {
                   />
                 </TouchableOpacity>
               }
+              inputProps={{
+                autoCapitalize: 'none',
+                autoComplete: 'password',
+                numberOfLines: 1,
+                maxLength: 255,
+                returnKeyType: 'done',
+                onSubmitEditing: () => performLogin(),
+                secureTextEntry: !isPasswordVisible,
+                accessibilityLabel: strings(
+                  'card.card_authentication.password_label',
+                ),
+                testID: 'password-field',
+              }}
             />
           </Box>
         </>

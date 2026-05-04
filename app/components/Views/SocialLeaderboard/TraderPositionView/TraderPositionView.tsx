@@ -1,404 +1,238 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useContext, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonVariant,
-  AvatarBase,
-  AvatarBaseSize,
-  AvatarToken,
-  AvatarTokenSize,
+  ButtonHero,
+  ButtonHeroSize,
 } from '@metamask/design-system-react-native';
-import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../locales/i18n';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
+import ClipboardManager from '../../../../core/ClipboardManager';
+import Routes from '../../../../constants/navigation/Routes';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
-import { chainNameToId } from '../utils/chainMapping';
-import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
-
-// ---------------------------------------------------------------------------
-// Mock data
-// ---------------------------------------------------------------------------
-
-const TIME_PERIODS = ['1H', '1D', '1W', '1M', 'All'] as const;
-type TimePeriod = (typeof TIME_PERIODS)[number];
-
-const MOCK_TOKEN = {
-  symbol: 'PUNCH',
-  priceChange: '+$0.0000981 (7.2%)',
-  priceChangePeriod: '1H',
-  marketCap: '$11.7M',
-};
-
-const MOCK_POSITION = {
-  value: '$14,670',
-  pnlValue: '+$790.65',
-  pnlPercent: '+5.08%',
-  isPositive: true,
-};
-
-interface MockTrade {
-  id: string;
-  direction: 'buy' | 'sell';
-  traderName: string;
-  timestamp: string;
-  usdValue: string;
-  percentage: string;
-  isPositive: boolean;
-}
-
-const MOCK_TRADES: MockTrade[] = [
-  {
-    id: '1',
-    direction: 'buy',
-    traderName: 'dutchiono',
-    timestamp: 'March 4 at 9:15am',
-    usdValue: '$2.2K',
-    percentage: '+5%',
-    isPositive: true,
-  },
-  {
-    id: '2',
-    direction: 'sell',
-    traderName: 'dutchiono',
-    timestamp: 'March 4 at 8:02am',
-    usdValue: '-$1.1K',
-    percentage: '-79%',
-    isPositive: false,
-  },
-];
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-interface TimePeriodButtonProps {
-  label: string;
-  isActive: boolean;
-  onPress: () => void;
-}
-
-const TimePeriodButton: React.FC<TimePeriodButtonProps> = ({
-  label,
-  isActive,
-  onPress,
-}) => (
-  <TouchableOpacity onPress={onPress}>
-    <Box
-      twClassName={`flex-1 items-center justify-center px-2 py-1 rounded ${
-        isActive ? 'bg-muted' : ''
-      }`}
-    >
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
-      >
-        {label}
-      </Text>
-    </Box>
-  </TouchableOpacity>
-);
-
-interface TradeRowProps {
-  trade: MockTrade;
-}
-
-const TradeRow: React.FC<TradeRowProps> = ({ trade }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="px-4 py-3"
-    testID={`trade-row-${trade.id}`}
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={4}
-      twClassName="flex-1 min-w-0 mr-3"
-    >
-      <AvatarBase
-        size={AvatarBaseSize.Md}
-        fallbackText={trade.traderName.charAt(0).toUpperCase()}
-      />
-      <Box twClassName="flex-1 min-w-0">
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {trade.direction === 'buy'
-            ? strings('social_leaderboard.trader_position.bought', {
-                name: trade.traderName,
-              })
-            : strings('social_leaderboard.trader_position.sold', {
-                name: trade.traderName,
-              })}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {trade.timestamp}
-        </Text>
-      </Box>
-    </Box>
-
-    <Box alignItems={BoxAlignItems.End}>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        twClassName={
-          trade.isPositive ? 'text-success-default' : 'text-error-default'
-        }
-      >
-        {trade.usdValue}
-      </Text>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {trade.percentage}
-      </Text>
-    </Box>
-  </Box>
-);
-
-// ---------------------------------------------------------------------------
-// Main screen
-// ---------------------------------------------------------------------------
+import { useTheme } from '../../../../util/theme';
+import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
+import TraderPositionHeader from './components/TraderPositionHeader';
+import TraderTokenInfoRow from './components/TraderTokenInfoRow';
+import TraderPositionChartSection from './components/TraderPositionChartSection';
+import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
+import TraderPositionPnLCard from './components/TraderPositionPnLCard';
+import TraderTradesSection from './components/TraderTradesSection';
+import TraderPositionSkeleton from './components/TraderPositionSkeleton';
+import TraderPositionFallback from './components/TraderPositionFallback';
+import { useTraderPositionData } from './useTraderPositionData';
+import { useTraderPosition } from './hooks/useTraderPosition';
+import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 
 const TraderPositionView = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
-  const { traderName, tokenSymbol, position: positionParam } = route.params;
+  const {
+    traderId,
+    traderName: traderNameParam,
+    traderImageUrl: traderImageUrlParam,
+    tokenSymbol,
+    position: positionParam,
+    positionId,
+  } = route.params;
 
-  const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
+  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
 
-  const tokenImageUrl = useMemo(() => {
-    if (!positionParam) return undefined;
-    const chainId = chainNameToId(positionParam.chain);
-    if (!chainId) return undefined;
-    return getAssetImageUrl(positionParam.tokenAddress, chainId);
-  }, [positionParam]);
+  // Position resolution: prefer the row-tap snapshot; fetch via UUID only when
+  // it isn't there (deep link / out-of-app entry).
+  const { position: fetchedPosition, isLoading: isPositionLoading } =
+    useTraderPosition(positionParam ? undefined : positionId);
+  const resolvedPosition = positionParam ?? fetchedPosition;
 
-  const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  // Trader profile: fetch only if name/image weren't passed in nav params.
+  const needsProfile = !traderNameParam || !traderImageUrlParam;
+  const { profile: fetchedProfile, isLoading: isProfileLoading } =
+    useTraderProfile(needsProfile ? traderId : '');
+  const traderName = traderNameParam ?? fetchedProfile?.profile?.name ?? '';
+  const traderImageUrl =
+    traderImageUrlParam ?? fetchedProfile?.profile?.imageUrl ?? undefined;
 
-  const symbol = tokenSymbol || MOCK_TOKEN.symbol;
+  const positionData = useTraderPositionData(resolvedPosition, tokenSymbol);
+  const {
+    symbol,
+    marketCap,
+    historicalPrices,
+    priceDiff,
+    isPricesLoading,
+    pricePercentChange,
+    isClosed,
+    positionValue,
+    pnlValue,
+    pnlPercent,
+    isPnlPositive,
+    trades,
+    activeTimePeriod,
+    setActiveTimePeriod,
+    timePeriods,
+  } = positionData;
+
+  const handleBack = useCallback(() => {
+    const state = navigation.getState();
+    const previousRoute = state?.routes[state.index - 1];
+
+    if (previousRoute?.name === Routes.SOCIAL_LEADERBOARD.PROFILE) {
+      // Normal flow: profile is already in the stack, goes back to it
+      navigation.goBack();
+    } else {
+      // Deeplink flow: position was opened directly. Replace position with
+      // profile so pressing back from profile doesn't return to position.
+      navigation.replace(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+        traderId,
+        traderName,
+      });
+    }
+  }, [navigation, traderId, traderName]);
+
+  const handleCopyTokenAddress = useCallback(async () => {
+    if (!resolvedPosition?.tokenAddress) {
+      return;
+    }
+
+    await ClipboardManager.setString(resolvedPosition.tokenAddress);
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('detected_tokens.address_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
+    });
+  }, [
+    colors.accent03.dark,
+    colors.accent03.normal,
+    resolvedPosition?.tokenAddress,
+    toastRef,
+  ]);
+
+  const handleBuyPress = useCallback(() => {
+    if (!resolvedPosition) {
+      return;
+    }
+    // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
+    // Success/error notification haptics fire later in useQuickBuyBottomSheet.
+    playImpact(ImpactMoment.PrimaryCTA);
+    setIsQuickBuyVisible(true);
+  }, [resolvedPosition]);
+
+  const handleQuickBuyClose = useCallback(() => {
+    setIsQuickBuyVisible(false);
+  }, []);
+
+  const handleChartIndexChange = useCallback((_index: number) => {
+    // Future: update displayed price on scrub
+  }, []);
+
+  const isInitialLoading =
+    !resolvedPosition && (isPositionLoading || isProfileLoading);
+  const hasFailed =
+    !resolvedPosition && !isPositionLoading && !isProfileLoading;
 
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
-      {/* Header */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-2 py-2"
-      >
-        <Box twClassName="w-10" />
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {traderName}
-        </Text>
-        <Box twClassName="w-10 items-end">
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            onPress={handleClose}
-            testID={TraderPositionViewSelectorsIDs.CLOSE_BUTTON}
+      <TraderPositionHeader
+        traderName={traderName}
+        onBack={handleBack}
+        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+      />
+
+      {isInitialLoading ? (
+        <TraderPositionSkeleton />
+      ) : hasFailed ? (
+        <TraderPositionFallback traderId={traderId} traderName={traderName} />
+      ) : (
+        <>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('pb-6')}
+          >
+            <TraderTokenInfoRow
+              symbol={symbol}
+              position={resolvedPosition}
+              marketCap={marketCap}
+              pricePercentChange={pricePercentChange}
+              activeTimePeriodLabel={activeTimePeriod}
+              onCopyTokenAddress={handleCopyTokenAddress}
+              copyTokenAddressTestID={
+                TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+              }
+            />
+
+            <TraderPositionChartSection
+              historicalPrices={historicalPrices}
+              priceDiff={priceDiff}
+              isPricesLoading={isPricesLoading}
+              onChartIndexChange={handleChartIndexChange}
+              trades={trades}
+            />
+
+            <TraderTimePeriodSelector
+              timePeriods={timePeriods}
+              activeTimePeriod={activeTimePeriod}
+              onSelectPeriod={setActiveTimePeriod}
+            />
+
+            <TraderPositionPnLCard
+              isClosed={isClosed}
+              positionValue={positionValue}
+              pnlValue={pnlValue}
+              pnlPercent={pnlPercent}
+              isPnlPositive={isPnlPositive}
+            />
+
+            <TraderTradesSection
+              trades={trades}
+              traderName={traderName}
+              traderImageUrl={traderImageUrl}
+            />
+          </ScrollView>
+
+          <Box twClassName="px-4 py-3">
+            <ButtonHero
+              size={ButtonHeroSize.Lg}
+              isFullWidth
+              onPress={handleBuyPress}
+              testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+            >
+              {strings('social_leaderboard.trader_position.buy')}
+            </ButtonHero>
+          </Box>
+
+          <QuickBuyBottomSheet
+            isVisible={isQuickBuyVisible}
+            position={resolvedPosition ?? null}
+            marketCap={marketCap}
+            onClose={handleQuickBuyClose}
           />
-        </Box>
-      </Box>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-6')}
-      >
-        {/* Token Info Row */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-4 py-3"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={4}
-            twClassName="flex-1 min-w-0 mr-3"
-          >
-            <AvatarToken
-              name={symbol}
-              src={tokenImageUrl ? { uri: tokenImageUrl } : undefined}
-              size={AvatarTokenSize.Lg}
-            />
-            <Box twClassName="flex-1 min-w-0">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                numberOfLines={1}
-              >
-                {symbol}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-success-default"
-                numberOfLines={1}
-              >
-                {`${MOCK_TOKEN.priceChange} `}
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {MOCK_TOKEN.priceChangePeriod}
-                </Text>
-              </Text>
-            </Box>
-          </Box>
-
-          <Box alignItems={BoxAlignItems.End}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {MOCK_TOKEN.marketCap}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('social_leaderboard.trader_position.market_cap')}
-            </Text>
-          </Box>
-        </Box>
-
-        {/* Chart Placeholder */}
-        <View style={tw.style('mx-4 my-3 h-48 bg-muted rounded-xl')} />
-
-        {/* Timeline Selector */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-4 pb-3"
-          gap={3}
-        >
-          {TIME_PERIODS.map((period) => (
-            <TimePeriodButton
-              key={period}
-              label={period}
-              isActive={activeTimePeriod === period}
-              onPress={() => setActiveTimePeriod(period)}
-            />
-          ))}
-        </Box>
-
-        {/* Position Card */}
-        <Box twClassName="mx-4 p-4 bg-muted rounded-2xl">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            alignItems={BoxAlignItems.Start}
-          >
-            <Box>
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
-              >
-                {MOCK_POSITION.value}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {strings('social_leaderboard.trader_position.position')}
-              </Text>
-            </Box>
-            <Box alignItems={BoxAlignItems.End}>
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-                twClassName={
-                  MOCK_POSITION.isPositive
-                    ? 'text-success-default'
-                    : 'text-error-default'
-                }
-              >
-                {MOCK_POSITION.pnlValue}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {MOCK_POSITION.pnlPercent}
-              </Text>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Trades Tab Header */}
-        <Box twClassName="px-4 mt-5">
-          <Box twClassName="self-start pb-2 border-b-2 border-white">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {strings('social_leaderboard.trader_position.trades')}
-            </Text>
-          </Box>
-          <Box twClassName="h-px bg-muted -mt-0.5" />
-        </Box>
-
-        {/* Trade History */}
-        {MOCK_TRADES.map((trade) => (
-          <TradeRow key={trade.id} trade={trade} />
-        ))}
-      </ScrollView>
-
-      {/* Buy Button — pinned at bottom */}
-      <Box twClassName="px-4 py-3">
-        <Button
-          variant={ButtonVariant.Secondary}
-          isFullWidth
-          onPress={() => undefined}
-          testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-        >
-          {strings('social_leaderboard.trader_position.buy')}
-        </Button>
-      </Box>
+        </>
+      )}
     </SafeAreaView>
   );
 };
