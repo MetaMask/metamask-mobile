@@ -196,6 +196,9 @@ const HomepageDiscoveryTabs = forwardRef<
 
     const handleChangeTab = useCallback(
       ({ i }: { i: number }) => {
+        const prevIndex = activeTabIndexRef.current;
+        activeTabIndexRef.current = i;
+
         // Restore each tab's own header state on entry.
         // Predictions has no scroll manager so we always show the header.
         if (i === TAB_INDEX.PORTFOLIO) {
@@ -230,9 +233,6 @@ const HomepageDiscoveryTabs = forwardRef<
             useNativeDriver: true,
           }).start();
         }
-
-        const prevIndex = activeTabIndexRef.current;
-        activeTabIndexRef.current = i;
 
         // Reset tab bar collapse when leaving Predictions
         if (

@@ -1046,8 +1046,7 @@ const Wallet = ({
     HUB_PAGE_DISCOVERY_TABS_VARIANTS,
   );
 
-  const isDiscoveryTabsTreatment =
-    discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
+  const isDiscoveryTabsTreatment = false;
 
   // translateY slides the header up; negative marginBottom collapses the layout
   // space it occupied so the content below moves up in sync.
@@ -1348,7 +1347,6 @@ const Wallet = ({
     ],
   );
 
-  // Shared banner content — shown in all layout paths.
   const bannerContent = (
     <View style={styles.banner}>
       {!basicFunctionalityEnabled ? (
@@ -1369,8 +1367,25 @@ const Wallet = ({
     </View>
   );
 
-  // Portfolio header — balance, actions, and carousel rendered inside the
-  // Portfolio tab scroll view when HomepageDiscoveryTabs is active.
+  const portfolioHeaderBase = (
+    <>
+      {bannerContent}
+      <AccountGroupBalance />
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      />
+      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+    </>
+  );
+
   const portfolioHeader = (
     <>
       {bannerContent}
@@ -1607,7 +1622,7 @@ const Wallet = ({
                             ),
                           }}
                         >
-                          {portfolioHeader}
+                          {portfolioHeaderBase}
                           <Homepage ref={homepageRef} />
                         </ConditionalScrollView>
                       )}

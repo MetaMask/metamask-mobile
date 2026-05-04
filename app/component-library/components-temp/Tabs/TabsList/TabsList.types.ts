@@ -38,6 +38,9 @@ export interface TabViewProps {
   tabLabel: string;
   key?: string;
   isDisabled?: boolean;
+  tabIcon?: IconName;
+  keepMounted?: boolean;
+  testID?: string;
 }
 
 /**
