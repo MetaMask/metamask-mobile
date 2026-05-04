@@ -20,8 +20,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
@@ -45,7 +45,6 @@ import {
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -194,20 +193,12 @@ const OndoLeaderboardView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <CampaignViewHeader
           title={strings('rewards.ondo_campaign_leaderboard.title')}
-          titleProps={{ variant: TextVariant.HeadingSm }}
-          onBack={() => navigation.goBack()}
-          backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
-          endButtonIconProps={getCampaignMechanicsButtonProps(
-            campaign != null,
-            () =>
-              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-                campaignId,
-              }),
-            'leaderboard-mechanics-button',
-          )}
-          includesTopInset
+          backButtonTestID="ondo-leaderboard-back-button"
+          mechanicsButtonTestID="leaderboard-mechanics-button"
+          hasCampaign={campaign != null}
+          campaignId={campaignId}
         />
 
         <ScrollView

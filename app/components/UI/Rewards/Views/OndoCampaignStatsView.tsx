@@ -15,11 +15,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { OndoGmCampaignOutcomeBanner } from '../components/Campaigns/OndoCampaignOutcomeBanners';
-import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import {
   StatCell,
   CAMPAIGN_STATS_SUMMARY_TEST_IDS,
@@ -209,20 +208,12 @@ const OndoCampaignStatsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <CampaignViewHeader
           title={strings('rewards.ondo_campaign_stats.title')}
-          titleProps={{ variant: TextVariant.HeadingSm }}
-          onBack={() => navigation.goBack()}
-          backButtonProps={{ testID: 'ondo-campaign-stats-back-button' }}
-          endButtonIconProps={getCampaignMechanicsButtonProps(
-            campaign != null,
-            () =>
-              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-                campaignId,
-              }),
-            'campaign-stats-mechanics-button',
-          )}
-          includesTopInset
+          backButtonTestID="ondo-campaign-stats-back-button"
+          mechanicsButtonTestID="campaign-stats-mechanics-button"
+          hasCampaign={campaign != null}
+          campaignId={campaignId}
         />
 
         <ScrollView
