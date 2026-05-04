@@ -330,13 +330,44 @@ export class HyperLiquidSubscriptionService {
     if (this.#isClearing) {
       return;
     }
+    if (this.#isTransientSdkError(error)) {
+      // Expected SDK lifecycle: reconnect churn, intentional terminations, or
+      // request-side aborts. Forwarding these to Sentry pollutes the error
+      // budget with handled events the SDK already recovers from. Keep them
+      // visible locally via debugLogger for diagnosis.
+      this.#deps.debugLogger.log(
+        `[Perps transient SDK error] ${context?.context?.name ?? 'unknown'}: ${error.message}`,
+      );
+      return;
+    }
     this.#deps.logger.error(error, context);
   }
 
-  #isTransientAssetCtxsError(error: unknown): boolean {
+  /**
+   * Detects transient SDK errors that are part of normal WebSocket / HTTP
+   * lifecycle and should not surface to Sentry. The Hyperliquid SDK
+   * (`@nktkas/hyperliquid`) and its `@nktkas/rews` v2 transport surface several
+   * error classes that are caught and recovered automatically by the SDK or
+   * by our own teardown paths.
+   *
+   * Returns true for `WebSocketRequestError` (rews queue rejection on close),
+   * `ReconnectingWebSocketError` (rews v2 lifecycle: RECONNECTION_LIMIT,
+   * TERMINATED_BY_USER, UNKNOWN_ERROR — v1 silently hung), `TimeoutError`
+   * with "Signal timed out" message (AbortSignal.timeout shim firing inside
+   * the SDK transport as designed), and reconnect-churn fallbacks (unknown
+   * or undefined errors while in Connecting / Disconnected states).
+   *
+   * Used both to drop these from Sentry (`#logErrorUnlessClearing`) and to
+   * decide whether to retry on the assetCtxs subscription path.
+   *
+   * @param error - The error thrown by the SDK or rews transport.
+   * @returns True if the error is part of normal SDK lifecycle and should
+   * be downgraded from Sentry capture to debug logging.
+   */
+  #isTransientSdkError(error: unknown): boolean {
     const ensuredError = ensureError(
       error,
-      'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
+      'HyperLiquidSubscriptionService.isTransientSdkError',
     );
     const connectionState = this.#clientService.getConnectionState?.();
     const messageParts = [
@@ -354,6 +385,9 @@ export class HyperLiquidSubscriptionService {
     return (
       messageParts.includes('websocketrequesterror') ||
       messageParts.includes('unknown error while making a websocket request') ||
+      messageParts.includes('reconnectingwebsocketerror') ||
+      (messageParts.includes('timeouterror') &&
+        messageParts.includes('signal timed out')) ||
       (isReconnectChurn &&
         (messageParts.includes('unknown error (no details provided)') ||
           messageParts.includes('undefined')))
@@ -3339,10 +3373,7 @@ export class HyperLiquidSubscriptionService {
               'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
             );
             const isLastAttempt = attempt === maxAttempts;
-            if (
-              isLastAttempt ||
-              !this.#isTransientAssetCtxsError(ensuredError)
-            ) {
+            if (isLastAttempt || !this.#isTransientSdkError(ensuredError)) {
               throw ensuredError;
             }
 
