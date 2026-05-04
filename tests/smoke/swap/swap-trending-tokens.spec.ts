@@ -11,9 +11,10 @@ import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
+import { setupSwapSocialAndComplianceMocks } from '../../helpers/swap/swap-mocks';
 import { GET_QUOTE_ETH_USDC_RESPONSE } from '../../helpers/swap/constants';
 import { getDecodedProxiedURL } from '../notifications/utils/helpers';
-import { SmokeTrade } from '../../tags';
+import { SmokeSwap } from '../../tags';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import enContent from '../../../locales/languages/en.json';
@@ -77,6 +78,8 @@ const setupSwapsTrendingTokensMock = async (mockServer: Mockttp) => {
     },
     1001,
   );
+
+  await setupSwapSocialAndComplianceMocks(mockServer);
 };
 
 const setupTrendingTokensMock = async (mockServer: Mockttp) => {
@@ -162,7 +165,7 @@ const withBridgeFixtures = async (run: () => Promise<void>) => {
   );
 };
 
-describe(SmokeTrade('Swap Trending Tokens (Bridge zero-state)'), () => {
+describe(SmokeSwap('Swap Trending Tokens (Bridge zero-state)'), () => {
   beforeEach(() => {
     jest.setTimeout(180000);
   });

@@ -642,6 +642,10 @@ const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
+
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
@@ -700,6 +704,10 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
+    },
+    money: {
+      tabBarIconKey: TabBarIconKey.Money,
+      rootScreenName: Routes.MONEY.HOME,
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
@@ -855,13 +863,21 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
 
-      {/* Activity Tab */}
-      <Tab.Screen
-        name={Routes.TRANSACTIONS_VIEW}
-        options={options.activity}
-        component={TransactionsHome}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+      {/* Activity Tab (replaced by Money when feature flag is on) */}
+      {isMoneyHomeScreenEnabled ? (
+        <Tab.Screen
+          name={Routes.MONEY.HOME}
+          options={options.money}
+          component={WalletTabModalFlow}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.TRANSACTIONS_VIEW}
+          options={options.activity}
+          component={TransactionsHome}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      )}
 
       {/* Rewards Tab */}
       <Tab.Screen
@@ -1218,6 +1234,11 @@ const MainNavigator = () => {
               ...clearStackNavigatorOptionsWithTransitionAnimation,
               presentation: 'transparentModal',
             }}
+          />
+          <Stack.Screen
+            name={Routes.TRANSACTIONS_VIEW}
+            component={TransactionsHome}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
           />
         </>
       )}

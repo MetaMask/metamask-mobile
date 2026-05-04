@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { Pressable, View, Animated } from 'react-native';
+import { View, Animated, Pressable } from 'react-native';
 
 // External dependencies.
 import Icon, { IconSize, IconColor } from '../../components/Icons/Icon';
@@ -26,7 +26,9 @@ const MainActionButton = ({
   onPressIn,
   onPressOut,
   style,
+  containerStyle,
   isDisabled = false,
+  testID,
   ...props
 }: MainActionButtonProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -40,13 +42,16 @@ const MainActionButton = ({
   });
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View
+      style={[{ transform: [{ scale: scaleAnim }] }, containerStyle]}
+    >
       <Pressable
-        style={({ pressed }) => [styles.base, pressed && styles.pressed]}
+        testID={testID}
+        accessible
+        style={styles.base}
         onPress={!isDisabled ? onPress : undefined}
         onPressIn={!isDisabled ? handlePressIn : undefined}
         onPressOut={!isDisabled ? handlePressOut : undefined}
-        accessible
         disabled={isDisabled}
         {...props}
       >

@@ -27,6 +27,7 @@ import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { isHardwareAccount } from '../../../../../util/address';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -44,6 +45,7 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../gas/useGaslessSupportedSmartTransactions');
 jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
+jest.mock('../../../../../util/address');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -83,9 +85,12 @@ describe('useTransactionConfirm', () => {
     useTransactionMetadataRequest,
   );
   const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    isHardwareAccountMock.mockReturnValue(false);
 
     useMusdConfirmNavigationMock.mockReturnValue({
       navigateOnConfirm: mockMusdNavigateOnConfirm,
@@ -167,6 +172,32 @@ describe('useTransactionConfirm', () => {
     expect(onApprovalConfirm).toHaveBeenCalledWith(
       expect.objectContaining({
         waitForResult: false,
+      }),
+      expect.anything(),
+    );
+  });
+
+  it('waits for result if hardware wallet even with quotes', async () => {
+    isHardwareAccountMock.mockReturnValue(true);
+    useTransactionPayQuotesMock.mockReturnValue([
+      {} as TransactionPayQuote<Json>,
+    ]);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_MOCK,
+      txParams: { from: '0xhw' },
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(onApprovalConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        waitForResult: true,
       }),
       expect.anything(),
     );

@@ -9,6 +9,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isHardwareAccount } from '../../../../../util/address';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { hasTransactionType } from '../../utils/transaction';
@@ -46,8 +47,13 @@ export function useTransactionConfirm() {
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
+  const isHardwareWallet = isHardwareAccount(
+    transactionMetadata?.txParams?.from ?? '',
+  );
+
   const waitForResult =
-    !isSmartTransaction && !quotes?.length && !selectedGasFeeToken;
+    isHardwareWallet ||
+    (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
@@ -80,7 +86,10 @@ export function useTransactionConfirm() {
   );
 
   const onConfirm = useCallback(
-    async (options?: { onError?: (error: unknown) => void }) => {
+    async (options?: {
+      onError?: (error: unknown) => void;
+      waitForResult?: boolean;
+    }) => {
       if (!transactionMetadata) {
         return;
       }
@@ -95,9 +104,11 @@ export function useTransactionConfirm() {
 
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
-      } else if (selectedGasFeeToken) {
+      } else if (selectedGasFeeToken && !isHardwareWallet) {
         handleGasless7702(updatedMetadata);
       }
+
+      const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
 
       try {
         await onRequestConfirm(
@@ -105,7 +116,7 @@ export function useTransactionConfirm() {
             deleteAfterResult: true,
             // Intentionally not hiding errors so we can log
             handleErrors: false,
-            waitForResult,
+            waitForResult: effectiveWaitForResult,
           },
           { txMeta: updatedMetadata },
         );
@@ -149,6 +160,7 @@ export function useTransactionConfirm() {
       tryEnableEvmNetwork,
       type,
       waitForResult,
+      isHardwareWallet,
     ],
   );
 
