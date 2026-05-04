@@ -63,6 +63,7 @@ const ohlcvPaddingThree = [
   { time: 300, open: 91, high: 92, low: 90, close: 92, volume: 1 },
 ];
 
+const mockRefetch = jest.fn();
 const mockUseOHLCVChart = jest.fn().mockReturnValue({
   ohlcvData: [
     ...ohlcvPaddingThree,
@@ -74,6 +75,7 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
   hasMore: false,
   nextCursor: null,
   hasEmptyData: false,
+  refetch: mockRefetch,
 });
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
@@ -175,6 +177,7 @@ describe('PriceAdvanced', () => {
       hasMore: false,
       nextCursor: null,
       hasEmptyData: false,
+      refetch: mockRefetch,
     });
   });
 
@@ -778,6 +781,84 @@ describe('PriceAdvanced', () => {
           assetId: '',
         }),
       );
+    });
+  });
+
+  describe('chartRefreshKey pull-to-refresh', () => {
+    it('does not call refetch on initial render when chartRefreshKey is 0', () => {
+      render(<PriceAdvanced {...baseProps} chartRefreshKey={0} />);
+
+      expect(mockRefetch).not.toHaveBeenCalled();
+    });
+
+    it('does not call refetch when chartRefreshKey is undefined', () => {
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockRefetch).not.toHaveBeenCalled();
+    });
+
+    it('calls refetch when chartRefreshKey changes from 0 to 1', () => {
+      const { rerender } = render(
+        <PriceAdvanced {...baseProps} chartRefreshKey={0} />,
+      );
+
+      rerender(<PriceAdvanced {...baseProps} chartRefreshKey={1} />);
+
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls refetch again when chartRefreshKey increments from 1 to 2', () => {
+      const { rerender } = render(
+        <PriceAdvanced {...baseProps} chartRefreshKey={0} />,
+      );
+
+      rerender(<PriceAdvanced {...baseProps} chartRefreshKey={1} />);
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+
+      rerender(<PriceAdvanced {...baseProps} chartRefreshKey={2} />);
+      expect(mockRefetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not call refetch redundantly when refetch identity changes but chartRefreshKey stays the same', () => {
+      const refetchA = jest.fn();
+      const refetchB = jest.fn();
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          ...ohlcvPaddingThree,
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+        refetch: refetchA,
+      });
+
+      const { rerender } = render(
+        <PriceAdvanced {...baseProps} chartRefreshKey={1} />,
+      );
+      refetchA.mockClear();
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          ...ohlcvPaddingThree,
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+        refetch: refetchB,
+      });
+
+      rerender(<PriceAdvanced {...baseProps} chartRefreshKey={1} />);
+
+      expect(refetchB).not.toHaveBeenCalled();
     });
   });
 
