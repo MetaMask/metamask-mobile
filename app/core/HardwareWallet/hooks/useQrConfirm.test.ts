@@ -88,8 +88,10 @@ describe('useQrConfirm', () => {
   it('calls rejectOnce when no fromAddress is available', async () => {
     const originalRequestData = mockApprovalRequest.requestData;
     const originalTxParams = mockTransactionMetadata.txParams;
-    mockApprovalRequest.requestData = {};
-    mockTransactionMetadata.txParams = {};
+    mockApprovalRequest.requestData =
+      {} as typeof mockApprovalRequest.requestData;
+    mockTransactionMetadata.txParams =
+      {} as typeof mockTransactionMetadata.txParams;
 
     const { result } = renderHook(() => useQrConfirm(defaultOptions));
 
@@ -223,7 +225,8 @@ describe('useQrConfirm', () => {
 
   it('uses from address from transaction metadata when approval request has no from', async () => {
     const originalRequestData = mockApprovalRequest.requestData;
-    mockApprovalRequest.requestData = {};
+    mockApprovalRequest.requestData =
+      {} as typeof mockApprovalRequest.requestData;
     mockTransactionMetadata.txParams = { from: '0xTxMetaAddress' };
 
     const { result } = renderHook(() => useQrConfirm(defaultOptions));
