@@ -28,6 +28,19 @@ jest.mock('./stream/usePerpsLiveFills');
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn().mockReturnValue({
+      id: 'account-1',
+      type: 'eip155:eoa',
+      address: '0x1234567890123456789012345678901234567890',
+    }),
+  }),
+);
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -182,10 +195,16 @@ describe('usePerpsTransactionHistory', () => {
     jest.clearAllMocks();
     resetPerpsRestCacheForTests();
 
-    // Mock Redux selectors: first call = wallet transactions, second = selected address
+    // Mock Redux selectors: first call = wallet transactions, second = EVM account
     mockUseSelector.mockImplementation(() => {
       const len = mockUseSelector.mock.calls.length;
-      return len % 2 === 1 ? [] : '0x1234567890123456789012345678901234567890';
+      return len % 2 === 1
+        ? []
+        : {
+            id: 'account-1',
+            type: 'eip155:eoa',
+            address: '0x1234567890123456789012345678901234567890',
+          };
     });
 
     // Mock provider
@@ -327,7 +346,11 @@ describe('usePerpsTransactionHistory', () => {
                 txParams: { from: selectedAddr },
               },
             ]
-          : selectedAddr;
+          : {
+              id: 'account-1',
+              type: 'eip155:eoa',
+              address: selectedAddr,
+            };
       });
 
       const { result } = renderHook(() =>
@@ -396,7 +419,11 @@ describe('usePerpsTransactionHistory', () => {
                 txParams: { from: selectedAddr },
               },
             ]
-          : selectedAddr;
+          : {
+              id: 'account-1',
+              type: 'eip155:eoa',
+              address: selectedAddr,
+            };
       });
 
       const { result } = renderHook(() =>
@@ -466,7 +493,11 @@ describe('usePerpsTransactionHistory', () => {
                 nestedTransactions: [{ type: 'perpsWithdraw' }],
               },
             ]
-          : selectedAddr;
+          : {
+              id: 'account-1',
+              type: 'eip155:eoa',
+              address: selectedAddr,
+            };
       });
 
       const { result } = renderHook(() =>
@@ -547,7 +578,11 @@ describe('usePerpsTransactionHistory', () => {
                 nestedTransactions: [{ type: 'perpsWithdraw' }],
               },
             ]
-          : selectedAddr;
+          : {
+              id: 'account-1',
+              type: 'eip155:eoa',
+              address: selectedAddr,
+            };
       });
 
       const { result } = renderHook(() =>

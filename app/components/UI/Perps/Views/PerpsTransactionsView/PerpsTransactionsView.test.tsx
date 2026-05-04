@@ -48,6 +48,33 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupEvmInternalAccount: (state: {
+      engine?: {
+        backgroundState?: {
+          AccountsController?: {
+            internalAccounts?: {
+              selectedAccount?: string;
+              accounts?: Record<string, { address?: string; type?: string }>;
+            };
+          };
+        };
+      };
+    }) => {
+      const accounts =
+        state?.engine?.backgroundState?.AccountsController?.internalAccounts;
+      if (!accounts?.selectedAccount || !accounts?.accounts) return null;
+      const acc = accounts.accounts[accounts.selectedAccount];
+      return acc ?? null;
+    },
+  }),
+);
+
 // Mock the asset metadata hook to avoid network calls
 jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
   usePerpsAssetMetadata: () => ({
@@ -204,9 +231,11 @@ describe('PerpsTransactionsView', () => {
 
     await waitFor(() => {
       // The hook is called with skipInitialFetch: false when connected
-      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
-        skipInitialFetch: false,
-      });
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipInitialFetch: false,
+        }),
+      );
     });
   });
 
@@ -250,9 +279,11 @@ describe('PerpsTransactionsView', () => {
     });
 
     // The hook is called with skipInitialFetch: true when not connected
-    expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
-      skipInitialFetch: true,
-    });
+    expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skipInitialFetch: true,
+      }),
+    );
   });
 
   it('should switch between filter tabs', async () => {

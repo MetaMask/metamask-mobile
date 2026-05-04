@@ -21,6 +21,17 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn().mockReturnValue({
+      id: 'account-1',
+      type: 'eip155:eoa',
+      address: '0x1234567890123456789012345678901234567890',
+    }),
+  }),
+);
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -95,7 +106,11 @@ describe('usePerpsCloseAllCalculations', () => {
     mockUseSelector.mockImplementation(() => {
       selectorCallCount++;
       if (selectorCallCount % 2 === 1) {
-        return '0x1234567890123456789012345678901234567890'; // selectedAddress
+        return {
+          id: 'account-1',
+          type: 'eip155:eoa',
+          address: '0x1234567890123456789012345678901234567890',
+        }; // evmAccount
       }
       return '0xa4b1'; // chainId
     });
@@ -1137,7 +1152,11 @@ describe('usePerpsCloseAllCalculations', () => {
       mockUseSelector.mockImplementation(() => {
         selectorCallCount++;
         if (selectorCallCount % 2 === 1) {
-          return '0x1234567890123456789012345678901234567890'; // Valid address
+          return {
+            id: 'account-1',
+            type: 'eip155:eoa',
+            address: '0x1234567890123456789012345678901234567890',
+          }; // Valid evmAccount
         }
         return null; // Missing chainId
       });
