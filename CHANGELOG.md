@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.74.3]
 
+### Fixed
+
+- Fix polymarket adapter contract addresses for Android
+
 ## [7.74.0]
 
 ### Added
