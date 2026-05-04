@@ -234,7 +234,7 @@ describe('CustomAmountInfo', () => {
       isInputChanged: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
-      updateTokenAmount: noop,
+      updateTokenAmount: jest.fn(),
     });
 
     useConfirmationContextMock.mockReturnValue({
@@ -555,7 +555,7 @@ describe('CustomAmountInfo', () => {
         isInputChanged: false,
         updatePendingAmount: noop,
         updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+        updateTokenAmount: jest.fn(),
       });
     });
 
