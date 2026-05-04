@@ -4,23 +4,14 @@ import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
 interface MoneyHeaderProps {
   /**
-   * Handler for the back/navigation button
-   */
-  onBackPress: () => void;
-  /**
    * Handler for the options menu button
    */
   onMenuPress: () => void;
 }
 
-const MoneyHeader = ({ onBackPress, onMenuPress }: MoneyHeaderProps) => (
+const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
   <HeaderStandard
     testID={MoneyHeaderTestIds.CONTAINER}
-    onBack={onBackPress}
-    backButtonProps={{
-      accessibilityLabel: 'Back',
-      testID: MoneyHeaderTestIds.BACK_BUTTON,
-    }}
     endButtonIconProps={[
       {
         iconName: IconName.MoreVertical,

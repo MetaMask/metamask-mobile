@@ -256,14 +256,6 @@ describe('MoneyHomeView', () => {
     expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('pressing the back button calls navigation.goBack', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-    fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
   it('navigates to the Money activity screen when View all is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
