@@ -182,6 +182,22 @@ export async function updateMoneyAccountDepositTokenAmount(
   return [];
 }
 
+/**
+ * Returns the per-nested-call data updates required when the user changes
+ * the withdrawal amount on a Money Account withdraw confirmation.
+ *
+ * Stub implementation — real encoding will replace this once the withdraw
+ * re-encoding logic is wired in.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function updateMoneyAccountWithdrawTokenAmount(
+  _transactionMeta: TransactionMeta,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _amountHuman: string,
+): Promise<UpdateTransactionPayAmountCall[]> {
+  return [];
+}
+
 // -- Withdrawal helpers ----------------------------------------------------
 
 async function getVaultRate({

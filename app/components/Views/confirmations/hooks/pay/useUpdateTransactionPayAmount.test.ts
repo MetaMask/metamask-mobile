@@ -5,7 +5,10 @@ import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { updateAtomicBatchData } from '../../../../../util/transaction-controller';
-import { updateMoneyAccountDepositTokenAmount } from '../../../../UI/Money/utils/moneyAccountTransactions';
+import {
+  updateMoneyAccountDepositTokenAmount,
+  updateMoneyAccountWithdrawTokenAmount,
+} from '../../../../UI/Money/utils/moneyAccountTransactions';
 import {
   TransactionMeta,
   TransactionType,
@@ -20,6 +23,10 @@ jest.mock('../../../../../util/Logger');
 
 const moneyAccountDepositMeta: Partial<TransactionMeta> = {
   type: TransactionType.moneyAccountDeposit,
+};
+
+const moneyAccountWithdrawMeta: Partial<TransactionMeta> = {
+  type: TransactionType.moneyAccountWithdraw,
 };
 
 function runHook({
@@ -52,6 +59,9 @@ describe('useUpdateTransactionPayAmount', () => {
   const updateAtomicBatchDataMock = jest.mocked(updateAtomicBatchData);
   const updateMoneyAccountDepositTokenAmountMock = jest.mocked(
     updateMoneyAccountDepositTokenAmount,
+  );
+  const updateMoneyAccountWithdrawTokenAmountMock = jest.mocked(
+    updateMoneyAccountWithdrawTokenAmount,
   );
   const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const updateTokenAmountMock = jest.fn();
@@ -134,17 +144,19 @@ describe('useUpdateTransactionPayAmount', () => {
     await flushPromises();
 
     expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
+    expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
     expect(updateTokenAmountMock).not.toHaveBeenCalled();
   });
 
-  it('delegates to updateTokenAmount for non-moneyAccountDeposit transactions', () => {
+  it('delegates to updateTokenAmount for transactions that are neither money account deposit nor withdraw', () => {
     const { result } = runHook();
 
     result.current.updateTransactionPayAmount('1.23');
 
     expect(updateTokenAmountMock).toHaveBeenCalledWith('1.23');
     expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
+    expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
   });
 
@@ -183,6 +195,68 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(loggerErrorMock).toHaveBeenCalledWith(
       error,
       expect.stringContaining('Failed to prepare Money Account deposit'),
+    );
+  });
+
+  it('calls updateAtomicBatchData for each update returned from updateMoneyAccountWithdrawTokenAmount', async () => {
+    updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([
+      { nestedTransactionIndex: 0, transactionData: '0xcccc' },
+      { nestedTransactionIndex: 1, transactionData: '0xdddd' },
+    ]);
+
+    const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
+
+    result.current.updateTransactionPayAmount('4.56');
+
+    await flushPromises();
+
+    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      '4.56',
+    );
+    expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(2);
+    expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(1, {
+      transactionId: expect.any(String),
+      transactionIndex: 0,
+      transactionData: '0xcccc',
+    });
+    expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(2, {
+      transactionId: expect.any(String),
+      transactionIndex: 1,
+      transactionData: '0xdddd',
+    });
+    expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
+    expect(updateTokenAmountMock).not.toHaveBeenCalled();
+  });
+
+  it('does not call updateAtomicBatchData when withdraw updater returns no updates', async () => {
+    updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([]);
+
+    const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
+
+    result.current.updateTransactionPayAmount('4.56');
+
+    await flushPromises();
+
+    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+  });
+
+  it('logs an error when updateMoneyAccountWithdrawTokenAmount rejects', async () => {
+    const error = new Error('withdraw rpc failure');
+    updateMoneyAccountWithdrawTokenAmountMock.mockRejectedValue(error);
+
+    const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
+
+    result.current.updateTransactionPayAmount('4.56');
+
+    await flushPromises();
+
+    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    expect(loggerErrorMock).toHaveBeenCalledWith(
+      error,
+      expect.stringContaining('Failed to prepare Money Account withdraw'),
     );
   });
 });

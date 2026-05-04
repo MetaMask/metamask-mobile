@@ -12,6 +12,7 @@ import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdraw,
   updateMoneyAccountDepositTokenAmount,
+  updateMoneyAccountWithdrawTokenAmount,
 } from './moneyAccountTransactions';
 
 jest.mock('../../Earn/constants/musd', () => ({
@@ -194,6 +195,32 @@ describe('moneyAccountTransactions', () => {
       } as unknown as TransactionMeta;
 
       const result = await updateMoneyAccountDepositTokenAmount(
+        transactionMeta,
+        '1.23',
+      );
+
+      expect(Array.isArray(result)).toBe(true);
+    });
+  });
+
+  describe('updateMoneyAccountWithdrawTokenAmount', () => {
+    it('resolves to an empty array (stub implementation)', async () => {
+      const transactionMeta = {
+        id: 'tx-1',
+        nestedTransactions: [],
+      } as unknown as TransactionMeta;
+
+      await expect(
+        updateMoneyAccountWithdrawTokenAmount(transactionMeta, '1.23'),
+      ).resolves.toEqual([]);
+    });
+
+    it('resolves to an array regardless of transactionMeta shape', async () => {
+      const transactionMeta = {
+        id: 'tx-2',
+      } as unknown as TransactionMeta;
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
         transactionMeta,
         '1.23',
       );
