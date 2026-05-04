@@ -14,6 +14,11 @@ import BigNumber from 'bignumber.js';
 import { decGWEIToHexWEI } from '../conversions';
 import { addHexPrefix } from '../number';
 
+type ReplacementGasFeeValues =
+  | GasPriceValue
+  | FeeMarketEIP1559Values
+  | undefined;
+
 export type GasFeeEstimatesInput =
   | GasFeeEstimates
   | { medium?: unknown; gasPrice?: string }

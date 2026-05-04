@@ -26,7 +26,6 @@ export function useQrConfirm({
 }: UseQrConfirmOptions) {
   const {
     ensureDeviceReady,
-    setTargetWalletType,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
@@ -68,7 +67,6 @@ export function useQrConfirm({
         address: fromAddress,
         operationType: isTransactionReq ? 'transaction' : 'message',
         ensureDeviceReady,
-        setTargetWalletType,
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
@@ -100,7 +98,6 @@ export function useQrConfirm({
     onTransactionConfirm,
     executeApproval,
     ensureDeviceReady,
-    setTargetWalletType,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
