@@ -45,7 +45,6 @@ import {
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { computePrizePoolProgress } from '../utils/prizePoolUtils';
 import { BREAKPOINTS } from '../components/Campaigns/OndoPrizePool';
-import { ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS } from './OndoCampaignStatsView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

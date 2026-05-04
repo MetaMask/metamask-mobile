@@ -282,7 +282,10 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
     expect(mockPerpsLeaderboard).toHaveBeenCalledWith(
       expect.objectContaining({
         entries: leaderboardHookDefaults.leaderboard?.entries,
-        totalParticipants: 50,
+        isLoading: leaderboardHookDefaults.isLoading,
+        hasError: leaderboardHookDefaults.hasError,
+        isLeaderboardNotYetComputed:
+          leaderboardHookDefaults.isLeaderboardNotYetComputed,
         currentUserReferralCode: 'REFCODE99',
         userPosition: {
           rank: basePosition.rank,
