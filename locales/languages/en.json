@@ -7866,6 +7866,7 @@
       "enable_card_button_label": "Enable card",
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
+      "spending_limit_available": "available",
       "logout": "Log out",
       "contact_support": "Contact support",
       "logout_confirmation_title": "Log out of Card?",
