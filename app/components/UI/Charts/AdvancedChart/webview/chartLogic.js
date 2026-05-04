@@ -3679,10 +3679,20 @@ function initChart() {
       'US/Mountain',
     ];
 
+    // Intl returns canonical IANA names, but TradingView uses some legacy aliases.
+    var CANONICAL_TO_TV = {
+      'America/Denver': 'US/Mountain',
+      'Asia/Ashgabat': 'Asia/Ashkhabad',
+      'Asia/Almaty': 'Asia/Astana',
+    };
+
     var userTimezone = (function () {
       try {
         var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
-        return TV_SUPPORTED_TIMEZONES.indexOf(tz) !== -1 ? tz : 'Etc/UTC';
+        var mapped = CANONICAL_TO_TV[tz] || tz;
+        return TV_SUPPORTED_TIMEZONES.indexOf(mapped) !== -1
+          ? mapped
+          : 'Etc/UTC';
       } catch (_e) {
         return 'Etc/UTC';
       }
