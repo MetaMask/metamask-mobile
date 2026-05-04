@@ -95,7 +95,9 @@ describe('usePerpsCloseAllCalculations', () => {
     mockUseSelector.mockImplementation(() => {
       selectorCallCount++;
       if (selectorCallCount % 2 === 1) {
-        return '0x1234567890123456789012345678901234567890'; // selectedAddress
+        return {
+          address: '0x1234567890123456789012345678901234567890',
+        }; // selected account group EVM account
       }
       return '0xa4b1'; // chainId
     });
