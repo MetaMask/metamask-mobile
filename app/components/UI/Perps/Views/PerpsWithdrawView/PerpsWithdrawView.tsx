@@ -14,6 +14,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -68,11 +71,6 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import {
   IconName,
   IconSize,
@@ -108,11 +106,16 @@ const PerpsWithdrawView: React.FC = () => {
   // Get withdrawal tokens from hook
   const { destToken } = useWithdrawTokens();
 
-  // Truncate to 2 decimals so the user can withdraw exactly what they see.
+  // Release-branch bridge for Unified Account: availableToTradeBalance includes
+  // collateral HL can use in target mode. The full balance contract will replace
+  // this with an explicit withdrawableBalance field. Truncate so users can
+  // withdraw exactly the amount they see.
   const availableBalance = useMemo(() => {
-    if (!account?.availableBalance) return 0;
-    return truncateToTwoDecimals(parseCurrencyString(account.availableBalance));
-  }, [account?.availableBalance]);
+    const balance =
+      account?.availableToTradeBalance ?? account?.availableBalance;
+    if (!balance) return 0;
+    return truncateToTwoDecimals(parseCurrencyString(balance));
+  }, [account?.availableBalance, account?.availableToTradeBalance]);
 
   const formattedBalance = useMemo(
     () => formatPerpsFiat(availableBalance),
@@ -154,7 +157,7 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsMeasurement({
     traceName: TraceName.PerpsWithdrawView,
     conditions: [
-      !!account?.availableBalance,
+      !!(account?.availableToTradeBalance ?? account?.availableBalance),
       !!destToken,
       availableBalance !== undefined,
     ],
@@ -406,7 +409,11 @@ const PerpsWithdrawView: React.FC = () => {
                 ]}
               />
             </Box>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              testID={PerpsWithdrawViewSelectorsIDs.AVAILABLE_BALANCE_TEXT}
+            >
               {strings('perps.withdrawal.available_balance', {
                 amount: formattedBalance,
               })}
@@ -667,15 +674,16 @@ const PerpsWithdrawView: React.FC = () => {
               </Box>
             ) : (
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                label={strings('perps.withdrawal.withdraw')}
                 onPress={handleContinue}
-                loading={isSubmittingTx}
-                disabled={!hasValidInputs || isSubmittingTx}
+                isLoading={isSubmittingTx}
+                isDisabled={!hasValidInputs || isSubmittingTx}
                 testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
-                width={ButtonWidthTypes.Full}
-              />
+                isFullWidth
+              >
+                {strings('perps.withdrawal.withdraw')}
+              </Button>
             )}
           </Box>
 

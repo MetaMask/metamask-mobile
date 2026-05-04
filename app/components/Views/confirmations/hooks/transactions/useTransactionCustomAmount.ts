@@ -11,8 +11,16 @@ import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
-import { hasTransactionType } from '../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
+import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
 import {
   useTransactionPayIsMaxAmount,
@@ -51,8 +59,25 @@ export function useTransactionCustomAmount({
   const { chainId, id: transactionId } = transactionMeta;
 
   const isMaxAmount = useTransactionPayIsMaxAmount();
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const isPerpsWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+  ]);
+  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
-  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const payTokenFiatRate =
+    useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const musdFiatRate =
+    useTokenFiatRate(
+      MUSD_TOKEN_ADDRESS,
+      MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+      currency,
+    ) ?? 1;
+  const tokenFiatRate = isMoneyAccountWithdraw
+    ? musdFiatRate
+    : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
   const { updateTokenAmount: updateTokenAmountCallback } =
@@ -61,14 +86,22 @@ export function useTransactionCustomAmount({
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
 
-    if (isMaxAmount && targetAmountUsd && targetAmountUsd !== '0') {
+    // For withdrawals, targetAmount.usd is the destination-side received
+    // value (e.g. BNB after bridge fees), not the amount being withdrawn.
+    // The input field should always display what the user is withdrawing.
+    if (
+      !isWithdraw &&
+      isMaxAmount &&
+      targetAmountUsd &&
+      targetAmountUsd !== '0'
+    ) {
       return new BigNumber(targetAmountUsd)
         .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
         .toString(10);
     }
 
     return amountFiatState;
-  }, [amountFiatState, isMaxAmount, totals?.targetAmount.usd]);
+  }, [amountFiatState, isMaxAmount, isWithdraw, totals?.targetAmount.usd]);
 
   const amountHuman = useMemo(
     () =>
@@ -146,7 +179,16 @@ export function useTransactionCustomAmount({
         },
       });
 
-      if (percentage === 100) {
+      // Do NOT set isMaxAmount=true for perps or money-account withdraw. TPC's
+      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
+      // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
+      // balance) and wrong for money account (on-chain mUSD only vs mUSD +
+      // musdSHFvd fiat total). Keeping isMaxAmount false routes the typed
+      // amount through as token.amountRaw.
+      const shouldSetMax =
+        percentage === 100 && !isPerpsWithdraw && !isMoneyAccountWithdraw;
+
+      if (shouldSetMax) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
@@ -154,7 +196,14 @@ export function useTransactionCustomAmount({
 
       setAmountFiat(newAmount);
     },
-    [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
+    [
+      balanceUsd,
+      isMaxAmount,
+      isPerpsWithdraw,
+      isMoneyAccountWithdraw,
+      setIsMax,
+      setConfirmationMetric,
+    ],
   );
 
   const updateTokenAmount = useCallback(() => {
@@ -205,10 +254,31 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
+  const { tokenTotal: moneyAccountTokenTotal } = useMoneyAccountBalance();
+
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
-    const availableBalance = perpsState?.accountState?.availableBalance;
+    // Prefer `availableToTradeBalance` so Unified Account / Portfolio Margin
+    // users see the correct balance behind the percentage buttons. Falls back
+    // to `availableBalance` for Standard-mode accounts where the unified
+    // field isn't populated.
+    const availableBalance =
+      perpsState?.accountState?.availableToTradeBalance ??
+      perpsState?.accountState?.availableBalance;
     return availableBalance ? parseFloat(availableBalance) : 0;
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    // `tokenTotal` is mUSD-denominated (mUSD + musdSHFvd). Use mUSD's fiat rate
+    // on the canonical chain only — not the pay-token address from tx metadata.
+    if (moneyAccountTokenTotal === undefined) {
+      return 0;
+    }
+    return new BigNumber(moneyAccountTokenTotal)
+      .multipliedBy(tokenUsdRate)
+      .toNumber();
   }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])

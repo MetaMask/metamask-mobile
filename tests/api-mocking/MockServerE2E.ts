@@ -14,6 +14,7 @@ import {
   findMatchingPostEvent,
   processPostRequestBody,
   setupAccountsV2SupportedNetworksMock,
+  setupAccountsV4TransactionsMock,
 } from './helpers/mockHelpers.ts';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
@@ -309,6 +310,7 @@ export default class MockServerE2E implements Resource {
     }
 
     await setupAccountsV2SupportedNetworksMock(this._server);
+    await setupAccountsV4TransactionsMock(this._server);
 
     await this._server
       .forAnyRequest()

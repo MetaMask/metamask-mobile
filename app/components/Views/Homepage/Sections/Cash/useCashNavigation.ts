@@ -4,12 +4,10 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { MusdNavigationTarget } from '../../../../UI/Earn/types/musd.types';
 
 /**
  * Shared navigation handler for the Cash section education gate.
- *
- * Both CashSection (header tap) and MusdAggregatedRow (row tap) need the
- * same three-way branch: Money home → education screen → full view.
  */
 export const useCashNavigation = () => {
   const navigation = useNavigation();
@@ -17,22 +15,19 @@ export const useCashNavigation = () => {
   const hasSeenEducation = useSelector(selectMusdConversionEducationSeen);
 
   const navigateToCash = useCallback(() => {
-    if (isMoneyHomeEnabled) {
-      navigation.navigate(Routes.MONEY.ROOT);
-      return;
-    }
+    const destination: MusdNavigationTarget = isMoneyHomeEnabled
+      ? { screen: Routes.MONEY.ROOT, params: { screen: Routes.MONEY.HOME } }
+      : { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW };
 
     if (!hasSeenEducation) {
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
-        },
+        params: { returnTo: destination },
       });
       return;
     }
 
-    navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
+    navigation.navigate(destination.screen, destination.params);
   }, [isMoneyHomeEnabled, hasSeenEducation, navigation]);
 
   return { navigateToCash, isMoneyHomeEnabled, hasSeenEducation };

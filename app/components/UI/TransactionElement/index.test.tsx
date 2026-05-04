@@ -180,6 +180,45 @@ describe('TransactionElement', () => {
     });
   });
 
+  describe('Money account navigation', () => {
+    it('navigates to TransactionDetails when transaction type is moneyAccountDeposit', async () => {
+      const moneyAccountTx = {
+        id: 'money-account-tx-456',
+        type: TransactionType.moneyAccountDeposit,
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={moneyAccountTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      jest.advanceTimersByTime(100);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+        transactionId: moneyAccountTx.id,
+      });
+    });
+  });
+
   describe('renderTxTime - "from this device" label', () => {
     it('renders "from this device" label with nonce when nonce exists', async () => {
       const txWithNonce = {
