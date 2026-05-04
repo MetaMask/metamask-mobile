@@ -13,6 +13,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -66,15 +68,17 @@ const CardRow = ({
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cardName}
         </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Regular}
-          color={TextColor.SuccessDefault}
-        >
-          {strings('money.metamask_card.cashback', {
-            percentage: cashbackPercentage,
-          })}
-        </Text>
+        <Tag severity={TagSeverity.Success}>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+          >
+            {strings('money.metamask_card.cashback', {
+              percentage: cashbackPercentage,
+            })}
+          </Text>
+        </Tag>
       </Box>
     </Box>
     <Button
@@ -127,12 +131,13 @@ const LinkContent = ({
     </Text>
     <Box
       flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
       twClassName="gap-4"
       testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
     >
       <Image
         source={mmCardMetal}
-        style={styles.cardImage}
+        style={styles.linkCardImage}
         testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
       />
       <Box twClassName="gap-2 flex-1 justify-center">
