@@ -7,10 +7,8 @@ import {
   useParams,
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  getReplacementGasFeeParams,
-  type ReplacementTxParams,
-} from '../../../core/HardwareWallet/transactionReplacementParams';
+import { normalizeReplacementGasFeeParams } from '../../../util/confirmation/gas';
+import { type ReplacementTxParams } from '../../../core/HardwareWallet/transactionReplacementParams';
 import { speedUpTransaction } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
@@ -49,7 +47,7 @@ const LedgerTransactionModal = () => {
   }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
-    const gasFeeParams = getReplacementGasFeeParams(replacementParams);
+    const gasFeeParams = normalizeReplacementGasFeeParams(replacementParams);
 
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
       await speedUpTransaction(transactionId, gasFeeParams);
