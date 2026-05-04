@@ -77,11 +77,10 @@ describe('useCashNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
-        undefined,
       );
     });
 
-    it('navigates to Money Home when isMoneyHomeEnabled and education already seen', () => {
+    it('navigates to Money Home tab when isMoneyHomeEnabled and education already seen', () => {
       setupSelectors({
         isMoneyHomeEnabled: true,
         hasSeenEducation: true,
@@ -91,12 +90,10 @@ describe('useCashNavigation', () => {
       result.current.navigateToCash();
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
-        screen: Routes.MONEY.HOME,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOME);
     });
 
-    it('navigates to education screen with Money Home returnTo when isMoneyHomeEnabled and education not seen', () => {
+    it('navigates to education screen with Money Home tab returnTo when isMoneyHomeEnabled and education not seen', () => {
       setupSelectors({
         isMoneyHomeEnabled: true,
         hasSeenEducation: false,
@@ -109,10 +106,7 @@ describe('useCashNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
-          returnTo: {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          },
+          returnTo: { screen: Routes.MONEY.HOME },
         },
       });
     });

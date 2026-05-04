@@ -16,7 +16,7 @@ export const useCashNavigation = () => {
 
   const navigateToCash = useCallback(() => {
     const destination: MusdNavigationTarget = isMoneyHomeEnabled
-      ? { screen: Routes.MONEY.ROOT, params: { screen: Routes.MONEY.HOME } }
+      ? { screen: Routes.MONEY.HOME }
       : { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW };
 
     if (!hasSeenEducation) {
@@ -27,7 +27,7 @@ export const useCashNavigation = () => {
       return;
     }
 
-    navigation.navigate(destination.screen, destination.params);
+    navigation.navigate(destination.screen);
   }, [isMoneyHomeEnabled, hasSeenEducation, navigation]);
 
   return { navigateToCash, isMoneyHomeEnabled, hasSeenEducation };
