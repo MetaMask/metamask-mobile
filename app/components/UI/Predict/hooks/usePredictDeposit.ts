@@ -2,7 +2,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -16,10 +15,6 @@ import {
 import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
-import {
-  PredictEventValues,
-  PredictTradeStatus,
-} from '../constants/eventNames';
 import { PlaceOrderParams } from '../types';
 
 interface PredictDepositAnalyticsParams {
@@ -52,20 +47,6 @@ export const usePredictDeposit = () => {
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
         });
-
-        const { amountUsd, analyticsProperties } = params ?? {};
-
-        if (analyticsProperties) {
-          Engine.context.PredictController.trackPredictOrderEvent({
-            status: PredictTradeStatus.INITIATED,
-            amountUsd,
-            analyticsProperties: {
-              ...analyticsProperties,
-              transactionType:
-                PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
-            },
-          });
-        }
 
         depositWithConfirmation({}).catch((err) => {
           console.error('Failed to initialize deposit:', err);

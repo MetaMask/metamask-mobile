@@ -586,6 +586,27 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.Disconnected,
         );
       });
+
+      it('disconnects the active adapter so Ledger BLE is released after signing', async () => {
+        const { result } = renderWithActions();
+
+        await waitFor(() => {
+          expect(mockCreateAdapter).toHaveBeenCalledWith(
+            HardwareWalletType.Ledger,
+            expect.any(Object),
+          );
+        });
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        await act(async () => {
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
@@ -894,11 +915,66 @@ describe('HardwareWalletProvider', () => {
         internalCancel();
       });
 
-      // Adapter should disconnect
-      expect(mockAdapterInstance.disconnect).toHaveBeenCalled();
+      // Adapter should disconnect once via hideAwaitingConfirmation
+      expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
       // Rejection callback should fire
       expect(onReject).toHaveBeenCalled();
       // State should return to disconnected
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+
+    it('still hides confirmation and disconnects when rejection callback throws', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const onReject = jest.fn(() => {
+        throw new Error('reject failed');
+      });
+      let thrownError: unknown;
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: { connectionState: hw.connectionState },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(mockCreateAdapter).toHaveBeenCalledWith(
+          HardwareWalletType.Ledger,
+          expect.any(Object),
+        );
+      });
+
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation(
+          'transaction',
+          onReject,
+        );
+      });
+
+      const internalCancel =
+        capturedBottomSheetProps.onAwaitingConfirmationCancel as () => void;
+
+      await act(async () => {
+        try {
+          internalCancel();
+        } catch (error) {
+          thrownError = error;
+        }
+      });
+
+      expect(thrownError).toEqual(new Error('reject failed'));
+      expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
       expect(result.current.state.connectionState.status).toBe(
         ConnectionStatus.Disconnected,
       );
