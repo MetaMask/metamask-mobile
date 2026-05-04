@@ -849,50 +849,6 @@ jest.mock('../../component-library/components/BottomSheets/BottomSheet', () => {
     default: BottomSheet,
   };
 });
-
-// Mock design-system BottomSheet the same way (sync open/close, no Reanimated).
-jest.mock('@metamask/design-system-react-native', () => {
-  const React = require('react');
-  const { View } = require('react-native');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-
-  const BottomSheet = React.forwardRef(
-    ({ children, onClose, onOpen, goBack, ...props }, ref) => {
-      React.useEffect(() => {
-        onOpen?.(false);
-      }, [onOpen]);
-
-      React.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: (callback) => {
-          onOpen?.(false);
-          callback?.();
-        },
-        onCloseBottomSheet: (callback) => {
-          onClose?.(Boolean(callback));
-          goBack?.();
-          callback?.();
-        },
-      }));
-      const { testID, style: sheetStyle, accessibilityLabel } = props;
-      return React.createElement(
-        View,
-        {
-          testID: testID || 'bottom-sheet-ds-mock',
-          style: sheetStyle,
-          accessibilityLabel,
-        },
-        children,
-      );
-    },
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  return {
-    ...actual,
-    BottomSheet,
-  };
-});
-
 // Mock react-native-modal to render children immediately (bypasses animation)
 jest.mock('react-native-modal', () => {
   const React = require('react');

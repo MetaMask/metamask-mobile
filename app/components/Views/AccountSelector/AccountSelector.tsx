@@ -5,20 +5,21 @@ import React, {
   useEffect,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  BottomSheet,
-  BottomSheetRef,
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -67,10 +68,11 @@ import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAc
 import Routes from '../../../constants/navigation/Routes';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { y: frameY } = useSafeAreaFrame();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
@@ -140,9 +142,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [screen],
   );
 
-  const dismissSheet = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
+  const handleClose = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   useEffect(() => {
     if (reloadAccounts) {
@@ -150,24 +152,21 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [dispatch, reloadAccounts]);
 
-  // Tracing for the account list rendering:
-  useEffect(() => {
-    if (isAccountSelector) {
-      trace({
-        name: TraceName.ShowAccountList,
-        op: TraceOperation.AccountUi,
-        tags: getTraceTags(store.getState()),
-      });
-      // Trace ends when design-system BottomSheet finishes opening
+  // Tracing for the account list rendering (full screen: end after layout flush).
+  useLayoutEffect(() => {
+    if (!isAccountSelector) {
+      return;
     }
-  }, [isAccountSelector]);
-
-  const handleSheetOpened = useCallback(() => {
-    if (isAccountSelector) {
+    trace({
+      name: TraceName.ShowAccountList,
+      op: TraceOperation.AccountUi,
+      tags: getTraceTags(store.getState()),
+    });
+    queueMicrotask(() => {
       endTrace({
         name: TraceName.ShowAccountList,
       });
-    }
+    });
   }, [isAccountSelector]);
 
   const _onSelectMultichainAccount = useCallback(
@@ -175,7 +174,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       Engine.context.AccountTreeController.setSelectedAccountGroup(
         accountGroup.id,
       );
-      dismissSheet();
+      handleClose();
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
@@ -186,7 +185,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           .build(),
       );
     },
-    [accounts?.length, trackEvent, createEventBuilder, dismissSheet],
+    [accounts?.length, trackEvent, createEventBuilder, handleClose],
   );
 
   const handleAddAccount = useCallback(() => {
@@ -275,12 +274,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   return (
     <>
-      <BottomSheet
-        ref={bottomSheetRef}
-        goBack={() => navigation.goBack()}
-        isFullscreen
-        keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
-        onOpen={handleSheetOpened}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        enabled={keyboardAvoidingViewEnabled}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -insets.bottom : frameY}
+        style={tw.style('flex-1')}
       >
         <Box
           twClassName="flex-1 bg-default"
@@ -291,14 +289,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         >
           <HeaderCompactStandard
             title={strings('accounts.accounts_title')}
-            onBack={dismissSheet}
+            onBack={handleClose}
             backButtonProps={{
               testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
             }}
           />
           {renderAccountSelector()}
         </Box>
-      </BottomSheet>
+      </KeyboardAvoidingView>
 
       <Modal
         visible={showAddWalletModal}
