@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped `@metamask/assets-controllers` to `105.1.0` (#29657)
+
 ## [7.74.0]
 
 ### Added
