@@ -300,6 +300,7 @@ const createTestCampaign = (
       ],
     },
     featured: true,
+    showUpcomingDate: false,
     type: 'ONDO_HOLDING' as never,
     ...overrides,
   };

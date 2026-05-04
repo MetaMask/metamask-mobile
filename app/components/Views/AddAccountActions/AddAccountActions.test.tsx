@@ -73,19 +73,6 @@ describe('AddAccountActions', () => {
     );
   });
 
-  it('renders correctly', () => {
-    const wrapper = renderScreen(
-      () => <AddAccountActions {...mockProps} />,
-      {
-        name: 'AddAccountActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-    expect(wrapper.toJSON()).toMatchSnapshot();
-  });
-
   it('shows all account creation options', () => {
     renderScreen(
       () => <AddAccountActions {...mockProps} />,

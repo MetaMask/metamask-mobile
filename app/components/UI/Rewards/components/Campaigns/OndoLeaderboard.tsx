@@ -40,7 +40,9 @@ export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
 } as const;
 
 const MAX_ENTRIES_LIMIT = 20;
-const SPLIT_VIEW_TOP_COUNT = 3;
+const SPLIT_VIEW_TOP_COUNT_PREVIEW = 3;
+/** Ranks just below the first page: show one fewer top rows to keep split view from crowding the neighbor block. */
+const FULL_SPLIT_TOP_REDUCED_AT_RANKS: readonly number[] = [21, 22];
 
 interface UserPosition {
   projectedTier: string;
@@ -228,6 +230,20 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       ? maxEntries
       : MAX_ENTRIES_LIMIT;
 
+  /** Top rows above the neighbor separator in split view (preview: 3; full: 18 for rank 21–22, else 20). */
+  const splitViewTopCount = useMemo(() => {
+    if (isPreview) {
+      return SPLIT_VIEW_TOP_COUNT_PREVIEW;
+    }
+    const rank = userPosition?.rank;
+    if (rank == null) {
+      return MAX_ENTRIES_LIMIT;
+    }
+    return FULL_SPLIT_TOP_REDUCED_AT_RANKS.includes(rank)
+      ? MAX_ENTRIES_LIMIT - 2
+      : MAX_ENTRIES_LIMIT;
+  }, [isPreview, userPosition?.rank]);
+
   const showSplitView = useMemo(() => {
     if (!userPosition) return false;
     return (
@@ -239,10 +255,10 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 
   const visibleEntries = useMemo(() => {
     if (showSplitView) {
-      return entries.slice(0, SPLIT_VIEW_TOP_COUNT);
+      return entries.slice(0, splitViewTopCount);
     }
     return entries.slice(0, effectiveMaxEntries);
-  }, [entries, effectiveMaxEntries, showSplitView]);
+  }, [showSplitView, entries, effectiveMaxEntries, splitViewTopCount]);
 
   const selectedTierLabel = selectedTier
     ? formatTierDisplayName(selectedTier)
