@@ -1640,32 +1640,11 @@ describe('Wallet post-onboarding checklist coordination', () => {
   });
 
   it('dispatches flow_completed when coordinated exit completes', async () => {
-    const timingSpy = jest.spyOn(Animated, 'timing').mockReturnValue({
-      start: (cb?: (r: { finished: boolean }) => void) => {
-        cb?.({ finished: true });
-      },
-      stop: jest.fn(),
-      reset: jest.fn(),
-    } as ReturnType<typeof Animated.timing>);
-
-    const interactionSpy = jest
-      .spyOn(InteractionManager, 'runAfterInteractions')
-      .mockImplementation((task) => {
-        const fn = task as (() => void) | undefined;
-        fn?.();
-        return {
-          then: (onfulfilled?: () => unknown) =>
-            Promise.resolve(undefined).then(onfulfilled),
-          done: jest.fn(),
-          cancel: jest.fn(),
-        };
-      });
+    // `requestAnimationFrame` is used inside runWalletHomePostOnboardingComplete.
     const rafSpy = jest
       .spyOn(global, 'requestAnimationFrame')
       .mockImplementation((cb: FrameRequestCallback) => {
-        setTimeout(() => {
-          cb(0);
-        }, 0);
+        setTimeout(() => cb(0), 0);
         return 0;
       });
 
@@ -1675,12 +1654,24 @@ describe('Wallet post-onboarding checklist coordination', () => {
         .mocked(useSelector)
         .mockImplementation((callback) => callback(state));
 
-      const primaryTestId = `${WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`;
+      // Capture onCoordinatedFlowExit that Wallet passes to AccountGroupBalance.
+      // Testing this callback directly keeps the assertion focused on Wallet's own
+      // responsibility; the deferred-nav advance path inside WalletHomeOnboardingSteps
+      // is covered by WalletHomeOnboardingSteps.test.tsx.
+      let capturedOnCoordinatedFlowExit: (() => Promise<void>) | undefined;
+      accountGroupBalanceMock.mockImplementation(
+        (props: { onCoordinatedFlowExit?: () => Promise<void> }) => {
+          capturedOnCoordinatedFlowExit = props.onCoordinatedFlowExit;
+          return null;
+        },
+      );
 
-      const { getByTestId, store } = renderWalletWithRootState(state);
+      const { store } = renderWalletWithRootState(state);
+
+      expect(capturedOnCoordinatedFlowExit).toBeDefined();
 
       await act(async () => {
-        fireEvent.press(getByTestId(primaryTestId));
+        await capturedOnCoordinatedFlowExit?.();
         await new Promise<void>((r) => setTimeout(r, 0));
       });
 
@@ -1688,8 +1679,6 @@ describe('Wallet post-onboarding checklist coordination', () => {
         store.getState().onboarding.walletHomeOnboardingSteps?.suppressedReason,
       ).toBe('flow_completed');
     } finally {
-      timingSpy.mockRestore();
-      interactionSpy.mockRestore();
       rafSpy.mockRestore();
     }
   });
