@@ -1046,7 +1046,8 @@ const Wallet = ({
     HUB_PAGE_DISCOVERY_TABS_VARIANTS,
   );
 
-  const isDiscoveryTabsTreatment = false;
+  const isDiscoveryTabsTreatment =
+    discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
 
   // translateY slides the header up; negative marginBottom collapses the layout
   // space it occupied so the content below moves up in sync.
