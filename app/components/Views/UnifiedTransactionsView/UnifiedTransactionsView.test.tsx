@@ -15,7 +15,16 @@ import { selectTransactions } from './helpers/transformations';
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
 
-const createUseTransactionsQueryResult = (data = { pages: [] }) => ({
+type TransactionsQueryData = ReturnType<ReturnType<typeof selectTransactions>>;
+
+const emptyTransactionsQueryData: TransactionsQueryData = {
+  pageParams: [],
+  pages: [],
+};
+
+const createUseTransactionsQueryResult = (
+  data: TransactionsQueryData = emptyTransactionsQueryData,
+) => ({
   data,
   fetchNextPage: jest.fn(),
   hasNextPage: false,
@@ -23,7 +32,9 @@ const createUseTransactionsQueryResult = (data = { pages: [] }) => ({
   refetch: jest.fn().mockResolvedValue(undefined),
 });
 
-const mockUseTransactionsQuery = (data = { pages: [] }) => {
+const mockUseTransactionsQuery = (
+  data: TransactionsQueryData = emptyTransactionsQueryData,
+) => {
   (useTransactionsQuery as jest.Mock).mockReturnValue(
     createUseTransactionsQueryResult(data),
   );
@@ -509,7 +520,6 @@ describe('UnifiedTransactionsView - refresh', () => {
 describe('UnifiedTransactionsView - token poisoning protection', () => {
   const FRIEND_ADDRESS = '0x1234000000000000000000000000000000000001';
   const ACTIVE_EVM_ADDRESS = '0xabc';
-  const ACTIVE_EVM_CAIP_ACCOUNT_ID = `eip155:0:${ACTIVE_EVM_ADDRESS}` as const;
 
   const baseState = { engine: { backgroundState } };
 
@@ -546,7 +556,7 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
     transactions: V1TransactionByHashResponse[] = [],
   ) =>
     selectTransactions({
-      evmCaipAccountId: ACTIVE_EVM_CAIP_ACCOUNT_ID,
+      address: ACTIVE_EVM_ADDRESS,
     })({
       pageParams: [undefined],
       pages: [
@@ -554,10 +564,10 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
           data: transactions,
           pageInfo: {
             count: transactions.length,
-            endCursor: null,
+            endCursor: undefined,
             hasNextPage: false,
             hasPreviousPage: false,
-            startCursor: null,
+            startCursor: undefined,
           },
         },
       ],
@@ -574,8 +584,10 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
           contractAddress: '0x3333333333333333333333333333333333333333',
           decimal: 18,
           from: '0x9999999999999999999999999999999999999999',
+          name: 'Test Token',
           symbol: 'TKN',
           to: ACTIVE_EVM_ADDRESS,
+          transferType: 'ERC20',
         },
       ],
     }),
@@ -587,9 +599,13 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
       valueTransfers: [
         {
           amount: '1',
+          contractAddress: '',
+          decimal: 18,
           from: '0x9999999999999999999999999999999999999999',
+          name: 'Ether',
           symbol: 'ETH',
           to: ACTIVE_EVM_ADDRESS,
+          transferType: 'NATIVE',
         },
       ],
     }),
