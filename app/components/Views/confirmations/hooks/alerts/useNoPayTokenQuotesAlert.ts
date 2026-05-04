@@ -7,6 +7,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
+  useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
@@ -21,6 +22,7 @@ export function useNoPayTokenQuotesAlert() {
   const sourceAmounts = useTransactionPaySourceAmounts();
   const requiredTokens = useTransactionPayRequiredTokens();
   const isPostQuote = useTransactionPayIsPostQuote();
+  const isMaxAmount = useTransactionPayIsMaxAmount();
 
   const fiatAmount = Number(fiatPayment?.amountFiat);
   const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
@@ -57,8 +59,29 @@ export function useNoPayTokenQuotesAlert() {
     sourceAmounts?.length === 0 &&
     quotes?.length === 0;
 
+  // Post-quote flows (e.g. money account withdraw MUSD -> MUSD) can end up with
+  // an empty `sourceAmounts` when the source and destination tokens match and
+  // get filtered out in `calculatePostQuoteSourceAmounts`. In that case the
+  // non-fiat branch above never fires, so we also emit the alert whenever the
+  // user has entered a positive input amount but no quote is available.
+  const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
+    (t) =>
+      !t.skipIfBalance &&
+      (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
+  );
+
+  const shouldShowPostQuoteNoQuotesAlert =
+    isPostQuote &&
+    Boolean(payToken) &&
+    !isQuotesLoading &&
+    !sourceAmounts?.length &&
+    !quotes?.length &&
+    hasPositiveRequiredAmount;
+
   const showAlert =
-    shouldShowNonFiatNoQuotesAlert || shouldShowFiatNoQuotesAlert;
+    shouldShowNonFiatNoQuotesAlert ||
+    shouldShowFiatNoQuotesAlert ||
+    shouldShowPostQuoteNoQuotesAlert;
 
   return useMemo(() => {
     if (!showAlert) {

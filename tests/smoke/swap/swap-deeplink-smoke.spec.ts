@@ -11,6 +11,7 @@ import Assertions from '../../framework/Assertions';
 import { asDetoxElement } from '../../framework';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import TestHelpers from '../../helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
 
 // Deep link URLs for testing unified swap/bridge experience
@@ -62,7 +63,10 @@ describe(
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
+            newInstance: false,
             url: SWAP_DEEPLINK_FULL,
           });
 
@@ -121,7 +125,10 @@ describe(
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
+            newInstance: false,
             url: SWAP_DEEPLINK_BASE,
           });
 
@@ -175,7 +182,10 @@ describe(
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
+            newInstance: false,
             url: invalidDeeplink,
           });
 
