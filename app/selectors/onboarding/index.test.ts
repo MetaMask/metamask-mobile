@@ -79,5 +79,14 @@ describe('Onboarding selectors', () => {
       const state = {} as RootState;
       expect(selectShouldShowWalletHomeOnboardingSteps(state)).toBe(false);
     });
+
+    it('selectShouldShowWalletHomeOnboardingSteps is false when flow is suppressed', () => {
+      expect(
+        selectShouldShowWalletHomeOnboardingSteps.resultFunc(false, {
+          ...WALLET_HOME_ONBOARDING_STEPS_INITIAL,
+          suppressedReason: 'flow_completed',
+        }),
+      ).toBe(false);
+    });
   });
 });

@@ -230,21 +230,6 @@ export const useSwapBridgeNavigation = ({
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
       }
 
-      // Reset the manual dest token flag on navigation so auto-update works correctly
-      // This ensures if user previously manually set dest, then closed and reopened the app,
-      // changing source token will still auto-update the dest token
-      dispatch(setIsDestTokenManuallySet(false));
-
-      // Store A/B test context in Redux for page-viewed event attribution
-      dispatch(setAbTestContext(abTestContext));
-
-      // Pre-populate Redux state before navigation to prevent empty button flash
-      dispatch(setSourceToken(sourceToken));
-
-      // Only use the configured dest token if its chain is bridge-enabled.
-      // When the dest is on an unsupported chain (e.g. token viewed from an
-      // unsupported network in the trending "buy" flow), fall through to the
-      // default dest logic so the UI opens with a valid pair.
       const isDestChainSupported = effectiveDestTokenBase
         ? getIsBridgeEnabledSource(effectiveDestTokenBase.chainId)
         : true;
@@ -252,28 +237,25 @@ export const useSwapBridgeNavigation = ({
         ? effectiveDestTokenBase
         : undefined;
 
-      // Use provided destToken if available and different from sourceToken, otherwise compute default
+      let destTokenToSet: BridgeToken | undefined;
       if (
         validDestTokenBase &&
         !areAddressesEqual(sourceToken.address, validDestTokenBase.address)
       ) {
-        dispatch(setDestToken(validDestTokenBase));
+        destTokenToSet = validDestTokenBase;
       } else {
-        // Either no destToken provided, or it's the same as sourceToken - use default logic
         const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
-        // Make sure source and dest tokens are different
         if (
           defaultDestToken &&
           !areAddressesEqual(sourceToken.address, defaultDestToken.address)
         ) {
-          dispatch(setDestToken(defaultDestToken));
+          destTokenToSet = defaultDestToken;
         } else {
-          // Fall back to native token if default dest is same as source
           const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
           if (
             !areAddressesEqual(sourceToken.address, nativeDestToken.address)
           ) {
-            dispatch(setDestToken(nativeDestToken));
+            destTokenToSet = nativeDestToken;
           }
         }
       }
@@ -308,10 +290,19 @@ export const useSwapBridgeNavigation = ({
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
+      // Navigate before Redux updates so the Wallet tab does not flash/re-render from bridge
+      // slice dispatches while still visible (e.g. checklist trade primary → swaps).
       navigation.navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
         params,
       });
+
+      dispatch(setIsDestTokenManuallySet(false));
+      dispatch(setAbTestContext(abTestContext));
+      dispatch(setSourceToken(sourceToken));
+      if (destTokenToSet) {
+        dispatch(setDestToken(destTokenToSet));
+      }
 
       // Track Swap button click with new consolidated event
       const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;

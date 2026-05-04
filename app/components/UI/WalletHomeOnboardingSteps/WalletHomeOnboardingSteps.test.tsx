@@ -7,13 +7,26 @@ import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.
 import {
   __clearLastMockedMethods,
   __getLastMockedMethods,
+  __mockRiveFireState,
 } from '../../../__mocks__/rive-react-native';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
   WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS,
+  WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
 } from './walletHomeOnboardingChecklistRive';
+
+const mockUseIsFocused = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useIsFocused: () => mockUseIsFocused(),
+  };
+});
 
 async function flushWalletHomeStepTransition() {
   await act(async () => {
@@ -27,6 +40,8 @@ describe('WalletHomeOnboardingSteps', () => {
   beforeEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: false });
     __clearLastMockedMethods();
+    __mockRiveFireState.mockClear();
+    mockUseIsFocused.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -119,7 +134,7 @@ describe('WalletHomeOnboardingSteps', () => {
 
   it('invokes trade primary commit when Primary is pressed on trade step', async () => {
     const onTradePrimaryPress = jest.fn();
-    const { getByTestId, store } = renderWithProvider(
+    const { getByTestId, store, rerender } = renderWithProvider(
       <WalletHomeOnboardingSteps
         testID="steps-root"
         onTradePrimaryPress={onTradePrimaryPress}
@@ -145,12 +160,107 @@ describe('WalletHomeOnboardingSteps', () => {
     );
 
     expect(onTradePrimaryPress).toHaveBeenCalledTimes(1);
+    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+      expect.objectContaining({ stepIndex: 1 }),
+    );
 
-    await flushWalletHomeStepTransition();
+    mockUseIsFocused.mockReturnValue(false);
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onTradePrimaryPress={onTradePrimaryPress}
+      />,
+    );
+    mockUseIsFocused.mockReturnValue(true);
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onTradePrimaryPress={onTradePrimaryPress}
+      />,
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(60);
+    });
+
+    expect(__mockRiveFireState).toHaveBeenCalledWith(
+      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(
+        WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS +
+          WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS +
+          100,
+      );
+    });
 
     await waitFor(() => {
       expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
         expect.objectContaining({ stepIndex: 2 }),
+      );
+    });
+  });
+
+  it('completes notifications step after return when primary navigates away', async () => {
+    const onNotificationsPrimaryPress = jest.fn();
+    const { getByTestId, store, rerender } = renderWithProvider(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onNotificationsPrimaryPress={onNotificationsPrimaryPress}
+      />,
+      {
+        state: {
+          onboarding: {
+            ...baseOnboarding,
+            walletHomeOnboardingSteps: {
+              suppressedReason: null,
+              stepIndex: 2,
+            },
+          },
+          engine: { backgroundState },
+        },
+      },
+    );
+
+    fireEvent.press(
+      getByTestId(
+        `steps-root-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`,
+      ),
+    );
+
+    expect(onNotificationsPrimaryPress).toHaveBeenCalledTimes(1);
+    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+      expect.objectContaining({ suppressedReason: null, stepIndex: 2 }),
+    );
+
+    mockUseIsFocused.mockReturnValue(false);
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onNotificationsPrimaryPress={onNotificationsPrimaryPress}
+      />,
+    );
+    mockUseIsFocused.mockReturnValue(true);
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onNotificationsPrimaryPress={onNotificationsPrimaryPress}
+      />,
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(
+        WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS +
+          WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS +
+          100,
+      );
+    });
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ suppressedReason: 'flow_completed' }),
       );
     });
   });
