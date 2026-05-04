@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "कोई फंड उपलब्ध नहीं है। कृपया किसी अन्य अकाउंट का इस्तेमाल करें।"
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "वॉलेट सपोर्टेड नहीं है",
       "message": "हार्डवेयर वॉलेट सपोर्टेड नहीं हैं।\nजारी रखने के लिए वॉलेट बदलें।"
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "फंड जोड़ें",
       "perps_withdraw": "निकालें",
       "predict_deposit": "प्रिडिक्शन फ़ंड जोड़ें",
-      "predict_withdraw": "निकालें",
-      "money_account_deposit": "फंड जोड़ें",
-      "money_account_withdraw": "फंड विदड्रॉ करें"
+      "predict_withdraw": "निकालें"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
@@ -7868,8 +7866,6 @@
         "manage_spending_limit": "लिमिट प्रबंधित करें",
         "manage_spending_limit_description_restricted": "सीमित खर्च की सेटिंग चालू है",
         "manage_spending_limit_description_full": "फुल एक्सेस चालू है",
-        "manage_card": "कार्ड प्रबंधित करें",
-        "advanced_card_management_description": "गतिविधि, कैशबैक देखें, कार्ड फ्रीज़ करें और अन्य चीज़ें",
         "travel_title": "MetaMask ट्रैवल",
         "travel_description": "70% तक की छूट के साथ होटल बुक करें",
         "card_tos_title": "नियम और शर्त",
@@ -8665,7 +8661,7 @@
   },
   "trending": {
     "title": "एक्सप्लोर करें",
-    "trending_tokens": "ट्रेंडिंग टोकन",
+    "trending_tokens": "ट्रेंडिंग",
     "stocks": "स्टॉक्स",
     "price_change": "प्राइस में बदलाव",
     "all_networks": "सभी नेटवर्क",
@@ -8822,7 +8818,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "ट्रेंडिंग टोकन",
+      "trending_tokens": "ट्रेंडिंग",
       "trending_perpetuals": "ट्रेंडिंग परपेचुअल्स",
       "trending_predictions": "ट्रेंडिंग प्रेडिक्शन्स",
       "import_nfts": "NFTs इंपोर्ट करें",

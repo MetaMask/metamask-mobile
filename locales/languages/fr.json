@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Aucun fonds disponible. Veuillez utiliser un autre compte."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Portefeuille non pris en charge",
       "message": "Les portefeuilles matériels ne sont pas pris en charge.\nChangez de portefeuille pour continuer."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Ajouter des fonds",
       "perps_withdraw": "Retirer",
       "predict_deposit": "Ajouter des fonds de prédiction",
-      "predict_withdraw": "Retirer",
-      "money_account_deposit": "Ajouter des fonds",
-      "money_account_withdraw": "Retirer des fonds"
+      "predict_withdraw": "Retirer"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
@@ -7868,8 +7866,6 @@
         "manage_spending_limit": "Gérer la limite",
         "manage_spending_limit_description_restricted": "La limite de dépenses est activée",
         "manage_spending_limit_description_full": "L’accès complet est activé",
-        "manage_card": "Gérer la carte",
-        "advanced_card_management_description": "Consulter l’historique des activités, cashback, geler la carte, etc.",
         "travel_title": "MetaMask Travel",
         "travel_description": "Réservez des hôtels avec jusqu’à 70 % de réduction",
         "card_tos_title": "Conditions générales",
@@ -8665,7 +8661,7 @@
   },
   "trending": {
     "title": "Explorer",
-    "trending_tokens": "Jetons tendance",
+    "trending_tokens": "Tendances",
     "stocks": "Actions",
     "price_change": "Variation du prix",
     "all_networks": "Tous les réseaux",
@@ -8822,7 +8818,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "Jetons tendance",
+      "trending_tokens": "Tendances",
       "trending_perpetuals": "Contrats à terme perpétuels populaires",
       "trending_predictions": "Prédictions populaires",
       "import_nfts": "Importer des NFT",

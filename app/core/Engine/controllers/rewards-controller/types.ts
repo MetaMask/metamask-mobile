@@ -94,6 +94,7 @@ export interface ApplyBonusCodeDto {
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
   SEASON_1 = 'SEASON_1',
+  PERPS_TRADING = 'PERPS_TRADING',
 }
 
 /**
@@ -157,6 +158,12 @@ export interface CampaignDto {
    * @example true
    */
   featured: boolean;
+
+  /**
+   * Whether to display the upcoming start date on the campaign tile
+   * @example true
+   */
+  showUpcomingDate: boolean;
 }
 
 /**
@@ -239,6 +246,7 @@ export type CampaignDtoState = {
   image: ThemeImageState | null;
   details: CampaignDetailsState | null;
   featured: boolean;
+  showUpcomingDate: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

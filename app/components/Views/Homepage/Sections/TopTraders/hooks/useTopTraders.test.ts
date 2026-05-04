@@ -3,10 +3,15 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { useTopTraders } from './useTopTraders';
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn().mockReturnValue([]),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/keyringController', () => ({
+  selectIsUnlocked: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/socialController', () => ({
@@ -78,7 +83,10 @@ describe('useTopTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
-    mockUseSelector.mockReturnValue([]);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) return true;
+      return []; // default for other selectors (e.g. selectFollowingProfileIds)
+    });
   });
 
   describe('data mapping', () => {
@@ -111,6 +119,7 @@ describe('useTopTraders', () => {
       expect(result.current.traders[0]).toEqual({
         id: first.profileId,
         rank: first.rank,
+        overallRank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent30d * 100,
@@ -180,7 +189,10 @@ describe('useTopTraders', () => {
 
   describe('isFollowing seeding from controller state', () => {
     it('seeds isFollowing true for traders present in followingProfileIds', () => {
-      mockUseSelector.mockReturnValue([mockTraders[0].profileId]);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return true;
+        return [mockTraders[0].profileId];
+      });
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: mockLeaderboardResponse as never }),
       );
@@ -215,7 +227,10 @@ describe('useTopTraders', () => {
     });
 
     it('calls unfollowTrader when trader is already followed', async () => {
-      mockUseSelector.mockReturnValue([mockTraders[0].profileId]);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return true;
+        return [mockTraders[0].profileId];
+      });
       const { result } = renderHook(() => useTopTraders());
 
       await act(async () => {
@@ -341,11 +356,23 @@ describe('useTopTraders', () => {
       );
     });
 
-    it('defaults enabled to true when the option is not provided', () => {
+    it('defaults enabled to true when the option is not provided and wallet is unlocked', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('is disabled when wallet is locked even if enabled option is true', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return false;
+        return [];
+      });
+      renderHook(() => useTopTraders({ enabled: true }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
       );
     });
 
@@ -357,7 +384,7 @@ describe('useTopTraders', () => {
       );
     });
 
-    it('forwards enabled: true to useQuery when explicitly set', () => {
+    it('forwards enabled: true to useQuery when explicitly set and wallet is unlocked', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(

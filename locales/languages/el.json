@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Δεν υπάρχουν διαθέσιμα χρήματα. Δοκιμάστε με άλλον λογαριασμό."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Το πορτοφόλι δεν υποστηρίζεται",
       "message": "Τα πορτοφόλια υλικού δεν υποστηρίζονται. \nΑλλάξτε πορτοφόλι για να συνεχίσετε."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Προσθήκη κεφαλαίων",
       "perps_withdraw": "Ανάληψη",
       "predict_deposit": "Προσθήκη κεφαλαίων για Προβλέψεις",
-      "predict_withdraw": "Ανάληψη",
-      "money_account_deposit": "Προσθήκη κεφαλαίων",
-      "money_account_withdraw": "Ανάληψη χρημάτων"
+      "predict_withdraw": "Ανάληψη"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
@@ -7868,8 +7866,6 @@
         "manage_spending_limit": "Διαχείριση ορίου",
         "manage_spending_limit_description_restricted": "Ο περιορισμός συναλλαγών είναι ενεργός",
         "manage_spending_limit_description_full": "Η πλήρης πρόσβαση είναι ενεργή",
-        "manage_card": "Διαχείριση κάρτας",
-        "advanced_card_management_description": "Δείτε δραστηριότητα, ανταμοιβές, απενεργοποίηση κάρτας και πολλά ακόμη",
         "travel_title": "MetaMask Travel",
         "travel_description": "Κάντε κράτηση σε ξενοδοχεία με έκπτωση έως και 70%",
         "card_tos_title": "Όροι και προϋποθέσεις",
@@ -8665,7 +8661,7 @@
   },
   "trending": {
     "title": "Εξερεύνηση",
-    "trending_tokens": "Δημοφιλή token",
+    "trending_tokens": "Τάσεις",
     "stocks": "Μετοχές",
     "price_change": "Αλλαγή τιμής",
     "all_networks": "Όλα τα δίκτυα",
@@ -8822,7 +8818,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "Δημοφιλή token",
+      "trending_tokens": "Τάσεις",
       "trending_perpetuals": "Δημοφιλή perpetuals",
       "trending_predictions": "Δημοφιλείς προβλέψεις",
       "import_nfts": "Εισαγωγή NFT",

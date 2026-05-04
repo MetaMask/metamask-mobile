@@ -1,5 +1,5 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
-import { Hex, toCaipAssetType } from '@metamask/utils';
+import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
@@ -46,7 +46,10 @@ import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigatio
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   Button,
@@ -55,16 +58,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { useSelector } from 'react-redux';
-import AccountSelector from '../../AccountSelector';
-import { updateEditableParams } from '../../../../../../util/transaction-controller';
-import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import PayAccountSelector from '../../PayAccountSelector';
+import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 
 export interface CustomAmountInfoProps {
@@ -87,6 +88,10 @@ export interface CustomAmountInfoProps {
    */
   disableConfirm?: boolean;
   /**
+   * When true, the account selector is shown.
+   */
+  supportAccountSelection?: boolean;
+  /**
    * Adds bottom space to the bottom block (rows + keyboard/confirm button).
    * Used by Perps Withdraw on Android, where this screen has one extra
    * balance line and otherwise clips behind the system gesture bar.
@@ -106,6 +111,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     hidePayTokenAmount,
     preferredToken,
     footerText,
+    supportAccountSelection,
   }) => {
     useClearConfirmationOnBackSwipe();
 
@@ -126,50 +132,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
-
-    const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountWithdraw,
-    ]);
+    const accountOverride = useTransactionAccountOverride();
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
-      string | undefined
-    >(undefined);
-
-    const globalSelectedAddress = useSelector(
-      selectSelectedInternalAccountAddress,
-    );
-    const initialFromAddress =
-      (transactionMeta?.txParams?.from as string | undefined) ??
-      globalSelectedAddress;
-    const [selectedFromAddress, setSelectedFromAddress] = useState<
-      string | undefined
-    >(initialFromAddress);
-
-    const handleRecipientAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          updateEditableParams(transactionId, { to: address as Hex });
-        }
-        setSelectedRecipientAddress(address);
-      },
-      [transactionId],
-    );
-
-    const handleFromAccountSelected = useCallback(
-      (address: string) => {
-        if (transactionId) {
-          updateEditableParams(transactionId, { from: address as Hex });
-        }
-        setSelectedFromAddress(address);
-      },
-      [transactionId],
-    );
-
-    const isRecipientMissing =
-      isMoneyAccountWithdraw && !selectedRecipientAddress;
-
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -208,7 +175,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             fp.amountFiat = amountFiat;
           },
         });
-      } else {
+      } else if (!isMoneyAccountDeposit) {
         updateTokenAmount();
       }
 
@@ -217,6 +184,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit?.();
     }, [
       amountFiat,
+      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
@@ -226,6 +194,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
     }, []);
+
+    const isAccountSelectionNeeded =
+      supportAccountSelection && !accountOverride;
 
     return (
       <Box style={styles.container}>
@@ -238,7 +209,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             disabled={!hasTokens}
           />
           {!hidePayTokenAmount && disablePay !== true && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+            <PayTokenAmount
+              amountHuman={amountHuman}
+              disabled={!hasTokens || isAccountSelectionNeeded}
+            />
           )}
           {!hidePayTokenAmount && children}
         </Box>
@@ -248,26 +222,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={hasExtraBottomPadding && styles.extraBottomPadding}
         >
           <AlertMessage alertMessage={alertMessage} />
-          {!hidePayTokenAmount && (
+          {!isResultReady && (
             <>
-              {isMoneyAccountDeposit && (
-                <AccountSelector
-                  label={strings('confirm.label.from')}
-                  selectedAddress={selectedFromAddress}
-                  onAccountSelected={handleFromAccountSelected}
-                />
+              {supportAccountSelection && (
+                <PayAccountSelector style={styles.separator} />
               )}
-              {isMoneyAccountWithdraw && (
-                <AccountSelector
-                  selectedAddress={selectedRecipientAddress}
-                  onAccountSelected={handleRecipientAccountSelected}
-                />
-              )}
+              {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
-          {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
           {isResultReady && (
             <Box>
+              {supportAccountSelection && <PayAccountSelector />}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
@@ -301,14 +266,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax && !isNativePayToken}
+              hasMax={hasMax && (isWithdraw || !isNativePayToken)}
             />
           )}
           {!hasTokens && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm || isRecipientMissing}
+              disableConfirm={disableConfirm || isAccountSelectionNeeded}
             />
           )}
         </Box>
@@ -399,7 +364,7 @@ function ConfirmButton({
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const isLoading = useIsTransactionPayLoading();
-  const { onConfirm } = useTransactionConfirm();
+  const { onConfirm } = useConfirmActions();
   const disabled = hasBlockingAlerts || isLoading || Boolean(disableConfirm);
   const buttonLabel = useButtonLabel();
 

@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "사용 가능한 자금이 없습니다. 다른 계정을 사용하세요."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "지원되지 않는 지갑",
       "message": "하드웨어 지갑이 지원되지 않습니다. 다른 지갑으로 전환하여 계속하세요."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "자금 추가",
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
-      "predict_withdraw": "출금",
-      "money_account_deposit": "자금 추가",
-      "money_account_withdraw": "자금 출금"
+      "predict_withdraw": "출금"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
@@ -7868,8 +7866,6 @@
         "manage_spending_limit": "한도 관리",
         "manage_spending_limit_description_restricted": "사용 한도가 설정되어 있습니다",
         "manage_spending_limit_description_full": "제한 없이 사용할 수 있습니다",
-        "manage_card": "카드 관리",
-        "advanced_card_management_description": "사용 내역, 캐시백 확인, 카드 일시 중지 등 확인",
         "travel_title": "MetaMask Travel",
         "travel_description": "최대 70% 할인된 가격으로 호텔을 예약하세요",
         "card_tos_title": "이용약관",
@@ -8665,7 +8661,7 @@
   },
   "trending": {
     "title": "둘러보기",
-    "trending_tokens": "인기 토큰",
+    "trending_tokens": "트렌드",
     "stocks": "주식",
     "price_change": "가격 변동",
     "all_networks": "모든 네트워크",
@@ -8822,7 +8818,7 @@
       },
       "defi": "디파이",
       "nfts": "NFT",
-      "trending_tokens": "인기 토큰",
+      "trending_tokens": "트렌드",
       "trending_perpetuals": "인기 무기한 선물",
       "trending_predictions": "인기 예측",
       "import_nfts": "NFT 가져오기",

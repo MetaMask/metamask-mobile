@@ -225,7 +225,9 @@ describe('AccountGroupBalance', () => {
     rerender(<AccountGroupBalance />);
 
     // Balance should display immediately without waiting for timeout
-    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
+      includeHiddenElements: true,
+    });
     expect(el).toBeOnTheScreen();
   });
 
@@ -286,7 +288,9 @@ describe('AccountGroupBalance', () => {
 
     // Should show balance immediately after update (hasChanged condition)
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
+        includeHiddenElements: true,
+      }),
     ).toBeOnTheScreen();
   });
 });

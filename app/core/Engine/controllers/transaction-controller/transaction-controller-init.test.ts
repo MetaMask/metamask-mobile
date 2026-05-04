@@ -33,6 +33,8 @@ import {
   handleTransactionRejectedEventForMetrics,
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
+import { handleShowNotification } from './event-handlers/notification';
+import { handleUnapprovedTransactionAddedForMoneyAccount } from './event-handlers/money-account-override';
 import { TransactionControllerInit } from './transaction-controller-init';
 import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
 
@@ -42,6 +44,8 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
+jest.mock('./event-handlers/notification');
+jest.mock('./event-handlers/money-account-override');
 jest.mock('../../../../util/transactions/account-supports-7702');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
 jest.mock('../../../../util/transactions/sentinel-api');
@@ -766,10 +770,11 @@ describe('Transaction Controller Init', () => {
 
   it('calls appropriate handlers when transaction events are triggered', () => {
     const mockSubscribe = jest.fn();
-    const subscribeCallbacks: Record<string, (...args: unknown[]) => void> = {};
+    const subscribeCallbacks: Record<string, ((...args: unknown[]) => void)[]> =
+      {};
 
     mockSubscribe.mockImplementation((eventName, callback) => {
-      subscribeCallbacks[eventName] = callback;
+      (subscribeCallbacks[eventName] ??= []).push(callback);
     });
 
     const requestMock = buildInitRequestMock({
@@ -792,7 +797,18 @@ describe('Transaction Controller Init', () => {
       smartTransactionsController: expect.any(Object),
     };
 
+    const handleUnapprovedTransactionAddedForMoneyAccountMock = jest.mocked(
+      handleUnapprovedTransactionAddedForMoneyAccount,
+    );
+    const handleShowNotificationMock = jest.mocked(handleShowNotification);
+
     const eventHandlerMap = [
+      {
+        event: 'TransactionController:transactionApproved',
+        handler: handleShowNotificationMock,
+        payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta],
+      },
       {
         event: 'TransactionController:transactionApproved',
         handler: handleTransactionApprovedEventForMetricsMock,
@@ -835,14 +851,27 @@ describe('Transaction Controller Init', () => {
         payload: mockTransactionMeta,
         expectedArgs: [mockTransactionMeta, handlerContext],
       },
+      {
+        event: 'TransactionController:unapprovedTransactionAdded',
+        handler: handleUnapprovedTransactionAddedForMoneyAccountMock,
+        payload: mockTransactionMeta,
+        expectedArgs: [mockTransactionMeta],
+      },
     ];
 
-    // Verify all events are subscribed
-    expect(Object.keys(subscribeCallbacks).length).toBe(eventHandlerMap.length);
+    // Verify total subscription count matches the expected handlers
+    const totalSubscriptions = Object.values(subscribeCallbacks).reduce(
+      (sum, callbacks) => sum + callbacks.length,
+      0,
+    );
+    expect(totalSubscriptions).toBe(eventHandlerMap.length);
 
-    // Test each event handler
+    // Test each event handler — invoke each subscribed callback in order
+    const consumedIndexByEvent: Record<string, number> = {};
     eventHandlerMap.forEach(({ event, handler, payload, expectedArgs }) => {
-      subscribeCallbacks[event](payload);
+      const callbackIndex = consumedIndexByEvent[event] ?? 0;
+      subscribeCallbacks[event][callbackIndex](payload);
+      consumedIndexByEvent[event] = callbackIndex + 1;
       expect(handler).toHaveBeenCalledWith(...expectedArgs);
     });
   });

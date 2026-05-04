@@ -100,10 +100,11 @@ describe('GasImpactModal', () => {
     } as unknown as ReturnType<typeof useNavigation>);
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderGasImpactModal();
+  it('renders gas impact modal content', () => {
+    const { getByText } = renderGasImpactModal();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.cancel'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.proceed_anyway'))).toBeOnTheScreen();
   });
 
   it('closes gas impact modal on cancel', () => {

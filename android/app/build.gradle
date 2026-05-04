@@ -187,8 +187,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.75.0"
-        versionCode 4784
+        versionName "7.76.0"
+        versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
@@ -262,10 +262,10 @@ android {
         keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
       mainDev {
-        storeFile file('debug.keystore')
-        storePassword 'android'
-        keyAlias 'androiddebugkey'
-        keyPassword 'android'
+        storeFile file('../keystores/debug.keystore')
+        storePassword System.getenv("ANDROID_SIGNING_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_MAIN_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_MAIN_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
       flaskProd {
         storeFile file('../keystores/flaskRelease.keystore')

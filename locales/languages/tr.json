@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Para mevcut değil. Farklı bir hesap kullanın."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Cüzdan desteklenmiyor",
       "message": "Donanım cüzdanları desteklenmiyor.\nDevam etmek için cüzdan değiştirin."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Fon ekle",
       "perps_withdraw": "Çek",
       "predict_deposit": "Tahmin fonu ekle",
-      "predict_withdraw": "Çek",
-      "money_account_deposit": "Fon ekle",
-      "money_account_withdraw": "Para çek"
+      "predict_withdraw": "Çek"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
@@ -7868,8 +7866,6 @@
         "manage_spending_limit": "Limiti yönet",
         "manage_spending_limit_description_restricted": "Sınırlı harcama açık",
         "manage_spending_limit_description_full": "Tam erişim açık",
-        "manage_card": "Kartı yönet",
-        "advanced_card_management_description": "Faaliyetleri, para iadelerini görün, kartı dondurun ve daha fazlasını yapın",
         "travel_title": "MetaMask Travel",
         "travel_description": "%70'e varan indirimlerle otel rezervasyonu yapın",
         "card_tos_title": "Şart ve koşullar",
@@ -8665,7 +8661,7 @@
   },
   "trending": {
     "title": "Keşfet",
-    "trending_tokens": "Trend tokenlar",
+    "trending_tokens": "Trend",
     "stocks": "Hisse Senetleri",
     "price_change": "Fiyat değişikliği",
     "all_networks": "Tüm ağlar",
@@ -8822,7 +8818,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT'ler",
-      "trending_tokens": "Trend tokenlar",
+      "trending_tokens": "Trend",
       "trending_perpetuals": "Sürekli vadeli işlem trendleri",
       "trending_predictions": "Tahmin trendleri",
       "import_nfts": "NFT'leri içe aktar",

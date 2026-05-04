@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Keine Geldmittel verfügbar. Verwenden Sie ein anderes Konto."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Wallet wird nicht unterstützt",
       "message": "Hardware-Wallets werden nicht unterstützt.\nWechseln Sie die Wallets, um fortzufahren."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Gelder hinzufügen",
       "perps_withdraw": "Auszahlen",
       "predict_deposit": "Prognosegelder hinzufügen",
-      "predict_withdraw": "Auszahlen",
-      "money_account_deposit": "Gelder hinzufügen",
-      "money_account_withdraw": "Geldmittel auszahlen"
+      "predict_withdraw": "Auszahlen"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -7868,8 +7866,6 @@
         "manage_spending_limit": "Limit verwalten",
         "manage_spending_limit_description_restricted": "Begrenzte Ausgaben sind an",
         "manage_spending_limit_description_full": "Vollzugriff ist an",
-        "manage_card": "Karte verwalten",
-        "advanced_card_management_description": "Aktivitäten, Cashback, Kartensperre und mehr einsehen",
         "travel_title": "MetaMask Travel",
         "travel_description": "Hotels mit bis zu 70 % Rabatt buchen",
         "card_tos_title": "Geschäftsbedingungen",
@@ -8665,7 +8661,7 @@
   },
   "trending": {
     "title": "Entdecken",
-    "trending_tokens": "Trendige Tokens",
+    "trending_tokens": "Trending",
     "stocks": "Aktien",
     "price_change": "Preisänderung",
     "all_networks": "Alle Netzwerke",
@@ -8822,7 +8818,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFTs",
-      "trending_tokens": "Trendige Tokens",
+      "trending_tokens": "Trending",
       "trending_perpetuals": "Trendige Perpetuals",
       "trending_predictions": "Trendige Prognosen",
       "import_nfts": "NFTs importieren",

@@ -72,6 +72,15 @@ describe('PerpsWithdrawInfo', () => {
     });
   });
 
+  it('passes hasMax=true to CustomAmountInfo so the percentage row shows Max instead of 90%', () => {
+    render(<PerpsWithdrawInfo />);
+
+    expect(mockCustomAmountInfo).toHaveBeenCalledWith(
+      expect.objectContaining({ hasMax: true }),
+      expect.anything(),
+    );
+  });
+
   it('passes hasExtraBottomPadding=true to CustomAmountInfo to clear the Android gesture bar', () => {
     render(<PerpsWithdrawInfo />);
 
