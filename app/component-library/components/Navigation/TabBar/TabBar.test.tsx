@@ -220,6 +220,36 @@ describe('TabBar', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 
+  it('navigates to money home when money tab is pressed', () => {
+    const moneyState = {
+      index: 0,
+      routes: [{ key: '1', name: 'Tab 1' }],
+    };
+    const moneyDescriptors: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Money,
+          rootScreenName: Routes.MONEY.HOME,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={moneyState as TabNavigationState<ParamListBase>}
+        descriptors={
+          moneyDescriptors as Record<string, ExtendedBottomTabDescriptor>
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Money}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.MONEY.HOME);
+    expect(navigation.navigate).toHaveBeenCalledTimes(1);
+  });
+
   it('does not render hidden tabs', () => {
     const stateWithHidden = {
       index: 0,

@@ -868,7 +868,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.MONEY.HOME}
           options={options.money}
-          component={WalletTabModalFlow}
+          component={MoneyScreenStack}
         />
       ) : (
         <Tab.Screen
