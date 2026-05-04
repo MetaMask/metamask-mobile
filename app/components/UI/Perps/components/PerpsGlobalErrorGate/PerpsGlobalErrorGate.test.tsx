@@ -1,11 +1,16 @@
 import React from 'react';
 import { render, act, waitFor, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
+import { addBreadcrumb } from '@sentry/react-native';
 import { PerpsGlobalErrorGate } from './PerpsGlobalErrorGate';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 jest.mock('../../services/PerpsConnectionManager');
+
+jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
@@ -509,5 +514,147 @@ describe('PerpsGlobalErrorGate', () => {
 
     expect(clearIntervalSpy).toHaveBeenCalled();
     clearIntervalSpy.mockRestore();
+  });
+
+  it('forwards isConnecting as isRetrying to the error view', async () => {
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: true,
+      isInitialized: false,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: 'Connection failed',
+    });
+
+    const { getByTestId } = render(
+      <PerpsGlobalErrorGate>
+        <Text>Child</Text>
+      </PerpsGlobalErrorGate>,
+    );
+
+    // isConnecting is picked up by the 100ms polling interval
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('is-retrying')).toBeOnTheScreen();
+    });
+  });
+
+  it('polls and reflects isConnecting changes', async () => {
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: 'Connection failed',
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <PerpsGlobalErrorGate>
+        <Text>Child</Text>
+      </PerpsGlobalErrorGate>,
+    );
+
+    expect(queryByTestId('is-retrying')).toBeNull();
+
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: true,
+      isInitialized: false,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: 'Connection failed',
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('is-retrying')).toBeOnTheScreen();
+    });
+  });
+
+  it('adds Sentry breadcrumb when retry fails', async () => {
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: 'Connection failed',
+    });
+
+    mockReconnectWithNewContext.mockRejectedValue(
+      new Error('Reconnect failed'),
+    );
+
+    const { getByTestId } = render(
+      <PerpsGlobalErrorGate>
+        <Text>Child</Text>
+      </PerpsGlobalErrorGate>,
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId('retry-button'));
+    });
+
+    expect(addBreadcrumb).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: 'perps.connection',
+        message: 'Retry failed',
+        level: 'warning',
+        data: expect.objectContaining({
+          error: 'Reconnect failed',
+        }),
+      }),
+    );
+  });
+
+  describe('gate + suppressErrorView provider integration', () => {
+    it('gate renders error view while suppressed children would normally render', () => {
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        isDisconnecting: false,
+        isInGracePeriod: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId, queryByText, getAllByTestId } = render(
+        <PerpsGlobalErrorGate>
+          <Text>Provider A children</Text>
+          <Text>Provider B children</Text>
+          <Text>Provider C children</Text>
+        </PerpsGlobalErrorGate>,
+      );
+
+      expect(getAllByTestId('perps-connection-error')).toHaveLength(1);
+      expect(getByTestId('error-message')).toHaveTextContent(
+        'Connection failed',
+      );
+      expect(queryByText('Provider A children')).toBeNull();
+      expect(queryByText('Provider B children')).toBeNull();
+      expect(queryByText('Provider C children')).toBeNull();
+    });
+
+    it('gate renders all children when there is no error', () => {
+      const { getByText, queryByTestId } = render(
+        <PerpsGlobalErrorGate>
+          <Text>Provider A children</Text>
+          <Text>Provider B children</Text>
+          <Text>Provider C children</Text>
+        </PerpsGlobalErrorGate>,
+      );
+
+      expect(queryByTestId('perps-connection-error')).toBeNull();
+      expect(getByText('Provider A children')).toBeOnTheScreen();
+      expect(getByText('Provider B children')).toBeOnTheScreen();
+      expect(getByText('Provider C children')).toBeOnTheScreen();
+    });
   });
 });
