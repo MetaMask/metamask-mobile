@@ -420,6 +420,12 @@ export const selectSelectedAccountGroupInternalAccounts = createSelector(
   },
 );
 
+/**
+ * Selector to get the EVM internal account (if any) from the currently selected account group.
+ *
+ * @param state - The Redux root state
+ * @returns The EVM internal account if any, null otherwise.
+ */
 export const selectSelectedAccountGroupEvmInternalAccount = createSelector(
   selectSelectedAccountGroupInternalAccounts,
   (accounts): InternalAccount | null =>

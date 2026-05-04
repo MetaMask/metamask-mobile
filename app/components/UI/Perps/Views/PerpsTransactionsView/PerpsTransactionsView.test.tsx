@@ -106,6 +106,7 @@ const createMockSelectedAccountGroupState = (
                   entropy: { groupIndex: 0 },
                   pinned: false,
                   hidden: false,
+                  lastSelected: 0,
                 },
               },
             },
