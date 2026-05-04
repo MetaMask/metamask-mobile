@@ -17,7 +17,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PendingTag } from './OndoCampaignStatsSummary';
 import type { PerpsTradingCampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
-import { formatComputedAt, formatSignedUsd } from '../../utils/formatUtils';
+import {
+  formatRewardsTimeOnly,
+  formatSignedUsd,
+} from '../../utils/formatUtils';
 
 export const PERPS_STATS_HEADER_TEST_IDS = {
   CONTAINER: 'perps-stats-header-container',
@@ -58,8 +61,11 @@ const PerpsTradingCampaignStatsHeader: React.FC<
       : TextColor.ErrorDefault
     : TextColor.TextDefault;
 
-  const computedAtLabel =
-    position != null ? formatComputedAt(position.computedAt) : '';
+  const computedAtLabel = position?.computedAt
+    ? strings('rewards.perps_trading_campaign.last_updated', {
+        time: formatRewardsTimeOnly(new Date(position.computedAt)),
+      })
+    : '';
 
   const showSubtextRow = showPnl || showComputedAt;
 

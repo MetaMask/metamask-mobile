@@ -125,8 +125,20 @@ jest.mock('../components/Campaigns/PerpsTradingCampaignStatsHeader', () => {
 jest.mock('../utils/formatUtils', () => ({
   formatSignedUsd: (value: number) => `SIGNED_USD_${String(value)}`,
   formatUsd: (value: number) => `USD_${String(value)}`,
-  formatComputedAt: (iso: string | null) => (iso ? 'COMPUTED_AT_LABEL' : ''),
+  formatRewardsTimeOnly: () => 'TIME_STUB',
 }));
+
+jest.mock('../components/RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(View, {
+        testID: testID ?? 'rewards-error-banner',
+      }),
+  };
+});
 
 jest.mock('../hooks/useGetPerpsTradingCampaignLeaderboardPosition');
 jest.mock('../hooks/useGetCampaignParticipantStatus');
@@ -267,7 +279,9 @@ describe('PerpsTradingCampaignStatsView', () => {
   it('shows last-computed when position has a timestamp', () => {
     const { getByTestId } = render(<PerpsTradingCampaignStatsView />);
     const el = getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.LAST_COMPUTED);
-    expect(el.props.children).toBe('COMPUTED_AT_LABEL');
+    expect(el.props.children).toBe(
+      'rewards.perps_trading_campaign.last_updated',
+    );
   });
 
   it('hides last-computed when there is no position', () => {
@@ -345,5 +359,34 @@ describe('PerpsTradingCampaignStatsView', () => {
     expect(
       queryByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.QUALIFIED_CARD),
     ).toBeNull();
+  });
+
+  it('shows error banner when hasError is true and no position data', () => {
+    mockUseGetPosition.mockReturnValue({
+      position: null,
+      isLoading: false,
+      hasError: true,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+    const { getByTestId } = render(<PerpsTradingCampaignStatsView />);
+    expect(getByTestId('rewards-error-banner')).toBeDefined();
+  });
+
+  it('hides error banner when hasError is false', () => {
+    const { queryByTestId } = render(<PerpsTradingCampaignStatsView />);
+    expect(queryByTestId('rewards-error-banner')).toBeNull();
+  });
+
+  it('hides error banner when there is an error but position data is already loaded', () => {
+    mockUseGetPosition.mockReturnValue({
+      position: basePosition,
+      isLoading: false,
+      hasError: true,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+    const { queryByTestId } = render(<PerpsTradingCampaignStatsView />);
+    expect(queryByTestId('rewards-error-banner')).toBeNull();
   });
 });

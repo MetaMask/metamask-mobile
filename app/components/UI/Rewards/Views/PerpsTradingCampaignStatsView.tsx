@@ -19,6 +19,7 @@ import {
 import { useSelector } from 'react-redux';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import PerpsTradingCampaignStatsHeader from '../components/Campaigns/PerpsTradingCampaignStatsHeader';
 import { StatCell } from '../components/Campaigns/OndoCampaignStatsSummary';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
@@ -29,7 +30,7 @@ import { selectCampaignById } from '../../../../reducers/rewards/selectors';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { PERPS_QUALIFICATION_NOTIONAL_USD } from '../utils/perpsCampaignConstants';
 import {
-  formatComputedAt,
+  formatRewardsTimeOnly,
   formatSignedUsd,
   formatUsd,
 } from '../utils/formatUtils';
@@ -80,9 +81,10 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
     useGetCampaignParticipantStatus(campaignId);
   const isOptedIn = participantStatusData?.optedIn === true;
 
-  const { position, isLoading } = useGetPerpsTradingCampaignLeaderboardPosition(
-    isOptedIn ? campaignId : undefined,
-  );
+  const { position, isLoading, hasError, refetch } =
+    useGetPerpsTradingCampaignLeaderboardPosition(
+      isOptedIn ? campaignId : undefined,
+    );
 
   const pnlValue = position ? formatSignedUsd(position.pnl) : '—';
   const pnlColor = position
@@ -109,9 +111,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
   const showQualifyForRankCard =
     !isCampaignComplete && isPending && position != null && notionalGap > 0;
 
-  const lastComputedSubtext = position
-    ? formatComputedAt(position.computedAt)
-    : '';
+  const positionError = hasError && !position;
 
   return (
     <ErrorBoundary navigation={navigation} view="PerpsTradingCampaignStatsView">
@@ -239,19 +239,36 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                 </Text>
               </Box>
             )}
-          </Box>
-          {lastComputedSubtext.length > 0 && (
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4">
+
+            {/* ── Last updated ── */}
+            {position?.computedAt && (
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
                 testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.LAST_COMPUTED}
               >
-                {lastComputedSubtext}
+                {strings('rewards.perps_trading_campaign.last_updated', {
+                  time: formatRewardsTimeOnly(new Date(position.computedAt)),
+                })}
               </Text>
-            </Box>
-          )}
+            )}
+
+            {/* ── Error banner ── */}
+            {positionError && (
+              <RewardsErrorBanner
+                title={strings(
+                  'rewards.perps_trading_campaign.stats_error_title',
+                )}
+                description={strings(
+                  'rewards.perps_trading_campaign.stats_error_description',
+                )}
+                onConfirm={refetch}
+                confirmButtonLabel={strings(
+                  'rewards.perps_trading_campaign.stats_retry',
+                )}
+              />
+            )}
+          </Box>
         </ScrollView>
       </SafeAreaView>
     </ErrorBoundary>

@@ -45,8 +45,6 @@ interface UserPosition {
 
 export interface PerpsTradingCampaignLeaderboardProps {
   entries: PerpsTradingCampaignLeaderboardEntry[];
-  totalParticipants: number;
-  computedAt: string | null;
   isLoading: boolean;
   hasError: boolean;
   isLeaderboardNotYetComputed?: boolean;
@@ -62,8 +60,6 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   PerpsTradingCampaignLeaderboardProps
 > = ({
   entries,
-  totalParticipants,
-  computedAt,
   isLoading,
   hasError,
   isLeaderboardNotYetComputed = false,

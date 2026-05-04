@@ -17,7 +17,6 @@ import {
   validateEmail,
   formatPercentChange,
   isPercentChangeNonNegative,
-  formatComputedAt,
   getChainHex,
   getAssetReference,
   parseCaip19,
@@ -1451,28 +1450,6 @@ describe('formatUtils', () => {
 
     it('returns false for non-numeric string', () => {
       expect(isPercentChangeNonNegative('—')).toBe(false);
-    });
-  });
-
-  describe('formatComputedAt', () => {
-    it('returns empty string for null', () => {
-      expect(formatComputedAt(null)).toBe('');
-    });
-
-    it('returns empty string for empty string', () => {
-      expect(formatComputedAt('')).toBe('');
-    });
-
-    it('returns Last updated with locale-aware time for a valid ISO timestamp', () => {
-      const result = formatComputedAt('2026-03-28T14:30:45.000Z');
-      expect(result.startsWith('Last updated: ')).toBe(true);
-      const timePortion = result.slice('Last updated: '.length);
-      expect(timePortion.length).toBeGreaterThan(0);
-      expect(timePortion).toMatch(/^\d{1,2}:\d{2}\s?[AP]M$/i);
-    });
-
-    it('returns empty string for unparseable value', () => {
-      expect(formatComputedAt('not-a-date')).toBe('');
     });
   });
 

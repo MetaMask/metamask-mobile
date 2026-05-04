@@ -8628,7 +8628,10 @@
       "stats_qualified_title": "You're qualified",
       "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for this rank",
-      "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible."
+      "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_retry": "Retry"
     },
     "campaigns_preview": {
       "title": "Campaigns",

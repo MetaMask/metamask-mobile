@@ -179,36 +179,6 @@ const OndoCampaignStatsView: React.FC = () => {
     });
   }, [navigation, campaignId, campaign, routeCampaignName]);
 
-  const ondoLastComputedIso = useMemo(() => {
-    const p = portfolioData?.computedAt;
-    const l = leaderboardPosition?.computedAt;
-    if (!p && !l) {
-      return null;
-    }
-    if (!p) {
-      return l ?? null;
-    }
-    if (!l) {
-      return p;
-    }
-    const dP = new Date(p).getTime();
-    const dL = new Date(l).getTime();
-    if (Number.isNaN(dP) && Number.isNaN(dL)) {
-      return null;
-    }
-    if (Number.isNaN(dP)) {
-      return l;
-    }
-    if (Number.isNaN(dL)) {
-      return p;
-    }
-    return dP >= dL ? p : l;
-  }, [portfolioData?.computedAt, leaderboardPosition?.computedAt]);
-
-  const lastComputedSubtext = ondoLastComputedIso
-    ? formatComputedAt(ondoLastComputedIso)
-    : '';
-
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignStatsView">
       <SafeAreaView
@@ -430,18 +400,6 @@ const OndoCampaignStatsView: React.FC = () => {
               />
             )}
           </Box>
-          {lastComputedSubtext.length > 0 && (
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-                testID={ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS.LAST_COMPUTED}
-              >
-                {lastComputedSubtext}
-              </Text>
-            </Box>
-          )}
         </ScrollView>
       </SafeAreaView>
     </ErrorBoundary>

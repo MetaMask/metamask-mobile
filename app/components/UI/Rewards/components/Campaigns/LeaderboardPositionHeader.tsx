@@ -20,7 +20,6 @@ import {
   IneligibleTag,
 } from './OndoCampaignStatsSummary';
 import { strings } from '../../../../../../locales/i18n';
-import { formatComputedAt } from '../../utils/formatUtils';
 
 export const LEADERBOARD_POSITION_HEADER_TEST_IDS = {
   CONTAINER: 'leaderboard-position-header-container',
@@ -47,9 +46,7 @@ interface LeaderboardPositionHeaderProps {
   showPrizePool?: boolean;
   prizePoolValue?: string;
   prizePoolLoading?: boolean;
-  /** When true, shows formatted `computedAt` (ISO) on the same row as return, right-aligned. */
   showComputedAt?: boolean;
-  /** ISO 8601 timestamp; displayed via {@link formatComputedAt}. */
   computedAt?: string | null;
 }
 

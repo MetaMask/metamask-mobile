@@ -513,7 +513,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-4 px-4"
+                        twClassName="gap-2 px-4 mb-1"
                       >
                         <Text variant={TextVariant.HeadingMd}>
                           {strings('rewards.ondo_campaign_leaderboard.title')}

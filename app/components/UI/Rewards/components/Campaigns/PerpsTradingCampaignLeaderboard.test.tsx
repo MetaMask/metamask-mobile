@@ -19,7 +19,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
-  formatComputedAt: () => '',
   formatSignedUsd: (value: number) => `$${value.toFixed(2)}`,
 }));
 
@@ -65,8 +64,6 @@ const defaultProps = {
     createPerpsEntry({ rank: 1, referralCode: 'A' }),
     createPerpsEntry({ rank: 2, referralCode: 'B' }),
   ],
-  totalParticipants: 100,
-  computedAt: '2025-01-01T00:00:00.000Z',
   isLoading: false,
   hasError: false,
 };

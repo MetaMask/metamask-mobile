@@ -6,7 +6,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   FontWeight,
   Icon,
   IconColor,
@@ -240,7 +239,6 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
-                      justifyContent={BoxJustifyContent.Between}
                       twClassName="gap-2 mb-3"
                     >
                       <Text
@@ -295,8 +293,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        justifyContent={BoxJustifyContent.Between}
-                        twClassName="px-4"
+                        twClassName="px-4 gap-2 mb-1"
                       >
                         <Text
                           variant={TextVariant.HeadingMd}
@@ -333,8 +330,6 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                     </Box>
                     <PerpsTradingCampaignLeaderboard
                       entries={leaderboard?.entries ?? []}
-                      totalParticipants={totalParticipants}
-                      computedAt={leaderboard?.computedAt ?? null}
                       isLoading={isLeaderboardLoading}
                       hasError={hasLeaderboardError}
                       isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}

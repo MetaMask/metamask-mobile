@@ -36,7 +36,6 @@ import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPositio
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useOndoLeaderboardPositionDisplay } from '../hooks/useOndoLeaderboardPositionDisplay';
-import { getCurrentPrize } from '../components/Campaigns/OndoPrizePool';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -44,6 +43,9 @@ import {
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { computePrizePoolProgress } from '../utils/prizePoolUtils';
+import { BREAKPOINTS } from '../components/Campaigns/OndoPrizePool';
+import { ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS } from './OndoCampaignStatsView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -274,7 +276,6 @@ const OndoLeaderboardView: React.FC = () => {
               hideTierHeader
             />
           </Box>
-      
         </ScrollView>
       </SafeAreaView>
     </ErrorBoundary>

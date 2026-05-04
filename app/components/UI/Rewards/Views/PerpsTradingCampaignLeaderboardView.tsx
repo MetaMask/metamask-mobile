@@ -123,8 +123,6 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
           <Box twClassName="py-4">
             <PerpsTradingCampaignLeaderboard
               entries={leaderboard?.entries ?? []}
-              totalParticipants={leaderboard?.totalParticipants ?? 0}
-              computedAt={leaderboard?.computedAt ?? null}
               isLoading={isLeaderboardLoading}
               hasError={hasLeaderboardError}
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}

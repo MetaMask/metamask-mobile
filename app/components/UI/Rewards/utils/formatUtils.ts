@@ -425,26 +425,6 @@ export function formatOrdinalRank(rank: number): string {
   return `${n}${suffix}`;
 }
 
-// ── Timestamp formatting ────────────────────────────────────────────────
-
-/**
- * Formats an ISO 8601 timestamp for display, e.g. `Last updated: 2:30 PM` (locale-aware time).
- * Returns '' for null or unparseable values.
- */
-export const formatComputedAt = (isoString: string | null): string => {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return '';
-  const timeLabel = new Intl.DateTimeFormat(I18n.locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).format(date);
-  return strings('rewards.perps_trading_campaign.last_updated', {
-    time: timeLabel,
-  });
-};
-
 // ── CAIP-19 / address helpers ───────────────────────────────────────────
 
 /**

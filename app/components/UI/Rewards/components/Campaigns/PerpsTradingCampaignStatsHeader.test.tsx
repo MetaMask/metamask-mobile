@@ -41,7 +41,7 @@ jest.mock('../../utils/formatUtils', () => {
       }
       return '$0.00';
     },
-    formatComputedAt: (iso: string | null) => (iso ? 'last-updated-stub' : ''),
+    formatRewardsTimeOnly: () => 'time-stub',
   };
 });
 
@@ -136,7 +136,9 @@ describe('PerpsTradingCampaignStatsHeader', () => {
       />,
     );
     const computed = getByTestId(TEST_IDS.COMPUTED_AT);
-    expect(computed.props.children).toBe('last-updated-stub');
+    expect(computed.props.children).toBe(
+      'rewards.perps_trading_campaign.last_updated',
+    );
   });
 
   it('omits computed-at when formatted label is empty', () => {
