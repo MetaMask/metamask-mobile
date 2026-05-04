@@ -9,10 +9,8 @@ import { createMockUIMessenger } from '../util/test/mock-ui-messenger';
 describe('getRouteMessengerNamespace', () => {
   it.each([
     ['SomePath', 'SomePathRoute'],
-    ['AnotherExampl', 'AnotherExampleRoute'],
-    ['/path/with/*', 'PathWithWildcardRoute'],
-    ['/path/with/:someParameter', 'PathWithSomeParameterRoute'],
-    ['/', 'Route'],
+    ['AnotherExample', 'AnotherExampleRoute'],
+    ['', 'Route'],
   ])(
     'derives the correct namespace from the path "%s"',
     (path, expectedNamespace) => {
@@ -35,7 +33,7 @@ describe('createRouteMessenger', () => {
     jest.spyOn(uiMessenger, 'delegate');
 
     const routeMessenger = createRouteMessenger({
-      path: '/some/path',
+      path: 'SomePathRoute',
       uiMessenger,
       capabilities: {
         actions: ['SnapController:installSnaps'],
@@ -60,7 +58,7 @@ describe('createRouteMessenger', () => {
 
     expect(() =>
       createRouteMessenger({
-        path: '/test',
+        path: 'Test',
         uiMessenger,
         capabilities: {},
       }),

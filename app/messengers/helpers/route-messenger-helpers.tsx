@@ -1,9 +1,13 @@
 import React, { ComponentType, FunctionComponent } from 'react';
 import { UIMessengerActions, UIMessengerEvents } from '../ui-messenger';
 import { RouteWithMessenger } from '../route-with-messenger';
-import { NavigationProp } from '@react-navigation/native';
-import { EventMapBase, RouteProp, ParamListBase } from '@react-navigation/core';
-import type { NavigationState } from '@react-navigation/routers';
+import {
+  NavigationProp,
+  EventMapBase,
+  RouteProp,
+  ParamListBase,
+  NavigationState,
+} from '@react-navigation/native';
 
 /**
  * Validate that each element of a tuple is a member of the given union,
