@@ -849,6 +849,7 @@ jest.mock('../../component-library/components/BottomSheets/BottomSheet', () => {
     default: BottomSheet,
   };
 });
+
 // Mock react-native-modal to render children immediately (bypasses animation)
 jest.mock('react-native-modal', () => {
   const React = require('react');
