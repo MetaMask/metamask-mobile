@@ -331,13 +331,22 @@ class PlaywrightUtilities {
   ): Promise<void> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
+
+    const pkg = currentDeviceDetails.packageName?.trim();
+    const activity = currentDeviceDetails.launchableActivity?.trim();
+    if (!pkg || !activity) {
+      throw new Error(
+        `Android launch requires non-empty packageName and launchableActivity on currentDeviceDetails (set tests/playwright.config.ts use.app.packageName and use.app.launchableActivity). Got packageName="${currentDeviceDetails.packageName}", launchableActivity="${currentDeviceDetails.launchableActivity}".`,
+      );
+    }
+
     const optionalIntentArguments =
       PlaywrightUtilities.buildAndroidOptionalIntentArguments({
         launchArgs,
       });
     await drv.execute('mobile: startActivity', {
-      appPackage: currentDeviceDetails.packageName,
-      appActivity: currentDeviceDetails.launchableActivity,
+      appPackage: pkg,
+      appActivity: activity,
       ...(optionalIntentArguments !== undefined
         ? { optionalIntentArguments }
         : {}),

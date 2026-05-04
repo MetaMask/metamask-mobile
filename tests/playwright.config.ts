@@ -20,21 +20,18 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch: [
-        'tests/performance/**/*.spec.ts',
-        'tests/performance/**/*.spec.js',
-      ],
+      testMatch: 'tests/performance/fixtures/test.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.EMULATOR,
-          name: 'Samsung Galaxy S24 Ultra',
-          osVersion: '14', // 14 for local testing
+          name: 'Pixel_5_Pro_API_34',
+          osVersion: '13', // 14 for local testing
         },
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+          // buildPath: 'PATH-TO-BUILD', // Path to your .apk file
         },
       },
     },
@@ -58,8 +55,7 @@ export default defineConfig({
     },
     {
       name: 'ios',
-      testMatch:
-        'tests/performance/login/launch-times/cold-start-to-login.spec.ts',
+      testMatch: 'tests/performance/fixtures/test.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
@@ -69,7 +65,7 @@ export default defineConfig({
         },
         app: {
           appId: 'io.metamask.MetaMask',
-          // buildPath: 'PATH-TO-BUILD', // Path to your .app file
+          buildPath: '/Users/cferreira/Downloads/test.app', // Path to your .app file
         },
       },
     },
@@ -164,7 +160,8 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-android-browserstack',
-      testMatch: '**/performance/mm-connect/**/*.spec.ts',
+      testMatch:
+        'tests/performance/mm-connect/connection-evm-rejection.spec.ts',
       timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
@@ -180,7 +177,7 @@ export default defineConfig({
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+          buildPath: 'bs://d655741da74410b087d1fc0f13a66f0c4d0ad68a', // Path to Browserstack url
         },
       },
     },

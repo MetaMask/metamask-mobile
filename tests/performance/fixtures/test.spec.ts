@@ -4,21 +4,17 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
 /* Scenario: Test Fixtures */
-test.describe(`TEST FIXTURES`, () => {
-  test('Test Fixtures', async ({
-    currentDeviceDetails,
-    driver,
-    performanceTracker,
-  }, testInfo) => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToAppPlaywright();
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-      },
-    );
-  });
+test('Test Fixtures', async ({ currentDeviceDetails, driver }, testInfo) => {
+  await withFixtures(
+    {
+      fixture: new FixtureBuilder().build(),
+      restartDevice: true,
+      currentDeviceDetails,
+    },
+    async () => {
+      console.log('currentDeviceDetails', currentDeviceDetails);
+      await loginToAppPlaywright({ scenarioType: 'e2e' });
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+    },
+  );
 });

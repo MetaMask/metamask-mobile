@@ -654,15 +654,19 @@ export async function withFixtures(
         if (!currentDeviceDetails) {
           throw new Error('currentDeviceDetails is not available');
         }
+        const testArgs = {
+          fixtureServerPort: `${getFixturesServerPort()}`,
+          commandQueueServerPort: `${commandQueueServer.getServerPort()}`,
+          detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+          mockServerPort: `${mockServerPort}`,
+          [ACCOUNT_ACTIVITY_WS.launchArgKey]: `${accountActivityWsServer.getServerPort()}`,
+          ...(launchArgs || {}),
+        };
+        console.log('currentDeviceDetails', currentDeviceDetails);
+        console.log('args', testArgs);
+
         await PlaywrightUtilities.launchApp(currentDeviceDetails, {
-          launchArgs: {
-            fixtureServerPort: `${getFixturesServerPort()}`,
-            commandQueueServerPort: `${commandQueueServer.getServerPort()}`,
-            detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-            mockServerPort: `${mockServerPort}`,
-            [ACCOUNT_ACTIVITY_WS.launchArgKey]: `${accountActivityWsServer.getServerPort()}`,
-            ...(launchArgs || {}),
-          },
+          launchArgs: testArgs,
         });
       } else {
         throw new Error(`Unsupported test runner: ${framework}`);
@@ -749,7 +753,7 @@ export async function withFixtures(
     }
 
     // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
-    if (!skipReactNativeReload) {
+    if (!skipReactNativeReload && FrameworkDetector.isDetox()) {
       try {
         // Disable synchronization to prevent race conditions with pending timers
         await device.disableSynchronization();
