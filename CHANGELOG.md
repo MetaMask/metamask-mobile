@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.74.2]
 
+### Fixed
+
+- Updated Polymarket adapter contracts so Polymarket prediction transactions continue working after the relayer migration. (#29573)
+
+## [7.74.1]
+
+### Fixed
+
+- Fixed the environmental issue that push notifications not received on Android
+
 ## [7.73.2]
 
 ### Added
