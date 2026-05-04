@@ -50,7 +50,8 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
 };
 
-describe(SmokePredictions('Predictions'), () => {
+// Disabling because of https://consensys.slack.com/archives/C02U025CVU4/p1777884336901849
+describe.skip(SmokePredictions('Predictions'), () => {
   it('opens position on Celtics vs. Nets market', async () => {
     await withFixtures(
       {
