@@ -64,6 +64,7 @@ import {
   MultichainAssetsRatesControllerEvents,
   MultichainAssetsRatesControllerActions,
   CodefiTokenPricesServiceV2,
+  TokenListService,
   TokenDetectionControllerEvents,
   TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
@@ -1044,6 +1045,13 @@ export type MessengerClientInitRequest<
    * The token API service instance.
    */
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
+
+  /**
+   * Shared token list cache service used by TokensController and
+   * TokenDetectionController to de-duplicate in-flight requests and share
+   * the same 4-hour cache.
+   */
+  tokenListService: TokenListService;
 
   /**
    * Controller messenger for the client.
