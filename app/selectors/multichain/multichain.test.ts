@@ -687,7 +687,13 @@ describe('MultichainNonEvm Selectors', () => {
         let mockSelectedGroupAccounts: InternalAccount[] | undefined;
 
         jest.doMock('./evm', () => ({
-          selectAccountTokensAcrossChains: () => mockEvmTokensByChain,
+          selectAccountTokensAcrossChainsForAddress: () => mockEvmTokensByChain,
+        }));
+
+        jest.doMock('../multichainAccounts/accounts', () => ({
+          selectSelectedInternalAccountByScope: () => () => ({
+            address: '0xMockEvmAddress',
+          }),
         }));
 
         jest.doMock('../multichainAccounts/accountTreeController', () => ({
@@ -724,7 +730,13 @@ describe('MultichainNonEvm Selectors', () => {
         let mockSelectedGroupAccounts: InternalAccount[] | undefined;
 
         jest.doMock('./evm', () => ({
-          selectAccountTokensAcrossChains: () => mockEvmTokensByChain,
+          selectAccountTokensAcrossChainsForAddress: () => mockEvmTokensByChain,
+        }));
+
+        jest.doMock('../multichainAccounts/accounts', () => ({
+          selectSelectedInternalAccountByScope: () => () => ({
+            address: '0xMockEvmAddress',
+          }),
         }));
 
         jest.doMock('../multichainAccounts/accountTreeController', () => ({
