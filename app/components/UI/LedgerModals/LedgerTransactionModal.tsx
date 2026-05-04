@@ -7,6 +7,8 @@ import {
   useParams,
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
+import { normalizeReplacementGasFeeParams } from '../../../util/confirmation/gas';
+import { type ReplacementTxParams } from '../../../core/HardwareWallet/transactionReplacementParams';
 import { speedUpTransaction } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
@@ -17,17 +19,6 @@ export const createLedgerTransactionModalNavDetails =
 export enum LedgerReplacementTxTypes {
   SPEED_UP = 'speedUp',
   CANCEL = 'cancel',
-}
-
-export interface ReplacementTxParams {
-  type: LedgerReplacementTxTypes;
-  eip1559GasFee?: {
-    maxFeePerGas?: string;
-    maxPriorityFeePerGas?: string;
-  };
-  legacyGasFee?: {
-    gasPrice?: string;
-  };
 }
 
 export interface LedgerTransactionModalParams {
@@ -56,7 +47,7 @@ const LedgerTransactionModal = () => {
   }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
-    const gasFeeParams = getReplacementGasFeeParams(replacementParams);
+    const gasFeeParams = normalizeReplacementGasFeeParams(replacementParams);
 
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
       await speedUpTransaction(transactionId, gasFeeParams);
