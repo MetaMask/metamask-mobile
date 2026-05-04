@@ -51,6 +51,8 @@ import {
   CLEANUP_INTERVAL_MS,
   getCacheKey,
 } from '../../../../components/UI/Bridge/utils/cacheUtils';
+import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
+import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -671,6 +673,21 @@ export const selectIsEvmSwap = createSelector(
   selectIsSwap,
   selectIsSolanaSwap,
   (isSwap, isSolanaSwap) => isSwap && !isSolanaSwap,
+);
+
+/**
+ * Same-chain EVM swap involving a stock RWA token while `selectRWAEnabledFlag` is true.
+ * Composes existing selectors; used for auto slippage (same idea as Solana same-chain).
+ */
+export const selectIsRwaSwap = createSelector(
+  selectIsEvmSwap,
+  selectSourceToken,
+  selectDestToken,
+  selectRWAEnabledFlag,
+  (isEvmSwap, sourceToken, destToken, isRwaEnabled) =>
+    isEvmSwap &&
+    (isStockRwaBridgeToken(sourceToken, isRwaEnabled) ||
+      isStockRwaBridgeToken(destToken, isRwaEnabled)),
 );
 
 export const selectIsSubmittingTx = createSelector(
