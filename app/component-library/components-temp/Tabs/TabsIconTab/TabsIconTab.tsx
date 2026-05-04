@@ -17,7 +17,7 @@ import Icon, { IconSize, IconColor } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import { TabsIconTabProps } from './TabsIconTab.types';
-import { TabIconAnimationContext } from '../Tab/TabIconAnimationContext';
+import { TabIconAnimationContext } from './TabsIconAnimationContext';
 
 const ICON_SIZE_LG = 24;
 const ICON_MARGIN_BOTTOM = 4;
