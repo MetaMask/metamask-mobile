@@ -11,9 +11,9 @@ import Reanimated, {
   Easing,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import TabsList from '../../../../../component-library/components-temp/Tabs/TabsList';
+import TabsIconList from '../../../../../component-library/components-temp/Tabs/TabsIconList/TabsIconList';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { TabsListRef } from '../../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
+import { TabsIconListRef } from '../../../../../component-library/components-temp/Tabs/TabsIconList/TabsIconList.types';
 import Homepage from '../../Homepage';
 import PerpsHomeView from '../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView';
 import PredictFeed from '../../../../UI/Predict/views/PredictFeed';
@@ -134,7 +134,7 @@ const HomepageDiscoveryTabs = forwardRef<
     },
     ref,
   ) => {
-    const tabsRef = useRef<TabsListRef>(null);
+    const tabsRef = useRef<TabsIconListRef>(null);
     const homepageRef = useRef<SectionRefreshHandle>(null);
     const perpsTabEnterRef = useRef<(() => void) | null>(null);
     const tw = useTailwind();
@@ -272,7 +272,7 @@ const HomepageDiscoveryTabs = forwardRef<
     return (
       <TabIconAnimationContext.Provider value={{ iconCollapseAnim }}>
         <View style={styles.flex}>
-          <TabsList
+          <TabsIconList
             ref={tabsRef}
             initialActiveIndex={TAB_INDEX.PORTFOLIO}
             onChangeTab={handleChangeTab}
@@ -323,7 +323,7 @@ const HomepageDiscoveryTabs = forwardRef<
                 <PredictFeed hideHeader onHeaderHiddenChange={animateIcons} />
               </PredictPreviewSheetProvider>
             </DiscoveryTabView>
-          </TabsList>
+          </TabsIconList>
 
           {/* Gradient overlay — dark mode only. One layer per tab, each always mounted
               with fixed colors. Crossfade is pure opacity animation on the native thread —

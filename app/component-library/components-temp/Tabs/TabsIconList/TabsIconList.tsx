@@ -13,12 +13,17 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { InteractionManager } from 'react-native';
 
-import TabsBar from '../TabsBar';
-import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
+import TabsIconBar from '../TabsIconBar/TabsIconBar';
+import type { IconName } from '../../../components/Icons/Icon/Icon.types';
+import {
+  TabsIconListProps,
+  TabsIconListRef,
+  TabsIconItem,
+} from './TabsIconList.types';
 
 const TAB_LOAD_FALLBACK_TIMEOUT_MS = 250;
 
-const TabsList = forwardRef<TabsListRef, TabsListProps>(
+const TabsIconList = forwardRef<TabsIconListRef, TabsIconListProps>(
   (
     {
       children,
@@ -31,15 +36,17 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     },
     ref,
   ) => {
-    const tabs: TabItem[] = useMemo(
+    const tabs: TabsIconItem[] = useMemo(
       () =>
         React.Children.toArray(children)
           .filter((child) => React.isValidElement(child))
           .map((child, index) => {
             const props = (child as React.ReactElement).props as {
               tabLabel?: string;
+              tabIcon?: IconName;
               isDisabled?: boolean;
               testID?: string;
+              keepMounted?: boolean;
             };
             const tabLabel = props.tabLabel || `Tab ${index + 1}`;
             const isDisabled = props.isDisabled || false;
@@ -47,10 +54,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               key:
                 (child as React.ReactElement).key?.toString() || `tab-${index}`,
               label: tabLabel,
+              iconName: props.tabIcon as IconName,
               content: child,
               isDisabled,
               isLoaded: false,
               testID: props.testID,
+              keepMounted: props.keepMounted ?? true,
             };
           }),
       [children],
@@ -80,7 +89,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       null,
     );
 
-    // Cancel any pending InteractionManager + fallback timeout
     const cancelPendingLoad = useCallback(() => {
       if (interactionHandleRef.current) {
         interactionHandleRef.current.cancel?.();
@@ -92,9 +100,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       }
     }, []);
 
-    // Schedule tab content loading via InteractionManager with a fallback timeout
-    // in case the InteractionManager callback never fires (observed in repeated
-    // Perps Home -> Activity navigation)
     useEffect(() => {
       if (activeIndex >= 0 && activeIndex < tabs.length) {
         cancelPendingLoad();
@@ -180,7 +185,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     const goToPreviousTab = useCallback(() => {
-      // Iterate backwards to find the next enabled tab
       for (let i = activeIndex - 1; i >= 0; i--) {
         if (!tabs[i]?.isDisabled) {
           handleTabPress(i);
@@ -190,7 +194,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     }, [activeIndex, tabs, handleTabPress]);
 
     const goToNextTab = useCallback(() => {
-      // Iterate forwards to find the next enabled tab
       for (let i = activeIndex + 1; i < tabs.length; i++) {
         if (!tabs[i]?.isDisabled) {
           handleTabPress(i);
@@ -209,7 +212,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             'worklet';
             const { translationX, velocityX } = gestureEvent;
 
-            // Match ScrollView paging behavior with lower thresholds for natural feel
             if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 500) {
               if (translationX > 0) {
                 runOnJS(goToPreviousTab)();
@@ -245,7 +247,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
     return (
       <Box twClassName="flex-1" testID={testID} {...boxProps}>
-        <TabsBar {...tabBarPropsComputed} />
+        <TabsIconBar {...tabBarPropsComputed} />
 
         <GestureDetector gesture={swipeGesture}>
           <Box
@@ -257,6 +259,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               const isLoaded = loadedTabs.has(index);
 
               if (!isLoaded) return null;
+              if (!isActive && !tab.keepMounted) return null;
 
               return (
                 <Box
@@ -275,6 +278,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
   },
 );
 
-TabsList.displayName = 'TabsList';
+TabsIconList.displayName = 'TabsIconList';
 
-export default TabsList;
+export default TabsIconList;
