@@ -1,11 +1,5 @@
 // Third party dependencies.
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { useRef, useState } from 'react';
 import { Animated, ScrollView, LayoutChangeEvent } from 'react-native';
 
 // External dependencies.
@@ -19,6 +13,7 @@ import {
 // Internal dependencies.
 import TabsIconTab from '../TabsIconTab/TabsIconTab';
 import { TabsIconBarProps } from './TabsIconBar.types';
+import { useTabsBarLayout } from '../hooks/useTabsBarLayout';
 
 const TabsIconBar: React.FC<TabsIconBarProps> = ({
   tabs,
@@ -33,18 +28,8 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
   const tw = useTailwind();
 
   const scrollViewRef = useRef<ScrollView>(null);
-
   const underlineAnimated = useRef(new Animated.Value(0)).current;
   const [underlineWidth, setUnderlineWidth] = useState(0);
-  const tabLayouts = useRef<{ x: number; width: number }[]>([]);
-  const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
-  const rafCallbackId = useRef<number | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [layoutsReady, setLayoutsReady] = useState(false);
-  const activeIndexRef = useRef(activeIndex);
-
-  const [scrollEnabled, setScrollEnabled] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(0);
 
   // Height collapse animation — icon tabs always have a border-b row
   const [tabRowHeight, setTabRowHeight] = useState(0);
@@ -56,207 +41,36 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
         })
       : undefined;
 
-  useEffect(() => {
-    activeIndexRef.current = activeIndex;
-  }, [activeIndex]);
-
-  const tabKeys = useMemo(() => tabs.map((tab) => tab.key).join(','), [tabs]);
-  const prevTabKeys = useRef<string>('');
-  const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      prevTabKeys.current = tabKeys;
-      isInitialMount.current = false;
-      return;
-    }
-
-    const shouldReset =
-      tabLayouts.current.length !== tabs.length ||
-      prevTabKeys.current !== tabKeys;
-
-    if (shouldReset) {
-      prevTabKeys.current = tabKeys;
-      tabLayouts.current = new Array(tabs.length);
-      setIsInitialized(false);
-      setLayoutsReady(false);
-      setScrollEnabled(false);
-
-      if (currentAnimation.current) {
-        currentAnimation.current.stop();
-        currentAnimation.current = null;
-      }
-
-      setContainerWidth(0);
-    }
-  }, [tabKeys, tabs.length]);
-
-  // When the rendering mode switches (non-scroll ↔ scroll), invalidate stored
-  // layouts so stale x-offsets don't drive the underline before fresh measurements arrive.
-  const prevScrollEnabled = useRef(scrollEnabled);
-  useEffect(() => {
-    if (prevScrollEnabled.current !== scrollEnabled) {
-      prevScrollEnabled.current = scrollEnabled;
-      tabLayouts.current = new Array(tabs.length);
-      setIsInitialized(false);
-      setLayoutsReady(false);
-      if (currentAnimation.current) {
-        currentAnimation.current.stop();
-        currentAnimation.current = null;
-      }
-    }
-  }, [scrollEnabled, tabs.length]);
-
-  const animateToTab = useCallback(
-    (targetIndex: number) => {
-      if (currentAnimation.current) {
-        currentAnimation.current.stop();
-        currentAnimation.current = null;
-      }
-
-      if (targetIndex < 0 || targetIndex >= tabs.length) {
-        return;
-      }
-
-      const activeTabLayout = tabLayouts.current[targetIndex];
-
-      if (!activeTabLayout || activeTabLayout.width <= 0) {
-        return;
-      }
-
-      const isFirstTime = !isInitialized;
-
+  const {
+    isInitialized,
+    scrollEnabled,
+    handleContainerLayout,
+    handleTabLayout,
+  } = useTabsBarLayout({
+    tabs,
+    activeIndex,
+    fillWidth,
+    scrollAnimated: false,
+    scrollViewRef,
+    onAnimateToTab: (layout, isFirstTime) => {
       // Icon tabs: underline is 75% of the tab width, centered
-      const targetWidth = activeTabLayout.width * 0.75;
-      const targetX = activeTabLayout.x + activeTabLayout.width * 0.125;
+      const targetWidth = layout.width * 0.75;
+      const targetX = layout.x + layout.width * 0.125;
+
+      setUnderlineWidth(targetWidth);
 
       if (isFirstTime) {
         underlineAnimated.setValue(targetX);
-        setUnderlineWidth(targetWidth);
-        setIsInitialized(true);
-      } else {
-        setUnderlineWidth(targetWidth);
-
-        const animation = Animated.timing(underlineAnimated, {
-          toValue: targetX,
-          duration: 200,
-          useNativeDriver: true,
-        });
-
-        currentAnimation.current = animation;
-        animation.start((finished) => {
-          if (finished && currentAnimation.current === animation) {
-            currentAnimation.current = null;
-          }
-        });
+        return null;
       }
 
-      // Snap scroll instantly so viewport settles before the underline animation begins.
-      if (scrollEnabled && scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({
-          x: Math.max(0, activeTabLayout.x - 50),
-          animated: false,
-        });
-      }
+      return Animated.timing(underlineAnimated, {
+        toValue: targetX,
+        duration: 200,
+        useNativeDriver: true,
+      });
     },
-    [scrollEnabled, underlineAnimated, tabs.length, isInitialized],
-  );
-
-  useEffect(() => {
-    if (activeIndex >= 0 && layoutsReady) {
-      animateToTab(activeIndex);
-    }
-  }, [activeIndex, layoutsReady, animateToTab]);
-
-  useEffect(() => {
-    if (fillWidth) return;
-    if (containerWidth > 0 && tabLayouts.current.length === tabs.length) {
-      const allLayoutsDefined = tabLayouts.current.every(
-        (layout) => layout && typeof layout.width === 'number',
-      );
-
-      if (allLayoutsDefined) {
-        const totalTabsWidth = tabLayouts.current.reduce(
-          (sum, layout) => sum + layout.width,
-          0,
-        );
-        const gapsWidth = (tabs.length - 1) * 24;
-        const calculatedContentWidth = totalTabsWidth + gapsWidth;
-        const shouldScroll = calculatedContentWidth > containerWidth - 32;
-        setScrollEnabled(shouldScroll);
-      }
-    }
-  }, [fillWidth, containerWidth, tabs.length]);
-
-  const handleContainerLayout = (layoutEvent: LayoutChangeEvent) => {
-    const { width } = layoutEvent.nativeEvent.layout;
-    setContainerWidth(width);
-  };
-
-  const handleTabLayout = useCallback(
-    (index: number, layoutEvent: LayoutChangeEvent) => {
-      const { x, width } = layoutEvent.nativeEvent.layout;
-
-      if (index < 0 || index >= tabs.length || width <= 0) {
-        return;
-      }
-
-      const previousLayout = tabLayouts.current[index];
-      const hasSignificantChange =
-        !previousLayout ||
-        Math.abs(previousLayout.width - width) > 1 ||
-        Math.abs(previousLayout.x - x) > 1;
-
-      tabLayouts.current[index] = { x, width };
-
-      const allLayoutsReady = tabLayouts.current.every(
-        (layout, i) => i >= tabs.length || (layout && layout.width > 0),
-      );
-
-      if (allLayoutsReady) {
-        if (!layoutsReady || hasSignificantChange) {
-          if (!layoutsReady) {
-            setLayoutsReady(true);
-          }
-
-          if (layoutsReady && hasSignificantChange) {
-            if (rafCallbackId.current !== null) {
-              cancelAnimationFrame(rafCallbackId.current);
-            }
-            rafCallbackId.current = requestAnimationFrame(() => {
-              rafCallbackId.current = null;
-              animateToTab(activeIndexRef.current);
-            });
-          }
-
-          if (containerWidth > 0) {
-            const totalWidth = tabLayouts.current.reduce(
-              (sum, layout) => sum + (layout?.width || 0),
-              0,
-            );
-            const gapsWidth = (tabs.length - 1) * 24;
-            const shouldScroll = totalWidth + gapsWidth > containerWidth - 32;
-            setScrollEnabled(shouldScroll);
-          }
-        }
-      }
-    },
-    [tabs.length, layoutsReady, containerWidth, animateToTab],
-  );
-
-  useEffect(
-    () => () => {
-      if (currentAnimation.current) {
-        currentAnimation.current.stop();
-        currentAnimation.current = null;
-      }
-      if (rafCallbackId.current !== null) {
-        cancelAnimationFrame(rafCallbackId.current);
-        rafCallbackId.current = null;
-      }
-    },
-    [],
-  );
+  });
 
   const handleTabPress = (index: number) => {
     const tab = tabs[index];
@@ -315,7 +129,11 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
         </ScrollView>
       ) : (
         <Animated.View
-          onLayout={({ nativeEvent }) => {
+          onLayout={({
+            nativeEvent,
+          }: {
+            nativeEvent: LayoutChangeEvent['nativeEvent'];
+          }) => {
             if (tabRowHeight === 0 && nativeEvent.layout.height > 0) {
               setTabRowHeight(nativeEvent.layout.height);
             }
@@ -339,7 +157,7 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
               onPress={() => handleTabPress(index)}
               onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
               testID={tab.testID ?? `${testID}-tab-${index}`}
-              fillWidth={fillWidth}
+              shouldFillWidth={fillWidth}
             />
           ))}
 

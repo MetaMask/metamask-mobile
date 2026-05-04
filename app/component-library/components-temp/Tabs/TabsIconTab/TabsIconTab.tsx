@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useContext, useRef, useCallback } from 'react';
-import { Animated, Pressable, View } from 'react-native';
+import { Animated, Pressable, StyleProp, View, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -17,7 +17,7 @@ import Icon, { IconSize, IconColor } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import { TabsIconTabProps } from './TabsIconTab.types';
-import { TabIconAnimationContext } from '../Tab/TabIconAnimationContext';
+import { TabIconAnimationContext } from './TabsIconAnimationContext';
 
 const ICON_SIZE_LG = 24;
 const ICON_MARGIN_BOTTOM = 4;
@@ -30,7 +30,9 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
   onPress,
   testID,
   onLayout,
-  fillWidth = false,
+  shouldFillWidth = false,
+  iconProps,
+  style: externalStyle,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -70,13 +72,16 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
     <View
       ref={viewRef}
       onLayout={handleOnLayout}
-      style={[fillWidth ? tw.style('flex-1') : tw.style('flex-shrink-0')]}
+      style={[shouldFillWidth ? tw.style('flex-1') : tw.style('flex-shrink-0')]}
     >
       <Pressable
-        style={tw.style(
-          'px-0 pt-1 pb-2 flex-col items-center justify-center relative',
-          isDisabled && 'opacity-50',
-        )}
+        style={[
+          tw.style(
+            'px-0 pt-1 pb-2 flex-col items-center justify-center relative',
+            isDisabled && 'opacity-50',
+          ),
+          externalStyle as StyleProp<ViewStyle>,
+        ]}
         onPress={isDisabled ? undefined : onPress}
         disabled={isDisabled}
         testID={testID}
@@ -103,6 +108,7 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
                     ? IconColor.Default
                     : IconColor.Alternative
               }
+              {...iconProps}
             />
           </Animated.View>
           <Text
