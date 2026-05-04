@@ -21,6 +21,7 @@ import * as signatureUtils from '../../../utils/verifySignature';
 import {
   SignatureStatus,
   InterstitialState,
+  DeepLinkRoute,
 } from '../../../types/deepLinkAnalytics.types';
 
 jest.mock('../handleMetaMaskDeeplink');
@@ -151,10 +152,13 @@ describe('handleUniversalLink', () => {
 
   describe('SDK action analytics', () => {
     it('fires DEEP_LINK_USED for connect deeplink before handleMetaMaskDeeplink', async () => {
-      const { createDeepLinkUsedEventBuilder: mockCreateBuilder } =
-        jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
-          createDeepLinkUsedEventBuilder: jest.Mock;
-        };
+      const {
+        createDeepLinkUsedEventBuilder: mockCreateBuilder,
+        mapSupportedActionToRoute: mockMapRoute,
+      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+        createDeepLinkUsedEventBuilder: jest.Mock;
+        mapSupportedActionToRoute: jest.Mock;
+      };
 
       const mockBuild = jest.fn().mockReturnValue({});
       const mockAddProperties = jest.fn().mockReturnThis();
@@ -163,6 +167,7 @@ describe('handleUniversalLink', () => {
         addSensitiveProperties: jest.fn().mockReturnThis(),
         build: mockBuild,
       });
+      mockMapRoute.mockReturnValueOnce(DeepLinkRoute.SDK_CONNECT);
 
       const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.CONNECT}?channelId=test123&comm=deeplinking&pubkey=abc&scheme=testapp`;
 
@@ -174,9 +179,10 @@ describe('handleUniversalLink', () => {
         source: 'test',
       });
 
+      expect(mockMapRoute).toHaveBeenCalledWith(ACTIONS.CONNECT);
       expect(mockCreateBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
-          route: 'test-route',
+          route: DeepLinkRoute.SDK_CONNECT,
           signatureStatus: SignatureStatus.MISSING,
           interstitialShown: false,
           interstitialAction: InterstitialState.NOT_SHOWN,
@@ -186,10 +192,13 @@ describe('handleUniversalLink', () => {
     });
 
     it('fires DEEP_LINK_USED for MMSDK deeplink', async () => {
-      const { createDeepLinkUsedEventBuilder: mockCreateBuilder } =
-        jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
-          createDeepLinkUsedEventBuilder: jest.Mock;
-        };
+      const {
+        createDeepLinkUsedEventBuilder: mockCreateBuilder,
+        mapSupportedActionToRoute: mockMapRoute,
+      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+        createDeepLinkUsedEventBuilder: jest.Mock;
+        mapSupportedActionToRoute: jest.Mock;
+      };
 
       const mockBuild = jest.fn().mockReturnValue({});
       const mockAddProperties = jest.fn().mockReturnThis();
@@ -198,6 +207,7 @@ describe('handleUniversalLink', () => {
         addSensitiveProperties: jest.fn().mockReturnThis(),
         build: mockBuild,
       });
+      mockMapRoute.mockReturnValueOnce(DeepLinkRoute.SDK_MMSDK);
 
       const mmsdkUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MMSDK}?message=test&scheme=testapp`;
 
@@ -209,9 +219,10 @@ describe('handleUniversalLink', () => {
         source: 'test',
       });
 
+      expect(mockMapRoute).toHaveBeenCalledWith(ACTIONS.MMSDK);
       expect(mockCreateBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
-          route: 'test-route',
+          route: DeepLinkRoute.SDK_MMSDK,
           signatureStatus: SignatureStatus.MISSING,
           interstitialShown: false,
           interstitialAction: InterstitialState.NOT_SHOWN,
@@ -220,10 +231,13 @@ describe('handleUniversalLink', () => {
     });
 
     it('fires DEEP_LINK_USED for ANDROID_SDK deeplink', async () => {
-      const { createDeepLinkUsedEventBuilder: mockCreateBuilder } =
-        jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
-          createDeepLinkUsedEventBuilder: jest.Mock;
-        };
+      const {
+        createDeepLinkUsedEventBuilder: mockCreateBuilder,
+        mapSupportedActionToRoute: mockMapRoute,
+      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+        createDeepLinkUsedEventBuilder: jest.Mock;
+        mapSupportedActionToRoute: jest.Mock;
+      };
 
       const mockBuild = jest.fn().mockReturnValue({});
       const mockAddProperties = jest.fn().mockReturnThis();
@@ -232,6 +246,7 @@ describe('handleUniversalLink', () => {
         addSensitiveProperties: jest.fn().mockReturnThis(),
         build: mockBuild,
       });
+      mockMapRoute.mockReturnValueOnce(DeepLinkRoute.SDK_CONNECT);
 
       const androidSdkUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.ANDROID_SDK}?channelId=test&scheme=testapp`;
 
@@ -243,9 +258,10 @@ describe('handleUniversalLink', () => {
         source: 'test',
       });
 
+      expect(mockMapRoute).toHaveBeenCalledWith(ACTIONS.ANDROID_SDK);
       expect(mockCreateBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
-          route: 'test-route',
+          route: DeepLinkRoute.SDK_CONNECT,
           signatureStatus: SignatureStatus.MISSING,
           interstitialShown: false,
           interstitialAction: InterstitialState.NOT_SHOWN,
