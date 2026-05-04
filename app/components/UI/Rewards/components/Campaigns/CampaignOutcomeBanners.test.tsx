@@ -5,8 +5,8 @@ import {
   WinnerFinalizedBanner,
   ParticipantFinalizedBanner,
   ParticipantPendingBanner,
-  OndoGmCampaignOutcomeBanner,
-} from './OndoCampaignOutcomeBanners';
+  CampaignOutcomeBanner,
+} from './CampaignOutcomeBanners';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -28,13 +28,13 @@ jest.mock('../RewardsInfoBanner', () => {
 });
 
 describe('WinnerPendingBanner', () => {
-  it('renders title and description', () => {
+  it('renders title and description using consolidated locale keys', () => {
     const { getByText } = render(<WinnerPendingBanner onPress={jest.fn()} />);
     expect(
-      getByText('rewards.ondo_outcome_banner.winner_pending.title'),
+      getByText('rewards.campaign_outcome_banner.winner_pending.title'),
     ).toBeDefined();
     expect(
-      getByText('rewards.ondo_outcome_banner.winner_pending.description'),
+      getByText('rewards.campaign_outcome_banner.winner_pending.description'),
     ).toBeDefined();
   });
 
@@ -43,7 +43,7 @@ describe('WinnerPendingBanner', () => {
       <WinnerPendingBanner onPress={jest.fn()} />,
     );
     expect(
-      getByLabelText('rewards.ondo_outcome_banner.winner_pending.a11y'),
+      getByLabelText('rewards.campaign_outcome_banner.winner_pending.a11y'),
     ).toBeDefined();
   });
 
@@ -53,51 +53,53 @@ describe('WinnerPendingBanner', () => {
       <WinnerPendingBanner onPress={onPress} />,
     );
     fireEvent.press(
-      getByLabelText('rewards.ondo_outcome_banner.winner_pending.a11y'),
+      getByLabelText('rewards.campaign_outcome_banner.winner_pending.a11y'),
     );
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('WinnerFinalizedBanner', () => {
-  it('renders with winner_finalized strings', () => {
+  it('renders with consolidated winner_finalized strings', () => {
     const { getByText } = render(<WinnerFinalizedBanner />);
     expect(
-      getByText('rewards.ondo_outcome_banner.winner_finalized.title'),
+      getByText('rewards.campaign_outcome_banner.winner_finalized.title'),
     ).toBeDefined();
     expect(
-      getByText('rewards.ondo_outcome_banner.winner_finalized.description'),
+      getByText('rewards.campaign_outcome_banner.winner_finalized.description'),
     ).toBeDefined();
   });
 });
 
 describe('ParticipantFinalizedBanner', () => {
-  it('renders with participant_finalized strings', () => {
+  it('renders with consolidated participant_finalized strings', () => {
     const { getByText } = render(<ParticipantFinalizedBanner />);
     expect(
-      getByText('rewards.ondo_outcome_banner.participant_finalized.title'),
+      getByText('rewards.campaign_outcome_banner.participant_finalized.title'),
     ).toBeDefined();
     expect(
       getByText(
-        'rewards.ondo_outcome_banner.participant_finalized.description',
+        'rewards.campaign_outcome_banner.participant_finalized.description',
       ),
     ).toBeDefined();
   });
 });
 
 describe('ParticipantPendingBanner', () => {
-  it('renders with participant_pending strings', () => {
+  it('renders with consolidated participant_pending strings', () => {
     const { getByText } = render(<ParticipantPendingBanner />);
     expect(
-      getByText('rewards.ondo_outcome_banner.participant_pending.title'),
+      getByText('rewards.campaign_outcome_banner.participant_pending.title'),
     ).toBeDefined();
     expect(
-      getByText('rewards.ondo_outcome_banner.participant_pending.description'),
+      getByText(
+        'rewards.campaign_outcome_banner.participant_pending.description',
+      ),
     ).toBeDefined();
   });
 });
 
-describe('OndoGmCampaignOutcomeBanner', () => {
+describe('CampaignOutcomeBanner', () => {
   const onWinnerPress = jest.fn();
 
   beforeEach(() => {
@@ -106,83 +108,83 @@ describe('OndoGmCampaignOutcomeBanner', () => {
 
   it('renders WinnerPendingBanner when winner code is present and status is pending', () => {
     const { getByLabelText } = render(
-      <OndoGmCampaignOutcomeBanner
+      <CampaignOutcomeBanner
         outcomeStatus="pending"
         winnerVerificationCode="LVL346"
         onWinnerPress={onWinnerPress}
       />,
     );
     expect(
-      getByLabelText('rewards.ondo_outcome_banner.winner_pending.a11y'),
+      getByLabelText('rewards.campaign_outcome_banner.winner_pending.a11y'),
     ).toBeDefined();
   });
 
   it('renders WinnerFinalizedBanner when winner code is present and status is finalized', () => {
     const { getByText, queryByLabelText } = render(
-      <OndoGmCampaignOutcomeBanner
+      <CampaignOutcomeBanner
         outcomeStatus="finalized"
         winnerVerificationCode="LVL346"
         onWinnerPress={onWinnerPress}
       />,
     );
     expect(
-      getByText('rewards.ondo_outcome_banner.winner_finalized.title'),
+      getByText('rewards.campaign_outcome_banner.winner_finalized.title'),
     ).toBeDefined();
     expect(
-      queryByLabelText('rewards.ondo_outcome_banner.winner_pending.a11y'),
+      queryByLabelText('rewards.campaign_outcome_banner.winner_pending.a11y'),
     ).toBeNull();
   });
 
   it('renders ParticipantFinalizedBanner when no code and status is finalized', () => {
     const { getByText } = render(
-      <OndoGmCampaignOutcomeBanner
+      <CampaignOutcomeBanner
         outcomeStatus="finalized"
         winnerVerificationCode={null}
         onWinnerPress={onWinnerPress}
       />,
     );
     expect(
-      getByText('rewards.ondo_outcome_banner.participant_finalized.title'),
+      getByText('rewards.campaign_outcome_banner.participant_finalized.title'),
     ).toBeDefined();
   });
 
   it('renders ParticipantPendingBanner when no code and status is pending', () => {
     const { getByText } = render(
-      <OndoGmCampaignOutcomeBanner
+      <CampaignOutcomeBanner
         outcomeStatus="pending"
         winnerVerificationCode={null}
         onWinnerPress={onWinnerPress}
       />,
     );
     expect(
-      getByText('rewards.ondo_outcome_banner.participant_pending.title'),
+      getByText('rewards.campaign_outcome_banner.participant_pending.title'),
     ).toBeDefined();
   });
 
   it('renders ParticipantPendingBanner when winnerVerificationCode is undefined', () => {
     const { getByText } = render(
-      <OndoGmCampaignOutcomeBanner
+      <CampaignOutcomeBanner
         outcomeStatus="pending"
         winnerVerificationCode={undefined}
         onWinnerPress={onWinnerPress}
       />,
     );
     expect(
-      getByText('rewards.ondo_outcome_banner.participant_pending.title'),
+      getByText('rewards.campaign_outcome_banner.participant_pending.title'),
     ).toBeDefined();
   });
 
   it('calls onWinnerPress when WinnerPendingBanner is pressed', () => {
     const mockOnWinnerPress = jest.fn();
     const { getByLabelText } = render(
-      <OndoGmCampaignOutcomeBanner
+      <CampaignOutcomeBanner
         outcomeStatus="pending"
         winnerVerificationCode="LVL346"
         onWinnerPress={mockOnWinnerPress}
       />,
     );
     fireEvent.press(
-      getByLabelText('rewards.ondo_outcome_banner.winner_pending.a11y'),
+      getByLabelText('rewards.campaign_outcome_banner.winner_pending.a11y'),
     );
     expect(mockOnWinnerPress).toHaveBeenCalledTimes(1);
   });

@@ -390,6 +390,68 @@ describe('useRewardsToast', () => {
 
       expect(mockCloseToast).toHaveBeenCalledTimes(1);
     });
+
+    it('returns outcomeWinner configuration with CTA and close handlers', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const onCta = jest.fn();
+      const onClose = jest.fn();
+      const config = result.current.RewardsToastOptions.outcomeWinner({
+        title: 'Winner title',
+        description: 'Winner body',
+        ctaLabel: 'Next',
+        onCtaPress: onCta,
+        onClosePress: onClose,
+      });
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Success,
+        descriptionOptions: { description: 'Winner body' },
+        linkButtonOptions: { label: 'Next' },
+      });
+      expect(config.labelOptions).toEqual([
+        { label: 'Winner title', isBold: true },
+      ]);
+      expect(config.startAccessory).toBeDefined();
+      const { getByTestId } = render(config.startAccessory as ReactElement);
+      expect(getByTestId('rewards-nudge-start-accessory-box')).toBeDefined();
+      config.linkButtonOptions?.onPress?.();
+      config.closeButtonOptions?.onPress?.();
+      expect(onCta).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns outcomeNonWinner configuration with CTA and close handlers', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const onCta = jest.fn();
+      const onClose = jest.fn();
+      const config = result.current.RewardsToastOptions.outcomeNonWinner({
+        title: 'Thanks title',
+        description: 'Thanks body',
+        ctaLabel: 'Done',
+        onCtaPress: onCta,
+        onClosePress: onClose,
+      });
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        iconColor: mockTheme.colors.success.default,
+        backgroundColor: 'transparent',
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Warning,
+        descriptionOptions: { description: 'Thanks body' },
+        linkButtonOptions: { label: 'Done' },
+      });
+      expect(config.labelOptions).toEqual([
+        { label: 'Thanks title', isBold: true },
+      ]);
+      config.linkButtonOptions?.onPress?.();
+      config.closeButtonOptions?.onPress?.();
+      expect(onCta).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('edge cases and error handling', () => {

@@ -3829,8 +3829,8 @@ describe('Rewards selectors', () => {
 
     it('returns the dismissed toasts map', () => {
       const dismissed = {
-        'campaign-1:sub-1:winner_verify': true,
-        'campaign-2:sub-1:participant_no_winner': true,
+        'campaign-1:sub-1:winner': true,
+        'campaign-2:sub-1:non_winner': true,
       };
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: dismissed,
@@ -3841,11 +3841,11 @@ describe('Rewards selectors', () => {
     it('returns true for a dismissed toast key', () => {
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: {
-          'campaign-1:sub-1:winner_verify': true,
+          'campaign-1:sub-1:winner': true,
         },
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
-      expect(result['campaign-1:sub-1:winner_verify']).toBe(true);
+      expect(result['campaign-1:sub-1:winner']).toBe(true);
     });
 
     it('returns undefined for a key that has not been dismissed', () => {
@@ -3853,7 +3853,7 @@ describe('Rewards selectors', () => {
         dismissedCampaignOutcomeToasts: {},
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
-      expect(result['campaign-1:sub-1:winner_verify']).toBeUndefined();
+      expect(result['campaign-1:sub-1:winner']).toBeUndefined();
     });
   });
 });

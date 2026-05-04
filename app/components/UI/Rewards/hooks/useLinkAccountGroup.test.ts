@@ -110,6 +110,14 @@ describe('useLinkAccountGroup', () => {
     loading: jest.fn().mockReturnValue({
       variant: 'loading',
     }),
+    outcomeWinner: jest.fn().mockReturnValue({
+      variant: 'plain',
+      hapticsType: 'success',
+    }),
+    outcomeNonWinner: jest.fn().mockReturnValue({
+      variant: 'icon',
+      hapticsType: 'warning',
+    }),
   };
 
   // Mock account data

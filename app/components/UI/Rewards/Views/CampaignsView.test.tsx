@@ -27,14 +27,6 @@ const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
   typeof useRewardCampaigns
 >;
 
-jest.mock('../hooks/useOndoOutcomeToast', () => ({
-  useOndoOutcomeToast: jest.fn(),
-}));
-import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
-const mockUseOndoOutcomeToast = useOndoOutcomeToast as jest.MockedFunction<
-  typeof useOndoOutcomeToast
->;
-
 jest.mock('../components/Campaigns/CampaignsGroup', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -173,7 +165,6 @@ describe('CampaignsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
-    mockUseOndoOutcomeToast.mockReturnValue(undefined);
   });
 
   it('renders the header with the correct title', () => {
@@ -372,13 +363,6 @@ describe('CampaignsView', () => {
       const { queryByText } = render(<CampaignsView />);
 
       expect(queryByText('Refreshing...')).toBeNull();
-    });
-  });
-
-  describe('hook integration', () => {
-    it('calls useOndoOutcomeToast on render', () => {
-      render(<CampaignsView />);
-      expect(mockUseOndoOutcomeToast).toHaveBeenCalledTimes(1);
     });
   });
 });

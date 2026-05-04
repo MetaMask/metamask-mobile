@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -35,6 +35,8 @@ import {
   formatUsd,
 } from '../utils/formatUtils';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
+import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PerpsTradingCampaignStatsRouteParams = {
@@ -112,6 +114,18 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
     !isCampaignComplete && isPending && position != null && notionalGap > 0;
 
   const positionError = hasError && !position;
+
+  const { outcome: participantOutcome } =
+    usePerpsTradingCampaignParticipantOutcome(
+      isCampaignComplete && isOptedIn ? campaignId : undefined,
+    );
+
+  const navigateToWinningView = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW, {
+      campaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, campaignId, campaign]);
 
   return (
     <ErrorBoundary navigation={navigation} view="PerpsTradingCampaignStatsView">
@@ -251,6 +265,17 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                   time: formatRewardsTimeOnly(new Date(position.computedAt)),
                 })}
               </Text>
+            )}
+
+            {/* ── Outcome banner (campaign ended) ── */}
+            {isCampaignComplete && participantOutcome && (
+              <CampaignOutcomeBanner
+                outcomeStatus={participantOutcome.outcomeStatus}
+                winnerVerificationCode={
+                  participantOutcome.winnerVerificationCode
+                }
+                onWinnerPress={navigateToWinningView}
+              />
             )}
 
             {/* ── Error banner ── */}
