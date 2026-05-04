@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
@@ -23,7 +23,6 @@ import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativ
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectIsMusdConversionFlowEnabledFlag,
-  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
@@ -71,7 +70,10 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectTokenListSecurityBadgesEnabled } from '../../../../../selectors/featureFlagController/tokenListSecurityBadges';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  getNativeTokenAddress,
+  type TokenSecurityData,
+} from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
@@ -96,7 +98,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
@@ -167,6 +168,7 @@ export const TokenListItem = React.memo(
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
+    const queryClient = useQueryClient();
     const { colors } = useTheme();
     const styles = createStyles(colors);
 
@@ -244,10 +246,6 @@ export const TokenListItem = React.memo(
 
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
-    );
-
-    const isQuickConvertEnabled = useSelector(
-      selectMusdQuickConvertEnabledFlag,
     );
 
     const isMusdConversionFlowEnabled = useSelector(
@@ -343,9 +341,7 @@ export const TokenListItem = React.memo(
             return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
           }
 
-          return isQuickConvertEnabled
-            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+          return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
         };
 
         trackEvent(
@@ -383,7 +379,6 @@ export const TokenListItem = React.memo(
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -399,7 +394,6 @@ export const TokenListItem = React.memo(
       createEventBuilder,
       hasSeenConversionEducationScreen,
       initiateCustomConversion,
-      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);
@@ -415,14 +409,30 @@ export const TokenListItem = React.memo(
     const onItemPress = useCallback(
       (token: TokenI) => {
         trace({ name: TraceName.AssetDetails });
+
+        let securityData: TokenSecurityData | undefined;
+        if (shouldResolveCaipForSecurityBadge && caipAssetIdForSecurity) {
+          securityData =
+            queryClient.getQueryData<TokenSecurityData | null>(
+              tokenListSecurityBadgeKeys.byAsset(caipAssetIdForSecurity),
+            ) ?? undefined;
+        }
+
         navigation.navigate('Asset', {
           ...token,
           source: isFullView
             ? TokenDetailsSource.MobileTokenListPage
             : TokenDetailsSource.MobileTokenList,
+          ...(securityData !== undefined && { securityData }),
         });
       },
-      [isFullView, navigation],
+      [
+        isFullView,
+        navigation,
+        shouldResolveCaipForSecurityBadge,
+        caipAssetIdForSecurity,
+        queryClient,
+      ],
     );
 
     const handleLendingRedirect = useStablecoinLendingRedirect({
