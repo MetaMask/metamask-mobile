@@ -387,23 +387,14 @@ const PriceAdvanced = ({
     visibilityTraceStartedRef.current = null;
   }, [shouldFallbackToLegacy]);
 
-  if (shouldFallbackToLegacy) {
-    return (
-      <PriceLegacy
-        prices={prices}
-        timePeriod={timePeriod}
-        chartNavigationButtons={chartNavigationButtons}
-        onTimePeriodChange={setTimePeriod}
-        priceDiff={priceDiff}
-        currentPrice={currentPrice}
-        currentCurrency={currentCurrency}
-        comparePrice={comparePrice}
-        isLoading={isLoading}
-      />
-    );
-  }
+  useEffect(() => {
+    if (shouldFallbackToLegacy) {
+      return;
+    }
+    if (visibilityTraceStartedRef.current === ohlcvSeriesKey) {
+      return;
+    }
 
-  if (visibilityTraceStartedRef.current !== ohlcvSeriesKey) {
     const previousSeriesId = visibilityTraceStartedRef.current;
     if (previousSeriesId !== null && previousSeriesId !== ohlcvSeriesKey) {
       const supersededOpen = activeVisibilityTraceRef.current;
@@ -431,6 +422,22 @@ const PriceAdvanced = ({
       id: ohlcvSeriesKey,
       ...(assetId.length > 0 ? { data: { assetId } } : {}),
     });
+  }, [ohlcvSeriesKey, assetId, shouldFallbackToLegacy]);
+
+  if (shouldFallbackToLegacy) {
+    return (
+      <PriceLegacy
+        prices={prices}
+        timePeriod={timePeriod}
+        chartNavigationButtons={chartNavigationButtons}
+        onTimePeriodChange={setTimePeriod}
+        priceDiff={priceDiff}
+        currentPrice={currentPrice}
+        currentCurrency={currentCurrency}
+        comparePrice={comparePrice}
+        isLoading={isLoading}
+      />
+    );
   }
 
   return (
