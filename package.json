@@ -207,9 +207,9 @@
     "@metamask/keyring-api@npm:^21.3.0": "21.6.0",
     "@metamask/keyring-api@npm:^21.4.0": "21.6.0",
     "@metamask/keyring-api@npm:^21.5.0": "21.6.0",
-    "@metamask/keyring-api@npm:^21.6.0": "23.0.1",
-    "@metamask/keyring-api@npm:^22.0.0": "23.0.1",
-    "@metamask/keyring-api@npm:^23.0.1": "23.0.1"
+    "@metamask/keyring-api@npm:^21.6.0": "23.1.0",
+    "@metamask/keyring-api@npm:^22.0.0": "23.1.0",
+    "@metamask/keyring-api@npm:^23.0.1": "23.1.0"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
