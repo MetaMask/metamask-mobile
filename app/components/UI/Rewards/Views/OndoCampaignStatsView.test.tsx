@@ -187,6 +187,8 @@ jest.mock('../utils/formatUtils', () => ({
       maximumFractionDigits: 2,
     })}`,
   formatRewardsTimeOnly: () => '12:00 PM',
+  getPortfolioReturnColor: (pnl?: string) =>
+    pnl && parseFloat(pnl) < 0 ? 'errorDefault' : 'textDefault',
 }));
 
 // Mock Engine to prevent @metamask/social-controllers resolution chain
