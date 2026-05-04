@@ -136,6 +136,11 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
+  const [chartRefreshKey, setChartRefreshKey] = useState(0);
+  const handleChartRefresh = useCallback(
+    () => setChartRefreshKey((k) => k + 1),
+    [],
+  );
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -244,6 +249,7 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
+        chartRefreshKey={chartRefreshKey}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -282,6 +288,7 @@ const TokenDetails: React.FC<{
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
+          onRefresh={handleChartRefresh}
         />
       ) : (
         <Transactions
@@ -301,6 +308,7 @@ const TokenDetails: React.FC<{
           skipScrollOnClick
           hideEmptyState
           location={TransactionDetailLocation.AssetDetails}
+          onRefresh={handleChartRefresh}
         />
       )}
       {!txLoading && (

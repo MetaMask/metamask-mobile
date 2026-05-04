@@ -28,6 +28,8 @@ export type PriceProps = PriceSharedProps & {
   timePeriod: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
+  /** Monotonically increasing counter to trigger chart data re-fetch on pull-to-refresh. */
+  chartRefreshKey?: number;
 };
 
 const Price = (props: PriceProps) => {
@@ -57,6 +59,7 @@ const Price = (props: PriceProps) => {
         isLoading={isLoading}
         currentPrice={currentPrice}
         currentCurrency={currentCurrency}
+        chartRefreshKey={props.chartRefreshKey}
         {...rest}
       />
     );

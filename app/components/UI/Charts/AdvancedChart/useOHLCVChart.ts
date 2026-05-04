@@ -37,6 +37,8 @@ export interface UseOHLCVChartResult {
   nextCursor: string | null;
   /** True if the API returned an empty data array (asset not supported for OHLCV) */
   hasEmptyData: boolean;
+  /** Force a re-fetch of the initial data (e.g. on pull-to-refresh). */
+  refetch: () => void;
 }
 
 const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
@@ -148,5 +150,13 @@ export const useOHLCVChart = ({
     return () => abortRef.current?.abort();
   }, [loadInitial]);
 
-  return { ohlcvData, isLoading, error, hasMore, nextCursor, hasEmptyData };
+  return {
+    ohlcvData,
+    isLoading,
+    error,
+    hasMore,
+    nextCursor,
+    hasEmptyData,
+    refetch: loadInitial,
+  };
 };

@@ -214,6 +214,10 @@ class Transactions extends PureComponent {
       hideAwaitingConfirmation: PropTypes.func,
       showHardwareWalletError: PropTypes.func,
     }),
+    /**
+     * Optional extra callback invoked alongside the built-in transaction refresh.
+     */
+    onRefresh: PropTypes.func,
   };
 
   static defaultProps = {
@@ -400,6 +404,7 @@ class Transactions extends PureComponent {
   onRefresh = async () => {
     this.setState({ refreshing: true });
 
+    this.props.onRefresh?.();
     await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
