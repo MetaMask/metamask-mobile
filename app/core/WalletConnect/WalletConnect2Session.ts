@@ -154,7 +154,6 @@ class WalletConnect2Session {
       getApprovedHosts: undefined,
       isRemoteConn: false,
       sendMessage: undefined,
-      remoteConnHost: undefined,
     });
 
     this.checkPendingRequests();
