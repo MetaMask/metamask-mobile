@@ -25,21 +25,11 @@ import {
 } from '../components/Campaigns/CampaignStatsSummary';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
-import {
-  formatTierDisplayName,
-  getTierMinNetDeposit,
-} from '../components/Campaigns/OndoLeaderboard.utils';
+import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
 import { strings } from '../../../../../locales/i18n';
-import {
-  formatPercentChange,
-  formatUsd,
-  formatRewardsTimeOnly,
-  getPortfolioReturnColor,
-} from '../utils/formatUtils';
-import {
-  ONDO_GM_REQUIRED_QUALIFIED_DAYS,
-  isCampaignIneligible,
-} from '../utils/ondoCampaignConstants';
+import { formatUsd, formatRewardsTimeOnly } from '../utils/formatUtils';
+import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
+import { useOndoLeaderboardPositionDisplay } from '../hooks/useOndoLeaderboardPositionDisplay';
 import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
@@ -113,23 +103,21 @@ const OndoCampaignStatsView: React.FC = () => {
   const leaderboardError = hasLeaderboardPositionError && !leaderboardPosition;
   const portfolioError = hasPortfolioError && !portfolioData;
 
-  const isPending =
-    leaderboardPosition != null && !leaderboardPosition.qualified;
-  const isQualified =
-    leaderboardPosition != null && leaderboardPosition.qualified;
-
-  const isIneligible = useMemo(
-    () => isCampaignIneligible(campaign, leaderboardPosition?.qualified),
-    [campaign, leaderboardPosition],
-  );
-
-  const returnValue = portfolioData?.summary
-    ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
-    : '-';
-
-  const returnColor = getPortfolioReturnColor(
-    portfolioData?.summary?.portfolioPnlPercent,
-  );
+  const {
+    isCampaignComplete,
+    isPending,
+    isQualified,
+    isIneligible,
+    rankValue,
+    tierValue,
+    returnValue: returnValueRaw,
+    returnColor,
+  } = useOndoLeaderboardPositionDisplay({
+    campaign,
+    position: leaderboardPosition,
+    portfolioPnlPercent: portfolioData?.summary?.portfolioPnlPercent,
+  });
+  const returnValue = returnValueRaw ?? '-';
 
   const marketValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.totalCurrentValue)
@@ -146,16 +134,6 @@ const OndoCampaignStatsView: React.FC = () => {
   const outflowValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.totalCashedOut)
     : '-';
-
-  const rankValue =
-    isIneligible || !leaderboardPosition
-      ? '-'
-      : String(leaderboardPosition.rank).padStart(2, '0');
-
-  const tierValue =
-    isIneligible || !leaderboardPosition
-      ? '-'
-      : formatTierDisplayName(leaderboardPosition.projectedTier);
 
   const daysHeldValue = leaderboardPosition
     ? `${Math.min(
@@ -188,9 +166,6 @@ const OndoCampaignStatsView: React.FC = () => {
     !isIneligible &&
     daysRemaining > 0 &&
     tierMinDeposit != null;
-
-  const isCampaignComplete =
-    campaign != null && getCampaignStatus(campaign) === 'complete';
 
   const { outcome: participantOutcome } = useOndoCampaignParticipantOutcome(
     isCampaignComplete && isOptedIn ? campaignId : undefined,

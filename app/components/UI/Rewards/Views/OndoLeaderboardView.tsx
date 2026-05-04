@@ -29,20 +29,14 @@ import {
   formatTierDisplayName,
   getCampaignTierNames,
 } from '../components/Campaigns/OndoLeaderboard.utils';
-import {
-  formatRewardsTimeOnly,
-  formatPercentChange,
-  formatUsd,
-  getPortfolioReturnColor,
-} from '../utils/formatUtils';
+import { formatRewardsTimeOnly, formatUsd } from '../utils/formatUtils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { useOndoLeaderboardPositionDisplay } from '../hooks/useOndoLeaderboardPositionDisplay';
 import { getCurrentPrize } from '../components/Campaigns/OndoPrizePool';
-import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
-import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -94,24 +88,20 @@ const OndoLeaderboardView: React.FC = () => {
   const { deposits, isLoading: isDepositsLoading } =
     useGetOndoCampaignDeposits(campaignId);
 
-  const isCampaignComplete =
-    campaign != null && getCampaignStatus(campaign) === 'complete';
-
-  const isPending = position != null && !position.qualified;
-  const isQualified = position != null && position.qualified;
-
-  const isIneligible = useMemo(
-    () => isCampaignIneligible(campaign, position?.qualified),
-    [campaign, position],
-  );
-
-  const returnValue = portfolioData?.summary
-    ? formatPercentChange(portfolioData.summary.portfolioPnlPercent)
-    : undefined;
-
-  const returnColor = getPortfolioReturnColor(
-    portfolioData?.summary?.portfolioPnlPercent,
-  );
+  const {
+    isCampaignComplete,
+    isPending,
+    isQualified,
+    isIneligible,
+    rankValue,
+    tierValue,
+    returnValue,
+    returnColor,
+  } = useOndoLeaderboardPositionDisplay({
+    campaign,
+    position,
+    portfolioPnlPercent: portfolioData?.summary?.portfolioPnlPercent,
+  });
 
   const prizePoolValue = deposits?.totalUsdDeposited
     ? formatUsd(getCurrentPrize(parseFloat(deposits.totalUsdDeposited)))
@@ -170,14 +160,6 @@ const OndoLeaderboardView: React.FC = () => {
     () => buildLeaderboardUserPosition(position),
     [position],
   );
-
-  const rankValue =
-    isIneligible || !position ? '-' : String(position.rank).padStart(2, '0');
-
-  const tierValue =
-    isIneligible || !position
-      ? '-'
-      : formatTierDisplayName(position.projectedTier);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">

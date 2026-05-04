@@ -72,11 +72,21 @@ jest.mock('react-native-safe-area-context', () => {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Skeleton: ({ children }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(View, { testID: 'skeleton' }, children),
+  };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+  useTailwind: () => {
+    const tw = (...args: unknown[]) => args;
+    tw.style = (...args: unknown[]) => args;
+    return tw;
+  },
 }));
 
 jest.mock(
