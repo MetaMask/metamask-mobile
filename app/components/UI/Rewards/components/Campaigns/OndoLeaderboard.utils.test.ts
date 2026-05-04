@@ -1,9 +1,12 @@
 import {
-  formatRateOfReturn,
+  buildLeaderboardUserPosition,
   formatComputedAt,
+  formatRateOfReturn,
   formatTierDisplayName,
+  getCampaignTierNames,
   getTierMinNetDeposit,
 } from './OndoLeaderboard.utils';
+import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -96,6 +99,81 @@ describe('OndoLeaderboard.utils', () => {
 
     it('returns the raw key for an unknown tier', () => {
       expect(formatTierDisplayName('UNKNOWN')).toBe('UNKNOWN');
+    });
+  });
+
+  describe('getCampaignTierNames', () => {
+    it('returns empty array for null', () => {
+      expect(getCampaignTierNames(null)).toEqual([]);
+    });
+
+    it('returns empty array for undefined', () => {
+      expect(getCampaignTierNames(undefined)).toEqual([]);
+    });
+
+    it('returns empty array when details is null', () => {
+      expect(getCampaignTierNames({ details: null })).toEqual([]);
+    });
+
+    it('returns empty array when tiers is undefined', () => {
+      expect(getCampaignTierNames({ details: {} })).toEqual([]);
+    });
+
+    it('returns empty array for empty tiers', () => {
+      expect(getCampaignTierNames({ details: { tiers: [] } })).toEqual([]);
+    });
+
+    it('returns tier names for a campaign with tiers', () => {
+      const campaign = {
+        details: {
+          tiers: [
+            { name: 'STARTER', minNetDeposit: 500 },
+            { name: 'MID', minNetDeposit: 1000 },
+          ],
+        },
+      };
+      expect(getCampaignTierNames(campaign)).toEqual(['STARTER', 'MID']);
+    });
+  });
+
+  describe('buildLeaderboardUserPosition', () => {
+    const position: CampaignLeaderboardPositionDto = {
+      projectedTier: 'MID',
+      rank: 3,
+      totalInTier: 50,
+      rateOfReturn: 0.12,
+      currentUsdValue: 15000,
+      totalUsdDeposited: 12000,
+      netDeposit: 11000,
+      qualifiedDays: 14,
+      qualified: true,
+      neighbors: [
+        {
+          rank: 2,
+          referralCode: 'ABCDEF',
+          rateOfReturn: 0.13,
+          qualifiedDays: 14,
+          qualified: true,
+        },
+      ],
+      computedAt: '2024-03-20T12:00:00.000Z',
+    };
+
+    it('returns null for null input', () => {
+      expect(buildLeaderboardUserPosition(null)).toBeNull();
+    });
+
+    it('returns projectedTier, rank, and neighbors for a valid position', () => {
+      expect(buildLeaderboardUserPosition(position)).toEqual({
+        projectedTier: 'MID',
+        rank: 3,
+        neighbors: position.neighbors,
+      });
+    });
+
+    it('passes the neighbors array through unchanged', () => {
+      const result = buildLeaderboardUserPosition(position);
+      expect(result?.neighbors).toBe(position.neighbors);
     });
   });
 
