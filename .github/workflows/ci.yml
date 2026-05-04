@@ -483,6 +483,16 @@ jobs:
           android-api-level: 36
           target: qa
 
+      # React Native is an includeBuild(); it reads node_modules/react-native/gradle.properties,
+      # not android/gradle.properties — without this, ReactAndroid CMake builds all ABIs and can OOM the daemon.
+      - name: Limit ReactAndroid to a single ABI for CI
+        run: |
+          set -euo pipefail
+          RN_GP="node_modules/react-native/gradle.properties"
+          if ! grep -q '^reactNativeArchitectures=' "$RN_GP"; then
+            printf '\n# CI (android-lint): one ABI to limit native compile memory\nreactNativeArchitectures=x86_64\n' >> "$RN_GP"
+          fi
+
       - name: Restore Gradle dependencies
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         env:
@@ -508,7 +518,9 @@ jobs:
         run: |
           set -euo pipefail
           cp gradle.properties.github gradle.properties
-          SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew :app:lintProdRelease
+          SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew :app:lintProdRelease \
+            -PreactNativeArchitectures=x86_64 \
+            --max-workers=2
 
       - name: Require clean working directory
         shell: bash
