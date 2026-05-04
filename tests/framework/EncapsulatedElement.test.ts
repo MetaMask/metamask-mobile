@@ -28,6 +28,7 @@ import {
   TestFramework,
 } from './index.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+import { resetDeviceInfo, setDeviceInfo } from './DeviceInfoCache.ts';
 
 // Type augmentation for test globals
 declare const global: typeof globalThis & {
@@ -279,104 +280,92 @@ describe('EncapsulatedElement', () => {
   });
 
   describe('PlatformDetector', () => {
+    beforeEach(() => {
+      resetDeviceInfo();
+    });
+
     describe('getPlatform', () => {
-      it('returns platform from device.getPlatform() in Detox context', async () => {
+      it('returns platform from device.getPlatform() in Detox context', () => {
         FrameworkDetector.setFramework(TestFramework.DETOX);
         (global as Record<string, unknown>).device = {
           getPlatform: jest.fn().mockReturnValue('android'),
         };
 
-        const result = await PlatformDetector.getPlatform();
+        const result = PlatformDetector.getPlatform();
 
         expect(result).toBe('android');
       });
 
-      it('returns "android" when Appium capabilities platformName is "Android"', async () => {
+      it('returns "android" when Appium device info cache was set to android', () => {
         FrameworkDetector.setFramework(TestFramework.APPIUM);
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'Android' }),
-        };
+        setDeviceInfo('android', { width: 400, height: 800 });
 
-        const result = await PlatformDetector.getPlatform();
+        const result = PlatformDetector.getPlatform();
 
         expect(result).toBe('android');
       });
 
-      it('returns "ios" when Appium capabilities platformName is "iOS"', async () => {
+      it('returns "ios" when Appium device info cache was set to ios', () => {
         FrameworkDetector.setFramework(TestFramework.APPIUM);
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'iOS' }),
-        };
+        setDeviceInfo('ios', { width: 390, height: 844 });
 
-        const result = await PlatformDetector.getPlatform();
+        const result = PlatformDetector.getPlatform();
 
         expect(result).toBe('ios');
       });
 
-      it('returns "ios" when Appium capabilities platformName is undefined', async () => {
+      it('throws when Appium device info cache was reset and not repopulated', () => {
         FrameworkDetector.setFramework(TestFramework.APPIUM);
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({}),
-        };
 
-        const result = await PlatformDetector.getPlatform();
-
-        expect(result).toBe('ios');
-      });
-
-      it('throws error when unable to detect platform', async () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-        // No driver defined
-
-        await expect(PlatformDetector.getPlatform()).rejects.toThrow(
-          'Unable to detect platform',
+        expect(() => PlatformDetector.getPlatform()).toThrow(
+          /Device info cache is not initialized/,
         );
       });
     });
 
     describe('isAndroid', () => {
-      it('returns true when platform is android', async () => {
+      it('returns true when platform is android', () => {
         FrameworkDetector.setFramework(TestFramework.DETOX);
         (global as Record<string, unknown>).device = {
           getPlatform: jest.fn().mockReturnValue('android'),
         };
 
-        const result = await PlatformDetector.isAndroid();
+        const result = PlatformDetector.isAndroid();
 
         expect(result).toBe(true);
       });
 
-      it('returns false when platform is ios', async () => {
+      it('returns false when platform is ios', () => {
         FrameworkDetector.setFramework(TestFramework.DETOX);
         (global as Record<string, unknown>).device = {
           getPlatform: jest.fn().mockReturnValue('ios'),
         };
 
-        const result = await PlatformDetector.isAndroid();
+        const result = PlatformDetector.isAndroid();
 
         expect(result).toBe(false);
       });
     });
 
     describe('isIOS', () => {
-      it('returns true when platform is ios', async () => {
+      it('returns true when platform is ios', () => {
         FrameworkDetector.setFramework(TestFramework.DETOX);
         (global as Record<string, unknown>).device = {
           getPlatform: jest.fn().mockReturnValue('ios'),
         };
 
-        const result = await PlatformDetector.isIOS();
+        const result = PlatformDetector.isIOS();
 
         expect(result).toBe(true);
       });
 
-      it('returns false when platform is android', async () => {
+      it('returns false when platform is android', () => {
         FrameworkDetector.setFramework(TestFramework.DETOX);
         (global as Record<string, unknown>).device = {
           getPlatform: jest.fn().mockReturnValue('android'),
         };
 
-        const result = await PlatformDetector.isIOS();
+        const result = PlatformDetector.isIOS();
 
         expect(result).toBe(false);
       });
@@ -426,6 +415,8 @@ describe('EncapsulatedElement', () => {
     describe('Appium context', () => {
       beforeEach(() => {
         FrameworkDetector.setFramework(TestFramework.APPIUM);
+        resetDeviceInfo();
+        setDeviceInfo('android', { width: 400, height: 800 });
       });
 
       it('returns Appium element when in Appium context with generic locator', async () => {
@@ -462,9 +453,6 @@ describe('EncapsulatedElement', () => {
       });
 
       it('uses platform-specific appium locator for android', async () => {
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'Android' }),
-        };
         const mockPlaywrightElement = createMockPlaywrightElement();
         const androidFn = jest.fn().mockResolvedValue(mockPlaywrightElement);
         const iosFn = jest.fn();
@@ -482,9 +470,7 @@ describe('EncapsulatedElement', () => {
       });
 
       it('uses platform-specific appium locator for ios', async () => {
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'iOS' }),
-        };
+        setDeviceInfo('ios', { width: 390, height: 844 });
         const mockPlaywrightElement = createMockPlaywrightElement();
         const androidFn = jest.fn();
         const iosFn = jest.fn().mockResolvedValue(mockPlaywrightElement);
@@ -502,9 +488,6 @@ describe('EncapsulatedElement', () => {
       });
 
       it('throws error when platform-specific locator is missing for android', async () => {
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'Android' }),
-        };
         const config: LocatorConfig = {
           appium: {
             ios: () => Promise.resolve(createMockPlaywrightElement()),
@@ -517,9 +500,7 @@ describe('EncapsulatedElement', () => {
       });
 
       it('throws error when platform-specific locator is missing for ios', async () => {
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'iOS' }),
-        };
+        setDeviceInfo('ios', { width: 390, height: 844 });
         const config: LocatorConfig = {
           appium: {
             android: () => Promise.resolve(createMockPlaywrightElement()),
