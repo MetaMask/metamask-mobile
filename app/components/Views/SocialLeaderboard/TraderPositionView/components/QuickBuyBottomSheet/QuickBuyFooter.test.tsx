@@ -118,11 +118,7 @@ const defaultProps = {
   setSelectedSourceToken: jest.fn(),
   sourceBalanceFiat: '$2000.00',
   isTotalLoading: false,
-  isConfirmDisabled: false,
-  confirmButtonState: 'idle' as const,
-  getButtonLabel: () => 'social_leaderboard.trader_position.buy',
   onPresetPress: jest.fn(),
-  onConfirm: jest.fn(),
   colors: mockColors,
 };
 
@@ -206,19 +202,6 @@ describe('QuickBuyFooter', () => {
       );
 
       expect(screen.getByText('$20.50')).toBeOnTheScreen();
-    });
-  });
-
-  describe('buy button', () => {
-    it('renders and calls onConfirm when pressed', () => {
-      const onConfirm = jest.fn().mockResolvedValue(undefined);
-      renderWithProvider(
-        <QuickBuyFooter {...defaultProps} onConfirm={onConfirm} />,
-      );
-
-      expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
-      fireEvent.press(screen.getByTestId('quick-buy-confirm-button'));
-      expect(onConfirm).toHaveBeenCalledTimes(1);
     });
   });
 

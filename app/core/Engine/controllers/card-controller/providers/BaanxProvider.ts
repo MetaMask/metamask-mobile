@@ -1419,7 +1419,7 @@ export class BaanxProvider implements ICardProvider {
       return [{ type: 'enable_card' }];
     }
 
-    if (card.status === CardStatus.ACTIVE && asset) {
+    if (card.status !== CardStatus.BLOCKED && asset) {
       return [{ type: 'add_funds', enabled: true }];
     }
 

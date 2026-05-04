@@ -1,25 +1,25 @@
-import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
 import {
-  Box,
-  Text,
-  TextVariant,
-  FontWeight,
-  TextColor,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   AvatarBase,
   AvatarBaseSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React from 'react';
+import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { TopRankAvatar, TopRankIndicator } from '../topRank';
 import type { TopTrader } from '../types';
 import { formatPnl } from '../utils/formatPnl';
-import { TopRankAvatar, TopRankIndicator } from '../topRank';
 
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
@@ -29,15 +29,10 @@ export const TRADER_ROW_HEIGHT = 64;
 export interface TraderRowProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
-  /**
-   * Invoked when the row is tapped. The third argument is the trader's
-   * **overall** (unfiltered) rank — used downstream to gate the profile's
-   * podium decoration on true top-3 traders, never the filtered display
-   * rank.
-   */
   onTraderPress?: (
     traderId: string,
     traderName: string,
+    /* Used downstream for podium decoration */
     overallRank: number,
   ) => void;
   testID?: string;

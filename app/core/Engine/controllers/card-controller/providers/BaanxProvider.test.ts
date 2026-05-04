@@ -4,6 +4,10 @@ import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
   CardStatus,
   CardType,
+  type CardAccountStatus,
+  type CardAction,
+  type CardDetails,
+  type CardFundingAsset,
   FundingAssetStatus,
   CardProviderError,
   CardProviderErrorCode,
@@ -31,33 +35,6 @@ const AUTH_TOKENS: CardAuthTokens = {
   location: 'us',
 };
 
-/** Unsigned JWT payload segment only — enough for `app_id` decoding in provider. */
-function buildAccessTokenJwt(appId: 'FOX' | 'FOX_US'): string {
-  const json = JSON.stringify({ app_id: appId });
-  const payload = base64UrlEncodeUtf8(json);
-
-  return `h.${payload}.s`;
-}
-
-interface BufferFromUtf8 {
-  from(
-    data: string,
-    encoding: 'utf8',
-  ): { toString(encoding: 'base64'): string };
-}
-
-function base64UrlEncodeUtf8(input: string): string {
-  const BufferCtor = (globalThis as { Buffer?: BufferFromUtf8 }).Buffer;
-  if (!BufferCtor) {
-    throw new Error('Buffer is not available in this test environment');
-  }
-  return BufferCtor.from(input, 'utf8')
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/[=]/g, '');
-}
-
 function createMockService(): jest.Mocked<BaanxService> {
   return {
     get: jest.fn(),
@@ -78,6 +55,63 @@ describe('BaanxProvider', () => {
     jest.clearAllMocks();
     service = createMockService();
     provider = new BaanxProvider({ service });
+  });
+
+  describe('buildActions', () => {
+    const buildActions = (
+      asset: CardFundingAsset | null,
+      card: CardDetails | null,
+      account: CardAccountStatus | null,
+    ) =>
+      (
+        provider as unknown as {
+          buildActions: (
+            asset: CardFundingAsset | null,
+            card: CardDetails | null,
+            account: CardAccountStatus | null,
+          ) => CardAction[];
+        }
+      ).buildActions(asset, card, account);
+
+    const asset: CardFundingAsset = {
+      symbol: 'USDC',
+      name: 'USD Coin',
+      address: '0xusdc',
+      walletAddress: '0xwallet',
+      decimals: 6,
+      chainId: 'eip155:59144',
+      spendableBalance: '100',
+      spendingCap: '100',
+      priority: 1,
+      status: FundingAssetStatus.Active,
+    };
+
+    const account: CardAccountStatus = {
+      verificationStatus: 'VERIFIED',
+      provisioningEligible: true,
+      holderName: 'Test User',
+      shippingAddress: null,
+    };
+
+    const card: CardDetails = {
+      id: 'card-1',
+      status: CardStatus.ACTIVE,
+      type: CardType.VIRTUAL,
+      lastFour: '1234',
+      isFreezable: true,
+    };
+
+    it('keeps add funds available when the card is frozen', () => {
+      expect(
+        buildActions(asset, { ...card, status: CardStatus.FROZEN }, account),
+      ).toStrictEqual([{ type: 'add_funds', enabled: true }]);
+    });
+
+    it('does not show add funds when the card is blocked', () => {
+      expect(
+        buildActions(asset, { ...card, status: CardStatus.BLOCKED }, account),
+      ).toStrictEqual([]);
+    });
   });
 
   describe('capabilities', () => {
@@ -1176,7 +1210,7 @@ describe('BaanxProvider', () => {
     const redirectUri = 'https://link.metamask.io/card-oauth';
 
     it('exchanges authorization code via oauth2 token endpoint', async () => {
-      const accessJwt = buildAccessTokenJwt('FOX_US');
+      const accessJwt = 'mock-access-token-us';
       service.request.mockResolvedValue({
         access_token: accessJwt,
         refresh_token: 'rt',
@@ -1213,7 +1247,7 @@ describe('BaanxProvider', () => {
     });
 
     it('includes PKCE and client fields in form body', async () => {
-      const accessJwt = buildAccessTokenJwt('FOX');
+      const accessJwt = 'mock-access-token';
       service.request.mockResolvedValue({
         access_token: accessJwt,
         refresh_token: 'rt',
@@ -1240,7 +1274,7 @@ describe('BaanxProvider', () => {
     });
 
     it('completes oauth2 when session has empty _metadata', async () => {
-      const accessJwt = buildAccessTokenJwt('FOX');
+      const accessJwt = 'mock-access-token';
       service.request.mockResolvedValue({
         access_token: accessJwt,
         refresh_token: 'rt',
@@ -1285,7 +1319,7 @@ describe('BaanxProvider', () => {
     });
 
     it('maps unknown redirect appId to international for token exchange', async () => {
-      const accessJwt = buildAccessTokenJwt('FOX');
+      const accessJwt = 'mock-access-token';
       service.request.mockResolvedValue({
         access_token: accessJwt,
         refresh_token: 'rt',
@@ -1402,7 +1436,7 @@ describe('BaanxProvider', () => {
 
   describe('refreshTokens', () => {
     it('returns new token set from refresh endpoint', async () => {
-      const newAccess = buildAccessTokenJwt('FOX_US');
+      const newAccess = 'mock-new-access-token-us';
       service.request.mockResolvedValue({
         access_token: newAccess,
         refresh_token: 'new-refresh',

@@ -97,14 +97,13 @@ export interface BuildQuoteParams {
   /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
   amount?: number;
   /**
-   * Active headless buy session id, if the screen was opened via
-   * `useHeadlessBuy().startHeadlessBuy(...)`. Threaded through navigation so
-   * downstream routing helpers can look up the session in
-   * `sessionRegistry` and fire the consumer's lifecycle callbacks instead of
-   * navigating to the order-processing screen.
+   * Legacy param from Phase 3. The headless flow now navigates straight
+   * to `Routes.RAMP.HEADLESS_HOST` and never lands on BuildQuote, so the
+   * field is unused. Kept as `optional` for backward compatibility with
+   * any in-flight deeplinks; safe to remove once we're sure no callers
+   * pass it.
    *
-   * Phase 3 only plumbs this param — the screen itself does not branch on
-   * it yet.
+   * @deprecated Use `Routes.RAMP.HEADLESS_HOST` instead.
    */
   headlessSessionId?: string;
 }
@@ -399,6 +398,7 @@ function BuildQuote() {
   const debouncedAmountLimitError = useDebouncedValue(amountLimitError);
   const displayedAmountLimitError =
     amountLimitError === debouncedAmountLimitError ? amountLimitError : null;
+  const hasSettledQuoteAmount = amountAsNumber === debouncedPollingAmount;
   const quoteFetchEnabled = !!(
     walletAddress &&
     selectedPaymentMethod &&
@@ -655,6 +655,7 @@ function BuildQuote() {
 
   const hasNoQuotes =
     hasAmount &&
+    hasSettledQuoteAmount &&
     !selectedQuoteLoading &&
     !quoteFetchError &&
     quotesResponse !== null &&
