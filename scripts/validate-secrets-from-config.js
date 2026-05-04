@@ -50,9 +50,6 @@ if (offenders.length > 0) {
   }
   console.error('');
   console.error(
-    'Fix each secret in GitHub > Settings > Environments > <this build\'s environment> > edit the listed secret.',
-  );
-  console.error(
     'Common cause: pasting a value with a trailing newline or Windows (CRLF) line endings. Re-paste the value carefully and ensure no surrounding whitespace.',
   );
   process.exit(1);
