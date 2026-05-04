@@ -42,22 +42,17 @@ function matchesTransactionType(
   );
 }
 
-const EMPTY_TRANSACTIONS: TransactionMeta[] = [];
-const EMPTY_TRANSACTION_BATCHES: { id: string }[] = [];
-
 const selectTransactionControllerState = (state: RootState) =>
-  state.engine?.backgroundState?.TransactionController;
+  state.engine.backgroundState.TransactionController;
 
 const selectTransactionsStrict = createSelector(
   selectTransactionControllerState,
-  (transactionControllerState) =>
-    transactionControllerState?.transactions ?? EMPTY_TRANSACTIONS,
+  (transactionControllerState) => transactionControllerState.transactions,
 );
 
 const selectTransactionBatchesStrict = createSelector(
   selectTransactionControllerState,
-  (transactionControllerState) =>
-    transactionControllerState?.transactionBatches ?? EMPTY_TRANSACTION_BATCHES,
+  (transactionControllerState) => transactionControllerState.transactionBatches,
 );
 
 export const selectTransactions = createDeepEqualSelector(

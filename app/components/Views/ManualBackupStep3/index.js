@@ -27,11 +27,6 @@ const HARDWARE_BACK_PRESS = 'hardwareBackPress';
 class ManualBackupStep3 extends PureComponent {
   backHandlerSubscription = null;
 
-  constructor(props) {
-    super(props);
-    this.steps = props.route.params?.steps;
-  }
-
   state = {
     showHint: false,
     hintText: '',
