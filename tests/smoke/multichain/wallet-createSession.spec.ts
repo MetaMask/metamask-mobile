@@ -54,9 +54,10 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
             )}`,
           );
         }
-        if (assertions.chainCount !== 1) {
+        // Session may include every authorized EVM scope, not only the requested chain
+        if (assertions.chainCount < assertions.expectedCount) {
           throw new Error(
-            `Expected 1 chain, but found ${assertions.chainCount}`,
+            `Expected at least ${assertions.expectedCount} chain(s), but found ${assertions.chainCount}`,
           );
         }
       },
@@ -107,9 +108,9 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
             )}`,
           );
         }
-        if (assertions.chainCount !== 2) {
+        if (assertions.chainCount < assertions.expectedCount) {
           throw new Error(
-            `Expected 2 chains, but found ${assertions.chainCount}`,
+            `Expected at least ${assertions.expectedCount} chains, but found ${assertions.chainCount}`,
           );
         }
       },

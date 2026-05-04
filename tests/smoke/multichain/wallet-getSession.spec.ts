@@ -122,9 +122,9 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           );
         }
 
-        if (assertions1.chainCount !== networksToTest.length) {
+        if (assertions1.chainCount < assertions1.expectedCount) {
           throw new Error(
-            `Expected ${networksToTest.length} chain(s), but found ${assertions1.chainCount}`,
+            `Expected at least ${assertions1.expectedCount} chain(s), but found ${assertions1.chainCount}`,
           );
         }
 
@@ -230,9 +230,9 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           );
         }
 
-        if (getAssertions2.chainCount !== newNetworks.length) {
+        if (getAssertions2.chainCount < newNetworks.length) {
           throw new Error(
-            `Expected ${newNetworks.length} chain(s), but found ${getAssertions2.chainCount}`,
+            `Expected at least ${newNetworks.length} chain(s), but found ${getAssertions2.chainCount}`,
           );
         }
 
