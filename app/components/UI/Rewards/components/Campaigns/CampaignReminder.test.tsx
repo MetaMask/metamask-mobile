@@ -2,17 +2,34 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import CampaignReminder from './CampaignReminder';
-import { reminderStorageKeyForComposite } from '../../hooks/useCampaignReminderSubscriptions';
+import { reminderStorageKeyForComposite } from '../../hooks/useCampaignReminderActions';
 import {
   type CampaignDto,
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsEnabled,
+} from '../../../../../selectors/notifications';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications/constants';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockShowToast = jest.fn();
+const mockEnableNotifications = jest.fn();
+const mockEnableNotificationsNudge = jest.fn(
+  (linkButtonOptions: { label: string; onPress: () => Promise<void> }) => ({
+    variant: 'Plain',
+    hasNoTimeout: true,
+    linkButtonOptions,
+    closeButtonOptions: {
+      onPress: jest.fn(),
+    },
+  }),
+);
+let mockEnableNotificationsLoading = false;
 
 const TEST_REWARDS_SUBSCRIPTION_ID = 'test-rewards-sub-id';
 
@@ -58,9 +75,21 @@ jest.mock('../../hooks/useRewardsToast', () => ({
         title,
         subtitle,
       })),
+      enableNotificationsNudge: mockEnableNotificationsNudge,
       entriesClosed: jest.fn(),
     },
   })),
+}));
+
+jest.mock('../../../../../util/notifications/hooks/useNotifications', () => ({
+  useEnableNotifications: jest.fn(() => ({
+    enableNotifications: mockEnableNotifications,
+    loading: mockEnableNotificationsLoading,
+  })),
+}));
+
+jest.mock('../../../../../util/notifications/constants', () => ({
+  isNotificationsFeatureEnabled: jest.fn(() => true),
 }));
 
 jest.mock('../../../../../images/rewards/notification.svg', () => {
@@ -89,6 +118,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.campaign.notify_me': 'Notify me',
       'rewards.campaign.remind_me_success_toast': 'We will notify you.',
       'rewards.campaign.remind_me_save_error': 'Save failed.',
+      'rewards.notifications_nudge.turn_on_button': 'Turn on',
     };
     return translations[key] || key;
   },
@@ -111,11 +141,19 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
 describe('CampaignReminder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnableNotifications.mockResolvedValue(undefined);
+    mockEnableNotificationsLoading = false;
     mockGetItemSync.mockReturnValue(null);
     mockSetItem.mockResolvedValue(undefined);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) {
         return TEST_REWARDS_SUBSCRIPTION_ID;
+      }
+      if (
+        selector === selectIsMetamaskNotificationsEnabled ||
+        selector === selectIsMetaMaskPushNotificationsEnabled
+      ) {
+        return true;
       }
       return undefined;
     });
@@ -127,6 +165,7 @@ describe('CampaignReminder', () => {
       (builder.addProperties as jest.Mock).mockReturnValue(builder);
       return builder;
     });
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
   });
 
   it('renders up next label and campaign name', async () => {
@@ -170,5 +209,81 @@ describe('CampaignReminder', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('prompts for notifications and tracks only after push notifications are enabled', async () => {
+    let notificationsEnabled = false;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return TEST_REWARDS_SUBSCRIPTION_ID;
+      }
+      if (
+        selector === selectIsMetamaskNotificationsEnabled ||
+        selector === selectIsMetaMaskPushNotificationsEnabled
+      ) {
+        return notificationsEnabled;
+      }
+      return undefined;
+    });
+    const campaign = createTestCampaign({ id: 'cr-notifications' });
+    const { getByTestId, rerender } = render(
+      <CampaignReminder campaign={campaign} />,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId('campaign-reminder-notify-cr-notifications'),
+      ).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('campaign-reminder-notify-cr-notifications'));
+    });
+
+    expect(mockEnableNotificationsNudge).toHaveBeenCalledWith(
+      expect.objectContaining({
+        label: 'Turn on',
+        onPress: expect.any(Function),
+      }),
+    );
+    expect(mockSetItem).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+    expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+
+    notificationsEnabled = true;
+    rerender(<CampaignReminder campaign={campaign} />);
+
+    await waitFor(() => {
+      expect(mockSetItem).toHaveBeenCalledWith(
+        reminderStorageKeyForComposite(
+          `${TEST_REWARDS_SUBSCRIPTION_ID}:cr-notifications`,
+        ),
+        '1',
+      );
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show Notify me when the notifications feature flag is off', async () => {
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(false);
+    const campaign = createTestCampaign({ id: 'cr-feature-off' });
+    const { queryByTestId } = render(<CampaignReminder campaign={campaign} />);
+
+    await waitFor(() => {
+      expect(
+        queryByTestId('campaign-reminder-notify-cr-feature-off'),
+      ).toBeNull();
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 });

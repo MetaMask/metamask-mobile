@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import CampaignTile from './CampaignTile';
-import { reminderStorageKeyForComposite } from '../../hooks/useCampaignReminderSubscriptions';
+import { reminderStorageKeyForComposite } from '../../hooks/useCampaignReminderActions';
 import {
   type CampaignDto,
   CampaignType,
@@ -15,11 +15,28 @@ import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipa
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsEnabled,
+} from '../../../../../selectors/notifications';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications/constants';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockShowToast = jest.fn();
+const mockEnableNotifications = jest.fn();
+const mockEnableNotificationsNudge = jest.fn(
+  (linkButtonOptions: { label: string; onPress: () => Promise<void> }) => ({
+    variant: 'Plain',
+    hasNoTimeout: true,
+    linkButtonOptions,
+    closeButtonOptions: {
+      onPress: jest.fn(),
+    },
+  }),
+);
+let mockEnableNotificationsLoading = false;
 
 const TEST_REWARDS_SUBSCRIPTION_ID = 'test-rewards-sub-id';
 
@@ -65,10 +82,23 @@ jest.mock('../../hooks/useRewardsToast', () => ({
         title,
         subtitle,
       })),
+      enableNotificationsNudge: mockEnableNotificationsNudge,
       entriesClosed: jest.fn(),
     },
   })),
 }));
+
+jest.mock('../../../../../util/notifications/hooks/useNotifications', () => ({
+  useEnableNotifications: jest.fn(() => ({
+    enableNotifications: mockEnableNotifications,
+    loading: mockEnableNotificationsLoading,
+  })),
+}));
+
+jest.mock('../../../../../util/notifications/constants', () => ({
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn().mockReturnValue({
     navigate: (...args: unknown[]) => mockNavigate(...args),
@@ -117,6 +147,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.campaign.notify_me': 'Notify me',
       'rewards.campaign.remind_me_success_toast': 'We will notify you.',
       'rewards.campaign.remind_me_save_error': 'Save failed.',
+      'rewards.notifications_nudge.turn_on_button': 'Turn on',
     };
     return translations[key] || key;
   },
@@ -148,11 +179,19 @@ function setupParticipantStatus(optedIn: boolean) {
 describe('CampaignTile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnableNotifications.mockResolvedValue(undefined);
+    mockEnableNotificationsLoading = false;
     mockGetItemSync.mockReturnValue(null);
     mockSetItem.mockResolvedValue(undefined);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) {
         return TEST_REWARDS_SUBSCRIPTION_ID;
+      }
+      if (
+        selector === selectIsMetamaskNotificationsEnabled ||
+        selector === selectIsMetaMaskPushNotificationsEnabled
+      ) {
+        return true;
       }
       return undefined;
     });
@@ -172,6 +211,7 @@ describe('CampaignTile', () => {
       dateLabelIcon: 'Clock',
     });
     (isCampaignTypeSupported as jest.Mock).mockReturnValue(true);
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
       isLoading: false,
@@ -660,6 +700,172 @@ describe('CampaignTile', () => {
       });
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('prompts for notifications and tracks only after push notifications are enabled', async () => {
+      let notificationsEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectRewardsSubscriptionId) {
+          return TEST_REWARDS_SUBSCRIPTION_ID;
+        }
+        if (
+          selector === selectIsMetamaskNotificationsEnabled ||
+          selector === selectIsMetaMaskPushNotificationsEnabled
+        ) {
+          return notificationsEnabled;
+        }
+        return undefined;
+      });
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Coming soon',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'camp-remind-notifications',
+        type: CampaignType.PERPS_TRADING,
+        startDate: '2028-07-15T00:00:00.000Z',
+      });
+
+      const { getByTestId, rerender } = render(
+        <CampaignTile campaign={campaign} />,
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId('campaign-tile-remind-me-camp-remind-notifications'),
+        ).toBeTruthy();
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId('campaign-tile-remind-me-camp-remind-notifications'),
+        );
+      });
+
+      expect(mockEnableNotificationsNudge).toHaveBeenCalledWith(
+        expect.objectContaining({
+          label: 'Turn on',
+          onPress: expect.any(Function),
+        }),
+      );
+      expect(mockSetItem).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      const linkButtonOptions = mockEnableNotificationsNudge.mock
+        .calls[0][0] as {
+        onPress: () => Promise<void>;
+      };
+      await act(async () => {
+        await linkButtonOptions.onPress();
+      });
+      expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+
+      notificationsEnabled = true;
+      rerender(<CampaignTile campaign={campaign} />);
+
+      await waitFor(() => {
+        expect(mockSetItem).toHaveBeenCalledWith(
+          reminderStorageKeyForComposite(
+            `${TEST_REWARDS_SUBSCRIPTION_ID}:camp-remind-notifications`,
+          ),
+          '1',
+        );
+      });
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels pending reminder subscription when the notifications nudge is dismissed', async () => {
+      let notificationsEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectRewardsSubscriptionId) {
+          return TEST_REWARDS_SUBSCRIPTION_ID;
+        }
+        if (
+          selector === selectIsMetamaskNotificationsEnabled ||
+          selector === selectIsMetaMaskPushNotificationsEnabled
+        ) {
+          return notificationsEnabled;
+        }
+        return undefined;
+      });
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Coming soon',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'camp-dismiss-nudge',
+        type: CampaignType.PERPS_TRADING,
+        startDate: '2028-07-15T00:00:00.000Z',
+      });
+
+      const { getByTestId, rerender } = render(
+        <CampaignTile campaign={campaign} />,
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId('campaign-tile-remind-me-camp-dismiss-nudge'),
+        ).toBeTruthy();
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId('campaign-tile-remind-me-camp-dismiss-nudge'),
+        );
+      });
+
+      const toastConfig = mockShowToast.mock.calls[0][0] as {
+        closeButtonOptions: { onPress: () => void };
+      };
+      act(() => {
+        toastConfig.closeButtonOptions.onPress();
+      });
+
+      notificationsEnabled = true;
+      rerender(<CampaignTile campaign={campaign} />);
+
+      expect(mockSetItem).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not show Notify me when the notifications feature flag is off', async () => {
+      (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(false);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectRewardsSubscriptionId) {
+          return TEST_REWARDS_SUBSCRIPTION_ID;
+        }
+        if (
+          selector === selectIsMetamaskNotificationsEnabled ||
+          selector === selectIsMetaMaskPushNotificationsEnabled
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Coming soon',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'camp-cannot-prompt',
+        type: CampaignType.PERPS_TRADING,
+      });
+
+      const { queryByTestId } = render(<CampaignTile campaign={campaign} />);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId('campaign-tile-remind-me-camp-cannot-prompt'),
+        ).toBeNull();
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('does not show Notify me when storage already has subscription:campaign composite', async () => {
