@@ -3581,6 +3581,7 @@ function initChart() {
 
     // TradingView only supports a fixed set of IANA timezone IDs.
     // If the device returns an unsupported ID we fall back to Etc/UTC.
+    // List of supported timezones:  https://www.tradingview.com/charting-library-docs/latest/ui_elements/timezones#supported-time-zones
     var TV_SUPPORTED_TIMEZONES = [
       'Etc/UTC',
       'Africa/Cairo',

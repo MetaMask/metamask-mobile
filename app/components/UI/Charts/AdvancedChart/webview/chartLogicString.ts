@@ -3590,6 +3590,7 @@ function initChart() {
 
     // TradingView only supports a fixed set of IANA timezone IDs.
     // If the device returns an unsupported ID we fall back to Etc/UTC.
+    // List of supported timezones:  https://www.tradingview.com/charting-library-docs/latest/ui_elements/timezones#supported-time-zones
     var TV_SUPPORTED_TIMEZONES = [
       'Etc/UTC',
       'Africa/Cairo',
@@ -3699,7 +3700,9 @@ function initChart() {
       try {
         var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
         var mapped = CANONICAL_TO_TV[tz] || tz;
-        return TV_SUPPORTED_TIMEZONES.indexOf(mapped) !== -1 ? mapped : 'Etc/UTC';
+        return TV_SUPPORTED_TIMEZONES.indexOf(mapped) !== -1
+          ? mapped
+          : 'Etc/UTC';
       } catch (_e) {
         return 'Etc/UTC';
       }
