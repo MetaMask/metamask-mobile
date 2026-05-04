@@ -2,7 +2,7 @@
 import { PressableProps, LayoutChangeEvent } from 'react-native';
 
 // Internal dependencies.
-import { IconName } from '../../../components/Icons/Icon/Icon.types';
+import { IconName, IconProps } from '../../../components/Icons/Icon/Icon.types';
 
 /**
  * TabsIconTab component props.
@@ -36,5 +36,9 @@ export interface TabsIconTabProps extends PressableProps {
   /**
    * When true the tab stretches to fill equal width inside a fill-width bar
    */
-  fillWidth?: boolean;
+  shouldFillWidth?: boolean;
+  /**
+   * Extra props spread onto the Icon component — useful for overriding size, color, or style
+   */
+  iconProps?: Partial<Omit<IconProps, 'name'>>;
 }

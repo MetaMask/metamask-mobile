@@ -77,7 +77,7 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
 
     if (shouldReset) {
       prevTabKeys.current = tabKeys;
-      tabLayouts.current = new Array(tabs.length);
+      tabLayouts.current = Array.from({ length: tabs.length });
       setIsInitialized(false);
       setLayoutsReady(false);
       setScrollEnabled(false);
@@ -97,7 +97,7 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
   useEffect(() => {
     if (prevScrollEnabled.current !== scrollEnabled) {
       prevScrollEnabled.current = scrollEnabled;
-      tabLayouts.current = new Array(tabs.length);
+      tabLayouts.current = Array.from({ length: tabs.length });
       setIsInitialized(false);
       setLayoutsReady(false);
       if (currentAnimation.current) {
@@ -339,7 +339,7 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
               onPress={() => handleTabPress(index)}
               onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
               testID={tab.testID ?? `${testID}-tab-${index}`}
-              fillWidth={fillWidth}
+              shouldFillWidth={fillWidth}
             />
           ))}
 
