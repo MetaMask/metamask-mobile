@@ -294,6 +294,26 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
     });
 
+    it('uses availableToTradeBalance for Unified Account users', () => {
+      // Unified Account / Portfolio Margin: collateral lives in spot, so HL's
+      // `clearinghouseState.withdrawable` is $0. The Pay-with sheet must read
+      // `availableToTradeBalance` (perps + folded spot USDC) instead.
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccountState,
+          availableBalance: '0',
+          availableToTradeBalance: '2500.00',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsPaymentTokens());
+
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.balance).toBe('2500000000');
+      expect(hyperliquidUsdc.balanceFiat).toBe('$2500.00');
+    });
+
     it('handles null account state', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: null,

@@ -520,11 +520,20 @@ jobs:
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v6
+      - name: Restore node_modules cache
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -632,11 +641,20 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v6
+      - name: Restore node_modules cache
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -997,6 +1015,8 @@ jobs:
     needs:
       - get_requirements
       - all-jobs-pass
+      - build-android-apks
+      - build-ios-apps
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
     env:
@@ -1020,22 +1040,23 @@ jobs:
             exit 1
           fi
 
-          # Check E2E jobs only if they should have run
+          # Check E2E build + smoke results only if E2E should have run.
+          # 'skipped' is acceptable — covers merge_group, fork PRs, ignorable-only changes,
+          # platform-only PRs, and AI selection returning zero tags.
+          # 'failure'/'cancelled' on any of build or smoke must block merge.
           if [[ "${{ needs.get_requirements.outputs.skip_e2e }}" != "true" ]]; then
-            # Accept both 'success' and 'skipped' as valid results
-            # 'skipped' occurs during merge_group events or when jobs are intentionally skipped
-            # Only fail on 'failure' or 'cancelled'
-            ANDROID_RESULT="${{ needs.e2e-smoke-tests-android.result }}"
-            if [[ "$ANDROID_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
-              echo "Android E2E tests failed (result: $ANDROID_RESULT)"
-              exit 1
-            fi
-
-            IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
-            if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
-              echo "iOS E2E tests failed (result: $IOS_RESULT)"
-              exit 1
-            fi
+            for entry in \
+              "build-android-apks:${{ needs.build-android-apks.result }}" \
+              "e2e-smoke-tests-android:${{ needs.e2e-smoke-tests-android.result }}" \
+              "build-ios-apps:${{ needs.build-ios-apps.result }}" \
+              "e2e-smoke-tests-ios:${{ needs.e2e-smoke-tests-ios.result }}"; do
+              name="${entry%%:*}"
+              result="${entry#*:}"
+              if [[ "$result" == "failure" ]] || [[ "$result" == "cancelled" ]]; then
+                echo "::error::Required E2E job '$name' did not succeed (result: $result)"
+                exit 1
+              fi
+            done
           fi
 
           echo "All required jobs passed"
