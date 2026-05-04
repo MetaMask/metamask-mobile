@@ -27,6 +27,16 @@ const ETH_MAINNET_ROUTE_PARAMS = {
   tokenDecimals: 18,
   tokenName: 'Ethereum',
   tokenChainId: CHAIN_IDS.MAINNET,
+  token: {
+    address: '0x123',
+    symbol: 'ETH',
+    decimals: 18,
+    name: 'Ethereum',
+    chainId: '0x1',
+    image: 'https://example.com/eth.png',
+    balance: '0',
+    logo: undefined,
+  },
 };
 
 describeForPlatforms('MarketInsightsView (token flow)', () => {
@@ -41,6 +51,48 @@ describeForPlatforms('MarketInsightsView (token flow)', () => {
   it('displays market insights content and navigates to swap', async () => {
     renderMarketInsightsViewWithNavigation({
       initialParams: ETH_MAINNET_ROUTE_PARAMS,
+      overrides: {
+        engine: {
+          backgroundState: {
+            TokensController: {
+              allTokens: {
+                '0x1': {
+                  '0x0000000000000000000000000000000000000001': [
+                    {
+                      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                      decimals: 6,
+                      symbol: 'USDC',
+                      name: 'USD Coin',
+                      image: '',
+                    },
+                  ],
+                },
+              },
+              allIgnoredTokens: {},
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                '0x0000000000000000000000000000000000000001': {
+                  '0x1': {
+                    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': '0x3b9aca00',
+                  },
+                },
+              },
+            },
+            TokenRatesController: {
+              marketData: {
+                '0x1': {
+                  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+                    tokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                    currency: 'ETH',
+                    price: 0.0005,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     expect(
