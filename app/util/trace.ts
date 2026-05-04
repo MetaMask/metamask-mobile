@@ -13,6 +13,7 @@ import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { analytics } from './analytics/analytics';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
@@ -553,20 +554,31 @@ let cachedConsent: boolean | null = null;
 
 /**
  * Check if user has given consent for metrics (for Sentry init).
- * Uses AnalyticsController via {@link analytics.isEnabled} first (same as Settings → Participate),
- * then legacy METRICS_OPT_IN storage.
+ * Reads from AnalyticsController's persisted state in FilesystemStorage.
+ *
+ * This bypasses Engine/Redux because Sentry initializes in index.js before they're available.
+ * Follows the same pattern as ControllerStorage.getAllPersistedState() in persistConfig.
  */
 export async function hasMetricsConsent(): Promise<boolean> {
   try {
-    const enabled = analytics.isEnabled();
-    if (typeof enabled === 'boolean') {
-      cachedConsent = enabled;
-      return enabled;
+    // Read directly from AnalyticsController's persisted state (same as ControllerStorage does)
+    const persistedData = await FilesystemStorage.getItem(
+      'persist:AnalyticsController',
+    );
+    if (persistedData) {
+      const parsed = JSON.parse(persistedData);
+      // Remove redux-persist metadata and get controller state
+      const { _persist, ...controllerState } = parsed;
+      if (typeof controllerState?.optedIn === 'boolean') {
+        cachedConsent = controllerState.optedIn;
+        return controllerState.optedIn;
+      }
     }
   } catch {
-    // fall through to legacy storage
+    // Fall through to legacy storage
   }
 
+  // Fallback: legacy METRICS_OPT_IN (migration 108, may be stale)
   const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
   const hasConsent = metricsOptIn === AGREED;
   cachedConsent = hasConsent;
