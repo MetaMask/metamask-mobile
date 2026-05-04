@@ -15,7 +15,6 @@ import { useNetworkSelection } from './useNetworkSelection';
 import {
   selectPopularNetworkConfigurationsByCaipChainId,
   selectNetworkConfigurationsByCaipChainId,
-  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Engine from '../../../core/Engine';
@@ -162,7 +161,6 @@ jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
   selectPopularNetworkConfigurationsByCaipChainId: jest.fn(),
   selectNetworkConfigurationsByCaipChainId: jest.fn(),
-  selectEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
 jest.mock('../../../core/NavigationService', () => {
@@ -298,39 +296,6 @@ describe('useNetworkSelection', () => {
     },
   };
 
-  const mockEvmNetworkConfigurationsByChainId = {
-    '0x1': {
-      rpcEndpoints: [
-        {
-          networkClientId: 'mainnet-client-id',
-          url: 'https://mainnet.infura.io',
-          type: 'infura',
-        },
-      ],
-      defaultRpcEndpointIndex: 0,
-    },
-    '0x89': {
-      rpcEndpoints: [
-        {
-          networkClientId: 'polygon-client-id',
-          url: 'https://polygon-rpc.com',
-          type: 'custom',
-        },
-      ],
-      defaultRpcEndpointIndex: 0,
-    },
-    '0x13881': {
-      rpcEndpoints: [
-        {
-          networkClientId: 'mumbai-client-id',
-          url: 'https://mumbai.polygonscan.com',
-          type: 'custom',
-        },
-      ],
-      defaultRpcEndpointIndex: 0,
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnableNetwork.mockReset();
@@ -345,9 +310,6 @@ describe('useNetworkSelection', () => {
       }
       if (selector === selectNetworkConfigurationsByCaipChainId) {
         return mockNetworkConfigurations;
-      }
-      if (selector === selectEvmNetworkConfigurationsByChainId) {
-        return mockEvmNetworkConfigurationsByChainId;
       }
       if (selector === selectInternalAccounts) {
         return [];
@@ -1465,7 +1427,6 @@ describe('useNetworkSelection', () => {
         );
 
         expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
-        expect(mockEnableNetwork).not.toHaveBeenCalled();
       });
     });
   });

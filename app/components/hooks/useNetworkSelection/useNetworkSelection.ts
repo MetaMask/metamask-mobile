@@ -153,6 +153,15 @@ export const useNetworkSelection = ({
     ],
   );
 
+  const selectAllPopularNetworks = useCallback(
+    async (onComplete?: () => void) => {
+      await enableAllPopularNetworks();
+
+      onComplete?.();
+    },
+    [enableAllPopularNetworks],
+  );
+
   /** Toggles a popular network, switches to it, and resets all custom networks */
   const selectPopularNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
@@ -198,15 +207,6 @@ export const useNetworkSelection = ({
       onComplete?.();
     },
     [enableNetwork, evmNetworkConfigurations],
-  );
-
-  const selectAllPopularNetworks = useCallback(
-    async (onComplete?: () => void) => {
-      await enableAllPopularNetworks();
-
-      onComplete?.();
-    },
-    [enableAllPopularNetworks],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */
