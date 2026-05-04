@@ -817,6 +817,34 @@ describe('useTokenActions', () => {
           true,
         );
       });
+
+      it('forwards rwaData to goToSwaps so selectIsRwaSwap works for the convert flow', () => {
+        const rwaToken: TokenI = {
+          ...defaultToken,
+          balance: '1',
+          rwaData: { instrumentType: 'stock' } as TokenI['rwaData'],
+        } as TokenI;
+
+        const { result } = renderHook(() =>
+          useTokenActions({
+            token: rwaToken,
+            networkName: 'Ethereum Mainnet',
+          }),
+        );
+
+        result.current.handleStickySwapPress();
+
+        expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+        expect(mockGoToSwaps).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: defaultToken.address,
+            rwaData: { instrumentType: 'stock' },
+          }),
+          undefined,
+          undefined,
+          true,
+        );
+      });
     });
   });
 });
