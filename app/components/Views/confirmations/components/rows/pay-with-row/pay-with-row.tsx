@@ -47,9 +47,12 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
+
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
+  const { displayToken: moneyAccountDisplayToken, isAwaitingAccountSelection } =
+    useMoneyAccountPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const selectedFiatPaymentMethod =
@@ -64,10 +67,7 @@ export function PayWithRow() {
 
   const canEdit = !isHardwareAccount(from ?? '');
 
-  const { displayToken: moneyAccountDisplayToken, isAwaitingAccountSelection } =
-    useMoneyAccountPayToken();
-
-  const isDisabled = !canEdit || isAwaitingAccountSelection;
+  const isDisabled = !canEdit;
 
   const handleClick = useCallback(() => {
     if (isDisabled) return;
