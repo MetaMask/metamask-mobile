@@ -1,12 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
-import ExploreSearchResults from '../../components/ExploreSearchResults/ExploreSearchResults';
-import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
-import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
+import ExploreSearchResults from '../../search/ExploreSearchResults';
+import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -33,11 +32,9 @@ const ExploreSearchScreen: React.FC = () => {
         />
       </Box>
 
-      <PerpsConnectionProvider suppressErrorView>
-        <PerpsStreamProvider>
-          <ExploreSearchResults searchQuery={searchQuery} />
-        </PerpsStreamProvider>
-      </PerpsConnectionProvider>
+      <PerpsSectionProvider>
+        <ExploreSearchResults searchQuery={searchQuery} />
+      </PerpsSectionProvider>
     </Box>
   );
 };

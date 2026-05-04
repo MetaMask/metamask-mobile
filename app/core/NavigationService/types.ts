@@ -222,7 +222,7 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import { SectionId } from '../../components/Views/TrendingView/sections.config';
+import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
 
 type TraderPositionViewParams =
   | {
@@ -348,10 +348,10 @@ export interface RootStackParamList extends ParamListBase {
   WhatsHappeningDetailView:
     | { items: WhatsHappeningItem[]; initialIndex: number }
     | undefined;
-  SitesFullView: undefined;
+  SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
   ExploreSectionResultsFullView: {
-    sectionId: SectionId;
+    feedId: SearchFeedId;
     title: string;
     searchQuery: string;
     data: unknown[];
