@@ -448,6 +448,78 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
+  android-lint:
+    name: Android lint
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    timeout-minutes: 45
+    if: >-
+      ${{
+        needs.get_requirements.outputs.skip_everything != 'true' &&
+        !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork)
+      }}
+    needs:
+      - get_requirements
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GRADLE_USER_HOME: /home/admin/_work/.gradle
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Restore .metamask folder
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Setup Android build environment
+        timeout-minutes: 15
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: false
+          configure-keystores: true
+          android-api-level: 36
+          target: qa
+
+      - name: Restore Gradle dependencies
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        env:
+          GRADLE_LINT_CACHE_VERSION: 1
+        with:
+          path: |
+            /home/admin/_work/.gradle/caches
+            /home/admin/_work/.gradle/wrapper
+          key: android-lint-gradle-${{ env.GRADLE_LINT_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios
+
+      - name: Run Android lint (prodRelease)
+        working-directory: android
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: |
+          set -euo pipefail
+          cp gradle.properties.github gradle.properties
+          SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew :app:lintProdRelease
+
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
@@ -949,6 +1021,7 @@ jobs:
         unit-tests,
         component-view-tests,
         check-workflows,
+        android-lint,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
       ]
