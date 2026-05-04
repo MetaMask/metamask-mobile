@@ -90,6 +90,24 @@ export default class Matchers {
   }
 
   /**
+   * Detox `replaceText` / `typeText` on Android require an `android.widget.EditText`.
+   * Design-system text fields often attach `testID` to a wrapper (`Pressable` /
+   * `ViewGroup`); match the inner `EditText` under that id (see also LoginView password).
+   */
+  static async getEditTextWithAncestorTestId(
+    ancestorTestId: string,
+  ): Promise<Detox.IndexableNativeElement> {
+    if (device.getPlatform() === 'android') {
+      return element(
+        by.type('android.widget.EditText').withAncestor(by.id(ancestorTestId)),
+      ) as Detox.IndexableNativeElement;
+    }
+    return (await this.getElementByID(
+      ancestorTestId,
+    )) as Detox.IndexableNativeElement;
+  }
+
+  /**
    * Get Native WebView instance by elementId
    * Because Android Webview might have more that one WebView instance present on the main activity,
    * the correct element is selected based on its parent element id.

@@ -2894,25 +2894,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMusdQuickConvertEnabled: {
-    name: 'earnMusdQuickConvertEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMusdQuickConvertPercentage: {
-    name: 'earnMusdQuickConvertPercentage',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: 0.9,
-    status: FeatureFlagStatus.Active,
-  },
-
   earnMusdTokenRegistrationChainIds: {
     name: 'earnMusdTokenRegistrationChainIds',
     type: FeatureFlagType.Remote,
@@ -2991,11 +2972,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  exploreSectionsOrder: {
-    name: 'exploreSectionsOrder',
+  explorePageV2Enabled: {
+    name: 'explorePageV2Enabled',
     type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {},
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -3045,6 +3026,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       '0x38': false,
       '0x531': false,
       '0x8f': true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  hapticsKillSwitch: {
+    name: 'hapticsKillSwitch',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3876,6 +3868,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  tokenListSecurityBadges: {
+    name: 'tokenListSecurityBadges',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.76.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 

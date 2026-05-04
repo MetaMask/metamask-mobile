@@ -1,5 +1,11 @@
 import React, { useRef, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { screen, fireEvent, act } from '@testing-library/react-native';
+import {
+  ImpactFeedbackStyle,
+  ImpactMoment,
+  playImpact,
+} from '../../../../../../util/haptics';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TraderNotificationsBottomSheet, {
   type TraderNotificationsBottomSheetRef,
@@ -20,6 +26,30 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({ navigate: mockNavigate }),
   };
 });
+
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+  },
+}));
+
+jest.mock('../../../../../../util/haptics', () => {
+  const actual = jest.requireActual<
+    typeof import('../../../../../../util/haptics')
+  >('../../../../../../util/haptics');
+  return {
+    ...actual,
+    playImpact: jest.fn(),
+  };
+});
+
+const { impactAsync: mockImpactAsync } = jest.requireMock('expo-haptics') as {
+  impactAsync: jest.Mock;
+};
+const mockPlayImpact = jest.mocked(playImpact);
 
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
@@ -376,6 +406,148 @@ describe('TraderNotificationsBottomSheet', () => {
 
       expect(mockOnDismiss).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('haptic feedback', () => {
+    const originalPlatform = Platform.OS;
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('fires a medium impact when pressing save', () => {
+      Platform.OS = 'ios';
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          isTraderNotificationEnabled={() => true}
+        />,
+      );
+
+      fireEvent(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
+        'valueChange',
+        false,
+      );
+      mockImpactAsync.mockClear();
+      mockPlayImpact.mockClear();
+
+      act(() => {
+        fireEvent.press(
+          screen.getByTestId(
+            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('fires a medium impact when pressing save even if the value did not change', () => {
+      Platform.OS = 'ios';
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          isTraderNotificationEnabled={() => true}
+        />,
+      );
+
+      act(() => {
+        fireEvent.press(
+          screen.getByTestId(
+            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+    });
+
+    it('fires a light impact when toggling the local switch on Android', () => {
+      Platform.OS = 'android';
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          isTraderNotificationEnabled={() => true}
+        />,
+      );
+
+      fireEvent(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
+        'valueChange',
+        false,
+      );
+
+      expect(mockImpactAsync).toHaveBeenCalledTimes(1);
+      expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+    });
+
+    it('does not fire a haptic when toggling the local switch on iOS', () => {
+      Platform.OS = 'ios';
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          isTraderNotificationEnabled={() => true}
+        />,
+      );
+
+      fireEvent(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
+        'valueChange',
+        false,
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic when toggling the local switch while the global toggle is off', () => {
+      Platform.OS = 'android';
+      renderWithProvider(
+        <OpenedSheet
+          traderId="trader-1"
+          preferences={makePreferences({ enabled: false })}
+        />,
+      );
+
+      fireEvent(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
+        'valueChange',
+        false,
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic when pressing the close button', () => {
+      renderWithProvider(<OpenedSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          TraderNotificationsBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic when pressing the manage traders row', () => {
+      renderWithProvider(<OpenedSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          TraderNotificationsBottomSheetSelectorsIDs.MANAGE_TRADERS_ROW,
+        ),
+      );
+
+      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
     });
   });
 });

@@ -83,7 +83,14 @@ export function usePerpsBalanceTokenFilter(): (
         return tokens;
       }
 
-      const availableBalance = perpsAccount?.availableBalance || '0';
+      // Prefer `availableToTradeBalance` so Unified Account / Portfolio
+      // Margin users see their real spendable balance in the Pay-with
+      // header — `availableBalance` mirrors HL's perps-only
+      // `clearinghouseState.withdrawable`, which is $0 in unified mode.
+      const availableBalance =
+        perpsAccount?.availableToTradeBalance ??
+        perpsAccount?.availableBalance ??
+        '0';
       const balanceInSelectedCurrency = formatFiat(
         new BigNumber(availableBalance),
       );
@@ -135,6 +142,7 @@ export function usePerpsBalanceTokenFilter(): (
       onPerpsPaymentTokenChange,
       isPerpsBalanceSelected,
       perpsAccount?.availableBalance,
+      perpsAccount?.availableToTradeBalance,
       transactionMeta,
     ],
   );

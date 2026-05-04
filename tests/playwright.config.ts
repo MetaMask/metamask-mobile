@@ -46,8 +46,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can changed
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0', // this can changed
         },
         app: {
           packageName: 'io.metamask',
@@ -99,8 +99,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
         },
         app: {
           packageName: 'io.metamask',
@@ -170,8 +170,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can changed
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0', // this can changed
           selfHeal: false,
           otherApps: process.env.BROWSERSTACK_RN_PLAYGROUND_URL
             ? [process.env.BROWSERSTACK_RN_PLAYGROUND_URL]
@@ -209,8 +209,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
         },
         app: {
           packageName: 'io.metamask',
