@@ -3588,6 +3588,15 @@ function initChart() {
           }
         : undefined;
 
+    // Resolve the user's local IANA timezone for display (e.g. "Europe/Berlin").
+    // Falls back to "Etc/UTC" if the API is unavailable in the WebView.
+    var userTimezone = (function () {
+      try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
+      } catch (_e) {
+        return 'Etc/UTC';
+      }
+    })();
     window.chartWidget = new TradingView.widget({
       symbol: window.currentSymbol,
       interval: window.currentResolution || '5',
@@ -3596,6 +3605,7 @@ function initChart() {
       datafeed: customDatafeed,
       library_path: window.CONFIG.libraryUrl,
       locale: 'en',
+      timezone: userTimezone,
       fullscreen: false,
       autosize: true,
       theme: 'Dark',
