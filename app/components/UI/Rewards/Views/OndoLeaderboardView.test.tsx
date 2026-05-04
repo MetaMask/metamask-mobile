@@ -491,6 +491,8 @@ describe('OndoLeaderboardView', () => {
     });
     mockUseGetOndoPortfolioPosition.mockReturnValue({
       portfolio: {
+        positions: [],
+        computedAt: '2024-01-01T00:00:00Z',
         summary: {
           portfolioPnlPercent: '0.05',
           totalCurrentValue: '12500',
