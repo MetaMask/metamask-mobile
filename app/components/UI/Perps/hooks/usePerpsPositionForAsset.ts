@@ -92,6 +92,10 @@ export const usePerpsPositionForAsset = (
   const userAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  DevLogger.log('[PR-29643] BUG_MARKER: userAddress passed to perps hook', {
+    userAddress,
+    isEvm: userAddress ? /^0[xX][0-9a-fA-F]+$/.test(userAddress) : null,
+  });
 
   // Track if component is still mounted
   const isMountedRef = useRef(true);
