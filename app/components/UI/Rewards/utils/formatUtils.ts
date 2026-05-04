@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import {
   type CaipAssetType,
   type CaipChainId,
@@ -521,4 +521,13 @@ export function sanitizeOndoTokenName(raw: string): string {
     .trim();
   if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
   return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+}
+
+export function getPortfolioReturnColor(
+  portfolioPnlPercent: string | undefined,
+): TextColor {
+  if (!portfolioPnlPercent) return TextColor.TextDefault;
+  return parseFloat(portfolioPnlPercent) < 0
+    ? TextColor.ErrorDefault
+    : TextColor.SuccessDefault;
 }

@@ -61,7 +61,11 @@ import {
   CampaignType,
   OndoCampaignHowItWorks,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  buildLeaderboardUserPosition,
+  getCampaignTierNames,
+  getTierMinNetDeposit,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
@@ -223,20 +227,10 @@ const OndoCampaignDetailsView: React.FC = () => {
     defaultTier: leaderboardPosition?.projectedTier,
   });
 
-  const tierNames = useMemo(
-    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
-    [campaign],
-  );
+  const tierNames = useMemo(() => getCampaignTierNames(campaign), [campaign]);
 
   const leaderboardUserPosition = useMemo(
-    () =>
-      leaderboardPosition
-        ? {
-            projectedTier: leaderboardPosition.projectedTier,
-            rank: leaderboardPosition.rank,
-            neighbors: leaderboardPosition.neighbors ?? [],
-          }
-        : null,
+    () => buildLeaderboardUserPosition(leaderboardPosition),
     [leaderboardPosition],
   );
 
