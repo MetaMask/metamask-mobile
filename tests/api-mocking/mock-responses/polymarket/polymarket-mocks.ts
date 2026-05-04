@@ -492,52 +492,46 @@ export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
 }
 
 /**
- * Mock for the Polymarket CLOB API key endpoints used by the order signing
- * flow (`getApiKey` → `createApiKey` → `deriveApiKey` in
- * `app/components/UI/Predict/providers/polymarket/utils.ts`).
+ * Mock for Polymarket CLOB API key endpoints.
  *
- * Without this mock the request falls through to the live
- * `https://clob.polymarket.com/auth/api-key` endpoint which returns a
- * Cloudflare HTML interstitial (HTTP 403). The app's `await response.json()`
- * then throws "JSON Parse error: Unexpected character: <" and surfaces as a
- * generic "Failed to place order" toast.
+ * The real Polymarket server always returns 400 for POST /auth/api-key on the
+ * test wallet, which causes `createApiKey` to fall back to
+ * GET /auth/derive-api-key.  Both paths are mocked here so the order-placement
+ * flow never makes real network calls — eliminating the Android CI failure
+ * caused by `clob.polymarket.com` being unreachable in that environment.
  *
- * We mock both the create (POST) and derive (GET) variants because the app
- * falls back from POST to GET when POST returns 400.
+ * The `secret` value is a valid base64 string; `getL2Headers` decodes it with
+ * `Buffer.from(secret, 'base64')` before computing the HMAC.  The relayer mock
+ * does not validate HMAC headers, so the exact credential values don't matter.
  */
-export const POLYMARKET_API_KEY_MOCKS = async (mockServer: Mockttp) => {
-  const apiKeyResponse = {
-    apiKey: '00000000-0000-0000-0000-000000000001',
-    secret: 'mock-clob-api-secret',
-    passphrase: 'mock-clob-api-passphrase',
-  };
-
-  // POST clob.polymarket.com/auth/api-key  → create credentials
+export const POLYMARKET_CLOB_AUTH_MOCKS = async (mockServer: Mockttp) => {
+  // POST /auth/api-key always returns 400 for the test wallet, triggering the
+  // derive-api-key fallback.  Replicate that behaviour so createApiKey takes
+  // the correct code path without touching the real server.
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
-      return Boolean(urlParam?.includes('clob.polymarket.com/auth/api-key'));
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('clob.polymarket.com/auth/api-key'));
     })
     .asPriority(PRIORITY.BASE)
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: apiKeyResponse,
-    }));
+    .thenReply(400, JSON.stringify({ error: 'Could not create api key' }), {
+      'content-type': 'application/json',
+    });
 
-  // GET clob.polymarket.com/auth/derive-api-key → derive existing credentials
+  // GET /auth/derive-api-key — the actual credential source used at runtime.
+  // The returned values are only used to compute HMAC headers; the relayer
+  // mock does not validate those headers, so any non-empty strings suffice.
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        urlParam?.includes('clob.polymarket.com/auth/derive-api-key'),
-      );
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('clob.polymarket.com/auth/derive-api-key'));
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback(() => ({
       statusCode: 200,
-      json: apiKeyResponse,
+      json: { apiKey: 'e2e-key', secret: 'e2e-secret', passphrase: 'e2e-pass' },
     }));
 };
 
@@ -2192,5 +2186,5 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
-  await POLYMARKET_API_KEY_MOCKS(mockServer); // Mock for CLOB API key endpoints used by order signing
+  await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);
 };
