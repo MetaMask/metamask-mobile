@@ -1,5 +1,8 @@
 import { ethers } from 'ethers';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
@@ -8,6 +11,7 @@ import {
   getSharesForWithdrawal,
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdraw,
+  updateMoneyAccountDepositTokenAmount,
 } from './moneyAccountTransactions';
 
 jest.mock('../../Earn/constants/musd', () => ({
@@ -169,6 +173,31 @@ describe('moneyAccountTransactions', () => {
         MOCK_BORING_VAULT,
         MOCK_ACCOUNTANT,
       );
+    });
+  });
+
+  describe('updateMoneyAccountDepositTokenAmount', () => {
+    it('returns an empty array (stub implementation)', () => {
+      const transactionMeta = {
+        id: 'tx-1',
+        nestedTransactions: [],
+      } as unknown as TransactionMeta;
+
+      expect(
+        updateMoneyAccountDepositTokenAmount(transactionMeta, '1.23'),
+      ).toEqual([]);
+    });
+
+    it('returns an array regardless of transactionMeta shape', () => {
+      const transactionMeta = {
+        id: 'tx-2',
+      } as unknown as TransactionMeta;
+
+      expect(
+        Array.isArray(
+          updateMoneyAccountDepositTokenAmount(transactionMeta, '1.23'),
+        ),
+      ).toBe(true);
     });
   });
 

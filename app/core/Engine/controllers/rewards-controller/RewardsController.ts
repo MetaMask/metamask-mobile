@@ -56,6 +56,7 @@ import {
   getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isHardwareAccount } from '../../../../util/address';
@@ -950,6 +951,9 @@ export class RewardsController extends BaseController<
       try {
         await this.#reauthPromises.get(subscriptionId);
       } catch (reauthError) {
+        captureException(reauthError as Error, {
+          tags: { feature: 'rewards', context: 'withAuthRetry.reauth_failed' },
+        });
         this.invalidateSubscriptionCache(subscriptionId);
         await this.invalidateSubscriptionAndAccounts(subscriptionId);
         throw reauthError;
@@ -1314,6 +1318,13 @@ export class RewardsController extends BaseController<
         // Unknown error
         subscription = null;
         authUnexpectedError = true;
+        captureException(error as Error, {
+          tags: {
+            feature: 'rewards',
+            context: 'performSilentAuth.unexpected_error',
+          },
+          extra: { accountType: internalAccount.type },
+        });
       }
     } finally {
       // Update state
@@ -2541,6 +2552,10 @@ export class RewardsController extends BaseController<
         sessionId: optinResponse.sessionId,
       };
     } catch (error) {
+      captureException(error as Error, {
+        tags: { feature: 'rewards', context: 'optIn.unexpected_error' },
+        extra: { accountType: account.type },
+      });
       Logger.log(
         'RewardsController: Opt-in failed for account',
         account.address,
@@ -3059,6 +3074,13 @@ export class RewardsController extends BaseController<
 
       return true;
     } catch (error) {
+      captureException(error as Error, {
+        tags: {
+          feature: 'rewards',
+          context: 'linkAccountToSubscriptionCandidate.failed',
+        },
+        extra: { accountType: account.type },
+      });
       Logger.log(
         'RewardsController: Failed to link account to subscription',
         caipAccount,
@@ -3178,6 +3200,9 @@ export class RewardsController extends BaseController<
       );
       return false;
     } catch (error) {
+      captureException(error as Error, {
+        tags: { feature: 'rewards', context: 'optOut.failed' },
+      });
       Logger.log('RewardsController: Failed to opt out', error);
       return false;
     }

@@ -284,7 +284,8 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   }, [limitPrice, currentPrice, direction, isClosingPosition]);
 
   /**
-   * Calculate limit price based on percentage from current market price
+   * Calculate limit price based on percentage from the current limit price (or
+   * market price when no limit price is set yet).
    * @param percentage - Percentage to add/subtract from current price
    * @returns Calculated price as string (e.g., "45123.50")
    *
@@ -293,8 +294,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
    */
   const calculatePriceForPercentage = useCallback(
     (percentage: number) => {
-      // Use the current market price (not limit price) for percentage calculations
-      const basePrice = currentPrice;
+      const parsedLimitPrice = limitPrice
+        ? parseFloat(limitPrice.replace(/[$,]/g, ''))
+        : 0;
+      const basePrice = parsedLimitPrice > 0 ? parsedLimitPrice : currentPrice;
 
       if (!basePrice || basePrice === 0) {
         return '';
@@ -304,11 +307,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
       const calculatedPrice = BigNumber(basePrice)
         .multipliedBy(multiplier)
         .toString();
-      // Return the raw numeric value as a string (without formatting)
-      // The display will format it when needed
       return calculatedPrice;
     },
-    [currentPrice],
+    [currentPrice, limitPrice],
   );
 
   const footerButtonProps = [

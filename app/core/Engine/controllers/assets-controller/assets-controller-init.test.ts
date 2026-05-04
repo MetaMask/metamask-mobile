@@ -160,7 +160,6 @@ describe('assetsControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith(
       expect.objectContaining({
         messenger: expect.any(Object),
-        state: expect.any(Object),
         isBasicFunctionality: expect.any(Function),
         isEnabled: expect.any(Function),
         isOnboarded: expect.any(Function),
@@ -199,7 +198,7 @@ describe('assetsControllerInit', () => {
     );
   });
 
-  it('uses empty state when persisted state is not available', () => {
+  it('passes undefined state when persisted state is not available', () => {
     const requestMock = getInitRequestMock();
     requestMock.persistedState = {};
 
@@ -208,7 +207,7 @@ describe('assetsControllerInit', () => {
     const controllerMock = jest.mocked(AssetsController);
     expect(controllerMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        state: expect.any(Object),
+        state: undefined,
       }),
     );
   });

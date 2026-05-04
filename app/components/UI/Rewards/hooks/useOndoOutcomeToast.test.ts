@@ -2,7 +2,10 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playSuccessNotification,
+  playWarningNotification,
+} from '../../../../util/haptics';
 import { useOndoOutcomeToast } from './useOndoOutcomeToast';
 import { dismissCampaignOutcomeToast } from '../../../../reducers/rewards';
 import {
@@ -39,13 +42,9 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('expo-haptics', () => ({
-  notificationAsync: jest.fn(),
-  NotificationFeedbackType: {
-    Success: 'success',
-    Warning: 'warning',
-    Error: 'error',
-  },
+jest.mock('../../../../util/haptics', () => ({
+  playSuccessNotification: jest.fn(),
+  playWarningNotification: jest.fn(),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -391,9 +390,7 @@ describe('useOndoOutcomeToast', () => {
         }),
       });
       renderHook(() => useOndoOutcomeToast());
-      expect(notificationAsync).toHaveBeenCalledWith(
-        NotificationFeedbackType.Success,
-      );
+      expect(playSuccessNotification).toHaveBeenCalled();
     });
 
     it('fires Warning haptic for participant_no_winner', () => {
@@ -405,9 +402,7 @@ describe('useOndoOutcomeToast', () => {
         }),
       });
       renderHook(() => useOndoOutcomeToast());
-      expect(notificationAsync).toHaveBeenCalledWith(
-        NotificationFeedbackType.Warning,
-      );
+      expect(playWarningNotification).toHaveBeenCalled();
     });
   });
 
