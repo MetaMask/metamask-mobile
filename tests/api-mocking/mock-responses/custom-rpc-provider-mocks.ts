@@ -30,11 +30,15 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   eth_estimateGas: '0x5208',
 };
 
-const LLAMARPC_URL = 'https://eth.llamarpc.com';
+const PROXIED_RPC_URLS = [
+  'https://eth.llamarpc.com',
+  'https://rpc.atlantischain.network',
+];
 
 /**
- * TestSpecificMock that intercepts eth.llamarpc.com RPC calls
- * through the mobile proxy, returning static responses per JSON-RPC method.
+ * TestSpecificMock that intercepts custom-RPC provider calls
+ * (eth.llamarpc.com, rpc.atlantischain.network) through the mobile
+ * proxy, returning static responses per JSON-RPC method.
  */
 export const CUSTOM_RPC_PROVIDER_MOCKS: TestSpecificMock = async (
   mockServer: Mockttp,
@@ -43,7 +47,7 @@ export const CUSTOM_RPC_PROVIDER_MOCKS: TestSpecificMock = async (
     .forPost('/proxy')
     .matching((request) => {
       const urlParam = new URL(request.url).searchParams.get('url');
-      return Boolean(urlParam?.startsWith(LLAMARPC_URL));
+      return PROXIED_RPC_URLS.some((rpcUrl) => urlParam?.startsWith(rpcUrl));
     })
     .asPriority(1000)
     .thenCallback(async (request) => {
