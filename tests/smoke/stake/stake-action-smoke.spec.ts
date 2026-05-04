@@ -9,7 +9,7 @@ import FixtureBuilder, {
 } from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
-import { SmokeTrade } from '../../tags';
+import { SmokeStake } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import StakeView from '../../page-objects/Stake/StakeView';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
@@ -18,7 +18,7 @@ import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
-describe(SmokeTrade('Stake from Actions'), (): void => {
+describe(SmokeStake('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_STAKE: string = '1';
 

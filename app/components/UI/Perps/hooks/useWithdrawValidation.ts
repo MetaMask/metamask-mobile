@@ -28,9 +28,12 @@ export const useWithdrawValidation = ({
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
-  // Truncate to 2 decimal places so validation matches the displayed balance.
+  // Release-branch bridge for Unified Account: availableToTradeBalance includes
+  // collateral HL can use in target mode. The full balance contract will replace
+  // this with an explicit withdrawableBalance field.
   const availableBalance = useMemo(() => {
-    const balance = account?.availableBalance || '0';
+    const balance =
+      account?.availableToTradeBalance ?? account?.availableBalance ?? '0';
     return truncateToTwoDecimals(parseCurrencyString(balance)).toString();
   }, [account]);
 

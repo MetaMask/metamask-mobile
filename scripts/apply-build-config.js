@@ -18,6 +18,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 const BUILDS_PATH = path.join(__dirname, '../builds.yml');
+const BUILD_ENV_PATH = path.join(__dirname, '../build-env.json');
 
 function loadConfig(buildName) {
   if (!fs.existsSync(BUILDS_PATH)) {
@@ -106,16 +107,68 @@ function exportForGitHubEnv(buildName) {
   return lines.join('\n');
 }
 
+/**
+ * Write build environment to JSON file for display in PR comments.
+ * This captures the actual env values used during build time.
+ */
+function writeBuildEnvJson(buildName) {
+  const config = loadConfig(buildName);
+
+  const envVarsToCapture = [
+    'METAMASK_ENVIRONMENT',
+    'METAMASK_BUILD_TYPE',
+    'REWARDS_API_URL',
+    'MM_PORTFOLIO_URL',
+    'RAMPS_ENVIRONMENT',
+    'IS_TEST',
+    // Additional env vars for full environment info
+    'PORTFOLIO_API_URL',
+    'SECURITY_ALERTS_API_URL',
+    'DECODING_API_URL',
+    'AUTH_SERVICE_URL',
+    'DIGEST_API_URL',
+    'SOCIAL_API_URL',
+    'BAANX_API_URL',
+    'RAMP_DEV_BUILD',
+    'BRIDGE_USE_DEV_APIS',
+    'RAMP_INTERNAL_BUILD',
+  ];
+
+  const buildEnv = {
+    buildName,
+    buildTime: new Date().toISOString(),
+    env: {},
+  };
+
+  if (config.env) {
+    envVarsToCapture.forEach((key) => {
+      if (config.env[key] !== undefined) {
+        buildEnv.env[key] = String(config.env[key]);
+      }
+    });
+  }
+
+  if (config.code_fencing) {
+    buildEnv.codeFencing = config.code_fencing;
+  }
+
+  fs.writeFileSync(BUILD_ENV_PATH, JSON.stringify(buildEnv, null, 2));
+  console.log(`Wrote build environment to ${BUILD_ENV_PATH}`);
+
+  return buildEnv;
+}
+
 // CLI
 if (require.main === module) {
   const args = process.argv.slice(2);
   const buildName = args.find((a) => !a.startsWith('--'));
   const exportMode = args.includes('--export');
   const exportGitHubEnvMode = args.includes('--export-github-env');
+  const writeBuildEnvMode = args.includes('--write-build-env');
 
   if (!buildName) {
     console.error(
-      'Usage: node apply-build-config.js <build-name> [--export | --export-github-env]',
+      'Usage: node apply-build-config.js <build-name> [--export | --export-github-env | --write-build-env]',
     );
     console.error('Example: node apply-build-config.js main-prod');
     process.exit(1);
@@ -126,12 +179,14 @@ if (require.main === module) {
       console.log(exportForGitHubEnv(buildName));
     } else if (exportMode) {
       console.log(exportForShell(buildName));
+    } else if (writeBuildEnvMode) {
+      writeBuildEnvJson(buildName);
     } else {
       applyConfig(buildName);
-      console.log(`✅ Applied config for ${buildName}`);
+      console.log(`Applied config for ${buildName}`);
     }
   } catch (error) {
-    console.error(`❌ ${error.message}`);
+    console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 }
@@ -141,4 +196,5 @@ module.exports = {
   applyConfig,
   exportForShell,
   exportForGitHubEnv,
+  writeBuildEnvJson,
 };

@@ -63,6 +63,7 @@ const newOverrides = [
       'app/components/UI/Predict/providers/polymarket/protocol/definitions.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
+      'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
     ],
     plugins: ['transform-inline-environment-variables'],
   },

@@ -132,7 +132,7 @@ describe('useQuickBuySetup', () => {
     expect(result.current.isUnsupportedChain).toBe(false);
   });
 
-  it('uses the metadata address for non-EVM destination tokens', () => {
+  it('uses the CAIP assetId for non-EVM destination tokens', () => {
     const position = createPosition({
       chain: 'solana',
       tokenAddress: 'ignored-on-non-evm',
@@ -158,8 +158,12 @@ describe('useQuickBuySetup', () => {
     expect(result.current.chainId).toBe(
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     );
+    // For non-EVM destinations, address is the CAIP-19 assetId so it
+    // matches the format of destAsset.assetId returned by the bridge
+    // controller (used by useQuickBuyQuotes for token-pair matching).
     expect(result.current.destToken).toEqual({
-      address: 'solana-token-address',
+      address:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:solana-token-address',
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       decimals: 9,
       image: 'https://example.com/solana-token.png',

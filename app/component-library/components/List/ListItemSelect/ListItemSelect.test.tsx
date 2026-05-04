@@ -32,7 +32,7 @@ describe('ListItemSelect', () => {
 
     const component = getByTestId('list-item-select');
     expect(component).toBeOnTheScreen();
-    expect(component.props.disabled).toBe(true);
+    expect(component).toBeDisabled();
   });
 
   it('calls onPress when pressed', () => {
@@ -63,7 +63,7 @@ describe('ListItemSelect', () => {
 
     const component = getByTestId('list-item-select');
     expect(component).toBeOnTheScreen();
-    expect(component.props.disabled).toBe(true);
+    expect(component).toBeDisabled();
   });
 
   it('calls onLongPress when long pressed', () => {

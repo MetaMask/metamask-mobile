@@ -9,6 +9,7 @@
 #   - env: sets environment variables directly (servers, build config, etc.)
 #   - secrets: maps env var names to GitHub Secret names
 #   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
+#   - script_name: (optional) yarn script base name override (defaults to the build key name)
 #   - code_fencing: features to include via code fencing
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
@@ -122,6 +123,10 @@ _signing_flask_prod: &signing_flask_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
   aws_secret: 'metamask-mobile-flask-prod-signer-v2'
   android_keystore_path: 'flaskRelease.keystore'
+_signing_dev: &signing_dev
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-dev-signer'
+  aws_secret: 'metamask-mobile-main-dev-signer'
+  android_keystore_path: 'debug.keystore'
 _signing_flask_uat: &signing_flask_uat
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
   aws_secret: 'metamask-mobile-flask-uat-signer'
@@ -281,10 +286,37 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
-  # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
+  # Dev release build (Ex. For sideloading via Build Mobile App workflow)
   main-dev:
-    github_environment: build-exp
-    # signing: *signing_uat  # Temporarily using GitHub secrets for iOS signing; restore when migrated to AWS
+    github_environment: build-dev
+    signing: *signing_dev
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'main'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
+      RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      # TODO: Decouple configuration, profile, and build type
+      PROFILE: 'development'
+      DEV_OAUTH_CONFIG: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
+  # Expo dev build (Debug, simulator + device — triggered on push to main)
+  main-dev-expo:
+    script_name: main-dev
+    github_environment: build-dev
+    signing: *signing_dev
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
@@ -304,13 +336,10 @@ builds:
       IS_SIM_BUILD: 'true'
       IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
+      # TODO: Decouple configuration, profile, and build type
+      PROFILE: 'development'
       DEV_OAUTH_CONFIG: 'true'
-    # secrets: *secrets  # Temporarily overridden to include iOS signing secrets; restore when migrated to AWS
-    secrets:
-      <<: *secrets
-      IOS_SIGNING_KEYSTORE: 'IOS_SIGNING_KEYSTORE'
-      IOS_SIGNING_KEYSTORE_PASSWORD: 'IOS_SIGNING_KEYSTORE_PASSWORD'
-      IOS_SIGNING_PROFILE: 'IOS_SIGNING_PROFILE'
+    secrets: *secrets
     code_fencing: *code_fencing_main
 
   # ---------------------------------------------------------------------------

@@ -852,7 +852,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       expect(getByTestId('open-settings-button')).toBeOnTheScreen();
 
       await act(async () => {
-        getByTestId('open-settings-button').props.onPress();
+        fireEvent.press(getByTestId('open-settings-button'));
       });
       expect(openSettingsSpy).toHaveBeenCalledTimes(1);
 
@@ -1289,7 +1289,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       );
     });
 
-    it('does not throw error when pauseQRCode is not provided', async () => {
+    it('does not throw error when pauseQRCode is not provided', () => {
       const propsWithoutPauseHidden = {
         ...defaultProps,
         pauseQRCode: undefined,
