@@ -562,12 +562,11 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
       pages: [
         {
           data: transactions,
+          unprocessedNetworks: [],
           pageInfo: {
             count: transactions.length,
             endCursor: undefined,
             hasNextPage: false,
-            hasPreviousPage: false,
-            startCursor: undefined,
           },
         },
       ],
