@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
 
 import { setMeasurement } from '@sentry/react-native';
@@ -112,9 +112,8 @@ export function usePerpsOrderFees({
   currentBidPrice,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const selectedAddress = evmAccount?.address ?? undefined;
   const currentChainId = useSelector(selectChainId);
 
   const isMaker = useMemo(() => {

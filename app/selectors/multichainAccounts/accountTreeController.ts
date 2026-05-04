@@ -18,6 +18,7 @@ import {
 } from '@metamask/account-tree-controller';
 import { CaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import { AccountGroupWithInternalAccounts } from './accounts.type';
 import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
 
@@ -417,6 +418,16 @@ export const selectSelectedAccountGroupInternalAccounts = createSelector(
 
     return (group?.accounts ?? EMPTY_ARR) as readonly InternalAccount[];
   },
+);
+
+/**
+ * Returns the EVM internal account from the selected account group, or null
+ * if no EVM account exists in the group.
+ */
+export const selectSelectedAccountGroupEvmInternalAccount = createSelector(
+  selectSelectedAccountGroupInternalAccounts,
+  (accounts): InternalAccount | null =>
+    accounts.find((account) => isEvmAccountType(account.type)) ?? null,
 );
 
 /**

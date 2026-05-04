@@ -16,6 +16,31 @@ import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 
+let mockEvmAccountValue: object | null = {
+  id: 'account-1',
+  type: 'eip155:eoa',
+  address: '0x1234567890123456789012345678901234567890',
+  metadata: {
+    name: 'Account 1',
+    keyring: { type: 'HD Key Tree' },
+    importTime: 1234567890,
+    lastSelected: 1234567890,
+  },
+  scopes: ['eip155:1'],
+  methods: [],
+  options: {},
+};
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupEvmInternalAccount: () => mockEvmAccountValue,
+  }),
+);
+
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -101,6 +126,20 @@ describe('usePerpsPositionForAsset', () => {
     jest.clearAllMocks();
     _clearPositionCache();
     PerpsCacheInvalidator._clearAllSubscribers();
+    mockEvmAccountValue = {
+      id: 'account-1',
+      type: 'eip155:eoa',
+      address: '0x1234567890123456789012345678901234567890',
+      metadata: {
+        name: 'Account 1',
+        keyring: { type: 'HD Key Tree' },
+        importTime: 1234567890,
+        lastSelected: 1234567890,
+      },
+      scopes: ['eip155:1'],
+      methods: [],
+      options: {},
+    };
 
     mockGetPositions = jest.fn().mockResolvedValue([mockPosition]);
     mockGetAccountState = jest.fn().mockResolvedValue(mockAccountState);
@@ -592,6 +631,37 @@ describe('usePerpsPositionForAsset', () => {
 
       // Still should not fetch since symbol is null
       expect(mockGetPositions).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Non-EVM account handling', () => {
+    it('returns empty state without calling API when no EVM account in group', async () => {
+      mockEvmAccountValue = null;
+
+      const { result } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('ETH'),
+        { state: createMockState() },
+      );
+
+      // Hook should bail early — no loading, no API call
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.position).toBeNull();
+      expect(result.current.hasFundsInPerps).toBe(false);
+      expect(result.current.accountState).toBeNull();
+      expect(result.current.error).toBeNull();
+      expect(mockGetPositions).not.toHaveBeenCalled();
+      expect(mockGetAccountState).not.toHaveBeenCalled();
+    });
+
+    it('does not throw ValiError when non-EVM account is selected', async () => {
+      mockEvmAccountValue = null;
+
+      // This should not throw — the hook gracefully handles missing EVM account
+      expect(() => {
+        renderHookWithProvider(() => usePerpsPositionForAsset('BTC'), {
+          state: createMockState(),
+        });
+      }).not.toThrow();
     });
   });
 });
