@@ -187,6 +187,11 @@ jest.mock('../../../core/AppConstants', () => {
   };
 });
 
+jest.mock('../../../constants/bridge', () => ({
+  ...jest.requireActual('../../../constants/bridge'),
+  MULTI_SWAP_ENABLED: true,
+}));
+
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
