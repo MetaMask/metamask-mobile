@@ -42,6 +42,7 @@ interface CampaignTileProps {
  * Tapping behavior is determined by campaign type:
  * - ONDO_HOLDING: navigates to Ondo campaign details
  * - SEASON_1: navigates to season one campaign details
+ * - PERPS_TRADING: navigates to Perps Trading campaign details
  * - Unsupported types: non-interactive unless onPress is provided
  * - With onPress: executes custom handler regardless of type
  */
@@ -59,7 +60,9 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
 
   const { status: participantStatus, isLoading: isParticipantStatusLoading } =
     useGetCampaignParticipantStatus(
-      campaignStatus === 'active' && campaign.type === CampaignType.ONDO_HOLDING
+      campaignStatus === 'active' &&
+        (campaign.type === CampaignType.ONDO_HOLDING ||
+          campaign.type === CampaignType.PERPS_TRADING)
         ? campaign.id
         : undefined,
     );
@@ -110,6 +113,19 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
         campaignId: campaign.id,
       });
+    } else if (campaign.type === CampaignType.PERPS_TRADING) {
+      if (shouldShowTour) {
+        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+          campaignId: campaign.id,
+        });
+      } else {
+        navigation.navigate(
+          Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+          {
+            campaignId: campaign.id,
+          },
+        );
+      }
     }
   };
 
