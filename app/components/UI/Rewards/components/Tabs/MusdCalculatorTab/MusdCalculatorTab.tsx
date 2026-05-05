@@ -93,10 +93,7 @@ const MusdCalculatorTab: React.FC = () => {
     [formatFiat],
   );
 
-  const yearlyEarnings = useMemo(
-    () => Math.round(amount * MUSD_CALCULATOR_APY),
-    [amount],
-  );
+  const yearlyEarnings = useMemo(() => amount * MUSD_CALCULATOR_APY, [amount]);
   const monthlyEarnings = useMemo(
     () => (amount * MUSD_CALCULATOR_APY) / 12,
     [amount],
