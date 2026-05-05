@@ -102,8 +102,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -148,8 +147,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -198,8 +196,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -243,8 +240,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -517,8 +513,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -578,8 +573,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
       - name: Restore node_modules cache
         if: ${{ inputs.runner_provider != 'namespace' }}
         id: cache-node-modules
@@ -710,8 +704,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
       - name: Restore node_modules cache
         if: ${{ inputs.runner_provider != 'namespace' }}
         id: cache-node-modules
@@ -940,8 +933,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
