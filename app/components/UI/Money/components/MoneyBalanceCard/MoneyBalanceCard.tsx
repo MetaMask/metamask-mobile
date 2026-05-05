@@ -44,12 +44,15 @@ const MoneyBalanceCard = () => {
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
 
   let balanceText: string;
+  let buttonVariant: ButtonVariant;
   let containerTestId: string;
   if (isEmpty) {
     balanceText = EMPTY_BALANCE_DISPLAY;
+    buttonVariant = ButtonVariant.Primary;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     balanceText = totalFiatFormatted ?? EMPTY_BALANCE_DISPLAY;
+    buttonVariant = ButtonVariant.Secondary;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
 
@@ -157,7 +160,7 @@ const MoneyBalanceCard = () => {
       >
         <Button
           testID={MoneyBalanceCardTestIds.ADD_BUTTON}
-          variant={ButtonVariant.Secondary}
+          variant={buttonVariant}
           size={ButtonSize.Md}
           onPress={handleAddPress}
         >
