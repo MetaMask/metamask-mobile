@@ -230,6 +230,10 @@ export const useSwapBridgeNavigation = ({
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
       }
 
+      // Only use the configured dest token if its chain is bridge-enabled.
+      // When the dest is on an unsupported chain (e.g. token viewed from an
+      // unsupported network in the trending "buy" flow), fall through to the
+      // default dest logic so the UI opens with a valid pair.
       const isDestChainSupported = effectiveDestTokenBase
         ? getIsBridgeEnabledSource(effectiveDestTokenBase.chainId)
         : true;
@@ -290,8 +294,8 @@ export const useSwapBridgeNavigation = ({
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
-      // Navigate before Redux updates so the Wallet tab does not flash/re-render from bridge
-      // slice dispatches while still visible (e.g. checklist trade primary → swaps).
+      // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
+      // dispatches while still visible (e.g. checklist trade primary → swaps).
       navigation.navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
         params,
