@@ -856,12 +856,22 @@ jest.mock('../../component-library/components/BottomSheets/BottomSheet', () => {
 // to the design-system sheet otherwise trigger act() warnings from Animated updates.
 jest.mock('@metamask/design-system-react-native', () => {
   const React = require('react');
+  const PropTypes = require('prop-types');
   const { View } = require('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
 
   const BottomSheet = React.forwardRef(
     (
-      { children, onClose, onOpen, goBack, style, twClassName, ...props },
+      {
+        children,
+        onClose,
+        onOpen,
+        goBack,
+        style,
+        twClassName: _twClassName,
+        testID,
+        accessibilityLabel,
+      },
       ref,
     ) => {
       React.useImperativeHandle(ref, () => ({
@@ -879,15 +889,29 @@ jest.mock('@metamask/design-system-react-native', () => {
       return React.createElement(
         View,
         {
-          testID: props.testID || 'design-system-bottom-sheet-mock',
+          testID: testID || 'design-system-bottom-sheet-mock',
           style,
-          accessibilityLabel: props.accessibilityLabel,
+          accessibilityLabel,
         },
         children,
       );
     },
   );
   BottomSheet.displayName = 'BottomSheet';
+  BottomSheet.propTypes = {
+    children: PropTypes.node,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    goBack: PropTypes.func,
+    style: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.array,
+      PropTypes.number,
+    ]),
+    twClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    testID: PropTypes.string,
+    accessibilityLabel: PropTypes.string,
+  };
 
   return {
     ...actual,
