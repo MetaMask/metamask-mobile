@@ -1,22 +1,8 @@
 import React, { useCallback } from 'react';
-import {
-  AvatarToken,
-  AvatarTokenSize,
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonBase,
-  ButtonBaseSize,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { strings } from '../../../../../locales/i18n';
-import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
 import { useRampNavigation } from '../../../UI/Ramp/hooks/useRampNavigation';
+import AssetRow from './AssetRow';
 
 interface TokenRowProps {
   asset: RelatedAsset;
@@ -36,49 +22,13 @@ const TokenRow: React.FC<TokenRowProps> = ({ asset }) => {
     goToBuy({ assetId });
   }, [goToBuy, asset.caip19]);
 
-  // Wallet CDN (via CAIP-19) → Perps SVG (perpsAssetId only) → bundled image-icons.
-  const rawImageSource = getRelatedAssetImageSource(asset);
-  const imageSource = Array.isArray(rawImageSource)
-    ? (rawImageSource[0] as { uri?: string } | undefined)
-    : (rawImageSource as number | { uri?: string } | undefined);
-
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={3}
-      twClassName="py-3"
-    >
-      <AvatarToken
-        name={asset.name}
-        size={AvatarTokenSize.Lg}
-        src={imageSource ?? undefined}
-      />
-
-      <Box
-        twClassName="flex-1"
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
-          {asset.symbol}
-        </Text>
-
-        <ButtonBase
-          size={ButtonBaseSize.Md}
-          twClassName="bg-background-default rounded-2xl px-4"
-          onPress={handleBuy}
-          accessibilityLabel={`${strings('asset_overview.buy_button')} ${asset.symbol}`}
-        >
-          {strings('asset_overview.buy_button')}
-        </ButtonBase>
-      </Box>
-    </Box>
+    <AssetRow
+      asset={asset}
+      actionLabel={strings('asset_overview.buy_button')}
+      accessibilityLabel={`${strings('asset_overview.buy_button')} ${asset.symbol}`}
+      onAction={handleBuy}
+    />
   );
 };
 
