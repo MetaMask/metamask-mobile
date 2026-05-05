@@ -136,7 +136,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [navigation, shouldRedirectToAddWallet]);
 
-  // Tracing for the account list rendering:
   const isAccountSelector = useMemo(
     () => screen === AccountSelectorScreens.AccountSelector,
     [screen],
@@ -152,20 +151,29 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [dispatch, reloadAccounts]);
 
-  // Tracing for the account list rendering (full screen: end after layout flush).
+  // Tracing for the account list: start at layout flush, end after paint (useEffect).
   useLayoutEffect(() => {
     if (!isAccountSelector) {
-      return;
+      return undefined;
     }
     trace({
       name: TraceName.ShowAccountList,
       op: TraceOperation.AccountUi,
       tags: getTraceTags(store.getState()),
     });
-    queueMicrotask(() => {
+    return () => {
       endTrace({
         name: TraceName.ShowAccountList,
       });
+    };
+  }, [isAccountSelector]);
+
+  useEffect(() => {
+    if (!isAccountSelector) {
+      return;
+    }
+    endTrace({
+      name: TraceName.ShowAccountList,
     });
   }, [isAccountSelector]);
 
