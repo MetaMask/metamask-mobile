@@ -56,6 +56,11 @@ export interface UsePerpsMarketsOptions {
    * @default __DEV__ (true in development, false in production)
    */
   showZeroVolume?: boolean;
+  /**
+   * Show markets with zero or invalid open interest
+   * @default showZeroVolume
+   */
+  showZeroOpenInterest?: boolean;
 }
 
 // Re-export parseVolume for backward compatibility
@@ -73,6 +78,7 @@ export const usePerpsMarkets = (
     pollingInterval = 60000, // 1 minute default
     skipInitialFetch = false,
     showZeroVolume = __DEV__, // Show zero-volume markets in development mode
+    showZeroOpenInterest = showZeroVolume,
   } = options;
 
   const streamManager = usePerpsStream();
@@ -88,6 +94,7 @@ export const usePerpsMarkets = (
       const sorted = filterAndSortMarkets({
         marketData: cached,
         showZeroVolume,
+        showZeroOpenInterest,
       });
       return sorted;
     },
@@ -106,8 +113,12 @@ export const usePerpsMarkets = (
   // Helper function to filter and sort markets by volume
   const sortMarketsByVolume = useCallback(
     (marketData: PerpsMarketData[]) =>
-      filterAndSortMarkets({ marketData, showZeroVolume }),
-    [showZeroVolume],
+      filterAndSortMarkets({
+        marketData,
+        showZeroVolume,
+        showZeroOpenInterest,
+      }),
+    [showZeroVolume, showZeroOpenInterest],
   );
 
   // Manual refresh function
