@@ -42,8 +42,11 @@ export function useCampaignReminderActions(
   const [renderKey, setRenderKey] = useState(0);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const { canPromptToEnableNotifications, runAfterNotificationsEnabled } =
-    useRewardsNotificationsNudge({ enabled });
+  const {
+    canPromptToEnableNotifications,
+    areNotificationsEnabled,
+    runAfterNotificationsEnabled,
+  } = useRewardsNotificationsNudge({ enabled });
 
   const compositeKey = useMemo(() => {
     if (!subscriptionId || !campaign.id) {
@@ -74,7 +77,7 @@ export function useCampaignReminderActions(
       canPromptToEnableNotifications &&
       hydrated &&
       compositeKey &&
-      !isStoredRef.current,
+      (!areNotificationsEnabled || !isStoredRef.current),
   );
 
   const persistReminderSubscription = useCallback(async () => {

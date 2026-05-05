@@ -77,6 +77,11 @@ jest.mock('./useRewardsToast', () => ({
         subtitle,
       })),
       enableNotificationsNudge: mockEnableNotificationsNudge,
+      loading: jest.fn((title: string, subtitle?: string) => ({
+        variant: 'loading',
+        title,
+        subtitle,
+      })),
     },
   })),
 }));
@@ -193,6 +198,32 @@ describe('useCampaignReminderActions', () => {
 
   it('does not show Remind Me CTA when subscription id is missing', async () => {
     mockSelectors({ subscriptionId: null });
+
+    const { result } = renderHook(() =>
+      useCampaignReminderActions(createCampaign(), true),
+    );
+
+    await waitFor(() => {
+      expect(result.current.showRemindMeCta).toBe(false);
+    });
+  });
+
+  it('shows Remind Me CTA when notifications are disabled even if reminder is already stored', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockGetItemSync.mockReturnValue('1');
+
+    const { result } = renderHook(() =>
+      useCampaignReminderActions(createCampaign(), true),
+    );
+
+    await waitFor(() => {
+      expect(result.current.showRemindMeCta).toBe(true);
+    });
+  });
+
+  it('does not show Remind Me CTA when notifications are enabled and reminder is already stored', async () => {
+    mockSelectors({ notificationsEnabled: true });
+    mockGetItemSync.mockReturnValue('1');
 
     const { result } = renderHook(() =>
       useCampaignReminderActions(createCampaign(), true),

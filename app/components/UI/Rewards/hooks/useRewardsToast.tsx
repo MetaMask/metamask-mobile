@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
@@ -26,6 +27,7 @@ export type RewardsToastOptions = ToastOptions & {
 export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
   error: (title: string, subtitle?: string) => RewardsToastOptions;
+  loading: (title: string, subtitle?: string) => RewardsToastOptions;
   entriesClosed: (title: string, subtitle?: string) => RewardsToastOptions;
   enableNotificationsNudge: (
     linkButtonOptions: ToastLinkButtonOptions,
@@ -106,6 +108,27 @@ const useRewardsToast = (): {
           variant: ButtonIconVariant.Icon,
           iconName: IconName.Close,
 
+          onPress: () => {
+            toastRef?.current?.closeToast();
+          },
+        },
+      }),
+      loading: (title: string, subtitle?: string) => ({
+        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        contentAlignItems: 'flex-start' as const,
+        hapticsType: NotificationMoment.Warning,
+        startAccessory: (
+          <Box twClassName="p-1 mr-2">
+            <ActivityIndicator size="small" color={theme.colors.icon.default} />
+          </Box>
+        ),
+        labelOptions: getRewardsToastLabels(title),
+        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
           onPress: () => {
             toastRef?.current?.closeToast();
           },

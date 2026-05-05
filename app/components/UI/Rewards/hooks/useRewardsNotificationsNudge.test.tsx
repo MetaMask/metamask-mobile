@@ -1,6 +1,13 @@
 import React from 'react';
+import { AppState } from 'react-native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
+
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  AppState: { addEventListener: jest.fn() },
+}));
+const mockAppStateAddEventListener = AppState.addEventListener as jest.Mock;
 import { useSelector } from 'react-redux';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { useRewardsNotificationsNudge } from './useRewardsNotificationsNudge';
@@ -23,8 +30,15 @@ const mockEnableNotificationsNudge = jest.fn(
     },
   }),
 );
-let mockEnableNotificationsLoading = false;
-
+const mockLoadingToast = jest.fn((title: string, subtitle?: string) => ({
+  variant: 'loading',
+  title,
+  subtitle,
+}));
+const mockErrorToast = jest.fn((title: string) => ({
+  variant: 'error',
+  title,
+}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -35,6 +49,8 @@ jest.mock('./useRewardsToast', () => ({
     showToast: mockShowToast,
     RewardsToastOptions: {
       enableNotificationsNudge: mockEnableNotificationsNudge,
+      loading: mockLoadingToast,
+      error: mockErrorToast,
     },
   })),
 }));
@@ -42,7 +58,6 @@ jest.mock('./useRewardsToast', () => ({
 jest.mock('../../../../util/notifications/hooks/useNotifications', () => ({
   useEnableNotifications: jest.fn(() => ({
     enableNotifications: mockEnableNotifications,
-    loading: mockEnableNotificationsLoading,
   })),
 }));
 
@@ -50,10 +65,31 @@ jest.mock('../../../../util/notifications/constants', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
 }));
 
+jest.mock(
+  '../../../../util/notifications/services/NotificationService',
+  () => ({
+    __esModule: true,
+    default: { openSystemSettings: jest.fn() },
+    getPushPermission: jest.fn().mockResolvedValue('authorized'),
+  }),
+);
+const mockNotificationService = jest.requireMock(
+  '../../../../util/notifications/services/NotificationService',
+);
+const mockOpenSystemSettings = mockNotificationService.default
+  .openSystemSettings as jest.Mock;
+const mockGetPushPermission =
+  mockNotificationService.getPushPermission as jest.Mock;
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
       'rewards.notifications_nudge.turn_on_button': 'Turn on',
+      'rewards.notifications_nudge.loading': 'Enabling notifications...',
+      'rewards.notifications_nudge.loading_description':
+        'This may take a moment.',
+      'rewards.notifications_nudge.enable_error':
+        'Failed to enable notifications',
     };
     return translations[key] || key;
   },
@@ -78,7 +114,10 @@ function mockSelectors({
   });
 }
 
-function renderNudgeHook(options?: { enabled?: boolean }) {
+function renderNudgeHook(options?: {
+  enabled?: boolean;
+  onNotificationsEnabled?: () => void;
+}) {
   const toastRef = {
     current: {
       showToast: jest.fn(),
@@ -99,9 +138,10 @@ describe('useRewardsNotificationsNudge', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnableNotifications.mockResolvedValue(undefined);
-    mockEnableNotificationsLoading = false;
+    mockGetPushPermission.mockResolvedValue('authorized');
     mockSelectors({ notificationsEnabled: true });
     (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
+    mockAppStateAddEventListener.mockReturnValue({ remove: jest.fn() });
   });
 
   it('returns enabled state when notifications and push are enabled', () => {
@@ -154,11 +194,14 @@ describe('useRewardsNotificationsNudge', () => {
 
     expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
     expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledTimes(2);
+    expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect.objectContaining({ variant: 'loading' }),
+    );
   });
 
-  it('does not enable notifications when the hook is loading', async () => {
+  it('shows loading toast when Turn On CTA is pressed', async () => {
     mockSelectors({ notificationsEnabled: false });
-    mockEnableNotificationsLoading = true;
     const { result } = renderNudgeHook();
 
     act(() => {
@@ -172,8 +215,92 @@ describe('useRewardsNotificationsNudge', () => {
       await linkButtonOptions.onPress();
     });
 
-    expect(mockEnableNotifications).not.toHaveBeenCalled();
-    expect(mockCloseToast).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalledTimes(2);
+    expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect.objectContaining({ variant: 'loading' }),
+    );
+  });
+
+  it('shows error toast if enableNotifications fails', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockEnableNotifications.mockRejectedValue(new Error('failed'));
+    const { result } = renderNudgeHook();
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect.objectContaining({ variant: 'error' }),
+    );
+  });
+
+  it('calls onNotificationsEnabled callback after successful enable', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    const onNotificationsEnabled = jest.fn();
+    const { result } = renderNudgeHook({ onNotificationsEnabled });
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+    expect(onNotificationsEnabled).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onNotificationsEnabled callback when enableNotifications fails', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockEnableNotifications.mockRejectedValue(new Error('failed'));
+    const onNotificationsEnabled = jest.fn();
+    const { result } = renderNudgeHook({ onNotificationsEnabled });
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    expect(onNotificationsEnabled).not.toHaveBeenCalled();
+  });
+
+  it('does not call onNotificationsEnabled when push permission is denied', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockGetPushPermission.mockResolvedValue('denied');
+    const onNotificationsEnabled = jest.fn();
+    const { result } = renderNudgeHook({ onNotificationsEnabled });
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    expect(onNotificationsEnabled).not.toHaveBeenCalled();
   });
 
   it('runs deferred action immediately when notifications are already enabled', async () => {
@@ -213,6 +340,31 @@ describe('useRewardsNotificationsNudge', () => {
       expect(action).toHaveBeenCalledTimes(1);
     });
     expect(mockCloseToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows loading toast before deferred action runs via effect', async () => {
+    let notificationsEnabled = false;
+    mockSelectors({ notificationsEnabled });
+    const action = jest.fn();
+    const { result, rerender } = renderNudgeHook();
+
+    await act(async () => {
+      await result.current.runAfterNotificationsEnabled(action);
+    });
+
+    notificationsEnabled = true;
+    mockSelectors({ notificationsEnabled });
+    rerender();
+
+    await waitFor(() => {
+      expect(action).toHaveBeenCalledTimes(1);
+    });
+
+    // nudge (1st call) + loading in effect (2nd call)
+    expect(mockShowToast).toHaveBeenCalledTimes(2);
+    expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect.objectContaining({ variant: 'loading' }),
+    );
   });
 
   it('does not run or prompt when notifications are disabled and feature flag is off', async () => {
@@ -268,6 +420,216 @@ describe('useRewardsNotificationsNudge', () => {
 
     expect(mockOriginalCloseButtonPress).toHaveBeenCalledTimes(1);
     expect(action).not.toHaveBeenCalled();
+  });
+
+  it('closes toast and opens Settings when push permission is denied before Turn On', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockGetPushPermission.mockResolvedValue('denied');
+    const { result } = renderNudgeHook();
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    expect(mockGetPushPermission).toHaveBeenCalledTimes(1);
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
+    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    expect(mockAppStateAddEventListener).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function),
+    );
+  });
+
+  it('calls enableNotifications after user returns from OS settings with permission granted', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockGetPushPermission
+      .mockResolvedValueOnce('denied')
+      .mockResolvedValueOnce('authorized');
+
+    let capturedHandler: ((state: string) => Promise<void>) | null = null;
+    const mockRemove = jest.fn();
+    mockAppStateAddEventListener.mockImplementation(
+      (_event: string, handler: (state: string) => Promise<void>) => {
+        capturedHandler = handler;
+        return { remove: mockRemove };
+      },
+    );
+
+    const { result } = renderNudgeHook();
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+    expect(capturedHandler).not.toBeNull();
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await capturedHandler?.('active');
+    });
+
+    expect(mockRemove).toHaveBeenCalledTimes(1);
+    expect(mockGetPushPermission).toHaveBeenCalledTimes(2);
+    expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect.objectContaining({ variant: 'loading' }),
+    );
+  });
+
+  it('does not call enableNotifications if permission is still denied after returning from OS settings', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockGetPushPermission.mockResolvedValue('denied');
+
+    let capturedHandler: ((state: string) => Promise<void>) | null = null;
+    mockAppStateAddEventListener.mockImplementation(
+      (_event: string, handler: (state: string) => Promise<void>) => {
+        capturedHandler = handler;
+        return { remove: jest.fn() };
+      },
+    );
+
+    const { result } = renderNudgeHook();
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    await act(async () => {
+      await capturedHandler?.('active');
+    });
+
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
+  });
+
+  it('calls onNotificationsEnabled callback after returning from OS settings with permission granted', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockGetPushPermission
+      .mockResolvedValueOnce('denied')
+      .mockResolvedValueOnce('authorized');
+
+    let capturedHandler: ((state: string) => Promise<void>) | null = null;
+    mockAppStateAddEventListener.mockImplementation(
+      (_event: string, handler: (state: string) => Promise<void>) => {
+        capturedHandler = handler;
+        return { remove: jest.fn() };
+      },
+    );
+
+    const onNotificationsEnabled = jest.fn();
+    const { result } = renderNudgeHook({ onNotificationsEnabled });
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    await act(async () => {
+      await capturedHandler?.('active');
+    });
+
+    expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
+    expect(onNotificationsEnabled).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores non-active AppState transitions after opening OS settings', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockGetPushPermission.mockResolvedValue('denied');
+
+    let capturedHandler: ((state: string) => Promise<void>) | null = null;
+    mockAppStateAddEventListener.mockImplementation(
+      (_event: string, handler: (state: string) => Promise<void>) => {
+        capturedHandler = handler;
+        return { remove: jest.fn() };
+      },
+    );
+
+    const { result } = renderNudgeHook();
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    await act(async () => {
+      await capturedHandler?.('background');
+    });
+
+    expect(mockGetPushPermission).toHaveBeenCalledTimes(1);
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
+  });
+
+  it('does not open Settings when push permission is authorized before Turn On', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    mockGetPushPermission.mockResolvedValue('authorized');
+    const { result } = renderNudgeHook();
+
+    act(() => {
+      result.current.showEnableNotificationsNudge();
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+  });
+
+  it('closes toast even when called from runAfterNotificationsEnabled flow', async () => {
+    mockSelectors({ notificationsEnabled: false });
+    const action = jest.fn();
+    const { result } = renderNudgeHook();
+
+    await act(async () => {
+      await result.current.runAfterNotificationsEnabled(action);
+    });
+
+    const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
+      onPress: () => Promise<void>;
+    };
+    await act(async () => {
+      await linkButtonOptions.onPress();
+    });
+
+    expect(mockCloseToast).toHaveBeenCalledTimes(1);
   });
 
   it('closeEnableNotificationsNudge clears pending action and closes the toast', async () => {

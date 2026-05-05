@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import OnboardingNavigator from './OnboardingNavigator';
@@ -27,7 +27,7 @@ import {
 } from '../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -35,6 +35,8 @@ import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from './hooks/useReferralDetails';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
+import useRewardsToast from './hooks/useRewardsToast';
+import { strings } from '../../../../locales/i18n';
 
 let sessionNotificationsNudgeShown = false;
 
@@ -72,59 +74,82 @@ const RewardsNavigator: React.FC = () => {
   // Fetch referral details so referral code is available across all rewards screens
   useReferralDetails();
 
+  const { showToast, RewardsToastOptions } = useRewardsToast();
+
+  const nudgeToastActiveRef = useRef(false);
+
   const {
     areNotificationsEnabled,
     canPromptToEnableNotifications,
     showEnableNotificationsNudge,
     closeEnableNotificationsNudge,
-  } = useRewardsNotificationsNudge();
+  } = useRewardsNotificationsNudge({
+    onNotificationsEnabled: () => {
+      showToast(
+        RewardsToastOptions.success(
+          strings('rewards.notifications_nudge.success'),
+        ),
+      );
+    },
+  });
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!canPromptToEnableNotifications) {
-        return;
-      }
-      if (areNotificationsEnabled) {
-        return;
-      }
-      if (sessionNotificationsNudgeShown) {
-        return;
-      }
+  const activeRewardsRoute = useNavigationState((state) => {
+    const currentTabRoute = state.routes[state.index];
+    const stackState = currentTabRoute?.state;
+    const stackIndex =
+      typeof stackState?.index === 'number' ? stackState.index : 0;
+    return stackState?.routes[stackIndex]?.name;
+  });
 
-      const parentState = navigation.getState();
-      if (!parentState) {
-        return;
-      }
-      const currentTabRoute = parentState.routes[parentState.index];
-      const stackState = currentTabRoute?.state;
-      const stackIndex =
-        typeof stackState?.index === 'number' ? stackState.index : 0;
-      const activeRouteName = stackState?.routes[stackIndex]?.name;
-      const isOnCampaignRoute =
-        activeRouteName === Routes.REWARDS_CAMPAIGNS_VIEW ||
-        activeRouteName === Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW ||
-        activeRouteName === Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW;
-      if (!isOnCampaignRoute) {
-        return;
-      }
+  useEffect(() => {
+    if (!canPromptToEnableNotifications) {
+      return;
+    }
+    if (areNotificationsEnabled) {
+      return;
+    }
 
-      const didShowNudge = showEnableNotificationsNudge();
-      if (!didShowNudge) {
-        return;
-      }
-      sessionNotificationsNudgeShown = true;
+    const isOnCampaignRoute =
+      activeRewardsRoute === Routes.REWARDS_CAMPAIGNS_VIEW ||
+      activeRewardsRoute === Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW ||
+      activeRewardsRoute === Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW ||
+      activeRewardsRoute === Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW;
 
-      return () => {
+    if (!isOnCampaignRoute) {
+      // Explicitly close the nudge when navigating away — don't rely solely on
+      // the effect cleanup, which can miss fires when the nested navigator state
+      // change doesn't propagate up to useNavigationState in time.
+      if (nudgeToastActiveRef.current) {
+        nudgeToastActiveRef.current = false;
         closeEnableNotificationsNudge();
-      };
-    }, [
-      areNotificationsEnabled,
-      canPromptToEnableNotifications,
-      closeEnableNotificationsNudge,
-      navigation,
-      showEnableNotificationsNudge,
-    ]),
-  );
+      }
+      return;
+    }
+
+    if (sessionNotificationsNudgeShown) {
+      return;
+    }
+
+    const didShowNudge = showEnableNotificationsNudge();
+    if (!didShowNudge) {
+      return;
+    }
+    sessionNotificationsNudgeShown = true;
+    nudgeToastActiveRef.current = true;
+
+    return () => {
+      if (nudgeToastActiveRef.current) {
+        nudgeToastActiveRef.current = false;
+        closeEnableNotificationsNudge();
+      }
+    };
+  }, [
+    activeRewardsRoute,
+    areNotificationsEnabled,
+    canPromptToEnableNotifications,
+    closeEnableNotificationsNudge,
+    showEnableNotificationsNudge,
+  ]);
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {

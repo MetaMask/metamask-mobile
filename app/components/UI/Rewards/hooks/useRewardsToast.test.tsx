@@ -267,6 +267,55 @@ describe('useRewardsToast', () => {
       });
     });
 
+    it('returns loading configuration with title only', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.loading('Loading...');
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Warning,
+        contentAlignItems: 'flex-start',
+      });
+      expect(config.labelOptions).toEqual([
+        { label: 'Loading...', isBold: true },
+      ]);
+      expect(config.descriptionOptions).toBeUndefined();
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
+      });
+    });
+
+    it('returns loading configuration with title and subtitle', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.loading(
+        'Loading...',
+        'Please wait',
+      );
+
+      expect(config.labelOptions).toEqual([
+        { label: 'Loading...', isBold: true },
+      ]);
+      expect(config.descriptionOptions).toEqual({ description: 'Please wait' });
+    });
+
+    it('calls closeToast when loading close button is pressed', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.loading('Loading...');
+
+      config.closeButtonOptions?.onPress?.();
+
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders startAccessory for loading config', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.loading('Loading...');
+
+      expect(config.startAccessory).toBeDefined();
+    });
+
     it('returns enableNotificationsNudge configuration with Plain variant', () => {
       const { result } = renderHook(() => useRewardsToast());
       const onPress = jest.fn();
