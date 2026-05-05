@@ -59,8 +59,7 @@ export function walletHomeOnboardingChecklistSlideDownExitDistancePx(
 export const WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS = 280;
 
 /**
- * Wallet main column: Reanimated layout transition for homepage/tokens below the cluster, and
- * native layout animation duration for the network banner (see `walletLayoutShiftAnimation.ts`).
+ * Wallet main column: Reanimated layout transition for homepage/tokens below the cluster.
  */
 export const WALLET_HOME_POST_ONBOARDING_REVEAL_MS = 400;
 

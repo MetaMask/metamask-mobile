@@ -75,11 +75,9 @@ const AccountGroupBalance = ({
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
-  const remoteWalletHomeOnboardingStepsEnabled = useSelector(
+  const isWalletHomeOnboardingStepsEnabled = useSelector(
     selectWalletHomeOnboardingStepsEnabled,
   );
-  const isWalletHomeOnboardingStepsEnabled =
-    remoteWalletHomeOnboardingStepsEnabled;
   const walletHomeOnboardingStepsEligible = useSelector(
     selectWalletHomeOnboardingStepsEligible,
   );

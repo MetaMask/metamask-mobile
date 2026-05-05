@@ -643,15 +643,12 @@ const Wallet = ({
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
-  const remoteWalletHomeOnboardingStepsEnabled = useSelector(
+  const isWalletHomeOnboardingStepsEnabled = useSelector(
     selectWalletHomeOnboardingStepsEnabled,
   );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
-
-  const isWalletHomeOnboardingStepsEnabled =
-    remoteWalletHomeOnboardingStepsEnabled;
 
   const inWalletHomePostOnboardingFlow =
     isHomepageSectionsV1Enabled &&
