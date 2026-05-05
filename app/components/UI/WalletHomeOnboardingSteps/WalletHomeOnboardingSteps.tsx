@@ -51,6 +51,7 @@ import {
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_DOWN_OUT_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_IN_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS,
+  WALLET_HOME_ONBOARDING_FUND_RETURN_BALANCE_GRACE_MS,
   WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
   WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS,
   walletHomeOnboardingChecklistSlideDownExitDistancePx,
@@ -59,70 +60,22 @@ import {
   WALLET_HOME_ONBOARDING_STEP_HERO,
   type WalletHomeOnboardingStepHeroKind,
 } from './walletHomeOnboardingStepHero';
-
-type StepKind = 'fund' | 'trade' | 'notifications';
-
-/** Rive / Image fill the hero `Box` (`h-52`); defined once to avoid per-render style objects. */
-const HERO_MEDIA_LAYOUT_STYLE = {
-  width: '100%' as const,
-  height: '100%' as const,
-  minHeight: 0,
-};
+import { WALLET_HOME_ONBOARDING_HERO_MEDIA_LAYOUT_STYLE } from './walletHomeOnboardingStepsLayout';
+import {
+  WALLET_HOME_ONBOARDING_VISIBLE_STEPS,
+  walletHomeOnboardingCappedVisualStepIndex,
+  walletHomeOnboardingMaxPersistedStepIndex,
+  walletHomeOnboardingProgressRatioForStep,
+  type WalletHomeOnboardingStepKind,
+} from './walletHomeOnboardingStepsModel';
+import { walletHomeOnboardingPrimaryDeferDecision } from './walletHomeOnboardingStepsPrimaryPress';
+import {
+  walletHomeOnboardingPrimaryLabelForStep,
+  walletHomeOnboardingSubtitleForStep,
+  walletHomeOnboardingTitleForStep,
+} from './walletHomeOnboardingStepsStrings';
 
 const SLIDE_DISTANCE = Dimensions.get('window').width;
-
-type StepButtonLayout = 'full_width_primary' | 'skip_and_primary_row';
-
-interface VisibleStep {
-  kind: StepKind;
-  buttonLayout: StepButtonLayout;
-}
-
-function titleForKind(kind: StepKind): string {
-  switch (kind) {
-    case 'fund':
-      return strings('wallet.home_onboarding_steps.fund_title');
-    case 'trade':
-      return strings('wallet.home_onboarding_steps.trade_title');
-    case 'notifications':
-      return strings('wallet.home_onboarding_steps.notifications_title');
-  }
-}
-
-function subtitleForKind(kind: StepKind): string {
-  switch (kind) {
-    case 'fund':
-      return strings('wallet.home_onboarding_steps.fund_subtitle');
-    case 'trade':
-      return strings('wallet.home_onboarding_steps.trade_subtitle');
-    case 'notifications':
-      return strings('wallet.home_onboarding_steps.notifications_subtitle');
-  }
-}
-
-function primaryLabelForKind(kind: StepKind): string {
-  switch (kind) {
-    case 'fund':
-      return strings('wallet.home_onboarding_steps.fund_primary');
-    case 'trade':
-      return strings('wallet.home_onboarding_steps.trade_primary');
-    case 'notifications':
-      return strings('wallet.home_onboarding_steps.notifications_primary');
-  }
-}
-
-const VISIBLE_STEPS: VisibleStep[] = [
-  { kind: 'fund', buttonLayout: 'full_width_primary' },
-  { kind: 'trade', buttonLayout: 'skip_and_primary_row' },
-  { kind: 'notifications', buttonLayout: 'skip_and_primary_row' },
-];
-
-/** Progress segments: step 1 → 25%, 2 → 50%, 3 → 75%; 100% runs on completion before exit. */
-const WALLET_HOME_PROGRESS_DENOMINATOR = VISIBLE_STEPS.length + 1;
-
-function walletHomeProgressRatioForStep(stepIndex: number): number {
-  return (stepIndex + 1) / WALLET_HOME_PROGRESS_DENOMINATOR;
-}
 
 export interface WalletHomeOnboardingStepsProps {
   testID?: string;
@@ -141,6 +94,13 @@ export interface WalletHomeOnboardingStepsProps {
   onTradePrimaryPress?: () => void;
   /** Notifications step: invoked when user taps Primary (before advancing). Skip does not call this. */
   onNotificationsPrimaryPress?: () => void;
+  /** Fund step: opens buy / on-ramp; advance runs only once {@link canAdvanceFundStepAfterBalance} is true. */
+  onFundPrimaryPress?: () => void;
+  /**
+   * True when aggregated balance is settled and positive (on-ramp complete, incoming transfer, etc.).
+   * Required for deferred fund-step advance after returning from buy flow.
+   */
+  canAdvanceFundStepAfterBalance?: boolean;
 }
 
 /**
@@ -148,7 +108,10 @@ export interface WalletHomeOnboardingStepsProps {
  * Primary on trade/notifications with navigation callbacks defers advance until the user
  * returns to the wallet, briefly holds on the completed step, then runs outro + transition.
  * Skip advances immediately (no navigation).
- * Step 1 (fund) has no Skip — users must use Add to continue.
+ * Step 1 (fund): Primary opens on-ramp when {@link onFundPrimaryPress} is set; advance to trade uses
+ * the same outro + slide as other steps only after {@link canAdvanceFundStepAfterBalance} becomes true
+ * (or immediately when that is already true after return). Incoming funds without leaving the wallet
+ * also advance when the balance gate becomes true.
  */
 const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   testID = WalletHomeOnboardingStepsSelectors.CONTAINER,
@@ -157,6 +120,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   suspendRiveForCurtain = false,
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
+  onFundPrimaryPress,
+  canAdvanceFundStepAfterBalance = false,
 }) => {
   const tw = useTailwind();
   const isFocused = useIsFocused();
@@ -169,17 +134,15 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   );
   const stepIndex = walletHomeOnboardingStepsState.stepIndex ?? 0;
   const displayStepIndex = isAwaitingBalance ? 0 : stepIndex;
-  /** Capped index for progress + hero; matches `VISIBLE_STEPS[…]` bounds before Redux clamps persisted step. */
-  const visualStepIndexForProgress = Math.min(
-    displayStepIndex,
-    VISIBLE_STEPS.length - 1,
-  );
+  /** Capped index for progress + hero; matches visible steps bounds before Redux clamps persisted step. */
+  const visualStepIndexForProgress =
+    walletHomeOnboardingCappedVisualStepIndex(displayStepIndex);
 
   const slideX = useRef(new Animated.Value(0)).current;
   const slideY = useRef(new Animated.Value(0)).current;
   const progressRatioAnim = useRef(
     new Animated.Value(
-      walletHomeProgressRatioForStep(visualStepIndexForProgress),
+      walletHomeOnboardingProgressRatioForStep(visualStepIndexForProgress),
     ),
   ).current;
   const isFirstProgressSync = useRef(true);
@@ -189,10 +152,20 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   );
   /** Primary opened trade / notifications screen — advance only after user returns and a short hold. */
   const deferAdvanceUntilReturnRef = useRef(false);
+  /** Primary opened fund / on-ramp — same defer semantics; advance only when balance gate passes. */
+  const deferFromFundStepRef = useRef(false);
   const sawBlurWhileDeferredRef = useRef(false);
   const resumeHoldAfterReturnTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  /** Fund step: positive balance while not in a deferred-return handoff (e.g. incoming transfer). */
+  const fundBalanceAutoAdvanceTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const canAdvanceFundStepAfterBalanceRef = useRef(
+    canAdvanceFundStepAfterBalance,
+  );
+  canAdvanceFundStepAfterBalanceRef.current = canAdvanceFundStepAfterBalance;
 
   /**
    * After returning from trade / notifications (deferred advance), skip replaying the checklist
@@ -220,17 +193,21 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const [isAwaitingDeferredNavResumeHold, setIsAwaitingDeferredNavResumeHold] =
     useState(false);
   const stepIndexRef = useRef(stepIndex);
-  const isLastStepRef = useRef(stepIndex >= VISIBLE_STEPS.length - 1);
+  const isLastStepRef = useRef(
+    stepIndex >= WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length - 1,
+  );
   /** Kept in sync with `stepIndex` + `isAwaitingBalance` so Primary commit matches `goNextOrComplete` ref reads. */
-  const currentStepKindRef = useRef<StepKind>(
-    VISIBLE_STEPS[visualStepIndexForProgress].kind,
+  const currentStepKindRef = useRef<WalletHomeOnboardingStepKind>(
+    WALLET_HOME_ONBOARDING_VISIBLE_STEPS[visualStepIndexForProgress].kind,
   );
   useEffect(() => {
     stepIndexRef.current = stepIndex;
-    isLastStepRef.current = stepIndex >= VISIBLE_STEPS.length - 1;
+    isLastStepRef.current =
+      stepIndex >= WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length - 1;
     const displayIdx = isAwaitingBalance ? 0 : stepIndex;
-    const cappedVisual = Math.min(displayIdx, VISIBLE_STEPS.length - 1);
-    currentStepKindRef.current = VISIBLE_STEPS[cappedVisual].kind;
+    const cappedVisual = walletHomeOnboardingCappedVisualStepIndex(displayIdx);
+    currentStepKindRef.current =
+      WALLET_HOME_ONBOARDING_VISIBLE_STEPS[cappedVisual].kind;
   }, [stepIndex, isAwaitingBalance]);
 
   useEffect(
@@ -242,6 +219,10 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       if (resumeHoldAfterReturnTimerRef.current !== null) {
         clearTimeout(resumeHoldAfterReturnTimerRef.current);
         resumeHoldAfterReturnTimerRef.current = null;
+      }
+      if (fundBalanceAutoAdvanceTimerRef.current !== null) {
+        clearTimeout(fundBalanceAutoAdvanceTimerRef.current);
+        fundBalanceAutoAdvanceTimerRef.current = null;
       }
     },
     [],
@@ -285,7 +266,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   }, []);
 
   useEffect(() => {
-    const max = Math.max(0, VISIBLE_STEPS.length - 1);
+    const max = walletHomeOnboardingMaxPersistedStepIndex();
     if (stepIndex > max) {
       dispatch(setWalletHomeOnboardingStepsStep(max));
     }
@@ -331,11 +312,14 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     };
   }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn]);
 
-  const totalSteps = VISIBLE_STEPS.length;
-  const currentStep = VISIBLE_STEPS[visualStepIndexForProgress];
+  const totalSteps = WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length;
+  const currentStep =
+    WALLET_HOME_ONBOARDING_VISIBLE_STEPS[visualStepIndexForProgress];
 
   useEffect(() => {
-    const target = walletHomeProgressRatioForStep(visualStepIndexForProgress);
+    const target = walletHomeOnboardingProgressRatioForStep(
+      visualStepIndexForProgress,
+    );
     if (isFirstProgressSync.current) {
       isFirstProgressSync.current = false;
       progressRatioAnim.setValue(target);
@@ -522,6 +506,10 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         clearTimeout(resumeHoldAfterReturnTimerRef.current);
         resumeHoldAfterReturnTimerRef.current = null;
       }
+      if (fundBalanceAutoAdvanceTimerRef.current !== null) {
+        clearTimeout(fundBalanceAutoAdvanceTimerRef.current);
+        fundBalanceAutoAdvanceTimerRef.current = null;
+      }
       setIsAwaitingDeferredNavResumeHold(false);
       return;
     }
@@ -533,12 +521,37 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       return;
     }
 
+    if (
+      deferFromFundStepRef.current &&
+      canAdvanceFundStepAfterBalance !== true
+    ) {
+      const graceTimer = setTimeout(
+        () => {
+          if (
+            deferFromFundStepRef.current &&
+            canAdvanceFundStepAfterBalanceRef.current !== true
+          ) {
+            deferAdvanceUntilReturnRef.current = false;
+            deferFromFundStepRef.current = false;
+            sawBlurWhileDeferredRef.current = false;
+            setSkipIntroAfterDeferredNavReturn(false);
+            setIsAwaitingDeferredNavResumeHold(false);
+          }
+        },
+        isE2E ? 0 : WALLET_HOME_ONBOARDING_FUND_RETURN_BALANCE_GRACE_MS,
+      );
+      return () => {
+        clearTimeout(graceTimer);
+      };
+    }
+
     setIsAwaitingDeferredNavResumeHold(true);
 
     const holdMs = isE2E ? 0 : WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS;
     resumeHoldAfterReturnTimerRef.current = setTimeout(() => {
       resumeHoldAfterReturnTimerRef.current = null;
       deferAdvanceUntilReturnRef.current = false;
+      deferFromFundStepRef.current = false;
       sawBlurWhileDeferredRef.current = false;
       setIsAwaitingDeferredNavResumeHold(false);
       goNextOrComplete();
@@ -551,17 +564,65 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       }
       setIsAwaitingDeferredNavResumeHold(false);
     };
-  }, [goNextOrComplete, isFocused]);
+  }, [canAdvanceFundStepAfterBalance, goNextOrComplete, isFocused]);
+
+  /**
+   * Fund step: user received funds (or already had positive aggregate) without an active
+   * deferred-return timer — e.g. incoming transfer while the checklist is visible.
+   */
+  useEffect(() => {
+    if (isE2E) {
+      return;
+    }
+    if (!isFocused || isAwaitingBalance || stepIndex !== 0) {
+      return;
+    }
+    if (canAdvanceFundStepAfterBalance !== true) {
+      return;
+    }
+    if (deferAdvanceUntilReturnRef.current) {
+      return;
+    }
+    if (fundBalanceAutoAdvanceTimerRef.current !== null) {
+      return;
+    }
+
+    setIsAwaitingDeferredNavResumeHold(true);
+    const holdMs = WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS;
+    fundBalanceAutoAdvanceTimerRef.current = setTimeout(() => {
+      fundBalanceAutoAdvanceTimerRef.current = null;
+      setIsAwaitingDeferredNavResumeHold(false);
+      goNextOrComplete();
+    }, holdMs);
+
+    return () => {
+      if (fundBalanceAutoAdvanceTimerRef.current !== null) {
+        clearTimeout(fundBalanceAutoAdvanceTimerRef.current);
+        fundBalanceAutoAdvanceTimerRef.current = null;
+      }
+    };
+  }, [
+    canAdvanceFundStepAfterBalance,
+    goNextOrComplete,
+    isAwaitingBalance,
+    isFocused,
+    stepIndex,
+  ]);
 
   const handlePrimaryPress = useCallback(() => {
     const kind = currentStepKindRef.current;
-    const shouldDeferAdvanceUntilReturn =
-      !isE2E &&
-      ((kind === 'trade' && Boolean(onTradePrimaryPress)) ||
-        (kind === 'notifications' && Boolean(onNotificationsPrimaryPress)));
+    const { shouldDeferAdvanceUntilReturn, fundOpensOnramp } =
+      walletHomeOnboardingPrimaryDeferDecision({
+        isE2E,
+        kind,
+        onFundPrimaryPress,
+        onTradePrimaryPress,
+        onNotificationsPrimaryPress,
+      });
 
     if (shouldDeferAdvanceUntilReturn) {
       deferAdvanceUntilReturnRef.current = true;
+      deferFromFundStepRef.current = fundOpensOnramp;
       sawBlurWhileDeferredRef.current = false;
       setIsAwaitingDeferredNavResumeHold(true);
     }
@@ -570,13 +631,20 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       onTradePrimaryPress();
     } else if (kind === 'notifications' && onNotificationsPrimaryPress) {
       onNotificationsPrimaryPress();
+    } else if (kind === 'fund' && onFundPrimaryPress) {
+      onFundPrimaryPress();
     }
 
     if (shouldDeferAdvanceUntilReturn) {
       return;
     }
     goNextOrComplete();
-  }, [goNextOrComplete, onNotificationsPrimaryPress, onTradePrimaryPress]);
+  }, [
+    goNextOrComplete,
+    onFundPrimaryPress,
+    onNotificationsPrimaryPress,
+    onTradePrimaryPress,
+  ]);
 
   const progressLabel = useMemo(
     () =>
@@ -615,7 +683,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         alignItems={BoxAlignItems.Stretch}
         justifyContent={BoxJustifyContent.Center}
         accessibilityRole="image"
-        accessibilityLabel={titleForKind(currentStep.kind)}
+        accessibilityLabel={walletHomeOnboardingTitleForStep(currentStep.kind)}
         testID={`${testID}-hero-${currentStep.kind}`}
       >
         <View
@@ -653,7 +721,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               artboardName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD[currentStep.kind]
               }
-              style={HERO_MEDIA_LAYOUT_STYLE}
+              style={WALLET_HOME_ONBOARDING_HERO_MEDIA_LAYOUT_STYLE}
               fit={Fit.Contain}
               alignment={Alignment.Center}
               autoplay={!skipIntroAfterDeferredNavReturn}
@@ -677,7 +745,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           color={TextColor.TextDefault}
           twClassName="w-full text-left"
         >
-          {titleForKind(currentStep.kind)}
+          {walletHomeOnboardingTitleForStep(currentStep.kind)}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
@@ -685,7 +753,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           fontWeight={FontWeight.Medium}
           twClassName="w-full text-left"
         >
-          {subtitleForKind(currentStep.kind)}
+          {walletHomeOnboardingSubtitleForStep(currentStep.kind)}
         </Text>
       </Box>
 
@@ -702,7 +770,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             }
             testID={primaryTestID}
           >
-            {primaryLabelForKind(currentStep.kind)}
+            {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
           </Button>
         ) : (
           <Box
@@ -736,7 +804,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               }
               testID={primaryTestID}
             >
-              {primaryLabelForKind(currentStep.kind)}
+              {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
             </Button>
           </Box>
         )}

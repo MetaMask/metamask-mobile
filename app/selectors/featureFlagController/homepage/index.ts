@@ -8,10 +8,12 @@ import { resolveABTestAssignment } from '../../../util/abTest';
 import {
   HUB_PAGE_DISCOVERY_TABS_AB_KEY,
   HUB_PAGE_DISCOVERY_TABS_VARIANTS,
+  WALLET_HOME_POST_ONBOARDING_AB_KEY,
+  WALLET_HOME_POST_ONBOARDING_VARIANTS,
+  WalletHomePostOnboardingVariant,
 } from '../../../components/Views/Homepage/abTestConfig';
 
 const homepageSectionsV1Key = 'homepageSectionsV1';
-const walletHomeOnboardingStepsKey = 'walletHomeOnboardingSteps';
 
 export const selectHomepageSectionsV1Enabled = createSelector(
   selectRemoteFeatureFlags,
@@ -33,16 +35,30 @@ export const selectHubPageDiscoveryTabsABTest = createSelector(
     ),
 );
 
+export const selectWalletHomePostOnboardingAbTest = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    resolveABTestAssignment(
+      remoteFeatureFlags,
+      WALLET_HOME_POST_ONBOARDING_AB_KEY,
+      Object.keys(WALLET_HOME_POST_ONBOARDING_VARIANTS),
+    ),
+);
+
 /**
- * Remote flag for the wallet home post-onboarding steps (multi-step empty-balance tile).
- * Defaults to false when absent so rollout is opt-in via remote config.
+ * Wallet home post-onboarding checklist (empty-balance multi-step tile).
+ * Treatment: {@link WalletHomePostOnboardingVariant.PostOnboardingSteps}; control is off.
  */
 export const selectWalletHomeOnboardingStepsEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag = remoteFeatureFlags[
-      walletHomeOnboardingStepsKey
-    ] as unknown as VersionGatedFeatureFlag;
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  selectWalletHomePostOnboardingAbTest,
+  (assignment) => {
+    if (!assignment.isActive) {
+      return false;
+    }
+    return (
+      WALLET_HOME_POST_ONBOARDING_VARIANTS[
+        assignment.variantName as WalletHomePostOnboardingVariant
+      ]?.stepsEnabled === true
+    );
   },
 );
