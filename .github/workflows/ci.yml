@@ -102,7 +102,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -147,7 +147,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -196,7 +196,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -240,7 +240,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -513,7 +513,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -573,7 +573,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn
+            .yarn/cache
       - name: Restore node_modules cache
         if: ${{ inputs.runner_provider != 'namespace' }}
         id: cache-node-modules
@@ -704,7 +704,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn
+            .yarn/cache
       - name: Restore node_modules cache
         if: ${{ inputs.runner_provider != 'namespace' }}
         id: cache-node-modules
@@ -933,7 +933,7 @@ jobs:
             ~/.cache/yarn
             .metamask
             node_modules
-            .yarn
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
