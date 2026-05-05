@@ -1,21 +1,19 @@
-name: "[TEMP] Bitrise iOS KV cache POC"
+name: "[TEMP] Bitrise iOS RN cache + E2E POC"
 
 # TEMPORARY WORKFLOW for INFRA-3591
-# Purpose: KV cache POC — GitHub Actions cache (actions/cache) for Xcode/DerivedData + iOS app on Bitrise runners.
-# This workflow is not part of the CI gate and should be removed after the POC.
-#
-# Triggers: workflow_dispatch (Actions tab — pick branch under "Use workflow from"),
-# pull_request (label bitrise-poc), and hourly schedule (:30 UTC, staggered from temp-bitrise-ios-rn.yml).
+# Purpose: Same as temp-bitrise-ios-rn.yml (Bitrise RN build cache + iOS E2E app build), then runs
+# iOS E2E smoke tests on Bitrise. Not part of the CI gate; remove when benchmarking is complete.
 
 on:
-  workflow_dispatch:
   pull_request:
     types: [ labeled, synchronize ]
+  # Hourly at :30 UTC — staggered from temp-bitrise-ios-rn.yml (:00). Note: temp-bitrise-ios-kv.yml
+  # also schedules at :30; expect concurrent Bitrise load unless offsets change.
   schedule:
     - cron: "30 * * * *"
 
 concurrency:
-  group: bitrise-ios-kv-${{ github.head_ref || github.ref }}
+  group: bitrise-ios-rn-e2e-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -24,11 +22,11 @@ permissions:
 
 jobs:
   build-ios-on-bitrise:
-    name: Build iOS E2E App (KV cache)
+    name: Build iOS E2E App (RN cache)
     if: >-
-      github.event_name != 'pull_request' ||
-      (contains(github.event.pull_request.labels.*.name, 'bitrise-poc') &&
-       !github.event.pull_request.head.repo.fork)
+      (github.event_name != 'pull_request' ||
+       contains(github.event.pull_request.labels.*.name, 'bitrise-poc')) &&
+      !github.event.pull_request.head.repo.fork
     runs-on:
       group: temp-bitrise-runners
       labels: [ "bitrise_pool_name:DemoFAXL" ]
@@ -36,7 +34,6 @@ jobs:
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
     env:
-      XCODE_CACHE_VERSION: 1
       IOS_APP_CACHE_VERSION: 2
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: "COMPILER_INDEX_STORE_ENABLE=NO"
@@ -72,6 +69,8 @@ jobs:
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
       MM_PREDICT_GTM_MODAL_ENABLED: "false"
+      BITRISE_BUILD_CACHE_WORKSPACE_ID: ${{ vars.BITRISE_BUILD_CACHE_WORKSPACE_ID }}
+      BITRISE_BUILD_CACHE_AUTH_TOKEN: ${{ secrets.BITRISE_BUILD_CACHE_AUTH_TOKEN }}
 
     steps:
       - name: Checkout repo
@@ -120,29 +119,17 @@ jobs:
           echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
         shell: bash
 
-      - name: Restore Xcode derived data from branch cache
-        id: xcode-restore-cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/Library/Developer/Xcode/DerivedData
-            ios/build
-          key: bitrise-${{ runner.os }}-xcode-${{ github.ref_name }}-${{
-            env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}',
-            'ios/**/Podfile.lock', 'yarn.lock') }}
-
-      - name: Restore Xcode derived data from main cache
-        if: ${{ steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name
-          != 'main' }}
-        id: xcode-restore-cache-main
-        uses: actions/cache/restore@v5
-        with:
-          path: |
-            ~/Library/Developer/Xcode/DerivedData
-            ios/build
-          key: bitrise-${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{
-            hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock',
-            'yarn.lock') }}
+      # ──────────────────────────────────────────────────────────────────────
+      # REMOVED: "Restore Xcode derived data from branch cache" step
+      #   Was: cirruslabs/cache for ~/Library/Developer/Xcode/DerivedData + ios/build
+      #   Reason: Replaced by Bitrise React Native Build Cache which provides
+      #           granular, build-system-level caching (Xcode via LLVM CAS,
+      #           C++ via ccache) instead of coarse tar-and-restore of DerivedData.
+      #
+      # REMOVED: "Restore Xcode derived data from main cache" step
+      #   Was: cirruslabs/cache/restore (restore-only fallback to main branch)
+      #   Reason: Same as above.
+      # ──────────────────────────────────────────────────────────────────────
 
       - name: Installing iOS Environment Setup
         timeout-minutes: 15
@@ -187,6 +174,30 @@ jobs:
             echo "Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
+      # ──────────────────────────────────────────────────────────────────────
+      # NEW: Activate Bitrise Build Cache for React Native
+      #   Configures build-system-level remote caching for:
+      #   - Xcode compilation outputs (LLVM CAS via Xcelerate)
+      #   - C++ native modules (ccache backed by Bitrise ABCS)
+      #   Must run BEFORE any step that triggers a native build (xcodebuild).
+      #   Does NOT cache Metro JS bundling or node_modules.
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Activate Bitrise Build Cache for React Native
+        env:
+          BITRISE_BUILD_CACHE_AUTH_TOKEN: ${{ secrets.BITRISE_BUILD_CACHE_AUTH_TOKEN }}
+          BITRISE_BUILD_CACHE_WORKSPACE_ID: ${{ vars.BITRISE_BUILD_CACHE_WORKSPACE_ID }}
+        run: |
+          #!/usr/bin/env bash
+          set -euxo pipefail
+
+          # Download Bitrise Build Cache CLI
+          curl --retry 5 -sSfL 'https://raw.githubusercontent.com/bitrise-io/bitrise-build-cache-cli/main/install/installer.sh' | sh -s -- -b /tmp/bin -d
+
+          # Activate React Native build cache (configures Xcode + ccache)
+          /tmp/bin/bitrise-build-cache activate react-native
+          echo "/tmp/bin" >> "$GITHUB_PATH"
+        shell: bash
+
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
@@ -194,30 +205,35 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
+      # ── Changed: cirruslabs/cache → actions/cache@v5 ──
       - name: Restore iOS app matching fingerprint from branch cache
         id: cache-restore
         uses: actions/cache@v5
         with:
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: bitrise-ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION
             }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
+      # ── Changed: cirruslabs/cache/restore → actions/cache/restore@v5 ──
       - name: Restore iOS app matching fingerprint from main cache
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name !=
           'main' }}
         id: cache-restore-main
         uses: actions/cache/restore@v5
         with:
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: bitrise-ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{
             steps.generate-fingerprint.outputs.fingerprint }}
 
+      # ── Changed: Wrapped with bitrise-build-cache react-native run ──
       - name: Build iOS E2E App
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' &&
           steps.cache-restore-main.outputs.cache-hit != 'true' }}
         run: |
-          echo "Building iOS E2E App on Bitrise runner with KV cache only..."
-          yarn build:ios:main:e2e
+          echo "Building iOS E2E App on Bitrise runner..."
+          bitrise-build-cache react-native run yarn build:ios:main:e2e
         shell: bash
         env:
           PLATFORM: ios
@@ -242,6 +258,7 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
+      # Repack is JS-only bundling (no native build) — no wrapping needed
       - name: Repack iOS app with JS updates
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' ||
           steps.cache-restore-main.outputs.cache-hit == 'true' }}
@@ -336,26 +353,26 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
 
+      # Record timing data for benchmarking
       - name: Record build timing summary
         if: always()
         run: |
-          echo "=== Bitrise iOS KV cache — build timing summary ==="
+          echo "=== Bitrise iOS RN cache — build timing summary ==="
           echo "Runner platform: ${{ runner.os }}/${{ runner.arch }}"
           echo "Build outcome: ${{ steps.upload-app.outcome }}"
-          echo "Xcode cache hit (branch): ${{ steps.xcode-restore-cache.outputs.cache-hit }}"
-          echo "Xcode cache hit (main): ${{ steps.xcode-restore-cache-main.outputs.cache-hit || 'N/A' }}"
-          echo "App cache hit (branch): ${{ steps.cache-restore.outputs.cache-hit }}"
-          echo "App cache hit (main): ${{ steps.cache-restore-main.outputs.cache-hit || 'N/A' }}"
-          echo "Cache mode: Bitrise KV cache via actions/cache only"
-          echo "Record CPU and memory utilization from the VM monitoring CSV for this job."
+          echo "Cache hit (branch): ${{ steps.cache-restore.outputs.cache-hit }}"
+          echo "Cache hit (main): ${{ steps.cache-restore-main.outputs.cache-hit || 'N/A' }}"
+          echo "Build cache: Bitrise React Native Build Cache (Xcode LLVM CAS + ccache)"
+          echo "Record this data in the benchmark tracker referenced by the related ticket or PR description."
         shell: bash
-  # e2e-smoke-tests-ios:
-  #   name: iOS E2E Smoke Tests (Bitrise)
-  #   permissions:
-  #     contents: read
-  #     id-token: write
-  #   needs: [build-ios-on-bitrise]
-  #   uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
-  #   with:
-  #     use_bitrise_runner: true
-  #   secrets: inherit
+
+  e2e-smoke-tests-ios:
+    name: iOS E2E Smoke Tests (Bitrise)
+    permissions:
+      contents: read
+      id-token: write
+    needs: [ build-ios-on-bitrise ]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
+    with:
+      use_bitrise_runner: true
+    secrets: inherit
