@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { HeaderStandard ,
+import {
+  HeaderStandard,
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
