@@ -804,6 +804,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       style={tw.style('flex-1 bg-default')}
     >
       <HeaderStandard
+        testID="header"
         title={strings('password_reset.change_password')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ isDisabled: loading }}
