@@ -483,6 +483,48 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
+    it('resumes scanning when external QR hardware error callback keeps modal open', async () => {
+      const validDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 1),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => true),
+        resultError: jest.fn(),
+        resultUR: jest.fn(() => ({
+          type: SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
+          cbor: Buffer.from([]),
+        })),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => validDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Scanned QR code is not in UR format',
+        }),
+      );
+
+      await mockOnCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
+
+      await waitFor(() => {
+        expect(mockOnScanSuccess).toHaveBeenCalledWith({
+          type: SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
+          cbor: Buffer.from([]),
+        });
+      });
+    });
+
     it('resumes scanning after forwarding an existing inline error to an external callback', async () => {
       const validDecoderInstance = {
         receivePart: jest.fn(),
@@ -544,7 +586,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
     });
 
-    it('invokes QR hardware scan error callback once for repeated error frames', async () => {
+    it('tracks metrics for repeated error frames after deduplicating QR hardware scan error callback', async () => {
       render(
         <AnimatedQRScannerModal
           {...defaultProps}
@@ -562,7 +604,61 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not reset the decoder for repeated error frames after forwarding QR hardware scan error', async () => {
+      render(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+      expect(mockURRegistryDecoder).toHaveBeenCalledTimes(1);
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
+      const decoderCallsAfterFirstError =
+        mockURRegistryDecoder.mock.calls.length;
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
+      expect(mockURRegistryDecoder).toHaveBeenCalledTimes(
+        decoderCallsAfterFirstError,
+      );
+    });
+
+    it('forwards the same QR hardware scan error again after the scanner reopens', async () => {
+      const { rerender } = render(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          visible={false}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+      rerender(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          visible
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(2);
     });
 
     it('reopens the scanner when try again is pressed', async () => {

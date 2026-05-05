@@ -29,12 +29,63 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
+const mockSetTargetWalletType = jest.fn();
+const mockShowHardwareWalletError = jest.fn();
+const mockSetQrScanRetryHandler = jest.fn();
 
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+jest.mock(
+  '../../../core/HardwareWallet/contexts/HardwareWalletContext',
+  () => ({
+    useHardwareWallet: () => ({
+      setTargetWalletType: mockSetTargetWalletType,
+      showHardwareWalletError: mockShowHardwareWalletError,
+      setQrScanRetryHandler: mockSetQrScanRetryHandler,
+    }),
+  }),
+);
+
+jest.mock('../../UI/QRHardware/AnimatedQRScanner', () => ({
+  __esModule: true,
+  default: ({
+    visible,
+    onQRHardwareScanError,
+    onModalHideComplete,
+  }: {
+    visible: boolean;
+    onQRHardwareScanError?: (error: Error) => void;
+    onModalHideComplete?: () => void;
+  }) => {
+    const ActualReact = jest.requireActual('react');
+    const { View, Button } = jest.requireActual('react-native');
+    const prevVisibleRef = ActualReact.useRef(visible);
+
+    ActualReact.useEffect(() => {
+      if (prevVisibleRef.current && !visible) {
+        onModalHideComplete?.();
+      }
+      prevVisibleRef.current = visible;
+    }, [visible, onModalHideComplete]);
+
+    return visible ? (
+      <View testID="animated-qr-scanner">
+        <Button
+          title="trigger-qr-hardware-error"
+          onPress={() =>
+            onQRHardwareScanError?.(
+              new Error('Scanned QR code is not in UR format'),
+            )
+          }
+        />
+      </View>
+    ) : null;
+  },
 }));
 
 const mockedNavigate = {
@@ -431,5 +482,31 @@ describe('ConnectQRHardware', () => {
       device_type: HardwareDeviceTypes.QR,
     });
     expect(mockBuild).toHaveBeenCalled();
+  });
+
+  it('shows hardware wallet bottom sheet error for QR scan errors', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+    mockQrKeyring.getFirstPage.mockImplementationOnce(
+      () => new Promise(() => undefined),
+    );
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId(QR_CONTINUE_BUTTON));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('trigger-qr-hardware-error'));
+    });
+
+    expect(mockShowHardwareWalletError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Scanned QR code is not in UR format',
+      }),
+    );
   });
 });

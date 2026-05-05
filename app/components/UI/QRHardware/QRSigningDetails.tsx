@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
 
 interface IQRSigningDetails {
   pendingScanRequest: QrScanRequest;
@@ -145,9 +146,11 @@ const QRSigningDetails = ({
     resetError();
   };
 
-  const hideScanner = () => {
+  const hideScanner = useCallback(() => {
     setScannerVisible(false);
-  };
+  }, []);
+  const { onQRHardwareScanError, handleScannerModalHide } =
+    useQrScanErrorForwarding({ hideScanner });
 
   const onCancel = useCallback(async () => {
     if (pendingScanRequest) {
@@ -158,7 +161,7 @@ const QRSigningDetails = ({
     setSentOrCanceled(true);
     hideScanner();
     cancelCallback?.();
-  }, [pendingScanRequest, cancelCallback]);
+  }, [pendingScanRequest, hideScanner, cancelCallback]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
@@ -194,6 +197,7 @@ const QRSigningDetails = ({
       successCallback,
       trackEvent,
       createEventBuilder,
+      hideScanner,
     ],
   );
   const onScanError = useCallback(
@@ -202,7 +206,7 @@ const QRSigningDetails = ({
       setErrorMessage(_errorMessage);
       failureCallback?.(_errorMessage);
     },
-    [failureCallback],
+    [hideScanner, failureCallback],
   );
 
   const renderAlert = () =>
@@ -297,6 +301,8 @@ const QRSigningDetails = ({
         purpose={QrScanRequestType.SIGN}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
+        onQRHardwareScanError={onQRHardwareScanError}
+        onModalHideComplete={handleScannerModalHide}
         hideModal={hideScanner}
       />
     </Fragment>
