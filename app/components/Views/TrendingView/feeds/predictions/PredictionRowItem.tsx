@@ -7,17 +7,23 @@ import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/
 interface PredictionCarouselRowItemProps {
   market: PredictMarketType;
   testIdPrefix?: string;
+  /** Called synchronously before the card's navigation press fires. */
+  onBeforePress?: () => void;
+  /** Called when the user taps a vote button (before betslip opens). */
+  onVote?: (marketId: string) => void;
 }
 
 /** Carousel-style market card used inside Explore home tabs. */
 export const PredictionCarouselRowItem: React.FC<
   PredictionCarouselRowItemProps
-> = ({ market, testIdPrefix }) => (
+> = ({ market, testIdPrefix, onBeforePress, onVote }) => (
   <Box twClassName="py-2">
     <PredictMarket
       market={market}
       isCarousel
       testID={testIdPrefix ? `${testIdPrefix}-${market.id}` : undefined}
+      onBeforePress={onBeforePress}
+      onVote={onVote}
     />
   </Box>
 );

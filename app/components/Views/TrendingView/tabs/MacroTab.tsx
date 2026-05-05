@@ -26,6 +26,8 @@ import PillToggleCardList, {
 } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
+import { useSectionViewed } from '../hooks/useSectionViewed';
+import { trackExploreInteracted } from '../search/analytics';
 
 const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
 
@@ -40,6 +42,7 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
 }) => {
   const perps = usePerpsFeed({ variant: 'macro', refresh });
   const activePillKey = useRef<string>('stocks');
+  const perpsViewed = useSectionViewed('Macro', 'perps_stocks_commodities');
 
   const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
     const stocks = perps.data
@@ -65,18 +68,34 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   }, [perps.data]);
 
   const renderItem: ListRenderItem<PerpsMarketData> = useCallback(
-    ({ item }) => <PerpsRowItem market={item} />,
+    ({ item, index }) => (
+      <PerpsRowItem
+        market={item}
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'Macro',
+            section_name: 'perps_stocks_commodities',
+            asset_type: 'perp',
+            position: index,
+            item_clicked: item.symbol,
+          })
+        }
+      />
+    ),
     [],
   );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box>
+    <Box ref={perpsViewed.viewRef} onLayout={perpsViewed.onLayout}>
       <SectionHeader
         title={strings('trending.macro_stocks_commodity_perps')}
         onViewAll={() => onViewAll(activePillKey.current)}
         testID="section-header-view-all-macro_stocks_commodity_perps"
+        tabName="Macro"
+        sectionName="perps_stocks_commodities"
       />
       <PillToggleCardList<PerpsMarketData>
         tabs={tabs}
@@ -104,10 +123,28 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
 
   const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item }) => (
+    ({ item, index }) => (
       <PredictionCarouselRowItem
         market={item}
         testIdPrefix="predict-rwa-politics-market-row-item"
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'Macro',
+            section_name: 'predictions_politics',
+            asset_type: 'prediction',
+            position: index,
+            item_clicked: item.id,
+          })
+        }
+        onVote={(marketId) =>
+          trackExploreInteracted({
+            interaction_type: 'prediction_voted',
+            tab_name: 'Macro',
+            section_name: 'predictions_politics',
+            item_clicked: marketId,
+          })
+        }
       />
     ),
     [],
@@ -116,16 +153,20 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showPolitics =
     isPredictEnabled && (politics.isLoading || politics.data.length > 0);
 
+  const politicsViewed = useSectionViewed('Macro', 'predictions_politics');
+
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
       {showPolitics && (
-        <Box>
+        <Box ref={politicsViewed.viewRef} onLayout={politicsViewed.onLayout}>
           <SectionHeader
             title={strings('trending.predictions')}
             onViewAll={() =>
               navigateToPredictionsList(appNavigation, 'politics')
             }
             testID="section-header-view-all-politics_predictions"
+            tabName="Macro"
+            sectionName="predictions_politics"
           />
           <HorizontalCarousel<PredictMarketType>
             data={politics.data}

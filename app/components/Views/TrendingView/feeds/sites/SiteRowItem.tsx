@@ -22,27 +22,41 @@ const openSiteInBrowser = (navigation: AppNavigationProp, site: SiteData) => {
 
 interface SiteRowItemProps {
   site: SiteData;
+  /** Called synchronously before the default press handler fires. */
+  onBeforePress?: () => void;
 }
 
 /** Generic site row (sites + dapps_favorites without remove action). */
-export const SiteRowItem: React.FC<SiteRowItemProps> = ({ site }) => {
+export const SiteRowItem: React.FC<SiteRowItemProps> = ({
+  site,
+  onBeforePress,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   return (
     <SiteRowItemBase
       site={site}
-      onPress={() => openSiteInBrowser(navigation, site)}
+      onPress={() => {
+        onBeforePress?.();
+        openSiteInBrowser(navigation, site);
+      }}
     />
   );
 };
 
 /** Favorite-site row with the "remove from favorites" affordance. */
-export const FavoriteSiteRowItem: React.FC<SiteRowItemProps> = ({ site }) => {
+export const FavoriteSiteRowItem: React.FC<SiteRowItemProps> = ({
+  site,
+  onBeforePress,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   return (
     <SiteRowItemBase
       site={site}
-      onPress={() => openSiteInBrowser(navigation, site)}
+      onPress={() => {
+        onBeforePress?.();
+        openSiteInBrowser(navigation, site);
+      }}
       onRemoveFavorite={() =>
         dispatch(
           removeBookmark({

@@ -73,6 +73,11 @@ interface TrendingTokenRowItemProps {
    */
   onPress?: (token: TrendingAsset) => void;
   /**
+   * Called synchronously before the default press handler fires.
+   * Useful for injecting analytics without overriding navigation.
+   */
+  onBeforePress?: () => void;
+  /**
    * When the same token row appears in multiple Explore sections, set this to keep
    * `testID` (and E2E selectors) unique per instance.
    */
@@ -126,6 +131,7 @@ const TrendingTokenRowItem = ({
   tokenDetailsSource = TokenDetailsSource.Trending,
   transactionActiveAbTests,
   onPress,
+  onBeforePress,
   testIdInstanceKey,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -165,12 +171,13 @@ const TrendingTokenRowItem = ({
   });
 
   const handlePress = useCallback(async () => {
+    onBeforePress?.();
     if (onPress) {
       onPress(token);
       return;
     }
     await defaultOnPress();
-  }, [onPress, token, defaultOnPress]);
+  }, [onPress, onBeforePress, token, defaultOnPress]);
 
   const rowTestId = testIdInstanceKey
     ? `trending-token-row-item-${testIdInstanceKey}-${token.assetId}`

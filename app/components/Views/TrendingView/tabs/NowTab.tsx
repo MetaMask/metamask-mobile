@@ -33,6 +33,8 @@ import HorizontalCarousel from '../components/HorizontalCarousel';
 import PillScrollList from '../components/PillScrollList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
+import { useSectionViewed } from '../hooks/useSectionViewed';
+import { trackExploreInteracted } from '../search/analytics';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -45,20 +47,37 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     refresh,
     withTileExtras: false,
   });
+  const perpsMoversViewed = useSectionViewed('Now', 'perps_movers');
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box>
+    <Box ref={perpsMoversViewed.viewRef} onLayout={perpsMoversViewed.onLayout}>
       <SectionHeader
         title={strings('trending.perps_movers')}
         onViewAll={() => navigateToPerpsMarketList(navigation)}
         testID="section-header-view-all-perps"
+        tabName="Now"
+        sectionName="perps_movers"
       />
       <PillScrollList<PerpsFeedItem>
         data={perps.data}
         isLoading={perps.isLoading}
-        renderItem={(item) => <PerpsPillItem item={item} />}
+        renderItem={(item, index) => (
+          <PerpsPillItem
+            item={item}
+            onBeforePress={() =>
+              trackExploreInteracted({
+                interaction_type: 'section_item_tapped',
+                tab_name: 'Now',
+                section_name: 'perps_movers',
+                asset_type: 'perp',
+                position: index,
+                item_clicked: item.market.symbol,
+              })
+            }
+          />
+        )}
         keyExtractor={(item) => item.market.symbol}
         Skeleton={CryptoMoversSkeleton}
         listTestId="explore-perps-pills-list"
@@ -79,10 +98,28 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const stocks = useStocksFeed({ refresh });
 
   const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item }) => (
+    ({ item, index }) => (
       <PredictionCarouselRowItem
         market={item}
         testIdPrefix="predict-market-row-item"
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'Now',
+            section_name: 'predictions_trending',
+            asset_type: 'prediction',
+            position: index,
+            item_clicked: item.id,
+          })
+        }
+        onVote={(marketId) =>
+          trackExploreInteracted({
+            interaction_type: 'prediction_voted',
+            tab_name: 'Now',
+            section_name: 'predictions_trending',
+            item_clicked: marketId,
+          })
+        }
       />
     ),
     [],
@@ -94,6 +131,17 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         token={item}
         index={index}
         tokenDetailsSource={TokenDetailsSource.ExploreNowStocks}
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'Now',
+            section_name: 'stocks',
+            asset_type: 'stock',
+            position: index,
+            token_symbol: item.symbol,
+            item_clicked: item.assetId,
+          })
+        }
       />
     ),
     [],
@@ -105,6 +153,10 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     cryptoMovers.isLoading || cryptoMovers.data.length > 0;
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
+  const predictionsViewed = useSectionViewed('Now', 'predictions_trending');
+  const cryptoMoversViewed = useSectionViewed('Now', 'tokens_movers');
+  const stocksViewed = useSectionViewed('Now', 'stocks');
+
   return (
     <ExploreScroll
       refreshing={refreshing}
@@ -112,11 +164,16 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
     >
       {showPredictions && (
-        <Box>
+        <Box
+          ref={predictionsViewed.viewRef}
+          onLayout={predictionsViewed.onLayout}
+        >
           <SectionHeader
             title={strings('wallet.predict')}
             onViewAll={() => navigateToPredictionsList(navigation, 'trending')}
             testID="section-header-view-all-predictions"
+            tabName="Now"
+            sectionName="predictions_trending"
           />
           <HorizontalCarousel<PredictMarketType>
             data={predictions.data}
@@ -129,19 +186,38 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showCryptoMovers && (
-        <Box>
+        <Box
+          ref={cryptoMoversViewed.viewRef}
+          onLayout={cryptoMoversViewed.onLayout}
+        >
           <SectionHeader
             title={strings('trending.crypto_movers')}
             onViewAll={() =>
               navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
             }
             testID="section-header-view-all-crypto_movers"
+            tabName="Now"
+            sectionName="tokens_movers"
           />
           <PillScrollList<TrendingAsset>
             data={cryptoMovers.data}
             isLoading={cryptoMovers.isLoading}
             renderItem={(token, index) => (
-              <CryptoMoversPillItem token={token} index={index} />
+              <CryptoMoversPillItem
+                token={token}
+                index={index}
+                onBeforePress={() =>
+                  trackExploreInteracted({
+                    interaction_type: 'section_item_tapped',
+                    tab_name: 'Now',
+                    section_name: 'tokens_movers',
+                    asset_type: 'token',
+                    position: index,
+                    token_symbol: token.symbol,
+                    item_clicked: token.assetId,
+                  })
+                }
+              />
             )}
             keyExtractor={(token) => token.assetId ?? ''}
             Skeleton={CryptoMoversSkeleton}
@@ -157,13 +233,15 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showStocks && (
-        <Box>
+        <Box ref={stocksViewed.viewRef} onLayout={stocksViewed.onLayout}>
           <SectionHeader
             title={strings('trending.stocks')}
             onViewAll={() =>
               navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
             }
             testID="section-header-view-all-stocks"
+            tabName="Now"
+            sectionName="stocks"
           />
           <CardList<TrendingAsset>
             data={stocks.data}

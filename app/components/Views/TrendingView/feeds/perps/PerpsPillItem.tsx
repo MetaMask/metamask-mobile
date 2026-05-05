@@ -15,9 +15,14 @@ const LOGO_SIZE = 24;
 
 interface PerpsPillItemProps {
   item: PerpsFeedItem;
+  /** Called synchronously before the default press handler fires. */
+  onBeforePress?: () => void;
 }
 
-const PerpsPillItem: React.FC<PerpsPillItemProps> = ({ item }) => {
+const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
+  item,
+  onBeforePress,
+}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { market } = item;
 
@@ -44,6 +49,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({ item }) => {
   }, [market.change24hPercent]);
 
   const onPress = () => {
+    onBeforePress?.();
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: { market, source: PERPS_EVENT_VALUE.SOURCE.EXPLORE },

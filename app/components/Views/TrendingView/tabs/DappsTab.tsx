@@ -19,6 +19,8 @@ import ExploreScroll from '../components/ExploreScroll';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
+import { useSectionViewed } from '../hooks/useSectionViewed';
+import { trackExploreInteracted } from '../search/analytics';
 
 const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -29,12 +31,40 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const sites = useSitesFeed({ refresh });
 
   const renderFavorite: ListRenderItem<SiteData> = useCallback(
-    ({ item }) => <FavoriteSiteRowItem site={item} />,
+    ({ item, index }) => (
+      <FavoriteSiteRowItem
+        site={item}
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'Sites',
+            section_name: 'sites_favorites',
+            asset_type: 'dapp',
+            position: index,
+            item_clicked: item.url,
+          })
+        }
+      />
+    ),
     [],
   );
 
   const renderSite: ListRenderItem<SiteData> = useCallback(
-    ({ item }) => <SiteRowItem site={item} />,
+    ({ item, index }) => (
+      <SiteRowItem
+        site={item}
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'Sites',
+            section_name: 'sites_popular',
+            asset_type: 'dapp',
+            position: index,
+            item_clicked: item.url,
+          })
+        }
+      />
+    ),
     [],
   );
 
@@ -42,10 +72,15 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showFavorites = favorites.isLoading || favorites.data.length > 0;
   const showSites = sites.isLoading || sites.data.length > 0;
 
+  const recentsViewed = useSectionViewed('Sites', 'sites_recents');
+  const favoritesViewed = useSectionViewed('Sites', 'sites_favorites');
+  const ecosystemsViewed = useSectionViewed('Sites', 'sites_ecosystems');
+  const popularViewed = useSectionViewed('Sites', 'sites_popular');
+
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
       {showRecents && (
-        <Box>
+        <Box ref={recentsViewed.viewRef} onLayout={recentsViewed.onLayout}>
           <SectionHeader
             title={strings('autocomplete.recents')}
             testID="section-header-view-all-dapps_recents"
@@ -53,7 +88,21 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           <TileCarousel<SiteData>
             data={recents.data}
             isLoading={recents.isLoading}
-            renderItem={(site) => <SiteTileRowItem site={site} />}
+            renderItem={(site, index) => (
+              <SiteTileRowItem
+                site={site}
+                onBeforePress={() =>
+                  trackExploreInteracted({
+                    interaction_type: 'section_item_tapped',
+                    tab_name: 'Sites',
+                    section_name: 'sites_recents',
+                    asset_type: 'dapp',
+                    position: index,
+                    item_clicked: site.url,
+                  })
+                }
+              />
+            )}
             keyExtractor={(site) => site.url}
             Skeleton={SiteTileSkeleton}
             compactSectionTail
@@ -63,13 +112,15 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showFavorites && (
-        <Box>
+        <Box ref={favoritesViewed.viewRef} onLayout={favoritesViewed.onLayout}>
           <SectionHeader
             title={strings('autocomplete.favorites')}
             onViewAll={() =>
               navigation.navigate(Routes.SITES_FULL_VIEW, { mode: 'favorites' })
             }
             testID="section-header-view-all-dapps_favorites"
+            tabName="Sites"
+            sectionName="sites_favorites"
           />
           <CardList<SiteData>
             data={favorites.data}
@@ -81,7 +132,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         </Box>
       )}
 
-      <Box>
+      <Box ref={ecosystemsViewed.viewRef} onLayout={ecosystemsViewed.onLayout}>
         <SectionHeader
           title={strings('trending.ecosystems')}
           subtitle={strings('trending.ecosystems_subtitle')}
@@ -90,7 +141,21 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <TileCarousel<SiteData>
           data={networks.data}
           isLoading={false}
-          renderItem={(site) => <SiteTileRowItem site={site} />}
+          renderItem={(site, index) => (
+            <SiteTileRowItem
+              site={site}
+              onBeforePress={() =>
+                trackExploreInteracted({
+                  interaction_type: 'section_item_tapped',
+                  tab_name: 'Sites',
+                  section_name: 'sites_ecosystems',
+                  asset_type: 'dapp',
+                  position: index,
+                  item_clicked: site.url,
+                })
+              }
+            />
+          )}
           keyExtractor={(site) => site.url}
           Skeleton={SiteTileSkeleton}
           testID="explore-dapps_networks-carousel"
@@ -98,11 +163,13 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       </Box>
 
       {showSites && (
-        <Box>
+        <Box ref={popularViewed.viewRef} onLayout={popularViewed.onLayout}>
           <SectionHeader
             title={strings('trending.popular')}
             onViewAll={() => navigation.navigate(Routes.SITES_FULL_VIEW)}
             testID="section-header-view-all-sites"
+            tabName="Sites"
+            sectionName="sites_popular"
           />
           <CardList<SiteData>
             data={sites.data}

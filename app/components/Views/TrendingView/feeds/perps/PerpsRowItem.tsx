@@ -10,15 +10,21 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 interface PerpsRowItemProps {
   market: PerpsMarketData;
+  /** Called synchronously before the default press handler fires. */
+  onBeforePress?: () => void;
 }
 
 /** Compact list row for perps — used by pill-toggled lists and search. */
-const PerpsRowItem: React.FC<PerpsRowItemProps> = ({ market }) => {
+const PerpsRowItem: React.FC<PerpsRowItemProps> = ({
+  market,
+  onBeforePress,
+}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   return (
     <PerpsMarketRowItem
       market={market}
       onPress={() => {
+        onBeforePress?.();
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: { market, source: PERPS_EVENT_VALUE.SOURCE.EXPLORE },

@@ -55,17 +55,23 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
 
 interface SiteTileRowItemProps {
   site: SiteData;
+  /** Called synchronously before the default press handler fires. */
+  onBeforePress?: () => void;
 }
 
 /**
  * Compact tile (icon, title, url) for Explore "Recents" / "Networks" carousels.
  */
-const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({ site }) => {
+const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({
+  site,
+  onBeforePress,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet);
   const tw = useTailwind();
 
   const onPress = () => {
+    onBeforePress?.();
     navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {

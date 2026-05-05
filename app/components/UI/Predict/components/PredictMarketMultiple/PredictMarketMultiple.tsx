@@ -50,6 +50,10 @@ interface PredictMarketMultipleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called synchronously before the card's navigation press fires. */
+  onBeforePress?: () => void;
+  /** Called when the user taps a vote button (before betslip opens). */
+  onVote?: (marketId: string) => void;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
@@ -57,6 +61,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  onBeforePress,
+  onVote,
 }) => {
   const contextEntryPoint = usePredictEntryPoint();
   const baseEntryPoint =
@@ -137,6 +143,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     outcome: PredictOutcome,
     outcomeToken: PredictOutcomeToken,
   ) => {
+    onVote?.(market.id);
     executeGuardedAction(
       () => {
         openBuySheet({
@@ -161,6 +168,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
+        onBeforePress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {

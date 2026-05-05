@@ -27,6 +27,8 @@ interface PredictSportCardFooterProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called when the user taps a vote button (before betslip opens). */
+  onVote?: (marketId: string) => void;
 }
 
 const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
@@ -34,6 +36,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel,
+  onVote,
 }) => {
   const tw = useTailwind();
   const navigation =
@@ -82,6 +85,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           ),
         ) ?? market.outcomes?.[0];
 
+      onVote?.(market.id);
       executeGuardedAction(
         () => {
           openBuySheet({
@@ -96,7 +100,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         },
       );
     },
-    [executeGuardedAction, resolvedEntryPoint, openBuySheet, market],
+    [executeGuardedAction, resolvedEntryPoint, openBuySheet, market, onVote],
   );
 
   const handleClaimPress = useCallback(async () => {

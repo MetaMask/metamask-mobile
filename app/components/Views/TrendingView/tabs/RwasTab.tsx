@@ -33,6 +33,8 @@ import PillToggleCardList, {
 } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
+import { useSectionViewed } from '../hooks/useSectionViewed';
+import { trackExploreInteracted } from '../search/analytics';
 
 const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
 
@@ -47,6 +49,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
 }) => {
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
   const activePillKey = useRef<string>('commodities');
+  const perpsMarketsViewed = useSectionViewed('RWAs', 'perps_markets');
 
   const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
     const byType = (type: PerpsMarketData['marketType']) =>
@@ -74,18 +77,37 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   }, [perps.data]);
 
   const renderItem: ListRenderItem<PerpsMarketData> = useCallback(
-    ({ item }) => <PerpsRowItem market={item} />,
+    ({ item, index }) => (
+      <PerpsRowItem
+        market={item}
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'RWAs',
+            section_name: 'perps_markets',
+            asset_type: 'perp',
+            position: index,
+            item_clicked: item.symbol,
+          })
+        }
+      />
+    ),
     [],
   );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box>
+    <Box
+      ref={perpsMarketsViewed.viewRef}
+      onLayout={perpsMarketsViewed.onLayout}
+    >
       <SectionHeader
         title={strings('trending.rwa_perps_section')}
         onViewAll={() => onViewAll(activePillKey.current)}
         testID="section-header-view-all-rwa_perps"
+        tabName="RWAs"
+        sectionName="perps_markets"
       />
       <PillToggleCardList<PerpsMarketData>
         tabs={tabs}
@@ -114,10 +136,28 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const stocks = useStocksFeed({ refresh });
 
   const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item }) => (
+    ({ item, index }) => (
       <PredictionCarouselRowItem
         market={item}
         testIdPrefix="predict-rwa-politics-market-row-item"
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'RWAs',
+            section_name: 'predictions_politics',
+            asset_type: 'prediction',
+            position: index,
+            item_clicked: item.id,
+          })
+        }
+        onVote={(marketId) =>
+          trackExploreInteracted({
+            interaction_type: 'prediction_voted',
+            tab_name: 'RWAs',
+            section_name: 'predictions_politics',
+            item_clicked: marketId,
+          })
+        }
       />
     ),
     [],
@@ -129,6 +169,17 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         token={item}
         index={index}
         tokenDetailsSource={TokenDetailsSource.ExploreRwasStocks}
+        onBeforePress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'RWAs',
+            section_name: 'stocks',
+            asset_type: 'stock',
+            position: index,
+            token_symbol: item.symbol,
+            item_clicked: item.assetId,
+          })
+        }
       />
     ),
     [],
@@ -138,16 +189,21 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     isPredictEnabled && (politics.isLoading || politics.data.length > 0);
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
+  const politicsViewed = useSectionViewed('RWAs', 'predictions_politics');
+  const stocksViewed = useSectionViewed('RWAs', 'stocks');
+
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
       {showPolitics && (
-        <Box>
+        <Box ref={politicsViewed.viewRef} onLayout={politicsViewed.onLayout}>
           <SectionHeader
             title={strings('trending.predictions')}
             onViewAll={() =>
               navigateToPredictionsList(appNavigation, 'politics')
             }
             testID="section-header-view-all-politics_predictions"
+            tabName="RWAs"
+            sectionName="predictions_politics"
           />
           <HorizontalCarousel<PredictMarketType>
             data={politics.data}
@@ -160,13 +216,15 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showStocks && (
-        <Box>
+        <Box ref={stocksViewed.viewRef} onLayout={stocksViewed.onLayout}>
           <SectionHeader
             title={strings('trending.stocks')}
             onViewAll={() =>
               appNavigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
             }
             testID="section-header-view-all-stocks"
+            tabName="RWAs"
+            sectionName="stocks"
           />
           <CardList<TrendingAsset>
             data={stocks.data}
