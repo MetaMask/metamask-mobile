@@ -42,8 +42,8 @@ import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
 import OndoNotEligibleSheet from '../components/Campaigns/OndoNotEligibleSheet';
-import CampaignStatsSummary from '../components/Campaigns/CampaignStatsSummary';
 import CampaignEndedStats from '../components/Campaigns/CampaignEndedStats';
+import OndoCampaignStatsSummary from '../components/Campaigns/OndoCampaignStatsSummary';
 import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -407,7 +407,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                         />
                       </Box>
                     </Pressable>
-                    <CampaignStatsSummary
+                    <OndoCampaignStatsSummary
                       leaderboardPosition={leaderboardPosition}
                       portfolioSummary={portfolioData?.summary ?? null}
                       leaderboard={{
@@ -512,7 +512,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-4 px-4"
+                        twClassName="gap-2 px-4 mb-1"
                       >
                         <Text variant={TextVariant.HeadingMd}>
                           {strings('rewards.ondo_campaign_leaderboard.title')}

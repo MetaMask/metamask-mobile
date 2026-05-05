@@ -16,6 +16,9 @@ import OndoCampaignRwaSelectorView from './Views/OndoCampaignRwaSelectorView';
 import OndoCampaignPortfolioView from './Views/OndoCampaignPortfolioView';
 import OndoCampaignStatsView from './Views/OndoCampaignStatsView';
 import CampaignTourStepView from './Views/CampaignTourStepView';
+import PerpsTradingCampaignDetailsView from './Views/PerpsTradingCampaignDetailsView';
+import PerpsTradingCampaignLeaderboardView from './Views/PerpsTradingCampaignLeaderboardView';
+import PerpsTradingCampaignStatsView from './Views/PerpsTradingCampaignStatsView';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import {
@@ -149,6 +152,8 @@ const RewardsNavigator: React.FC = () => {
         navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW);
       } else if (pendingDeeplink?.campaign === 'season1') {
         navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW);
+      } else if (pendingDeeplink?.campaign === 'perps-comp') {
+        navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW);
       } else if (pendingDeeplink?.page === 'musd') {
         navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
       } else if (pendingDeeplink?.page === 'benefits') {
@@ -249,6 +254,21 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
             component={OndoCampaignStatsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW}
+            component={PerpsTradingCampaignDetailsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD}
+            component={PerpsTradingCampaignLeaderboardView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_STATS}
+            component={PerpsTradingCampaignStatsView}
             options={{ headerShown: false }}
           />
         </>
