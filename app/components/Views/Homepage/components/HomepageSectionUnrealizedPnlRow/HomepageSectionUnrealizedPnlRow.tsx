@@ -105,7 +105,7 @@ const HomepageSectionUnrealizedPnlRow: React.FC<
       gap={2}
     >
       <Text
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.BodySm}
         color={resolvedValueColor}
         fontWeight={FontWeight.Medium}
         testID={valueTestID}
@@ -113,7 +113,7 @@ const HomepageSectionUnrealizedPnlRow: React.FC<
         {valueText}
       </Text>
       <Text
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         fontWeight={FontWeight.Medium}
         testID={labelTestID}
