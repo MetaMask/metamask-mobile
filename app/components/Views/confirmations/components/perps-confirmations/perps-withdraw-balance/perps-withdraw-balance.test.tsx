@@ -28,7 +28,8 @@ describe('PerpsWithdrawBalance', () => {
     } as never);
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '$1,232.39',
+        spendableBalance: '$1,232.39',
+        withdrawableBalance: '$1,232.39',
       },
       isInitialLoading: false,
     } as never);
@@ -51,7 +52,7 @@ describe('PerpsWithdrawBalance', () => {
     // $50.39 for an underlying 50.389 balance, one cent higher than the
     // Max button computed via BigNumber.ROUND_DOWN.
     mockUsePerpsLiveAccount.mockReturnValue({
-      account: { availableBalance: '50.389' },
+      account: { withdrawableBalance: '50.389' },
       isInitialLoading: false,
     } as never);
 
