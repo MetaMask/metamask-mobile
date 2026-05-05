@@ -94,7 +94,10 @@ const PredictPositionsHeader = forwardRef<
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
-  const { data: activePositions } = usePredictPositions({ claimable: false });
+  const { data: activePositions } = usePredictPositions({
+    claimable: false,
+    livePriceUpdates: true,
+  });
   const { data: claimablePositions = [] } = usePredictPositions({
     claimable: true,
   });

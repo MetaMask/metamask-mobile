@@ -32,8 +32,8 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
 }) => {
   const { data: fetchedPositions = [] } = usePredictPositions({
     marketId,
-    refetchInterval: positionsProp ? undefined : 10000,
     enabled: !positionsProp,
+    livePriceUpdates: !positionsProp,
   });
 
   const basePositions = positionsProp ?? fetchedPositions;
