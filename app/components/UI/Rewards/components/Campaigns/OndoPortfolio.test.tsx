@@ -169,10 +169,6 @@ jest.mock('../../../../../util/ondoGeoRestrictions', () => ({
   isGeoRestricted: jest.fn(() => false),
 }));
 
-jest.mock('./OndoLeaderboard.utils', () => ({
-  formatComputedAt: jest.fn(),
-}));
-
 jest.mock('../../../../../images/rewards/rewards-no-positions.svg', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
