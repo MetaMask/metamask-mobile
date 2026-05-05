@@ -85,6 +85,13 @@ async function connectToChannel({
         .addProperties({
           transport_type: 'socket_relay',
           sdk_version: originatorInfo?.apiVersion,
+          // `originatorInfo.platform` is sourced from `PlatformType` in
+          // `@metamask/sdk-communication-layer`; aligns with the V2 emitter and
+          // the `remote_request_platform` enum in schema#545. Coerce empty
+          // strings (fallback when `getPlatformType` can't resolve) to
+          // undefined so the property is dropped rather than flagged as an
+          // invalid enum value.
+          remote_request_platform: originatorInfo?.platform || undefined,
           remote_session_id: anonId,
         })
         .build(),

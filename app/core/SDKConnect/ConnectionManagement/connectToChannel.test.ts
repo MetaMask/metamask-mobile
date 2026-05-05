@@ -282,9 +282,32 @@ describe('connectToChannel', () => {
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             remote_session_id: 'test-anon-id',
+            sdk_version: '1.0.0',
+            remote_request_platform: 'web',
           }),
         }),
       );
+    });
+
+    it('should coerce an empty-string originatorInfo.platform to undefined so the property is dropped', async () => {
+      originatorInfo.anonId = 'test-anon-id';
+      originatorInfo.platform = '';
+      (checkPermissions as jest.Mock).mockResolvedValue(true);
+
+      await connectToChannel({
+        instance: mockInstance,
+        id,
+        trigger,
+        otherPublicKey,
+        origin,
+        validUntil,
+        originatorInfo,
+        initialConnection: true,
+      });
+
+      const trackedProperties = (analytics.trackEvent as jest.Mock).mock
+        .calls[0][0].properties;
+      expect(trackedProperties).not.toHaveProperty('remote_request_platform');
     });
 
     // wallet_connection_user_approved / wallet_connection_user_rejected are
