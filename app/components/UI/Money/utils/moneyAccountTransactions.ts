@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { BigNumber } from 'bignumber.js';
 import {
   TransactionMeta,
   TransactionType,
@@ -10,7 +11,9 @@ import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 import { calcTokenValue } from '../../../../util/transactions';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
-import type { MoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import ReduxService from '../../../../core/redux';
+import type { RootState } from '../../../../reducers';
 
 const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
@@ -174,20 +177,54 @@ export async function buildMoneyAccountDepositBatch({
   };
 }
 
+/** Decimals for USDC (the deposit asset). */
+const USDC_DECIMALS = 6;
+
 /**
  * Returns the per-nested-call data updates required when the user changes
  * the deposit amount on a Money Account deposit confirmation.
  *
- * Stub implementation — real encoding will replace this once the deposit
- * batch re-encoding logic is wired in.
+ * Reads vault config from the Redux store, calls `previewDeposit` on the
+ * lens contract to derive an accurate `minimumMint`, and returns the
+ * re-encoded approve + deposit calldata ready for `updateAtomicBatchData`.
+ *
+ * Returns `[]` (no-op) if vault config or provider is unavailable.
+ * Lets `buildMoneyAccountDepositBatch` errors propagate so the dispatcher
+ * can log them via its prep-error handler.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function updateMoneyAccountDepositTokenAmount(
-  _transactionMeta: TransactionMeta,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _amountHuman: string,
+  transactionMeta: TransactionMeta,
+  amountHuman: string,
 ): Promise<UpdateTransactionPayAmountCall[]> {
-  return [];
+  const vaultConfig = selectMoneyAccountVaultConfig(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!vaultConfig) return [];
+
+  const chainIdHex = transactionMeta.chainId as Hex;
+  const provider = getProviderByChainId(chainIdHex);
+  if (!provider) return [];
+
+  const amount = BigInt(
+    calcTokenValue(amountHuman, USDC_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+    amount,
+    chainId: chainIdHex,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
+    provider,
+  });
+
+  return [
+    { nestedTransactionIndex: 0, transactionData: approveTx.params.data },
+    { nestedTransactionIndex: 1, transactionData: depositTx.params.data },
+  ];
 }
 
 /**
@@ -308,49 +345,4 @@ export async function buildMoneyAccountWithdraw({
       type: TransactionType.moneyAccountWithdraw,
     },
   };
-}
-
-// -- Deposit amount util for confirmation dispatcher -------------------------
-
-/** Decimals for USDC (the deposit asset). */
-const USDC_DECIMALS = 6;
-
-/**
- * Pure async util that, given a human-readable amount and vault config,
- * builds the approve + deposit calldata for a Money Account deposit and
- * returns the indexed calls ready for `updateAtomicBatchData`.
- *
- * Designed to be consumed by the confirmations dispatcher
- * (`useUpdateTransactionPayData`) without any React dependencies.
- */
-export async function getMoneyAccountDepositCallsForAmount({
-  amountHuman,
-  vaultConfig,
-}: {
-  amountHuman: string;
-  vaultConfig: MoneyAccountVaultConfig;
-}): Promise<{ transactionIndex: number; transactionData: Hex }[]> {
-  const chainIdHex = vaultConfig.chainId as Hex;
-  const provider = getProviderByChainId(chainIdHex);
-  if (!provider) {
-    throw new Error(`No provider for chain ${vaultConfig.chainId}`);
-  }
-  const amount = BigInt(
-    calcTokenValue(amountHuman, USDC_DECIMALS)
-      .decimalPlaces(0, BigNumber.ROUND_UP)
-      .toFixed(0),
-  );
-  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-    amount,
-    chainId: chainIdHex,
-    boringVault: vaultConfig.boringVault,
-    tellerAddress: vaultConfig.tellerAddress,
-    accountantAddress: vaultConfig.accountantAddress,
-    lensAddress: vaultConfig.lensAddress,
-    provider,
-  });
-  return [
-    { transactionIndex: 0, transactionData: approveTx.params.data },
-    { transactionIndex: 1, transactionData: depositTx.params.data },
-  ];
 }
