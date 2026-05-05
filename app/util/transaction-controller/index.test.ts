@@ -90,7 +90,7 @@ const TRANSACTION_OPTIONS_MOCK = {
   origin: 'origin',
 };
 
-const TEMPO_VALID_CHAIN_ID = '0xa5bf' as Hex;
+const TEMPO_VALID_CHAIN_ID = '0x1079' as Hex;
 const BATCHID_MOCK = '0xmockBatchId' as Hex;
 const FROM_FIELD_MOCK = '0x1';
 
