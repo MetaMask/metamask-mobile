@@ -1,22 +1,24 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import { IconName } from '@metamask/design-system-react-native';
+import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
-import Device from '../../../util/device';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
 // TODO: This will be replaced with the actual route params type once navigation is refactored
 type RouteParams = {
   SimpleWebView: {
     url: string;
+    title?: string;
   };
 };
 
 const SimpleWebView = () => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RouteParams, 'SimpleWebView'>>();
   const url = route.params.url;
@@ -32,19 +34,24 @@ const SimpleWebView = () => {
     }
   }, [url]);
 
-  useEffect(() => {
-    navigation.setOptions({
-      ...getHeaderCompactStandardNavbarOptions({
-        title,
-        onBack: () => navigation.goBack(),
-        includesTopInset: Device.isAndroid(),
-        twClassName: 'bg-default rounded-t-2xl',
-        endButtonIconProps: [{ iconName: IconName.Share, onPress: share }],
-      }),
-    });
-  }, [navigation, share, title]);
-
-  return <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />;
+  return (
+    <View style={tw.style('flex-1 bg-default')}>
+      <HeaderStandard
+        title={title}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+        backButtonProps={{ testID: 'simple-webview-back-button' }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Share,
+            onPress: share,
+            testID: 'simple-webview-share-button',
+          },
+        ]}
+      />
+      <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />
+    </View>
+  );
 };
 
 export default SimpleWebView;
