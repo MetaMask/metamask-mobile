@@ -20,6 +20,7 @@ const FILE_SOURCES: Array<{ key: string; file: string; exportName: string }> = [
   { key: 'FULL_PAGE_ACCOUNT_LIST_FLAG_NAME', file: sel('fullPageAccountList'), exportName: 'FULL_PAGE_ACCOUNT_LIST_FLAG_NAME' },
   { key: 'IMPORT_SRP_WORD_SUGGESTION_FLAG_NAME', file: sel('importSrpWordSuggestion'), exportName: 'IMPORT_SRP_WORD_SUGGESTION_FLAG_NAME' },
   { key: 'ASSETS_UNIFY_STATE_FLAG', file: sel('assetsUnifyState'), exportName: 'ASSETS_UNIFY_STATE_FLAG' },
+  { key: 'BRAZE_BANNER_HOME_FLAG_KEY', file: sel('brazeBannerHome'), exportName: 'BRAZE_BANNER_HOME_FLAG_KEY' },
 ];
 
 function resolveConstantFromFile(filePath: string, constantName: string): string | undefined {
