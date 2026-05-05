@@ -546,7 +546,7 @@ generateIosBinary() {
     	echo "Binary build type: Simulator"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
 	fi
-
+	
 	if [ "$IS_DEVICE_BUILD" = "true" ] || [ -z "$IS_SIM_BUILD" ]; then
 		echo "Binary build type: Device"
 
