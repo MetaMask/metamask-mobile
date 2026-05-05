@@ -12,6 +12,7 @@ import type {
 } from '../types';
 import type { RootState } from '../../../../../reducers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { toChecksumAddress } from '../../../../../util/address';
 
 export function getGasMetricsProperties({
   transactionMeta,
@@ -91,7 +92,7 @@ function getNativeBalance(
 ): BigNumber {
   const accountsByChainId = selectAccountsByChainId(state);
 
-  const account = accountsByChainId?.[chainId]?.[address?.toLowerCase()];
+  const account = accountsByChainId?.[chainId]?.[toChecksumAddress(address)];
 
   return new BigNumber((account?.balance as Hex) ?? '0x0');
 }
