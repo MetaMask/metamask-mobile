@@ -74,13 +74,22 @@ async function fetchOHLCV(
     url.searchParams.set('vsCurrency', params.vsCurrency);
   }
 
+  const apiStartTime = Date.now();
   const response = await fetch(url.toString(), { signal });
 
   if (!response.ok) {
     throw new Error(`OHLCV API error: ${response.status}`);
   }
 
-  return response.json();
+  const apiData = await response.json();
+  const apiDuration = Date.now() - apiStartTime;
+
+  // eslint-disable-next-line no-console
+  console.log(
+    `[perf] API returned in ${apiDuration}ms (${apiData.data?.length ?? 0} candles)`,
+  );
+
+  return apiData;
 }
 
 /**
@@ -117,11 +126,24 @@ export const useOHLCVChart = ({
     setHasMore(false);
     setHasEmptyData(false);
 
+    const apiStartTime = Date.now();
+    // eslint-disable-next-line no-console
+    console.log(
+      `[perf] useOHLCVChart: API call started for assetId=${assetId}, timePeriod=${timePeriod}`,
+    );
+
     try {
       const result = await fetchOHLCV(
         assetId,
         { timePeriod, interval, vsCurrency },
         controller.signal,
+      );
+
+      const apiEndTime = Date.now();
+      const apiDuration = apiEndTime - apiStartTime;
+      // eslint-disable-next-line no-console
+      console.log(
+        `[perf] useOHLCVChart: API call completed in ${apiDuration}ms, received ${result.data.length} candles`,
       );
 
       if (!controller.signal.aborted) {
@@ -130,8 +152,21 @@ export const useOHLCVChart = ({
         setOhlcvData(result.data.map(mapCandle));
         setNextCursor(result.nextCursor || null);
         setHasMore(result.hasNext);
+
+        const dataMappedTime = Date.now();
+        // eslint-disable-next-line no-console
+        console.log(
+          `[perf] useOHLCVChart: Data mapped and state updated in ${dataMappedTime - apiEndTime}ms`,
+        );
       }
     } catch (e) {
+      const apiEndTime = Date.now();
+      const apiDuration = apiEndTime - apiStartTime;
+      // eslint-disable-next-line no-console
+      console.log(
+        `[perf] useOHLCVChart: API call failed after ${apiDuration}ms`,
+        e,
+      );
       if (!controller.signal.aborted) {
         setOhlcvData([]); // Clear data on error to show error state
         setError(e instanceof Error ? e.message : 'Unknown error');
@@ -144,9 +179,13 @@ export const useOHLCVChart = ({
   }, [assetId, timePeriod, interval, vsCurrency]);
 
   useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log(
+      `[perf] useOHLCVChart: Effect triggered - parameters changed (assetId=${assetId}, timePeriod=${timePeriod}, interval=${interval})`,
+    );
     loadInitial();
     return () => abortRef.current?.abort();
-  }, [loadInitial]);
+  }, [loadInitial, assetId, timePeriod, interval]);
 
   return { ohlcvData, isLoading, error, hasMore, nextCursor, hasEmptyData };
 };

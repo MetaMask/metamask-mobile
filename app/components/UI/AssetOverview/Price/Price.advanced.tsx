@@ -161,6 +161,10 @@ const PriceAdvanced = ({
       if (range === timeRange) {
         return;
       }
+
+      // eslint-disable-next-line no-console
+      console.log(`[perf] Time range clicked: ${timeRange} → ${range}`);
+
       // Clear crosshair data when changing timeframes to reset price/percentage display
       setCrosshairData(null);
       trackEvent(
