@@ -155,7 +155,6 @@ export function getRewardsControllerMessenger(
   // checking the `delegate()` argument shape. We suppress the diagnostic on
   // the single big call rather than splitting it up, because each split call
   // still hits the same complexity ceiling.
-  // @ts-expect-error TS2590 — see comment above.
   rootMessenger.delegate({
     messenger,
     actions: [
