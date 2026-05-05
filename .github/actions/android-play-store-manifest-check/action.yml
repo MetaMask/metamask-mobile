@@ -51,7 +51,10 @@ runs:
         rm -rf "$SDK_ROOT/cmdline-tools-staging"
 
         SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+        # yes exits with SIGPIPE when sdkmanager closes stdin; with pipefail that fails the step.
+        set +o pipefail
         yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null
+        set -o pipefail
         "$SDKMANAGER" --sdk_root="$SDK_ROOT" \
           "platform-tools" \
           "platforms;android-35" \
