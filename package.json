@@ -170,6 +170,8 @@
     ]
   },
   "resolutions": {
+    "@metamask/assets-controller": "npm:@metamask-previews/assets-controller@6.3.0-preview-4e0ae1bc9",
+    "@metamask/assets-controllers": "npm:@metamask-previews/assets-controllers@105.1.0-preview-4e0ae1bc9",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
