@@ -8,10 +8,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -72,6 +68,8 @@ interface CampaignLeaderboardProps {
   /** Campaign ID used for analytics tracking. */
   campaignId?: string;
   isCampaignComplete?: boolean;
+  /** When true, hides the participants + tier toggle header row (used when the view renders its own tier selector). */
+  hideTierHeader?: boolean;
 }
 
 /**
@@ -220,6 +218,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   userPosition,
   campaignId,
   isCampaignComplete = false,
+  hideTierHeader = false,
 }) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -360,49 +359,41 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   return (
     <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER}>
       {/* Participants + tier subtitle */}
-      {(totalParticipants > 0 || Boolean(selectedTierLabel)) && (
-        <Pressable
-          onPress={tierNames.length > 1 ? openTierSelector : undefined}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 mb-2 px-4"
+      {!hideTierHeader &&
+        (totalParticipants > 0 || Boolean(selectedTierLabel)) && (
+          <Pressable
+            onPress={tierNames.length > 1 ? openTierSelector : undefined}
+            testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
           >
-            {totalParticipants > 0 && (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.SuccessDefault}
-              >
-                {strings(
-                  'rewards.ondo_campaign_leaderboard.total_participants',
-                  {
-                    count: totalParticipants.toLocaleString(),
-                  },
-                )}
-              </Text>
-            )}
-            {selectedTierLabel ? (
-              <>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2 mb-2 px-4"
+            >
+              {totalParticipants > 0 && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  {strings(
+                    'rewards.ondo_campaign_leaderboard.total_participants',
+                    {
+                      count: totalParticipants.toLocaleString(),
+                    },
+                  )}
+                </Text>
+              )}
+              {Boolean(selectedTierLabel) && (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
                   {selectedTierLabel}
                 </Text>
-                {tierNames.length > 1 && (
-                  <Icon
-                    name={IconName.ArrowDown}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                )}
-              </>
-            ) : null}
-          </Box>
-        </Pressable>
-      )}
+              )}
+            </Box>
+          </Pressable>
+        )}
 
       {/* Leaderboard list */}
       {visibleEntries.length > 0 ? (
