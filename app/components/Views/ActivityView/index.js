@@ -18,6 +18,7 @@ import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
@@ -36,6 +37,7 @@ import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import {
   NetworkType,
+  useNetworksByCustomNamespace,
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
@@ -95,13 +97,20 @@ const ActivityView = () => {
     networkType: NetworkType.Popular,
   });
 
+  const { areAllNetworksSelected: areAllEvmPopularNetworksEnabled } =
+    useNetworksByCustomNamespace({
+      networkType: NetworkType.Popular,
+      namespace: KnownCaipNamespace.Eip155,
+    });
+
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   const params = useParams();
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(
-    () => perpsEnabledFlag && isEvmSelected,
-    [perpsEnabledFlag, isEvmSelected],
+    () =>
+      perpsEnabledFlag && (isEvmSelected || areAllEvmPopularNetworksEnabled),
+    [perpsEnabledFlag, isEvmSelected, areAllEvmPopularNetworksEnabled],
   );
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
