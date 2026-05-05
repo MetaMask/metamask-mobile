@@ -41,6 +41,7 @@ import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -66,6 +67,21 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 }));
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
+jest.mock('../../../../../../util/Logger');
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultApyQuery: { data: { apy: 5.5 }, isLoading: false },
+  }),
+}));
+jest.mock(
+  '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter',
+  () => ({
+    __esModule: true,
+    default: () => (value: { toString: () => string }) =>
+      `$${Number(value.toString()).toFixed(2)}`,
+  }),
+);
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -234,7 +250,7 @@ describe('CustomAmountInfo', () => {
       isInputChanged: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
-      updateTokenAmount: noop,
+      updateTokenAmount: jest.fn(),
     });
 
     useConfirmationContextMock.mockReturnValue({
@@ -478,6 +494,38 @@ describe('CustomAmountInfo', () => {
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
   });
 
+  it('still runs UI cleanup and logs the error when updateTokenAmount rejects on Done', async () => {
+    const error = new Error('update failed');
+    const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
+    const mockOnAmountSubmit = jest.fn();
+    const loggerErrorMock = jest.mocked(Logger.error);
+    loggerErrorMock.mockClear();
+
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: true,
+      isInputChanged: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
+    });
+
+    const { getByText } = render({ onAmountSubmit: mockOnAmountSubmit });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
+    expect(loggerErrorMock).toHaveBeenCalledWith(
+      error,
+      expect.stringContaining('Failed to apply custom amount on Done press'),
+    );
+  });
+
   it('renders PayAccountSelector when supportAccountSelection is true', () => {
     const { getByTestId } = render({ supportAccountSelection: true });
 
@@ -555,7 +603,7 @@ describe('CustomAmountInfo', () => {
         isInputChanged: false,
         updatePendingAmount: noop,
         updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+        updateTokenAmount: jest.fn(),
       });
     });
 

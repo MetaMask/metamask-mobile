@@ -2,6 +2,7 @@ import React, { ReactNode, memo, useCallback, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
+import { ProjectedFiveYearBalance } from '../../projected-five-year-balance';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
@@ -61,6 +62,7 @@ import { AlertKeys } from '../../../constants/alerts';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
@@ -134,6 +136,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -164,21 +169,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingTokenAmount: amountHumanDebounced,
     });
 
-    const handleDone = useCallback(() => {
-      if (selectedFiatPaymentMethodId && transactionId) {
-        Engine.context.TransactionPayController.updateFiatPayment({
-          transactionId,
-          callback: (fp) => {
-            fp.amountFiat = amountFiat;
-          },
-        });
-      } else {
-        updateTokenAmount();
+    const handleDone = useCallback(async () => {
+      try {
+        if (selectedFiatPaymentMethodId && transactionId) {
+          Engine.context.TransactionPayController.updateFiatPayment({
+            transactionId,
+            callback: (fp) => {
+              fp.amountFiat = amountFiat;
+            },
+          });
+        } else {
+          await updateTokenAmount();
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Failed to apply custom amount on Done press',
+        );
+      } finally {
+        EngineService.flushState();
+        setIsKeyboardVisible(false);
+        onAmountSubmit?.();
       }
-
-      EngineService.flushState();
-      setIsKeyboardVisible(false);
-      onAmountSubmit?.();
     }, [
       amountFiat,
       onAmountSubmit,
@@ -204,12 +216,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {!hidePayTokenAmount && disablePay !== true && (
-            <PayTokenAmount
-              amountHuman={amountHuman}
-              disabled={!hasTokens || isAccountSelectionNeeded}
-            />
-          )}
+          {!hidePayTokenAmount &&
+            disablePay !== true &&
+            (isMoneyAccountDeposit ? (
+              <ProjectedFiveYearBalance amountFiat={amountFiat} />
+            ) : (
+              <PayTokenAmount
+                amountHuman={amountHuman}
+                disabled={!hasTokens || isAccountSelectionNeeded}
+              />
+            ))}
           {!hidePayTokenAmount && children}
         </Box>
         <Box
@@ -218,10 +234,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={hasExtraBottomPadding && styles.extraBottomPadding}
         >
           <AlertMessage alertMessage={alertMessage} />
-          {supportAccountSelection && <PayAccountSelector />}
-          {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
+          {!isResultReady && (
+            <>
+              {supportAccountSelection && (
+                <PayAccountSelector style={styles.separator} />
+              )}
+              {disablePay !== true && hasTokens && <PayWithRow />}
+            </>
+          )}
           {isResultReady && (
             <Box>
+              {supportAccountSelection && <PayAccountSelector />}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>

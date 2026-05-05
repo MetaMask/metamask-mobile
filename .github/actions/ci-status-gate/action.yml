@@ -1,0 +1,158 @@
+name: CI Status Gate
+description: Evaluate required CI job results and fail on unexpected skips or failed jobs.
+
+inputs:
+  needs-json:
+    description: JSON representation of the calling job's needs context.
+    required: true
+  requirement-context-json:
+    description: JSON representation of get-requirements outputs.
+    required: true
+  e2e-job-regex:
+    description: Regex matching E2E build/test jobs whose skipped result is allowed. Failed or cancelled E2E jobs still fail.
+    required: false
+    default: '^e2e-'
+  event-name:
+    description: GitHub event name for the current workflow run.
+    required: true
+  is-fork:
+    description: Whether the current pull request originates from a fork. When true, skipped jobs are treated as allowed skips.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Evaluate CI status
+      shell: bash
+      env:
+        NEEDS_JSON: ${{ inputs.needs-json }}
+        REQUIREMENT_CONTEXT_JSON: ${{ inputs.requirement-context-json }}
+        E2E_JOB_REGEX: ${{ inputs.e2e-job-regex }}
+        EVENT_NAME: ${{ inputs.event-name }}
+        IS_FORK: ${{ inputs.is-fork }}
+      run: |
+        set -euo pipefail
+
+        get_requirement() {
+          local key="$1"
+          jq -nr --arg key "$key" 'env.REQUIREMENT_CONTEXT_JSON | fromjson | .[$key] // "false"'
+        }
+
+        sanitize_markdown_cell() {
+          local value="$1"
+          value="${value//$'\n'/ }"
+          value="${value//|/\\|}"
+          printf '%s' "$value"
+        }
+
+        add_summary_row() {
+          local job_name result decision reason
+          job_name="$(sanitize_markdown_cell "$1")"
+          result="$(sanitize_markdown_cell "$2")"
+          decision="$(sanitize_markdown_cell "$3")"
+          reason="$(sanitize_markdown_cell "$4")"
+
+          printf '| `%s` | `%s` | %s | %s |\n' \
+            "$job_name" "$result" "$decision" "$reason" >> "$summary_file"
+        }
+
+        mark_failure() {
+          local message="$1"
+          failed="true"
+          echo "::error::$message"
+        }
+
+        validate_json_type() {
+          local variable_name="$1"
+          local expected_type="$2"
+
+          if ! jq -en --arg variable_name "$variable_name" --arg expected_type "$expected_type" \
+            '(env[$variable_name] | fromjson | type) == $expected_type' >/dev/null 2>&1; then
+            echo "::error::$variable_name is not a valid JSON $expected_type"
+            exit 1
+          fi
+        }
+
+        require_requirement_key() {
+          local key="$1"
+
+          if ! jq -en --arg key "$key" \
+            'env.REQUIREMENT_CONTEXT_JSON | fromjson | .[$key] != null' >/dev/null 2>&1; then
+            echo "::error::REQUIREMENT_CONTEXT_JSON is missing or null for required key: $key"
+            exit 1
+          fi
+        }
+
+        validate_json_type NEEDS_JSON object
+        validate_json_type REQUIREMENT_CONTEXT_JSON object
+
+        for required_key in skip_everything block_merge_for_e2e_readiness; do
+          require_requirement_key "$required_key"
+        done
+
+        skip_everything="$(get_requirement skip_everything)"
+        block_merge_for_e2e_readiness="$(get_requirement block_merge_for_e2e_readiness)"
+
+        if [[ "$block_merge_for_e2e_readiness" == "true" ]]; then
+          echo "::error::The 'pr-not-ready-for-e2e' label is still applied. Remove it to trigger E2E tests before merging."
+          exit 1
+        fi
+
+        if [[ "$skip_everything" == "true" ]]; then
+          echo "skip_everything=true; treating all jobs as passed"
+          exit 0
+        fi
+
+        failed="false"
+        summary_file="$(mktemp)"
+        trap 'if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -f "$summary_file" ]]; then cat "$summary_file" >> "$GITHUB_STEP_SUMMARY"; fi; rm -f "$summary_file"' EXIT
+        job_count=0
+
+        {
+          echo "### CI Status Gate"
+          echo
+          echo "| Job | Result | Decision | Reason |"
+          echo "| --- | --- | --- | --- |"
+        } >> "$summary_file"
+
+        while IFS=$'\t' read -r job_name result; do
+          job_count=$((job_count + 1))
+
+          case "$result" in
+            success)
+              add_summary_row "$job_name" "$result" "pass" "job succeeded"
+              ;;
+            failure|cancelled)
+              mark_failure "$job_name finished with result: $result"
+              add_summary_row "$job_name" "$result" "fail" "job did not complete successfully"
+              ;;
+            skipped)
+              if [[ "$job_name" =~ $E2E_JOB_REGEX ]]; then
+                add_summary_row "$job_name" "$result" "pass" "skipped E2E jobs are allowed"
+              elif [[ "$EVENT_NAME" == "merge_group" ]]; then
+                add_summary_row "$job_name" "$result" "pass" "merge queue skip is allowed"
+              elif [[ "$IS_FORK" == "true" ]]; then
+                add_summary_row "$job_name" "$result" "pass" "fork-only skip is allowed"
+              else
+                mark_failure "$job_name was skipped unexpectedly"
+                add_summary_row "$job_name" "$result" "fail" "skip was not expected"
+              fi
+              ;;
+            *)
+              mark_failure "$job_name has unknown result: $result"
+              add_summary_row "$job_name" "$result" "fail" "job result is unknown"
+              ;;
+          esac
+        done < <(jq -nr 'env.NEEDS_JSON | fromjson | to_entries[] | [.key, (.value.result // "")] | @tsv')
+
+        if [[ "$job_count" -eq 0 ]]; then
+          echo "::error::NEEDS_JSON does not contain any jobs"
+          exit 1
+        fi
+
+        if [[ "$failed" == "true" ]]; then
+          exit 1
+        fi
+
+        echo "All required jobs passed"
