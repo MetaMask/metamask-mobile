@@ -2,13 +2,13 @@ import React, { useCallback, useRef, useState } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import Keypad from '../../../../Base/Keypad';
 import { InputStepper } from '../InputStepper';
@@ -97,9 +97,10 @@ export const CustomSlippageModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('bridge.slippage')}
         onClose={handleClose}
+        closeButtonProps={{ accessibilityLabel: 'Close' }}
       />
       <View style={customSlippageModalStyles.stepperContainer}>
         <InputStepper

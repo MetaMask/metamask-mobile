@@ -22,27 +22,6 @@ jest.mock(
   },
 );
 
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactNative = jest.requireActual('react-native');
-    const { View, Text, TouchableOpacity } = ReactNative;
-
-    return {
-      __esModule: true,
-      default: (props: { title: string; onClose: () => void }) => (
-        <View testID="header-center">
-          <Text>{props.title}</Text>
-          <TouchableOpacity onPress={props.onClose} accessibilityLabel="Close">
-            <Text>Close</Text>
-          </TouchableOpacity>
-        </View>
-      ),
-    };
-  },
-);
-
 // Mock dependencies
 jest.mock('./DefaultSlippageButtonGroup', () => ({
   DefaultSlippageButtonGroup: jest.fn(({ options }) => {
