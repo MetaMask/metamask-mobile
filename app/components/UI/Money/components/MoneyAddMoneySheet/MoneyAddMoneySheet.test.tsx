@@ -148,7 +148,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith(BigInt(0));
+    expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
   it('closes the sheet when Move mUSD is pressed (interim, no flow wired yet)', () => {
