@@ -193,9 +193,9 @@ const useMoneyAccountBalance = (
     isAggregatedBalanceLoading,
     musdFiatFormatted,
     musdSHFvdFiatFormatted,
-    tokenTotal,
-    totalFiatFormatted,
-    totalFiatRaw,
+    tokenTotal: new BigNumber(10),
+    totalFiatFormatted: '$10',
+    totalFiatRaw: 10,
     // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
     apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
     apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
