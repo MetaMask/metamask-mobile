@@ -27,8 +27,6 @@ import {
   selectIsMetamaskNotificationsEnabled,
   selectIsMetaMaskPushNotificationsEnabled,
 } from '../../../../selectors/notifications';
-import { isNotificationsFeatureEnabled } from '../../../../util/notifications/constants';
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockRouteState: { params: { campaignId?: string } } = {
@@ -316,26 +314,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../util/notifications/constants', () => ({
-  isNotificationsFeatureEnabled: jest.fn(() => true),
-}));
-
-// eslint-disable-next-line no-var
-var mockEnableNotificationsLoading = false;
-// eslint-disable-next-line no-var
-var mockOndoEnableNotifications: jest.Mock;
-jest.mock('../../../../util/notifications/hooks/useNotifications', () => {
-  mockOndoEnableNotifications = jest.fn().mockResolvedValue(undefined);
-  return {
-    useEnableNotifications: jest.fn(() => ({
-      enableNotifications: mockOndoEnableNotifications,
-      get loading() {
-        return mockEnableNotificationsLoading;
-      },
-    })),
-  };
-});
-
 const mockIsTokenTradingOpen = jest.fn(() => true);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
@@ -586,9 +564,6 @@ describe('OndoCampaignDetailsView', () => {
       }
       return null;
     });
-    mockOndoEnableNotifications.mockClear();
-    mockEnableNotificationsLoading = false;
-    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockCampaignStatsSummary.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
@@ -655,7 +630,6 @@ describe('OndoCampaignDetailsView', () => {
     // Name appears in both the header title and the CampaignStatus mock
     expect(getAllByText('My Special Campaign').length).toBeGreaterThan(0);
   });
-
 
   describe('loading state', () => {
     it('shows no error banner or campaign status while loading with no campaign', () => {
