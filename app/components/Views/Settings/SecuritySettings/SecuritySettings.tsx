@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { HeaderStandard ,
+import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

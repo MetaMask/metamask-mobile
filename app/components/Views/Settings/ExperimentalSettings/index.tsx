@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react';
-import { HeaderStandard ,
+import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
