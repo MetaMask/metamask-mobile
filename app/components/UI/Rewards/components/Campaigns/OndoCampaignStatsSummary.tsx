@@ -78,7 +78,7 @@ export const StatCell: React.FC<StatCellProps> = ({
   );
 };
 
-export const CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
+export const ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   CONTAINER: 'campaign-stats-summary-container',
   RETURN: 'campaign-stats-summary-return',
   MARKET_VALUE: 'campaign-stats-summary-market-value',
@@ -121,7 +121,7 @@ interface DataSourceState {
   refetch: () => void;
 }
 
-interface CampaignStatsSummaryProps {
+interface OndoCampaignStatsSummaryProps {
   leaderboardPosition: CampaignLeaderboardPositionDto | null;
   portfolioSummary: OndoGmPortfolioSummaryDto | null;
   leaderboard: DataSourceState;
@@ -136,7 +136,7 @@ interface CampaignStatsSummaryProps {
   onWinnerPress?: () => void;
 }
 
-const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
+const OndoCampaignStatsSummary: React.FC<OndoCampaignStatsSummaryProps> = ({
   leaderboardPosition,
   portfolioSummary,
   leaderboard,
@@ -184,29 +184,32 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
       : formatTierDisplayName(leaderboardPosition.projectedTier);
 
   return (
-    <Box twClassName="gap-3" testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER}>
+    <Box
+      twClassName="gap-3"
+      testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER}
+    >
       {/* Rank | Tier */}
       <Box flexDirection={BoxFlexDirection.Row}>
         <StatCell
           label={strings('rewards.ondo_campaign_stats.label_rank')}
           value={rankValue}
           isLoading={leaderboardLoading}
-          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK}
+          testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK}
           suffix={
             !isCampaignComplete && isIneligible ? (
               <IneligibleTag
-                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
+                testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG}
               />
             ) : !isCampaignComplete && isPending ? (
               <PendingTag
-                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
+                testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
               />
             ) : isQualified ? (
               <Icon
                 name={IconName.Check}
                 size={IconSize.Sm}
                 color={IconColor.SuccessDefault}
-                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG}
+                testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG}
               />
             ) : undefined
           }
@@ -215,7 +218,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           label={strings('rewards.ondo_campaign_stats.label_tier')}
           value={tierValue}
           isLoading={leaderboardLoading}
-          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER}
+          testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER}
         />
       </Box>
 
@@ -226,7 +229,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           value={returnValue}
           isLoading={portfolioLoading}
           valueColor={returnColor}
-          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN}
+          testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN}
         />
         {!isCampaignComplete && (
           <StatCell
@@ -234,7 +237,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
             value={marketValue}
             isLoading={portfolioLoading}
             valueColor={returnColor}
-            testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE}
+            testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE}
           />
         )}
       </Box>
@@ -272,7 +275,7 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
       {!isCampaignComplete && isIneligible && (
         <Box
           twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
-          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+          testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
         >
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('rewards.ondo_campaign_stats.not_eligible_title')}
@@ -337,11 +340,11 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
             portfolio.refetch();
           }}
           confirmButtonLabel={strings('rewards.ondo_campaign_stats.retry')}
-          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR}
+          testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR}
         />
       )}
     </Box>
   );
 };
 
-export default CampaignStatsSummary;
+export default OndoCampaignStatsSummary;
