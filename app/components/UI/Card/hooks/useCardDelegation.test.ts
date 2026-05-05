@@ -9,7 +9,7 @@ import Logger from '../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
-import { toTokenMinimalUnit } from '../../../../util/number';
+import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import {
@@ -42,7 +42,7 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../util/number', () => ({
+jest.mock('../../../../util/number/bigint', () => ({
   toTokenMinimalUnit: jest.fn(),
 }));
 
@@ -223,7 +223,7 @@ describe('useCardDelegation', () => {
       });
 
     // Setup utility mocks
-    mockToTokenMinimalUnit.mockReturnValue('100000000000000000000');
+    mockToTokenMinimalUnit.mockReturnValue(100000000000000000000n);
     mockSafeToChecksumAddress.mockImplementation(
       (address?: string) => (address as `0x${string}`) || undefined,
     );
@@ -401,7 +401,7 @@ describe('useCardDelegation', () => {
       const mockToken = createMockToken({ decimals: 6 });
       const params = createMockDelegationParams();
 
-      mockToTokenMinimalUnit.mockReturnValue('100000000');
+      mockToTokenMinimalUnit.mockReturnValue(100000000n);
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1356,7 +1356,7 @@ describe('useCardDelegation', () => {
       };
 
       mockToTokenMinimalUnit.mockReturnValue(
-        '999999999999999999999999999000000000000000000',
+        999999999999999999999999999000000000000000000n,
       );
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
