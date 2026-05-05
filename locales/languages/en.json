@@ -8999,9 +8999,15 @@
         "apy": "{{percentage}}% APY"
       },
       "tokens": "Tokens",
+      "perps": "Perps",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "whats_happening_impact": {
+        "bullish": "Bullish",
+        "bearish": "Bearish",
+        "neutral": "Neutral"
+      },
       "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Geopolitical",
