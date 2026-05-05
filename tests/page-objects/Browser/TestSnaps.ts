@@ -256,7 +256,11 @@ class TestSnaps {
         actualStatusWithVersion;
 
       await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
-      if (!actualClientVersion.startsWith(expectedClientVersion)) {
+      if (
+        typeof expectedClientVersion !== 'string' ||
+        typeof actualClientVersion !== 'string' ||
+        !actualClientVersion.startsWith(expectedClientVersion)
+      ) {
         throw new Error(
           `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
         );

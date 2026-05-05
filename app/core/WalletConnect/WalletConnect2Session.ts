@@ -465,12 +465,20 @@ class WalletConnect2Session {
           );
           accounts = effectiveApprovedAccounts;
         } else {
+          const referencedAdapterNamespaces =
+            proposalReferencedAdapterNamespaces({
+              requiredNamespaces: this.session.requiredNamespaces,
+              optionalNamespaces: this.session.optionalNamespaces,
+            });
           DevLogger.log(
             `WC2::updateSession no permitted accounts found for sessionTopic=${sessionTopic} and channelId=${this.channelId} selfReportedUrl=${this.selfReportedUrl}`,
           );
-          // Even if EVM accounts aren't permitted, Tron sessions can still
-          // succeed because `getScopedPermissions` adds the Tron namespace
-          // from account discovery. Avoid aborting here.
+          // Keep legacy behavior for EVM-only sessions: do not update a session
+          // with empty account lists. Non-EVM adapter sessions may still build
+          // valid namespaces from adapter-managed permissions/accounts.
+          if (referencedAdapterNamespaces.length === 0) {
+            return;
+          }
         }
       }
 
@@ -816,9 +824,17 @@ class WalletConnect2Session {
     );
     const compatibleRequestChainIds =
       getCompatibleCaipChainIdsForWalletConnect(requestChainId);
-    const isPermittedRequestChain = compatibleRequestChainIds.some((chainId) =>
-      permittedChains.includes(chainId as CaipChainId),
+    const isPermittedByPermissionController = compatibleRequestChainIds.some(
+      (chainId) => permittedChains.includes(chainId as CaipChainId),
     );
+    const activeSessionChains = Object.values(this.session.namespaces ?? {})
+      .flatMap((namespaceSlice) => namespaceSlice?.chains ?? [])
+      .filter(Boolean);
+    const isPermittedByActiveSession = compatibleRequestChainIds.some(
+      (chainId) => activeSessionChains.includes(chainId),
+    );
+    const isPermittedRequestChain =
+      isPermittedByPermissionController || isPermittedByActiveSession;
 
     // Non-EVM namespace routing: delegate to MultichainRoutingService which
     // resolves the correct Snap internally via the SnapKeyring. The scope
