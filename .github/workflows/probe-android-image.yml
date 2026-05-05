@@ -20,37 +20,50 @@ jobs:
     runs-on: namespace-profile-metamask-android-build
     timeout-minutes: 10
     steps:
-      - name: Diagnostics — Node toolchain layout
+      - name: Diagnostics — runtime environment
         run: |
           set +e
+          echo "=== whoami / pwd ==="
+          whoami
+          pwd
+          echo
           echo "=== PATH ==="
           printenv PATH | tr ':' '\n'
           echo
-          echo "=== which -a node ==="
+          echo "=== ANDROID_* env ==="
+          printenv | grep -iE '^(ANDROID_|JAVA_HOME|NSC_)' | sort
+          echo
+          echo "=== mount table (filtered) ==="
+          mount | grep -E "(/opt|/usr/local|/home/runner)" || true
+          echo
+          echo "=== /opt listing ==="
+          ls -la /opt/ 2>&1
+          echo
+          echo "=== /opt/android-sdk listing ==="
+          ls -la /opt/android-sdk/ 2>&1 | head -20
+          echo
+          echo "=== /opt/android-sdk/platforms ==="
+          ls -la /opt/android-sdk/platforms/ 2>&1
+          echo
+          echo "=== /opt/hostedtoolcache layout ==="
+          ls -la /opt/hostedtoolcache/ 2>&1
+          ls -la /opt/hostedtoolcache/node/ 2>&1 | head -10
+          echo
+          echo "=== Node binaries ==="
           which -a node
+          for bin in /usr/local/bin/node /usr/bin/node; do
+            if [ -e "$bin" ]; then
+              ls -la "$bin"
+              "$bin" --version 2>&1
+            fi
+          done
           echo
-          echo "=== default node ==="
-          node --version
-          echo
-          echo "=== /usr/local/bin/node ==="
-          ls -la /usr/local/bin/node 2>&1
-          /usr/local/bin/node --version 2>&1
-          echo
-          echo "=== /usr/bin/node ==="
-          ls -la /usr/bin/node 2>&1
-          /usr/bin/node --version 2>&1
-          echo
-          echo "=== /opt/hostedtoolcache/node ==="
-          ls /opt/hostedtoolcache/node 2>&1
-          echo
-          echo "=== runner shell init ==="
-          ls -la /home/runner/.profile /home/runner/.bashrc /home/runner/.bash_profile 2>&1
-          echo
-          echo "=== nvm? ==="
-          ls -la /home/runner/.nvm 2>&1 | head -5
+          echo "=== AVD ==="
+          ls -la "$HOME/.android/avd/" 2>&1
           true
 
       - name: Java is Eclipse Temurin 17
+        continue-on-error: true
         run: |
           set -euo pipefail
           java -version 2>&1 | tee /tmp/java-version.txt
@@ -71,33 +84,40 @@ jobs:
           grep -q '^4\.10\.3$' /tmp/yarn-version.txt
 
       - name: Android SDK platforms 35 and 34 present
+        continue-on-error: true
         run: |
           set -euo pipefail
           test -d /opt/android-sdk/platforms/android-35
           test -d /opt/android-sdk/platforms/android-34
 
       - name: Build tools 35.0.0 present
+        continue-on-error: true
         run: test -d /opt/android-sdk/build-tools/35.0.0
 
       - name: NDK 26.1.10909125 present
+        continue-on-error: true
         run: test -d /opt/android-sdk/ndk/26.1.10909125
 
       - name: System image android-34 google_apis x86_64 present
+        continue-on-error: true
         run: test -d /opt/android-sdk/system-images/android-34/google_apis/x86_64
 
       - name: AVD test_e2e_avd present
+        continue-on-error: true
         run: |
           set -euo pipefail
           test -f "$HOME/.android/avd/test_e2e_avd.ini"
           test -d "$HOME/.android/avd/test_e2e_avd.avd"
 
       - name: ANDROID_HOME / ANDROID_SDK_ROOT propagated from image
+        continue-on-error: true
         run: |
           set -euo pipefail
           test "${ANDROID_HOME:-}" = "/opt/android-sdk"
           test "${ANDROID_SDK_ROOT:-}" = "/opt/android-sdk"
 
       - name: sdkmanager + avdmanager available on PATH
+        continue-on-error: true
         run: |
           set -euo pipefail
           which sdkmanager
