@@ -2,12 +2,12 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Text as RNText } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
-import CampaignStatsSummary, {
+import OndoCampaignStatsSummary, {
   IneligibleTag,
   PendingTag,
   StatCell,
-  CAMPAIGN_STATS_SUMMARY_TEST_IDS,
-} from './CampaignStatsSummary';
+  ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS,
+} from './OndoCampaignStatsSummary';
 import type {
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioSummaryDto,
@@ -168,67 +168,69 @@ const baseProps = {
   },
 };
 
-describe('CampaignStatsSummary', () => {
+describe('OndoCampaignStatsSummary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders all stats when both position and summary are provided', () => {
-    const { getByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+    const { getByTestId } = render(<OndoCampaignStatsSummary {...baseProps} />);
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER),
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER),
     ).toBeDefined();
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('+7.01%');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props
+        .children,
     ).toBe('$13,057.58');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('05');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
     ).toBe('Silver');
   });
 
   it('displays dash for rank and tier when leaderboard position is null but return from portfolio', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
+      <OndoCampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('+7.01%');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('-');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
     ).toBe('-');
   });
 
   it('displays dash for return when portfolio summary is null', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary {...baseProps} portfolioSummary={null} />,
+      <OndoCampaignStatsSummary {...baseProps} portfolioSummary={null} />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('-');
   });
 
   it('displays dash for market value when portfolio summary is null', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary {...baseProps} portfolioSummary={null} />,
+      <OndoCampaignStatsSummary {...baseProps} portfolioSummary={null} />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props
+        .children,
     ).toBe('-');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('05');
   });
 
@@ -240,7 +242,7 @@ describe('CampaignStatsSummary', () => {
     };
 
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={null}
         portfolioSummary={negativePortfolio}
@@ -248,26 +250,29 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.color,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props
+        .color,
     ).toBe(TextColor.ErrorDefault);
   });
 
   it('uses success color for market value when portfolioPnl is positive', () => {
-    const { getByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+    const { getByTestId } = render(<OndoCampaignStatsSummary {...baseProps} />);
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.color,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props
+        .color,
     ).toBe(TextColor.SuccessDefault);
   });
 
   it('omits valueColor for market value when portfolioSummary is null', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary {...baseProps} portfolioSummary={null} />,
+      <OndoCampaignStatsSummary {...baseProps} portfolioSummary={null} />,
     );
 
     // Returns '-' and uses the StatCell default color (TextDefault)
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props
+        .children,
     ).toBe('-');
   });
 
@@ -278,14 +283,14 @@ describe('CampaignStatsSummary', () => {
     };
 
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         portfolioSummary={negativeSummary}
       />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('-5.00%');
   });
 
@@ -299,39 +304,39 @@ describe('CampaignStatsSummary', () => {
     };
 
     const { getByTestId, getAllByText } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
       />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
     ).toBeOnTheScreen();
     expect(getAllByText('Pending')).toHaveLength(1);
   });
 
   it('renders check icon on rank cell and no Pending tags when qualified is true', () => {
     const { getByTestId, queryAllByText, queryByTestId } = render(
-      <CampaignStatsSummary {...baseProps} />,
+      <OndoCampaignStatsSummary {...baseProps} />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG),
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_TAG),
     ).toBeOnTheScreen();
     expect(queryAllByText('Pending')).toHaveLength(0);
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
     ).toBeNull();
   });
 
   it('does not render tags when leaderboardPosition is null', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
+      <OndoCampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
     );
 
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
     ).toBeNull();
   });
 
@@ -339,7 +344,7 @@ describe('CampaignStatsSummary', () => {
 
   it('shows skeletons for leaderboard cells when leaderboard is loading with no data', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={null}
         leaderboard={{ ...baseProps.leaderboard, isLoading: true }}
@@ -347,27 +352,29 @@ describe('CampaignStatsSummary', () => {
     );
 
     // Return and market value still render since portfolio is fine
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeDefined();
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN),
+    ).toBeDefined();
+    expect(queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
+    expect(queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();
+    expect(
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeDefined();
   });
 
   it('shows stale leaderboard data instead of skeletons when loading with existing data', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboard={{ ...baseProps.leaderboard, isLoading: true }}
       />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('+7.01%');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('05');
   });
 
@@ -375,7 +382,7 @@ describe('CampaignStatsSummary', () => {
 
   it('shows skeleton for market value cell when portfolio is loading with no data', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         portfolioSummary={null}
         portfolio={{ ...baseProps.portfolio, isLoading: true }}
@@ -383,24 +390,29 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeNull();
     // Return also shows skeleton since it now comes from portfolio
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
+    expect(
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN),
+    ).toBeNull();
     // Leaderboard cells still render
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeDefined();
+    expect(
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK),
+    ).toBeDefined();
   });
 
   it('shows stale market value data instead of skeleton when loading with existing data', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         portfolio={{ ...baseProps.portfolio, isLoading: true }}
       />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props
+        .children,
     ).toBe('$13,057.58');
   });
 
@@ -408,7 +420,7 @@ describe('CampaignStatsSummary', () => {
 
   it('shows all skeletons when both sources are loading with no data', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={null}
         portfolioSummary={null}
@@ -417,19 +429,21 @@ describe('CampaignStatsSummary', () => {
       />,
     );
 
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN),
     ).toBeNull();
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
-    expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();
+    expect(
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
+    ).toBeNull();
+    expect(queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
+    expect(queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();
   });
 
   // ── Leaderboard error ─────────────────────────────────────────────
 
   it('shows stats error banner when leaderboard fails with no data', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={null}
         leaderboard={{ ...baseProps.leaderboard, hasError: true }}
@@ -437,13 +451,13 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
     ).toBeDefined();
   });
 
   it('calls both refetches on stats error retry when leaderboard fails', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={null}
         leaderboard={{ ...baseProps.leaderboard, hasError: true }}
@@ -451,7 +465,7 @@ describe('CampaignStatsSummary', () => {
     );
 
     fireEvent.press(
-      getByTestId(`${CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR}-retry`),
+      getByTestId(`${ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR}-retry`),
     );
     expect(mockLeaderboardRefetch).toHaveBeenCalledTimes(1);
     expect(mockPortfolioRefetch).toHaveBeenCalledTimes(1);
@@ -459,14 +473,14 @@ describe('CampaignStatsSummary', () => {
 
   it('hides stats error when stale leaderboard data exists', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboard={{ ...baseProps.leaderboard, hasError: true }}
       />,
     );
 
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
     ).toBeNull();
   });
 
@@ -474,7 +488,7 @@ describe('CampaignStatsSummary', () => {
 
   it('shows stats error banner when portfolio fails with no data', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         portfolioSummary={null}
         portfolio={{ ...baseProps.portfolio, hasError: true }}
@@ -482,13 +496,13 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
     ).toBeDefined();
   });
 
   it('calls both refetches on stats error retry when portfolio fails', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         portfolioSummary={null}
         portfolio={{ ...baseProps.portfolio, hasError: true }}
@@ -496,7 +510,7 @@ describe('CampaignStatsSummary', () => {
     );
 
     fireEvent.press(
-      getByTestId(`${CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR}-retry`),
+      getByTestId(`${ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR}-retry`),
     );
     expect(mockPortfolioRefetch).toHaveBeenCalledTimes(1);
     expect(mockLeaderboardRefetch).toHaveBeenCalledTimes(1);
@@ -506,7 +520,7 @@ describe('CampaignStatsSummary', () => {
 
   it('shows a single stats error banner when both sources fail with no data', () => {
     const { getAllByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={null}
         portfolioSummary={null}
@@ -516,7 +530,7 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
+      getAllByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.STATS_ERROR),
     ).toHaveLength(1);
   });
 
@@ -529,21 +543,21 @@ describe('CampaignStatsSummary', () => {
       qualifiedDays: 0,
     };
     const { getByTestId, getAllByText } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
         isIneligible
       />,
     );
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
     ).toBeOnTheScreen();
     expect(getAllByText('Ineligible')).toHaveLength(1);
   });
 
   it('shows dash for rank and tier when isIneligible=true even with leaderboard data', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={{
           ...MOCK_POSITION,
@@ -554,16 +568,16 @@ describe('CampaignStatsSummary', () => {
       />,
     );
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('-');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER).props.children,
     ).toBe('-');
   });
 
   it('shows not-eligible banner when isIneligible=true', () => {
     const { getByTestId, getByText } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={{
           ...MOCK_POSITION,
@@ -574,14 +588,14 @@ describe('CampaignStatsSummary', () => {
       />,
     );
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
     ).toBeOnTheScreen();
     expect(getByText('Not eligible')).toBeOnTheScreen();
   });
 
   it('hides pending tags when isIneligible=true', () => {
     const { queryAllByText } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={{
           ...MOCK_POSITION,
@@ -596,7 +610,7 @@ describe('CampaignStatsSummary', () => {
 
   it('does not show ineligible tags when isIneligible=false', () => {
     const { queryAllByText, queryByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={{
           ...MOCK_POSITION,
@@ -608,14 +622,16 @@ describe('CampaignStatsSummary', () => {
     );
     expect(queryAllByText('Ineligible')).toHaveLength(0);
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
     ).toBeNull();
   });
 
   it('does not show not-eligible banner when isIneligible defaults to false', () => {
-    const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+    const { queryByTestId } = render(
+      <OndoCampaignStatsSummary {...baseProps} />,
+    );
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
     ).toBeNull();
   });
 
@@ -623,10 +639,14 @@ describe('CampaignStatsSummary', () => {
 
   it('hides IneligibleTag from rank cell suffix when isCampaignComplete=true', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary {...baseProps} isIneligible isCampaignComplete />,
+      <OndoCampaignStatsSummary
+        {...baseProps}
+        isIneligible
+        isCampaignComplete
+      />,
     );
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.INELIGIBLE_TAG),
     ).toBeNull();
   });
 
@@ -637,20 +657,20 @@ describe('CampaignStatsSummary', () => {
       qualifiedDays: 3,
     };
     const { queryByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
         isCampaignComplete
       />,
     );
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
     ).toBeNull();
   });
 
   it('hides qualified card when isCampaignComplete=true', () => {
     const { queryByText } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         tierMinDeposit={1000}
         isCampaignComplete
@@ -661,10 +681,14 @@ describe('CampaignStatsSummary', () => {
 
   it('hides not-eligible banner when isCampaignComplete=true', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary {...baseProps} isIneligible isCampaignComplete />,
+      <OndoCampaignStatsSummary
+        {...baseProps}
+        isIneligible
+        isCampaignComplete
+      />,
     );
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER),
     ).toBeNull();
   });
 
@@ -675,7 +699,7 @@ describe('CampaignStatsSummary', () => {
       qualifiedDays: 4,
     };
     const { queryByText } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
         tierMinDeposit={1000}
@@ -687,25 +711,25 @@ describe('CampaignStatsSummary', () => {
 
   it('hides market value cell when isCampaignComplete=true', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary {...baseProps} isCampaignComplete />,
+      <OndoCampaignStatsSummary {...baseProps} isCampaignComplete />,
     );
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
+      queryByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeNull();
   });
 
   it('shows market value cell when isCampaignComplete=false', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary {...baseProps} isCampaignComplete={false} />,
+      <OndoCampaignStatsSummary {...baseProps} isCampaignComplete={false} />,
     );
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
+      getByTestId(ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeDefined();
   });
 
   it('shows outcome banner when isCampaignComplete=true and outcome is provided', () => {
     const { getByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         isCampaignComplete
         outcomeStatus="pending"
@@ -718,7 +742,7 @@ describe('CampaignStatsSummary', () => {
 
   it('does not show outcome banner when isCampaignComplete=false', () => {
     const { queryByTestId } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         isCampaignComplete={false}
         outcomeStatus="pending"
@@ -731,7 +755,7 @@ describe('CampaignStatsSummary', () => {
 
   it('shows the qualified explainer card when qualified and tierMinDeposit is set', () => {
     const { getByText } = render(
-      <CampaignStatsSummary {...baseProps} tierMinDeposit={2500} />,
+      <OndoCampaignStatsSummary {...baseProps} tierMinDeposit={2500} />,
     );
     expect(getByText('You are qualified')).toBeOnTheScreen();
     expect(getByText(/Qualified copy/)).toBeOnTheScreen();
@@ -744,7 +768,7 @@ describe('CampaignStatsSummary', () => {
       qualifiedDays: 4,
     };
     const { getByText } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
         tierMinDeposit={1000}
@@ -761,7 +785,7 @@ describe('CampaignStatsSummary', () => {
       qualifiedDays: 10,
     };
     const { queryByText } = render(
-      <CampaignStatsSummary
+      <OndoCampaignStatsSummary
         {...baseProps}
         leaderboardPosition={pendingPosition}
         tierMinDeposit={1000}

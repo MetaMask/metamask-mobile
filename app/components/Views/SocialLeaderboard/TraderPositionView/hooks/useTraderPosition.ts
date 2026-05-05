@@ -3,6 +3,12 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type { Position } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
+import {
+  addSocialBreadcrumb,
+  buildSocialErrorExtras,
+  categoriseSocialError,
+  extractHttpStatus,
+} from '../../../../../util/social/socialServiceTelemetry';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 
 export interface UseTraderPositionResult {
@@ -34,7 +40,19 @@ export const useTraderPosition = (
 
   useEffect(() => {
     if (error) {
-      Logger.error(error as Error, 'useTraderPosition: fetch failed');
+      Logger.error(
+        error as Error,
+        buildSocialErrorExtras({
+          legacyMessage: 'useTraderPosition: fetch failed',
+          endpoint: 'position_by_id',
+          error,
+        }),
+      );
+      addSocialBreadcrumb({
+        endpoint: 'position_by_id',
+        errorCategory: categoriseSocialError(error),
+        httpStatus: extractHttpStatus(error),
+      });
     }
   }, [error]);
 
