@@ -5,6 +5,16 @@ import { PredictPosition } from '../types';
 import { predictQueries } from '../queries';
 import { useLiveMarketPrices } from './useLiveMarketPrices';
 
+/**
+ * Stable empty Map reference to avoid unnecessary useEffect cycles.
+ * When livePositionUpdates computes an empty Map, returning this constant
+ * preserves referential equality and prevents the cache-sync effect from firing.
+ */
+const EMPTY_POSITION_UPDATES = new Map<
+  string,
+  Pick<PredictPosition, 'currentValue' | 'cashPnl' | 'percentPnl' | 'price'>
+>();
+
 export interface UseLivePositionsOptions {
   /**
    * Whether to enable live price updates
@@ -143,7 +153,7 @@ export const usePredictLivePositions = (
       });
     });
 
-    return updates;
+    return updates.size > 0 ? updates : EMPTY_POSITION_UPDATES;
   }, [livePositions, positions]);
 
   useEffect(() => {
