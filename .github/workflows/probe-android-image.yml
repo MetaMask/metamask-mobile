@@ -1,0 +1,71 @@
+# INFRA-3594 — Phase 2 verification probe.
+# Asserts the metamask-android-build Namespace runner image contains the
+# toolchain baked by `MetaMask/runner-images/android/Dockerfile`.
+# Temporary: remove or gate behind `if: false` before merging the trial branch.
+
+name: Probe Android image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Assert metamask-android-build image contents
+    runs-on: namespace-profile-metamask-android-build
+    timeout-minutes: 10
+    steps:
+      - name: Java is Eclipse Temurin 17
+        run: |
+          set -euo pipefail
+          java -version 2>&1 | tee /tmp/java-version.txt
+          grep -qE 'Temurin-17|temurin.*17' /tmp/java-version.txt
+
+      - name: Node is exact 20.18.0
+        run: |
+          set -euo pipefail
+          node --version | tee /tmp/node-version.txt
+          grep -q '^v20\.18\.0$' /tmp/node-version.txt
+
+      - name: Yarn is exact 4.10.3
+        run: |
+          set -euo pipefail
+          yarn --version | tee /tmp/yarn-version.txt
+          grep -q '^4\.10\.3$' /tmp/yarn-version.txt
+
+      - name: Android SDK platforms 35 and 34 present
+        run: |
+          set -euo pipefail
+          test -d /opt/android-sdk/platforms/android-35
+          test -d /opt/android-sdk/platforms/android-34
+
+      - name: Build tools 35.0.0 present
+        run: test -d /opt/android-sdk/build-tools/35.0.0
+
+      - name: NDK 26.1.10909125 present
+        run: test -d /opt/android-sdk/ndk/26.1.10909125
+
+      - name: System image android-34 google_apis x86_64 present
+        run: test -d /opt/android-sdk/system-images/android-34/google_apis/x86_64
+
+      - name: AVD test_e2e_avd present
+        run: |
+          set -euo pipefail
+          test -f "$HOME/.android/avd/test_e2e_avd.ini"
+          test -d "$HOME/.android/avd/test_e2e_avd.avd"
+
+      - name: ANDROID_HOME / ANDROID_SDK_ROOT propagated from image
+        run: |
+          set -euo pipefail
+          test "${ANDROID_HOME:-}" = "/opt/android-sdk"
+          test "${ANDROID_SDK_ROOT:-}" = "/opt/android-sdk"
+
+      - name: sdkmanager + avdmanager available on PATH
+        run: |
+          set -euo pipefail
+          which sdkmanager
+          which avdmanager
+          sdkmanager --version
+          avdmanager list avd
