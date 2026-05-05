@@ -1,9 +1,22 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { AppState } from 'react-native';
 import Braze from '@braze/react-native-sdk';
 import { useBrazeBanner } from './useBrazeBanner';
 
 const TEST_PLACEMENT_ID = 'placement-1';
 const SKELETON_TIMEOUT_MS = 5000;
+
+// ---------------------------------------------------------------------------
+// Mock: react-native AppState
+// ---------------------------------------------------------------------------
+let capturedAppStateListener: ((nextState: string) => void) | undefined;
+const mockAppStateRemove = jest.fn();
+
+const fireAppStateChange = (nextState: string) => {
+  act(() => {
+    capturedAppStateListener?.(nextState);
+  });
+};
 
 // ---------------------------------------------------------------------------
 // Mock: @braze/react-native-sdk
@@ -35,11 +48,12 @@ jest.mock('@braze/react-native-sdk', () => ({
 // ---------------------------------------------------------------------------
 const mockGetBannerForPlacement = jest.fn().mockResolvedValue(null);
 const mockDismissBrazeBanner = jest.fn();
+const mockRefreshBrazeBanners = jest.fn();
 
 jest.mock('../../../core/Braze', () => ({
   getBannerForPlacement: (...args: unknown[]) =>
     mockGetBannerForPlacement(...args),
-  refreshBrazeBanners: jest.fn(),
+  refreshBrazeBanners: (...args: unknown[]) => mockRefreshBrazeBanners(...args),
   dismissBrazeBanner: (...args: unknown[]) => mockDismissBrazeBanner(...args),
 }));
 
@@ -131,10 +145,21 @@ const fireBannerEvent = (banners: object[]) => {
 describe('useBrazeBanner', () => {
   beforeEach(() => {
     capturedBannerListener = undefined;
+    capturedAppStateListener = undefined;
     mockLastDismissed = null;
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetBannerForPlacement.mockResolvedValue(null);
+    mockRefreshBrazeBanners.mockReset();
+
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_event: string, cb: (nextState: string) => void) => {
+        capturedAppStateListener = cb;
+        return { remove: mockAppStateRemove } as ReturnType<
+          typeof AppState.addEventListener
+        >;
+      });
   });
 
   afterEach(() => {
@@ -447,8 +472,57 @@ describe('useBrazeBanner', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Content properties
+  // Foreground refresh
   // ---------------------------------------------------------------------------
+  describe('foreground refresh', () => {
+    it('calls requestBannersRefresh when app becomes active', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireAppStateChange('active');
+
+      expect(mockRefreshBrazeBanners).toHaveBeenCalledWith([TEST_PLACEMENT_ID]);
+    });
+
+    it('does not call requestBannersRefresh when app goes to background', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireAppStateChange('background');
+
+      expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
+    });
+
+    it('does not swap a visible banner when the foreground refresh triggers a new event', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([makeBanner({ body: 'Original body' })]);
+      expect(result.current.status).toBe('visible');
+
+      // Simulate foreground → SDK fires a new bannerCardsUpdated event
+      fireAppStateChange('active');
+      fireBannerEvent([makeBanner({ body: 'Refreshed body' })]);
+
+      // shownRef prevents the visible banner from being replaced
+      expect(result.current.body).toBe('Original body');
+    });
+
+    it('removes the AppState subscription on unmount', () => {
+      const { unmount } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      unmount();
+
+      expect(mockAppStateRemove).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls requestBannersRefresh multiple times across multiple foreground transitions', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireAppStateChange('active');
+      fireAppStateChange('background');
+      fireAppStateChange('active');
+
+      expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('content properties', () => {
     it('returns null body and title when no banner is loaded', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));

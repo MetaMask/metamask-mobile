@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import Braze, { Banner } from '@braze/react-native-sdk';
 import { useDispatch, useSelector } from 'react-redux';
-import { dismissBrazeBanner, getBannerForPlacement } from '../../../core/Braze';
+import {
+  dismissBrazeBanner,
+  getBannerForPlacement,
+  refreshBrazeBanners,
+} from '../../../core/Braze';
 import { setLastDismissedBrazeBanner } from '../../../reducers/banners';
 import { selectLastDismissedBrazeBanner } from '../../../selectors/banner';
 import { SKELETON_TIMEOUT_MS } from './BrazeBanner.constants';
@@ -159,6 +164,17 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       },
     );
 
+    // Refresh the SDK's banner cache when the app returns to the foreground so
+    // that stale cached banners are replaced without changing the visible UI.
+    const appStateSubscription = AppState.addEventListener(
+      'change',
+      (nextState) => {
+        if (nextState === 'active') {
+          refreshBrazeBanners([placementId]);
+        }
+      },
+    );
+
     // Fallback: if neither the warm-cache probe nor the SDK event resolves
     // within the window, stop showing the loading skeleton and render nothing.
     noResponseTimeoutRef.current = setTimeout(() => {
@@ -169,6 +185,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
 
     return () => {
       subscription.remove();
+      appStateSubscription.remove();
       clearNoResponseTimeout();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
