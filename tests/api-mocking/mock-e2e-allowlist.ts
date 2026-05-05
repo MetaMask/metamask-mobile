@@ -9,7 +9,6 @@ export const ALLOWLISTED_HOSTS = [
   'api.tenderly.co',
   'rpc.tenderly.co',
   'virtual.mainnet.rpc.tenderly.co',
-  'testnet-rpc.monad.xyz',
   'virtual.linea.rpc.tenderly.co',
   'gamma-api.polymarket.com',
   '*.polymarket.com',
@@ -18,8 +17,5 @@ export const ALLOWLISTED_HOSTS = [
 
 export const ALLOWLISTED_URLS = [
   // Temporarily allow existing live requests during migration
-  'https://api.avax.network/ext/bc/C/rpc',
-  'https://mainnet.era.zksync.io/',
-  'https://rpc.atlantischain.network/',
   'https://metamask.github.io/test-dapp/metamask-fox.svg',
 ];
