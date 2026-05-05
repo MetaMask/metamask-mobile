@@ -1,0 +1,114 @@
+name: 'Android Play Store manifest validation'
+description: >
+  Builds the prodRelease variant used for Play uploads (same manifest merge path), runs Android Lint
+  on that variant, produces a signed release bundle using the repo debug keystore via AGP signing
+  injection, and runs bundletool validate on the AAB.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK 17
+      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+      with:
+        distribution: temurin
+        java-version: '17'
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v4
+      with:
+        packages: |
+          platform-tools
+          platforms;android-35
+          build-tools;35.0.0
+          ndk;26.1.10909125
+          cmake;3.22.1
+
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: '.nvmrc'
+        cache: yarn
+
+    - name: Restore .metamask folder
+      id: restore-metamask
+      uses: actions/cache@v4
+      with:
+        path: .metamask
+        key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+    - name: Install Foundry if cache missed
+      if: steps.restore-metamask.outputs.cache-hit != 'true'
+      shell: bash
+      run: yarn install:foundryup
+
+    - name: Install Yarn dependencies with retry
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: 10
+        max_attempts: 3
+        retry_wait_seconds: 30
+        command: yarn install --immutable
+
+    - name: Project setup for CI (Android tooling path)
+      shell: bash
+      run: yarn setup:github-ci --no-build-ios
+
+    - name: Write google-services.json
+      shell: bash
+      run: |
+        set -euo pipefail
+        # Caller workflow must set GOOGLE_SERVICES_B64_ANDROID (job env from GitHub secret).
+        if [[ -z "${GOOGLE_SERVICES_B64_ANDROID:-}" ]]; then
+          echo "::error::GOOGLE_SERVICES_B64_ANDROID is not set; cannot run Play-shaped Android build."
+          exit 1
+        fi
+        echo -n "$GOOGLE_SERVICES_B64_ANDROID" | base64 -d > android/app/google-services.json
+
+    - name: Configure Gradle for GitHub Actions
+      shell: bash
+      run: cp android/gradle.properties.github android/gradle.properties
+
+    - name: Cache bundletool
+      id: bundletool-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/bundletool-all.jar
+        key: bundletool-1.18.3-jar
+
+    - name: Download bundletool
+      if: steps.bundletool-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        BUNDLETOOL_URL: https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+      run: curl -fsSL -o "${RUNNER_TEMP}/bundletool-all.jar" "$BUNDLETOOL_URL"
+
+    - name: Lint, bundle (debug-signed), validate with bundletool
+      shell: bash
+      run: |
+        set -euo pipefail
+        STORE_FILE="${GITHUB_WORKSPACE}/android/keystores/debug.keystore"
+        cd android
+        chmod +x ./gradlew
+        ./gradlew \
+          :app:lintProdRelease \
+          :app:bundleProdRelease \
+          --no-daemon \
+          --stacktrace \
+          -Pandroid.injected.signing.store.file="$STORE_FILE" \
+          -Pandroid.injected.signing.store.password=android \
+          -Pandroid.injected.signing.key.alias=androiddebugkey \
+          -Pandroid.injected.signing.key.password=android
+
+        # Exactly one AAB for prodRelease (main prod Play track).
+        shopt -s nullglob
+        aabs=( "$GITHUB_WORKSPACE/android/app/build/outputs/bundle/prodRelease/"*.aab )
+        shopt -u nullglob
+        if [[ "${#aabs[@]}" -ne 1 ]]; then
+          echo "::error::Expected exactly one .aab under prodRelease; found ${#aabs[@]}"
+          find "$GITHUB_WORKSPACE/android/app/build/outputs/bundle/prodRelease" -maxdepth 2 -print || true
+          exit 1
+        fi
+        echo "Validating bundle: ${aabs[0]}"
+        java -jar "${RUNNER_TEMP}/bundletool-all.jar" validate --bundle="${aabs[0]}"
