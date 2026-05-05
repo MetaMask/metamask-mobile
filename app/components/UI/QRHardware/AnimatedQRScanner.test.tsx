@@ -607,6 +607,29 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       expect(mockAddProperties).toHaveBeenCalledTimes(2);
     });
 
+    it('does not reset the decoder for repeated error frames after forwarding QR hardware scan error', async () => {
+      render(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+      expect(mockURRegistryDecoder).toHaveBeenCalledTimes(1);
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
+      const decoderCallsAfterFirstError =
+        mockURRegistryDecoder.mock.calls.length;
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
+      expect(mockURRegistryDecoder).toHaveBeenCalledTimes(
+        decoderCallsAfterFirstError,
+      );
+    });
+
     it('reopens the scanner when try again is pressed', async () => {
       const validDecoderInstance = {
         receivePart: jest.fn(),

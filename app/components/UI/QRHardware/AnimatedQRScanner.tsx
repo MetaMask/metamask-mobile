@@ -253,7 +253,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     onModalHideComplete,
   } = props;
 
-  const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
+  const [urDecoder, setURDecoder] = useState(() => new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
   const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
 
@@ -389,17 +389,23 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         return;
       }
 
-      scanErrorActiveRef.current = true;
-      resetDecoder();
-
       const errorCallback = onQRHardwareScanErrorRef.current;
+      const isDuplicateForwardedScanError = Boolean(
+        errorCallback &&
+          isSameScanError(lastForwardedScanErrorRef.current, error),
+      );
+
+      if (!isDuplicateForwardedScanError) {
+        scanErrorActiveRef.current = true;
+        resetDecoder();
+      }
+
       if (errorCallback) {
-        if (!isSameScanError(lastForwardedScanErrorRef.current, error)) {
+        if (!isDuplicateForwardedScanError) {
           lastForwardedScanErrorRef.current = error;
           errorCallback(error);
+          scanErrorActiveRef.current = false;
         }
-
-        scanErrorActiveRef.current = false;
       } else {
         lastForwardedScanErrorRef.current = null;
         setScanError(error);
