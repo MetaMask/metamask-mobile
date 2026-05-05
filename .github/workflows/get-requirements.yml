@@ -26,6 +26,18 @@ on:
       run_smart_e2e_selection:
         description: 'Whether the smart-e2e-selection job should run. False for non-PR events, forks, or hard E2E skips.'
         value: ${{ jobs.detect-changes.outputs.run_smart_e2e_selection }}
+      locales_only:
+        description: 'Whether every changed file is a locale translation JSON file under locales/languages.'
+        value: ${{ jobs.detect-changes.outputs.locales_only }}
+      locales_validation_needed:
+        description: 'Whether the future minimal locale validation job should run for locale translation JSON-only changes.'
+        value: ${{ jobs.detect-changes.outputs.locales_validation_needed }}
+      standard_ci_needed:
+        description: 'Whether standard CI is required by the changed-file classification. Shadow-only until enforcement is enabled.'
+        value: ${{ jobs.detect-changes.outputs.standard_ci_needed }}
+      requirements_enforced:
+        description: 'Whether standard-CI/locales requirements enforcement is enabled for this event and target branch.'
+        value: ${{ jobs.detect-changes.outputs.requirements_enforced }}
 
 jobs:
   detect-changes:
@@ -40,6 +52,10 @@ jobs:
       changed_files: ${{ steps.set-outputs.outputs.changed_files }}
       block_merge_for_e2e_readiness: ${{ steps.set-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
+      locales_only: ${{ steps.set-standard-outputs.outputs.locales_only || 'false' }}
+      locales_validation_needed: ${{ steps.set-standard-outputs.outputs.locales_validation_needed || 'false' }}
+      standard_ci_needed: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'false' || steps.set-standard-outputs.outputs.standard_ci_needed || 'true' }}
+      requirements_enforced: ${{ steps.set-standard-outputs.outputs.requirements_enforced || 'false' }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -234,3 +250,127 @@ jobs:
             printf '%s\n' "$CHANGED"
             echo "GH_EOF"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Compute standard CI shadow flags
+        id: set-standard-outputs
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
+          REQUIREMENTS_ENFORCED_CONFIG: ${{ vars.MOBILE_CI_REQUIREMENTS_ENFORCED == 'true' && 'true' || 'false' }}
+          ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
+          LOCALE_TRANSLATION_COUNT: ${{ steps.filter.outputs.locale_translation_files_count }}
+        run: |
+          set -euo pipefail
+
+          all_changes_count="${ALL_CHANGES_COUNT:-0}"
+          locale_translation_count="${LOCALE_TRANSLATION_COUNT:-0}"
+
+          target_allows_enforcement=false
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$PR_BASE_REF" == "main" ]]; then
+            target_allows_enforcement=true
+          elif [[ "$GITHUB_EVENT_NAME" == "merge_group" && "$MERGE_GROUP_BASE_REF" == "refs/heads/main" ]]; then
+            target_allows_enforcement=true
+          fi
+
+          requirements_enforced=false
+          if [[ "$REQUIREMENTS_ENFORCED_CONFIG" == "true" && "$target_allows_enforcement" == "true" ]]; then
+            requirements_enforced=true
+          fi
+
+          locales_only=false
+          locales_validation_needed=false
+          standard_ci_needed=true
+          decision_reason="Standard CI remains required because the change set is not locale translation JSON-only."
+
+          if [[ "$all_changes_count" -gt 0 && "$locale_translation_count" -eq "$all_changes_count" ]]; then
+            locales_only=true
+            locales_validation_needed=true
+            standard_ci_needed=false
+            decision_reason="Only locale translation JSON files changed."
+          elif [[ "$all_changes_count" -eq 0 ]]; then
+            decision_reason="No changed files were reported; keep the conservative standard CI path."
+          fi
+
+          {
+            echo "locales_only=$locales_only"
+            echo "locales_validation_needed=$locales_validation_needed"
+            echo "standard_ci_needed=$standard_ci_needed"
+            echo "requirements_enforced=$requirements_enforced"
+            echo "target_allows_enforcement=$target_allows_enforcement"
+            echo "decision_reason=$decision_reason"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summarize CI requirements decisions
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        env:
+          ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
+          LOCALE_TRANSLATION_COUNT: ${{ steps.filter.outputs.locale_translation_files_count }}
+          LOCALES_ONLY: ${{ steps.set-standard-outputs.outputs.locales_only }}
+          LOCALES_VALIDATION_NEEDED: ${{ steps.set-standard-outputs.outputs.locales_validation_needed }}
+          STANDARD_CI_NEEDED: ${{ steps.set-standard-outputs.outputs.standard_ci_needed }}
+          REQUIREMENTS_ENFORCED: ${{ steps.set-standard-outputs.outputs.requirements_enforced }}
+          TARGET_ALLOWS_ENFORCEMENT: ${{ steps.set-standard-outputs.outputs.target_allows_enforcement }}
+          DECISION_REASON: ${{ steps.set-standard-outputs.outputs.decision_reason }}
+          SKIP_E2E: ${{ steps.set-outputs.outputs.e2e_needed != 'true' && 'true' || 'false' }}
+          ANDROID_E2E_NEEDED: ${{ steps.set-outputs.outputs.android_final }}
+          IOS_E2E_NEEDED: ${{ steps.set-outputs.outputs.ios_final }}
+          RUN_SMART_E2E_SELECTION: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
+          BLOCK_MERGE_FOR_E2E_READINESS: ${{ steps.set-outputs.outputs.block_merge }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            exit 0
+          fi
+
+          standard_decision="run"
+          if [[ "$STANDARD_CI_NEEDED" == "false" ]]; then
+            standard_decision="would skip if enforcement is enabled"
+          fi
+
+          {
+            echo "### CI requirements shadow summary"
+            echo
+            echo "Standard CI jobs still run in this PR. These outputs are for validation before enforcement."
+            echo
+            echo "| Signal | Value |"
+            echo "|---|---|"
+            echo "| All changed files | ${ALL_CHANGES_COUNT:-0} |"
+            echo "| Locale translation JSON files | ${LOCALE_TRANSLATION_COUNT:-0} |"
+            echo "| locales_only | ${LOCALES_ONLY:-false} |"
+            echo "| locales_validation_needed | ${LOCALES_VALIDATION_NEEDED:-false} |"
+            echo "| standard_ci_needed | ${STANDARD_CI_NEEDED:-true} |"
+            echo "| requirements_enforced | ${REQUIREMENTS_ENFORCED:-false} |"
+            echo "| target_allows_enforcement | ${TARGET_ALLOWS_ENFORCEMENT:-false} |"
+            echo "| reason | ${DECISION_REASON:-n/a} |"
+            echo
+            echo "| E2E signal | Value |"
+            echo "|---|---|"
+            echo "| skip_e2e | ${SKIP_E2E:-false} |"
+            echo "| android_e2e_needed | ${ANDROID_E2E_NEEDED:-false} |"
+            echo "| ios_e2e_needed | ${IOS_E2E_NEEDED:-false} |"
+            echo "| run_smart_e2e_selection | ${RUN_SMART_E2E_SELECTION:-false} |"
+            echo "| block_merge_for_e2e_readiness | ${BLOCK_MERGE_FOR_E2E_READINESS:-false} |"
+            echo
+            echo "### Planned standard-CI enforcement mapping"
+            echo
+            echo "| Job | Shadow decision |"
+            echo "|---|---|"
+            for job in \
+              check-diff \
+              dedupe \
+              git-safe-dependencies \
+              scripts \
+              js-bundle-size-check \
+              unit-tests \
+              component-view-tests \
+              merge-unit-and-component-view-tests \
+              check-workflows \
+              sonar-cloud \
+              sonar-cloud-quality-gate-status
+            do
+              echo "| \`$job\` | $standard_decision |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
