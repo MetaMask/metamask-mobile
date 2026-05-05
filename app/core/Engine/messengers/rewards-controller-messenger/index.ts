@@ -2,6 +2,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 
 import {
@@ -150,13 +152,29 @@ export function getRewardsControllerMessenger(
     parent: rootMessenger,
   });
 
+<<<<<<< rn-upgrade/0.81.5-no-unit-tests
   // The RewardsController delegation has so many `RewardsDataService:*`
   // actions that TypeScript fails with TS2590 ("union type too complex") when
   // checking the `delegate()` argument shape. We suppress the diagnostic on
   // the single big call rather than splitting it up, because each split call
   // still hits the same complexity ceiling.
+=======
+  // Widen `messenger` to a generic `Messenger<...>` for the delegate call only.
+  // `delegate`'s constraint is `DelegatedActions extends (MessengerActions<Delegatee> & Action)['type'][]`,
+  // which performs an intersection between the delegatee's action union and the
+  // root messenger's action union. With ~46 actions on each side, this hits
+  // TypeScript's union-type-complexity ceiling (TS2590). Erasing the delegatee's
+  // specific action union to the open `ActionConstraint` short-circuits the
+  // intersection without affecting the runtime behavior — `delegate` only
+  // inspects the action/event name strings at runtime.
+>>>>>>> main
   rootMessenger.delegate({
-    messenger,
+    messenger: messenger as Messenger<
+      typeof name,
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
