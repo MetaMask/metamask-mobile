@@ -497,6 +497,14 @@ describe('WalletConnect Utils', () => {
 
       expect(result).toBe('eip155:1');
     });
+
+    it('returns non-numeric tron references unchanged', () => {
+      const input = 'tron:mainnet';
+
+      const result = normalizeCaipChainIdOutboundForWalletConnect(input);
+
+      expect(result).toBe('tron:mainnet');
+    });
   });
 
   describe('normalizeCaipChainIdInboundForWalletConnect', () => {
