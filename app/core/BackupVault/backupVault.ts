@@ -78,7 +78,6 @@ export async function backupVault(
         readError,
         'backupVault: failed to read existing backup, proceeding with fresh backup',
       );
-      await clearAllVaultBackups();
     }
 
     // An existing backup exists, backup it to the temp key
