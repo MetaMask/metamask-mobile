@@ -51,13 +51,6 @@ jest.mock('./adapters', () => ({
   createAdapter: jest.fn(() => mockAdapterInstance),
 }));
 
-jest.mock('../SDKConnect/utils/DevLogger', () => ({
-  __esModule: true,
-  default: {
-    log: jest.fn(),
-  },
-}));
-
 jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: jest.fn(),
@@ -659,24 +652,22 @@ describe('HardwareWalletProvider', () => {
     describe('QR scan retry', () => {
       it('closes QR scan errors when no retry handler is registered', () => {
         const { result } = renderWithActions();
-        const DevLogger = jest.requireMock(
-          '../SDKConnect/utils/DevLogger',
-        ).default;
 
         act(() => {
           result.current.actions.showHardwareWalletError(
             new Error('QR scan failed'),
           );
         });
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.ErrorState,
+        );
+
         act(() => {
           (capturedBottomSheetProps.onRetryQrScan as () => void)();
         });
 
         expect(result.current.state.connectionState.status).toBe(
           ConnectionStatus.Disconnected,
-        );
-        expect(DevLogger.log).toHaveBeenCalledWith(
-          '[HardwareWallet] QR scan retry requested without a registered handler',
         );
       });
 
