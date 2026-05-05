@@ -400,6 +400,18 @@ module.exports = {
         ],
       },
     },
+    {
+      // Matches CODEOWNERS `**/snaps/**` and `**/Snaps/**` (@MetaMask/core-platform).
+      // ESLint cannot read CODEOWNERS.
+      files: [
+        '**/snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
+        '**/Snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
+      ],
+      plugins: ['jest'],
+      rules: {
+        'jest/no-restricted-matchers': 'off',
+      },
+    },
     // ── Perps controller Core-alignment override ──
     // Enforces the same ESLint rules that Core's @metamask/eslint-config
     // applies to packages/perps-controller so that code written in mobile
