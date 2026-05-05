@@ -13,6 +13,10 @@ import Animated, {
   FadeOutDown,
   runOnJS,
 } from 'react-native-reanimated';
+import LegacyIcon, {
+  IconName as LegacyIconName,
+  IconSize as LegacyIconSize,
+} from '../../../component-library/components/Icons/Icon';
 import Overlay from '../../../component-library/components/Overlay';
 import { useParams } from '../../../util/navigation/navUtils';
 import { Box } from '../../UI/Box/Box';
@@ -310,7 +314,13 @@ function TradeWalletActions() {
                     description={strings(
                       'asset_overview.batch_sell_description',
                     )}
-                    iconName={IconName.Receive}
+                    startAccessory={
+                      // eslint-disable-next-line @typescript-eslint/no-deprecated -- Frame is only available in the local icon registry.
+                      <LegacyIcon
+                        name={LegacyIconName.Frame}
+                        size={LegacyIconSize.Lg}
+                      />
+                    }
                     onPress={onBatchSell}
                     testID={
                       WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON
