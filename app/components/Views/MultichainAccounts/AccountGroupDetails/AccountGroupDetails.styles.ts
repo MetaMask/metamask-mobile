@@ -83,15 +83,8 @@ const styleSheet = (params: { theme: Theme }) => {
       borderBottomLeftRadius: 8,
       borderBottomRightRadius: 8,
     },
-    removeAccountText: {
-      color: colors.error.default,
-    },
-    text: {
-      color: colors.text.alternative,
-    },
 
     groupNameText: {
-      color: colors.text.alternative,
       maxWidth: 150,
     },
   });

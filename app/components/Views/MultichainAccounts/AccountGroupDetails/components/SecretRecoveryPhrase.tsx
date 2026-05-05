@@ -3,16 +3,19 @@ import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Box } from '../../../../UI/Box/Box';
-import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useHdKeyringsWithSnapAccounts } from '../../../../hooks/useHdKeyringsWithSnapAccounts';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -29,8 +32,7 @@ export interface SecretRecoveryPhraseProps {
 export const SecretRecoveryPhrase = ({
   account,
 }: SecretRecoveryPhraseProps) => {
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { seedphraseBackedUp } = useSelector((state: RootState) => state.user);
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
@@ -71,19 +73,20 @@ export const SecretRecoveryPhrase = ({
       testID={AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK}
       onPress={onExportMnemonic}
     >
-      <Text variant={TextVariant.BodyMDMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('multichain_accounts.account_details.secret_recovery_phrase')}
       </Text>
       <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
         gap={8}
       >
         {showSeedphraseBackReminder && (
           <TouchableOpacity onPress={handleBackupPressed}>
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
             >
               {strings('multichain_accounts.export_credentials.backup')}
             </Text>
@@ -92,7 +95,7 @@ export const SecretRecoveryPhrase = ({
         <Icon
           name={IconName.ArrowRight}
           size={IconSize.Md}
-          color={colors.text.alternative}
+          color={IconColor.IconAlternative}
         />
       </Box>
     </TouchableOpacity>
