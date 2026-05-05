@@ -76,7 +76,6 @@ const createStyles = ({
     amountInputWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
-      flex: 1,
       minWidth: 0,
     },
     input: {
@@ -85,7 +84,6 @@ const createStyles = ({
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
-      flex: 1,
       flexShrink: 1,
     },
     inputPrefix: {
@@ -316,10 +314,7 @@ export const TokenInputArea = forwardRef<
               {isLoading ? (
                 <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
-                <Box
-                  style={styles.amountInputWrapper}
-                  testID={testID ? `${testID}-input-wrapper` : undefined}
-                >
+                <Box style={styles.amountInputWrapper}>
                   {inputPrefix ? (
                     <Text style={styles.inputPrefix}>{inputPrefix}</Text>
                   ) : null}

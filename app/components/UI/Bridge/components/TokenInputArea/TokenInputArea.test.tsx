@@ -1,5 +1,4 @@
 import React, { createRef } from 'react';
-import { StyleSheet } from 'react-native';
 import { initialState } from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -899,22 +898,6 @@ describe('TokenInputArea', () => {
       expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith(
         expect.objectContaining({ amount: '0.05' }),
       );
-    });
-
-    it('keeps the input stretched across the amount area when a prefix is shown', () => {
-      const { getByTestId } = renderAmountOverrideInput({
-        amount: '113.28',
-        inputPrefix: '$',
-      });
-
-      expect(
-        StyleSheet.flatten(
-          getByTestId('token-input-input-wrapper').props.style,
-        ),
-      ).toEqual(expect.objectContaining({ flex: 1 }));
-      expect(
-        StyleSheet.flatten(getByTestId('token-input-input').props.style),
-      ).toEqual(expect.objectContaining({ flex: 1 }));
     });
   });
 
