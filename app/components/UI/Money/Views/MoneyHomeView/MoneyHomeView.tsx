@@ -39,7 +39,9 @@ import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 
-const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+const Divider = ({ testID }: { testID?: string } = {}) => (
+  <Box twClassName="h-px bg-border-muted my-5" testID={testID} />
+);
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
 
@@ -181,6 +183,7 @@ const MoneyHomeView = () => {
         />
         <Divider />
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
+        <Divider testID={MoneyHomeViewTestIds.EARNINGS_DIVIDER} />
         {hasClaimableBonus && (
           <AssetOverviewClaimBonus
             asset={LINEA_MUSD_ASSET_FOR_MERKL}

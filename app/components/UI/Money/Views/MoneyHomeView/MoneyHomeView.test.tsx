@@ -371,6 +371,38 @@ describe('MoneyHomeView', () => {
         mockAssetOverviewClaimBonusRender.mock.calls.at(-1)?.[0];
       expect(lastReceivedProps?.merklClaimData).toBe(merklClaimData);
     });
+
+    it('renders the structural divider after MoneyEarnings when there is no claimable bonus', () => {
+      // Regression guard: when AssetOverviewClaimBonus is hidden, the divider
+      // between MoneyEarnings and the next section must still render so the
+      // layout does not collapse.
+      mockUseMerklBonusClaim.mockReturnValue(buildMerklClaimDataMock());
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+      expect(
+        getByTestId(MoneyHomeViewTestIds.EARNINGS_DIVIDER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the structural divider after MoneyEarnings when there is a claimable bonus', () => {
+      mockUseMerklBonusClaim.mockReturnValue(
+        buildMerklClaimDataMock({
+          claimableReward: '5.00',
+          hasPendingClaim: false,
+        }),
+      );
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyHomeViewTestIds.EARNINGS_DIVIDER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('milestone state (1-9 transactions)', () => {
