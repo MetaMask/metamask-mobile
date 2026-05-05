@@ -38,6 +38,7 @@ import { BridgeToken } from '../../../../Bridge/types';
 import { getTokenIconUrl } from '../../../../Bridge/utils';
 import { getNativeSourceToken } from '../../../../Bridge/utils/tokenUtils';
 import {
+  MUSD_CONVERSION_APY,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -433,7 +434,9 @@ const MusdCalculatorTab: React.FC = () => {
           color={TextColor.TextAlternative}
           twClassName="mb-6 max-w-[361px] self-center text-center leading-[22px]"
         >
-          {strings('rewards.musd.disclaimer_calculator')}
+          {strings('rewards.musd.disclaimer_calculator', {
+            apy: MUSD_CONVERSION_APY,
+          })}
         </Text>
 
         <Box
