@@ -64,10 +64,6 @@ const MoneyHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  // TODO: we need a way to check whether the money account has already been upgraded
-  // to the latest version, and then if so skip dispatching
-  //
-  // That can probably live in the action
   useFocusEffect(
     useCallback(() => {
       dispatch(upgradeMoneyAccount());

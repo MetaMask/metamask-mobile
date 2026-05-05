@@ -10,8 +10,8 @@ import Logger from '../../../util/Logger';
 const LOG_PREFIX = '[ChompApiServiceInit]';
 
 // Fallback used only when the remote feature flag has not hydrated yet (e.g.
-// first launch, offline). Points at dev so unconfigured builds fail fast
-// against a non-prod backend; prod deployments must ship with the flag set.
+// first launch, offline). Points at dev so unconfigured builds will fail fast
+// against a non-prod backend.
 const FALLBACK_CHOMP_API_URL = 'https://chomp.dev-api.cx.metamask.io';
 
 /**
