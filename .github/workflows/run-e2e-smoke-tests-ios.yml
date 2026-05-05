@@ -78,6 +78,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   perps-ios-smoke:
@@ -115,6 +116,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   identity-ios-smoke:
@@ -228,6 +230,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      use_bitrise_runner: ${{ inputs.use_bitrise_runner }}
     secrets: inherit
 
   multichain-api-ios-smoke:
