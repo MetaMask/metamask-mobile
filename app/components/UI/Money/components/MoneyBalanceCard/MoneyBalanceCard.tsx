@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -23,6 +24,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
@@ -40,19 +42,33 @@ const MoneyBalanceCard = () => {
     isAggregatedBalanceLoading,
     vaultApyQuery,
   } = useMoneyAccountBalance();
+  const hasSeenOnboarding = useSelector(selectMusdConversionEducationSeen);
 
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
+  const isNewUser = isEmpty && !hasSeenOnboarding;
 
   let balanceText: string;
   let buttonVariant: ButtonVariant;
+  let buttonLabel: string;
+  let buttonTestId: string;
   let containerTestId: string;
-  if (isEmpty) {
+  if (isNewUser) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     buttonVariant = ButtonVariant.Primary;
+    buttonLabel = strings('homepage.sections.cash_empty_state.get_started');
+    buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;
+    containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
+  } else if (isEmpty) {
+    balanceText = EMPTY_BALANCE_DISPLAY;
+    buttonVariant = ButtonVariant.Primary;
+    buttonLabel = strings('money.balance_card.add');
+    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     balanceText = totalFiatFormatted ?? EMPTY_BALANCE_DISPLAY;
     buttonVariant = ButtonVariant.Secondary;
+    buttonLabel = strings('money.balance_card.add');
+    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
 
@@ -67,6 +83,20 @@ const MoneyBalanceCard = () => {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
   }, [navigation]);
+
+  const handleGetStartedPress = useCallback(() => {
+    navigation.navigate(Routes.EARN.ROOT, {
+      screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+      params: {
+        returnTo: {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+      },
+    });
+  }, [navigation]);
+
+  const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
 
   const handleInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -159,12 +189,12 @@ const MoneyBalanceCard = () => {
         justifyContent={BoxJustifyContent.End}
       >
         <Button
-          testID={MoneyBalanceCardTestIds.ADD_BUTTON}
+          testID={buttonTestId}
           variant={buttonVariant}
           size={ButtonSize.Md}
-          onPress={handleAddPress}
+          onPress={handleButtonPress}
         >
-          {strings('money.balance_card.add')}
+          {buttonLabel}
         </Button>
       </Box>
     </Pressable>

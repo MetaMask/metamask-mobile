@@ -6,6 +6,7 @@ import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 
 const mockNavigate = jest.fn();
 
@@ -24,7 +25,15 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../../../reducers/user/selectors', () => ({
+  __esModule: true,
+  selectMusdConversionEducationSeen: jest.fn(),
+}));
+
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockSelectMusdConversionEducationSeen = jest.mocked(
+  selectMusdConversionEducationSeen,
+);
 
 const createBalanceMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
@@ -62,6 +71,7 @@ describe('MoneyBalanceCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
+    mockSelectMusdConversionEducationSeen.mockReturnValue(true);
   });
 
   describe('when balance is empty (totalFiatRaw undefined)', () => {
@@ -114,6 +124,60 @@ describe('MoneyBalanceCard', () => {
       expect(
         getByTestId(MoneyBalanceCardTestIds.EMPTY_CONTAINER),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('when balance is empty and onboarding has not been seen', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          totalFiatRaw: undefined,
+          totalFiatFormatted: undefined,
+        }),
+      );
+      mockSelectMusdConversionEducationSeen.mockReturnValue(false);
+    });
+
+    it('renders the new-user container testID', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the Get started button', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
+      ).toHaveTextContent(
+        strings('homepage.sections.cash_empty_state.get_started'),
+      );
+    });
+
+    it('does not render the Add button', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to the conversion education flow when Get started is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          returnTo: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        },
+      });
     });
   });
 
