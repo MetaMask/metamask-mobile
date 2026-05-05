@@ -1,3 +1,4 @@
+import { MUSD_CONVERSION_APY } from '../../Earn/constants/musd';
 import {
   amountToPercent,
   clampAmount,
@@ -17,7 +18,7 @@ describe('musdCalculatorSlider', () => {
     expect(clampAmount(percentToAmount(amountToPercent(10000)))).toBe(10000);
   });
 
-  it('uses 3% APY constant for product copy alignment', () => {
-    expect(MUSD_CALCULATOR_APY).toBe(0.03);
+  it('derives calculator APY from Earn MUSD_CONVERSION_APY', () => {
+    expect(MUSD_CALCULATOR_APY).toBe(MUSD_CONVERSION_APY / 100);
   });
 });

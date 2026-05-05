@@ -3,10 +3,15 @@
  * snapping, and clamping). Ported from the standalone mUSD calculator prototype.
  */
 
+import { MUSD_CONVERSION_APY } from '../../Earn/constants/musd';
+
 export const MIN_AMOUNT = 100;
 export const MAX_AMOUNT = 10000;
-/** Annual percentage yield used for earnings estimates (e.g. 0.03 = 3%). */
-export const MUSD_CALCULATOR_APY = 0.03;
+/**
+ * Annual yield as a decimal fraction for earnings math (e.g. 0.03 for 3%).
+ * Derived from {@link MUSD_CONVERSION_APY} so Earn conversion and Rewards stay aligned.
+ */
+export const MUSD_CALCULATOR_APY = MUSD_CONVERSION_APY / 100;
 
 export const SNAP_POINTS = [100, 1000, 10000] as const;
 export const SNAP_THRESHOLD_PCT = 2;
