@@ -85,9 +85,9 @@ describe('EditMultichainAccountName', () => {
     });
 
     it('navigates back when back button is pressed', () => {
-      const { getByRole } = render();
+      const { getByTestId } = render();
 
-      const backButton = getByRole('button');
+      const backButton = getByTestId(EditAccountNameIds.BACK_BUTTON);
       fireEvent.press(backButton);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);

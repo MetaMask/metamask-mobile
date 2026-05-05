@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
-import { View } from 'react-native';
-import { Box } from '../../../../UI/Box/Box';
+import React, { useCallback, useMemo } from 'react';
+import { Platform, StatusBar } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   SafeAreaView,
@@ -8,33 +7,33 @@ import {
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { AccountDetailsIds } from '../../AccountDetails.testIds';
-import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
-import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
-import ButtonSecondary from '../../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonSize,
+  ButtonVariant,
+  HeaderBase,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   ParamListBase,
   RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import HeaderBase from '../../../../../component-library/components/HeaderBase';
-import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import styleSheet from './RevealSRP.styles';
-import { useKeyringId } from '../../../../hooks/useKeyringId';
 import SecurityQuizLockImage from '../../../../../images/security-quiz-intro-lock.svg';
-import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 import { ExportCredentialsIds } from '../../AccountDetails/ExportCredentials.testIds';
+import { useKeyringId } from '../../../../hooks/useKeyringId';
 
 interface RootNavigationParamList extends ParamListBase {
   RevealSRP: {
@@ -48,10 +47,24 @@ export const RevealSRP = () => {
   const route = useRoute<RevealSRPProp>();
   const { account } = route.params;
   const insets = useSafeAreaInsets();
-  const { styles } = useStyles(styleSheet, { insets });
+  const tw = useTailwind();
   const { navigate, goBack } = useNavigation();
 
   const keyringId = useKeyringId(account);
+
+  const containerStyle = useMemo(
+    () =>
+      tw.style(
+        'flex-1 px-4',
+        Platform.OS === 'android' && StatusBar.currentHeight
+          ? { paddingTop: StatusBar.currentHeight }
+          : undefined,
+        {
+          paddingBottom: Platform.OS === 'android' ? 10 : insets.bottom,
+        },
+      ),
+    [insets.bottom, tw],
+  );
 
   const handleLearnMoreClick = useCallback(() => {
     navigate(Routes.WEBVIEW.MAIN, {
@@ -74,52 +87,67 @@ export const RevealSRP = () => {
   }, [keyringId, navigate]);
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={containerStyle}>
       <HeaderBase
-        style={styles.headerContainer}
+        twClassName="flex-row items-center"
         startAccessory={
-          <ButtonLink
+          <ButtonIcon
             testID={AccountDetailsIds.BACK_BUTTON}
-            labelTextVariant={TextVariant.HeadingMD}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
             onPress={handleBackClick}
           />
         }
       >
         {strings('multichain_accounts.reveal_srp.header')}
       </HeaderBase>
-      <View
-        style={styles.contentContainer}
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        alignItems={BoxAlignItems.Center}
+        twClassName="mb-auto grow justify-center gap-4"
         testID={ExportCredentialsIds.CONTAINER}
       >
-        <SecurityQuizLockImage
-          name="security-quiz-lock"
-          style={styles.securityQuizLockImage}
-          height={200}
-          width={190}
-        />
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Box twClassName="mx-[60px] my-[46px]">
+          <SecurityQuizLockImage
+            name="security-quiz-lock"
+            height={200}
+            width={190}
+          />
+        </Box>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
           {strings('multichain_accounts.reveal_srp.description')}
         </Text>
-      </View>
+      </Box>
       <Box
-        style={styles.buttonContainer}
-        flexDirection={FlexDirection.Column}
-        alignItems={AlignItems.center}
+        flexDirection={BoxFlexDirection.Column}
+        alignItems={BoxAlignItems.Stretch}
+        style={tw.style(
+          'mt-auto w-full gap-4',
+          Platform.OS === 'android' && 'pb-3',
+        )}
       >
-        <ButtonPrimary
-          style={styles.button}
+        <Button
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          label={strings('multichain_accounts.reveal_srp.get_started')}
+          isFullWidth
           onPress={handleGetStartedClick}
           testID={ExportCredentialsIds.NEXT_BUTTON}
-        />
-        <ButtonSecondary
-          style={styles.button}
-          label={strings('multichain_accounts.reveal_srp.learn_more')}
+        >
+          {strings('multichain_accounts.reveal_srp.get_started')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          isFullWidth
           onPress={handleLearnMoreClick}
           testID={ExportCredentialsIds.LEARN_MORE_BUTTON}
-        />
+        >
+          {strings('multichain_accounts.reveal_srp.learn_more')}
+        </Button>
       </Box>
     </SafeAreaView>
   );
