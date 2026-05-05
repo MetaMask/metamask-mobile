@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import OnboardingNavigator from './OnboardingNavigator';
@@ -24,13 +24,16 @@ import {
 } from '../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from './hooks/useReferralDetails';
+import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
+
+let sessionNotificationsNudgeShown = false;
 
 const Stack = createStackNavigator();
 
@@ -65,6 +68,56 @@ const RewardsNavigator: React.FC = () => {
 
   // Fetch referral details so referral code is available across all rewards screens
   useReferralDetails();
+
+  const {
+    areNotificationsEnabled,
+    canPromptToEnableNotifications,
+    showEnableNotificationsNudge,
+    closeEnableNotificationsNudge,
+  } = useRewardsNotificationsNudge();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!canPromptToEnableNotifications) {
+        return;
+      }
+      if (areNotificationsEnabled) {
+        return;
+      }
+      if (sessionNotificationsNudgeShown) {
+        return;
+      }
+
+      const parentState = navigation.getState();
+      const currentTabRoute = parentState.routes[parentState.index];
+      const stackState = currentTabRoute?.state;
+      const stackIndex =
+        typeof stackState?.index === 'number' ? stackState.index : 0;
+      const activeRouteName = stackState?.routes[stackIndex]?.name;
+      const isOnCampaignRoute =
+        activeRouteName === Routes.REWARDS_CAMPAIGNS_VIEW ||
+        Boolean(activeRouteName?.endsWith('CampaignDetails'));
+      if (!isOnCampaignRoute) {
+        return;
+      }
+
+      const didShowNudge = showEnableNotificationsNudge();
+      if (!didShowNudge) {
+        return;
+      }
+      sessionNotificationsNudgeShown = true;
+
+      return () => {
+        closeEnableNotificationsNudge();
+      };
+    }, [
+      areNotificationsEnabled,
+      canPromptToEnableNotifications,
+      closeEnableNotificationsNudge,
+      navigation,
+      showEnableNotificationsNudge,
+    ]),
+  );
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
