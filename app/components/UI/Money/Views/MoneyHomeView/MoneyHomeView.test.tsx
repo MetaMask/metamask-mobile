@@ -24,7 +24,6 @@ import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
-import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 const mockGoBack = jest.fn();
@@ -92,13 +91,8 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
 }));
 
-jest.mock('../../../../../core/DeeplinkManager', () => ({
-  handleDeeplink: jest.fn(),
-}));
-
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
-const mockHandleDeeplink = jest.mocked(handleDeeplink);
 
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
@@ -662,20 +656,18 @@ describe('MoneyHomeView', () => {
     });
   });
 
-  describe('Get now deeplink', () => {
-    it('opens the card-onboarding deeplink when the virtual card Get now button is pressed', () => {
+  describe('Get now navigation', () => {
+    it('navigates to the card sign-up flow when the virtual card Get now button is pressed', () => {
       mockGetDetectedGeolocation.mockReturnValue('GB');
 
       const { getByText } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByText(strings('money.metamask_card.get_now')));
 
-      expect(mockHandleDeeplink).toHaveBeenCalledWith({
-        uri: 'metamask://card-onboarding',
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
     });
 
-    it('opens the card-onboarding deeplink when the metal card Get now button is pressed', () => {
+    it('navigates to the card sign-up flow when the metal card Get now button is pressed', () => {
       mockGetDetectedGeolocation.mockReturnValue('US');
 
       const { getAllByText } = renderWithProvider(<MoneyHomeView />);
@@ -683,9 +675,7 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(buttons[1]);
 
-      expect(mockHandleDeeplink).toHaveBeenCalledWith({
-        uri: 'metamask://card-onboarding',
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
     });
   });
 });

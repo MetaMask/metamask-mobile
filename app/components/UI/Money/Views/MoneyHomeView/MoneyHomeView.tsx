@@ -37,7 +37,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
-import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
@@ -129,8 +128,8 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleGetNowPress = useCallback(() => {
-    handleDeeplink({ uri: 'metamask://card-onboarding' });
-  }, []);
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation]);
 
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
