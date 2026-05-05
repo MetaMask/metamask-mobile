@@ -84,11 +84,29 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.getByText(baseItem.description)).toBeOnTheScreen();
   });
 
-  it('renders the impact badge', () => {
+  it('renders the impact badge for positive impact', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard item={baseItem} cardWidth={CARD_WIDTH} />,
     );
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
+  });
+
+  it('renders Neutral badge when impact is explicitly neutral', () => {
+    const item = { ...baseItem, impact: 'neutral' as const };
+    renderWithProvider(
+      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+    );
+    expect(screen.getByText('Neutral')).toBeOnTheScreen();
+  });
+
+  it('does not render an impact badge when impact is undefined', () => {
+    const item = { ...baseItem, impact: undefined };
+    renderWithProvider(
+      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+    );
+    expect(screen.queryByText('Neutral')).toBeNull();
+    expect(screen.queryByText('Bullish')).toBeNull();
+    expect(screen.queryByText('Bearish')).toBeNull();
   });
 
   it('renders Tokens section when assets have caip19', () => {

@@ -31,6 +31,11 @@ const PageIndicator: React.FC<PageIndicatorProps> = ({
       {Array.from({ length: count }, (_, index) => (
         <Box
           key={index}
+          testID={
+            index === activeIndex
+              ? 'page-indicator-dot-active'
+              : 'page-indicator-dot'
+          }
           style={
             index === activeIndex
               ? tw.style('w-2 h-2 rounded-full bg-icon-default')

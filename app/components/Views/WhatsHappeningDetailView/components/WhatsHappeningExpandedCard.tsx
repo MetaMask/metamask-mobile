@@ -71,12 +71,14 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
           gap={4}
           padding={5}
         >
-          {/* Impact badge */}
-          <Box twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}>
-            <Text variant={TextVariant.BodySm} color={impactTextColor}>
-              {impactLabel}
-            </Text>
-          </Box>
+          {/* Impact badge — only rendered when impact is explicitly set */}
+          {item.impact && (
+            <Box twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}>
+              <Text variant={TextVariant.BodySm} color={impactTextColor}>
+                {impactLabel}
+              </Text>
+            </Box>
+          )}
 
           {/* Title */}
           <Text
