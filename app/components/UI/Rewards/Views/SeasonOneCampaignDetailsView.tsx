@@ -1,5 +1,9 @@
 import React, { useMemo } from 'react';
-import { HeaderStandard , Box, Skeleton } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Box,
+  Skeleton,
+} from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
