@@ -2,19 +2,18 @@ import React, { useRef } from 'react';
 import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  BottomSheetFooter,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './MarketClosedBottomSheet.styles';
 
@@ -30,15 +29,6 @@ const MarketClosedBottomSheet = () => {
   const handleLearnMore = () => {
     Linking.openURL(strings('bridge.market_closed.learn_more_url'));
   };
-
-  const footerButtonProps = [
-    {
-      label: strings('bridge.market_closed.done'),
-      variant: ButtonVariants.Secondary,
-      size: ButtonSize.Lg,
-      onPress: handleClose,
-    },
-  ];
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -58,7 +48,13 @@ const MarketClosedBottomSheet = () => {
         </Text>
       </View>
       <BottomSheetFooter
-        buttonPropsArray={footerButtonProps}
+        testID="bottomsheetfooter"
+        secondaryButtonProps={{
+          children: strings('bridge.market_closed.done'),
+          onPress: handleClose,
+          size: ButtonSize.Lg,
+          testID: 'bottomsheetfooter-button',
+        }}
         style={styles.footer}
       />
     </BottomSheet>
