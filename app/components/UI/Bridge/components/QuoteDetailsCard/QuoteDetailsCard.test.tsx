@@ -83,6 +83,15 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
+  const { useBridgeQuoteData } = jest.requireMock(
+    '../../hooks/useBridgeQuoteData',
+  );
+  return {
+    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
+  };
+});
+
 // Mock useRewards hook
 jest.mock('../../hooks/useRewards', () => ({
   useRewards: jest.fn().mockImplementation(() => ({
