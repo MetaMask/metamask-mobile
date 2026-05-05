@@ -89,6 +89,9 @@ const RewardsNavigator: React.FC = () => {
       }
 
       const parentState = navigation.getState();
+      if (!parentState) {
+        return;
+      }
       const currentTabRoute = parentState.routes[parentState.index];
       const stackState = currentTabRoute?.state;
       const stackIndex =
