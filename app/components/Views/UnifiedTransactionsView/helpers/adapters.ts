@@ -26,7 +26,10 @@ function resolveTransactionMetaType(
     return TransactionType.incoming;
   }
 
-  const data = transaction.methodId?.toLowerCase();
+  const rawData = transaction.methodId?.toLowerCase();
+  // Treat '0x' (empty calldata) the same as no methodId, since the API
+  // returns '0x' for simple ETH sends.
+  const data = rawData && rawData !== '0x' ? rawData : undefined;
 
   if (data && !transaction.to) {
     return TransactionType.deployContract;

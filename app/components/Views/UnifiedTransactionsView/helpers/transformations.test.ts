@@ -28,7 +28,7 @@ describe('selectTransactions', () => {
       to: otherAddress,
       from: address,
       ...overrides,
-    } as unknown as V1TransactionByHashResponse);
+    }) as unknown as V1TransactionByHashResponse;
 
   const buildData = (
     transactions: V1TransactionByHashResponse[],
@@ -36,7 +36,7 @@ describe('selectTransactions', () => {
     ({
       pages: [{ data: transactions } as V4MultiAccountTransactionsResponse],
       pageParams: [undefined],
-    } as InfiniteData<V4MultiAccountTransactionsResponse>);
+    }) as InfiniteData<V4MultiAccountTransactionsResponse>;
 
   it('transforms transactions into view models with id and transactionMeta', () => {
     const tx = buildTransaction();

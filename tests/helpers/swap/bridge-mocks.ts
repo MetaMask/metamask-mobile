@@ -126,11 +126,4 @@ export const testSpecificMock: TestSpecificMock = async (
     response: BRIDGE_TX_STATUS_COMPLETE,
     responseCode: 200,
   });
-
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /api\.myx\.finance\/openapi\/gateway\/scan\/market/i,
-    response: {},
-    responseCode: 200,
-  });
 };

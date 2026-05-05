@@ -422,7 +422,7 @@ describe('UnifiedTransactionsView with transactions', () => {
             accounts: {
               'evm-account-id': {
                 id: 'evm-account-id',
-                type: 'eip155:eoa',
+                type: 'eip155:eoa' as const,
                 address: ACTIVE_EVM_ADDRESS,
                 options: {},
                 methods: [],
@@ -448,7 +448,7 @@ describe('UnifiedTransactionsView with transactions', () => {
                 from: ACTIVE_EVM_ADDRESS,
                 to: '0x1111111111111111111111111111111111111111',
                 value: '0x0',
-                nonce: 1,
+                nonce: '0x1',
               },
             },
           ],
