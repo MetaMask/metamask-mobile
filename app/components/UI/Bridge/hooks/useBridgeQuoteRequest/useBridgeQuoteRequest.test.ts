@@ -1,14 +1,17 @@
+import { BigNumber } from 'ethers';
+import { act } from '@testing-library/react-native';
+
+import { isSolanaChainId } from '@metamask/bridge-controller';
+
 import '../../_mocks_/initialState';
 import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';
 import Engine from '../../../../../core/Engine';
-import { act } from '@testing-library/react-native';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
-import { BigNumber } from 'ethers';
+import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -66,6 +69,12 @@ jest.mock('../useInsufficientBalance', () => ({
   default: jest.fn(),
 }));
 
+// Mock the useInsufficientNativeReserveError hook
+jest.mock('../useInsufficientNativeReserveError', () => ({
+  __esModule: true,
+  useInsufficientNativeReserveError: jest.fn(),
+}));
+
 jest.mock('../useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
@@ -90,6 +99,11 @@ const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
   typeof useLatestBalance
 >;
 
+const mockUseInsufficientNativeReserveError =
+  useInsufficientNativeReserveError as jest.MockedFunction<
+    typeof useInsufficientNativeReserveError
+  >;
+
 describe('useBridgeQuoteRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -107,6 +121,7 @@ describe('useBridgeQuoteRequest', () => {
     });
 
     mockUseIsInsufficientBalance.mockReturnValue(false);
+    mockUseInsufficientNativeReserveError.mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -565,6 +580,36 @@ describe('useBridgeQuoteRequest', () => {
         bridgeReducerOverrides: {
           sourceAmount: '1000.0', // More than available balance
         },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          insufficientBal: true,
+        }),
+        undefined,
+      );
+    });
+
+    it('includes insufficientBal true when balance is sufficient but insufficientNativeReserveError is set', async () => {
+      mockUseIsInsufficientBalance.mockReturnValue(false);
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      mockUseInsufficientNativeReserveError.mockReturnValue({
+        minimumNativeBalanceToBeKeptInAccount: '10',
+        maxSwappableNativeBalance: '40',
       });
 
       const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
