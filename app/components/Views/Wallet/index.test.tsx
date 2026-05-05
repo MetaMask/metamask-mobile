@@ -430,7 +430,7 @@ const mockInitialState = {
         },
         tokenSortConfig: {
           key: 'tokenFiatAmount',
-          order: 'dsc',
+          order: 'dsc' as const,
           sortCallback: 'stringNumeric',
         },
       },
