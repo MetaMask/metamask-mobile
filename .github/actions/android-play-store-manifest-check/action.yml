@@ -133,6 +133,8 @@ runs:
 
     - name: Lint, bundle (debug-signed), validate with bundletool
       shell: bash
+      env:
+        SENTRY_DISABLE_AUTO_UPLOAD: true
       run: |
         set -euo pipefail
         STORE_FILE="${GITHUB_WORKSPACE}/android/keystores/debug.keystore"
