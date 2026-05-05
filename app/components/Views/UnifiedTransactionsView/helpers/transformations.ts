@@ -2,11 +2,33 @@ import {
   type V1TransactionByHashResponse,
   type V4MultiAccountTransactionsResponse,
 } from '@metamask/core-backend';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { InfiniteData } from '@tanstack/react-query';
 import { normalizeTransaction } from './adapters';
-import { TransactionViewModel } from '../types';
+import { EvmTransaction, TransactionViewModel } from '../types';
+import { equalsIgnoreCase } from '../../../../util/string';
 
 const excludedTransactionTypes = ['SPAM_TOKEN_TRANSFER'];
+
+const getOriginalTransactionId = (bridgeHistoryItem: BridgeHistoryItem) =>
+  (bridgeHistoryItem as unknown as { originalTransactionId?: string })
+    .originalTransactionId;
+
+export const isBridgeHistoryForEvmTransaction = (
+  tx: EvmTransaction & { actionId?: string; hash?: string },
+  bridgeHistoryValues: BridgeHistoryItem[],
+) =>
+  bridgeHistoryValues.some((bridgeHistoryItem) => {
+    const originalTransactionId = getOriginalTransactionId(bridgeHistoryItem);
+
+    return (
+      bridgeHistoryItem.txMetaId === tx.id ||
+      bridgeHistoryItem.txMetaId === tx.actionId ||
+      originalTransactionId === tx.id ||
+      originalTransactionId === tx.actionId ||
+      equalsIgnoreCase(bridgeHistoryItem.status?.srcChain?.txHash, tx.hash)
+    );
+  });
 
 function isIncomingTokenTransfer(
   address: string,

@@ -28,6 +28,8 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
   return transactions.filter((transaction) => {
     const { chainId, txParams } = transaction;
     const { from, nonce, actionId } = txParams || {};
+    const hash = 'hash' in transaction ? transaction.hash : undefined;
+    const isBridgeTransaction = transaction.type === TransactionType.bridge;
     const hasNonce = nonce !== undefined && nonce !== null;
 
     if (!from) {
@@ -35,9 +37,12 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
     }
 
     const dedupeKeyPrefix = `${chainId}-${String(from).toLowerCase()}`;
-    const dedupeKey = hasNonce
-      ? `${dedupeKeyPrefix}-${nonce}`
-      : `${dedupeKeyPrefix}-${actionId}`;
+    const dedupeKey =
+      isBridgeTransaction && hash
+        ? `${dedupeKeyPrefix}-bridge-${hash.toLowerCase()}`
+        : hasNonce
+          ? `${dedupeKeyPrefix}-${nonce}`
+          : `${dedupeKeyPrefix}-${actionId}`;
 
     // Keep only the first local transaction for each dedupe key
     if (seenTransactions.has(dedupeKey)) {

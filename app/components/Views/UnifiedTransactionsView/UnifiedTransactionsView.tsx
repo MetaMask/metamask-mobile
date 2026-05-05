@@ -57,13 +57,11 @@ import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.t
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 import { useTransactionsQuery } from './useTransactionsQuery';
-import type { TransactionViewModel } from './types';
+import type { EvmTransaction, TransactionViewModel } from './types';
+import { isBridgeHistoryForEvmTransaction } from './helpers/transformations';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
-
-type SmartTransactionWithId = SmartTransaction & { id: string };
-type EvmTransaction = TransactionMeta | SmartTransactionWithId;
 
 const getTransactionId = (tx: EvmTransaction) => tx.id;
 const isTransactionMetaLike = (
@@ -198,6 +196,7 @@ const UnifiedTransactionsView = ({
     evmConfirmedItems: UnifiedItem[];
     chainFilteredNonEvmTransactionsForSelectedChain: NonEvmTransaction[];
   }>(() => {
+    const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
     const submittedTxsFiltered = submittedTxs.filter(
       (tx): tx is EvmTransaction => {
         if (!isTransactionMetaLike(tx)) {
@@ -205,23 +204,33 @@ const UnifiedTransactionsView = ({
         }
 
         const { chainId: _chainId, txParams } = tx;
+        const isBridgeTransaction = isBridgeHistoryForEvmTransaction(
+          tx,
+          bridgeHistoryValues,
+        );
         const hash = 'hash' in tx ? tx.hash : undefined;
         const { from, nonce } = txParams || {};
         const hasNonce = nonce !== undefined && nonce !== null;
 
-        const alreadyConfirmed = allConfirmedFiltered.find(
+        const matchingConfirmedByHash = allConfirmedFiltered.some(
           (confirmedTx) =>
-            (typeof hash === 'string' &&
-              confirmedTx.hash.toLowerCase() === hash.toLowerCase() &&
-              confirmedTx.hexChainId === _chainId) ||
-            (hasNonce &&
-              confirmedTx.nonce === nonce &&
-              confirmedTx.hexChainId === _chainId &&
-              Boolean(from) &&
-              areAddressesEqual(confirmedTx.from, from)),
+            typeof hash === 'string' &&
+            confirmedTx.hash.toLowerCase() === hash.toLowerCase() &&
+            confirmedTx.hexChainId === _chainId,
+        );
+        const matchingConfirmedByNonce = allConfirmedFiltered.some(
+          (confirmedTx) =>
+            hasNonce &&
+            confirmedTx.nonce === nonce &&
+            confirmedTx.hexChainId === _chainId &&
+            Boolean(from) &&
+            areAddressesEqual(confirmedTx.from, from),
         );
 
-        if (alreadyConfirmed) {
+        if (
+          matchingConfirmedByHash ||
+          (!isBridgeTransaction && matchingConfirmedByNonce)
+        ) {
           return false;
         }
 
@@ -237,7 +246,6 @@ const UnifiedTransactionsView = ({
     // Non-EVM: filter by enabled chains, also include bridge txs
     // whose destination chain is enabled (e.g. Solana→Optimism bridge
     // should appear when viewing Optimism activity)
-    const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
     const chainFilteredNonEvmTransactionsForSelectedChain = nonEvmTransactions
       .filter((tx) => {
         if (enabledNonEVMChainIds.includes(tx.chain)) return true;

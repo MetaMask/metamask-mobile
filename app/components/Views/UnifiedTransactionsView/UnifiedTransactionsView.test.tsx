@@ -380,6 +380,13 @@ describe('UnifiedTransactionsView', () => {
 });
 
 describe('UnifiedTransactionsView with transactions', () => {
+  const ACTIVE_EVM_ADDRESS = '0x0000000000000000000000000000000000000abc';
+  const BRIDGE_TX_HASH =
+    '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+  const OTHER_TX_HASH =
+    '0x1111111111111111111111111111111111111111111111111111111111111111';
+  const BRIDGE_TX_ID = 'bridge-tx-id';
+
   const stateWithTransactions = {
     engine: {
       backgroundState: {
@@ -405,6 +412,151 @@ describe('UnifiedTransactionsView with transactions', () => {
     },
   };
 
+  const stateWithConfirmedBridgeTransaction = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: {
+          ...backgroundState.AccountsController,
+          internalAccounts: {
+            accounts: {
+              'evm-account-id': {
+                id: 'evm-account-id',
+                type: 'eip155:eoa',
+                address: ACTIVE_EVM_ADDRESS,
+                options: {},
+                methods: [],
+                metadata: {
+                  name: 'Account 1',
+                  keyring: { type: 'HD Key Tree' },
+                },
+              },
+            },
+            selectedAccount: 'evm-account-id',
+          },
+        },
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: BRIDGE_TX_ID,
+              chainId: '0x1' as const,
+              hash: BRIDGE_TX_HASH,
+              status: TransactionStatus.confirmed,
+              time: Date.now(),
+              txParams: {
+                from: ACTIVE_EVM_ADDRESS,
+                to: '0x1111111111111111111111111111111111111111',
+                value: '0x0',
+                nonce: 1,
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+
+  const createConfirmedEvmQueryData = (
+    transactions: V1TransactionByHashResponse[] = [],
+  ) =>
+    selectTransactions({
+      address: ACTIVE_EVM_ADDRESS,
+    })({
+      pageParams: [undefined],
+      pages: [
+        {
+          data: transactions,
+          unprocessedNetworks: [],
+          pageInfo: {
+            count: transactions.length,
+            endCursor: undefined,
+            hasNextPage: false,
+          },
+        },
+      ],
+    });
+
+  const createConfirmedBridgeTransaction = (hash = BRIDGE_TX_HASH) =>
+    createConfirmedEvmQueryData([
+      {
+        accountId: `eip155:1:${ACTIVE_EVM_ADDRESS}`,
+        blockHash: '0xblock',
+        blockNumber: 1,
+        chainId: 1,
+        cumulativeGasUsed: 21000,
+        effectiveGasPrice: '1',
+        from: ACTIVE_EVM_ADDRESS,
+        gas: 21000,
+        gasPrice: '1',
+        gasUsed: 21000,
+        hash,
+        isError: false,
+        logs: [],
+        methodId: '0x',
+        nonce: 1,
+        readable: 'Transfer',
+        timestamp: '2026-04-29T19:28:41.000Z',
+        to: '0x1111111111111111111111111111111111111111',
+        transactionCategory: 'TRANSFER',
+        transactionType: 'SIMPLE_SEND',
+        value: '1',
+        valueTransfers: [],
+      } as V1TransactionByHashResponse,
+    ]);
+
+  const bridgeHistory = {
+    [BRIDGE_TX_ID]: {
+      txMetaId: BRIDGE_TX_ID,
+      account: ACTIVE_EVM_ADDRESS,
+      quote: {
+        srcChainId: 1,
+        destChainId: 8453,
+        srcAsset: {
+          symbol: 'ETH',
+          chainId: 1,
+          decimals: 18,
+          address: 'native',
+        },
+        destAsset: {
+          symbol: 'ETH',
+          chainId: 8453,
+          decimals: 18,
+          address: 'native',
+        },
+      },
+      status: {
+        srcChain: {
+          txHash: BRIDGE_TX_HASH,
+          chainId: 1,
+          amount: '1',
+        },
+        destChain: {
+          txHash:
+            '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          chainId: 8453,
+          amount: '1',
+        },
+        status: 'COMPLETE',
+      },
+      estimatedProcessingTimeInSeconds: 60,
+      slippagePercentage: 0,
+      completionTime: Date.now(),
+      startTime: Date.now() - 60000,
+    },
+  };
+
+  const getRenderedTransactionIds = (
+    queryAllByType: ReturnType<
+      typeof renderWithProvider
+    >['UNSAFE_queryAllByType'],
+  ) =>
+    queryAllByType(asComponentType('TransactionElement')).map(
+      ({ props }) => props.tx.id,
+    );
+
+  const apiBridgeTransactionId = `${BRIDGE_TX_HASH}-1`;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTransactionsQuery();
@@ -427,6 +579,39 @@ describe('UnifiedTransactionsView with transactions', () => {
       asComponentType('TransactionElement'),
     );
     expect(transactionElements.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it('uses the Accounts API bridge transaction when the source hash matches bridge history', () => {
+    mockUseTransactionsQuery(createConfirmedBridgeTransaction());
+    mockSelectBridgeHistoryForAccount.mockReturnValue(bridgeHistory);
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      {
+        state: stateWithConfirmedBridgeTransaction,
+      },
+    );
+
+    const transactionIds = getRenderedTransactionIds(UNSAFE_queryAllByType);
+
+    expect(transactionIds).toContain(apiBridgeTransactionId);
+    expect(transactionIds).not.toContain(BRIDGE_TX_ID);
+  });
+
+  it('keeps the local bridge transaction when Accounts API only has a nonce collision', () => {
+    mockUseTransactionsQuery(createConfirmedBridgeTransaction(OTHER_TX_HASH));
+    mockSelectBridgeHistoryForAccount.mockReturnValue(bridgeHistory);
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      {
+        state: stateWithConfirmedBridgeTransaction,
+      },
+    );
+
+    const transactionIds = getRenderedTransactionIds(UNSAFE_queryAllByType);
+
+    expect(transactionIds).toContain(BRIDGE_TX_ID);
   });
 });
 
