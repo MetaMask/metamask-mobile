@@ -17,6 +17,7 @@ import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
 import { store } from '../store';
 import { setLockTime } from '../actions/settings';
 import AppConstants from '../core/AppConstants';
+import Engine from '../core/Engine';
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
@@ -50,10 +51,28 @@ export const additionalSrps = [
  * This should be called during EngineService startup
  */
 async function applyVaultInitialization() {
-  if (
-    predefinedPassword &&
-    !(await StorageWrapper.getItem(VAULT_INITIALIZED_KEY))
-  ) {
+  if (!predefinedPassword) {
+    return null;
+  }
+
+  const flagSet = !!(await StorageWrapper.getItem(VAULT_INITIALIZED_KEY));
+
+  // Verify that the Engine actually loaded accounts, not just that the flag exists.
+  //
+  // The flag is written immediately after wallet creation, but the KeyringController
+  // state is flushed to disk with a 200 ms debounce (createPersistController).
+  // If the app is restarted within that debounce window the flag is already set but
+  // the vault was never written to ControllerStorage, so the Engine starts empty.
+  // Checking the live Engine state catches that scenario and allows re-initialization.
+  const hasAccounts = Engine.context?.KeyringController?.state?.keyrings?.some(
+    (keyring: { accounts: string[] }) => keyring.accounts.length > 0,
+  );
+
+  if (flagSet && hasAccounts) {
+    return null;
+  }
+
+  if (!hasAccounts) {
     await Authentication.newWalletAndKeychain(predefinedPassword, {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
     });
@@ -73,32 +92,32 @@ async function applyVaultInitialization() {
         );
       }
     }
-
-    await StorageWrapper.setItem(VAULT_INITIALIZED_KEY, 'true');
-
-    // removes the necessity of the user to see the protect your wallet modal
-    store.dispatch(seedphraseBackedUp());
-    // removes the necessity of the user to see the privacy policy modal
-    store.dispatch(storePrivacyPolicyClickedOrClosed());
-    // removes the necessity of the user to see the multichain accounts intro modal
-    store.dispatch(setMultichainAccountsIntroModalSeen(true));
-    // Set auto-lock time for the default
-    // Note: This line is tested via component tests (setLockTime action creator + store.dispatch)
-    // Full integration testing requires PREDEFINED_PASSWORD env var set before module load
-    store.dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT));
-
-    // removes the necessity of the user to see the terms of use modal
-    await StorageWrapper.setItem(USE_TERMS, TRUE);
-
-    // removes the necessity of the user to see the opt-in metrics modal
-    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
-
-    // removes the necessity of the user to see the predictions GTM modal
-    await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, TRUE);
-
-    // prevents the enable notifications modal from showing
-    await StorageWrapper.setItem(HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS, TRUE);
   }
+
+  await StorageWrapper.setItem(VAULT_INITIALIZED_KEY, 'true');
+
+  // removes the necessity of the user to see the protect your wallet modal
+  store.dispatch(seedphraseBackedUp());
+  // removes the necessity of the user to see the privacy policy modal
+  store.dispatch(storePrivacyPolicyClickedOrClosed());
+  // removes the necessity of the user to see the multichain accounts intro modal
+  store.dispatch(setMultichainAccountsIntroModalSeen(true));
+  // Set auto-lock time for the default
+  // Note: This line is tested via component tests (setLockTime action creator + store.dispatch)
+  // Full integration testing requires PREDEFINED_PASSWORD env var set before module load
+  store.dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT));
+
+  // removes the necessity of the user to see the terms of use modal
+  await StorageWrapper.setItem(USE_TERMS, TRUE);
+
+  // removes the necessity of the user to see the opt-in metrics modal
+  await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
+
+  // removes the necessity of the user to see the predictions GTM modal
+  await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, TRUE);
+
+  // prevents the enable notifications modal from showing
+  await StorageWrapper.setItem(HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS, TRUE);
 
   return null;
 }
