@@ -25,6 +25,7 @@ import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import { useTopTraders } from './hooks';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const HOME_TRADER_LIMIT = 10;
 const SKELETON_KEYS = Array.from(
@@ -67,8 +68,10 @@ const TopTradersSection = forwardRef<
     [refresh],
   );
 
+  const willRender = isEnabled && (isLoading || traders.length > 0);
+
   const { onLayout } = useHomeViewedEvent({
-    sectionRef: sectionViewRef,
+    sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
@@ -111,7 +114,11 @@ const TopTradersSection = forwardRef<
       testID="homepage-top-traders-section-root"
     >
       <Box gap={3}>
-        <SectionHeader title={title} onPress={handleViewAll} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAll}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
+        />
 
         <ScrollView
           horizontal

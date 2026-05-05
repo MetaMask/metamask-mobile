@@ -227,10 +227,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={hasExtraBottomPadding && styles.extraBottomPadding}
         >
           <AlertMessage alertMessage={alertMessage} />
-          {supportAccountSelection && <PayAccountSelector />}
-          {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
+          {!isResultReady && (
+            <>
+              {supportAccountSelection && (
+                <PayAccountSelector style={styles.separator} />
+              )}
+              {disablePay !== true && hasTokens && <PayWithRow />}
+            </>
+          )}
           {isResultReady && (
             <Box>
+              {supportAccountSelection && <PayAccountSelector />}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
