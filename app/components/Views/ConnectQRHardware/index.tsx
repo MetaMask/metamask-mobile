@@ -121,7 +121,6 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
 
     return () => {
       setQrScanRetryHandler?.(null);
-      setTargetWalletType(null as unknown as HardwareWalletType);
     };
   }, [setQrScanRetryHandler, setTargetWalletType]);
 
