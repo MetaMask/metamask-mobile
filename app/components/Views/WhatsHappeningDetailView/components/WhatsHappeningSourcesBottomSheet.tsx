@@ -13,6 +13,7 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../locales/i18n';
 import ArticleRow from '../../../UI/MarketInsights/components/ArticleRow';
+import { isSafeUrl } from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
 
 interface WhatsHappeningSourcesBottomSheetProps {
   isVisible: boolean;
@@ -33,7 +34,9 @@ const WhatsHappeningSourcesBottomSheet: React.FC<
   }, [isVisible]);
 
   const handleSourcePress = useCallback((url: string) => {
-    Linking.openURL(url);
+    if (isSafeUrl(url)) {
+      Linking.openURL(url);
+    }
   }, []);
 
   return (
