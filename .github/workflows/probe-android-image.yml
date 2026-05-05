@@ -7,6 +7,9 @@ name: Probe Android image
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/probe-android-image.yml
 
 permissions:
   contents: read
