@@ -281,4 +281,23 @@ describe('MoneyBalanceCard', () => {
       );
     });
   });
+
+  describe('layout resilience', () => {
+    it('keeps the APY tag and Add button on screen when the balance is very long', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          totalFiatRaw: '999999999990',
+          totalFiatFormatted: '$999,999,999,999.99',
+        }),
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '$999,999,999,999.99',
+      );
+      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
+    });
+  });
 });
