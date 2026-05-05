@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.76.0",
+  "version": "7.77.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -175,7 +175,7 @@
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
     "d3-color": "3.1.0",
     "napi-postinstall": "npm:npm-empty-package@1.0.0",
-    "axios": "^1.15.0",
+    "axios": "^1.15.1",
     "lodash": "4.18.1",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "@ethersproject/providers/ws": "^7.5.10",
