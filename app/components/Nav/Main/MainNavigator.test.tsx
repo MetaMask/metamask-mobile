@@ -1433,45 +1433,50 @@ describe('MainNavigator', () => {
     });
 
     describe('Money home screen conditional rendering', () => {
-      it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
-
-        const container = renderWithProvider(<MainNavigator />, {
+      const getHomeTabsScreenNames = (): string[] => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-
-        const screenProps = container.root.children
+        const homeScreen = mainRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+        )[0];
+        const HomeTabs = homeScreen?.props?.component as React.ComponentType<
+          Record<string, unknown>
+        >;
+        const { root: homeRoot } = renderWithProvider(
+          <HomeTabs route={{ params: {} }} />,
+          { state: initialRootState },
+        );
+        const tabNavigatorNode = homeRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        )[0];
+        return (tabNavigatorNode?.children ?? [])
           .filter(
             (child): child is ReactTestInstance =>
               typeof child === 'object' &&
-              'type' in child &&
               'props' in child &&
-              child.type?.toString() === 'Screen',
+              typeof child.props?.name === 'string',
           )
-          .map((child) => child.props.name);
+          .map((child) => child.props.name as string);
+      };
 
-        expect(screenProps).toContain(Routes.MONEY.ROOT);
+      it('includes Money route when feature flag is enabled', () => {
+        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
         mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
       });
 
       it('excludes Money route when feature flag is disabled', () => {
         mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
 
-        const container = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
+        const tabScreenNames = getHomeTabsScreenNames();
 
-        const screenProps = container.root.children
-          .filter(
-            (child): child is ReactTestInstance =>
-              typeof child === 'object' &&
-              'type' in child &&
-              'props' in child &&
-              child.type?.toString() === 'Screen',
-          )
-          .map((child) => child.props.name);
-
-        expect(screenProps).not.toContain(Routes.MONEY.ROOT);
+        expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
       });
     });
   });
