@@ -5585,5 +5585,35 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockDeps.logger.error).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
     });
+
+    it('logs method name (not class name) for transient SDK errors', async () => {
+      // Arrange: make activeAssetCtx reject with a WebSocketRequestError
+      const transientError = new Error(
+        'Unknown error while making a WebSocket request',
+      );
+      transientError.name = 'WebSocketRequestError';
+      mockSubscriptionClient.activeAssetCtx.mockRejectedValue(transientError);
+
+      // Act
+      await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      // Assert: debugLogger received method context, not the class name
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('ensureActiveAssetSubscription'),
+      );
+      expect(mockDeps.debugLogger.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('HyperLiquidSubscriptionService:'),
+      );
+      // Sentry logger should NOT have been called with the transient error
+      expect(mockDeps.logger.error).not.toHaveBeenCalledWith(
+        transientError,
+        expect.anything(),
+      );
+    });
   });
 });

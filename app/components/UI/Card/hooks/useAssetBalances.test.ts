@@ -60,7 +60,7 @@ jest.mock('../../Ramp/Deposit/constants/networks', () => ({
     chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   },
 }));
-jest.mock('../../../../util/number', () => ({
+jest.mock('../../../../util/number/bigint', () => ({
   balanceToFiatNumber: jest.fn((balance: string, rate: number) => {
     const bal = parseFloat(balance);
     return (bal * rate).toString();
