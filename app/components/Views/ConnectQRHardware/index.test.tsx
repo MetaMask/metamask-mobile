@@ -160,10 +160,10 @@ const mockPage1Accounts = [
 ];
 
 const mockQrKeyring = {
-  getFirstPage: jest.fn(),
-  getNextPage: jest.fn(),
-  getPreviousPage: jest.fn(),
-  forgetDevice: jest.fn(),
+  getFirstPage: jest.fn() as jest.Mock,
+  getNextPage: jest.fn() as jest.Mock,
+  getPreviousPage: jest.fn() as jest.Mock,
+  forgetDevice: jest.fn() as jest.Mock,
   getName: jest.fn().mockResolvedValue('KeystoneDevice'),
   getAccounts: jest
     .fn()
@@ -171,7 +171,7 @@ const mockQrKeyring = {
       '0x4678901234567890123456789012345678901210',
       '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
     ]),
-  setAccountToUnlock: jest.fn(),
+  setAccountToUnlock: jest.fn() as jest.Mock,
   addAccounts: jest
     .fn()
     .mockResolvedValue(['0x4678901234567890123456789012345678901210']),
