@@ -153,33 +153,34 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     />
   );
 
-  const listFooter = active.hasMore ? (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="mt-3 mb-9"
-    >
-      <TouchableOpacity
-        onPress={active.fetchMore}
-        disabled={active.isFetchingMore}
-        testID="all-sports-load-more"
+  const listFooter =
+    active.hasMore && active.marketData.length > 0 ? (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="mt-3 mb-9"
       >
-        {active.isFetchingMore ? (
-          <ActivityIndicator color={colors.primary.default} />
-        ) : (
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
-          >
-            {strings('trending.load_more')}
-          </Text>
-        )}
-      </TouchableOpacity>
-    </Box>
-  ) : (
-    <Box twClassName="mb-9" />
-  );
+        <TouchableOpacity
+          onPress={active.fetchMore}
+          disabled={active.isFetchingMore}
+          testID="all-sports-load-more"
+        >
+          {active.isFetchingMore ? (
+            <ActivityIndicator color={colors.primary.default} />
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.PrimaryDefault}
+            >
+              {strings('trending.load_more')}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </Box>
+    ) : (
+      <Box twClassName="mb-9" />
+    );
 
   // When loading or empty, data is empty — header renders those states.
   const listData =
