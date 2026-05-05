@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { AppState } from 'react-native';
+import { AppState, type AppStateStatus } from 'react-native';
 import Braze from '@braze/react-native-sdk';
 import { useBrazeBanner } from './useBrazeBanner';
 
@@ -9,10 +9,10 @@ const SKELETON_TIMEOUT_MS = 5000;
 // ---------------------------------------------------------------------------
 // Mock: react-native AppState
 // ---------------------------------------------------------------------------
-let capturedAppStateListener: ((nextState: string) => void) | undefined;
+let capturedAppStateListener: ((nextState: AppStateStatus) => void) | undefined;
 const mockAppStateRemove = jest.fn();
 
-const fireAppStateChange = (nextState: string) => {
+const fireAppStateChange = (nextState: AppStateStatus) => {
   act(() => {
     capturedAppStateListener?.(nextState);
   });
@@ -154,7 +154,7 @@ describe('useBrazeBanner', () => {
 
     jest
       .spyOn(AppState, 'addEventListener')
-      .mockImplementation((_event: string, cb: (nextState: string) => void) => {
+      .mockImplementation((_event, cb: (nextState: AppStateStatus) => void) => {
         capturedAppStateListener = cb;
         return { remove: mockAppStateRemove } as ReturnType<
           typeof AppState.addEventListener
