@@ -69,15 +69,9 @@ const CardRow = ({
           {cardName}
         </Text>
         <Tag severity={TagSeverity.Success}>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-          >
-            {strings('money.metamask_card.cashback', {
-              percentage: cashbackPercentage,
-            })}
-          </Text>
+          {strings('money.metamask_card.cashback', {
+            percentage: cashbackPercentage,
+          })}
         </Tag>
       </Box>
     </Box>
