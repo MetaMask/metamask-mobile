@@ -1345,4 +1345,17 @@ describe('Engine', () => {
       expect(sortedControllersInState).toEqual(sortedExpectedControllers);
     });
   });
+
+  describe('resetState', () => {
+    it('calls MoneyAccountController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+  });
 });

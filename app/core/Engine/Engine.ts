@@ -1154,6 +1154,7 @@ export class Engine {
       SnapController,
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
+      MoneyAccountController,
     } = this.context;
 
     // Remove all permissions.
@@ -1184,6 +1185,9 @@ export class Engine {
     }));
 
     LoggingController.clear();
+
+    // Accounts:
+    MoneyAccountController.clearState();
   };
 
   removeAllListeners() {
