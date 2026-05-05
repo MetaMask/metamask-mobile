@@ -34,16 +34,12 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   // Use ref to store previous token array
   const previousTokensRef = useRef<PerpsToken[]>([]);
 
-  // Get Hyperliquid account balance. Prefer `availableToTradeBalance` so
-  // Unified Account / Portfolio Margin users see their real spendable balance
-  // in the Pay-with sheet — `availableBalance` mirrors HL's perps-only
-  // `clearinghouseState.withdrawable`, which is $0 in unified mode.
+  // Get Hyperliquid account balance from the reshaped balance contract.
+  // `spendableBalance` is the Unified-aware tradeable amount.
   const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
   const hyperliquidBalance = Number.parseFloat(
-    (
-      account?.availableToTradeBalance ?? account?.availableBalance
-    )?.toString() || '0',
+    account?.spendableBalance?.toString() || '0',
   );
 
   // Get all chain IDs to search for tokens (exclude Hyperliquid chains)
