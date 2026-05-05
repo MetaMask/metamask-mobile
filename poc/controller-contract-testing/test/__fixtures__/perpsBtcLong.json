@@ -1,0 +1,9 @@
+{
+  "positions": {
+    "BTC": {
+      "side": "long",
+      "size": 1,
+      "markPrice": 50000
+    }
+  }
+}

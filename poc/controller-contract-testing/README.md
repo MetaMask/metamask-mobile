@@ -54,6 +54,120 @@ The pragmatic split: fixture + contract on top of every existing CV test
 high-risk surfaces where e2e currently catches bugs, CV tests untouched
 elsewhere for everything UI-only.
 
+## Bug classes this PoC aims to cover
+
+The three layers collectively close a gap that today only e2e catches —
+real bugs in the controller-app integration, where neither pure unit
+tests nor CV-with-mocked-state can reproduce the failure. This section
+lists the bug classes by example, leading with the actual perps
+reverse-position bug that motivated the PoC.
+
+### Worked example: the perps "reverse position" bug
+
+A user holds a 1-BTC long. They place a 2-BTC market sell order — the
+expected behaviour is "close the long, open a 1-BTC short." Instead the
+operation fails with `ORDER_PRICE_REQUIRED`.
+
+The bug lives at the seam between the close-position path and the
+order-validation path in `app/controllers/perps/providers/HyperLiquidProvider.ts`:
+
+- In `closePosition` (around line 4630–4670), the fallback logic that
+  derives a price for validation only fires for `orderType === 'limit'`.
+  For market orders without an explicit `currentPrice` argument,
+  `priceForValidation` stays undefined.
+- In `validateOrder` (around line 6745–6770), if `priceForValidation` is
+  undefined the validator rejects the order with `ORDER_PRICE_REQUIRED`.
+- A reverse position decomposes into close-then-open. The first leg is
+  a `reduceOnly: true` market order — which is exactly the case the
+  fallback doesn't handle. The whole operation aborts.
+
+Why none of the existing tests catch it:
+
+- The CV test `usePerpsFlipPosition.test.ts` mocks the *result* of
+  `flipPosition` wholesale. The validator code path is never exercised.
+  No state literal you could write would cause this bug to surface
+  through a CV test, by construction.
+- `HyperLiquidProvider.test.ts` (~5,000 lines) tests `validateOrder`
+  and `closePosition` in isolation. Neither suite combines "size > current
+  position" with "missing currentPrice on market order" — that scenario
+  only exists at the integration boundary.
+- E2E does catch it, but only after the build pipeline runs, on a real
+  simulator, against a live HyperLiquid testnet. Cycle time: minutes.
+
+What an integration test (Layer 3) would look like:
+
+```ts
+describe('PerpsController flip position', () => {
+  it('reverses a long via market order without explicit currentPrice', async () => {
+    const controller = buildPerpsForTest({ hyperLiquidSdk: mockSdk });
+
+    await controller.placeOrder({
+      symbol: 'BTC', isBuy: true, size: '1', currentPrice: 50_000,
+    });
+
+    const result = await controller.flipPosition({
+      symbol: 'BTC', size: '2', orderType: 'market',
+    });
+
+    expect(result.success).toBe(true);
+    expect(controller.state.positions.BTC).toMatchObject({
+      side: 'short', size: '1',
+    });
+  });
+});
+```
+
+Today this fails with `ORDER_PRICE_REQUIRED` in ~50ms. After the fix
+(auto-fill `currentPrice` from `state.positions[symbol].markPrice` when
+`reduceOnly: true` triggers a reversal), the same test passes and
+guards against regression. Same test file the developer is already
+iterating in. No simulator. No testnet. No e2e wait.
+
+### Other bug classes the same approach catches
+
+The perps case is one shape of "integration bug." The rollout addresses
+several adjacent classes that have similar economics — expensive to
+catch today, cheap once the layers are in place:
+
+- **Controller emits a different state shape than the app expects.**
+  Fixture-verification re-runs the scenario through the real controller
+  and diffs against committed JSON. Catches both intentional shape
+  changes (Renovate bumps `@metamask/foo-controller`) and accidental
+  refactors that drop a field.
+- **Component-test mocks have drifted from reality.** A CV test author
+  hand-writes a state literal based on stale assumptions about the
+  controller's shape. The contract layer (`assert*State`) rejects it
+  at test setup with a one-line error pointing at the bad field.
+- **Action sequence / transition bugs.** A `loading` flag flips false
+  before data arrives; a button dispatches the wrong action; an
+  `useEffect` runs against a stale closure during a state transition.
+  All of these need real action dispatch through real controller code,
+  which Layer 3 provides.
+- **Inter-controller wiring bugs.** Two controllers share an event bus;
+  the receiver subscribes to the wrong event name, or unsubscribes too
+  early. Caught by an integration test that wires both controllers
+  through their real messengers.
+- **Selector composition over real state.** A reselect-style selector
+  composes outputs from multiple controllers; the composition is wrong
+  for state shapes that no single hand-rolled mock would have
+  produced. Layer 3 generates the state by running the real controllers,
+  which exposes the cases hand-rolled mocks miss.
+- **Constructor / initialisation bugs.** The app instantiates the
+  controller with a slightly-wrong config or wires up subscriptions in
+  the wrong order. Caught when `buildXForTest()` mirrors the production
+  bootstrap and the integration test uses it.
+- **Upstream package version-bump regressions.** Renovate bumps a
+  controller package; the new version subtly changes behaviour. The
+  fixture diff appears in the bump PR; the integration tests run
+  the real new code path. Catches behaviour drift at the moment of
+  the bump rather than weeks later in QA.
+
+The common thread: every one of these bugs lives in the *interaction*
+between code units, not inside any single unit. Unit tests can't see
+them by definition; CV tests with mocked state structurally can't
+reproduce them; e2e catches them but at 100–1000× the cost. The three
+layers together fill exactly that gap.
+
 ## Run it
 
 ```bash
@@ -68,25 +182,39 @@ controller change: `UPDATE_FIXTURES=1 npm test`.
 
 ```
 src/
-  WidgetController.ts        Real BaseController, has state + one async action + I/O dep
-  widgetSelectors.ts         Selectors UI consumes
+  WidgetController.ts        Generic example — real BaseController, state + async action + I/O dep
+  widgetSelectors.ts         Selectors a UI would consume
+  PerpsMini.ts               Stand-in for PerpsController — reproduces the real reverse-position bug
+  perpsSelectors.ts          Selectors for a perps "Position summary" view
 test/
-  WidgetController.test.ts   Layer 1: behaviour + fixture verification (THE source of truth)
-  widgetStateContract.ts     Layer 2: runtime contract + mockWidgetState() helper
-  widgetView.view.test.ts            The "after" CV test — fixture + contract checked
-  widgetView.integration.test.ts     Layer 3: real controller, mocked I/O
-  __fixtures__/twoWidgetsAdded.json  Committed fixture (single source of truth)
+  WidgetController.test.ts          Layer 1 (widget): behaviour + fixture verification
+  widgetStateContract.ts            Layer 2 (widget): runtime contract + mockWidgetState()
+  widgetView.view.test.ts           Layer 3 (widget) — CV test: fixture + contract checked
+  widgetView.integration.test.ts    Layer 3 (widget) — integration test
+  PerpsMini.test.ts                 Layer 1 (perps): behaviour + fixture verification
+  perpsMiniContract.ts              Layer 2 (perps): runtime contract + mockPerpsMiniState()
+  perpsView.view.test.ts            Layer 3 (perps) — CV test: fixture + contract checked
+  perpsView.integration.test.ts     Layer 3 (perps) — reproduces the bug + asserts the fix
+  __fixtures__/twoWidgetsAdded.json   Committed fixture (widget)
+  __fixtures__/perpsBtcLong.json      Committed fixture (perps)
 ```
+
+18 tests across 6 suites, all green. The perps integration suite both
+reproduces the production `ORDER_PRICE_REQUIRED` bug AND asserts the
+proposed fix — toggle in `PerpsMini` (`new PerpsMini({ applyReverseFix: true })`).
 
 ## What each layer catches
 
-| Bug class                                         | Caught by                               | Speed |
-|---------------------------------------------------|-----------------------------------------|-------|
-| Controller logic bug (e.g. forgot to set field)   | Controller unit test                    | ms    |
-| Controller emits a different shape than before    | Fixture-verification test               | ms    |
-| Component-test mock drifted from real shape       | `mockWidgetState()` contract check      | ms    |
-| Bug only appears when controller + selector + UI run together | Integration test (real ctrl, mocked I/O) | ms |
-| Native module / device / RN runtime issue         | e2e (still needed, but for less)        | s–min |
+| Bug class                                                         | Caught by                                | Speed |
+|-------------------------------------------------------------------|------------------------------------------|-------|
+| Controller logic bug (e.g. forgot to set a field)                 | Controller unit test                     | ms    |
+| Controller emits a different state shape than before              | Fixture-verification test                | ms    |
+| Component-test mock drifted from real controller shape            | `mockWidgetState()` contract check       | ms    |
+| Reverse-position style bug (size > position with missing price)   | Integration test (real ctrl, mocked I/O) | ms    |
+| Action sequence / transition bug (loading flag flips wrong order) | Integration test                         | ms    |
+| Inter-controller wiring (subscribed to wrong event)               | Integration test                         | ms    |
+| Upstream package version bump changes behaviour                   | Fixture verify + integration             | ms    |
+| Native module / device / RN runtime issue                         | e2e (still needed, but for less)         | s–min |
 
 ## Drift demo (already verified)
 
