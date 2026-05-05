@@ -18,13 +18,18 @@
  * safe to surface.
  */
 
+/* global Buffer */
+
+// eslint-disable-next-line no-misleading-character-class -- intentional set of invisible code points (ZWSP/ZWNJ/ZWJ/BOM)
 const ZERO_WIDTH_CHARS = /[\u200B\u200C\u200D\uFEFF]/;
 
 // C0/C1 control chars, excluding tab (\u0009), line feed (\u000A), and
 // carriage return (\u000D). CR is reported separately with a friendlier
 // message. LF is allowed mid-value for multi-line secrets (PEM keys, base64).
+/* eslint-disable no-control-regex -- intentionally matches control characters to flag them */
 const CONTROL_CHARS =
   /[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/;
+/* eslint-enable no-control-regex */
 
 function formatCodePoint(ch) {
   return `U+${ch.charCodeAt(0).toString(16).padStart(4, '0').toUpperCase()}`;
