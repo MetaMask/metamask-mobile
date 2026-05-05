@@ -118,8 +118,10 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             </Box>
           )}
 
-          {/* Perps section — only assets with a HyperLiquid perps market identifier */}
-          {item.relatedAssets.some((asset) => asset.hlPerpsMarket?.length) && (
+          {/* Perps section — only assets that are perps-only (hlPerpsMarket set, no caip19 token) */}
+          {item.relatedAssets.some(
+            (asset) => asset.hlPerpsMarket?.length && !asset.caip19?.length,
+          ) && (
             <Box gap={1}>
               <Text
                 variant={TextVariant.BodySm}
@@ -130,7 +132,10 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
               </Text>
 
               {item.relatedAssets
-                .filter((asset) => asset.hlPerpsMarket?.length)
+                .filter(
+                  (asset) =>
+                    asset.hlPerpsMarket?.length && !asset.caip19?.length,
+                )
                 .map((asset) => (
                   <PerpsRow key={`perp-${asset.sourceAssetId}`} asset={asset} />
                 ))}
