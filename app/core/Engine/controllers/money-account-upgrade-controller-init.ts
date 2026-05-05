@@ -32,6 +32,11 @@ export const whenMoneyAccountUpgradeReady = (): Promise<void> => {
   return bootstrapPromise;
 };
 
+/** @internal For test use only. */
+export const __resetMoneyAccountUpgradeBootstrapForTesting = () => {
+  bootstrapPromise = null;
+};
+
 /**
  * Initialize the MoneyAccountUpgradeController.
  *
