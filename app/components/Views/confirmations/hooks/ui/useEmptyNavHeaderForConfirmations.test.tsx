@@ -20,18 +20,9 @@ jest.mock('../../components/UI/navbar/navbar');
 
 describe('useEmptyNavHeaderForConfirmations', () => {
   const mockGetEmptyNavHeader = jest.mocked(getEmptyNavHeader);
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
   const mockNavbarOptions = {
-    headerTitle: () => <></>,
-    headerLeft: () => <></>,
-    headerRight: () => <></>,
-    headerTitleAlign: 'center' as const,
-    headerStyle: {
-      backgroundColor: mockTheme.colors.background.default,
-      shadowColor: 'transparent',
-      elevation: 0,
-    },
+    header: () => <></>,
     headerShown: true,
     gestureEnabled: false,
   };
