@@ -35,11 +35,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('./usePredictLivePositions', () => ({
-  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
-    livePositions: positions ?? [],
-    isConnected: false,
-    lastUpdateTime: null,
-  })),
+  usePredictLivePositions: jest.fn(),
 }));
 
 const mockGetPositions = jest.fn<
@@ -108,11 +104,7 @@ describe('usePredictPositions', () => {
     jest.clearAllMocks();
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
     mockGetPositions.mockResolvedValue([]);
-    mockUsePredictLivePositions.mockImplementation((positions: unknown[]) => ({
-      livePositions: positions ?? [],
-      isConnected: false,
-      lastUpdateTime: null,
-    }));
+    mockUsePredictLivePositions.mockImplementation(() => undefined);
   });
 
   it('returns empty positions when query returns no positions', async () => {
@@ -474,12 +466,6 @@ describe('usePredictPositions', () => {
             },
           );
         }, [options?.cacheAddress, options?.enabled, queryClient, positions]);
-
-        return {
-          livePositions: positions ?? [],
-          isConnected: false,
-          lastUpdateTime: null,
-        };
       },
     );
 

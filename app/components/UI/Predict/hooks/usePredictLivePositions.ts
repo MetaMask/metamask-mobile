@@ -28,37 +28,19 @@ export interface UseLivePositionsOptions {
   cacheAddress?: string;
 }
 
-export interface UseLivePositionsResult {
-  /**
-   * Positions with live-updated values based on current market prices
-   */
-  livePositions: PredictPosition[];
-  /**
-   * Whether the WebSocket connection is active
-   */
-  isConnected: boolean;
-  /**
-   * Timestamp of the last price update
-   */
-  lastUpdateTime: number | null;
-}
-
 /**
- * Hook that takes positions and returns live-updated positions based on real-time market prices.
- *
- * Uses the bestBid price from live market data to calculate:
- * - currentValue: size * bestBid (what you can sell for right now)
- * - cashPnl: currentValue - initialValue (profit/loss)
- * - percentPnl: ((currentValue - initialValue) / initialValue) * 100
+ * Side-effect hook that subscribes to live market prices and syncs
+ * computed position values (currentValue, cashPnl, percentPnl, price)
+ * into the address-scoped positions query cache.
  *
  * @param positions - Array of positions to track (from usePredictPositions)
- * @param options - Configuration options (enabled: boolean)
- * @returns Live-updated positions, connection status, and last update timestamp
+ * @param options - Configuration options
+ * @internal Only consumed by usePredictPositions
  */
 export const usePredictLivePositions = (
   positions: PredictPosition[],
   options: UseLivePositionsOptions = {},
-): UseLivePositionsResult => {
+): void => {
   const { enabled = true, cacheAddress } = options;
   const queryClient = useQueryClient();
   const isScreenFocused = useIsFocused();
@@ -209,10 +191,4 @@ export const usePredictLivePositions = (
     livePositionUpdates,
     queryClient,
   ]);
-
-  return {
-    livePositions,
-    isConnected,
-    lastUpdateTime,
-  };
 };
