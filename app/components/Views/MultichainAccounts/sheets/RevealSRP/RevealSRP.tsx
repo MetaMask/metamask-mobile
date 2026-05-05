@@ -89,7 +89,7 @@ export const RevealSRP = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={containerStyle}>
       <HeaderBase
-        twClassName="flex-row items-center"
+        twClassName="flex-row items-center px-4"
         startAccessory={
           <ButtonIcon
             testID={AccountDetailsIds.BACK_BUTTON}
@@ -104,7 +104,7 @@ export const RevealSRP = () => {
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
-        twClassName="mb-auto grow justify-center gap-4"
+        twClassName="mb-auto grow justify-center gap-4 px-4"
         testID={ExportCredentialsIds.CONTAINER}
       >
         <Box twClassName="mx-[60px] my-[46px]">
@@ -126,7 +126,7 @@ export const RevealSRP = () => {
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Stretch}
         style={tw.style(
-          'mt-auto w-full gap-4',
+          'mt-auto w-full gap-4 px-4',
           Platform.OS === 'android' && 'pb-3',
         )}
       >

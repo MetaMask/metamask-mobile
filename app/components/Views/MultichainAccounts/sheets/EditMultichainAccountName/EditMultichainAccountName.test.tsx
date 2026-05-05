@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Platform, StatusBar } from 'react-native';
 import { EditMultichainAccountName } from './EditMultichainAccountName';
 import { strings } from '../../../../../../locales/i18n';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
@@ -37,12 +38,29 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 describe('EditMultichainAccountName', () => {
+  const originalPlatformOs = Platform.OS;
+  const originalStatusBarCurrentHeight = StatusBar.currentHeight;
   const render = () => renderWithProvider(<EditMultichainAccountName />);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSetAccountGroupName.mockReset();
     mockUseRoute.mockReturnValue(mockRoute);
+    Platform.OS = 'ios';
+    Object.defineProperty(StatusBar, 'currentHeight', {
+      configurable: true,
+      writable: true,
+      value: originalStatusBarCurrentHeight,
+    });
+  });
+
+  afterAll(() => {
+    Platform.OS = originalPlatformOs;
+    Object.defineProperty(StatusBar, 'currentHeight', {
+      configurable: true,
+      writable: true,
+      value: originalStatusBarCurrentHeight,
+    });
   });
 
   describe('rendering', () => {
@@ -234,6 +252,29 @@ describe('EditMultichainAccountName', () => {
 
       const nameInput = getByTestId(EditAccountNameIds.ACCOUNT_NAME_INPUT);
       expect(nameInput.props.value).toBe('');
+    });
+
+    it('renders fallback header when route omits account group', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+      } as typeof mockRoute);
+
+      const { getByText } = render();
+      expect(getByText('Account Group')).toBeTruthy();
+    });
+  });
+
+  describe('platform-specific layout', () => {
+    it('renders on Android with status bar inset and keyboard avoiding height behavior', () => {
+      Platform.OS = 'android';
+      Object.defineProperty(StatusBar, 'currentHeight', {
+        configurable: true,
+        writable: true,
+        value: 24,
+      });
+
+      const { getByTestId } = render();
+      expect(getByTestId(EditAccountNameIds.BACK_BUTTON)).toBeTruthy();
     });
   });
 });
