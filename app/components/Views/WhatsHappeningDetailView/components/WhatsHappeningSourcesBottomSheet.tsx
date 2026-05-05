@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -16,22 +16,15 @@ import ArticleRow from '../../../UI/MarketInsights/components/ArticleRow';
 import { isSafeUrl } from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
 
 interface WhatsHappeningSourcesBottomSheetProps {
-  isVisible: boolean;
   onClose: () => void;
   articles: Article[];
 }
 
 const WhatsHappeningSourcesBottomSheet: React.FC<
   WhatsHappeningSourcesBottomSheetProps
-> = ({ isVisible, onClose, articles }) => {
+> = ({ onClose, articles }) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  useEffect(() => {
-    if (!isVisible) {
-      bottomSheetRef.current?.onCloseBottomSheet();
-    }
-  }, [isVisible]);
 
   const handleSourcePress = useCallback((url: string) => {
     if (isSafeUrl(url)) {

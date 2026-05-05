@@ -187,7 +187,6 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
       {sourcesVisible && (
         <WhatsHappeningSourcesBottomSheet
-          isVisible={sourcesVisible}
           onClose={() => setSourcesVisible(false)}
           articles={item.articles}
         />

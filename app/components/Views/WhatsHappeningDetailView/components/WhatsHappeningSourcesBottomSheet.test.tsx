@@ -73,7 +73,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
   it('renders one row per article', () => {
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
-        isVisible
         onClose={jest.fn()}
         articles={articles as never}
       />,
@@ -85,7 +84,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
   it('opens the article URL when a row is pressed and URL is safe', () => {
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
-        isVisible
         onClose={jest.fn()}
         articles={articles as never}
       />,
@@ -98,7 +96,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
     mockIsSafeUrl.mockReturnValue(false);
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
-        isVisible
         onClose={jest.fn()}
         articles={articles as never}
       />,
@@ -110,7 +107,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
   it('renders the sheet title', () => {
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
-        isVisible
         onClose={jest.fn()}
         articles={articles as never}
       />,
@@ -120,11 +116,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
 
   it('renders no article rows when articles array is empty', () => {
     renderWithProvider(
-      <WhatsHappeningSourcesBottomSheet
-        isVisible
-        onClose={jest.fn()}
-        articles={[]}
-      />,
+      <WhatsHappeningSourcesBottomSheet onClose={jest.fn()} articles={[]} />,
     );
     expect(screen.queryByText('coindesk.com')).toBeNull();
   });
