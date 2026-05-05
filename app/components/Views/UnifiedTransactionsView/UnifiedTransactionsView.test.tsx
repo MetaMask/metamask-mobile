@@ -9,7 +9,7 @@ import _renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
-import { useTransactionsQuery } from './hooks/useTransactionsQuery';
+import { useTransactionsQuery } from './useTransactionsQuery';
 import { selectTransactions } from './helpers/transformations';
 
 // Type helper for UNSAFE_queryByType with mocked string components
@@ -106,7 +106,7 @@ jest.mock('./useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(() => mockDefaultUnifiedTxActionsReturn),
 }));
 
-jest.mock('./hooks/useTransactionsQuery', () => ({
+jest.mock('./useTransactionsQuery', () => ({
   useTransactionsQuery: jest.fn(() => createUseTransactionsQueryResult()),
 }));
 

@@ -56,7 +56,7 @@ import { TabEmptyState } from '../../../component-library/components-temp/TabEmp
 import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.testIds';
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
-import { useTransactionsQuery } from './hooks/useTransactionsQuery';
+import { useTransactionsQuery } from './useTransactionsQuery';
 import type { TransactionViewModel } from './types';
 
 const confirmedEvmOverscan = 5;

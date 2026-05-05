@@ -2,11 +2,11 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
-import { apiClient } from '../../../../core/apiClient';
-import { selectEvmAddress } from '../../../../selectors/accountsController';
-import { selectEvmEnabledCaipNetworks } from '../../../../selectors/networkEnablementController';
-import { selectTransactions } from '../helpers/transformations';
-import { MINUTE } from '../../../../constants/time';
+import { apiClient } from '../../../core/apiClient';
+import { selectEvmAddress } from '../../../selectors/accountsController';
+import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
+import { selectTransactions } from './helpers/transformations';
+import { MINUTE } from '../../../constants/time';
 
 export const useTransactionsQuery = () => {
   const evmAddress = useSelector(selectEvmAddress) || '';
@@ -33,5 +33,6 @@ export const useTransactionsQuery = () => {
     select: selectFn,
     enabled: accountAddresses.length > 0 && networks.length > 0,
     staleTime: 5 * MINUTE,
+    retry: false,
   });
 };
