@@ -21,6 +21,7 @@ import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
+import { isValidHexAddress } from '../../../../util/address';
 import {
   NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE,
   TRANSFER_FROM_FUNCTION_SIGNATURE,
@@ -284,6 +285,12 @@ export const submitEvmTransaction = async ({
   to: Hex;
   value: string;
 }) => {
+  if (!to || !isValidHexAddress(to)) {
+    throw new Error(
+      `submitEvmTransaction: Invalid recipient address "${to}". Refusing to submit transaction without a valid "to".`,
+    );
+  }
+
   const { NetworkController } = Engine.context;
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);

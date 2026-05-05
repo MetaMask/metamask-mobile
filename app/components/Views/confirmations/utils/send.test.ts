@@ -232,6 +232,75 @@ describe('submitEvmTransaction', () => {
     expect(mockAddTransaction).toHaveBeenCalled();
   });
 
+  it('throws and does not call addTransaction when "to" is empty string', async () => {
+    const mockAddTransaction = jest
+      .spyOn(TransactionUtils, 'addTransaction')
+      .mockImplementation(() =>
+        Promise.resolve({
+          result: Promise.resolve('123'),
+          transactionMeta: { id: '123' } as TransactionMeta,
+        }),
+      );
+
+    await expect(
+      submitEvmTransaction({
+        asset: { isNative: true } as AssetType,
+        chainId: '0x1',
+        from: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+        to: '' as `0x${string}`,
+        value: '10',
+      }),
+    ).rejects.toThrow(/Invalid recipient address/);
+
+    expect(mockAddTransaction).not.toHaveBeenCalled();
+  });
+
+  it('throws and does not call addTransaction when "to" is undefined', async () => {
+    const mockAddTransaction = jest
+      .spyOn(TransactionUtils, 'addTransaction')
+      .mockImplementation(() =>
+        Promise.resolve({
+          result: Promise.resolve('123'),
+          transactionMeta: { id: '123' } as TransactionMeta,
+        }),
+      );
+
+    await expect(
+      submitEvmTransaction({
+        asset: { isNative: true } as AssetType,
+        chainId: '0x1',
+        from: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+        to: undefined as unknown as `0x${string}`,
+        value: '10',
+      }),
+    ).rejects.toThrow(/Invalid recipient address/);
+
+    expect(mockAddTransaction).not.toHaveBeenCalled();
+  });
+
+  it('throws and does not call addTransaction when "to" is not a valid hex address', async () => {
+    const mockAddTransaction = jest
+      .spyOn(TransactionUtils, 'addTransaction')
+      .mockImplementation(() =>
+        Promise.resolve({
+          result: Promise.resolve('123'),
+          transactionMeta: { id: '123' } as TransactionMeta,
+        }),
+      );
+
+    await expect(
+      submitEvmTransaction({
+        asset: { isNative: true } as AssetType,
+        chainId: '0x1',
+        from: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+        to: 'not-an-address' as unknown as `0x${string}`,
+        value: '10',
+      }),
+    ).rejects.toThrow(/Invalid recipient address/);
+
+    expect(mockAddTransaction).not.toHaveBeenCalled();
+  });
+
   it('invokes ppomUtil.validateRequest', () => {
     jest.spyOn(TransactionUtils, 'addTransaction').mockImplementation(() =>
       Promise.resolve({

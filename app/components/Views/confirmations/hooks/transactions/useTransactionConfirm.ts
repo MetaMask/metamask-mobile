@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useApprovalRequest from '../useApprovalRequest';
@@ -18,6 +19,8 @@ import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupported
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -27,6 +30,19 @@ export const GO_BACK_TYPES = [
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
+
+function isAccidentalEmptyContractDeployment(
+  txParams: TransactionMeta['txParams'] | undefined,
+): boolean {
+  if (!txParams) {
+    return false;
+  }
+  const { to, data } = txParams;
+  const isMissingRecipient =
+    to === undefined || to === '' || to === '0x' || to === null;
+  const hasRealBytecode = Boolean(data && data !== '0x' && data.length > 2);
+  return isMissingRecipient && !hasRealBytecode;
+}
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
@@ -114,6 +130,26 @@ export function useTransactionConfirm() {
       waitForResult?: boolean;
     }) => {
       if (!transactionMetadata) {
+        return;
+      }
+
+      if (isAccidentalEmptyContractDeployment(transactionMetadata.txParams)) {
+        Logger.error(
+          new Error(
+            'useTransactionConfirm: refused to confirm transaction with missing "to" and no bytecode (would deploy empty contract)',
+          ),
+          {
+            txId: transactionMetadata.id,
+            origin: transactionMetadata.origin,
+            type: transactionMetadata.type,
+          },
+        );
+        Alert.alert(
+          strings('send.missing_recipient_alert_title'),
+          strings('send.missing_recipient_alert_message'),
+          [{ text: strings('send.missing_recipient_alert_dismiss') }],
+          { cancelable: false },
+        );
         return;
       }
 

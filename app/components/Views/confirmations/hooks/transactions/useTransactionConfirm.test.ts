@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import {
   TransactionMeta,
   TransactionType,
@@ -116,7 +117,10 @@ describe('useTransactionConfirm', () => {
       id: transactionIdMock,
       chainId: CHAIN_ID_MOCK,
       origin: ORIGIN_METAMASK,
-      txParams: {},
+      txParams: {
+        from: '0x0000000000000000000000000000000000000001',
+        to: '0x0000000000000000000000000000000000000002',
+      },
     } as unknown as TransactionMeta);
 
     useFullScreenConfirmationMock.mockReturnValue({
@@ -136,6 +140,122 @@ describe('useTransactionConfirm', () => {
     await result.current.onConfirm();
 
     expect(onApprovalConfirm).toHaveBeenCalled();
+  });
+
+  describe('empty contract deployment guard', () => {
+    let alertSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    });
+
+    afterEach(() => {
+      alertSpy.mockRestore();
+    });
+
+    it('blocks confirmation when "to" is empty string and data is "0x"', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {
+          from: '0x0000000000000000000000000000000000000001',
+          to: '',
+          data: '0x',
+          value: '0x1',
+        },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Missing recipient',
+        expect.stringContaining('empty contract'),
+        expect.any(Array),
+        expect.any(Object),
+      );
+    });
+
+    it('blocks confirmation when "to" is undefined and data is "0x"', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {
+          from: '0x0000000000000000000000000000000000000001',
+          data: '0x',
+          value: '0x1',
+        },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+      expect(alertSpy).toHaveBeenCalled();
+    });
+
+    it('blocks confirmation when "to" is undefined and data is undefined', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {
+          from: '0x0000000000000000000000000000000000000001',
+          value: '0x1',
+        },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+      expect(alertSpy).toHaveBeenCalled();
+    });
+
+    it('allows legitimate contract deployments (no "to" but with bytecode)', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {
+          from: '0x0000000000000000000000000000000000000001',
+          data: '0x608060405234801561001057600080fd5b50',
+        },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).toHaveBeenCalled();
+      expect(alertSpy).not.toHaveBeenCalled();
+    });
+
+    it('allows normal sends (valid "to", no data)', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {
+          from: '0x0000000000000000000000000000000000000001',
+          to: '0x0000000000000000000000000000000000000002',
+          value: '0x1',
+        },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).toHaveBeenCalled();
+      expect(alertSpy).not.toHaveBeenCalled();
+    });
   });
 
   it('sets waitForResult true when not smart tx, no quotes, no fee token', async () => {
@@ -186,7 +306,10 @@ describe('useTransactionConfirm', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
       chainId: CHAIN_ID_MOCK,
-      txParams: { from: '0xhw' },
+      txParams: {
+        from: '0xhw',
+        to: '0x0000000000000000000000000000000000000002',
+      },
     } as unknown as TransactionMeta);
 
     const { result } = renderHook();
