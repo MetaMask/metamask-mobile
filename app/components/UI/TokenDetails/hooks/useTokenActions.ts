@@ -344,6 +344,7 @@ export const useTokenActions = ({
       name: token.name,
       image: token.image,
       securityData: adaptTokenSecurityData(token.securityData),
+      rwaData: token.rwaData,
     }),
     [
       token.address,
@@ -353,6 +354,7 @@ export const useTokenActions = ({
       token.name,
       token.image,
       token.securityData,
+      token.rwaData,
     ],
   );
 
