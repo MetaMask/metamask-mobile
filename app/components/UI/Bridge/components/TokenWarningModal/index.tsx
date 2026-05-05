@@ -108,16 +108,18 @@ export const TokenWarningModal = () => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const { activeQuote } = useBridgeQuoteData();
 
   const tokenBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
   });
+  const { activeQuote } = useBridgeQuoteData({
+    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
+  });
 
   const confirmBridge = useBridgeConfirm({
-    latestSourceBalance: tokenBalance,
+    activeQuote,
     location,
   });
 

@@ -6991,8 +6991,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_deposit": "Add funds",
-      "money_account_withdraw": "Withdraw funds"
+      "money_account_add_money": "Add money",
+      "money_account_transfer_money": "Transfer money"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -7108,7 +7108,8 @@
     "custom_amount": {
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
-      "buy_perps": "Add funds to your wallet to use Perps."
+      "buy_perps": "Add funds to your wallet to use Perps.",
+      "projected_five_year_balance": "Projected 5-year balance:"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -7188,6 +7189,7 @@
     "receive_at": "Receive at",
     "recipient": "Recipient",
     "select_recipient": "Select recipient",
+    "select_account": "Select account",
     "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
@@ -7866,6 +7868,7 @@
       "enable_card_button_label": "Enable card",
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
+      "spending_limit_available": "available",
       "logout": "Log out",
       "contact_support": "Contact support",
       "logout_confirmation_title": "Log out of Card?",
@@ -8126,6 +8129,15 @@
     "optin_error": {
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
+    },
+    "notifications_nudge": {
+      "title": "Don't miss out",
+      "description": "Enable notifications to stay informed on campaigns.",
+      "turn_on_button": "Turn on",
+      "loading": "Enabling notifications...",
+      "loading_description": "This may take a moment.",
+      "enable_error": "Failed to enable notifications",
+      "success": "Notifications enabled"
     },
     "version_guard": {
       "title": "Update required",
@@ -8446,6 +8458,8 @@
       "ends_date": "Ends {{date}}",
       "ended_date": "Ended {{date}}",
       "pill_up_next": "Coming soon",
+      "up_next": "Up next",
+      "notify_me": "Notify me",
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter": "Enter",
@@ -8459,7 +8473,9 @@
       "geo_locked_toast_title": "Not available in your region",
       "geo_locked_toast_description": "This campaign isn't available where you are. Check back later for new campaigns.",
       "geo_locked_cta": "Check eligibility",
-      "geo_loading": "Checking region..."
+      "geo_loading": "Checking region...",
+      "remind_me_success_toast": "We'll let you know when this campaign starts.",
+      "remind_me_save_error": "Could not save your reminder. Please try again."
     },
     "campaign_mechanics": {
       "title": "Mechanics"
@@ -8587,6 +8603,46 @@
       "body": "This position won't be entered in the campaign. It won't meet the {{days}}-day hold requirement.",
       "cancel": "Cancel",
       "confirm": "I understand"
+    },
+    "perps_trading_campaign": {
+      "title": "Perps Trading Competition",
+      "stats_title": "Stats",
+      "performance_title": "Performance",
+      "label_rank": "Rank",
+      "label_your_rank": "Your rank",
+      "label_pnl": "PnL",
+      "label_volume": "Volume",
+      "label_notional_volume": "Notional volume",
+      "label_margin": "Margin",
+      "label_margin_deployed": "Margin deployed",
+      "pending": "Pending",
+      "qualified": "Qualified",
+      "open_position_cta": "Open Position",
+      "leaderboard_title": "Leaderboard",
+      "leaderboard_total_participants": "{{count}} participants",
+      "last_updated": "Last updated: {{time}}",
+      "leaderboard_error_loading": "Failed to load leaderboard",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
+      "leaderboard_powered_by_prefix": "Powered by ",
+      "leaderboard_hypertracker_brand": "HyperTracker",
+      "prize_pool_title": "Prize pool",
+      "prize_pool_current_label": "Current",
+      "prize_pool_next_label": "Next",
+      "prize_pool_volume_subtext": "{{current}} of {{target}} volume",
+      "prize_pool_max_tier_subtext": "{{maxThreshold}}+ volume — all milestones reached",
+      "prize_pool_max_badge": "Max",
+      "prize_pool_error_title": "Failed to load prize pool",
+      "prize_pool_error_description": "There was an error loading the prize pool. Please try again.",
+      "prize_pool_retry_button": "Retry",
+      "stats_notional_volume_threshold": "${{amount}} required",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for this rank",
+      "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_retry": "Retry"
     },
     "campaigns_preview": {
       "title": "Campaigns",
@@ -8953,9 +9009,15 @@
         "apy": "{{percentage}}% APY"
       },
       "tokens": "Tokens",
+      "perps": "Perps",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "whats_happening_impact": {
+        "bullish": "Bullish",
+        "bearish": "Bearish",
+        "neutral": "Neutral"
+      },
       "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Geopolitical",

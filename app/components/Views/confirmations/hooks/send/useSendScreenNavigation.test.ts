@@ -49,13 +49,21 @@ describe('useSendScreenNavigation', () => {
       mockState,
     );
     const { gotToSendScreen } = result.current;
+    const expectedParams = {
+      asset: {
+        chainId: '0x1',
+        address: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+      },
+    };
     gotToSendScreen();
     expect(mockNavigate).toHaveBeenCalledWith('Send', {
       screen: Routes.SEND.AMOUNT,
+      params: expectedParams,
     });
     gotToSendScreen(Routes.SEND.RECIPIENT);
     expect(mockNavigate).toHaveBeenCalledWith('Send', {
       screen: Routes.SEND.RECIPIENT,
+      params: expectedParams,
     });
   });
 });
