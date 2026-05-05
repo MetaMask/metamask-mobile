@@ -64,6 +64,20 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   })),
 }));
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultApyQuery: { data: { apy: 5.5 }, isLoading: false },
+  }),
+}));
+jest.mock(
+  '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter',
+  () => ({
+    __esModule: true,
+    default: () => (value: { toString: () => string }) =>
+      `$${Number(value.toString()).toFixed(2)}`,
+  }),
+);
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
