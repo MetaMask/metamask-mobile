@@ -1,4 +1,8 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { HeaderStandard ,
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
@@ -10,7 +14,6 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -41,10 +44,6 @@ import { getCaipChainIdFromCryptoCurrency } from '../../utils';
 import NetworksFilterBar from '../../../Deposit/components/NetworksFilterBar';
 import { CaipChainId } from '@metamask/utils';
 import NetworksFilterSelector from '../../../Deposit/components/NetworksFilterSelector/NetworksFilterSelector';
-import {
-  AvatarToken,
-  AvatarTokenSize,
-} from '@metamask/design-system-react-native';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -244,7 +243,7 @@ function TokenSelectModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

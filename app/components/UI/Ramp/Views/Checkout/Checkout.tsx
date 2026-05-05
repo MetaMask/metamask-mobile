@@ -23,8 +23,8 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import {
   BottomSheet,
   type BottomSheetRef,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -252,7 +252,7 @@ const Checkout = () => {
   );
 
   const sharedHeader = (
-    <HeaderCompactStandard
+    <HeaderStandard
       onClose={handleClosePress}
       closeButtonProps={{
         testID: CHECKOUT_TEST_IDS.CLOSE_BUTTON,
