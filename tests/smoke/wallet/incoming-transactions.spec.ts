@@ -100,79 +100,6 @@ const RESPONSE_OUTGOING_TRANSACTION_MOCK = {
   from: DEFAULT_FIXTURE_ACCOUNT,
 };
 
-const createInfuraRpcResponses = (
-  rpcUrl = '',
-): Record<string, unknown> => {
-  const chainId = rpcUrl.includes('linea-sepolia')
-    ? '0xe705'
-    : rpcUrl.includes('sepolia')
-      ? '0xaa36a7'
-      : '0x1';
-
-  return {
-    eth_chainId: chainId,
-    eth_getBalance: '0x0',
-    eth_call: '0x',
-    eth_estimateGas: '0x5208',
-    eth_gasPrice: '0x3B9ACA00',
-    eth_getTransactionCount: '0x0',
-    eth_blockNumber: '0x1234567',
-    eth_getBlockByNumber: {
-      number: '0x1234567',
-      hash: '0xabc123',
-      timestamp: '0x' + Math.floor(Date.now() / 1000).toString(16),
-      gasLimit: '0x1c9c380',
-      gasUsed: '0x5208',
-      baseFeePerGas: '0x3B9ACA00',
-      transactions: [],
-    },
-    eth_maxPriorityFeePerGas: '0x3B9ACA00',
-    eth_feeHistory: {
-      baseFeePerGas: ['0x3B9ACA00', '0x3B9ACA00'],
-      gasUsedRatio: [0.5],
-      oldestBlock: '0x1234566',
-      reward: [['0x3B9ACA00']],
-    },
-    net_version: parseInt(chainId, 16).toString(10),
-  };
-};
-
-const createMainnetRpcCallback =
-  () =>
-  async (request: {
-    url: string;
-    body: { getText: () => Promise<string | undefined> };
-  }) => {
-    const proxiedUrl = new URL(request.url, 'http://localhost').searchParams.get(
-      'url',
-    );
-    const rpcResponses = createInfuraRpcResponses(proxiedUrl ?? request.url);
-    const bodyText = await request.body.getText();
-    const body = bodyText ? JSON.parse(bodyText) : undefined;
-
-    if (Array.isArray(body)) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(
-          body.map((req: { id?: number; method?: string }) => ({
-            id: req.id ?? 1,
-            jsonrpc: '2.0',
-            result: rpcResponses[req.method ?? ''] ?? '0x',
-          })),
-        ),
-      };
-    }
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        id: body?.id ?? 1,
-        jsonrpc: '2.0',
-        result: rpcResponses[body?.method ?? ''] ?? '0x',
-      }),
-    };
-  };
-
 function mockAccountsApi(
   transactions: Record<string, unknown>[] = [],
 ): MockApiEndpoint {
@@ -197,20 +124,6 @@ function createAccountsTestSpecificMock(
   transactions: Record<string, unknown>[] = [],
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
-    await mockServer
-      .forPost(/^https:\/\/.*infura\.io\/v3\/.*$/)
-      .asPriority(1000)
-      .thenCallback(createMainnetRpcCallback());
-
-    await mockServer
-      .forPost('/proxy')
-      .matching((request) => {
-        const url = new URL(request.url).searchParams.get('url');
-        return Boolean(url?.includes('infura.io'));
-      })
-      .asPriority(1000)
-      .thenCallback(createMainnetRpcCallback());
-
     await setupRemoteFeatureFlagsMock(mockServer, {
       homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
       homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
