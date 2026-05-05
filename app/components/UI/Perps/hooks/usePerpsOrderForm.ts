@@ -181,21 +181,34 @@ export function usePerpsOrderForm(
   });
 
   // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
-  const maxPossibleAmount = useMemo(
-    () =>
-      getMaxAllowedAmount({
-        availableBalance: balanceForMax,
-        assetPrice: Number.parseFloat(currentPrice?.price) || 0,
-        assetSzDecimals: marketData?.szDecimals ?? 6,
-        leverage: orderForm.leverage, // Use current leverage instead of default
+  const maxPossibleAmount = useMemo(() => {
+    const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
+    const priceForCalc = marketPrice;
+    // eslint-disable-next-line no-console
+    console.debug(
+      '[PR-29748] BUG_MARKER: maxPossibleAmount uses market price even for limit orders',
+      JSON.stringify({
+        orderType: orderForm.type,
+        limitPrice: orderForm.limitPrice,
+        marketPrice,
+        priceForCalc,
+        leverage: orderForm.leverage,
       }),
-    [
-      balanceForMax,
-      currentPrice?.price,
-      marketData?.szDecimals,
-      orderForm.leverage, // Include current leverage in dependencies
-    ],
-  );
+    );
+    return getMaxAllowedAmount({
+      availableBalance: balanceForMax,
+      assetPrice: priceForCalc,
+      assetSzDecimals: marketData?.szDecimals ?? 6,
+      leverage: orderForm.leverage,
+    });
+  }, [
+    balanceForMax,
+    currentPrice?.price,
+    marketData?.szDecimals,
+    orderForm.leverage, // Include current leverage in dependencies
+    orderForm.type,
+    orderForm.limitPrice,
+  ]);
 
   // Update amount only once when the hook first calculates the initial value
   // We use a ref to track if we've already set the initial amount to avoid overwriting user input
