@@ -120,6 +120,8 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
   BadgeVariant: { Network: 'Network' },
 }));
 
+const mockAssetOverviewClaimBonusRender = jest.fn();
+
 jest.mock('../../../Earn/components/AssetOverviewClaimBonus', () => {
   const { View } = jest.requireActual('react-native');
   // eslint-disable-next-line
@@ -128,9 +130,10 @@ jest.mock('../../../Earn/components/AssetOverviewClaimBonus', () => {
   ).ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS;
   return {
     __esModule: true,
-    default: () => (
-      <View testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER} />
-    ),
+    default: (props: Record<string, unknown>) => {
+      mockAssetOverviewClaimBonusRender(props);
+      return <View testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER} />;
+    },
   };
 });
 
@@ -339,6 +342,34 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
       ).toBeOnTheScreen();
+    });
+
+    it('calls useMerklBonusClaim exactly once when a claimable reward is present so analytics fires once', () => {
+      // Regression guard for the duplicate-fire bug: previously MoneyHomeView
+      // and AssetOverviewClaimBonus both called useMerklBonusClaim, causing
+      // MUSD_CLAIM_BONUS_CTA_DISPLAYED to fire twice and the Merkl API to be
+      // polled twice. The fix lifts the hook to MoneyHomeView and forwards the
+      // result to AssetOverviewClaimBonus via the `merklClaimData` prop.
+      mockUseMerklBonusClaim.mockReturnValue(
+        buildMerklClaimDataMock({
+          claimableReward: '5.00',
+          hasPendingClaim: false,
+        }),
+      );
+      renderWithProvider(<MoneyHomeView />);
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledTimes(1);
+    });
+
+    it('forwards the merklClaimData to AssetOverviewClaimBonus to prevent duplicate hook calls', () => {
+      const merklClaimData = buildMerklClaimDataMock({
+        claimableReward: '5.00',
+        hasPendingClaim: false,
+      });
+      mockUseMerklBonusClaim.mockReturnValue(merklClaimData);
+      renderWithProvider(<MoneyHomeView />);
+      const lastReceivedProps =
+        mockAssetOverviewClaimBonusRender.mock.calls.at(-1)?.[0];
+      expect(lastReceivedProps?.merklClaimData).toBe(merklClaimData);
     });
   });
 

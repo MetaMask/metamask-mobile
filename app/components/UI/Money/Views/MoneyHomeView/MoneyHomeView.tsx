@@ -66,11 +66,12 @@ const MoneyHomeView = () => {
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
-  const { claimableReward, hasPendingClaim } = useMerklBonusClaim(
+  const merklClaimData = useMerklBonusClaim(
     LINEA_MUSD_ASSET_FOR_MERKL,
     MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
   );
-  const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
+  const hasClaimableBonus =
+    !!merklClaimData.claimableReward && !merklClaimData.hasPendingClaim;
 
   const isCardholder = useSelector(selectIsCardholder);
 
@@ -184,6 +185,7 @@ const MoneyHomeView = () => {
           <AssetOverviewClaimBonus
             asset={LINEA_MUSD_ASSET_FOR_MERKL}
             location={MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB}
+            merklClaimData={merklClaimData}
           />
         )}
         {!isMilestone && (

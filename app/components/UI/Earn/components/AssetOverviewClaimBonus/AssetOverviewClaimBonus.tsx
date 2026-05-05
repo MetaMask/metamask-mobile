@@ -21,7 +21,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
-import { useMerklBonusClaim } from '../MerklRewards/hooks/useMerklBonusClaim';
+import {
+  MerklClaimData,
+  useMerklBonusClaim,
+} from '../MerklRewards/hooks/useMerklBonusClaim';
 import { useTrackClaimBonusClicked } from '../MerklRewards/hooks/useTrackClaimBonusClicked';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import useTooltipModal from '../../../../hooks/useTooltipModal';
@@ -56,13 +59,24 @@ interface AssetOverviewClaimBonusProps {
   onRefetchReady?: (refetch: () => void) => void;
   /** Optional location for analytics. */
   location?: string;
+  /**
+   * Optional Merkl claim data already fetched by the parent. When provided, this
+   * component skips its internal `useMerklBonusClaim` call to avoid duplicate
+   * polling and duplicate `MUSD_CLAIM_BONUS_CTA_DISPLAYED` analytics events.
+   */
+  merklClaimData?: MerklClaimData;
 }
 
-const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
-  asset,
-  onRefetchReady,
-  location = MUSD_EVENT_LOCATIONS.ASSET_OVERVIEW,
-}) => {
+interface AssetOverviewClaimBonusContentProps {
+  asset: TokenI;
+  location: string;
+  merklClaimData: MerklClaimData;
+  onRefetchReady?: (refetch: () => void) => void;
+}
+
+const AssetOverviewClaimBonusContent: React.FC<
+  AssetOverviewClaimBonusContentProps
+> = ({ asset, location, merklClaimData, onRefetchReady }) => {
   const {
     claimableReward,
     lifetimeBonusClaimed,
@@ -70,7 +84,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     isClaiming,
     claimRewards,
     refetch,
-  } = useMerklBonusClaim(asset, location);
+  } = merklClaimData;
 
   useEffect(() => {
     onRefetchReady?.(refetch);
@@ -365,6 +379,56 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
       {/* Bottom divider — full-width */}
       <Box twClassName="h-px bg-border-muted my-5" />
     </Box>
+  );
+};
+
+/**
+ * Internal component that owns the `useMerklBonusClaim` call. Used when the
+ * parent does not supply pre-fetched `merklClaimData`.
+ */
+const AssetOverviewClaimBonusWithInternalHook: React.FC<{
+  asset: TokenI;
+  location: string;
+  onRefetchReady?: (refetch: () => void) => void;
+}> = ({ asset, location, onRefetchReady }) => {
+  const merklClaimData = useMerklBonusClaim(asset, location);
+  return (
+    <AssetOverviewClaimBonusContent
+      asset={asset}
+      location={location}
+      merklClaimData={merklClaimData}
+      onRefetchReady={onRefetchReady}
+    />
+  );
+};
+
+const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
+  asset,
+  onRefetchReady,
+  location = MUSD_EVENT_LOCATIONS.ASSET_OVERVIEW,
+  merklClaimData,
+}) => {
+  // When the parent already owns the Merkl claim data (e.g. lifted hook on the
+  // Money Hub), pass it straight through so we never call `useMerklBonusClaim`
+  // a second time. This avoids duplicate 60s polling and duplicate
+  // `MUSD_CLAIM_BONUS_CTA_DISPLAYED` analytics events.
+  if (merklClaimData) {
+    return (
+      <AssetOverviewClaimBonusContent
+        asset={asset}
+        location={location}
+        merklClaimData={merklClaimData}
+        onRefetchReady={onRefetchReady}
+      />
+    );
+  }
+
+  return (
+    <AssetOverviewClaimBonusWithInternalHook
+      asset={asset}
+      location={location}
+      onRefetchReady={onRefetchReady}
+    />
   );
 };
 
