@@ -64,6 +64,8 @@ function TransactionFeeRow({
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
+  const hasQuotes = Boolean(quotes?.length);
+
   const feeTotalUsd = useMemo(() => {
     if (!totals?.fees) return '';
 
@@ -81,8 +83,6 @@ function TransactionFeeRow({
   }, [totals, formatFiat]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
-
-  const hasQuotes = Boolean(quotes?.length);
 
   return (
     <AlertRow

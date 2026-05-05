@@ -1,4 +1,4 @@
-import { isCryptoUpDown, UP_OR_DOWN_TAG } from './cryptoUpDown';
+import { isCryptoUpDown, UP_OR_DOWN_TAG, CRYPTO_TAG } from './cryptoUpDown';
 import { Recurrence, type PredictMarket } from '../types';
 
 const createMockMarket = (
@@ -28,8 +28,14 @@ describe('cryptoUpDown utilities', () => {
     });
   });
 
+  describe('CRYPTO_TAG', () => {
+    it('equals "crypto"', () => {
+      expect(CRYPTO_TAG).toBe('crypto');
+    });
+  });
+
   describe('isCryptoUpDown', () => {
-    it('returns true when market has series and up-or-down tag', () => {
+    it('returns true when market has series, up-or-down tag, and crypto tag', () => {
       const market = createMockMarket({
         series: {
           id: 's1',
@@ -113,6 +119,22 @@ describe('cryptoUpDown utilities', () => {
       const result = isCryptoUpDown(market);
 
       expect(result).toBe(true);
+    });
+
+    it('returns false when market has series and up-or-down tag but no crypto tag', () => {
+      const market = createMockMarket({
+        series: {
+          id: 's1',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down',
+          recurrence: '5m',
+        },
+        tags: ['up-or-down', 'trending'],
+      });
+
+      const result = isCryptoUpDown(market);
+
+      expect(result).toBe(false);
     });
   });
 });

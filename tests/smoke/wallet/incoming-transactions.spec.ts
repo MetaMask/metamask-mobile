@@ -21,6 +21,7 @@ import ToastModal from '../../page-objects/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView';
+import NetworkManager from '../../page-objects/wallet/NetworkManager';
 
 // EVM-only account tree to prevent Solana snap from fetching live transactions
 const EVM_ONLY_ACCOUNT_TREE = {
@@ -187,6 +188,11 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Received ETH');
@@ -244,6 +250,11 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Sent ETH');
@@ -269,6 +280,11 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextNotDisplayed('Received ETH');

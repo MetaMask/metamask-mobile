@@ -3,10 +3,6 @@ import React from 'react';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import Checkout from './Checkout';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import {
-  registerCheckoutCallback,
-  removeCheckoutCallback,
-} from '../../utils/checkoutCallbackRegistry';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
 
@@ -59,32 +55,9 @@ jest.mock('../../utils/v2OrderToast', () => ({
   showV2OrderToast: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-    typography: {},
-    shadows: {},
-    brandColors: {},
-  }),
-}));
-
-let capturedDepositNavbarOnClose: (() => void) | undefined;
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(
-    (
-      _navigation: unknown,
-      _params: unknown,
-      _theme: unknown,
-      onClose?: () => void,
-    ) => {
-      capturedDepositNavbarOnClose = onClose;
-      return { header: () => null };
-    },
-  ),
+jest.mock('../../headless/sessionRegistry', () => ({
+  getSession: jest.fn(),
+  closeSession: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -211,21 +184,6 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
-jest.mock('../../../../../util/device', () => ({
-  isAndroid: jest.fn(() => false),
-}));
-
-jest.mock('react-native-safe-area-context', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
-  const { View } = require('react-native');
-  return {
-    SafeAreaProvider: View,
-    SafeAreaView: View,
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-  };
-});
-
 const mockUseParams = jest.requireMock(
   '../../../../../util/navigation/navUtils',
 ).useParams as jest.Mock;
@@ -261,7 +219,6 @@ describe('Checkout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    capturedDepositNavbarOnClose = undefined;
     mockUseParams.mockReturnValue({
       url: 'https://provider.example.com/checkout',
       providerName: 'Test Provider',
@@ -352,15 +309,14 @@ describe('Checkout', () => {
     });
   });
 
-  describe('checkout callback registry (297-302)', () => {
-    it('invokes registered callback when callbackKey is set and WebView navigates to new URL', async () => {
+  describe('onNavigationStateChange with URL deduplication', () => {
+    it('invokes param callback when WebView navigates to new URL', async () => {
       const mockCallback = jest.fn();
-      const callbackKey = registerCheckoutCallback(mockCallback);
 
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com',
         providerName: 'Test',
-        callbackKey,
+        onNavigationStateChange: mockCallback,
       });
 
       const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
@@ -374,18 +330,15 @@ describe('Checkout', () => {
           url: 'https://custom-dedup-url.example.com',
         }),
       );
-
-      removeCheckoutCallback(callbackKey);
     });
 
     it('does not invoke callback on second navigation to same URL (dedup)', async () => {
       const mockCallback = jest.fn();
-      const callbackKey = registerCheckoutCallback(mockCallback);
 
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com',
         providerName: 'Test',
-        callbackKey,
+        onNavigationStateChange: mockCallback,
       });
 
       const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
@@ -396,8 +349,6 @@ describe('Checkout', () => {
       });
 
       expect(mockCallback).toHaveBeenCalledTimes(1);
-
-      removeCheckoutCallback(callbackKey);
     });
   });
 
@@ -519,27 +470,6 @@ describe('Checkout', () => {
       expect(Logger.log).toHaveBeenCalledWith(
         expect.stringContaining('Checkout: HTTP error 404'),
       );
-    });
-  });
-
-  describe('deposit navbar back analytics', () => {
-    it('tracks RAMPS_BACK_BUTTON_CLICKED when deposit navbar onClose runs', () => {
-      mockUseParams.mockReturnValue({
-        url: 'https://provider.example.com/checkout',
-        providerName: 'RampCo',
-      });
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      expect(capturedDepositNavbarOnClose).toEqual(expect.any(Function));
-      act(() => {
-        capturedDepositNavbarOnClose?.();
-      });
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED,
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
@@ -680,6 +610,186 @@ describe('Checkout', () => {
         'https://provider.example.com/next-hop',
         Logger,
       );
+    });
+  });
+
+  describe('headless session flow', () => {
+    const mockGetSession = jest.requireMock('../../headless/sessionRegistry')
+      .getSession as jest.Mock;
+    const mockCloseSession = jest.requireMock('../../headless/sessionRegistry')
+      .closeSession as jest.Mock;
+    const showV2OrderToastMock = jest.requireMock('../../utils/v2OrderToast')
+      .showV2OrderToast as jest.Mock;
+
+    const mockOrder = {
+      providerOrderId: 'headless-order-1',
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.5',
+      status: 'Pending',
+    };
+
+    const callbackFlowParams = {
+      url: 'https://provider.example.com/checkout',
+      providerName: 'Test Provider',
+      providerCode: 'moonpay',
+      walletAddress: '0xdeadbeef',
+      headlessSessionId: 'hs-1',
+    };
+
+    let mockParentPop: jest.Mock;
+
+    beforeEach(() => {
+      mockGetSession.mockReset();
+      mockCloseSession.mockReset();
+      mockParentPop = jest.fn();
+      mockNavigation.getParent.mockReturnValue({ pop: mockParentPop });
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    });
+
+    it('fires onOrderCreated, closes the session, and pops the ramp stack when a live session is present', async () => {
+      const onOrderCreated = jest.fn();
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(onOrderCreated).toHaveBeenCalledWith('headless-order-1');
+      });
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockNavigation.reset).not.toHaveBeenCalled();
+      expect(showV2OrderToastMock).not.toHaveBeenCalled();
+    });
+
+    it('still adds the order to Redux and dispatches protect-wallet when headless', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'PROTECT_WALLET_MODAL_VISIBLE',
+      });
+    });
+
+    it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger') as {
+        error: jest.Mock;
+      };
+      const throwingCallback = jest.fn(() => {
+        throw new Error('consumer bug');
+      });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: throwingCallback,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(throwingCallback).toHaveBeenCalled();
+      });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'UnifiedCheckout: onOrderCreated callback threw',
+      );
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('falls back to the regular reset + toast when session id is present but session is missing from registry', async () => {
+      mockGetSession.mockReturnValue(undefined);
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(showV2OrderToastMock).toHaveBeenCalledWith(
+          expect.objectContaining({ orderId: 'headless-order-1' }),
+        );
+      });
+      expect(mockNavigation.reset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: [
+            expect.objectContaining({
+              params: expect.objectContaining({
+                orderId: 'headless-order-1',
+              }),
+            }),
+          ],
+        }),
+      );
+      expect(mockCloseSession).not.toHaveBeenCalled();
+      expect(mockParentPop).not.toHaveBeenCalled();
+    });
+
+    it('takes the regular non-headless path when headlessSessionId is absent', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+        providerCode: 'moonpay',
+        walletAddress: '0xdeadbeef',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.reset).toHaveBeenCalled();
+      });
+      expect(showV2OrderToastMock).toHaveBeenCalled();
+      expect(mockCloseSession).not.toHaveBeenCalled();
+      expect(mockParentPop).not.toHaveBeenCalled();
     });
   });
 });

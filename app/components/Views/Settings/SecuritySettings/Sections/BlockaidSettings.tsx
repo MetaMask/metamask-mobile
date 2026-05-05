@@ -14,6 +14,7 @@ import SECURITY_ALERTS_TOGGLE_TEST_ID from '../constants';
 import createStyles from './BlockaidSettings.styles';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { SECURITY_ALERTS_URL } from '../../../../../constants/urls';
 
 const BlockaidSettings = () => {
   const theme = useTheme();
@@ -73,11 +74,7 @@ const BlockaidSettings = () => {
         {strings('app_settings.blockaid_desc')}{' '}
         <Text
           color={TextColor.Alternative}
-          onPress={() =>
-            Linking.openURL(
-              'https://support.metamask.io/privacy-and-security/how-to-turn-on-security-alerts/',
-            )
-          }
+          onPress={() => Linking.openURL(SECURITY_ALERTS_URL)}
         >
           {strings('app_settings.learn_more')}
         </Text>

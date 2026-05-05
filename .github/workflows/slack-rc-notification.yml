@@ -3,8 +3,8 @@
 # Slack RC Notification (reusable)
 #
 # Posts an RC build notification to the release Slack channel.
-# Reads semver and build numbers directly from the checked-out branch so callers
-# only need to supply the source branch.
+# Callers can pass build metadata (semver, build numbers) directly from build
+# outputs for accuracy, or omit them to fall back to reading from the branch.
 #
 ##############################################################################################
 name: Slack RC Notification
@@ -16,6 +16,21 @@ on:
         description: 'Branch to checkout for reading build metadata and changelog (e.g. release/7.71.0)'
         required: true
         type: string
+      semver:
+        description: 'Semantic version (optional; falls back to reading from branch checkout)'
+        required: false
+        type: string
+        default: ''
+      ios_build_number:
+        description: 'iOS build number (optional; falls back to reading from branch checkout)'
+        required: false
+        type: string
+        default: ''
+      android_build_number:
+        description: 'Android build number (optional; falls back to reading from branch checkout)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   slack-notification:
@@ -25,12 +40,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_branch }}
-          fetch-depth: 1
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Read build metadata from repo
+        if: inputs.semver == '' || inputs.ios_build_number == '' || inputs.android_build_number == ''
         id: build-meta
         run: ./scripts/get-build-metadata.sh --ci
       - name: Install dependencies
@@ -43,8 +59,9 @@ jobs:
             echo "Slack notification failed, continuing (non-critical)"
           fi
         env:
-          SEMVER: ${{ steps.build-meta.outputs.semantic_version }}
-          IOS_BUILD_NUMBER: ${{ steps.build-meta.outputs.ios_version_code }}
-          ANDROID_BUILD_NUMBER: ${{ steps.build-meta.outputs.android_version_code }}
+          SEMVER: ${{ inputs.semver || steps.build-meta.outputs.semantic_version }}
+          IOS_BUILD_NUMBER: ${{ inputs.ios_build_number || steps.build-meta.outputs.ios_version_code }}
+          ANDROID_BUILD_NUMBER: ${{ inputs.android_build_number || steps.build-meta.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

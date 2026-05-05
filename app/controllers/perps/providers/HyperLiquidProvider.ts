@@ -1,8 +1,16 @@
 import { CaipAccountId, hasProperty } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
+import type {
+  ExchangeClient,
+  UserAbstractionResponse,
+} from '@nktkas/hyperliquid';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { CandlePeriod } from '../constants/chartConfig';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '../constants/eventNames';
 import {
   BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
@@ -13,10 +21,8 @@ import {
   HIP3_FEE_CONFIG,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
-  MAINNET_HIP3_CONFIG,
   REFERRAL_CONFIG,
   SPOT_ASSET_ID_OFFSET,
-  TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
   USDH_CONFIG,
@@ -30,6 +36,7 @@ import {
 } from '../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import { DexDiscoveryCacheManager } from '../services/DexDiscoveryCacheManager';
 import {
   HyperLiquidClientService,
   WebSocketConnectionState,
@@ -40,6 +47,7 @@ import {
   TradingReadinessCache,
   PerpsSigningCache,
 } from '../services/TradingReadinessCache';
+import { PerpsAnalyticsEvent } from '../types';
 import type {
   AccountState,
   AssetRoute,
@@ -100,6 +108,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
   RawLedgerUpdate,
+  PerpsReadOptions,
 } from '../types';
 import type {
   SDKOrderParams,
@@ -108,9 +117,17 @@ import type {
   FrontendOrder,
   SpotMetaResponse,
 } from '../types/hyperliquid-types';
+import {
+  HL_ABSTRACTION_WIRE,
+  HL_UNIFIED_ACCOUNT_MODE,
+  hyperLiquidModeFoldsSpot,
+} from '../types/hyperliquid-types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
-import { aggregateAccountStates } from '../utils/accountUtils';
+import {
+  addSpotBalanceToAccountState,
+  aggregateAccountStates,
+} from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
@@ -306,12 +323,10 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Pre-fetched in ensureReadyForTrading() to avoid API failures during order placement
   #cachedSpotMeta: SpotMetaResponse | null = null;
 
-  // Cache for perpDexs data (deployerFeeScale for dynamic fee calculation)
-  // TTL-based cache - fee scales rarely change
-  #perpDexsCache: {
-    data: ExtendedPerpDex[] | null;
-    timestamp: number;
-  } = { data: null, timestamp: 0 };
+  // Unified DEX discovery cache — single source of truth for all perpDexs() derivatives.
+  // Replaces three separate caches to eliminate desync bugs by construction.
+  // All writes go through #dexDiscoveryCache.update(); readers use .state.
+  readonly #dexDiscoveryCache: DexDiscoveryCacheManager;
 
   // Session cache for referral state (cleared on disconnect/reconnect)
   // Key: `network:userAddress`, Value: true if referral is set
@@ -342,17 +357,25 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   readonly #blocklistMarkets: string[];
 
-  #useDexAbstraction: boolean;
-
-  // Cache for validated DEXs to avoid redundant perpDexs() API calls
-  #cachedValidatedDexs: (string | null)[] | null = null;
-
-  #cachedAllPerpDexs: ({ name: string } | null)[] | null = null;
+  // Emergency kill-switch for the Unified Account migration flow. Defaults
+  // to true and is the expected production state after HL's DEX Abstraction
+  // deprecation. Kept as a constructor option (not removed) so we can
+  // disable the migration via a hot-fix release if a regression surfaces
+  // in the wild — flipping this to false reverts to the legacy programmatic
+  // HIP-3 transfer path that already lives in the codebase.
+  #useUnifiedAccount: boolean;
 
   // True once DEX discovery has succeeded with real data (not a fallback).
   // When false, #ensureReadyPromise is reset after each init so the next
   // caller retries DEX discovery instead of reusing a degraded mapping.
   #dexDiscoveryComplete = false;
+
+  // True when the most recent #ensureUnifiedAccountEnabled run ended in a
+  // transient state that warrants retry (silent agent-key failure, REST
+  // userAbstraction lookup failure, or keyring locked). #ensureReady resets
+  // its memoized promise when this is set so the next entry retries the
+  // migration instead of returning the cached resolved promise.
+  #unifiedAccountSetupNeedsRetry = false;
 
   // Pending promise to deduplicate concurrent getValidatedDexs() calls
   #pendingValidatedDexsPromise: Promise<(string | null)[]> | null = null;
@@ -384,7 +407,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     hip3Enabled?: boolean;
     allowlistMarkets?: string[];
     blocklistMarkets?: string[];
-    useDexAbstraction?: boolean;
+    useUnifiedAccount?: boolean;
     platformDependencies: PerpsPlatformDependencies;
     messenger: PerpsControllerMessengerBase;
     initialAssetMapping?: [string, number][];
@@ -402,12 +425,17 @@ export class HyperLiquidProvider implements PerpsProvider {
     this.#allowlistMarkets = options.allowlistMarkets ?? [];
     this.#blocklistMarkets = options.blocklistMarkets ?? [];
 
-    // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
-    this.#useDexAbstraction = options.useDexAbstraction ?? true;
+    // Attempt unified account mode, fallback to programmatic transfer if unsupported
+    this.#useUnifiedAccount = options.useUnifiedAccount ?? true;
 
     // Initialize services with injected platform dependencies
     this.#clientService = new HyperLiquidClientService(this.#deps, {
       isTestnet,
+    });
+    this.#dexDiscoveryCache = new DexDiscoveryCacheManager({
+      isTestnetMode: (): boolean => this.#clientService.isTestnetMode(),
+      debugLogger: this.#deps.debugLogger,
+      getAllowlistMarkets: (): string[] => this.#allowlistMarkets,
     });
     this.#walletService = new HyperLiquidWalletService(
       this.#deps,
@@ -562,7 +590,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
-   * Attempt to enable HIP-3 native balance abstraction
+   * Attempt to enable HyperLiquid Unified Account mode for HIP-3 orders
    *
    * If successful, HyperLiquid automatically manages collateral transfers for HIP-3 orders.
    * If not supported, disables the flag to trigger programmatic transfer fallback.
@@ -570,10 +598,28 @@ export class HyperLiquidProvider implements PerpsProvider {
    * IMPORTANT: Uses global singleton cache to prevent repeated signing requests
    * across provider reconnections (critical for hardware wallets).
    *
+   * @param options - Optional configuration.
+   * @param options.allowUserSigning - When true, runs the EIP-712 user-signed migration for `dexAbstraction` accounts. Defaults to false so init does not surface a signing prompt; action-time entry points (trading, withdraw) pass true.
    * @private
    */
-  async #ensureDexAbstractionEnabled(): Promise<void> {
-    if (!this.#useDexAbstraction) {
+  async #ensureUnifiedAccountEnabled(options?: {
+    allowUserSigning?: boolean;
+  }): Promise<void> {
+    // dexAbstraction → unifiedAccount requires an EIP-712 prompt (HL blocks
+    // the agent path for that transition). Init calls with allowUserSigning=false so
+    // viewing the Perps section never surfaces a signing dialog. Trading and
+    // withdraw entry points pass allowUserSigning=true to drive the migration when
+    // the user actually intends to act.
+    const allowUserSigning = options?.allowUserSigning ?? false;
+
+    // Optimistic reset — set true below only at the failure points that
+    // warrant retry (silent agent failure, REST lookup failure, keyring
+    // locked). Final-state outcomes (success, prompted-failure cached,
+    // already-on-compatible, defer, unknown mode, feature off) leave it
+    // false so #ensureReady can keep the memoized promise.
+    this.#unifiedAccountSetupNeedsRetry = false;
+
+    if (!this.#useUnifiedAccount) {
       return; // Feature disabled
     }
 
@@ -585,7 +631,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     const cachedStatus = TradingReadinessCache.get(network, userAddress);
     if (cachedStatus?.attempted) {
       this.#deps.debugLogger.log(
-        'HyperLiquidProvider: DEX abstraction already attempted (from global cache)',
+        'HyperLiquidProvider: Unified Account setup already attempted (from global cache)',
         {
           user: userAddress,
           network,
@@ -599,32 +645,43 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Check if another provider instance is currently attempting this operation
     // This prevents concurrent signing attempts across providers during reconnection
     const inFlightPromise = PerpsSigningCache.isInFlight(
-      'dexAbstraction',
+      'unifiedAccount',
       network,
       userAddress,
     );
     if (inFlightPromise) {
       this.#deps.debugLogger.log(
-        'HyperLiquidProvider: DEX abstraction in-flight, waiting...',
+        'HyperLiquidProvider: Unified Account setup in-flight, waiting...',
         { network, userAddress },
       );
       await inFlightPromise;
-      return; // After waiting, the cache should be set by the other provider
+      // The other instance may have finished without writing the cache (e.g.
+      // an init-time call deferred a dexAbstraction migration). If the cache
+      // is still empty and we are an action-time caller (allowUserSigning=true),
+      // we must run our own attempt — otherwise the trade/withdraw would
+      // proceed in the deprecated mode.
+      const postWaitCache = TradingReadinessCache.get(network, userAddress);
+      if (postWaitCache?.attempted) {
+        return;
+      }
+      // Fall through to acquire our own lock and retry.
     }
 
     // Set in-flight lock to prevent concurrent attempts
     const completeInFlight = PerpsSigningCache.setInFlight(
-      'dexAbstraction',
+      'unifiedAccount',
       network,
       userAddress,
     );
+
+    let currentMode: UserAbstractionResponse | undefined;
 
     try {
       // Re-check cache after acquiring lock (another provider might have finished)
       const recheckCache = TradingReadinessCache.get(network, userAddress);
       if (recheckCache?.attempted) {
         this.#deps.debugLogger.log(
-          'HyperLiquidProvider: DEX abstraction completed by another provider',
+          'HyperLiquidProvider: Unified Account setup completed by another provider',
           { network, userAddress },
         );
         completeInFlight();
@@ -633,84 +690,197 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       const infoClient = this.#clientService.getInfoClient();
 
-      // Check if already enabled on-chain (returns boolean | null)
-      const isEnabled = await infoClient.userDexAbstraction({
+      // Check current abstraction mode on-chain
+      currentMode = await infoClient.userAbstraction({
         user: userAddress,
       });
 
-      if (isEnabled === true) {
+      if (
+        currentMode === 'unifiedAccount' ||
+        currentMode === 'portfolioMargin'
+      ) {
+        // portfolioMargin is a superset of unifiedAccount — it already supports
+        // auto-collateral management for HIP-3 orders and is more capital-efficient.
+        // Downgrading portfolio margin users to unifiedAccount would be harmful,
+        // so we treat both modes as already-enabled and skip migration.
         this.#deps.debugLogger.log(
-          'HyperLiquidProvider: DEX abstraction already enabled on-chain',
-          { user: userAddress, network },
+          'HyperLiquidProvider: Account already in a compatible mode, skipping migration',
+          { user: userAddress, network, mode: currentMode },
         );
-        // Cache the enabled status to skip future checks
+        this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+          [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: currentMode,
+          [PERPS_EVENT_PROPERTY.STATUS]:
+            PERPS_EVENT_VALUE.STATUS.ALREADY_ENABLED,
+        });
         TradingReadinessCache.set(network, userAddress, {
           attempted: true,
           enabled: true,
         });
+        // Record the resolved mode in the subscription service so the next
+        // aggregation folds spot correctly without waiting for #refreshSpotState.
+        this.#subscriptionService.setUserAbstractionMode(
+          userAddress,
+          currentMode,
+        );
         completeInFlight();
         return;
       }
 
-      // Enable DEX abstraction (one-time, irreversible, requires signature)
+      // Defer the user-signed transition until the user attempts an action.
+      // Cache is intentionally left untouched so the next entry re-evaluates;
+      // the read-only userAbstraction call is cheap and gated by the in-flight
+      // lock, preventing concurrent prompts.
+      if (currentMode === 'dexAbstraction' && !allowUserSigning) {
+        this.#deps.debugLogger.log(
+          'HyperLiquidProvider: Deferring dexAbstraction → unifiedAccount migration to action time',
+          { user: userAddress, network },
+        );
+        completeInFlight();
+        return;
+      }
+
+      // Bail on unknown modes BEFORE firing analytics or attempting dispatch.
+      // Keeps `migration_required` actionable (only fires for modes we can
+      // actually migrate) and avoids re-emitting on every reconnection.
+      if (
+        currentMode !== 'dexAbstraction' &&
+        currentMode !== 'default' &&
+        currentMode !== 'disabled'
+      ) {
+        this.#deps.debugLogger.log(
+          'HyperLiquidProvider: Unknown abstraction mode, skipping Unified Account migration',
+          { user: userAddress, network, mode: currentMode },
+        );
+        completeInFlight();
+        return;
+      }
+
+      // Track which mode users are currently on before we attempt migration.
+      // This tells us the distribution of legacy modes across our user base.
+      this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+        [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: currentMode,
+        [PERPS_EVENT_PROPERTY.STATUS]:
+          PERPS_EVENT_VALUE.STATUS.MIGRATION_REQUIRED,
+      });
+
+      // Enable Unified Account mode.
+      // - default / disabled: agent wallet can do this silently (no prompt)
+      // - dexAbstraction: HL blocks the agent transition — requires the user's main
+      //   wallet to sign an EIP-712 action via userSetAbstraction (one-time prompt)
       this.#deps.debugLogger.log(
-        'HyperLiquidProvider: Enabling DEX abstraction (requires signature)',
+        'HyperLiquidProvider: Enabling Unified Account mode',
         {
           user: userAddress,
           network,
+          previousMode: currentMode,
           note: 'HyperLiquid will auto-manage collateral for HIP-3 orders',
         },
       );
 
       const exchangeClient = this.#clientService.getExchangeClient();
-      await exchangeClient.agentEnableDexAbstraction();
+      if (currentMode === 'dexAbstraction') {
+        // Requires EIP-712 signature from the user's main wallet (one-time migration).
+        // HL blocks the dexAbstraction → unifiedAccount transition via the agent wallet,
+        // so userSetAbstraction (user-signed) is the only path for legacy users.
+        await exchangeClient.userSetAbstraction({
+          user: userAddress,
+          abstraction: HL_UNIFIED_ACCOUNT_MODE,
+        });
+      } else {
+        // default / disabled — silent agent transition, no user prompt
+        await exchangeClient.agentSetAbstraction({
+          abstraction: HL_ABSTRACTION_WIRE.unifiedAccount,
+        });
+      }
 
       this.#deps.debugLogger.log(
-        '✅ HyperLiquidProvider: DEX abstraction enabled successfully',
+        '✅ HyperLiquidProvider: Unified Account enabled successfully',
       );
-
-      // Cache success to prevent re-attempts on reconnection
+      this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+        [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
+        [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: HL_UNIFIED_ACCOUNT_MODE,
+        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
+      });
       TradingReadinessCache.set(network, userAddress, {
         attempted: true,
         enabled: true,
       });
+      // Record the post-migration mode in the subscription service so it
+      // immediately re-aggregates with fold=true and surfaces the unified
+      // balance rather than waiting for the next #refreshSpotState.
+      this.#subscriptionService.setUserAbstractionMode(
+        userAddress,
+        HL_UNIFIED_ACCOUNT_MODE,
+      );
       completeInFlight();
     } catch (error) {
       // If keyring is locked, don't cache so it retries when unlocked
       if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
         this.#deps.debugLogger.log(
-          '[ensureDexAbstractionEnabled] Keyring locked, will retry later',
+          '[ensureUnifiedAccountEnabled] Keyring locked, will retry later',
         );
+        this.#unifiedAccountSetupNeedsRetry = true;
         completeInFlight();
         return;
       }
 
-      // Cache the attempt (even on failure) to prevent repeated signing requests
-      // This is CRITICAL for hardware wallets - if user rejects, don't ask again
-      TradingReadinessCache.set(network, userAddress, {
-        attempted: true,
-        enabled: false,
-      });
+      // Cache failure ONLY for the user-prompted path
+      // (`dexAbstraction → unifiedAccount` via `userSetAbstraction`). The
+      // rationale for caching is "don't re-prompt a user who already saw the
+      // signature dialog and rejected it" — that doesn't apply to:
+      //   - Read-only userAbstraction lookup failures (no prompt; transient).
+      //   - Silent agent-key paths (`default`/`disabled` → `agentSetAbstraction`
+      //     does not show a UI prompt; failures are typically transient HL
+      //     outages and pinning them would leave users stuck in the
+      //     deprecated mode for the rest of the session).
+      // Action-time retries pick up the unmigrated state and try again.
+      if (currentMode === 'dexAbstraction') {
+        TradingReadinessCache.set(network, userAddress, {
+          attempted: true,
+          enabled: false,
+        });
+      } else {
+        // Silent agent-key failure (default/disabled) or read-only
+        // userAbstraction lookup failure — neither is a final state, so
+        // signal #ensureReady to drop its memoized promise and retry on
+        // the next entry instead of pinning the user in the deprecated
+        // mode for the provider's lifetime.
+        this.#unifiedAccountSetupNeedsRetry = true;
+      }
+
+      const errorMessage = ensureError(
+        error,
+        'HyperLiquidProvider.ensureUnifiedAccountEnabled',
+      ).message;
 
       this.#deps.debugLogger.log(
-        'HyperLiquidProvider: DEX abstraction failed, cached to prevent retries',
+        'HyperLiquidProvider: Unified Account setup failed',
         {
           user: userAddress,
           network,
-          error: ensureError(
-            error,
-            'HyperLiquidProvider.ensureDexAbstractionEnabled',
-          ).message,
+          error: errorMessage,
+          // Cache writes only happen on the user-prompted dexAbstraction
+          // path (see P2-B logic above). Reflect that here so retry
+          // behaviour is debuggable from the log alone.
+          cached: currentMode === 'dexAbstraction',
         },
       );
 
+      this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+        ...(currentMode && {
+          [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
+          [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: HL_UNIFIED_ACCOUNT_MODE,
+        }),
+        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+      });
+
       completeInFlight();
 
-      // Don't blindly disable the flag on any error
       this.#deps.logger.error(
-        ensureError(error, 'HyperLiquidProvider.ensureDexAbstractionEnabled'),
-        this.#getErrorContext('ensureDexAbstractionEnabled', {
-          note: 'Could not enable DEX abstraction (may already be enabled, user rejected, or network error)',
+        ensureError(error, 'HyperLiquidProvider.ensureUnifiedAccountEnabled'),
+        this.#getErrorContext('ensureUnifiedAccountEnabled', {
+          note: 'Could not enable Unified Account (user rejected, or network error)',
         }),
       );
     }
@@ -756,9 +926,14 @@ export class HyperLiquidProvider implements PerpsProvider {
         await this.#buildAssetMapping();
       }
 
-      // NOTE: Signing operations (DEX abstraction, builder fee, referral) are now DEFERRED
-      // They are called on-demand in ensureReadyForTrading() when user attempts to trade
-      // This prevents QR popups when just viewing the Perps section (critical for hardware wallets)
+      // Attempt Unified Account migration as early as possible so users aren't
+      // blocked when they try to trade. Software-wallet dexAbstraction users can
+      // complete the one-time EIP-712 migration during initial setup so the first
+      // trade sees the unified balance. Hardware wallets remain deferred to
+      // action time to avoid QR / Ledger prompt spam while browsing.
+      await this.#ensureUnifiedAccountEnabled({
+        allowUserSigning: !this.#walletService.isSelectedHardwareWallet(),
+      });
     })();
 
     // Await initialization - keep the promise so subsequent calls resolve immediately
@@ -769,6 +944,12 @@ export class HyperLiquidProvider implements PerpsProvider {
       // DEX discovery failed transiently — reset so next call retries.
       // Trading still works (main DEX mapping is populated), but HIP-3 markets
       // will be re-discovered on the next #ensureReady() call.
+      this.#ensureReadyPromise = null;
+    } else if (this.#unifiedAccountSetupNeedsRetry) {
+      // Silent migration / lookup / keyring-locked failure left the cache
+      // empty. Without resetting the memoized promise, subsequent
+      // #ensureReady calls would skip retry and the user would be stuck
+      // in the deprecated mode for the provider's lifetime.
       this.#ensureReadyPromise = null;
     }
     this.#deps.debugLogger.log('[ensureReady] Initialization complete');
@@ -794,6 +975,11 @@ export class HyperLiquidProvider implements PerpsProvider {
   async #ensureReadyForTrading(): Promise<void> {
     // First ensure basic initialization is complete
     await this.#ensureReady();
+
+    // dexAbstraction users were deferred during init to avoid an EIP-712 prompt
+    // on Perps section open. Drive the migration here, gated by its own cache so
+    // already-migrated or already-rejected users are not re-prompted.
+    await this.#ensureUnifiedAccountEnabled({ allowUserSigning: true });
 
     // If trading setup already complete, return immediately
     if (this.#tradingSetupComplete) {
@@ -827,9 +1013,6 @@ export class HyperLiquidProvider implements PerpsProvider {
           // Don't throw - spotMeta will be fetched on-demand if needed
         }
       }
-
-      // Attempt to enable native balance abstraction
-      await this.#ensureDexAbstractionEnabled();
 
       // Set up builder fee approval
       try {
@@ -986,13 +1169,10 @@ export class HyperLiquidProvider implements PerpsProvider {
    * @returns Array of all DEX names (null for main DEX, strings for HIP-3 DEXs)
    */
   async #getAllAvailableDexs(): Promise<(string | null)[]> {
-    // If already cached by getValidatedDexs, use that
-    if (
-      this.#cachedAllPerpDexs !== null &&
-      Array.isArray(this.#cachedAllPerpDexs)
-    ) {
+    // Use unified state if available
+    if (this.#dexDiscoveryCache.state) {
       const availableHip3Dexs: string[] = [];
-      this.#cachedAllPerpDexs.forEach((dex) => {
+      this.#dexDiscoveryCache.state.raw.forEach((dex) => {
         if (dex !== null) {
           availableHip3Dexs.push(dex.name);
         }
@@ -1000,7 +1180,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return [null, ...availableHip3Dexs];
     }
 
-    // Fetch fresh from API
+    // Fetch fresh from API and update unified state
     const infoClient = this.#clientService.getInfoClient();
     try {
       const allDexs = await infoClient.perpDexs();
@@ -1008,9 +1188,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         return [null]; // Fallback to main DEX only
       }
 
-      this.#cachedAllPerpDexs = allDexs;
+      const state = this.#dexDiscoveryCache.update(allDexs);
       const availableHip3Dexs: string[] = [];
-      allDexs.forEach((dex) => {
+      state.raw.forEach((dex) => {
         if (dex !== null) {
           availableHip3Dexs.push(dex.name);
         }
@@ -1040,9 +1220,16 @@ export class HyperLiquidProvider implements PerpsProvider {
    * @returns Array of DEX names to use (null = main DEX, strings = HIP-3 DEXs)
    */
   async #getValidatedDexs(): Promise<(string | null)[]> {
+    // Kill switch: HIP-3 disabled, return main DEX only
+    // Must check before cache — #getAllAvailableDexs() can populate
+    // state.validated without the hip3Enabled gate
+    if (!this.#hip3Enabled) {
+      return [null];
+    }
+
     // Return cached result if available
-    if (this.#cachedValidatedDexs !== null) {
-      return this.#cachedValidatedDexs;
+    if (this.#dexDiscoveryCache.state?.validated) {
+      return this.#dexDiscoveryCache.state.validated;
     }
 
     // If a fetch is already in progress, reuse the pending promise
@@ -1078,9 +1265,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#deps.debugLogger.log(
         'HyperLiquidProvider: HIP-3 disabled via hip3Enabled flag',
       );
-      this.#cachedAllPerpDexs = [null];
-      this.#cachedValidatedDexs = [null];
-      return this.#cachedValidatedDexs;
+      const state = this.#dexDiscoveryCache.update([null]);
+      return state.validated;
     }
 
     // Fetch all available DEXs from HyperLiquid
@@ -1112,158 +1298,18 @@ export class HyperLiquidProvider implements PerpsProvider {
       return [null];
     }
 
-    // Cache for buildAssetMapping() to avoid duplicate call
-    this.#cachedAllPerpDexs = allDexs;
-
-    // Extract HIP-3 DEX names (filter out null which represents main DEX)
-    const availableHip3Dexs: string[] = [];
-    allDexs.forEach((dex) => {
-      if (dex !== null) {
-        availableHip3Dexs.push(dex.name);
-      }
-    });
+    // Atomically update unified state (raw + validated + timestamp)
+    const state = this.#dexDiscoveryCache.update(allDexs);
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Available DEXs (market filtering applied at data layer)',
       {
-        count: availableHip3Dexs.length,
-        dexNames: availableHip3Dexs,
+        count: state.validated.filter((dex) => dex !== null).length,
+        dexNames: state.validated.filter((dex) => dex !== null),
       },
     );
 
-    // Testnet-specific filtering: Limit DEXs to avoid subscription overload
-    // On testnet, there are many HIP-3 DEXs (test deployments) that cause instability
-    if (this.#clientService.isTestnetMode()) {
-      const { EnabledDexs, AutoDiscoverAll } = TESTNET_HIP3_CONFIG;
-
-      if (!AutoDiscoverAll) {
-        if (EnabledDexs.length === 0) {
-          // Main DEX only - no HIP-3 DEXs on testnet
-          this.#deps.debugLogger.log(
-            'HyperLiquidProvider: Testnet - using main DEX only (HIP-3 DEXs filtered)',
-            {
-              availableHip3Dexs: availableHip3Dexs.length,
-              reason: 'TESTNET_HIP3_CONFIG.EnabledDexs is empty',
-            },
-          );
-          this.#cachedValidatedDexs = [null];
-          return this.#cachedValidatedDexs;
-        }
-
-        // Filter to specific allowed DEXs on testnet
-        const filteredDexs = availableHip3Dexs.filter((dex) =>
-          EnabledDexs.includes(dex),
-        );
-        this.#deps.debugLogger.log(
-          'HyperLiquidProvider: Testnet - filtered to allowed DEXs',
-          {
-            allowedDexs: EnabledDexs,
-            filteredDexs,
-            availableHip3Dexs: availableHip3Dexs.length,
-          },
-        );
-        this.#cachedValidatedDexs = [null, ...filteredDexs];
-        return this.#cachedValidatedDexs;
-      }
-
-      // AUTO_DISCOVER_ALL is true - proceed with all DEXs (not recommended for testnet)
-      this.#deps.debugLogger.log(
-        'HyperLiquidProvider: Testnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
-        { totalDexCount: availableHip3Dexs.length + 1 },
-      );
-    } else {
-      // Mainnet-specific filtering: Extract allowed DEXs from the allowlist patterns
-      // This reduces WebSocket subscription overhead dynamically based on feature flags
-      const { AutoDiscoverAll } = MAINNET_HIP3_CONFIG;
-
-      if (!AutoDiscoverAll) {
-        // Extract unique DEX names from allowlist patterns
-        // Patterns like "xyz:*", "xyz:TSLA", or "xyz" all indicate DEX "xyz"
-        const allowedDexsFromAllowlist = this.#extractDexsFromAllowlist();
-
-        if (allowedDexsFromAllowlist.length === 0) {
-          // No HIP-3 DEXs in allowlist - main DEX only
-          this.#deps.debugLogger.log(
-            'HyperLiquidProvider: Mainnet - using main DEX only (no HIP-3 DEXs in allowlist)',
-            {
-              availableHip3Dexs: availableHip3Dexs.length,
-              allowlistMarkets: this.#allowlistMarkets,
-            },
-          );
-          this.#cachedValidatedDexs = [null];
-          return this.#cachedValidatedDexs;
-        }
-
-        // Filter to DEXs that are both available AND in the allowlist
-        const filteredDexs = availableHip3Dexs.filter((dex) =>
-          allowedDexsFromAllowlist.includes(dex),
-        );
-        this.#deps.debugLogger.log(
-          'HyperLiquidProvider: Mainnet - filtered to allowlist DEXs',
-          {
-            allowedDexsFromAllowlist,
-            filteredDexs,
-            availableHip3Dexs: availableHip3Dexs.length,
-          },
-        );
-        this.#cachedValidatedDexs = [null, ...filteredDexs];
-        return this.#cachedValidatedDexs;
-      }
-
-      // AUTO_DISCOVER_ALL is true - proceed with all DEXs
-      this.#deps.debugLogger.log(
-        'HyperLiquidProvider: Mainnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
-        { totalDexCount: availableHip3Dexs.length + 1 },
-      );
-    }
-
-    // Fallback: Return all DEXs (when AUTO_DISCOVER_ALL is true)
-    // Market filtering is applied at subscription data layer
-    this.#deps.debugLogger.log(
-      'HyperLiquidProvider: All DEXs enabled (market filtering at data layer)',
-      {
-        mainDex: true,
-        hip3Dexs: availableHip3Dexs,
-        totalDexCount: availableHip3Dexs.length + 1,
-      },
-    );
-    this.#cachedValidatedDexs = [null, ...availableHip3Dexs];
-    return this.#cachedValidatedDexs;
-  }
-
-  /**
-   * Extract unique DEX names from allowlist market patterns
-   * Patterns can be: "xyz:*" (wildcard), "xyz:TSLA" (exact), or "xyz" (DEX shorthand)
-   *
-   * @returns Array of unique DEX names from the allowlist
-   */
-  #extractDexsFromAllowlist(): string[] {
-    if (this.#allowlistMarkets.length === 0) {
-      return [];
-    }
-
-    const dexNames = new Set<string>();
-
-    for (const pattern of this.#allowlistMarkets) {
-      // Pattern formats:
-      // - "xyz:*" -> DEX "xyz" (wildcard)
-      // - "xyz:TSLA" -> DEX "xyz" (exact match)
-      // - "xyz" -> DEX "xyz" (shorthand)
-      const colonIndex = pattern.indexOf(':');
-      if (colonIndex > 0) {
-        // Has colon - extract DEX prefix
-        const dex = pattern.substring(0, colonIndex);
-        dexNames.add(dex);
-      } else if (pattern.length > 0 && !pattern.includes('*')) {
-        // No colon and not a wildcard - could be DEX shorthand
-        // Only add if it looks like a valid DEX name (lowercase alphanumeric)
-        if (/^[a-z][a-z0-9]*$/iu.test(pattern)) {
-          dexNames.add(pattern.toLowerCase());
-        }
-      }
-    }
-
-    return Array.from(dexNames);
+    return state.validated;
   }
 
   /**
@@ -1345,7 +1391,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return false;
     }
 
-    if (!this.#cachedAllPerpDexs) {
+    if (!this.#dexDiscoveryCache.state) {
       try {
         await this.#getValidatedDexs();
       } catch (error) {
@@ -1362,7 +1408,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
     }
 
-    const allPerpDexs = this.#cachedAllPerpDexs ?? [null];
+    const allPerpDexs = this.#dexDiscoveryCache.state?.raw ?? [null];
     const perpDexIndex = allPerpDexs.findIndex((entry) => {
       if (dex === null) {
         return entry === null;
@@ -1487,19 +1533,21 @@ export class HyperLiquidProvider implements PerpsProvider {
   async #getCachedPerpDexs(): Promise<ExtendedPerpDex[]> {
     const now = Date.now();
 
-    // Return cached data if still valid
+    // Return cached data if still valid (uses unified state timestamp for TTL)
     if (
-      this.#perpDexsCache.data &&
-      now - this.#perpDexsCache.timestamp < HIP3_FEE_CONFIG.PerpDexsCacheTtlMs
+      this.#dexDiscoveryCache.state &&
+      now - this.#dexDiscoveryCache.state.timestamp <
+        HIP3_FEE_CONFIG.PerpDexsCacheTtlMs
     ) {
+      const raw = this.#dexDiscoveryCache.state.raw as ExtendedPerpDex[];
       this.#deps.debugLogger.log(
         '[getCachedPerpDexs] Using cached perpDexs data',
         {
-          age: `${Math.round((now - this.#perpDexsCache.timestamp) / 1000)}s`,
-          count: this.#perpDexsCache.data.length,
+          age: `${Math.round((now - this.#dexDiscoveryCache.state.timestamp) / 1000)}s`,
+          count: raw.length,
         },
       );
-      return this.#perpDexsCache.data;
+      return raw;
     }
 
     // Fetch fresh data from API
@@ -1509,8 +1557,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     const perpDexs =
       (await infoClient.perpDexs()) as unknown as ExtendedPerpDex[];
 
-    // Cache the result
-    this.#perpDexsCache = { data: perpDexs, timestamp: now };
+    // Atomically update unified state (raw + validated + timestamp)
+    this.#dexDiscoveryCache.update(perpDexs);
 
     this.#deps.debugLogger.log(
       '[getCachedPerpDexs] Fetched and cached perpDexs data',
@@ -2126,7 +2174,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // If getValidatedDexs fails, fall back to main DEX only to keep the provider
       // functional. Without this, a transient perpDexs() failure would permanently
       // brick #ensureReady via the cached rejected promise.
-      // Do not set #cachedAllPerpDexs or #cachedValidatedDexs here — leave them null
+      // Do not update #dexDiscoveryCache here — leave state null
       // so #getValidatedDexs retries on the next call (same as #fetchValidatedDexsInternal).
       this.#deps.debugLogger.log(
         '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
@@ -2135,10 +2183,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       dexsToMap = [null];
     }
 
-    // Local fallback only — never write [null] into #cachedAllPerpDexs here.
-    // That cache is owned exclusively by #fetchValidatedDexsInternal; writing a
+    // Local fallback only — never write [null] into #dexDiscoveryCache here.
+    // That state is owned exclusively by #dexDiscoveryCache.update(); writing a
     // fallback here would prevent subsequent callers from retrying perpDexs().
-    const allPerpDexs = this.#cachedAllPerpDexs ?? [null];
+    const allPerpDexs = this.#dexDiscoveryCache.state?.raw ?? [null];
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Starting asset mapping rebuild',
@@ -2216,7 +2264,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Build mapping with DEX prefixes for HIP-3 DEXs using the utility function
     this.#symbolToAssetId.clear();
-    let dexDiscoveryComplete = this.#cachedValidatedDexs !== null;
+    let dexDiscoveryComplete = this.#dexDiscoveryCache.state !== null;
 
     allMetas.forEach((result) => {
       if (
@@ -2673,7 +2721,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     const accountState = await infoClient.clearinghouseState(queryParams);
     const adapted = adaptAccountStateFromSDK(accountState);
-    return parseFloat(adapted.availableBalance);
+    return parseFloat(adapted.withdrawableBalance);
   }
 
   /**
@@ -2705,8 +2753,9 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Try other HIP-3 DEXs
     // Get all available DEXs from cache (includes all HIP-3 DEXs since we no longer filter)
     const availableDexs =
-      this.#cachedValidatedDexs?.filter((dex): dex is string => dex !== null) ??
-      [];
+      this.#dexDiscoveryCache.state?.validated?.filter(
+        (dex): dex is string => dex !== null,
+      ) ?? [];
     for (const dex of availableDexs) {
       if (dex === targetDex) {
         continue;
@@ -2965,7 +3014,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const orderIsLong = isBuy;
 
       if (existingIsLong === orderIsLong) {
-        // Increasing position - HyperLiquid validates availableBalance >= totalRequiredMargin
+        // Increasing position - HyperLiquid validates spendableBalance >= totalRequiredMargin
         // BEFORE reallocating existing locked margin. Must transfer TOTAL margin temporarily.
         const existingSize = Math.abs(parseFloat(existingPosition.size));
         const existingMargin = parseFloat(existingPosition.marginUsed);
@@ -3081,7 +3130,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             '🔄 HyperLiquidProvider: Auto-rebalancing excess margin back to main DEX',
             {
               dex: dexName,
-              availableBalance: postOrderBalance.toFixed(2),
+              spendableBalance: postOrderBalance.toFixed(2),
               desiredBuffer: desiredBuffer.toFixed(2),
               excessAmount: excessAmount.toFixed(2),
               destinationDex: transferInfo.sourceDex,
@@ -3333,12 +3382,12 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       await this.#ensureUsdhCollateralForOrder(dexName, requiredMargin);
 
-      // DEX abstraction will pull USDH from spot automatically
+      // Unified Account will pull USDH from spot automatically
       return { transferInfo: null };
     }
 
-    if (this.#useDexAbstraction) {
-      this.#deps.debugLogger.log('Using DEX abstraction (no manual transfer)', {
+    if (this.#useUnifiedAccount) {
+      this.#deps.debugLogger.log('Using Unified Account (no manual transfer)', {
         symbol,
         dex: dexName,
       });
@@ -3372,7 +3421,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         this.#deps.debugLogger.log(
           'Detected DEX abstraction is enabled, switching mode',
         );
-        this.#useDexAbstraction = true;
+        this.#useUnifiedAccount = true;
         return { transferInfo: null };
       }
 
@@ -4091,7 +4140,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         const totalMarginUsed = parseFloat(position.marginUsed);
 
         // Track HIP-3 transfers (full position close means all margin is freed)
-        if (isHip3Position && dexName && !this.#useDexAbstraction) {
+        if (isHip3Position && dexName && !this.#useUnifiedAccount) {
           hip3Transfers.push({
             sourceDex: dexName,
             freedMargin: totalMarginUsed,
@@ -4159,7 +4208,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const failureCount = statuses.length - successCount;
 
       // Handle HIP-3 margin transfers for successful closes
-      if (!this.#useDexAbstraction) {
+      if (!this.#useUnifiedAccount) {
         for (let i = 0; i < statuses.length; i++) {
           const status = statuses[i];
           const isSuccess =
@@ -4350,21 +4399,24 @@ export class HyperLiquidProvider implements PerpsProvider {
           { cachedOrdersCount: cachedOrders.length },
         );
 
-        // Filter using normalized Order type properties
-        // Note: Cached orders don't have isPositionTpsl, but we identify TP/SL orders by:
+        // Filter using normalized Order type properties, matching the REST fallback criteria:
+        // - symbol matches
         // - isTrigger === true
         // - reduceOnly === true
+        // - isPositionTpsl matches the configured mode (only cancel position-bound TP/SL,
+        //   not normalTpsl children that belong to pending limit orders)
         // - detailedOrderType contains 'Take Profit' or 'Stop'
         const tpslOrders = cachedOrders.filter(
           (order) =>
             order.symbol === symbol &&
             order.reduceOnly === true &&
             order.isTrigger === true &&
+            order.isPositionTpsl ===
+              Boolean(TP_SL_CONFIG.UsePositionBoundTpsl) &&
             order.detailedOrderType &&
             (order.detailedOrderType.includes('Take Profit') ||
               order.detailedOrderType.includes('Stop')),
         );
-
         cancelRequests = tpslOrders.map((order) => ({
           a: assetId,
           o: parseInt(order.orderId, 10),
@@ -4624,7 +4676,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         result.success &&
         isHip3Position &&
         hip3Dex &&
-        !this.#useDexAbstraction
+        !this.#useUnifiedAccount
       ) {
         this.#deps.debugLogger.log(
           'Position closed successfully, initiating manual auto-transfer back',
@@ -4639,10 +4691,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         result.success &&
         isHip3Position &&
         hip3Dex &&
-        this.#useDexAbstraction
+        this.#useUnifiedAccount
       ) {
         this.#deps.debugLogger.log(
-          'Position closed - DEX abstraction will auto-return freed margin',
+          'Position closed - Unified Account will auto-return freed margin',
           {
             coin: params.symbol,
             dex: hip3Dex,
@@ -4717,6 +4769,20 @@ export class HyperLiquidProvider implements PerpsProvider {
         ntli,
       });
 
+      // Guard: confirm spendableBalance can cover margin addition.
+      // spendableBalance is already mode-aware (includes free spot in Unified,
+      // excludes it in Standard), so no extra spot fetch needed.
+      if (amountFloat > 0) {
+        const accountState = await this.getAccountState();
+        const spendable = parseFloat(accountState.spendableBalance);
+
+        if (spendable < amountFloat) {
+          throw new Error(
+            `Insufficient balance for margin addition: need ${amountFloat}, available ${spendable.toFixed(2)}`,
+          );
+        }
+      }
+
       // Call SDK to update isolated margin
       const exchangeClient = this.#clientService.getExchangeClient();
       const result = await exchangeClient.updateIsolatedMargin({
@@ -4758,15 +4824,15 @@ export class HyperLiquidProvider implements PerpsProvider {
    * @returns A promise that resolves to the result.
    */
   async #getStandaloneValidatedDexs(): Promise<(string | null)[]> {
-    // Return cached result if available
-    if (this.#cachedValidatedDexs !== null) {
-      return this.#cachedValidatedDexs;
+    // Return cached result if available (unified state)
+    if (this.#dexDiscoveryCache.state?.validated) {
+      return this.#dexDiscoveryCache.state.validated;
     }
 
     // Kill switch: HIP-3 disabled, return main DEX only
     if (!this.#hip3Enabled) {
-      this.#cachedValidatedDexs = [null];
-      return this.#cachedValidatedDexs;
+      const state = this.#dexDiscoveryCache.update([null]);
+      return state.validated;
     }
 
     // Fetch available DEXs via standalone client
@@ -4780,41 +4846,20 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#deps.debugLogger.log(
         'HyperLiquidProvider: standalone perpDexs() failed, falling back to main DEX only',
       );
+      // Do not cache — transient error, allow retry on next call
       return [null];
     }
 
     // Validate response
     if (!allDexs || !Array.isArray(allDexs)) {
+      // Do not cache — may be transient, allow retry on next call
       return [null];
     }
 
-    // Populate #cachedAllPerpDexs so buildAssetMapping can compute perpDexIndex.
-    // Without this, getValidatedDexs returns from #cachedValidatedDexs (string names)
-    // but #cachedAllPerpDexs (raw objects for index computation) stays null,
-    // causing "Could not find perpDexIndex for DEX xyz" failures.
-    this.#cachedAllPerpDexs = allDexs;
-
-    // Extract HIP-3 DEX names (filter out null which represents main DEX)
-    const availableHip3Dexs: string[] = [];
-    allDexs.forEach((dex) => {
-      if (dex !== null) {
-        availableHip3Dexs.push(dex.name);
-      }
-    });
-
-    // Filter by allowlist patterns (same logic as fetchValidatedDexsInternal)
-    const allowedDexsFromAllowlist = this.#extractDexsFromAllowlist();
-    if (allowedDexsFromAllowlist.length === 0) {
-      this.#cachedValidatedDexs = [null];
-      return this.#cachedValidatedDexs;
-    }
-
-    const filteredDexs = availableHip3Dexs.filter((dex) =>
-      allowedDexsFromAllowlist.includes(dex),
-    );
-
-    this.#cachedValidatedDexs = [null, ...filteredDexs];
-    return this.#cachedValidatedDexs;
+    // Atomically update unified state (raw + validated + timestamp).
+    // buildAssetMapping uses state.raw for perpDexIndex computation.
+    const state = this.#dexDiscoveryCache.update(allDexs);
+    return state.validated;
   }
 
   /**
@@ -4953,11 +4998,15 @@ export class HyperLiquidProvider implements PerpsProvider {
 
             // Find TP/SL orders for this position
             // First check direct trigger orders (raw SDK uses 'coin', adapted position uses 'symbol')
+            // Only match position-bound TP/SL orders when UsePositionBoundTpsl is enabled,
+            // to avoid picking up normalTpsl children from pending limit orders
             const positionOrders = allOrders.filter(
               (order) =>
                 order.coin === position.symbol &&
                 order.isTrigger &&
-                order.reduceOnly,
+                order.reduceOnly &&
+                order.isPositionTpsl ===
+                  Boolean(TP_SL_CONFIG.UsePositionBoundTpsl),
             );
 
             // Also check for parent orders that might have TP/SL children
@@ -5069,9 +5118,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get historical user fills (trade executions)
    *
    * @param params - The operation parameters.
+   * @param options - Optional cache-control modifiers for this read.
    * @returns A promise that resolves to the result.
    */
-  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
+  async getOrderFills(
+    params?: GetOrderFillsParams,
+    options?: PerpsReadOptions,
+  ): Promise<OrderFill[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user fills via HyperLiquid SDK:',
@@ -5108,16 +5161,20 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Start fetching historical orders in parallel with fill transformation.
       // The fills API does not return order type, so we cross-reference
       // with historical orders to enable TP/SL pill rendering in activity.
-      const historicalOrdersPromise = (
-        infoClient.historicalOrders?.({ user: userAddress }) ??
-        Promise.resolve(null)
-      ).catch((enrichError: unknown) => {
-        this.#deps.debugLogger.log(
-          'Warning: failed to enrich fills with order types:',
-          enrichError,
-        );
-        return null;
-      });
+      // Routed through the client-service coalesce so the enrichment sidecar
+      // rides the same cache as an explicit getOrders call, preventing a
+      // second REST fire under rapid market switching.
+      const historicalOrdersPromise = this.#clientService
+        .fetchHistoricalOrders(userAddress, {
+          forceRefresh: options?.forceRefresh,
+        })
+        .catch((enrichError: unknown) => {
+          this.#deps.debugLogger.log(
+            'Warning: failed to enrich fills with order types:',
+            enrichError,
+          );
+          return null;
+        });
 
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
@@ -5186,9 +5243,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get historical orders (order lifecycle)
    *
    * @param params - The operation parameters.
+   * @param options - Optional cache-control modifiers for this read.
    * @returns A promise that resolves to the result.
    */
-  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
+  async getOrders(
+    params?: GetOrdersParams,
+    options?: PerpsReadOptions,
+  ): Promise<Order[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user orders via HyperLiquid SDK:',
@@ -5199,14 +5260,14 @@ export class HyperLiquidProvider implements PerpsProvider {
       await this.#ensureClientsInitialized();
       this.#clientService.ensureInitialized();
 
-      const infoClient = this.#clientService.getInfoClient();
       const userAddress = await this.#walletService.getUserAddressWithDefault(
         params?.accountId,
       );
 
-      const rawOrders = await infoClient.historicalOrders({
-        user: userAddress,
-      });
+      const rawOrders = await this.#clientService.fetchHistoricalOrders(
+        userAddress,
+        { forceRefresh: options?.forceRefresh },
+      );
 
       this.#deps.debugLogger.log('User orders received:', {
         count: rawOrders?.length ?? 0,
@@ -5404,9 +5465,14 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Get user funding history
    *
    * @param params - The operation parameters.
+   * @param _options - Cache-control modifiers (unused — funding has no
+   * provider-internal cache; coalescing happens at MarketDataService).
    * @returns A promise that resolves to the result.
    */
-  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
+  async getFunding(
+    params?: GetFundingParams,
+    _options?: PerpsReadOptions,
+  ): Promise<Funding[]> {
     try {
       this.#deps.debugLogger.log(
         'Getting user funding via HyperLiquid SDK:',
@@ -5422,38 +5488,99 @@ export class HyperLiquidProvider implements PerpsProvider {
         params?.accountId,
       );
 
-      // HyperLiquid API requires startTime to be a number (not undefined)
-      // Default to configured days ago to get recent funding payments
-      // Using 0 (epoch) would return oldest 500 records, missing latest payments
-      const defaultStartTime =
-        Date.now() -
-        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
-          24 *
-          60 *
-          60 *
-          1000;
-      const rawFunding = await infoClient.userFunding({
-        user: userAddress,
-        startTime: params?.startTime ?? defaultStartTime,
-        endTime: params?.endTime,
+      // On-demand loading: the default window is one 30-day page so the
+      // initial fetch costs exactly 1 API call (~24 weight vs 312 previously).
+      // When loadMoreFunding in usePerpsTransactionHistory passes explicit
+      // startTime/endTime for an older 30-day page the while-loop below still
+      // produces exactly 1 chunk. The 365-day max lookback is enforced by the
+      // caller.
+      //
+      // Each chunk is fetched via fetchWindowWithAutoSplit: if a call returns
+      // FUNDING_HISTORY_API_LIMIT records the window has hit the API cap and
+      // the oldest records would be silently dropped. The function splits the
+      // window in half and recurses until every sub-window is under the cap,
+      // guaranteeing complete results regardless of position count or activity.
+      const finalEndTime = params?.endTime ?? Date.now();
+      const pageWindowMs =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_PAGE_WINDOW_DAYS *
+        24 *
+        60 *
+        60 *
+        1000;
+      const finalStartTime = params?.startTime ?? finalEndTime - pageWindowMs; // Default: most recent 30-day window only
+
+      const minSplitWindowMs =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.MIN_SPLIT_WINDOW_MS;
+      const apiLimit =
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_API_LIMIT;
+
+      // Fetches a single window. If the result hits the API cap the window is
+      // split in half and both halves are fetched in parallel, recursively,
+      // until every sub-window is under the cap.
+      const fetchWindowWithAutoSplit = async (
+        windowStart: number,
+        windowEnd: number,
+      ): Promise<Awaited<ReturnType<typeof infoClient.userFunding>>> => {
+        const result = await infoClient.userFunding({
+          user: userAddress,
+          startTime: windowStart,
+          endTime: windowEnd,
+        });
+        const records = result ?? [];
+        if (
+          records.length >= apiLimit &&
+          windowEnd - windowStart > minSplitWindowMs
+        ) {
+          const mid = windowStart + Math.floor((windowEnd - windowStart) / 2);
+          const [left, right] = await Promise.all([
+            fetchWindowWithAutoSplit(windowStart, mid),
+            fetchWindowWithAutoSplit(mid, windowEnd),
+          ]);
+          return [...(left ?? []), ...(right ?? [])];
+        }
+        return records;
+      };
+
+      const chunks: { start: number; end: number }[] = [];
+      let chunkEnd = finalEndTime;
+      while (chunkEnd > finalStartTime) {
+        const chunkStart = Math.max(finalStartTime, chunkEnd - pageWindowMs);
+        chunks.push({ start: chunkStart, end: chunkEnd });
+        chunkEnd = chunkStart;
+      }
+
+      const pages = await Promise.all(
+        chunks.map((chunk) => fetchWindowWithAutoSplit(chunk.start, chunk.end)),
+      );
+
+      // Deduplicate at chunk boundaries — adjacent windows share their boundary
+      // timestamp (chunkEnd of N === chunkStart of N+1) and the API is
+      // inclusive on both sides, so a record can appear in both adjacent calls.
+      // Funding records share a zero hash, so we key on time + coin instead.
+      const seen = new Set<string>();
+      const allRaw = pages.flat().filter((record) => {
+        const key = `${record.time}-${record.delta.coin}`;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
       });
+      allRaw.sort((a, b) => a.time - b.time);
 
       this.#deps.debugLogger.log('User funding received:', {
-        count: rawFunding?.length ?? 0,
+        count: allRaw.length,
+        chunks: chunks.length,
       });
 
       // Transform HyperLiquid funding to abstract Funding type
-      const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
-        const { delta, hash, time } = rawFundingItem;
-
-        return {
-          symbol: delta.coin,
-          amountUsd: delta.usdc,
-          rate: delta.fundingRate,
-          timestamp: time,
-          transactionHash: hash,
-        };
-      });
+      const funding: Funding[] = allRaw.map(({ delta, hash, time }) => ({
+        symbol: delta.coin,
+        amountUsd: delta.usdc,
+        rate: delta.fundingRate,
+        timestamp: time,
+        transactionHash: hash,
+      }));
 
       return funding;
     } catch (error) {
@@ -5503,6 +5630,19 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       return [];
     }
+  }
+
+  /**
+   * Resolve the provider's currently active CAIP account identifier.
+   * Used by the MarketDataService REST coalesce layer so cached payloads
+   * are keyed by the actual resolved address rather than a shared
+   * "default" sentinel — prevents one account's data from being served
+   * after an account switch within the coalesce TTL window.
+   *
+   * @returns CAIP account id for the currently selected HyperLiquid account.
+   */
+  async getCurrentAccountId(): Promise<CaipAccountId> {
+    return this.#walletService.getCurrentAccountId();
   }
 
   /**
@@ -5643,17 +5783,60 @@ export class HyperLiquidProvider implements PerpsProvider {
           isTestnet: this.#clientService.isTestnetMode(),
         });
         const dexs = await this.#getStandaloneValidatedDexs();
-        const results = await queryStandaloneClearinghouseStates(
-          standaloneInfoClient,
-          userAddress,
-          dexs,
-        );
+        const [
+          standaloneSpotStateResult,
+          standalonePerpsResults,
+          standaloneAbstractionResult,
+        ] = await Promise.all([
+          standaloneInfoClient
+            .spotClearinghouseState({ user: userAddress })
+            .catch((error: unknown) => {
+              this.#deps.debugLogger.log(
+                'Standalone spot state fetch failed — falling back to perps-only totals',
+                {
+                  error: ensureError(
+                    error,
+                    'HyperLiquidProvider.getAccountState.standalone.spot',
+                  ).message,
+                },
+              );
+              return null;
+            }),
+          queryStandaloneClearinghouseStates(
+            standaloneInfoClient,
+            userAddress,
+            dexs,
+          ),
+          standaloneInfoClient
+            .userAbstraction({ user: userAddress })
+            .catch((error: unknown) => {
+              this.#deps.debugLogger.log(
+                'Standalone userAbstraction fetch failed; spot fold disabled until the mode resolves',
+                {
+                  error: ensureError(
+                    error,
+                    'HyperLiquidProvider.getAccountState.standalone.abstraction',
+                  ).message,
+                },
+              );
+              return null;
+            }),
+        ]);
 
-        // Aggregate account states across all DEXs
-        const dexAccountStates = results.map((perpsState) =>
+        // Aggregate account states across all DEXs, then apply spot-backed
+        // adjustments so streamed/standalone/full paths report the same totals.
+        const dexAccountStates = standalonePerpsResults.map((perpsState) =>
           adaptAccountStateFromSDK(perpsState),
         );
-        const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
+        const aggregatedAccountState = addSpotBalanceToAccountState(
+          aggregateAccountStates(dexAccountStates),
+          standaloneSpotStateResult,
+          {
+            foldIntoCollateral: hyperLiquidModeFoldsSpot(
+              standaloneAbstractionResult,
+            ),
+          },
+        );
 
         this.#deps.debugLogger.log(
           'HyperLiquidProvider: standalone account state fetched',
@@ -5683,16 +5866,35 @@ export class HyperLiquidProvider implements PerpsProvider {
         this.#clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET',
       );
 
-      // Get Spot balance (global, not DEX-specific) and Perps states across all DEXs.
+      // Get Spot balance, Perps states across DEXs, and the HL abstraction
+      // mode (Unified / Standard / Portfolio / DEX-abstraction). Mode decides
+      // whether spot USDC is perps collateral — see addSpotBalanceToAccountState.
       // One transient DEX failure should not blank the entire account state.
-      const [spotStateResult, perpsStateResult] = await Promise.allSettled([
-        infoClient.spotClearinghouseState({ user: userAddress }),
-        this.#queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
-          infoClient.clearinghouseState(userParam),
-        ),
-      ]);
+      const [spotStateResult, perpsStateResult, abstractionResult] =
+        await Promise.allSettled([
+          infoClient.spotClearinghouseState({ user: userAddress }),
+          this.#queryUserDataAcrossDexs({ user: userAddress }, (userParam) =>
+            infoClient.clearinghouseState(userParam),
+          ),
+          infoClient.userAbstraction({ user: userAddress }),
+        ]);
       const spotState =
         spotStateResult.status === 'fulfilled' ? spotStateResult.value : null;
+      const abstractionMode =
+        abstractionResult.status === 'fulfilled'
+          ? abstractionResult.value
+          : null;
+      if (abstractionResult.status === 'rejected') {
+        this.#deps.debugLogger.log(
+          'User abstraction fetch failed; spot fold disabled until the mode resolves',
+          {
+            error: ensureError(
+              abstractionResult.reason,
+              'HyperLiquidProvider.getAccountState.abstraction',
+            ).message,
+          },
+        );
+      }
       const perpsResponse =
         perpsStateResult.status === 'fulfilled'
           ? perpsStateResult.value
@@ -5761,31 +5963,28 @@ export class HyperLiquidProvider implements PerpsProvider {
           `DEX ${result.dex ?? 'main'} account state:`,
           {
             totalBalance: dexAccountState.totalBalance,
-            availableBalance: dexAccountState.availableBalance,
+            spendableBalance: dexAccountState.spendableBalance,
+            withdrawableBalance: dexAccountState.withdrawableBalance,
             marginUsed: dexAccountState.marginUsed,
             unrealizedPnl: dexAccountState.unrealizedPnl,
           },
         );
         return dexAccountState;
       });
-      const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
-
-      // Add spot balance to totalBalance (spot is global, not per-DEX)
-      let spotBalance = 0;
-      if (spotState?.balances && Array.isArray(spotState.balances)) {
-        spotBalance = spotState.balances.reduce(
-          (sum, balance) => sum + parseFloat(balance.total || '0'),
-          0,
-        );
-      }
-      aggregatedAccountState.totalBalance = (
-        parseFloat(aggregatedAccountState.totalBalance) + spotBalance
-      ).toString();
+      const aggregatedAccountState = addSpotBalanceToAccountState(
+        aggregateAccountStates(dexAccountStates),
+        spotState,
+        { foldIntoCollateral: hyperLiquidModeFoldsSpot(abstractionMode) },
+      );
 
       // Build per-sub-account breakdown (HIP-3 DEXs map to sub-accounts)
       const subAccountBreakdown: Record<
         string,
-        { availableBalance: string; totalBalance: string }
+        {
+          spendableBalance: string;
+          withdrawableBalance: string;
+          totalBalance: string;
+        }
       > = {};
       perpsStateResults.forEach((result) => {
         const { dex, data: perpsState } = result;
@@ -5793,7 +5992,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         const subAccountKey = dex ?? ''; // Empty string for main DEX
 
         subAccountBreakdown[subAccountKey] = {
-          availableBalance: dexAccountState.availableBalance,
+          spendableBalance: dexAccountState.spendableBalance,
+          withdrawableBalance: dexAccountState.withdrawableBalance,
           totalBalance: dexAccountState.totalBalance,
         };
       });
@@ -6867,6 +7067,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Step 4: Ensure client is ready
       this.#deps.debugLogger.log('HyperLiquidProvider: ENSURING CLIENT READY');
       await this.#ensureReady();
+      await this.#ensureUnifiedAccountEnabled({ allowUserSigning: true });
       const exchangeClient = this.#clientService.getExchangeClient();
       this.#deps.debugLogger.log('HyperLiquidProvider: CLIENT READY');
 
@@ -6875,9 +7076,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         'HyperLiquidProvider: CHECKING ACCOUNT BALANCE',
       );
       const accountState = await this.getAccountState();
-      const availableBalance = parseFloat(accountState.availableBalance);
+      const withdrawableBalance = parseFloat(accountState.withdrawableBalance);
       this.#deps.debugLogger.log('HyperLiquidProvider: ACCOUNT BALANCE', {
-        availableBalance,
+        withdrawableBalance,
+        spendableBalance: accountState.spendableBalance,
         totalBalance: accountState.totalBalance,
         marginUsed: accountState.marginUsed,
         unrealizedPnl: accountState.unrealizedPnl,
@@ -6895,13 +7097,17 @@ export class HyperLiquidProvider implements PerpsProvider {
       const withdrawAmount = parseFloat(params.amount);
       this.#deps.debugLogger.log('HyperLiquidProvider: WITHDRAWAL AMOUNT', {
         requestedAmount: withdrawAmount,
-        availableBalance,
-        sufficientBalance: withdrawAmount <= availableBalance,
+        withdrawableBalance,
+        sufficientBalance: withdrawAmount <= withdrawableBalance,
       });
 
+      // Validate against withdrawableBalance — the mode-aware cap.
+      // No spot sweep: withdrawableBalance already reflects what withdraw3
+      // can pull. In Unified mode HL handles cross-wallet internally; in
+      // Standard mode spot is not withdrawable via perps.
       const balanceValidation = validateBalance(
         withdrawAmount,
-        availableBalance,
+        withdrawableBalance,
       );
       if (!balanceValidation.isValid) {
         this.#deps.debugLogger.log(
@@ -6909,8 +7115,8 @@ export class HyperLiquidProvider implements PerpsProvider {
           {
             error: balanceValidation.error,
             requestedAmount: withdrawAmount,
-            availableBalance,
-            difference: withdrawAmount - availableBalance,
+            withdrawableBalance,
+            difference: withdrawAmount - withdrawableBalance,
           },
         );
         throw new Error(balanceValidation.error);
@@ -7848,6 +8054,19 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Escape hatch for agentic validation flows and test harnesses that drive
+   * HL mutations directly. NOT part of the PerpsProvider interface.
+   * Production code paths must go through the provider's own methods.
+   *
+   * @returns A promise resolving to the underlying HyperLiquid SDK
+   * ExchangeClient. Promise shape matches the existing agentic flows
+   * (hl-provision-fixture) that chain `.then` on the result.
+   */
+  public async getExchangeClient(): Promise<ExchangeClient> {
+    return this.#clientService.getExchangeClient();
+  }
+
+  /**
    * Disconnect provider
    *
    * @returns A promise that resolves to the result.
@@ -7868,11 +8087,11 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Clear session caches (ensures fresh state on reconnect/account switch)
       this.#referralCheckCache.clear();
       this.#builderFeeCheckCache.clear();
-      // NOTE: DexAbstractionCache is global and NOT cleared on disconnect
+      // NOTE: UnifiedAccountCache is global and NOT cleared on disconnect
       // to prevent repeated signing requests across reconnections
       this.#cachedMetaByDex.clear();
       this.#cachedSpotMeta = null;
-      this.#perpDexsCache = { data: null, timestamp: 0 };
+      this.#dexDiscoveryCache.reset();
       this.#dexDiscoveryComplete = false;
 
       // Await pending initialization before clearing to prevent the IIFE from

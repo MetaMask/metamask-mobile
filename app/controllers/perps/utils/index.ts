@@ -26,6 +26,7 @@ export * from './idUtils';
 export * from './marketDataTransform';
 export * from './marketUtils';
 export * from './orderCalculations';
+export * from './perpsDiskPersistence';
 export * from './rewardsUtils';
 export * from './significantFigures';
 export * from './sortMarkets';
@@ -39,3 +40,4 @@ export const getEnvironment = (): 'DEV' | 'PROD' => {
   const env = globalThis.process?.env?.NODE_ENV ?? 'production';
   return env === 'production' ? 'PROD' : 'DEV';
 };
+export * from './perpsFormatters';

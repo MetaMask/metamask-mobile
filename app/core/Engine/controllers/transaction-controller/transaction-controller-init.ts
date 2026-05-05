@@ -33,8 +33,8 @@ import { getTransactionById } from '../../../../util/transactions';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
-  ControllerInitFunction,
-  ControllerInitRequest,
+  MessengerClientInitFunction,
+  MessengerClientInitRequest,
 } from '../../types';
 import AppConstants from '../../../../core/AppConstants';
 import type { TransactionEventHandlerRequest } from './types';
@@ -46,6 +46,7 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
+import { handleUnapprovedTransactionAddedForMoneyAccount } from './event-handlers/money-account-override';
 import {
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
@@ -58,8 +59,17 @@ import { isSendBundleSupported } from '../../../../util/transactions/sentinel-ap
 import { NetworkClientId } from '@metamask/network-controller';
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
+import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
+import { store } from '../../../../store';
 
-export const TransactionControllerInit: ControllerInitFunction<
+const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
+  'transaction_submission_method';
+const TRANSACTION_SUBMISSION_METHOD = {
+  SENTINEL_STX: 'sentinel_stx',
+  SENTINEL_RELAY: 'sentinel_relay',
+} as const;
+
+export const TransactionControllerInit: MessengerClientInitFunction<
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
@@ -257,6 +267,21 @@ async function publishHook({
 
     const result = await hook(transactionMeta, signedTransactionInHex);
     if (result?.transactionHash) {
+      try {
+        store.dispatch(
+          updateConfirmationMetric({
+            id: transactionMeta.id,
+            params: {
+              properties: {
+                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_RELAY,
+              },
+            },
+          }),
+        );
+      } catch (e) {
+        console.error('Failed to record sentinel_relay metrics fragment', e);
+      }
       return result;
     }
     // else, fall back to regular regular transaction submission
@@ -278,6 +303,21 @@ async function publishHook({
     });
 
     if (result?.transactionHash) {
+      try {
+        store.dispatch(
+          updateConfirmationMetric({
+            id: transactionMeta.id,
+            params: {
+              properties: {
+                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+              },
+            },
+          }),
+        );
+      } catch (e) {
+        console.error('Failed to record sentinel_stx metrics fragment', e);
+      }
       return result;
     }
   }
@@ -299,7 +339,7 @@ function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
   };
 }
 
-function publishBatchSmartTransactionHook({
+async function publishBatchSmartTransactionHook({
   transactionController,
   smartTransactionsController,
   initMessenger,
@@ -330,10 +370,10 @@ function publishBatchSmartTransactionHook({
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
   if (!shouldUseSmartTransaction) {
-    return Promise.resolve(undefined);
+    return undefined;
   }
 
-  return submitBatchSmartTransactionHook({
+  const result = await submitBatchSmartTransactionHook({
     transactions,
     transactionController,
     smartTransactionsController,
@@ -343,6 +383,33 @@ function publishBatchSmartTransactionHook({
     featureFlags,
     transactionMeta,
   });
+
+  if (result) {
+    for (const tx of transactions) {
+      if (tx.id) {
+        try {
+          store.dispatch(
+            updateConfirmationMetric({
+              id: tx.id,
+              params: {
+                properties: {
+                  [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                    TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+                },
+              },
+            }),
+          );
+        } catch (e) {
+          console.error(
+            'Failed to record sentinel_stx metrics fragment for batch tx',
+            e,
+          );
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 function isIncomingTransactionsEnabled(
@@ -358,17 +425,17 @@ function isFirstTimeInteractionEnabled(
 }
 
 function getControllers(
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
 ) {
   return {
-    gasFeeController: request.getController('GasFeeController'),
-    keyringController: request.getController('KeyringController'),
-    networkController: request.getController('NetworkController'),
-    preferencesController: request.getController('PreferencesController'),
-    smartTransactionsController: request.getController(
+    gasFeeController: request.getMessengerClient('GasFeeController'),
+    keyringController: request.getMessengerClient('KeyringController'),
+    networkController: request.getMessengerClient('NetworkController'),
+    preferencesController: request.getMessengerClient('PreferencesController'),
+    smartTransactionsController: request.getMessengerClient(
       'SmartTransactionsController',
     ),
   };
@@ -376,12 +443,12 @@ function getControllers(
 
 function beforeSign(
   hookRequest: { transactionMeta: TransactionMeta },
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
 ) {
-  const predictController = request.getController('PredictController');
+  const predictController = request.getMessengerClient('PredictController');
   return predictController.beforeSign(hookRequest);
 }
 
@@ -482,5 +549,10 @@ function addTransactionControllerListeners(
         transactionEventHandlerRequest,
       );
     },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:unapprovedTransactionAdded',
+    handleUnapprovedTransactionAddedForMoneyAccount,
   );
 }

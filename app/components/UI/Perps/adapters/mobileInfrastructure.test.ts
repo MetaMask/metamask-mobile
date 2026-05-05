@@ -60,6 +60,16 @@ jest.mock('../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: jest.fn(),
 }));
 
+jest.mock('../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn().mockResolvedValue('cached-value'),
+    getItemSync: jest.fn().mockReturnValue('cached-sync-value'),
+    setItem: jest.fn().mockResolvedValue(undefined),
+    removeItem: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RewardsController: {
@@ -212,6 +222,58 @@ describe('createMobileInfrastructure', () => {
         Engine.context.RewardsController.getPerpsDiscountForAccount,
       ).toHaveBeenCalledWith(caipAccountId);
       expect(result).toBe(5);
+    });
+  });
+
+  describe('diskCache', () => {
+    it('delegates getItem to StorageWrapper.getItem', async () => {
+      const StorageWrapper = jest.requireMock(
+        '../../../../store/storage-wrapper',
+      ).default;
+      const infra = createMobileInfrastructure();
+
+      const value = await infra.diskCache.getItem('test-key');
+
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-key');
+      expect(value).toBe('cached-value');
+    });
+
+    it('delegates getItemSync to StorageWrapper.getItemSync', () => {
+      const StorageWrapper = jest.requireMock(
+        '../../../../store/storage-wrapper',
+      ).default;
+      const infra = createMobileInfrastructure();
+
+      const value = infra.diskCache.getItemSync?.('test-key');
+
+      expect(StorageWrapper.getItemSync).toHaveBeenCalledWith('test-key');
+      expect(value).toBe('cached-sync-value');
+    });
+
+    it('delegates setItem to StorageWrapper.setItem', async () => {
+      const StorageWrapper = jest.requireMock(
+        '../../../../store/storage-wrapper',
+      ).default;
+      const infra = createMobileInfrastructure();
+
+      await infra.diskCache.setItem('test-key', 'test-value');
+
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        'test-key',
+        'test-value',
+      );
+    });
+
+    it('delegates removeItem to StorageWrapper.removeItem', async () => {
+      const StorageWrapper = jest.requireMock(
+        '../../../../store/storage-wrapper',
+      ).default;
+      const infra = createMobileInfrastructure();
+
+      const result = await infra.diskCache.removeItem('test-key');
+
+      expect(StorageWrapper.removeItem).toHaveBeenCalledWith('test-key');
+      expect(result).toBeUndefined();
     });
   });
 });

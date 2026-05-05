@@ -3,10 +3,6 @@ import React from 'react';
 import PerpsLimitPriceBottomSheet from './PerpsLimitPriceBottomSheet';
 
 // Mock dependencies - only what's absolutely necessary
-jest.mock('react-native-reanimated', () =>
-  jest.requireActual('react-native-reanimated/mock'),
-);
-
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',
@@ -50,19 +46,6 @@ jest.mock('react-native', () => {
 });
 
 // Mock safe area context (required for BottomSheet)
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 // Mock theme
 const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => {
@@ -525,6 +508,37 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Verify limit price was updated (BigNumber mock returns base price)
       expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
+    });
+  });
+
+  describe('Compound percentage regression (TAT-3097)', () => {
+    it('uses limitPrice as base (not currentPrice) when limitPrice is already set', () => {
+      // Regression: old code always used currentPrice, so repeated presses had no effect
+      // because the calculated value never changed.
+      const { BigNumber: MockBigNumber } = jest.requireMock('bignumber.js');
+
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="long"
+          limitPrice="3100"
+          currentPrice={3000}
+        />,
+      );
+
+      // Clear constructor calls that may have occurred during rendering
+      MockBigNumber.mockClear();
+
+      fireEvent.press(screen.getByText('-1%'));
+
+      // BigNumber must be called with the limitPrice (3100), not currentPrice (3000).
+      // The mock's toString() returns its constructor argument, so this assertion
+      // would fail on the pre-fix code that always passed currentPrice.
+      const constructorArgs = MockBigNumber.mock.calls.map(
+        ([arg]: [number]) => arg,
+      );
+      expect(constructorArgs).toContain(3100);
+      expect(constructorArgs).not.toContain(3000);
     });
   });
 

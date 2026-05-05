@@ -22,6 +22,10 @@ jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHomeScreenEnabledFlag: jest.fn(() => false),
 }));
 
+jest.mock('../../../../../reducers/user/selectors', () => ({
+  selectMusdConversionEducationSeen: jest.fn(() => true),
+}));
+
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: true }));
 jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
@@ -76,6 +80,20 @@ jest.mock('./CashGetMusdEmptyState', () => {
   };
 });
 
+jest.mock('../../../../UI/Money/components/MoneyAccountHomeRow', () => {
+  const { Text } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(
+        Text,
+        { testID: 'money-account-home-row' },
+        'MoneyAccountHomeRow',
+      ),
+  };
+});
+
 describe('CashSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -103,7 +121,7 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Cash')).toBeNull();
+    expect(queryByText('Money')).toBeNull();
   });
 
   it('returns null when geo is ineligible', () => {
@@ -113,15 +131,15 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Cash')).toBeNull();
+    expect(queryByText('Money')).toBeNull();
   });
 
-  it('renders Cash title when enabled', () => {
+  it('renders Money title when enabled', () => {
     renderWithProvider(
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(screen.getByText('Cash')).toBeOnTheScreen();
+    expect(screen.getByText('Money')).toBeOnTheScreen();
   });
 
   it('navigates to CASH_TOKENS_FULL_VIEW when Money home screen flag is disabled', () => {
@@ -133,11 +151,24 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByText('Cash'));
+    fireEvent.press(screen.getByText('Money'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      undefined,
     );
+  });
+
+  it('renders MoneyAccountHomeRow when Money home screen flag is enabled', () => {
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+
+    renderWithProvider(
+      <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.getByTestId('money-account-home-row')).toBeOnTheScreen();
   });
 
   it('navigates to Money home screen when Money home screen flag is enabled', () => {
@@ -149,9 +180,11 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByText('Cash'));
+    fireEvent.press(screen.getByText('Money'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
+      screen: Routes.MONEY.HOME,
+    });
   });
 
   it('shows Get mUSD empty state when user has no mUSD balance', () => {

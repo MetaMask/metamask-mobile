@@ -1,15 +1,22 @@
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { isHardwareAccount } from '../../../../../util/address';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  isHardwareAccount,
+  isQRHardwareAccount,
+} from '../../../../../util/address';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import {
   getPostQuoteTransactionType,
+  hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { useSelector } from 'react-redux';
@@ -21,6 +28,7 @@ import {
 import { RootState } from '../../../../../reducers';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -59,6 +67,8 @@ export function useAutomaticTransactionPayToken({
     [from],
   );
 
+  const isQRWallet = useMemo(() => isQRHardwareAccount(from ?? ''), [from]);
+
   const targetToken = useMemo(
     () => requiredTokens.find((token) => !token.allowUnderMinimum),
     [requiredTokens],
@@ -78,6 +88,10 @@ export function useAutomaticTransactionPayToken({
   );
 
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
   );
@@ -91,6 +105,36 @@ export function useAutomaticTransactionPayToken({
     [availableTokens, isWithdraw, withdrawTokenFilter],
   );
 
+  const selectBestToken = useCallback(
+    () =>
+      getBestToken({
+        isHardwareWallet,
+        isQRWallet,
+        isMoneyAccountWithdraw,
+        isWithdraw,
+        lastWithdrawToken,
+        targetToken,
+        tokens,
+        preferredToken,
+        preferredTokensFromFlags,
+        minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
+        transactionMeta,
+      }),
+    [
+      isHardwareWallet,
+      isQRWallet,
+      isMoneyAccountWithdraw,
+      isWithdraw,
+      lastWithdrawToken,
+      payTokensFlags.minimumRequiredTokenBalance,
+      preferredToken,
+      preferredTokensFromFlags,
+      targetToken,
+      tokens,
+      transactionMeta,
+    ],
+  );
+
   useEffect(() => {
     if (
       disable ||
@@ -101,16 +145,7 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
-    const automaticToken = getBestToken({
-      isHardwareWallet,
-      isWithdraw,
-      lastWithdrawToken,
-      targetToken,
-      tokens,
-      preferredToken,
-      preferredTokensFromFlags,
-      minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
-    });
+    const automaticToken = selectBestToken();
 
     if (!automaticToken) {
       log('No automatic pay token found');
@@ -127,23 +162,41 @@ export function useAutomaticTransactionPayToken({
     log('Automatically selected pay token', automaticToken);
   }, [
     disable,
-    isHardwareWallet,
-    isWithdraw,
-    lastWithdrawToken,
-    payTokensFlags.minimumRequiredTokenBalance,
     payToken,
-    preferredToken,
-    preferredTokensFromFlags,
     requiredTokens,
+    selectBestToken,
     setPayToken,
-    targetToken,
     tokens,
     transactionId,
   ]);
+
+  // Re-select the pay token whenever the signer address (`from`) or the
+  // account selected in the PayAccountSelector (`accountOverride`) changes.
+  // `accountOverride` is what switches money-account deposit/withdraw flows to
+  // a different user-selected account without touching `txParams.from`.
+  const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
+  useEffect(() => {
+    const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
+    if (disable || !from || prevAccountKeyRef.current === accountKey) {
+      return;
+    }
+    prevAccountKeyRef.current = accountKey;
+
+    const automaticToken = selectBestToken();
+    if (automaticToken) {
+      setPayToken({
+        address: automaticToken.address,
+        chainId: automaticToken.chainId,
+      });
+      log('Re-selected pay token after account change', automaticToken);
+    }
+  }, [accountOverride, disable, from, selectBestToken, setPayToken]);
 }
 
 function getBestToken({
   isHardwareWallet,
+  isQRWallet,
+  isMoneyAccountWithdraw,
   isWithdraw,
   lastWithdrawToken,
   preferredToken,
@@ -151,8 +204,11 @@ function getBestToken({
   minimumRequiredTokenBalance,
   targetToken,
   tokens,
+  transactionMeta,
 }: {
   isHardwareWallet: boolean;
+  isQRWallet: boolean;
+  isMoneyAccountWithdraw: boolean;
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
   preferredToken?: SetPayTokenRequest;
@@ -160,7 +216,12 @@ function getBestToken({
   minimumRequiredTokenBalance: number;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
+  transactionMeta: TransactionMeta;
 }): { address: Hex; chainId: Hex } | undefined {
+  const isMusdConversion = hasTransactionType(transactionMeta, [
+    TransactionType.musdConversion,
+  ]);
+
   const targetTokenFallback = targetToken
     ? {
         address: targetToken.address,
@@ -168,8 +229,22 @@ function getBestToken({
       }
     : undefined;
 
-  if (isHardwareWallet) {
+  if (isHardwareWallet && (!isMusdConversion || isQRWallet)) {
     return targetTokenFallback;
+  }
+
+  // Money account withdraws always default to mUSD (passed in via preferredToken),
+  // ignoring the user's last-used withdraw token.
+  if (isMoneyAccountWithdraw && preferredToken) {
+    const preferredTokenAvailable = tokens.some(
+      (token) =>
+        token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
+        token.chainId?.toLowerCase() === preferredToken.chainId.toLowerCase(),
+    );
+
+    if (preferredTokenAvailable) {
+      return preferredToken;
+    }
   }
 
   if (isWithdraw && lastWithdrawToken) {

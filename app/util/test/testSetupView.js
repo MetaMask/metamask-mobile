@@ -106,7 +106,16 @@ jest.mock(
 );
 
 // Mock NativeEventEmitter to prevent crashes in Node environment
-jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
+  const NativeEventEmitter = jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListeners: jest.fn(),
+    removeAllListeners: jest.fn(),
+    listenerCount: jest.fn(() => 0),
+    emit: jest.fn(),
+  }));
+  return { __esModule: true, default: NativeEventEmitter };
+});
 
 // Mock react-native-quick-crypto
 jest.mock('react-native-quick-crypto', () => {
@@ -607,3 +616,20 @@ jest.mock('../../components/Base/RemoteImage', () => {
   const { View } = require('react-native');
   return (props) => <View {...props} testID="mock-remote-image" />;
 });
+
+// Mock Braze SDK (ESM-only package; must be transformed via transformIgnorePatterns)
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    changeUser: jest.fn(),
+    getInitialPushPayload: jest.fn((callback) => {
+      // Call callback with null payload (no initial push)
+      if (typeof callback === 'function') {
+        callback(null);
+      }
+    }),
+    addListener: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+  },
+}));

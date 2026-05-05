@@ -419,6 +419,14 @@ const extractNftProperties = (
   // NFT route doesn't have sensitive parameters to extract
 };
 
+const extractMmcMwpProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // MMC MWP deeplinks carry their payload in a compressed `p` param;
+  // no route-level sensitive properties to extract here.
+};
+
 /**
  * Extract properties for INVALID route
  * No properties to extract, this function is a placeholder
@@ -455,9 +463,12 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
+  [DeepLinkRoute.SOCIAL_LEADERBOARD]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
+  [DeepLinkRoute.MMC_MWP]: extractMmcMwpProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -584,6 +595,10 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
+    case ACTIONS.SOCIAL_LEADERBOARD:
+      return DeepLinkRoute.SOCIAL_LEADERBOARD;
+    case ACTIONS.SOCIAL_TRADER_POSITION:
+      return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
@@ -638,6 +653,10 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
+      case 'social-leaderboard':
+        return DeepLinkRoute.SOCIAL_LEADERBOARD;
+      case 'social-trader-position':
+        return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':
         return DeepLinkRoute.CARD_ONBOARDING;
       case 'card-home':

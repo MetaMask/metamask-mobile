@@ -67,9 +67,11 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
+  GetCryptoTargetPriceParams,
   GetMarketsParams,
   GetPositionsParams,
   GetPriceHistoryParams,
@@ -141,6 +143,8 @@ export type PredictControllerState = {
       transactionId?: string;
       state: ActiveOrderState;
       error?: string;
+      paymentTokenAddress?: string;
+      paymentTokenSymbol?: string;
     };
   };
 
@@ -354,6 +358,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getActivity',
   'getBalance',
   'getConnectionStatus',
+  'getCryptoTargetPrice',
   'getMarket',
   'getMarketSeries',
   'getMarkets',
@@ -369,9 +374,11 @@ const MESSENGER_EXPOSED_METHODS = [
   'refreshEligibility',
   'selectPaymentToken',
   'setSelectedPaymentToken',
+  'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
   'trackActivityViewed',
+  'trackBetslipDismissed',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
@@ -400,6 +407,7 @@ export class PredictController extends BaseController<
       preview: OrderPreview;
       signerAddress: string;
       analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+      activeAbTests?: PlaceOrderParams['activeAbTests'];
     };
   } = {};
 
@@ -692,6 +700,61 @@ export class PredictController extends BaseController<
     return this.provider.getMarketSeries(params);
   }
 
+  async getCryptoTargetPrice(
+    params: GetCryptoTargetPriceParams & { eventId: string },
+  ): Promise<number | null> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoTargetPrice',
+        trace: {
+          name: TraceName.PredictGetCryptoTargetPrice,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          eventId: params.eventId,
+          symbol: params.symbol,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        updateErrorState: false,
+      },
+      async () => {
+        let price: number | null = null;
+        try {
+          price = (await this.provider.getCryptoTargetPrice?.(params)) ?? null;
+        } catch {
+          // Provider threw — fall through to groupItemThreshold fallback.
+        }
+
+        if (price !== null) {
+          return price;
+        }
+
+        Logger.log(
+          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to groupItemThreshold`,
+        );
+
+        try {
+          const market = await this.provider.getMarketDetails({
+            marketId: params.eventId,
+          });
+          if (!market?.outcomes?.length) {
+            return null;
+          }
+          return market.outcomes[0].groupItemThreshold ?? null;
+        } catch {
+          return null;
+        }
+      },
+    );
+  }
+
   async getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]> {
@@ -909,6 +972,17 @@ export class PredictController extends BaseController<
     this.analytics.trackShareAction(args);
   }
 
+  /**
+   * Track Predict Betslip Dismissed analytics event
+   *
+   * @public
+   */
+  public trackBetslipDismissed(
+    args: Parameters<PredictAnalytics['trackBetslipDismissed']>[0],
+  ): void {
+    this.analytics.trackBetslipDismissed(args);
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.provider;
@@ -954,6 +1028,7 @@ export class PredictController extends BaseController<
           preview: params.preview,
           signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
+          activeAbTests: params.activeAbTests,
         };
       }
       this.update((state) => {
@@ -962,6 +1037,10 @@ export class PredictController extends BaseController<
             ActiveOrderState.DEPOSITING;
           state.activeBuyOrders[activeOrderAddress].transactionId =
             transactionId;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
+            state.selectedPaymentToken?.address;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol =
+            state.selectedPaymentToken?.symbol;
         }
       });
 
@@ -978,15 +1057,21 @@ export class PredictController extends BaseController<
       }
 
       this.trackPredictOrderEvent({
-        status: PredictTradeStatus.SUBMITTED,
+        status: PredictTradeStatus.SWAP_INITIATED,
         amountUsd: params.preview?.maxAmountSpent,
         analyticsProperties: params.analyticsProperties,
         sharePrice: params.preview?.sharePrice,
         orderType: params.preview.orderType,
         paymentTokenAddress:
           params.preview.side === Side.BUY
-            ? this.state.selectedPaymentToken?.address
+            ? this.state.activeBuyOrders[activeOrderAddress]
+                ?.paymentTokenAddress
             : undefined,
+        paymentTokenSymbol:
+          params.preview.side === Side.BUY
+            ? this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenSymbol
+            : undefined,
+        activeAbTests: params.activeAbTests,
       });
 
       this.messenger.publish('PredictController:transactionStatusChanged', {
@@ -1007,9 +1092,25 @@ export class PredictController extends BaseController<
         if (state.activeBuyOrders[activeOrderAddress]) {
           state.activeBuyOrders[activeOrderAddress].state =
             ActiveOrderState.PLACING_ORDER;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
+            state.activeBuyOrders[activeOrderAddress].paymentTokenAddress ??
+            state.selectedPaymentToken?.address;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol =
+            state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol ??
+            state.selectedPaymentToken?.symbol;
         }
       });
     }
+
+    const paymentTokenAddress = isBuyWithAnyToken
+      ? (this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenAddress ??
+        this.state.selectedPaymentToken?.address)
+      : undefined;
+
+    const paymentTokenSymbol = isBuyWithAnyToken
+      ? (this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenSymbol ??
+        this.state.selectedPaymentToken?.symbol)
+      : undefined;
 
     const startTime = performance.now();
     const { analyticsProperties, preview } = params;
@@ -1054,6 +1155,9 @@ export class PredictController extends BaseController<
         analyticsProperties,
         sharePrice,
         orderType: preview.orderType,
+        paymentTokenAddress,
+        paymentTokenSymbol,
+        activeAbTests: params.activeAbTests,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1133,6 +1237,9 @@ export class PredictController extends BaseController<
         completionDuration,
         sharePrice: realSharePrice,
         orderType: preview.orderType,
+        paymentTokenAddress,
+        paymentTokenSymbol,
+        activeAbTests: params.activeAbTests,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1153,6 +1260,9 @@ export class PredictController extends BaseController<
         completionDuration,
         failureReason: errorMessage,
         orderType: preview.orderType,
+        paymentTokenAddress,
+        paymentTokenSymbol,
+        activeAbTests: params.activeAbTests,
       });
 
       // Update error state for Sentry integration
@@ -1548,14 +1658,36 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Subscribes to real-time crypto price updates via RTDS WebSocket.
+   *
+   * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
+   * @param callback - Function invoked when a crypto price update is received
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToCryptoPrices(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToCryptoPrices) {
+      return () => undefined;
+    }
+    return provider.subscribeToCryptoPrices(symbols, callback);
+  }
+
+  /**
    * Gets the current WebSocket connection status for live data feeds.
    *
-   * @returns Connection status for sports and market data WebSocket channels
+   * @returns Connection status for sports, market, and RTDS data WebSocket channels
    */
   public getConnectionStatus(): ConnectionStatus {
     const provider = this.provider;
     if (!provider?.getConnectionStatus) {
-      return { sportsConnected: false, marketConnected: false };
+      return {
+        sportsConnected: false,
+        marketConnected: false,
+        rtdsConnected: false,
+      };
     }
     return provider.getConnectionStatus();
   }
@@ -2033,14 +2165,28 @@ export class PredictController extends BaseController<
         return;
       }
 
+      // Track swap/deposit success — the token swap confirmed, order placement begins
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SWAP_SUCCESS,
+        analyticsProperties: pendingOrder.analyticsProperties,
+        paymentTokenAddress:
+          this.state.activeBuyOrders[address]?.paymentTokenAddress,
+        paymentTokenSymbol:
+          this.state.activeBuyOrders[address]?.paymentTokenSymbol,
+        orderType: pendingOrder.preview?.orderType,
+        activeAbTests: pendingOrder.activeAbTests,
+      });
+
       const {
         preview,
         signerAddress,
         analyticsProperties: pendingAnalytics,
+        activeAbTests: pendingActiveAbTests,
       } = pendingOrder;
 
       this.placeOrder({
         analyticsProperties: pendingAnalytics,
+        activeAbTests: pendingActiveAbTests,
         preview,
         address: signerAddress,
         transactionId,
@@ -2068,6 +2214,10 @@ export class PredictController extends BaseController<
         transactionId !== undefined &&
         transactionId !== this.state.activeBuyOrders[address]?.transactionId;
 
+      const failedActiveOrder = this.state.activeBuyOrders[address];
+      const failedPaymentTokenAddress = failedActiveOrder?.paymentTokenAddress;
+      const failedPaymentTokenSymbol = failedActiveOrder?.paymentTokenSymbol;
+
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
       }
@@ -2076,9 +2226,19 @@ export class PredictController extends BaseController<
         this.provider.clearOptimisticPosition(address, outcomeTokenId);
       }
 
-      if (this.state.activeBuyOrders[address]) {
+      if (failedActiveOrder) {
         const errorMessage =
           transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+
+        // PWAT active order: swap/deposit step failed before order placement
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.SWAP_FAILED,
+          analyticsProperties: pendingOrder?.analyticsProperties,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
+          failureReason: errorMessage,
+          activeAbTests: pendingOrder?.activeAbTests,
+        });
 
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
@@ -2096,6 +2256,19 @@ export class PredictController extends BaseController<
             }),
           );
         });
+      } else {
+        // Background deposit with no active PWAT order — track as a generic failure
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          analyticsProperties: pendingOrder?.analyticsProperties,
+          failureReason:
+            transactionMeta.error?.message ??
+            PREDICT_ERROR_CODES.DEPOSIT_FAILED,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
+          orderType: pendingOrder?.preview?.orderType,
+          activeAbTests: pendingOrder?.activeAbTests,
+        });
       }
 
       if (isBackgroundOrder) {
@@ -2110,11 +2283,27 @@ export class PredictController extends BaseController<
 
     if (type === 'depositAndOrder' && status === 'rejected') {
       const transactionId = transactionMeta.id;
+      const rejectedPendingOrder = transactionId
+        ? this.pendingOrderPreviews[transactionId]
+        : null;
+
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
       }
 
       if (this.state.activeBuyOrders[address]) {
+        // Track swap_failed — user rejected the deposit/swap approval
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.SWAP_FAILED,
+          analyticsProperties: rejectedPendingOrder?.analyticsProperties,
+          paymentTokenAddress:
+            this.state.activeBuyOrders[address]?.paymentTokenAddress,
+          paymentTokenSymbol:
+            this.state.activeBuyOrders[address]?.paymentTokenSymbol,
+          failureReason: 'user_rejected',
+          activeAbTests: rejectedPendingOrder?.activeAbTests,
+        });
+
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
             state.activeBuyOrders[address].state = ActiveOrderState.PREVIEW;

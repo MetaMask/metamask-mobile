@@ -23,6 +23,11 @@ export type PredictControllerGetMarketSeriesAction = {
   handler: PredictController['getMarketSeries'];
 };
 
+export type PredictControllerGetCryptoTargetPriceAction = {
+  type: `PredictController:getCryptoTargetPrice`;
+  handler: PredictController['getCryptoTargetPrice'];
+};
+
 export type PredictControllerGetPriceHistoryAction = {
   type: `PredictController:getPriceHistory`;
   handler: PredictController['getPriceHistory'];
@@ -89,6 +94,16 @@ export type PredictControllerTrackShareActionAction = {
   handler: PredictController['trackShareAction'];
 };
 
+/**
+ * Track Predict Betslip Dismissed analytics event
+ *
+ * @public
+ */
+export type PredictControllerTrackBetslipDismissedAction = {
+  type: `PredictController:trackBetslipDismissed`;
+  handler: PredictController['trackBetslipDismissed'];
+};
+
 export type PredictControllerPreviewOrderAction = {
   type: `PredictController:previewOrder`;
   handler: PredictController['previewOrder'];
@@ -142,9 +157,21 @@ export type PredictControllerSubscribeToMarketPricesAction = {
 };
 
 /**
+ * Subscribes to real-time crypto price updates via RTDS WebSocket.
+ *
+ * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
+ * @param callback - Function invoked when a crypto price update is received
+ * @returns Unsubscribe function to clean up the subscription
+ */
+export type PredictControllerSubscribeToCryptoPricesAction = {
+  type: `PredictController:subscribeToCryptoPrices`;
+  handler: PredictController['subscribeToCryptoPrices'];
+};
+
+/**
  * Gets the current WebSocket connection status for live data feeds.
  *
- * @returns Connection status for sports and market data WebSocket channels
+ * @returns Connection status for sports, market, and RTDS data WebSocket channels
  */
 export type PredictControllerGetConnectionStatusAction = {
   type: `PredictController:getConnectionStatus`;
@@ -238,6 +265,7 @@ export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
+  | PredictControllerGetCryptoTargetPriceAction
   | PredictControllerGetPriceHistoryAction
   | PredictControllerGetPricesAction
   | PredictControllerGetPositionsAction
@@ -250,6 +278,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackShareActionAction
+  | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction
   | PredictControllerClaimWithConfirmationAction
@@ -257,6 +286,7 @@ export type PredictControllerMethodActions =
   | PredictControllerRefreshEligibilityAction
   | PredictControllerSubscribeToGameUpdatesAction
   | PredictControllerSubscribeToMarketPricesAction
+  | PredictControllerSubscribeToCryptoPricesAction
   | PredictControllerGetConnectionStatusAction
   | PredictControllerClearOrderErrorAction
   | PredictControllerOnPlaceOrderSuccessAction

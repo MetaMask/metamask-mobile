@@ -1,12 +1,6 @@
-import React, {
-  useCallback,
-  useRef,
-  useMemo,
-  useEffect,
-  useState,
-} from 'react';
+import React, { useCallback, useRef, useMemo, useEffect } from 'react';
 import { DeviceEventEmitter, RefreshControl } from 'react-native';
-import { FlashList, FlashListRef, ViewToken } from '@shopify/flash-list';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -20,7 +14,6 @@ import { TokenListItem } from './TokenListItem/TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectHomepageRedesignV1Enabled } from '../../../../selectors/featureFlagController/homepage';
 import {
   Box,
   Button,
@@ -47,6 +40,13 @@ interface TokenListProps {
   setShowScamWarningModal: (chainId: string | null) => void;
   maxItems?: number;
   isFullView?: boolean;
+  listFooterComponent?: React.ReactElement;
+  /**
+   * Optional external RefreshControl. When provided, overrides the internal
+   * one wired via `refreshing` + `onRefresh` so callers can compose their own
+   * refresh orchestrator (e.g. Money Hub).
+   */
+  refreshControl?: React.ReactElement;
 }
 
 const TokenListComponent = ({
@@ -58,15 +58,14 @@ const TokenListComponent = ({
   setShowScamWarningModal,
   maxItems,
   isFullView = false,
+  listFooterComponent,
+  refreshControl,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
     selectIsTokenNetworkFilterEqualCurrentNetwork,
-  );
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
   );
 
   // Declaring this here and passing it down to avoid O(n) API calls to on-ramp
@@ -106,7 +105,7 @@ const TokenListComponent = ({
         }
 
         // For FlashList mode, use scrollToIndex
-        if (!isHomepageRedesignV1Enabled || isFullView) {
+        if (isFullView) {
           if (listRef.current) {
             listRef.current.scrollToIndex({
               index: tokenIndex,
@@ -129,7 +128,7 @@ const TokenListComponent = ({
     return () => {
       subscription.remove();
     };
-  }, [displayTokenKeys, isHomepageRedesignV1Enabled, isFullView]);
+  }, [displayTokenKeys, isFullView]);
 
   const handleViewAllTokens = useCallback(() => {
     trackEvent(
@@ -146,18 +145,6 @@ const TokenListComponent = ({
     [],
   );
 
-  // Track which items are currently visible in the viewport.
-  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
-
-  const handleViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<FlashListAssetKey>[] }) => {
-      setVisibleKeys(
-        new Set(viewableItems.map(({ item }) => getTokenKey(item))),
-      );
-    },
-    [getTokenKey],
-  );
-
   const renderTokenListItem = useCallback(
     ({ item }: { item: FlashListAssetKey }) => (
       <TokenListItem
@@ -168,7 +155,6 @@ const TokenListComponent = ({
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
         shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-        isVisible={visibleKeys.has(getTokenKey(item))}
       />
     ),
     [
@@ -178,69 +164,70 @@ const TokenListComponent = ({
       showPercentageChange,
       isFullView,
       shouldShowTokenListItemCta,
-      visibleKeys,
-      getTokenKey,
     ],
   );
 
-  const tokenList =
-    isHomepageRedesignV1Enabled && !isFullView ? (
-      <Box
-        twClassName={'bg-default'}
+  const tokenList = !isFullView ? (
+    <Box
+      twClassName={'bg-default'}
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+    >
+      {displayTokenKeys.map((item, index) => (
+        <TokenListItem
+          key={`${getTokenKey(item)}-${index}`}
+          assetKey={item}
+          showRemoveMenu={showRemoveMenu}
+          setShowScamWarningModal={setShowScamWarningModal}
+          privacyMode={privacyMode}
+          showPercentageChange={showPercentageChange}
+          isFullView={isFullView}
+          shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+        />
+      ))}
+      {shouldShowViewAllButton && (
+        <Box twClassName="pt-3 pb-9">
+          <Button
+            variant={ButtonVariant.Secondary}
+            onPress={handleViewAllTokens}
+            isFullWidth
+          >
+            {strings('wallet.view_all_tokens')}
+          </Button>
+        </Box>
+      )}
+      {listFooterComponent}
+    </Box>
+  ) : (
+    <Box twClassName={'flex-1 bg-default'}>
+      <FlashList
+        ref={listRef}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      >
-        {displayTokenKeys.map((item, index) => (
-          <TokenListItem
-            key={`${getTokenKey(item)}-${index}`}
-            assetKey={item}
-            showRemoveMenu={showRemoveMenu}
-            setShowScamWarningModal={setShowScamWarningModal}
-            privacyMode={privacyMode}
-            showPercentageChange={showPercentageChange}
-            isFullView={isFullView}
-            shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-            isVisible
-          />
-        ))}
-        {shouldShowViewAllButton && (
-          <Box twClassName="pt-3 pb-9">
-            <Button
-              variant={ButtonVariant.Secondary}
-              onPress={handleViewAllTokens}
-              isFullWidth
-            >
-              {strings('wallet.view_all_tokens')}
-            </Button>
-          </Box>
-        )}
-      </Box>
-    ) : (
-      <Box twClassName={'flex-1 bg-default'}>
-        <FlashList
-          ref={listRef}
-          testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-          data={displayTokenKeys}
-          removeClippedSubviews={false}
-          viewabilityConfig={{
-            itemVisiblePercentThreshold: 50,
-            minimumViewTime: 1000,
-          }}
-          onViewableItemsChanged={handleViewableItemsChanged}
-          renderItem={renderTokenListItem}
-          keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
-          refreshControl={
+        data={displayTokenKeys}
+        removeClippedSubviews={false}
+        renderItem={renderTokenListItem}
+        keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
+        refreshControl={
+          refreshControl ?? (
             <RefreshControl
               colors={[colors.primary.default]}
               tintColor={colors.icon.default}
               refreshing={refreshing}
               onRefresh={onRefresh}
             />
-          }
-          extraData={{ isTokenNetworkFilterEqualCurrentNetwork, visibleKeys }}
-          contentContainerStyle={!isFullView ? undefined : tw`px-4`}
-        />
-      </Box>
-    );
+          )
+        }
+        extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+        contentContainerStyle={!isFullView ? undefined : tw`px-4`}
+        ListFooterComponent={
+          isFullView && listFooterComponent ? (
+            <Box twClassName="-mx-4">{listFooterComponent}</Box>
+          ) : (
+            listFooterComponent
+          )
+        }
+      />
+    </Box>
+  );
 
   return tokenList;
 };

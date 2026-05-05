@@ -584,6 +584,7 @@ export function compareRpcUrls(rpcOne, rpcTwo) {
  */
 const BLOCK_EXPLORER_NAME_OVERRIDES = {
   'megaeth.blockscout.com': 'MegaETH Explorer',
+  'explore.tempo.xyz': 'Tempo Explorer',
 };
 
 /**
@@ -800,9 +801,6 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
-
-export const isPermissionsSettingsV1Enabled =
-  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {

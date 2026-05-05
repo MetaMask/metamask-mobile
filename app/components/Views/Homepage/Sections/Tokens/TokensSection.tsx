@@ -40,6 +40,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
@@ -47,6 +48,8 @@ import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdC
 import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -144,7 +147,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-
     // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
     const displayTokenKeys = useMemo(
       () =>
@@ -197,17 +199,36 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
-    const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
+    const isPositionsTokenRowsLoading =
+      isPositionsOnly &&
+      !isZeroBalanceAccount &&
+      displayTokenKeys.length === 0 &&
+      sortedTokenKeys.length === 0;
+    const sectionIsEmpty = isPositionsOnly
+      ? !isPositionsTokenRowsLoading && displayTokenKeys.length === 0
+      : isZeroBalanceAccount || showTokensError;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef:
         isPositionsOnly && isZeroBalanceAccount ? null : sectionViewRef,
-      isLoading: false,
+      isLoading: isPositionsTokenRowsLoading,
       sectionName: analyticsName,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: sectionIsEmpty,
       itemCount,
+    });
+
+    useSectionPerformance({
+      sectionId: HomeSectionNames.TOKENS,
+      contentReady:
+        !showTokensError &&
+        (isZeroBalanceAccount || displayTokenKeys.length > 0),
+      isEmpty: isZeroBalanceAccount || showTokensError,
+      isLoading:
+        displayTokenKeys.length === 0 &&
+        sortedTokenKeys.length === 0 &&
+        !showTokensError,
     });
 
     const handleViewAllTokens = useCallback(() => {
@@ -256,7 +277,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                     privacyMode={privacyMode}
                     showPercentageChange
                     shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-                    isVisible
                   />
                 ))
               )}
@@ -294,6 +314,8 @@ const TokensSectionTrendingOnly = forwardRef<
     const navigation = useNavigation();
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
+    const trendingTransactionActiveAbTests =
+      useHomepageTrendingTransactionActiveAbTests();
     const {
       results: trendingTokens,
       isLoading: isTrendingLoading,
@@ -350,6 +372,8 @@ const TokensSectionTrendingOnly = forwardRef<
                     key={token.assetId}
                     token={token}
                     position={index}
+                    tokenDetailsSource={TokenDetailsSource.HomepageTrending}
+                    transactionActiveAbTests={trendingTransactionActiveAbTests}
                   />
                 ))}
           </SectionRow>

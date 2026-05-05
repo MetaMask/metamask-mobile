@@ -693,6 +693,22 @@ describe('Metamask Pay Metrics', () => {
       expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
     });
 
+    it('falls back to parent submittedTime when no children have submittedTime', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1060500);
+
+      request.transactionMeta.type = TransactionType.perpsWithdraw;
+      request.transactionMeta.submittedTime = 1000000;
+      request.transactionMeta.requiredTransactionIds = [];
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toStrictEqual(
+        expect.objectContaining({
+          mm_pay_time_to_complete_s: 60.5,
+        }),
+      );
+    });
+
     it('does not add mm_pay_time_to_complete_s when submittedTime is undefined', () => {
       request.transactionMeta.type = TransactionType.perpsDeposit;
 

@@ -15,7 +15,9 @@ export enum FeatureFlagNames {
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
   complianceEnabled = 'complianceEnabled',
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
+  googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
+  hapticsKillSwitch = 'hapticsKillSwitch',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
@@ -25,4 +27,5 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.tokenDetailsV2Buttons]: false,
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,
+  [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: false,
 };

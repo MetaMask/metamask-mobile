@@ -31,6 +31,7 @@ jest.mock('../services/MYXWalletService', () => ({
     createEthersSigner: jest.fn().mockReturnValue({}),
     createWalletClient: jest.fn().mockReturnValue({}),
     getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+    getCurrentAccountId: jest.fn().mockResolvedValue('eip155:421614:0xuser123'),
   })),
 }));
 jest.mock('../utils/myxAdapter', () => ({
@@ -595,7 +596,8 @@ describe('MYXProvider', () => {
       const result = await provider.getAccountState();
 
       expect(result).toEqual({
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -768,7 +770,8 @@ describe('MYXProvider', () => {
       jest.advanceTimersByTime(1);
 
       expect(callback).toHaveBeenCalledWith({
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -911,6 +914,9 @@ describe('MYXProvider', () => {
         createEthersSigner: jest.fn().mockReturnValue({}),
         createWalletClient: jest.fn().mockReturnValue({}),
         getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+        getCurrentAccountId: jest
+          .fn()
+          .mockResolvedValue('eip155:421614:0xuser123'),
       }));
 
       const { createMockMessenger: createMsg } = jest.requireActual(
@@ -1002,7 +1008,8 @@ describe('MYXProvider', () => {
         ) as { adaptAccountStateFromMYX: jest.Mock };
         mockAdapt.mockReturnValue({
           totalBalance: '1000',
-          availableBalance: '800',
+          spendableBalance: '800',
+          withdrawableBalance: '800',
           marginUsed: '200',
           unrealizedPnl: '50',
           returnOnEquity: '5',
@@ -1139,6 +1146,9 @@ describe('MYXProvider', () => {
         createEthersSigner: jest.fn().mockReturnValue({}),
         createWalletClient: jest.fn().mockReturnValue({}),
         getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+        getCurrentAccountId: jest
+          .fn()
+          .mockResolvedValue('eip155:421614:0xuser123'),
       }));
 
       const messenger = createMockMessenger();

@@ -1982,18 +1982,6 @@ describe('TradingService', () => {
       stopLossCount: 0,
     };
 
-    const mockAccountState = {
-      availableBalance: '10000',
-      equity: '15000',
-      marginUsed: '5000',
-    };
-
-    beforeEach(() => {
-      mockProvider.getAccountState = jest
-        .fn()
-        .mockResolvedValue(mockAccountState);
-    });
-
     it('places order with 2x position size to flip position', async () => {
       const mockResult: OrderResult = {
         success: true,
@@ -2054,31 +2042,7 @@ describe('TradingService', () => {
       );
     });
 
-    it('returns error when insufficient balance for fees', async () => {
-      // Set very low available balance
-      mockProvider.getAccountState = jest.fn().mockResolvedValue({
-        ...mockAccountState,
-        availableBalance: '1', // $1 balance, insufficient for fees
-      });
-
-      await expect(
-        tradingService.flipPosition({
-          provider: mockProvider,
-          position: mockPosition,
-          context: mockContext,
-        }),
-      ).rejects.toThrow(/Insufficient balance for flip fees/);
-    });
-
-    it('allows flip when balance covers 1x notional fee estimate', async () => {
-      // position: size=0.5, entryPrice=50000
-      // estimatedFees = positionSize * entryPrice * ESTIMATED_FEE_RATE
-      //               = 0.5 * 50000 * 0.0009 = $22.50 (1x notional, correct)
-      // pre-fix would compute 2x: 1.0 * 50000 * 0.0009 = $45 → would block this user
-      mockProvider.getAccountState = jest.fn().mockResolvedValue({
-        ...mockAccountState,
-        availableBalance: '30', // $30 > $22.50, sufficient with 1x
-      });
+    it('does not pass entry price as currentPrice to the provider', async () => {
       mockProvider.placeOrder.mockResolvedValue({
         success: true,
         orderId: 'flip-balance-fixed',
@@ -2093,18 +2057,18 @@ describe('TradingService', () => {
       });
 
       expect(result.success).toBe(true);
-    });
-
-    it('throws error when account state cannot be retrieved', async () => {
-      mockProvider.getAccountState = jest.fn().mockResolvedValue(null);
-
-      await expect(
-        tradingService.flipPosition({
-          provider: mockProvider,
-          position: mockPosition,
-          context: mockContext,
+      expect(mockProvider.placeOrder).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        isBuy: false,
+        size: '1',
+        orderType: 'market',
+        leverage: 10,
+      });
+      expect(mockProvider.placeOrder).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentPrice: expect.any(Number),
         }),
-      ).rejects.toThrow('Failed to get account state');
+      );
     });
 
     it('returns error when order placement fails', async () => {
@@ -2125,7 +2089,11 @@ describe('TradingService', () => {
     });
 
     it('tracks analytics on success', async () => {
-      const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'flip-123',
+        averagePrice: '60000',
+      };
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
       await tradingService.flipPosition({
@@ -2138,6 +2106,7 @@ describe('TradingService', () => {
         PerpsAnalyticsEvent.TradeTransaction,
         expect.objectContaining({
           status: 'executed',
+          order_value: 30000,
         }),
       );
     });
@@ -2209,7 +2178,6 @@ describe('TradingService', () => {
         size: '1',
         orderType: 'market',
         leverage: 10,
-        currentPrice: 50000,
       });
     });
   });

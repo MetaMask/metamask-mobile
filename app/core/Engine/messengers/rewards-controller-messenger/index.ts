@@ -2,6 +2,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 
 import {
@@ -56,12 +58,19 @@ import {
   RewardsDataServiceGetCampaignsAction,
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
+  RewardsDataServiceGetBenefitsAction,
+  RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
   RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
   RewardsDataServiceGetOndoCampaignActivityAction,
   RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction,
+  RewardsDataServiceGetOndoCampaignDepositsAction,
+  RewardsDataServiceGetOndoCampaignParticipantOutcomeAction,
+  RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
+  RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
+  RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -101,6 +110,8 @@ type AllowedActions =
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceApplyBonusCodeAction
+  | RewardsDataServiceGetBenefitsAction
+  | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
@@ -110,7 +121,12 @@ type AllowedActions =
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
   | RewardsDataServiceGetOndoCampaignActivityAction
-  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction;
+  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
+  | RewardsDataServiceGetOndoCampaignDepositsAction
+  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -136,8 +152,21 @@ export function getRewardsControllerMessenger(
     parent: rootMessenger,
   });
 
+  // Widen `messenger` to a generic `Messenger<...>` for the delegate call only.
+  // `delegate`'s constraint is `DelegatedActions extends (MessengerActions<Delegatee> & Action)['type'][]`,
+  // which performs an intersection between the delegatee's action union and the
+  // root messenger's action union. With ~46 actions on each side, this hits
+  // TypeScript's union-type-complexity ceiling (TS2590). Erasing the delegatee's
+  // specific action union to the open `ActionConstraint` short-circuits the
+  // intersection without affecting the runtime behavior — `delegate` only
+  // inspects the action/event name strings at runtime.
   rootMessenger.delegate({
-    messenger,
+    messenger: messenger as Messenger<
+      typeof name,
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -175,18 +204,25 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
+      'RewardsDataService:getBenefits',
+      'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
       'RewardsDataService:getOndoCampaignPortfolioPosition',
       'RewardsDataService:getOndoCampaignActivity',
       'RewardsDataService:getOndoCampaignActivityLastUpdated',
+      'RewardsDataService:getOndoCampaignDeposits',
+      'RewardsDataService:getOndoCampaignParticipantOutcome',
+      'RewardsDataService:getPerpsTradingCampaignLeaderboard',
+      'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
+      'RewardsDataService:getPerpsTradingCampaignVolume',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
     ],
-  });
+  } as Parameters<RootMessenger['delegate']>[0]);
 
   return messenger;
 }

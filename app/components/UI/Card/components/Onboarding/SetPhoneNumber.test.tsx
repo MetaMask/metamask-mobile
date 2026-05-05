@@ -321,7 +321,7 @@ describe('SetPhoneNumber Component', () => {
       );
 
       const continueButton = getByTestId('set-phone-number-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('does not show error message initially', () => {
@@ -331,7 +331,9 @@ describe('SetPhoneNumber Component', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+      expect(
+        queryByTestId('set-phone-number-phone-number-error'),
+      ).not.toBeOnTheScreen();
     });
 
     it('displays legal terms text', () => {
@@ -423,7 +425,9 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+        expect(
+          queryByTestId('set-phone-number-phone-number-error'),
+        ).not.toBeOnTheScreen();
       });
     });
   });
@@ -674,7 +678,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).not.toBeDisabled();
       });
     });
 
@@ -693,7 +697,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(true);
+        expect(continueButton).toBeDisabled();
       });
     });
 
@@ -705,7 +709,7 @@ describe('SetPhoneNumber Component', () => {
       );
 
       const continueButton = getByTestId('set-phone-number-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('disables continue button when phone verification is loading', () => {
@@ -724,7 +728,7 @@ describe('SetPhoneNumber Component', () => {
       );
 
       const continueButton = getByTestId('set-phone-number-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('disables continue button when phone verification has error', () => {
@@ -743,7 +747,7 @@ describe('SetPhoneNumber Component', () => {
       );
 
       const continueButton = getByTestId('set-phone-number-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
   });
 
@@ -763,7 +767,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).not.toBeDisabled();
       });
 
       await act(async () => {
@@ -792,7 +796,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).not.toBeDisabled();
       });
 
       await act(async () => {
@@ -888,7 +892,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).not.toBeDisabled();
       });
 
       await act(async () => {
@@ -923,7 +927,7 @@ describe('SetPhoneNumber Component', () => {
       );
 
       const continueButton = getByTestId('set-phone-number-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('handles missing registration settings', () => {
@@ -1088,8 +1092,12 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(queryByTestId('set-phone-number-us-phone-error')).toBeNull();
-        expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+        expect(
+          queryByTestId('set-phone-number-us-phone-error'),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId('set-phone-number-phone-number-error'),
+        ).not.toBeOnTheScreen();
       });
     });
 
@@ -1110,7 +1118,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).not.toBeDisabled();
       });
     });
 
@@ -1131,7 +1139,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(true);
+        expect(continueButton).toBeDisabled();
       });
     });
 
@@ -1150,8 +1158,12 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(queryByTestId('set-phone-number-us-phone-error')).toBeNull();
-        expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+        expect(
+          queryByTestId('set-phone-number-us-phone-error'),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId('set-phone-number-phone-number-error'),
+        ).not.toBeOnTheScreen();
       });
     });
 
@@ -1172,7 +1184,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).not.toBeDisabled();
       });
     });
 
@@ -1202,8 +1214,12 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(queryByTestId('set-phone-number-us-phone-error')).toBeNull();
-        expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+        expect(
+          queryByTestId('set-phone-number-us-phone-error'),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId('set-phone-number-phone-number-error'),
+        ).not.toBeOnTheScreen();
       });
     });
 
@@ -1224,7 +1240,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).not.toBeDisabled();
       });
 
       await act(async () => {

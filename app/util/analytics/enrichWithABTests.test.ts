@@ -1,4 +1,5 @@
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
+import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 
 describe('enrichWithABTests', () => {
@@ -16,7 +17,10 @@ describe('enrichWithABTests', () => {
     expect(result.properties).toMatchObject({
       screen: 'wallet',
       active_ab_tests: [
-        { key: 'cardCARD338AbtestAttentionBadge', value: 'withBadge' },
+        createActiveABTestAssignment(
+          'cardCARD338AbtestAttentionBadge',
+          'withBadge',
+        ),
       ],
     });
   });
@@ -32,14 +36,14 @@ describe('enrichWithABTests', () => {
     });
 
     expect(result.properties.active_ab_tests).toEqual([
-      {
-        key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-        value: 'treatment',
-      },
-      {
-        key: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
-        value: 'control',
-      },
+      createActiveABTestAssignment(
+        'swapsSWAPS4135AbtestNumpadQuickAmounts',
+        'treatment',
+      ),
+      createActiveABTestAssignment(
+        'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
+        'control',
+      ),
     ]);
   });
 
@@ -81,11 +85,14 @@ describe('enrichWithABTests', () => {
     });
 
     expect(result.properties.active_ab_tests).toEqual([
-      { key: 'cardCARD338AbtestAttentionBadge', value: 'control' },
+      createActiveABTestAssignment(
+        'cardCARD338AbtestAttentionBadge',
+        'control',
+      ),
     ]);
   });
 
-  it('merges with existing active_ab_tests and preserves explicit payload values', () => {
+  it('merges with existing active_ab_tests, normalizes key_value_pair, and preserves explicit payload values', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(
       'Unified SwapBridge Page Viewed',
     )
@@ -94,6 +101,7 @@ describe('enrichWithABTests', () => {
           {
             key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
             value: 'manual-value',
+            key_value_pair: 'incorrect=assignment',
           },
         ],
         quote_count: 3,
@@ -108,16 +116,32 @@ describe('enrichWithABTests', () => {
     expect(result.properties).toEqual({
       quote_count: 3,
       active_ab_tests: [
-        {
-          key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-          value: 'manual-value',
-        },
-        {
-          key: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
-          value: 'treatment',
-        },
+        createActiveABTestAssignment(
+          'swapsSWAPS4135AbtestNumpadQuickAmounts',
+          'manual-value',
+        ),
+        createActiveABTestAssignment(
+          'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
+          'treatment',
+        ),
       ],
     });
+  });
+
+  it('enriches Home Viewed events with hub page discovery tabs assignment', () => {
+    const event =
+      AnalyticsEventBuilder.createEventBuilder('Home Viewed').build();
+
+    const result = enrichWithABTests(event, {
+      coreMCU589AbtestHubPageDiscoveryTabs: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        'coreMCU589AbtestHubPageDiscoveryTabs',
+        'treatment',
+      ),
+    ]);
   });
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
