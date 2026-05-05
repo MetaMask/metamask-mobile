@@ -128,13 +128,11 @@ describe('QRWalletAdapter', () => {
       ).rejects.toThrow('Adapter has been destroyed');
     });
 
-    it('returns true and emits AppOpened (QR wallets are always ready)', async () => {
+    it('returns true when camera permission is granted (QR wallets are always ready)', async () => {
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
       expect(result).toBe(true);
-      expect(onDeviceEvent).toHaveBeenCalledWith({
-        event: DeviceEvent.AppOpened,
-      });
+      expect(onDeviceEvent).not.toHaveBeenCalled();
     });
 
     it('stores device ID', async () => {
@@ -146,6 +144,7 @@ describe('QRWalletAdapter', () => {
 
     it('emits ConnectionFailed when camera permission is denied', async () => {
       mockGetCameraPermissionStatus.mockReturnValueOnce('denied');
+      mockRequestCameraPermission.mockResolvedValueOnce('denied');
 
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
