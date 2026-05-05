@@ -309,7 +309,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleBottomSheetConnectionSuccess}
         onCTAClicked={trackCTAClicked}
-        onRetryQrScan={handleRetryQrScan}
       />
     </HardwareWalletContext.Provider>
   );
