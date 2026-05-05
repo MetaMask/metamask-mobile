@@ -15,10 +15,16 @@ import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import { strings } from '../../../../../locales/i18n';
 import {
+  getImpactLabel,
+  getImpactBackgroundClass,
+  getImpactTextColor,
+} from '../../Homepage/Sections/WhatsHappening/util/impact';
+import {
   formatRelativeTime,
   getUniqueSourcesByFavicon,
 } from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
+import PerpsRow from './PerpsRow';
 import TokenRow from './TokenRow';
 import WhatsHappeningSourcesBottomSheet from './WhatsHappeningSourcesBottomSheet';
 
@@ -26,39 +32,6 @@ interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
   cardWidth: number;
 }
-
-const getImpactLabel = (impact: WhatsHappeningItem['impact']): string => {
-  switch (impact) {
-    case 'positive':
-      return strings('homepage.sections.whats_happening_impact.bullish');
-    case 'negative':
-      return strings('homepage.sections.whats_happening_impact.bearish');
-    default:
-      return strings('homepage.sections.whats_happening_impact.neutral');
-  }
-};
-
-const getImpactStyles = (
-  impact: WhatsHappeningItem['impact'],
-): { containerClass: string; textColor: TextColor } => {
-  switch (impact) {
-    case 'positive':
-      return {
-        containerClass: 'bg-success-muted rounded px-2 py-1 self-start',
-        textColor: TextColor.SuccessDefault,
-      };
-    case 'negative':
-      return {
-        containerClass: 'bg-error-muted rounded px-2 py-1 self-start',
-        textColor: TextColor.ErrorDefault,
-      };
-    default:
-      return {
-        containerClass: 'bg-muted rounded px-2 py-1 self-start',
-        textColor: TextColor.TextAlternative,
-      };
-  }
-};
 
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   item,
@@ -68,7 +41,8 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   const [sourcesVisible, setSourcesVisible] = useState(false);
 
   const impactLabel = getImpactLabel(item.impact);
-  const impactStyles = getImpactStyles(item.impact);
+  const impactBgClass = getImpactBackgroundClass(item.impact);
+  const impactTextColor = getImpactTextColor(item.impact);
 
   const uniqueSources = useMemo(() => {
     const sources: MarketInsightsSource[] = item.articles.map((article) => ({
@@ -98,8 +72,8 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
           padding={5}
         >
           {/* Impact badge */}
-          <Box twClassName={impactStyles.containerClass}>
-            <Text variant={TextVariant.BodySm} color={impactStyles.textColor}>
+          <Box twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}>
+            <Text variant={TextVariant.BodySm} color={impactTextColor}>
               {impactLabel}
             </Text>
           </Box>
@@ -138,6 +112,25 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 .filter((asset) => asset.caip19?.length)
                 .map((asset) => (
                   <TokenRow key={asset.sourceAssetId} asset={asset} />
+                ))}
+            </Box>
+          )}
+
+          {/* Perps section — only assets with a HyperLiquid perps market identifier */}
+          {item.relatedAssets.some((asset) => asset.hlPerpsMarket?.length) && (
+            <Box gap={1}>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                {strings('homepage.sections.perps')}
+              </Text>
+
+              {item.relatedAssets
+                .filter((asset) => asset.hlPerpsMarket?.length)
+                .map((asset) => (
+                  <PerpsRow key={`perp-${asset.sourceAssetId}`} asset={asset} />
                 ))}
             </Box>
           )}
