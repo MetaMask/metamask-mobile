@@ -92,8 +92,11 @@ function getNativeBalance(
 ): BigNumber {
   const accountsByChainId = selectAccountsByChainId(state);
 
+  const checksummedAddress = safeToChecksumAddress(address);
   const account =
-    accountsByChainId?.[chainId]?.[safeToChecksumAddress(address)];
+    checksummedAddress !== undefined
+      ? accountsByChainId?.[chainId]?.[checksummedAddress]
+      : undefined;
 
   return new BigNumber((account?.balance as Hex) ?? '0x0');
 }
