@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -38,7 +38,7 @@ const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: () => void;
+  onViewAll: (filter: string) => void;
 }
 
 const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
@@ -46,6 +46,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   onViewAll,
 }) => {
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
+  const activePillKey = useRef<string>('commodities');
 
   const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
     const byType = (type: PerpsMarketData['marketType']) =>
@@ -83,7 +84,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
     <Box>
       <SectionHeader
         title={strings('trending.rwa_perps_section')}
-        onViewAll={onViewAll}
+        onViewAll={() => onViewAll(activePillKey.current)}
         testID="section-header-view-all-rwa_perps"
       />
       <PillToggleCardList<PerpsMarketData>
@@ -92,6 +93,9 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
         renderItem={renderItem}
         Skeleton={PerpsRowSingleSkeleton}
         idPrefix="rwa_perps"
+        onPillChange={(key) => {
+          activePillKey.current = key;
+        }}
         testIdPrefix="rwa-perps-pills"
         listTestId="rwa-perps-pill-toggled-list"
       />
@@ -178,7 +182,9 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <PerpsSectionProvider>
           <RwaPerpsBlock
             refresh={refresh}
-            onViewAll={() => navigateToPerpsMarketList(perpsNavigation)}
+            onViewAll={(filter) =>
+              navigateToPerpsMarketList(perpsNavigation, filter)
+            }
           />
         </PerpsSectionProvider>
       )}
