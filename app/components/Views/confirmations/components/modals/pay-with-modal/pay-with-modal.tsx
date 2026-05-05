@@ -234,7 +234,7 @@ export function PayWithModal() {
     >
       <HeaderStandard
         title={modalTitle}
-        // HeaderCompactStandard close handler receives a press event; we must ignore it so it
+        // HeaderStandard close handler receives a press event; we must ignore it so it
         // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
         onClose={() => close()}
       />
