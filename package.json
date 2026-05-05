@@ -209,7 +209,8 @@
     "@metamask/keyring-api@npm:^21.5.0": "21.6.0",
     "@metamask/keyring-api@npm:^21.6.0": "23.0.1",
     "@metamask/keyring-api@npm:^22.0.0": "23.0.1",
-    "@metamask/keyring-api@npm:^23.0.1": "23.0.1"
+    "@metamask/keyring-api@npm:^23.0.1": "23.0.1",
+    "@metamask/bridge-status-controller@npm:^71.0.0": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -241,7 +242,7 @@
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
     "@metamask/bridge-controller": "^71.0.0",
-    "@metamask/bridge-status-controller": "^71.1.0",
+    "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
     "@metamask/chain-agnostic-permission": "^1.5.0",
     "@metamask/client-controller": "^1.0.1",
     "@metamask/compliance-controller": "2.0.0",
