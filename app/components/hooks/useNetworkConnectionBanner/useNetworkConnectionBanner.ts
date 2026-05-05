@@ -9,7 +9,6 @@ import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { configureWalletContentLayoutAnimation } from '../../Views/Wallet/walletLayoutShiftAnimation';
 import {
   hideNetworkConnectionBanner,
   showNetworkConnectionBanner,
@@ -108,7 +107,6 @@ const useNetworkConnectionBanner = (): {
     if (isOffline) {
       const currentBannerState = bannerStateRef.current;
       if (currentBannerState.visible) {
-        configureWalletContentLayoutAnimation();
         dispatch(hideNetworkConnectionBanner());
       }
       return;
@@ -221,7 +219,6 @@ const useNetworkConnectionBanner = (): {
         }
       } else if (currentBannerState.visible) {
         // Hide banner if all networks are available
-        configureWalletContentLayoutAnimation();
         dispatch(hideNetworkConnectionBanner());
       }
     };
@@ -256,7 +253,6 @@ const useNetworkConnectionBanner = (): {
         currentBannerState.visible &&
         currentBannerState.chainId === chainId
       ) {
-        configureWalletContentLayoutAnimation();
         dispatch(hideNetworkConnectionBanner());
       }
     };
@@ -357,7 +353,6 @@ const useNetworkConnectionBanner = (): {
 
       // Hide banner immediately to prevent stale "Switch to MetaMask default RPC" button
       // The normal status check logic will re-show it with fresh data if network is still unavailable
-      configureWalletContentLayoutAnimation();
       dispatch(hideNetworkConnectionBanner());
 
       // Show success toast

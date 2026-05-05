@@ -55,7 +55,10 @@ import {
   WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS,
   walletHomeOnboardingChecklistSlideDownExitDistancePx,
 } from './walletHomeOnboardingChecklistRive';
-import { WALLET_HOME_ONBOARDING_STEP_HERO } from './walletHomeOnboardingStepHero';
+import {
+  WALLET_HOME_ONBOARDING_STEP_HERO,
+  type WalletHomeOnboardingStepHeroKind,
+} from './walletHomeOnboardingStepHero';
 
 type StepKind = 'fund' | 'trade' | 'notifications';
 
@@ -255,6 +258,31 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     }
     prevSuspendRiveForCurtainRef.current = suspendRiveForCurtain;
   }, [suspendRiveForCurtain]);
+
+  /**
+   * Decode every hero PNG while step 1 is visible so step 2/3 transitions don't briefly keep
+   * showing the previous bitmap (RN Image can reuse the drawable until the new asset finishes decoding).
+   */
+  useEffect(() => {
+    if (isE2E) {
+      return;
+    }
+    (
+      Object.keys(
+        WALLET_HOME_ONBOARDING_STEP_HERO,
+      ) as WalletHomeOnboardingStepHeroKind[]
+    ).forEach((kind) => {
+      const resolved = Image.resolveAssetSource(
+        WALLET_HOME_ONBOARDING_STEP_HERO[kind].image,
+      );
+      const uri = resolved?.uri;
+      if (uri) {
+        Image.prefetch(uri).catch(() => {
+          // Ignore prefetch failures (e.g. offline); hero still loads on demand.
+        });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const max = Math.max(0, VISIBLE_STEPS.length - 1);
@@ -595,6 +623,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           style={tw.style('absolute inset-0 z-0 overflow-hidden rounded-2xl')}
         >
           <Image
+            key={`wallet-home-hero-png-${currentStep.kind}`}
             source={stepHero.image}
             style={tw.style('h-full w-full')}
             resizeMode="cover"
