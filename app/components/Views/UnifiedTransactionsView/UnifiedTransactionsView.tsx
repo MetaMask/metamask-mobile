@@ -57,8 +57,16 @@ import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.t
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 import { useTransactionsQuery } from './useTransactionsQuery';
-import type { EvmTransaction, TransactionViewModel } from './types';
-import { isBridgeHistoryForEvmTransaction } from './helpers/transformations';
+import {
+  type EvmTransaction,
+  TransactionKind,
+  type TransactionViewModel,
+  type UnifiedItem,
+} from './types';
+import {
+  isBridgeHistoryForEvmTransaction,
+  mergeTransactionsByTime,
+} from './helpers/transformations';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -71,28 +79,6 @@ const isTransactionMetaLike = (
 const getEvmTransactionTime = (tx: EvmTransaction) => tx.time ?? 0;
 
 const getEvmChainId = (tx: EvmTransaction) => tx.chainId;
-
-enum TransactionKind {
-  Evm = 'evm',
-  ConfirmedEvm = 'confirmed',
-  NonEvm = 'nonEvm',
-}
-
-type UnifiedItem =
-  | { kind: TransactionKind.Evm; tx: EvmTransaction }
-  | { kind: TransactionKind.ConfirmedEvm; tx: TransactionViewModel }
-  | { kind: TransactionKind.NonEvm; tx: NonEvmTransaction };
-
-const normalizeTimestamp = (item: UnifiedItem) => {
-  switch (item.kind) {
-    case TransactionKind.Evm:
-      return item.tx.time ?? 0;
-    case TransactionKind.ConfirmedEvm:
-      return item.tx.time;
-    case TransactionKind.NonEvm:
-      return (item.tx.timestamp ?? 0) * 1000;
-  }
-};
 
 const generateKey = (item: UnifiedItem) => {
   if (item.kind === TransactionKind.Evm) {
@@ -192,8 +178,8 @@ const UnifiedTransactionsView = ({
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   const unifiedTransactionSource = useMemo<{
-    evmPendingItems: UnifiedItem[];
-    evmConfirmedItems: UnifiedItem[];
+    evmPendingTxs: EvmTransaction[];
+    evmConfirmedTxs: TransactionViewModel[];
     chainFilteredNonEvmTransactionsForSelectedChain: NonEvmTransaction[];
   }>(() => {
     const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
@@ -262,18 +248,9 @@ const UnifiedTransactionsView = ({
         (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
       );
 
-    const evmPendingItems: UnifiedItem[] = evmPendingFirst.map((tx) => ({
-      kind: TransactionKind.Evm,
-      tx,
-    }));
-    const evmConfirmedItems: UnifiedItem[] = allConfirmedFiltered.map((tx) => ({
-      kind: TransactionKind.ConfirmedEvm,
-      tx,
-    }));
-
     return {
-      evmPendingItems,
-      evmConfirmedItems,
+      evmPendingTxs: evmPendingFirst,
+      evmConfirmedTxs: allConfirmedFiltered,
       chainFilteredNonEvmTransactionsForSelectedChain,
     };
   }, [
@@ -290,8 +267,8 @@ const UnifiedTransactionsView = ({
     nonEvmTransactionsForSelectedChain: NonEvmTransaction[];
   }>(() => {
     const {
-      evmPendingItems,
-      evmConfirmedItems,
+      evmPendingTxs,
+      evmConfirmedTxs,
       chainFilteredNonEvmTransactionsForSelectedChain,
     } = unifiedTransactionSource;
 
@@ -301,18 +278,14 @@ const UnifiedTransactionsView = ({
         maliciousTokenKeys,
       );
 
-    const nonEvmItems: UnifiedItem[] =
-      filteredNonEvmTransactionsForSelectedChain.map((tx) => ({
-        kind: TransactionKind.NonEvm,
-        tx,
-      }));
-
-    const confirmedUnified = [...evmConfirmedItems, ...nonEvmItems].sort(
-      (a, b) => normalizeTimestamp(b) - normalizeTimestamp(a),
+    const data = mergeTransactionsByTime(
+      evmPendingTxs,
+      evmConfirmedTxs,
+      filteredNonEvmTransactionsForSelectedChain,
     );
 
     return {
-      data: [...evmPendingItems, ...confirmedUnified],
+      data,
       nonEvmTransactionsForSelectedChain:
         filteredNonEvmTransactionsForSelectedChain,
     };

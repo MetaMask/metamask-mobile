@@ -3,9 +3,15 @@ import {
   type V4MultiAccountTransactionsResponse,
 } from '@metamask/core-backend';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import { normalizeTransaction } from './adapters';
-import { EvmTransaction, TransactionViewModel } from '../types';
+import {
+  EvmTransaction,
+  TransactionKind,
+  TransactionViewModel,
+  UnifiedItem,
+} from '../types';
 import { equalsIgnoreCase } from '../../../../util/string';
 
 const excludedTransactionTypes = ['SPAM_TOKEN_TRANSFER'];
@@ -148,4 +154,61 @@ export function selectTransactions({ address }: { address: string }) {
       data: transformTransactions(address, page.data),
     })),
   });
+}
+
+const getEvmTime = (tx: EvmTransaction) => tx.time ?? 0;
+const getNonEvmTime = (tx: NonEvmTransaction) => (tx.timestamp ?? 0) * 1000;
+const getEvmHash = (tx: EvmTransaction) =>
+  'hash' in tx && typeof tx.hash === 'string' ? tx.hash.toLowerCase() : '';
+
+// Merges local EVM, API-confirmed EVM and non-EVM transactions into one list
+// sorted by time (newest first), deduplicated by hash (API-confirmed wins).
+export function mergeTransactionsByTime(
+  evmLocalTransactions: EvmTransaction[],
+  evmConfirmedTransactions: TransactionViewModel[],
+  nonEvmTransactions: NonEvmTransaction[],
+) {
+  const seenHashes = new Set<string>();
+
+  const confirmedItems: UnifiedItem[] = [];
+  for (const tx of evmConfirmedTransactions) {
+    const hash = tx.hash?.toLowerCase();
+    if (hash) {
+      if (seenHashes.has(hash)) {
+        continue;
+      }
+      seenHashes.add(hash);
+    }
+    confirmedItems.push({
+      kind: TransactionKind.ConfirmedEvm,
+      tx,
+      time: tx.time ?? 0,
+    });
+  }
+
+  const localItems: UnifiedItem[] = [];
+  for (const tx of evmLocalTransactions) {
+    const hash = getEvmHash(tx);
+    if (hash) {
+      if (seenHashes.has(hash)) {
+        continue;
+      }
+      seenHashes.add(hash);
+    }
+    localItems.push({
+      kind: TransactionKind.Evm,
+      tx,
+      time: getEvmTime(tx),
+    });
+  }
+
+  const nonEvmItems: UnifiedItem[] = nonEvmTransactions.map((tx) => ({
+    kind: TransactionKind.NonEvm,
+    tx,
+    time: getNonEvmTime(tx),
+  }));
+
+  return [...localItems, ...confirmedItems, ...nonEvmItems].sort(
+    (a, b) => b.time - a.time,
+  );
 }
