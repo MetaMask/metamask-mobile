@@ -17,6 +17,7 @@ import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/typ
 import { useAppThemeFromContext } from '../../../../util/theme';
 import type { Theme } from '../../../../util/theme/models';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
@@ -58,7 +59,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   );
 
   const renderActiveMarketItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item }) => <PredictionCarouselRowItem market={item} />,
+    ({ item }) => <PredictMarket market={item} />,
     [],
   );
 
