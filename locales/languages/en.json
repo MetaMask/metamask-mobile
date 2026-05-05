@@ -7866,6 +7866,7 @@
       "enable_card_button_label": "Enable card",
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
+      "spending_limit_available": "available",
       "logout": "Log out",
       "contact_support": "Contact support",
       "logout_confirmation_title": "Log out of Card?",
@@ -8446,6 +8447,8 @@
       "ends_date": "Ends {{date}}",
       "ended_date": "Ended {{date}}",
       "pill_up_next": "Coming soon",
+      "up_next": "Up next",
+      "notify_me": "Notify me",
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter": "Enter",
@@ -8459,7 +8462,9 @@
       "geo_locked_toast_title": "Not available in your region",
       "geo_locked_toast_description": "This campaign isn't available where you are. Check back later for new campaigns.",
       "geo_locked_cta": "Check eligibility",
-      "geo_loading": "Checking region..."
+      "geo_loading": "Checking region...",
+      "remind_me_success_toast": "We'll let you know when this campaign starts.",
+      "remind_me_save_error": "Could not save your reminder. Please try again."
     },
     "campaign_mechanics": {
       "title": "Mechanics"
