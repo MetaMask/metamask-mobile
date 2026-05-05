@@ -80,6 +80,20 @@ jest.mock('./CashGetMusdEmptyState', () => {
   };
 });
 
+jest.mock('../../../../UI/Money/components/MoneyAccountHomeRow', () => {
+  const { Text } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(
+        Text,
+        { testID: 'money-account-home-row' },
+        'MoneyAccountHomeRow',
+      ),
+  };
+});
+
 describe('CashSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -143,6 +157,18 @@ describe('CashSection', () => {
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
       undefined,
     );
+  });
+
+  it('renders MoneyAccountHomeRow when Money home screen flag is enabled', () => {
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+
+    renderWithProvider(
+      <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.getByTestId('money-account-home-row')).toBeOnTheScreen();
   });
 
   it('navigates to Money home screen when Money home screen flag is enabled', () => {

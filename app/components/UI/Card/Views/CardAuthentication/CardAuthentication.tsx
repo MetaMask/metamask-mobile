@@ -1,6 +1,6 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Platform, TouchableOpacity } from 'react-native';
+import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
   Box,
   FontWeight,
@@ -34,7 +34,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select({
+const autoComplete = Platform.select<TextInputProps['autoComplete']>({
   android: 'sms-otp',
   default: 'one-time-code',
 });
@@ -293,21 +293,22 @@ const CardAuthentication = () => {
         <>
           <Box>
             <TextField
-              autoCapitalize={'none'}
               onChangeText={handleOtpValueChange}
-              numberOfLines={1}
               value={confirmCode}
-              keyboardType="number-pad"
-              textContentType="oneTimeCode"
-              // @ts-expect-error - autoComplete is not typed correctly
-              autoComplete={autoComplete}
-              maxLength={CODE_LENGTH}
-              accessibilityLabel={strings(
-                'card.card_otp_authentication.confirm_code_label',
-              )}
               isError={!!error}
-              testID="otp-code-field"
               autoFocus
+              inputProps={{
+                autoCapitalize: 'none',
+                numberOfLines: 1,
+                keyboardType: 'number-pad',
+                textContentType: 'oneTimeCode',
+                autoComplete,
+                maxLength: CODE_LENGTH,
+                accessibilityLabel: strings(
+                  'card.card_otp_authentication.confirm_code_label',
+                ),
+                testID: 'otp-code-field',
+              }}
             />
             {error && (
               <Text
@@ -407,36 +408,27 @@ const CardAuthentication = () => {
           <Box>
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
-              autoCapitalize={'none'}
-              autoComplete="username"
               onChangeText={handleEmailChange}
-              numberOfLines={1}
               value={email}
-              returnKeyType={'next'}
-              keyboardType="email-address"
-              maxLength={255}
-              accessibilityLabel={strings(
-                'card.card_authentication.email_label',
-              )}
-              testID="email-field"
+              inputProps={{
+                autoCapitalize: 'none',
+                autoComplete: 'username',
+                numberOfLines: 1,
+                returnKeyType: 'next',
+                keyboardType: 'email-address',
+                maxLength: 255,
+                accessibilityLabel: strings(
+                  'card.card_authentication.email_label',
+                ),
+                testID: 'email-field',
+              }}
             />
           </Box>
           <Box>
             <Label>{strings('card.card_authentication.password_label')}</Label>
             <TextField
-              autoCapitalize={'none'}
               onChangeText={handlePasswordChange}
-              autoComplete="password"
-              numberOfLines={1}
               value={password}
-              maxLength={255}
-              returnKeyType={'done'}
-              onSubmitEditing={() => performLogin()}
-              secureTextEntry={!isPasswordVisible}
-              accessibilityLabel={strings(
-                'card.card_authentication.password_label',
-              )}
-              testID="password-field"
               endAccessory={
                 <TouchableOpacity
                   onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -448,6 +440,19 @@ const CardAuthentication = () => {
                   />
                 </TouchableOpacity>
               }
+              inputProps={{
+                autoCapitalize: 'none',
+                autoComplete: 'password',
+                numberOfLines: 1,
+                maxLength: 255,
+                returnKeyType: 'done',
+                onSubmitEditing: () => performLogin(),
+                secureTextEntry: !isPasswordVisible,
+                accessibilityLabel: strings(
+                  'card.card_authentication.password_label',
+                ),
+                testID: 'password-field',
+              }}
             />
           </Box>
         </>

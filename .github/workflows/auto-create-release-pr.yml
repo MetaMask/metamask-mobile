@@ -1,13 +1,15 @@
 name: Auto Create Release PR
 
-# When Runway creates release/X.Y.Z, this workflow calls create-release-pr.yml.
-# Semver convention for mobile hotfixes:
-# - X.Y.0 — regular release (no OTA_VERSION bump)
-# - X.Y.Z with a single-digit patch (e.g. 7.71.1, 7.71.2) — regular hotfix (no OTA_VERSION bump)
-# - X.Y.AB with a two-digit patch (e.g. 7.73.01, 7.73.21) — OTA hotfix; OTA_VERSION is v7.73.01.
-#   Two-digit patch AB → base patch A, OTA iteration B.
-#   CHANGELOG.md uses the SemVer prerelease format (e.g. 7.73.0-ota.1) permanently
-#   because auto-changelog validates all version headers as strict SemVer.
+# When Runway creates release/X.Y.Z (native) or release/X.Y.Z-ota (OTA hotfix),
+# this workflow calls create-release-pr.yml.
+# Semver / branch convention for mobile hotfixes:
+# - release/X.Y.0         — regular release (no OTA_VERSION bump).
+# - release/X.Y.Z (Z > 0) — native hotfix (no OTA_VERSION bump).
+# - release/X.Y.Z-ota     — OTA hotfix; OTA_VERSION is set to v<X.Y.Z>.
+#   Runway always increments Z past any existing native patch on the same X.Y
+#   line, so the production OTA tag v<X.Y.Z> never collides with a native tag.
+#   The `-ota` suffix is a branch-name convention ONLY: CHANGELOG.md header,
+#   OTA_VERSION, and the production git tag all use the bare X.Y.Z.
 
 on:
   create:
@@ -23,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       semver: ${{ steps.out.outputs.semver }}
+      is_ota: ${{ steps.out.outputs.is_ota }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,3 +47,4 @@ jobs:
       google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
     with:
       semver-version: ${{ needs.extract.outputs.semver }}
+      is-ota: ${{ needs.extract.outputs.is_ota == 'true' }}

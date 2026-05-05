@@ -109,12 +109,14 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
 
       <Box twClassName="px-4 pb-6" gap={6}>
         <Box gap={4}>
-          <QuickBuySkeletonRow
-            label={strings('social_leaderboard.quick_buy.pay_with')}
-            valueWidth={92}
-            showTokenBadge
-            showTrailingIcon
-          />
+          <Box twClassName="rounded-xl bg-muted px-4 py-3">
+            <QuickBuySkeletonRow
+              label={strings('social_leaderboard.quick_buy.pay_with')}
+              valueWidth={92}
+              showTokenBadge
+              showTrailingIcon
+            />
+          </Box>
 
           <QuickBuySkeletonRow
             label={strings('social_leaderboard.quick_buy.total')}

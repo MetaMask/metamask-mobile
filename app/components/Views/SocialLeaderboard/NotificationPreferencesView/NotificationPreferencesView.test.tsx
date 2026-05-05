@@ -1,7 +1,11 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import {
+  ImpactFeedbackStyle,
+  ImpactMoment,
+  playImpact,
+} from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
@@ -68,6 +72,16 @@ jest.mock('expo-haptics', () => ({
   },
 }));
 
+jest.mock('../../../../util/haptics', () => {
+  const actual = jest.requireActual<typeof import('../../../../util/haptics')>(
+    '../../../../util/haptics',
+  );
+  return {
+    ...actual,
+    playImpact: jest.fn(),
+  };
+});
+
 // ---------------------------------------------------------------------------
 // Shared mock primitives
 // ---------------------------------------------------------------------------
@@ -82,7 +96,10 @@ const mockUseNotificationPreferences =
 const mockSelectCurrentCurrency = selectCurrentCurrency as jest.MockedFunction<
   typeof selectCurrentCurrency
 >;
-const mockImpactAsync = impactAsync as jest.MockedFunction<typeof impactAsync>;
+const { impactAsync: mockImpactAsync } = jest.requireMock('expo-haptics') as {
+  impactAsync: jest.Mock;
+};
+const mockPlayImpact = jest.mocked(playImpact);
 
 const makeTrader = (
   id: string,
@@ -599,9 +616,10 @@ describe('NotificationPreferencesView', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
     });
 
-    it('fires a light impact when changing the threshold to a new value', () => {
+    it('fires catalog impact when changing the threshold to a new value', () => {
       Platform.OS = 'ios';
       renderScreen();
 
@@ -611,8 +629,10 @@ describe('NotificationPreferencesView', () => {
         ),
       );
 
-      expect(mockImpactAsync).toHaveBeenCalledTimes(1);
-      expect(mockImpactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledWith(
+        ImpactMoment.QuickAmountSelection,
+      );
     });
 
     it('does not fire a haptic when re-tapping the already-selected threshold', () => {
@@ -632,7 +652,7 @@ describe('NotificationPreferencesView', () => {
         ),
       );
 
-      expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
       expect(setTxAmountLimit).not.toHaveBeenCalled();
     });
 
@@ -644,6 +664,7 @@ describe('NotificationPreferencesView', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
     });
 
     it('does not fire a haptic when pressing a trader row to navigate to the profile', () => {
@@ -656,6 +677,7 @@ describe('NotificationPreferencesView', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
     });
 
     it('does not fire a haptic when toggling a per-trader switch while the master toggle is off', () => {
@@ -678,6 +700,7 @@ describe('NotificationPreferencesView', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
       expect(toggleTraderNotification).not.toHaveBeenCalled();
     });
 
@@ -699,6 +722,7 @@ describe('NotificationPreferencesView', () => {
       );
 
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
       expect(setTxAmountLimit).not.toHaveBeenCalled();
     });
 
@@ -723,6 +747,7 @@ describe('NotificationPreferencesView', () => {
         ),
       ).toBeNull();
       expect(mockImpactAsync).not.toHaveBeenCalled();
+      expect(mockPlayImpact).not.toHaveBeenCalled();
       expect(setEnabled).not.toHaveBeenCalled();
     });
   });
