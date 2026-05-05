@@ -113,6 +113,209 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText('$19,000.00')).toBeOnTheScreen();
   });
 
+  it('toggles source input from token amount to fiat value and back', async () => {
+    const { getByTestId, findByDisplayValue, findByText } =
+      defaultBridgeWithTokens({
+        bridge: {
+          sourceAmount: '1',
+          sourceToken: ETH_SOURCE,
+          destToken: undefined,
+        },
+      } as unknown as Record<string, unknown>);
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    );
+
+    expect(await findByDisplayValue('2,000')).toBeOnTheScreen();
+    expect(await findByText('1 ETH')).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT).props.selection,
+    ).toEqual({ start: 5, end: 5 });
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    );
+
+    expect(await findByDisplayValue('1')).toBeOnTheScreen();
+    expect(await findByText('$2,000.00')).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT).props.selection,
+    ).toEqual({ start: 1, end: 1 });
+  });
+
+  it('resets source cursor to the end when input is focused again', async () => {
+    const { getByTestId, getByText, findByDisplayValue } =
+      defaultBridgeWithTokens({
+        bridge: {
+          sourceAmount: '1234',
+          sourceToken: ETH_SOURCE,
+          destToken: undefined,
+        },
+      } as unknown as Record<string, unknown>);
+    const sourceInput = getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT);
+
+    fireEvent(sourceInput, 'selectionChange', {
+      nativeEvent: { selection: { start: 1, end: 1 } },
+    });
+    fireEvent(sourceInput, 'blur');
+    fireEvent(sourceInput, 'focus');
+
+    expect(sourceInput.props.selection).toEqual({ start: 5, end: 5 });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(getByText('9'));
+
+    expect(await findByDisplayValue('12,349')).toBeOnTheScreen();
+  });
+
+  it('shows zero secondary value when source amount is empty', async () => {
+    const { getByTestId, findByText } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: undefined,
+        sourceToken: ETH_SOURCE,
+        destToken: undefined,
+      },
+    } as unknown as Record<string, unknown>);
+
+    expect(await findByText('$0')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    );
+
+    expect(await findByText('0 ETH')).toBeOnTheScreen();
+  });
+
+  it('floors the fiat-mode secondary token amount to the shared Bridge precision', async () => {
+    const { getByTestId, findByText, queryByText } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: '0.054266763023182519',
+        sourceToken: ETH_SOURCE,
+        destToken: undefined,
+      },
+    } as unknown as Record<string, unknown>);
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    );
+
+    expect(await findByText('0.05426 ETH')).toBeOnTheScreen();
+    expect(queryByText('0.05427 ETH')).toBeNull();
+    expect(queryByText('0.054266763023182519 ETH')).toBeNull();
+  });
+
+  it('keeps quote requests based on token amount after fiat input', async () => {
+    const updateQuoteSpy = jest.spyOn(
+      Engine.context.BridgeController,
+      'updateBridgeQuoteRequestParams',
+    );
+    const { getByTestId, getByText, findByDisplayValue, findByText, store } =
+      defaultBridgeWithTokens({
+        bridge: {
+          sourceAmount: '0',
+          sourceToken: ETH_SOURCE,
+          destToken: USDC_DEST,
+          selectedDestChainId: '0x1',
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: 0,
+              quotesLoadingStatus: null,
+              quoteFetchError: null,
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+    updateQuoteSpy.mockClear();
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    );
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
+      'pressIn',
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByText('5'));
+    fireEvent.press(getByText('0'));
+
+    expect(await findByDisplayValue('50')).toBeOnTheScreen();
+    expect(await findByText('0.025 ETH')).toBeOnTheScreen();
+
+    await waitFor(() => {
+      expect(store.getState().bridge.sourceAmount).toBe('0.025');
+    });
+    await waitFor(
+      () => {
+        expect(updateQuoteSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '25000000000000000',
+          }),
+          expect.anything(),
+        );
+      },
+      { timeout: 1000 },
+    );
+
+    updateQuoteSpy.mockRestore();
+  });
+
+  it('keeps source input in token mode when price data is unavailable', async () => {
+    const sourceTokenWithoutPrice = {
+      ...ETH_SOURCE,
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'NOPE',
+    };
+    const { getByTestId, queryByTestId, queryByText, findByDisplayValue } =
+      renderBridgeView({
+        overrides: {
+          bridge: {
+            ...DEFAULT_BRIDGE,
+            sourceAmount: '1',
+            sourceToken: sourceTokenWithoutPrice,
+            destToken: undefined,
+          },
+          engine: {
+            backgroundState: {
+              CurrencyRateController: {
+                currentCurrency: 'USD',
+                currencyRates: {},
+                conversionRate: 0,
+              },
+              TokenRatesController: {
+                marketData: {},
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState>,
+      });
+
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
+      'pressIn',
+    );
+
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    ).toBeNull();
+    expect(queryByText('$0.00')).toBeNull();
+    expect(await findByDisplayValue('1')).toBeOnTheScreen();
+  });
+
   it('renders enabled confirm button with tokens, amount and recommended quote', () => {
     const now = Date.now();
     const { getAllByTestId } = defaultBridgeWithTokens({

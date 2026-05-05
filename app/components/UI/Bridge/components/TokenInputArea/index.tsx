@@ -8,6 +8,7 @@ import {
   Platform,
   TextInputSelectionChangeEventData,
   NativeSyntheticEvent,
+  TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -15,6 +16,11 @@ import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TokenButton } from '../TokenButton';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -67,12 +73,46 @@ const createStyles = ({
     amountContainer: {
       flex: 1,
     },
+    amountInputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      minWidth: 0,
+    },
     input: {
       borderWidth: 0,
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
+      flex: 1,
+      flexShrink: 1,
+    },
+    inputPrefix: {
+      lineHeight: vars.fontSize * 1.25,
+      height: vars.fontSize * 1.25,
+      fontSize: vars.fontSize,
+      paddingVertical: Platform.OS === 'ios' ? 2 : 1,
+      transform: [{ translateY: -vars.fontSize * 0.05 }],
+      ...(Platform.OS === 'android' && {
+        includeFontPadding: false,
+        textAlignVertical: 'center',
+        paddingVertical: 0,
+        paddingTop: 1,
+      }),
+    },
+    secondaryValueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    amountTypeToggle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.background.muted,
     },
     currencyContainer: {
       flex: 1,
@@ -128,6 +168,11 @@ interface TokenInputAreaProps {
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
   isQuoteSponsored?: boolean;
+  inputPrefix?: string;
+  secondaryValue?: string | null;
+  balanceCheckAmount?: string;
+  onAmountTypeTogglePress?: () => void;
+  amountTypeToggleTestID?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -155,6 +200,11 @@ export const TokenInputArea = forwardRef<
       isSourceToken,
       style,
       isQuoteSponsored = false,
+      inputPrefix,
+      secondaryValue,
+      balanceCheckAmount,
+      onAmountTypeTogglePress,
+      amountTypeToggleTestID,
     },
     ref,
   ) => {
@@ -202,13 +252,20 @@ export const TokenInputArea = forwardRef<
       });
     };
 
+    const tokenAmount = balanceCheckAmount ?? amount;
     const isInsufficientBalance = useIsInsufficientBalance({
-      amount,
+      amount: tokenAmount,
       token,
       latestAtomicBalance,
     });
 
-    const currencyValue = useDisplayCurrencyValue(amount, token);
+    const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
+    const currencyValue =
+      secondaryValue === undefined ? defaultCurrencyValue : secondaryValue;
+    const shouldShowCurrencyValue =
+      token &&
+      currencyValue &&
+      (secondaryValue !== undefined || (amount && Number(amount) > 0));
 
     const formattedBalance = useFormattedBalanceWithThreshold(
       tokenBalance,
@@ -242,7 +299,7 @@ export const TokenInputArea = forwardRef<
     );
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
-      text: displayedAmount || '0',
+      text: `${inputPrefix ?? ''}${displayedAmount || '0'}`,
     });
     const { styles } = useStyles(createStyles, { fontSize, hidden: !subtitle });
 
@@ -259,44 +316,52 @@ export const TokenInputArea = forwardRef<
               {isLoading ? (
                 <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
-                <Input
-                  ref={inputRef}
-                  value={displayedAmount}
-                  style={styles.input}
-                  isDisabled={false}
-                  isReadonly={tokenType === TokenInputAreaType.Destination}
-                  showSoftInputOnFocus={false}
-                  caretHidden={false}
-                  autoFocus={false}
-                  placeholder="0"
-                  testID={`${testID}-input`}
-                  onPressIn={() => {
-                    onInputPress?.();
-                  }}
-                  onFocus={() => {
-                    onFocus?.();
-                    onInputPress?.();
-                  }}
-                  onBlur={() => {
-                    onBlur?.();
-                  }}
-                  // Source selection is controlled so Bridge can keep the
-                  // visible caret aligned with the raw cursor used by keypad
-                  // edits. On iOS you have to use the press-and-drag magnifier
-                  // handle; Android supports direct tap placement.
-                  selection={
-                    // Android only issue, for long numbers, the input field will focus on the right hand side
-                    // Force it to focus on the left hand side
-                    tokenType === TokenInputAreaType.Destination
-                      ? { start: 0, end: 0 }
-                      : selection
-                  }
-                  onSelectionChange={
-                    tokenType === TokenInputAreaType.Source
-                      ? onSelectionChange
-                      : undefined
-                  }
-                />
+                <Box
+                  style={styles.amountInputWrapper}
+                  testID={testID ? `${testID}-input-wrapper` : undefined}
+                >
+                  {inputPrefix ? (
+                    <Text style={styles.inputPrefix}>{inputPrefix}</Text>
+                  ) : null}
+                  <Input
+                    ref={inputRef}
+                    value={displayedAmount}
+                    style={styles.input}
+                    isDisabled={false}
+                    isReadonly={tokenType === TokenInputAreaType.Destination}
+                    showSoftInputOnFocus={false}
+                    caretHidden={false}
+                    autoFocus={false}
+                    placeholder="0"
+                    testID={`${testID}-input`}
+                    onPressIn={() => {
+                      onInputPress?.();
+                    }}
+                    onFocus={() => {
+                      onFocus?.();
+                      onInputPress?.();
+                    }}
+                    onBlur={() => {
+                      onBlur?.();
+                    }}
+                    // Source selection is controlled so Bridge can keep the
+                    // visible caret aligned with the raw cursor used by keypad
+                    // edits. On iOS you have to use the press-and-drag magnifier
+                    // handle; Android supports direct tap placement.
+                    selection={
+                      // Android only issue, for long numbers, the input field will focus on the right hand side
+                      // Force it to focus on the left hand side
+                      tokenType === TokenInputAreaType.Destination
+                        ? { start: 0, end: 0 }
+                        : selection
+                    }
+                    onSelectionChange={
+                      tokenType === TokenInputAreaType.Source
+                        ? onSelectionChange
+                        : undefined
+                    }
+                  />
+                </Box>
               )}
             </Box>
             {token ? (
@@ -328,9 +393,24 @@ export const TokenInputArea = forwardRef<
             ) : (
               <>
                 <Box style={styles.currencyContainer}>
-                  {token && amount && Number(amount) > 0 && currencyValue ? (
-                    <Text color={TextColor.Alternative}>{currencyValue}</Text>
-                  ) : null}
+                  <Box style={styles.secondaryValueContainer}>
+                    {shouldShowCurrencyValue ? (
+                      <Text color={TextColor.Alternative}>{currencyValue}</Text>
+                    ) : null}
+                    {onAmountTypeTogglePress ? (
+                      <TouchableOpacity
+                        style={styles.amountTypeToggle}
+                        onPress={onAmountTypeTogglePress}
+                        testID={amountTypeToggleTestID}
+                      >
+                        <Icon
+                          name={IconName.SwapVertical}
+                          size={IconSize.Sm}
+                          color={IconColor.Alternative}
+                        />
+                      </TouchableOpacity>
+                    ) : null}
+                  </Box>
                 </Box>
                 <Box
                   flexDirection={

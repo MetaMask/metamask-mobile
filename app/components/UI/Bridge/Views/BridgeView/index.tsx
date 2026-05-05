@@ -105,10 +105,10 @@ import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSe
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
-import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
+import { useSourceAmountInput } from '../../hooks/useSourceAmountInput';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -166,15 +166,9 @@ const BridgeView = () => {
     },
     [dispatch],
   );
-  const {
-    sourceSelection,
-    handleSourceSelectionChange,
-    handleKeypadChange,
-    resetSourceAmountCursorPosition,
-  } = useSourceAmountCursor({
+  const sourceAmountInput = useSourceAmountInput({
     sourceAmount,
-    sourceTokenDecimals: sourceToken?.decimals,
-    maxInputLength: MAX_INPUT_LENGTH,
+    sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
   });
 
@@ -347,7 +341,7 @@ const BridgeView = () => {
         balance,
         MAX_INPUT_LENGTH,
       );
-      resetSourceAmountCursorPosition();
+      sourceAmountInput.syncFiatAmountToTokenAmount(cleaned);
       dispatch(setSourceAmountAsMax(cleaned));
     }
   };
@@ -356,15 +350,12 @@ const BridgeView = () => {
     (value: string) => {
       // Quick-pick presets replace the full amount rather than editing at the
       // current cursor position, so clear the cursor state before updating.
-      resetSourceAmountCursorPosition();
-      dispatch(
-        setSourceAmount(
-          normalizeSourceAmountToMaxLength(value, MAX_INPUT_LENGTH) ||
-            undefined,
-        ),
-      );
+      const normalizedValue =
+        normalizeSourceAmountToMaxLength(value, MAX_INPUT_LENGTH) || undefined;
+      sourceAmountInput.syncFiatAmountToTokenAmount(normalizedValue);
+      dispatch(setSourceAmount(normalizedValue));
     },
-    [dispatch, resetSourceAmountCursorPosition],
+    [dispatch, sourceAmountInput],
   );
 
   const handleSourceTokenPress = () =>
@@ -373,9 +364,9 @@ const BridgeView = () => {
     });
 
   const handleFlipTokensPress = useCallback(() => {
-    resetSourceAmountCursorPosition();
-    void handleSwitchTokens(destTokenAmount)();
-  }, [destTokenAmount, handleSwitchTokens, resetSourceAmountCursorPosition]);
+    sourceAmountInput.resetToTokenMode();
+    handleSwitchTokens(destTokenAmount)();
+  }, [destTokenAmount, handleSwitchTokens, sourceAmountInput]);
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
@@ -432,8 +423,8 @@ const BridgeView = () => {
           <Box style={styles.inputsContainer}>
             <TokenInputArea
               ref={inputRef}
-              amount={sourceAmount}
-              selection={sourceSelection}
+              amount={sourceAmountInput.amount}
+              selection={sourceAmountInput.selection}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
@@ -446,12 +437,24 @@ const BridgeView = () => {
               testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
               tokenType={TokenInputAreaType.Source}
               onInputPress={() => keypadRef.current?.open()}
-              onSelectionChange={handleSourceSelectionChange}
+              onFocus={sourceAmountInput.handleFocus}
+              onSelectionChange={sourceAmountInput.handleSelectionChange}
               onTokenPress={handleSourceTokenPress}
               onMaxPress={handleSourceMaxPress}
               latestAtomicBalance={latestSourceBalance?.atomicBalance}
               isSourceToken
               isQuoteSponsored={isQuoteSponsored}
+              inputPrefix={sourceAmountInput.inputPrefix}
+              secondaryValue={sourceAmountInput.secondaryValue}
+              balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
+              onAmountTypeTogglePress={
+                sourceAmountInput.canToggle
+                  ? sourceAmountInput.handleToggle
+                  : undefined
+              }
+              amountTypeToggleTestID={
+                BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE
+              }
             />
             <FLipQuoteButton
               onPress={handleFlipTokensPress}
@@ -608,10 +611,10 @@ const BridgeView = () => {
 
         <SwapsKeypad
           ref={keypadRef}
-          value={sourceAmount || '0'}
-          onChange={handleKeypadChange}
-          currency={sourceToken?.symbol || 'ETH'}
-          decimals={sourceToken?.decimals ?? Infinity}
+          value={sourceAmountInput.keypadValue}
+          onChange={sourceAmountInput.handleKeypadChange}
+          currency={sourceAmountInput.keypadCurrency}
+          decimals={sourceAmountInput.keypadDecimals}
         >
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsConfirmButton

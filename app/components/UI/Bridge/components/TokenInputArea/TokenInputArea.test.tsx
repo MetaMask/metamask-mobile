@@ -1,4 +1,5 @@
 import React, { createRef } from 'react';
+import { StyleSheet } from 'react-native';
 import { initialState } from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -51,6 +52,8 @@ jest.mock('../../hooks/useDisplayCurrencyValue', () => ({
   useDisplayCurrencyValue: jest.fn(() => '$100.00'),
 }));
 
+jest.mock('../../hooks/useInsufficientBalance', () => jest.fn(() => false));
+
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 const mockUseShouldRenderMaxOption =
   useShouldRenderMaxOption as jest.MockedFunction<
@@ -61,6 +64,12 @@ import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanc
 const mockUseFormattedBalanceWithThreshold =
   useFormattedBalanceWithThreshold as jest.MockedFunction<
     typeof useFormattedBalanceWithThreshold
+  >;
+
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+const mockUseIsInsufficientBalance =
+  useIsInsufficientBalance as jest.MockedFunction<
+    typeof useIsInsufficientBalance
   >;
 
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
@@ -81,6 +90,7 @@ describe('TokenInputArea', () => {
     mockUseShouldRenderMaxOption.mockReturnValue(true);
     mockUseFormattedBalanceWithThreshold.mockReturnValue('100');
     mockUseDisplayCurrencyValue.mockReturnValue('$100.00');
+    mockUseIsInsufficientBalance.mockReturnValue(false);
   });
 
   it('renders with initial state', () => {
@@ -852,6 +862,59 @@ describe('TokenInputArea', () => {
         undefined,
         undefined,
       );
+    });
+  });
+
+  describe('amount overrides', () => {
+    const mockToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const renderAmountOverrideInput = (
+      props: Partial<React.ComponentProps<typeof TokenInputArea>> = {},
+    ) =>
+      renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+            amountTypeToggleTestID="amount-type-toggle"
+            {...props}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+    it('uses token amount for balance checks when display amount is fiat', () => {
+      renderAmountOverrideInput({
+        amount: '113.28',
+        balanceCheckAmount: '0.05',
+        inputPrefix: '$',
+      });
+
+      expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: '0.05' }),
+      );
+    });
+
+    it('keeps the input stretched across the amount area when a prefix is shown', () => {
+      const { getByTestId } = renderAmountOverrideInput({
+        amount: '113.28',
+        inputPrefix: '$',
+      });
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId('token-input-input-wrapper').props.style,
+        ),
+      ).toEqual(expect.objectContaining({ flex: 1 }));
+      expect(
+        StyleSheet.flatten(getByTestId('token-input-input').props.style),
+      ).toEqual(expect.objectContaining({ flex: 1 }));
     });
   });
 
