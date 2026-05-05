@@ -37,35 +37,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onBack,
-        backButtonProps,
-      }: {
-        title: string;
-        onBack: () => void;
-        backButtonProps?: { testID?: string };
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: backButtonProps?.testID ?? 'header-back-button',
-          }),
-        ),
-    };
-  },
-);
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(() => jest.fn()),

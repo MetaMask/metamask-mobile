@@ -9,12 +9,12 @@ import {
   TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
+  HeaderStandard,
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -108,7 +108,7 @@ const CampaignsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_VIEW}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.campaigns_view.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

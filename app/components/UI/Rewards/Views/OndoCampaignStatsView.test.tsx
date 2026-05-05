@@ -89,44 +89,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onBack,
-        backButtonProps,
-        endButtonIconProps,
-      }: {
-        title: string;
-        onBack: () => void;
-        backButtonProps?: { testID?: string };
-        endButtonIconProps?: { testID?: string; onPress?: () => void }[];
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: backButtonProps?.testID ?? 'header-back-button',
-          }),
-          ...(endButtonIconProps ?? []).map((btn, index) =>
-            ReactActual.createElement(Pressable, {
-              key: `end-${String(index)}`,
-              onPress: btn.onPress,
-              testID: btn.testID ?? `header-end-button-${String(index)}`,
-            }),
-          ),
-        ),
-    };
-  },
-);
-
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
   return {

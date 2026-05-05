@@ -12,59 +12,12 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return ({
-      title,
-      onBack,
-      backButtonProps,
-      endButtonIconProps,
-    }: {
-      title: string;
-      onBack: () => void;
-      backButtonProps?: { testID?: string };
-      endButtonIconProps?: { testID?: string; onPress: () => void }[];
-    }) =>
-      ReactActual.createElement(
-        View,
-        null,
-        ReactActual.createElement(Text, null, title),
-        ReactActual.createElement(
-          Pressable,
-          { testID: backButtonProps?.testID, onPress: onBack },
-          'back',
-        ),
-        endButtonIconProps?.map((btn) =>
-          ReactActual.createElement(
-            Pressable,
-            { key: btn.testID, testID: btn.testID, onPress: btn.onPress },
-            'info',
-          ),
-        ),
-      );
-  },
-);
-
-jest.mock('@metamask/design-system-react-native', () => ({
-  TextVariant: { HeadingSm: 'headingSm' },
-}));
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   REWARDS_CAMPAIGN_MECHANICS: 'REWARDS_CAMPAIGN_MECHANICS',
-}));
-
-jest.mock('../../utils/campaignHeaderUtils', () => ({
-  getCampaignMechanicsButtonProps: (
-    hasCampaign: boolean,
-    onPress: () => void,
-    testID: string,
-  ) => (hasCampaign ? [{ onPress, testID }] : undefined),
 }));
 
 const defaultProps = {

@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
+import { HeaderStandard , Box, Skeleton } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { Box, Skeleton } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -52,7 +51,8 @@ const SeasonOneCampaignDetailsView: React.FC = () => {
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
+          testID="header"
           title={campaign?.name ?? ''}
           onBack={() => navigation.goBack()}
           backButtonProps={{
