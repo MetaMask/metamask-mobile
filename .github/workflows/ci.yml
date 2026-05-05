@@ -490,7 +490,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew :app:lintProdRelease \
+          SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew :app:lintProdRelease
 
       - name: Require clean working directory
         shell: bash
@@ -1005,7 +1005,7 @@ jobs:
       - unit-tests
       - component-view-tests
       - check-workflows
-      - android-lint,
+      - android-lint
       - js-bundle-size-check
       - sonar-cloud-quality-gate-status
       - build-android-apks
