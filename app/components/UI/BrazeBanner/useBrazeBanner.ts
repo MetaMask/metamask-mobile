@@ -71,8 +71,9 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   // will change the status for the rest of this app session.
   const dismissedRef = useRef(false);
 
-  // Skip events for a banner we've already accepted.
-  const lastTrackingIdRef = useRef<string | null>(null);
+  // Once a banner has been accepted and shown, lock it in for this session so
+  // subsequent bannerCardsUpdated events don't swap its content.
+  const shownRef = useRef(false);
 
   // Timeout to stop showing the loading skeleton and render nothing if no banner is available.
   const noResponseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -92,7 +93,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
    */
   const handleBanner = useCallback(
     (candidate: Banner | null) => {
-      if (dismissedRef.current) return;
+      if (dismissedRef.current || shownRef.current) return;
 
       // null means no cached/available banner — stay in loading state and
       // wait for a bannerCardsUpdated event or the skeleton timeout.
@@ -119,13 +120,8 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         return;
       }
 
-      if (candidate.trackingId === lastTrackingIdRef.current) {
-        // Duplicate event - no state update needed.
-        return;
-      }
-
       clearNoResponseTimeout();
-      lastTrackingIdRef.current = candidate.trackingId;
+      shownRef.current = true;
 
       setBanner(candidate);
       setStatus('visible');
@@ -150,7 +146,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     const subscription = Braze.addListener(
       'bannerCardsUpdated',
       (event: { banners: Banner[] }) => {
-        if (dismissedRef.current) return;
+        if (dismissedRef.current || shownRef.current) return;
 
         const match = event.banners.find(
           (b) =>

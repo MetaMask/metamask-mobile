@@ -234,7 +234,7 @@ describe('useBrazeBanner', () => {
     expect(result.current.status).toBe('visible');
   });
 
-  it('ignores duplicate events with the same trackingId', () => {
+  it('ignores subsequent events once a banner is visible (same banner re-emitted)', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
     const banner = makeBanner();
 
@@ -243,6 +243,32 @@ describe('useBrazeBanner', () => {
 
     fireBannerEvent([banner]);
     expect(result.current.status).toBe('visible');
+  });
+
+  it('does not swap a visible banner when a different banner arrives in a later event', () => {
+    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+    fireBannerEvent([
+      makeBanner({
+        trackingId: 'tracking-1',
+        bannerName: 'campaign-1',
+        body: 'First body',
+      }),
+    ]);
+    expect(result.current.status).toBe('visible');
+    expect(result.current.body).toBe('First body');
+    expect(result.current.bannerName).toBe('campaign-1');
+
+    fireBannerEvent([
+      makeBanner({
+        trackingId: 'tracking-2',
+        bannerName: 'campaign-2',
+        body: 'Second body',
+      }),
+    ]);
+
+    expect(result.current.body).toBe('First body');
+    expect(result.current.bannerName).toBe('campaign-1');
   });
 
   it('transitions to dismissed when dismiss() is called', () => {
@@ -393,7 +419,8 @@ describe('useBrazeBanner', () => {
 
       fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
 
-      // A second event with a different trackingId carrying the same campaign
+      // A second event after the banner is visible is ignored entirely;
+      // the null dispatch should still only have happened once on first accept.
       fireBannerEvent([
         makeBanner({ trackingId: 'tracking-2', bannerName: 'new-campaign' }),
       ]);
