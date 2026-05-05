@@ -3,6 +3,7 @@ import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import MarketsWonCard from './PredictPositionsHeader';
 
@@ -96,18 +97,7 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
 const mockRefetchClaimablePositions = jest.fn();
 let mockActivePositions: PredictPosition[] = [];
 let mockClaimablePositions: PredictPosition[] = [];
-jest.mock('../../hooks/usePredictPositions', () => ({
-  usePredictPositions: ({
-    claimable,
-  }: {
-    claimable?: boolean;
-  } = {}) => ({
-    data: claimable ? mockClaimablePositions : mockActivePositions,
-    isLoading: false,
-    error: null,
-    refetch: mockRefetchClaimablePositions,
-  }),
-}));
+jest.mock('../../hooks/usePredictPositions');
 
 const mockClaim = jest.fn();
 jest.mock('../../hooks/usePredictClaim', () => ({
@@ -168,6 +158,9 @@ describe('MarketsWonCard', () => {
   const mockUseUnrealizedPnL = useUnrealizedPnL as jest.MockedFunction<
     typeof useUnrealizedPnL
   >;
+  const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
+    typeof usePredictPositions
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -186,13 +179,35 @@ describe('MarketsWonCard', () => {
       isFetching: false,
       error: null,
     } as unknown as ReturnType<typeof useUnrealizedPnL>);
+    mockUsePredictPositions.mockImplementation(
+      ({ claimable }: { claimable?: boolean } = {}) =>
+        ({
+          data: claimable ? mockClaimablePositions : mockActivePositions,
+          isLoading: false,
+          error: null,
+          refetch: mockRefetchClaimablePositions,
+        }) as unknown as ReturnType<typeof usePredictPositions>,
+    );
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('rendering', () => {
+    it('does not enable live updates for active position count query', () => {
+      const state = createTestState(100.5);
+
+      renderWithProvider(<MarketsWonCard />, { state });
+
+      const activePositionsCall = mockUsePredictPositions.mock.calls.find(
+        ([options]) => options?.claimable === false,
+      );
+
+      expect(activePositionsCall?.[0]).toMatchObject({ claimable: false });
+      expect(activePositionsCall?.[0]?.livePriceUpdates).toBeUndefined();
+    });
+
     it('displays available balance and unrealized P&L', () => {
       const state = createTestState(100.5);
 

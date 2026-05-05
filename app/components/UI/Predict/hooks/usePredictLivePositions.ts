@@ -53,10 +53,9 @@ export const usePredictLivePositions = (
     [positions],
   );
 
-  const { prices, isConnected, lastUpdateTime } = useLiveMarketPrices(
-    tokenIds,
-    { enabled: enabled && isScreenFocused && tokenIds.length > 0 },
-  );
+  const { prices } = useLiveMarketPrices(tokenIds, {
+    enabled: enabled && isScreenFocused && tokenIds.length > 0,
+  });
 
   const livePositions = useMemo(() => {
     if (positions.length === 0) {

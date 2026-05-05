@@ -430,37 +430,39 @@ describe('usePredictPositions', () => {
             return;
           }
 
-          queryClient.setQueryData<PredictPosition[]>(
+          queryClient.setQueryData(
             ['predict', 'positions', options.cacheAddress],
-            (cachedPositions) => {
+            (cachedPositions: PredictPosition[] | undefined) => {
               if (!cachedPositions) {
                 return cachedPositions;
               }
 
               let hasChanges = false;
 
-              const nextPositions = cachedPositions.map((position) => {
-                if (position.id !== activePosition.id || position.claimable) {
-                  return position;
-                }
+              const nextPositions = cachedPositions.map(
+                (position: PredictPosition) => {
+                  if (position.id !== activePosition.id || position.claimable) {
+                    return position;
+                  }
 
-                if (
-                  position.currentValue === 150 &&
-                  position.cashPnl === 58 &&
-                  position.percentPnl === 63
-                ) {
-                  return position;
-                }
+                  if (
+                    position.currentValue === 150 &&
+                    position.cashPnl === 58 &&
+                    position.percentPnl === 63
+                  ) {
+                    return position;
+                  }
 
-                hasChanges = true;
+                  hasChanges = true;
 
-                return {
-                  ...position,
-                  currentValue: 150,
-                  cashPnl: 58,
-                  percentPnl: 63,
-                };
-              });
+                  return {
+                    ...position,
+                    currentValue: 150,
+                    cashPnl: 58,
+                    percentPnl: 63,
+                  };
+                },
+              );
 
               return hasChanges ? nextPositions : cachedPositions;
             },

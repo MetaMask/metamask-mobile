@@ -96,7 +96,6 @@ const PredictPositionsHeader = forwardRef<
   const { isDepositPending } = usePredictDeposit();
   const { data: activePositions } = usePredictPositions({
     claimable: false,
-    livePriceUpdates: true,
   });
   const { data: claimablePositions = [] } = usePredictPositions({
     claimable: true,
