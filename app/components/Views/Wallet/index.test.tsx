@@ -110,6 +110,12 @@ jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
   };
 });
 
+// Mock NetworkConnectionBanner so the Wallet view's render does not depend on
+// Engine.lookupEnabledNetworks / NetworkController / controllerMessenger APIs.
+// Without this, the banner hook throws during render and the ErrorBoundary
+// swallows the failure, making negative-assert tests pass for the wrong reason.
+jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
+
 // Capture the HomepageScrollContext value by rendering a context-aware mock Homepage.
 // The mock is only invoked when mockHomepageSectionsEnabled=true (sections flag on),
 // so existing tests that leave the flag false are completely unaffected.
@@ -1739,31 +1745,6 @@ describe('useHomeDeepLinkEffects', () => {
 describe('MoneyBalanceCard slot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // The Wallet view mounts NetworkConnectionBanner, whose hook touches
-    // Engine.lookupEnabledNetworks(), Engine.context.NetworkController, and
-    // Engine.controllerMessenger.{subscribe,unsubscribe}. The base Engine
-    // mock in this file does not stub these; we add no-ops here so the
-    // commit phase completes when the slot is exercised, without
-    // disturbing the rest of the suite.
-    const engineWithStubs = Engine as unknown as {
-      lookupEnabledNetworks: jest.Mock;
-      controllerMessenger: { subscribe: jest.Mock; unsubscribe: jest.Mock };
-      context: Record<string, unknown> & {
-        NetworkController?: Record<string, unknown>;
-      };
-    };
-    engineWithStubs.lookupEnabledNetworks = jest.fn();
-    engineWithStubs.controllerMessenger = {
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
-    };
-    engineWithStubs.context.NetworkController = {
-      state: { networksMetadata: {} },
-      findNetworkClientIdByChainId: jest.fn(),
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
-      getNetworkConfigurationByChainId: jest.fn(),
-      updateNetwork: jest.fn(),
-    };
     jest
       .mocked(useSelector)
       .mockImplementation((callback: (state: unknown) => unknown) =>
