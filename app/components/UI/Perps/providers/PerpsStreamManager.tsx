@@ -1735,6 +1735,37 @@ export class PerpsStreamManager {
   }
 
   /**
+   * Pause all stream channels — stops emitting updates to subscribers while
+   * keeping WebSocket subscriptions alive and cache warm. Call when the Perps
+   * UI is not visible to avoid unnecessary processing.
+   */
+  public pauseAllChannels(): void {
+    this.prices.pause();
+    this.orders.pause();
+    this.positions.pause();
+    this.fills.pause();
+    this.account.pause();
+    this.oiCaps.pause();
+    this.topOfBook.pause();
+    this.candles.pause();
+  }
+
+  /**
+   * Resume all stream channels after a pause. Subscribers will receive the
+   * next update pushed by the WebSocket.
+   */
+  public resumeAllChannels(): void {
+    this.prices.resume();
+    this.orders.resume();
+    this.positions.resume();
+    this.fills.resume();
+    this.account.resume();
+    this.oiCaps.resume();
+    this.topOfBook.resume();
+    this.candles.resume();
+  }
+
+  /**
    * Force reconnection of all stream channels after WebSocket reconnection
    * Disconnects all channels and reconnects those with active subscribers
    */
