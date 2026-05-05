@@ -49,6 +49,7 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -1337,6 +1338,10 @@ const Wallet = ({
           sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
           receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         />
+
+        {isMoneyHomeScreenEnabled && isHomepageSectionsV1Enabled && (
+          <MoneyBalanceCard />
+        )}
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
