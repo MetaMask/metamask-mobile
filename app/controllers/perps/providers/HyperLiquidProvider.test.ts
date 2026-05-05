@@ -2826,6 +2826,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('handles missing price data', async () => {
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce(undefined);
       (
         mockClientService.getInfoClient().allMids as jest.Mock
       ).mockResolvedValueOnce({});
