@@ -242,6 +242,9 @@ const PriceAdvanced = ({
     [assetId, config.timePeriod, config.interval, currentCurrency],
   );
 
+  const assetIdRef = useRef(assetId);
+  assetIdRef.current = assetId;
+
   const visibilityTraceStartedRef = useRef<string | null>(null);
   /** Matches pending manual trace so {@link endTrace} uses the same `TraceName` as {@link trace}. */
   const activeVisibilityTraceRef = useRef<{
@@ -367,6 +370,9 @@ const PriceAdvanced = ({
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
 
+  const shouldFallbackToLegacyRef = useRef(shouldFallbackToLegacy);
+  shouldFallbackToLegacyRef.current = shouldFallbackToLegacy;
+
   useEffect(() => {
     if (!shouldFallbackToLegacy) {
       return;
@@ -388,11 +394,24 @@ const PriceAdvanced = ({
   }, [shouldFallbackToLegacy]);
 
   useEffect(() => {
-    if (shouldFallbackToLegacy) {
-      return;
+    const cleanup = () => {
+      const open = activeVisibilityTraceRef.current;
+      if (open) {
+        endTrace({
+          name: open.traceName,
+          id: open.seriesKey,
+          data: { unmounted: true },
+        });
+        activeVisibilityTraceRef.current = null;
+        visibilityTraceStartedRef.current = null;
+      }
+    };
+
+    if (shouldFallbackToLegacyRef.current) {
+      return cleanup;
     }
     if (visibilityTraceStartedRef.current === ohlcvSeriesKey) {
-      return;
+      return cleanup;
     }
 
     const previousSeriesId = visibilityTraceStartedRef.current;
@@ -416,13 +435,18 @@ const PriceAdvanced = ({
       traceName: visibilityTraceName,
     };
 
+    const currentAssetId = assetIdRef.current;
     trace({
       name: visibilityTraceName,
       op: visibilityTraceOp,
       id: ohlcvSeriesKey,
-      ...(assetId.length > 0 ? { data: { assetId } } : {}),
+      ...(currentAssetId.length > 0
+        ? { data: { assetId: currentAssetId } }
+        : {}),
     });
-  }, [ohlcvSeriesKey, assetId, shouldFallbackToLegacy]);
+
+    return cleanup;
+  }, [ohlcvSeriesKey]);
 
   if (shouldFallbackToLegacy) {
     return (

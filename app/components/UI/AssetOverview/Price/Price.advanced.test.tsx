@@ -1012,6 +1012,38 @@ describe('PriceAdvanced', () => {
       expect(mockTrace).not.toHaveBeenCalled();
     });
 
+    it('ends trace with unmounted flag when component unmounts with open trace', () => {
+      const { unmount } = render(<PriceAdvanced {...baseProps} />);
+
+      mockEndTrace.mockClear();
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+          data: expect.objectContaining({
+            unmounted: true,
+          }),
+        }),
+      );
+    });
+
+    it('does not end trace on unmount when trace was already completed', () => {
+      const { getByTestId, unmount } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      act(() => {
+        advancedChart.props.onSkeletonHidden?.();
+      });
+
+      mockEndTrace.mockClear();
+
+      unmount();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
     it('truncates error message to 200 characters', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const advancedChart = getByTestId('mock-advanced-chart');
