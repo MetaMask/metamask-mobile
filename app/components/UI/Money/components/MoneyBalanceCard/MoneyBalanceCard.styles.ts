@@ -6,6 +6,7 @@ const styleSheet = () =>
       height: 82,
       borderRadius: 12,
       paddingHorizontal: 16,
+      marginHorizontal: 16,
     },
   });
 
