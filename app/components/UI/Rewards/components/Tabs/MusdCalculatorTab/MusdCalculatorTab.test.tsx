@@ -4,6 +4,20 @@ import MusdCalculatorTab from './MusdCalculatorTab';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { amountToPercent } from '../../../utils/musdCalculatorSlider';
+
+jest.mock('react-native-gesture-handler', () => ({
+  GestureHandlerRootView: jest.requireActual('react-native').View,
+  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+  Gesture: {
+    Pan: jest.fn(() => ({
+      minDistance: jest.fn().mockReturnThis(),
+      onBegin: jest.fn().mockReturnThis(),
+      onUpdate: jest.fn().mockReturnThis(),
+      onFinalize: jest.fn().mockReturnThis(),
+    })),
+  },
+}));
 
 const mockGoToSwaps = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -51,19 +65,19 @@ describe('MusdCalculatorTab', () => {
     );
   });
 
-  it('renders all calculator UI elements', () => {
-    const { getByText } = render(<MusdCalculatorTab />);
+  it('renders calculator layout and controls', () => {
+    const { getByText, getByTestId } = render(<MusdCalculatorTab />);
 
-    expect(getByText('rewards.musd.title')).toBeTruthy();
-    expect(getByText('rewards.musd.description')).toBeTruthy();
-    expect(getByText('rewards.musd.amount_label')).toBeTruthy();
-    expect(getByText('rewards.musd.estimated_bonus')).toBeTruthy();
-    expect(getByText('rewards.musd.initial_amount')).toBeTruthy();
-    expect(getByText('rewards.musd.daily_bonus')).toBeTruthy();
-    expect(getByText('rewards.musd.annualized_bonus')).toBeTruthy();
-    expect(getByText('rewards.musd.disclaimer_brief')).toBeTruthy();
+    expect(getByText('rewards.musd.hero_hold')).toBeTruthy();
+    expect(getByText('rewards.musd.hero_earn')).toBeTruthy();
+    expect(getByText('rewards.musd.slider_amount_label')).toBeTruthy();
+    expect(getByText('rewards.musd.disclaimer_calculator')).toBeTruthy();
+    expect(getByText('rewards.musd.scale_min')).toBeTruthy();
+    expect(getByText('rewards.musd.scale_mid')).toBeTruthy();
+    expect(getByText('rewards.musd.scale_max')).toBeTruthy();
     expect(getByText('rewards.musd.buy_button')).toBeTruthy();
     expect(getByText('rewards.musd.swap_button')).toBeTruthy();
+    expect(getByTestId('musd-slider-track')).toBeTruthy();
   });
 
   it('calls handleDeeplink and tracks buy_musd event when Buy button is pressed', () => {
@@ -71,8 +85,8 @@ describe('MusdCalculatorTab', () => {
       '../../../../../../core/DeeplinkManager',
     );
 
-    const { getByText } = render(<MusdCalculatorTab />);
-    fireEvent.press(getByText('rewards.musd.buy_button'));
+    const { getByTestId } = render(<MusdCalculatorTab />);
+    fireEvent.press(getByTestId('musd-buy-button'));
 
     expect(handleDeeplink).toHaveBeenCalledWith({
       uri: expect.stringContaining('link.metamask.io/buy'),
@@ -87,8 +101,8 @@ describe('MusdCalculatorTab', () => {
   });
 
   it('navigates to swap screen and tracks swap_to_musd event when Swap button is pressed', () => {
-    const { getByText } = render(<MusdCalculatorTab />);
-    fireEvent.press(getByText('rewards.musd.swap_button'));
+    const { getByTestId } = render(<MusdCalculatorTab />);
+    fireEvent.press(getByTestId('musd-swap-button'));
 
     expect(mockGoToSwaps).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -100,56 +114,25 @@ describe('MusdCalculatorTab', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('updates input value when amount changes', () => {
-    const { getByTestId } = render(<MusdCalculatorTab />);
-
-    const input = getByTestId('musd-amount-input');
-    fireEvent.changeText(input, '5000');
-
-    expect(input.props.value).toBe('5000');
-  });
-
-  it('sanitizes non-numeric input', () => {
-    const { getByTestId } = render(<MusdCalculatorTab />);
-
-    const input = getByTestId('musd-amount-input');
-    fireEvent.changeText(input, 'abc123def');
-
-    expect(input.props.value).toBe('123');
-  });
-
-  it('allows decimal input', () => {
-    const { getByTestId } = render(<MusdCalculatorTab />);
-
-    const input = getByTestId('musd-amount-input');
-    fireEvent.changeText(input, '1000.50');
-
-    expect(input.props.value).toBe('1000.50');
-  });
-
-  it('rejects multiple decimal points', () => {
-    const { getByTestId } = render(<MusdCalculatorTab />);
-
-    const input = getByTestId('musd-amount-input');
-    fireEvent.changeText(input, '1000.50');
-    fireEvent.changeText(input, '1000.50.25');
-
-    expect(input.props.value).toBe('1000.50');
-  });
-
-  it('calculates correct bonus values for $5000 input', async () => {
+  it('updates amount and earnings when the track is pressed', async () => {
     const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const track = getByTestId('musd-slider-track');
 
-    const input = getByTestId('musd-amount-input');
-    fireEvent.changeText(input, '5000');
+    fireEvent(track, 'layout', {
+      nativeEvent: { layout: { width: 300, height: 32, x: 0, y: 0 } },
+    });
 
-    // Initial amount: $5,000.00
-    // Daily bonus: $5000 * 0.03 / 365 = $0.41
-    // Annualized bonus: $5000 * 0.03 = $150.00
+    const locationX = (amountToPercent(5000) / 100) * 300;
+    fireEvent(track, 'pressIn', {
+      nativeEvent: { locationX },
+    });
+
     await waitFor(() => {
-      expect(getByText('$5,000')).toBeOnTheScreen();
-      expect(getByText('$0.41')).toBeOnTheScreen();
-      expect(getByText('$150')).toBeOnTheScreen();
+      expect(getByTestId('musd-slider-amount-display')).toHaveTextContent(
+        '$5,000',
+      );
+      expect(getByText(/\$0\.41/)).toBeOnTheScreen();
+      expect(getByText(/\$150/)).toBeOnTheScreen();
     });
   });
 });
