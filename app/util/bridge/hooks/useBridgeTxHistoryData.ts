@@ -48,7 +48,7 @@ export function useBridgeTxHistoryData({
     if (!bridgeHistoryItem && srcTxMetaId) {
       const matchingEntry = Object.entries(bridgeHistory).find(
         ([, historyItem]) =>
-          (historyItem as unknown as { originalTransactionId?: string })
+          (historyItem as { originalTransactionId?: string })
             .originalTransactionId === srcTxMetaId,
       );
       bridgeHistoryItem = matchingEntry ? matchingEntry[1] : undefined;
