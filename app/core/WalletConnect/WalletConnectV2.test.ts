@@ -665,6 +665,30 @@ describe('WC2Manager', () => {
       expect(showLoadingSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('rehydrates an active session when sessionTopic exists but in-memory cache is empty', async () => {
+      const mockWcUri = 'wc://test@2?sessionTopic=test-topic';
+      const showLoadingSpy = jest.spyOn(wcUtils, 'showWCLoadingState');
+      const WalletConnect2SessionSpy = jest.mocked(WalletConnect2Session);
+
+      (manager as unknown as { sessions: Record<string, unknown> }).sessions =
+        {};
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+
+      expect(WalletConnect2SessionSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          channelId: 'test-pairing',
+          deeplink: true,
+          session: expect.objectContaining({ topic: 'test-topic' }),
+        }),
+      );
+      expect(showLoadingSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('logs a warning and returns early for WalletConnect v1 URIs', async () => {
       const mockWcUri = 'wc:00e46b69-d0cc-4b3e-b6a2-cee442f97188@1';
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();

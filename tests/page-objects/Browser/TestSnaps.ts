@@ -28,6 +28,21 @@ import SolanaTestDApp from './SolanaTestDApp';
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/3.4.2/';
 
+/** Detox WebView `getText()` may return a non-string; normalize for `.includes` / matching. */
+function normalizeWebViewText(raw: unknown): string {
+  if (typeof raw === 'string') {
+    return raw;
+  }
+  if (raw == null) {
+    return '';
+  }
+  try {
+    return JSON.stringify(raw);
+  } catch {
+    return String(raw);
+  }
+}
+
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
@@ -109,7 +124,7 @@ class TestSnaps {
     );
 
     return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
+      const actualText = normalizeWebViewText(await webElement.getText());
       await Assertions.checkIfTextMatches(actualText, expectedMessage);
     }, options);
   }
@@ -142,12 +157,20 @@ class TestSnaps {
     );
 
     return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
+      const raw = await webElement.getText();
       let actualJson: Json;
-      try {
-        actualJson = JSON.parse(actualText);
-      } catch (error) {
-        throw new Error(`Failed to parse JSON from result span: ${actualText}`);
+      if (typeof raw === 'string') {
+        try {
+          actualJson = JSON.parse(raw);
+        } catch (error) {
+          throw new Error(`Failed to parse JSON from result span: ${raw}`);
+        }
+      } else if (raw && typeof raw === 'object') {
+        actualJson = raw as Json;
+      } else {
+        throw new Error(
+          `Failed to parse JSON from result span: ${String(raw)}`,
+        );
       }
 
       await Assertions.checkIfJsonEqual(actualJson, expectedJson);
@@ -168,7 +191,7 @@ class TestSnaps {
     );
 
     return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
+      const actualText = normalizeWebViewText(await webElement.getText());
       if (!actualText.includes(expectedMessage)) {
         throw new Error(`Text did not contain "${expectedMessage}"`);
       }
@@ -188,7 +211,7 @@ class TestSnaps {
     );
 
     return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
+      const actualText = normalizeWebViewText(await webElement.getText());
       if (!actualText || actualText.trim() === '') {
         throw new Error(`Result span is empty`);
       }
@@ -211,13 +234,21 @@ class TestSnaps {
     );
 
     return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      let actualStatusWithVersion;
-      try {
-        actualStatusWithVersion = JSON.parse(actualText);
-      } catch (error) {
+      const raw = await webElement.getText();
+      let actualStatusWithVersion: Record<string, Json>;
+      if (typeof raw === 'string') {
+        try {
+          actualStatusWithVersion = JSON.parse(raw);
+        } catch (error) {
+          throw new Error(
+            `Failed to parse JSON from client status span: ${raw}`,
+          );
+        }
+      } else if (raw && typeof raw === 'object') {
+        actualStatusWithVersion = raw as Record<string, Json>;
+      } else {
         throw new Error(
-          `Failed to parse JSON from client status span: ${actualText}`,
+          `Failed to parse JSON from client status span: ${String(raw)}`,
         );
       }
 

@@ -349,10 +349,22 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       return defaultSelectedNetworkList;
     }
 
-    const additionalChains = nonTestNetworkCaipChainIds.filter((caipChainId) =>
-      requestedNamespacesForNetworkSelection.includes(
-        parseCaipChainId(caipChainId).namespace,
+    const namespacesWithExplicitChainRequests = new Set(
+      requestedCaipChainIds.map(
+        (caipChainId) => parseCaipChainId(caipChainId).namespace,
       ),
+    );
+
+    // Expand only namespaces that were requested without explicit chains
+    // (e.g. wallet:eip155 delegated requests in mixed namespace proposals).
+    const additionalChains = nonTestNetworkCaipChainIds.filter(
+      (caipChainId) => {
+        const namespace = parseCaipChainId(caipChainId).namespace;
+        return (
+          requestedNamespacesForNetworkSelection.includes(namespace) &&
+          !namespacesWithExplicitChainRequests.has(namespace)
+        );
+      },
     );
 
     const supportedRequestedCaipChainIds = Array.from(

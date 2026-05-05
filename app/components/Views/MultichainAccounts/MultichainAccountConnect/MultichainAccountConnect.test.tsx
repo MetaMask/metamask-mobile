@@ -737,6 +737,75 @@ describe('MultichainAccountConnect', () => {
     expect(requestedChainIds).toContain('tron:728126428');
   });
 
+  it('does not expand explicit eip155 chain requests to all EVM chains', () => {
+    const stateWithMultipleEvmNetworks: DeepPartial<RootState> = {
+      ...createMockState(),
+      engine: {
+        ...createMockState().engine,
+        backgroundState: {
+          ...createMockState().engine?.backgroundState,
+          NetworkController: {
+            ...createMockState().engine?.backgroundState?.NetworkController,
+            networksMetadata: {
+              ...(createMockState().engine?.backgroundState?.NetworkController
+                ?.networksMetadata ?? {}),
+              polygon: { status: NetworkStatus.Available, EIPS: {} },
+            },
+            networkConfigurationsByChainId: {
+              ...(createMockState().engine?.backgroundState?.NetworkController
+                ?.networkConfigurationsByChainId ?? {}),
+              '0x89': {
+                blockExplorerUrls: ['https://polygonscan.com'],
+                chainId: '0x89',
+                defaultRpcEndpointIndex: 0,
+                name: 'Polygon Mainnet',
+                nativeCurrency: 'POL',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'polygon',
+                    type: RpcEndpointType.Custom,
+                    url: 'https://polygon-rpc.com',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    renderWithProvider(
+      <MultichainAccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'wc-channel-id',
+                isEip1193Request: false,
+              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+                'eip155:1': {
+                  accounts: [],
+                },
+              }),
+            },
+            permissionRequestId: 'test-explicit-eip155-request',
+          },
+        }}
+      />,
+      { state: stateWithMultipleEvmNetworks },
+    );
+
+    const requestedChainIds =
+      mockUseAccountGroupsForPermissions.mock.calls.at(-1)?.[2] ?? [];
+    expect(requestedChainIds).toContain('eip155:1');
+    expect(requestedChainIds).not.toContain('eip155:137');
+  });
+
   describe('Phishing detection', () => {
     describe('dapp scanning is enabled', () => {
       it('does not show phishing modal for safe URLs', async () => {
