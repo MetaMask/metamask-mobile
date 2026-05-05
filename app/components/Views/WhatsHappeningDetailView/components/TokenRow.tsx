@@ -32,7 +32,7 @@ const TokenRow: React.FC<TokenRowProps> = ({ asset }) => {
   const { goToBuy } = useRampNavigation();
 
   const handleBuy = useCallback(() => {
-    const assetId = asset.caip19[0];
+    const assetId = asset.caip19?.[0];
     goToBuy({ assetId });
   }, [goToBuy, asset.caip19]);
 
