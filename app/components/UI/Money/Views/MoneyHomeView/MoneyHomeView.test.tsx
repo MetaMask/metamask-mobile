@@ -23,6 +23,8 @@ import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 const mockGoBack = jest.fn();
@@ -85,7 +87,18 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectIsCardholder: jest.fn(),
 }));
 
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  ...jest.requireActual('../../../../../reducers/fiatOrders'),
+  getDetectedGeolocation: jest.fn(),
+}));
+
+jest.mock('../../../../../core/DeeplinkManager', () => ({
+  handleDeeplink: jest.fn(),
+}));
+
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
+const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
+const mockHandleDeeplink = jest.mocked(handleDeeplink);
 
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
@@ -134,6 +147,7 @@ describe('MoneyHomeView', () => {
     global.alert = jest.fn();
 
     mockSelectIsCardholder.mockReturnValue(false);
+    mockGetDetectedGeolocation.mockReturnValue('US');
 
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$3.00',
@@ -589,6 +603,88 @@ describe('MoneyHomeView', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+  });
+
+  describe('Metal card geolocation gating', () => {
+    it('renders the Metal card row when geolocation is US', () => {
+      mockGetDetectedGeolocation.mockReturnValue('US');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the Metal card row when geolocation is a US sub-region (e.g. US-CA)', () => {
+      mockGetDetectedGeolocation.mockReturnValue('us-ca');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the Metal card row when geolocation is GB', () => {
+      mockGetDetectedGeolocation.mockReturnValue('GB');
+
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the Metal card row when geolocation is undefined (loading/unknown - fail closed)', () => {
+      mockGetDetectedGeolocation.mockReturnValue(undefined);
+
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Get now deeplink', () => {
+    it('opens the card-onboarding deeplink when the virtual card Get now button is pressed', () => {
+      mockGetDetectedGeolocation.mockReturnValue('GB');
+
+      const { getByText } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByText(strings('money.metamask_card.get_now')));
+
+      expect(mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: 'metamask://card-onboarding',
+      });
+    });
+
+    it('opens the card-onboarding deeplink when the metal card Get now button is pressed', () => {
+      mockGetDetectedGeolocation.mockReturnValue('US');
+
+      const { getAllByText } = renderWithProvider(<MoneyHomeView />);
+      const buttons = getAllByText(strings('money.metamask_card.get_now'));
+
+      fireEvent.press(buttons[1]);
+
+      expect(mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: 'metamask://card-onboarding',
       });
     });
   });

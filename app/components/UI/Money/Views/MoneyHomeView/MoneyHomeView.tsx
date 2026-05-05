@@ -36,6 +36,8 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
@@ -73,6 +75,11 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const geolocation = useSelector(getDetectedGeolocation);
+  // Mirror the normalization in useMusdConversionEligibility for consistency.
+  // Fail closed: only show the Metal card row when geolocation positively
+  // resolves to US (loading/null/non-US all hide it).
+  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -125,8 +132,8 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleGetNowPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation]);
+    handleDeeplink({ uri: 'metamask://card-onboarding' });
+  }, []);
 
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -296,6 +303,7 @@ const MoneyHomeView = () => {
           onHeaderPress={handleHeaderPress}
           onLinkPress={handleLinkCardPress}
           apy={apyPercent}
+          showMetalCard={isUS}
         />
         <Divider />
         {isMilestone && (
