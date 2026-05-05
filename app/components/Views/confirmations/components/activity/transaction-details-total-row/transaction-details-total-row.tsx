@@ -12,12 +12,14 @@ import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
 import { USER_CURRENCY_TYPES } from '../../../constants/confirmations';
 
 const FALLBACK_TYPES = [
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.perpsWithdraw,
   TransactionType.predictWithdraw,
 ];
 
 const RECEIVE_TYPES = [
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
