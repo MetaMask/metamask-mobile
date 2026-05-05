@@ -359,7 +359,7 @@ export class HyperLiquidSubscriptionService {
       // budget with handled events the SDK already recovers from. Keep them
       // visible locally via debugLogger for diagnosis.
       this.#deps.debugLogger.log(
-        `[Perps transient SDK error] ${context?.context?.name ?? 'unknown'}: ${error.message}`,
+        `[Perps transient SDK error] ${(context?.context?.data?.method as string) ?? 'unknown'}: ${error.message}`,
       );
       return;
     }
