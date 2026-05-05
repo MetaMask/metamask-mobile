@@ -68,6 +68,9 @@ import {
   RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction,
   RewardsDataServiceGetOndoCampaignDepositsAction,
   RewardsDataServiceGetOndoCampaignParticipantOutcomeAction,
+  RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
+  RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
+  RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -120,7 +123,10 @@ type AllowedActions =
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
   | RewardsDataServiceGetOndoCampaignDepositsAction
-  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction;
+  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -208,12 +214,15 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getOndoCampaignActivityLastUpdated',
       'RewardsDataService:getOndoCampaignDeposits',
       'RewardsDataService:getOndoCampaignParticipantOutcome',
+      'RewardsDataService:getPerpsTradingCampaignLeaderboard',
+      'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
+      'RewardsDataService:getPerpsTradingCampaignVolume',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
     ],
-  });
+  } as Parameters<RootMessenger['delegate']>[0]);
 
   return messenger;
 }
