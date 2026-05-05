@@ -6552,6 +6552,12 @@
     "musd_row": {
       "add": "Add"
     },
+    "balance_card": {
+      "label": "Money balance",
+      "add": "Add",
+      "info_sheet_title": "About your Money balance",
+      "info_sheet_body": "Your Money balance is the combined value of your unwrapped mUSD and your Money vault shares, shown in your local currency."
+    },
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
