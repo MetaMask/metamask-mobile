@@ -29,6 +29,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'flex-start',
     },
     avatar: {
+      marginTop: -4,
       marginRight: 16,
     },
     labelsContainer: {
