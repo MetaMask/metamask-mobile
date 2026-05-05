@@ -264,6 +264,9 @@ const CashTokensFullView = () => {
             showOnlyMusd
             hideLoadingSkeleton
             hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+            // MUSD-729: hide the "3% bonus" / price-rail secondary row on
+            // mUSD entries inside Money Hub so the row reads as a balance
+            // entry under the new "Your balance" heading.
             hideSecondaryPriceRow={isMoneyHubEnabled}
             listFooterComponent={
               isMoneyHubEnabled ? bonusAndConvertSections : undefined
