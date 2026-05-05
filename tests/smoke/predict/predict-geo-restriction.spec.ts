@@ -37,7 +37,6 @@ const setupGeoBlockedBase = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,
-    exploreSectionsOrder: {},
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
