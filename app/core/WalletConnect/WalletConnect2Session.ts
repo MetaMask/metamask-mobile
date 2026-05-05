@@ -51,6 +51,7 @@ import {
 import {
   buildAdapterNamespaces,
   callMultichainRoutingService,
+  getCompatibleCaipChainIdsForWalletConnect,
   mapRequestForSnap,
   normalizeSnapResponse,
   proposalReferencedAdapterNamespaces,
@@ -789,6 +790,13 @@ class WalletConnect2Session {
       this.requestsToRedirect[requestEvent.id] = true;
     }
 
+    const permittedChains = await getPermittedChains(this.channelId);
+    const compatibleRequestChainIds =
+      getCompatibleCaipChainIdsForWalletConnect(requestChainId);
+    const isPermittedRequestChain = compatibleRequestChainIds.some((chainId) =>
+      permittedChains.includes(chainId as CaipChainId),
+    );
+
     // Non-EVM namespace routing: delegate to MultichainRoutingService which
     // resolves the correct Snap internally via the SnapKeyring. The scope
     // (CAIP-2 chainId) and the dapp-permitted accounts for that namespace
@@ -798,6 +806,11 @@ class WalletConnect2Session {
       requestNamespace !== KnownCaipNamespace.Eip155 &&
       requestNamespace !== KnownCaipNamespace.Wallet
     ) {
+      if (!isPermittedRequestChain) {
+        throw providerErrors.unauthorized({
+          message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${requestChainId} to continue.`,
+        });
+      }
       return this.routeToSnap(requestEvent, requestChainId);
     }
 
@@ -842,7 +855,6 @@ class WalletConnect2Session {
       `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} unverifiedOrigin=${unverifiedOrigin}`,
     );
 
-    const permittedChains = await getPermittedChains(this.channelId);
     const isAllowedChainId = permittedChains.includes(caip2ChainId);
 
     if (method === 'wallet_switchEthereumChain') {

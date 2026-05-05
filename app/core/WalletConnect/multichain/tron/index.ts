@@ -66,6 +66,9 @@ export const normalizeCaipChainIdOutboundForWalletConnectTron = (
   }
   const chainRef = caipChainId.slice(TRON_PREFIX.length);
   if (!chainRef.startsWith('0x')) {
+    if (!/^\d+$/.test(chainRef)) {
+      return caipChainId;
+    }
     return `tron:0x${parseInt(chainRef, 10).toString(16)}`;
   }
   return caipChainId;

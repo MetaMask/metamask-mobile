@@ -19,12 +19,16 @@ import {
   KnownCaipNamespace,
 } from '@metamask/utils';
 import Engine from '../../Engine';
+// Keep Tron-specific imports behind the Tron feature gate.
+// When Tron is disabled, this barrel must remain chain-agnostic.
+///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   buildTronScopedPermissionsNamespace,
   getCompatibleTronCaipChainIdsForWalletConnect,
   normalizeCaipChainIdInboundForWalletConnectTron,
   normalizeCaipChainIdOutboundForWalletConnectTron,
 } from './tron';
+///: END:ONLY_INCLUDE_IF
 
 export {
   buildAdapterNamespaces,
@@ -55,6 +59,7 @@ export const buildAdapterScopedPermissionsNamespaces = ({
   permittedChains: string[];
 }): Record<string, NamespaceConfig> => {
   const namespaces: Record<string, NamespaceConfig> = {};
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const tronNamespace = buildTronScopedPermissionsNamespace({
     channelId,
     permittedChains,
@@ -62,6 +67,7 @@ export const buildAdapterScopedPermissionsNamespaces = ({
   if (tronNamespace) {
     namespaces[KnownCaipNamespace.Tron] = tronNamespace;
   }
+  ///: END:ONLY_INCLUDE_IF
   return namespaces;
 };
 
