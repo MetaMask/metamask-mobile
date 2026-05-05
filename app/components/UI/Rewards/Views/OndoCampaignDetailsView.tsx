@@ -43,6 +43,7 @@ import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerShe
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
 import OndoNotEligibleSheet from '../components/Campaigns/OndoNotEligibleSheet';
 import CampaignStatsSummary from '../components/Campaigns/CampaignStatsSummary';
+import CampaignEndedStats from '../components/Campaigns/CampaignEndedStats';
 import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -60,7 +61,11 @@ import {
   CampaignType,
   OndoCampaignHowItWorks,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  buildLeaderboardUserPosition,
+  getCampaignTierNames,
+  getTierMinNetDeposit,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
@@ -210,6 +215,7 @@ const OndoCampaignDetailsView: React.FC = () => {
   );
 
   const {
+    leaderboard,
     selectedTier,
     selectedTierData,
     setSelectedTier,
@@ -221,20 +227,10 @@ const OndoCampaignDetailsView: React.FC = () => {
     defaultTier: leaderboardPosition?.projectedTier,
   });
 
-  const tierNames = useMemo(
-    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
-    [campaign],
-  );
+  const tierNames = useMemo(() => getCampaignTierNames(campaign), [campaign]);
 
   const leaderboardUserPosition = useMemo(
-    () =>
-      leaderboardPosition
-        ? {
-            projectedTier: leaderboardPosition.projectedTier,
-            rank: leaderboardPosition.rank,
-            neighbors: leaderboardPosition.neighbors ?? [],
-          }
-        : null,
+    () => buildLeaderboardUserPosition(leaderboardPosition),
     [leaderboardPosition],
   );
 
@@ -261,6 +257,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     showStatsSummarySection,
     showLeaderboardSection,
     showPortfolioSection,
+    showCampaignEndedStats,
   } = useMemo(() => {
     if (!campaign) {
       return {
@@ -268,6 +265,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         showStatsSummarySection: false,
         showLeaderboardSection: false,
         showPortfolioSection: false,
+        showCampaignEndedStats: false,
       };
     }
 
@@ -280,8 +278,12 @@ const OndoCampaignDetailsView: React.FC = () => {
       showPortfolioSection:
         isOptedIn && hasPositions && getCampaignStatus(campaign) !== 'complete',
       showLeaderboardSection: true,
+      showCampaignEndedStats:
+        getCampaignStatus(campaign) === 'complete' &&
+        !isOptedIn &&
+        !isParticipantStatusLoading,
     };
-  }, [campaign, isOptedIn, hasPositions]);
+  }, [campaign, isOptedIn, isParticipantStatusLoading, hasPositions]);
 
   const navigateToWinningView = useCallback(() => {
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW, {
@@ -359,6 +361,21 @@ const OndoCampaignDetailsView: React.FC = () => {
                     />
                   </Box>
                 </>
+              )}
+
+              {showCampaignEndedStats && (
+                <Box twClassName="p-4">
+                  <CampaignEndedStats
+                    leaderboard={leaderboard}
+                    totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                    isLeaderboardLoading={isLeaderboardLoading}
+                    isDepositsLoading={isDepositsLoading}
+                    hasLeaderboardError={hasLeaderboardError}
+                    hasDepositsError={hasDepositsError}
+                    onRetryLeaderboard={refetchLeaderboard}
+                    onRetryDeposits={refetchDeposits}
+                  />
+                </Box>
               )}
 
               {showStatsSummarySection && (
@@ -464,7 +481,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {getCampaignStatus(campaign) === 'active' && (
+              {getCampaignStatus(campaign) !== 'upcoming' && (
                 <>
                   <Box twClassName="my-1 border-b border-border-muted" />
                   <Box twClassName="p-4">

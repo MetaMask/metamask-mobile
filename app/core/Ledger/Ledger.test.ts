@@ -176,6 +176,57 @@ describe('Ledger core', () => {
       expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
       expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
+
+    it('releases the keyring lock before requesting app metadata from the device', async () => {
+      const events: string[] = [];
+      ledgerKeyring.bridge.getAppNameAndVersion.mockImplementationOnce(
+        async () => {
+          events.push('getAppNameAndVersion');
+          return { appName: 'Ethereum' };
+        },
+      );
+      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+        async (_selector, operation) => {
+          const result = await operation({
+            // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+            keyring: ledgerKeyring,
+            metadata: { id: '1234', name: 'Ledger Hardware' },
+          });
+          events.push('withKeyring settled');
+          return result;
+        },
+      );
+
+      await expect(connectLedgerHardware(mockTransport, 'bar')).resolves.toBe(
+        'Ethereum',
+      );
+
+      expect(ledgerKeyring.bridge.updateTransportMethod).toHaveBeenCalled();
+      expect(ledgerKeyring.bridge.getAppNameAndVersion).toHaveBeenCalled();
+      expect(events).toEqual(['withKeyring settled', 'getAppNameAndVersion']);
+    });
+
+    it('skips app metadata request when aborted before the BLE exchange starts', async () => {
+      const abortController = new AbortController();
+      ledgerKeyring.bridge.updateTransportMethod.mockImplementationOnce(
+        async () => {
+          abortController.abort();
+        },
+      );
+
+      const resultPromise = connectLedgerHardware(
+        mockTransport,
+        'bar',
+        abortController.signal,
+      );
+      const error = await resultPromise.catch((caughtError) => caughtError);
+
+      expect(error).toMatchObject({
+        name: 'LedgerOperationAbortedError',
+      });
+
+      expect(ledgerKeyring.bridge.getAppNameAndVersion).not.toHaveBeenCalled();
+    });
   });
 
   describe('openEthereumAppOnLedger', () => {
@@ -183,12 +234,56 @@ describe('Ledger core', () => {
       await openEthereumAppOnLedger();
       expect(ledgerKeyring.bridge.openEthApp).toHaveBeenCalled();
     });
+
+    it('releases the keyring lock before opening the Ethereum app on the device', async () => {
+      const events: string[] = [];
+      ledgerKeyring.bridge.openEthApp.mockImplementationOnce(async () => {
+        events.push('openEthApp');
+      });
+      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+        async (_selector, operation) => {
+          const result = await operation({
+            // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+            keyring: ledgerKeyring,
+            metadata: { id: '1234', name: 'Ledger Hardware' },
+          });
+          events.push('withKeyring settled');
+          return result;
+        },
+      );
+
+      await openEthereumAppOnLedger();
+
+      expect(events).toEqual(['withKeyring settled', 'openEthApp']);
+    });
   });
 
   describe('closeRunningAppOnLedger', () => {
     it('calls keyring.quitApp', async () => {
       await closeRunningAppOnLedger();
       expect(ledgerKeyring.bridge.closeApps).toHaveBeenCalled();
+    });
+
+    it('releases the keyring lock before closing the current app on the device', async () => {
+      const events: string[] = [];
+      ledgerKeyring.bridge.closeApps.mockImplementationOnce(async () => {
+        events.push('closeApps');
+      });
+      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+        async (_selector, operation) => {
+          const result = await operation({
+            // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+            keyring: ledgerKeyring,
+            metadata: { id: '1234', name: 'Ledger Hardware' },
+          });
+          events.push('withKeyring settled');
+          return result;
+        },
+      );
+
+      await closeRunningAppOnLedger();
+
+      expect(events).toEqual(['withKeyring settled', 'closeApps']);
     });
   });
 

@@ -15,7 +15,7 @@ jest.mock('../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
 
 const mockEngine = Engine;
 
-const existingNetworkConfiguration = {
+const mockExistingNetworkConfiguration = {
   id: 'test-network-configuration-id',
   chainId: '0x2',
   name: 'Test Chain',
@@ -71,7 +71,7 @@ jest.mock('../../store', () => ({
                 ticker: 'ETH',
               },
               {
-                ...existingNetworkConfiguration,
+                ...mockExistingNetworkConfiguration,
               },
             ),
           },

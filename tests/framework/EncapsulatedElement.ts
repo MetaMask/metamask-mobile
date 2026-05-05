@@ -141,7 +141,7 @@ export class EncapsulatedElement {
     }
 
     // Otherwise, it's a platform-specific configuration
-    const platform = await PlatformDetector.getPlatform();
+    const platform = PlatformDetector.getPlatform();
     const platformLocator = config.appium[platform];
 
     if (!platformLocator) {
