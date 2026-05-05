@@ -203,7 +203,7 @@
     "pretty-format/react-is": "^19.0.0",
     "bn.js@npm:4.11.6": "4.12.3",
     "bn.js@npm:5.2.1": "5.2.3",
-    "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch",
+    "expo-web-browser@npm:~15.0.10": "patch:expo-web-browser@patch%3Aexpo-web-browser@npm%253A15.0.10%23~/.yarn/patches/expo-web-browser-npm-15.0.10-9bc8443879.patch%3A%3Aversion=15.0.10&hash=f5d37c#~/.yarn/patches/expo-web-browser-patch-901cbe9795.patch",
     "@metamask/messenger@^0.3.0": "^1.0.0",
     "@metamask/accounts-controller": "^37.2.0",
     "@metamask/profile-sync-controller": "^28.0.2",
