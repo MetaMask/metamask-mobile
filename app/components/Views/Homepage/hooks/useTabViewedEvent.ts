@@ -15,7 +15,7 @@ export type HomeTabName = (typeof HomeTabNames)[keyof typeof HomeTabNames];
  * Fires a `Home Viewed` Segment event with `interaction_type: 'tab_viewed'`
  * whenever the active discovery tab changes or the component mounts.
  *
- * - Re-fires on every homepage visit (when `visitId` increments).
+ * - `visit_number` increments with each homepage visit via `visitId` from HomepageScrollContext.
  * - `active_ab_tests` is injected automatically by the analytics registry (HUB_PAGE_DISCOVERY_TABS_AB_TEST_ANALYTICS_MAPPING in abTestConfig.ts).
  */
 const useTabViewedEvent = () => {

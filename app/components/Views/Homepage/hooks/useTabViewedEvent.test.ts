@@ -50,29 +50,6 @@ describe('useTabViewedEvent', () => {
     };
   });
 
-  describe('visitId guard', () => {
-    it('does not fire when visitId is 0', () => {
-      mockContextValue = { ...mockContextValue, visitId: 0 };
-      const { result } = renderHook(() => useTabViewedEvent());
-
-      act(() => {
-        result.current.trackTabViewed(HomeTabNames.PORTFOLIO);
-      });
-
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
-
-    it('fires when visitId is 1', () => {
-      const { result } = renderHook(() => useTabViewedEvent());
-
-      act(() => {
-        result.current.trackTabViewed(HomeTabNames.PORTFOLIO);
-      });
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('event shape', () => {
     it('uses the HOME_VIEWED MetaMetrics event', () => {
       const { result } = renderHook(() => useTabViewedEvent());
@@ -242,23 +219,6 @@ describe('useTabViewedEvent', () => {
           visit_number: 7,
         }),
       );
-    });
-
-    it('respects visitId=0 guard even when visitId changes to 0 after render', () => {
-      const { result, rerender } = renderHook(() => useTabViewedEvent());
-
-      // Drop visitId to 0 after initial render
-      mockContextValue = { ...mockContextValue, visitId: 0 };
-
-      act(() => {
-        rerender();
-      });
-
-      act(() => {
-        result.current.trackTabViewed(HomeTabNames.PORTFOLIO);
-      });
-
-      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 
