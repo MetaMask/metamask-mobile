@@ -4,6 +4,7 @@ name: "[TEMP] Bitrise iOS E2E POC"
 # Purpose: Benchmark Bitrise GH Action runners vs Cirrus macOS runners for iOS E2E
 # This workflow is NOT part of the CI gate. It runs optionally for benchmarking.
 # Remove this workflow once benchmarking is complete.
+# noop: trigger pull_request synchronize (INFRA-3591)
 
 on:
   pull_request:
