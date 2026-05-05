@@ -96,7 +96,8 @@ const RewardsNavigator: React.FC = () => {
       const activeRouteName = stackState?.routes[stackIndex]?.name;
       const isOnCampaignRoute =
         activeRouteName === Routes.REWARDS_CAMPAIGNS_VIEW ||
-        Boolean(activeRouteName?.endsWith('CampaignDetails'));
+        activeRouteName === Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW ||
+        activeRouteName === Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW;
       if (!isOnCampaignRoute) {
         return;
       }

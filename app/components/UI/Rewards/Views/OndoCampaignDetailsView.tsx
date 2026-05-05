@@ -68,7 +68,6 @@ import {
 } from '../components/Campaigns/OndoLeaderboard.utils';
 import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { useRewardsNotificationsNudge } from '../hooks/useRewardsNotificationsNudge';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -82,12 +81,9 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 
 const sessionUpcomingRedirectCampaignIds = new Set<string>();
 const sessionWinningViewAutoNavCampaignIds = new Set<string>();
-let sessionNotificationsNudgeShown = false;
-
 export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
   sessionUpcomingRedirectCampaignIds.clear();
   sessionWinningViewAutoNavCampaignIds.clear();
-  sessionNotificationsNudgeShown = false;
 }
 
 const OndoCampaignDetailsView: React.FC = () => {
@@ -100,12 +96,6 @@ const OndoCampaignDetailsView: React.FC = () => {
   const routeCampaignId = route.params?.campaignId;
 
   const referralCode = useSelector(selectReferralCode);
-  const {
-    areNotificationsEnabled,
-    canPromptToEnableNotifications,
-    showEnableNotificationsNudge,
-    closeEnableNotificationsNudge,
-  } = useRewardsNotificationsNudge();
 
   // Fetch campaigns early so the type-based lookup is available before other
   // hooks that need the resolved campaign ID.
@@ -221,34 +211,6 @@ const OndoCampaignDetailsView: React.FC = () => {
         });
       }
     }, [campaign, participantOutcome, effectiveCampaignId, navigation]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!canPromptToEnableNotifications) {
-        return;
-      }
-      if (areNotificationsEnabled) {
-        return;
-      }
-      if (sessionNotificationsNudgeShown) {
-        return;
-      }
-      const didShowNudge = showEnableNotificationsNudge();
-      if (!didShowNudge) {
-        return;
-      }
-      sessionNotificationsNudgeShown = true;
-
-      return () => {
-        closeEnableNotificationsNudge();
-      };
-    }, [
-      areNotificationsEnabled,
-      canPromptToEnableNotifications,
-      closeEnableNotificationsNudge,
-      showEnableNotificationsNudge,
-    ]),
   );
 
   const {
