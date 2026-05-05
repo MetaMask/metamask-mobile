@@ -835,6 +835,68 @@ describe('MoneyHomeView', () => {
       animatedTimingSpy.mockRestore();
     });
 
+    it('does not restart the slide-in animation when the footer reflows after appearing', () => {
+      const animatedTimingSpy = jest
+        .spyOn(Animated, 'timing')
+        .mockImplementation(
+          () =>
+            ({
+              start: (cb?: Animated.EndCallback) => cb?.({ finished: true }),
+              stop: jest.fn(),
+              reset: jest.fn(),
+            }) as unknown as Animated.CompositeAnimation,
+        );
+
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+        { state: educationNotSeenState },
+      );
+
+      const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      act(() => {
+        fireScrollViewLayout(scrollView);
+        fireStepperLayout(onboarding, 100, 300);
+      });
+
+      // Scroll the stepper out of view so the footer peeks in. This is the
+      // single visibility transition that should drive exactly one animation.
+      act(() => {
+        fireScroll(scrollView, 500);
+      });
+
+      const callsAfterPeek = animatedTimingSpy.mock.calls.length;
+      expect(callsAfterPeek).toBeGreaterThan(0);
+
+      // Subsequent layout reflows on the animated footer wrapper (e.g. when
+      // the measured height changes) must not retrigger the slide-in.
+      const animatedFooter = queryByTestId(MoneyFooterTestIds.CONTAINER);
+      const animatedFooterParent = animatedFooter?.parent;
+      if (animatedFooterParent) {
+        act(() => {
+          fireEvent(animatedFooterParent, 'layout', {
+            nativeEvent: {
+              layout: { x: 0, y: 0, width: 375, height: 80 },
+            },
+          });
+        });
+        // A second layout with a different height simulates a reflow after the
+        // initial measurement settles.
+        act(() => {
+          fireEvent(animatedFooterParent, 'layout', {
+            nativeEvent: {
+              layout: { x: 0, y: 0, width: 375, height: 96 },
+            },
+          });
+        });
+      }
+
+      expect(animatedTimingSpy).toHaveBeenCalledTimes(callsAfterPeek);
+
+      animatedTimingSpy.mockRestore();
+    });
+
     it('always renders the footer when education has been seen, regardless of stepper position', () => {
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,

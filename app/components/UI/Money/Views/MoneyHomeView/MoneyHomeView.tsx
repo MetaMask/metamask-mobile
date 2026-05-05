@@ -216,7 +216,12 @@ const MoneyHomeView = () => {
   } | null>(null);
   const [scrollOffsetY, setScrollOffsetY] = useState(0);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
-  const [footerHeight, setFooterHeight] = useState(0);
+  // The footer height is captured imperatively from onLayout because it is
+  // consumed only inside the visibility-driven animation. Storing it in a ref
+  // (instead of state) keeps the slide-in/out effect tied to visibility
+  // transitions, so a layout reflow that changes the height never restarts the
+  // animation mid-flight.
+  const footerHeightRef = useRef(0);
   const [isFooterMounted, setIsFooterMounted] = useState(
     hasSeenMusdConversionEducation,
   );
@@ -248,7 +253,9 @@ const MoneyHomeView = () => {
 
     if (shouldShowFooter) {
       // Start the footer off-screen so it slides up smoothly when peeking in.
-      footerTranslateY.setValue(footerHeight || 80);
+      // Read the latest measured height from a ref so subsequent layout
+      // reflows do not retrigger this effect and restart the slide-in.
+      footerTranslateY.setValue(footerHeightRef.current || 80);
       setIsFooterMounted(true);
       Animated.timing(footerTranslateY, {
         toValue: 0,
@@ -259,7 +266,7 @@ const MoneyHomeView = () => {
       return;
     }
 
-    if (footerHeight === 0) {
+    if (footerHeightRef.current === 0) {
       // Nothing to animate yet; ensure the footer is unmounted so the user
       // doesn't see a flash before measurements are available.
       setIsFooterMounted(false);
@@ -267,7 +274,7 @@ const MoneyHomeView = () => {
     }
 
     Animated.timing(footerTranslateY, {
-      toValue: footerHeight,
+      toValue: footerHeightRef.current,
       duration: 200,
       easing: Easing.in(Easing.cubic),
       useNativeDriver: true,
@@ -276,12 +283,7 @@ const MoneyHomeView = () => {
         setIsFooterMounted(false);
       }
     });
-  }, [
-    shouldShowFooter,
-    hasSeenMusdConversionEducation,
-    footerHeight,
-    footerTranslateY,
-  ]);
+  }, [shouldShowFooter, hasSeenMusdConversionEducation, footerTranslateY]);
 
   const handleStepperLayout = useCallback((event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
@@ -307,7 +309,10 @@ const MoneyHomeView = () => {
 
   const handleFooterLayout = useCallback((event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;
-    setFooterHeight((prev) => (prev === height ? prev : height));
+    // Cache imperatively so layout reflows update the height available to the
+    // exit animation without re-running the visibility effect (which would
+    // restart the slide-in animation mid-flight).
+    footerHeightRef.current = height;
   }, []);
 
   const handleOnboardingCtaPress = useCallback(() => {
