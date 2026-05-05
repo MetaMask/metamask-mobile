@@ -552,10 +552,10 @@ describe('WalletConnect Utils', () => {
   });
 
   describe('getChainChangedEmissionForWalletConnect', () => {
-    it('prefers a non-EVM namespace chain id and uses it as both chainId and data', () => {
+    it('prefers eip155 when it supports chainChanged, even in mixed namespaces', () => {
       const namespaces = {
-        eip155: { chains: ['eip155:1'] },
-        tron: { chains: ['tron:728126428'] },
+        eip155: { chains: ['eip155:1'], events: ['chainChanged'] },
+        tron: { chains: ['tron:728126428'], events: [] },
       };
 
       const result = getChainChangedEmissionForWalletConnect({
@@ -565,16 +565,17 @@ describe('WalletConnect Utils', () => {
       });
 
       expect(result).toStrictEqual({
-        chainId: 'tron:728126428',
-        data: 'tron:728126428',
+        chainId: 'eip155:1',
+        data: '0x1',
       });
     });
 
-    it('prefers any non-EVM namespace, not just tron', () => {
+    it('falls back to non-EVM namespaces when eip155 cannot emit chainChanged', () => {
       const namespaces = {
-        eip155: { chains: ['eip155:1'] },
+        eip155: { chains: ['eip155:1'], events: [] },
         solana: {
           chains: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc7N1Q5cYjC'],
+          events: ['chainChanged'],
         },
       };
 
@@ -593,7 +594,7 @@ describe('WalletConnect Utils', () => {
     it('skips non-EVM namespaces with empty chain arrays', () => {
       const namespaces = {
         eip155: { chains: ['eip155:1'] },
-        tron: { chains: [] },
+        tron: { chains: [], events: ['chainChanged'] },
       };
 
       const result = getChainChangedEmissionForWalletConnect({
@@ -608,7 +609,7 @@ describe('WalletConnect Utils', () => {
     it('treats wallet namespace as EVM and falls through to eip155', () => {
       const namespaces = {
         wallet: { chains: ['wallet:eip155'] },
-        eip155: { chains: ['eip155:137'] },
+        eip155: { chains: ['eip155:137'], events: ['chainChanged'] },
       };
 
       const result = getChainChangedEmissionForWalletConnect({

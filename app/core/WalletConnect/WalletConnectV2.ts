@@ -1000,7 +1000,20 @@ export class WC2Manager {
       // First check if the url continas sessionTopic, meaning it is only here from an existing connection (so we don't need to create pairing)
       if (rawParams.sessionTopic) {
         const { sessionTopic } = rawParams;
-        const session = this.sessions[sessionTopic];
+        let session = this.sessions[sessionTopic];
+        if (!session) {
+          const activeSession = this.getSession(sessionTopic);
+          if (activeSession) {
+            session = new WalletConnect2Session({
+              web3Wallet: this.web3Wallet,
+              channelId: activeSession.pairingTopic,
+              navigation: this.navigation,
+              deeplink: true,
+              session: activeSession,
+            });
+            this.sessions[sessionTopic] = session;
+          }
+        }
         if (session) {
           session.setDeeplink(true);
 

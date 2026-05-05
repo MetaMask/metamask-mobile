@@ -84,11 +84,10 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
             );
           if (
             !sessionAssertions.success ||
-            !sessionAssertions.chainsValid ||
-            sessionAssertions.chainCount < networksToTest.length
+            sessionAssertions.chainCount !== networksToTest.length
           ) {
             throw new Error(
-              `Session validation failed. Expected at least ${networksToTest.length} chains with requested scopes (chainsValid=${sessionAssertions.chainsValid}), got ${sessionAssertions.chainCount}`,
+              `Session validation failed. Expected ${networksToTest.length} chains, got ${sessionAssertions.chainCount}`,
             );
           }
 

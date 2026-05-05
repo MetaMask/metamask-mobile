@@ -486,16 +486,26 @@ export const getChainChangedEmissionForWalletConnect = ({
   fallbackEvmDecimal: number;
   fallbackEvmHex: string;
 }): ChainChangedEmission => {
+  const eip155Events = namespaces?.eip155?.events ?? [];
+  const eip155Chain = namespaces?.eip155?.chains?.[0];
+  if (eip155Chain && eip155Events.includes('chainChanged')) {
+    return {
+      chainId: eip155Chain,
+      data: fallbackEvmHex,
+    };
+  }
+
   const nonEvmEntry = Object.entries(namespaces ?? {}).find(
     ([key, slice]) =>
-      !EVM_NAMESPACE_KEYS.has(key) && (slice?.chains?.length ?? 0) > 0,
+      !EVM_NAMESPACE_KEYS.has(key) &&
+      (slice?.chains?.length ?? 0) > 0 &&
+      (slice?.events ?? []).includes('chainChanged'),
   );
   if (nonEvmEntry) {
     const firstChain = nonEvmEntry[1]?.chains?.[0] as string;
     return { chainId: firstChain, data: firstChain };
   }
 
-  const eip155Chain = namespaces?.eip155?.chains?.[0];
   if (eip155Chain) {
     return {
       chainId: eip155Chain,
