@@ -13,7 +13,6 @@ import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { useBrazeBanner } from './useBrazeBanner';
 import { isAllowedBrazeDeeplink } from './isAllowedBrazeDeeplink';
 import BrazeBannerCard from './BrazeBannerCard';
-import { BANNER_HEIGHT } from './BrazeBanner.constants';
 
 interface BrazeBannerProps {
   placementId: string;

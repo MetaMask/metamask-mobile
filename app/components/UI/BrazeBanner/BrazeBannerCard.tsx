@@ -105,7 +105,7 @@ const BrazeBannerCard = ({
   const tw = useTailwind();
   return (
     <Box
-      testID={BRAZE_BANNER_TEST_IDS.CONTAINER}
+      testID={BRAZE_BANNER_TEST_IDS.CARD}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       backgroundColor={BoxBackgroundColor.BackgroundMuted}
