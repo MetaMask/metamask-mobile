@@ -6555,8 +6555,8 @@
     "balance_card": {
       "label": "Money balance",
       "add": "Add",
-      "info_sheet_title": "About your Money balance",
-      "info_sheet_body": "Your Money balance is the combined value of your unwrapped mUSD and your Money vault shares, shown in your local currency."
+      "info_sheet_title": "Money Home",
+      "info_sheet_body": "Your dollar-backed balance, always available. Spend it, send it, or trade it anytime. We don't calculate this into your total account balance."
     },
     "potential_earnings": {
       "title": "Earn on your crypto",
