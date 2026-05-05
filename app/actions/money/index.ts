@@ -5,8 +5,7 @@ import type { RootState } from '../../reducers';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import ToastService from '../../core/ToastService';
-import { ToastVariants } from '../../component-library/components/Toast/Toast.types';
+import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
 
 const LOG_PREFIX = '[upgradeMoneyAccount]';
 
@@ -15,18 +14,6 @@ const upgradesInFlight = new Set<Hex>();
 /** @internal For test use only. */
 export const __resetUpgradesInFlightForTesting = () => {
   upgradesInFlight.clear();
-};
-
-const showToast = (label: string, description?: string) => {
-  if (!ToastService.toastRef?.current) {
-    return;
-  }
-  ToastService.showToast({
-    variant: ToastVariants.Plain,
-    labelOptions: [{ label, isBold: true }],
-    descriptionOptions: description ? { description } : undefined,
-    hasNoTimeout: false,
-  });
 };
 
 export const upgradeMoneyAccount =
@@ -47,28 +34,15 @@ export const upgradeMoneyAccount =
       return;
     }
 
-    Logger.log(LOG_PREFIX, 'firing upgradeAccount', { address });
-
-    // TODO: remove this toast before general release. It only exists to make it
-    // clear what's happening in testing
-    Logger.log(LOG_PREFIX, 'upgrading money account');
-    showToast('Upgrading money account…', address);
-
     upgradesInFlight.add(address);
-    Engine.context.MoneyAccountUpgradeController.upgradeAccount(address)
-      .then(() => {
-        Logger.log(LOG_PREFIX, 'upgradeAccount resolved', { address });
-        showToast('Money account upgrade complete');
-      })
+    whenMoneyAccountUpgradeReady()
+      .then(() =>
+        Engine.context.MoneyAccountUpgradeController.upgradeAccount(address),
+      )
       .catch((error: unknown) => {
-        if (error instanceof Error) {
-          Logger.log(`${LOG_PREFIX} failed`, error);
-          showToast('Money account upgrade failed', error.message);
-        } else {
-          Logger.error(`${LOG_PREFIX} failed`, new Error(String(error)));
-          console.log(error);
-          showToast('Money account upgrade failed', 'Unknown error');
-        }
+        const wrapped =
+          error instanceof Error ? error : new Error(String(error));
+        Logger.error(wrapped, `${LOG_PREFIX} failed`);
       })
       .finally(() => {
         upgradesInFlight.delete(address);

@@ -9,11 +9,28 @@ import type { MoneyAccountUpgradeControllerInitMessenger } from '../messengers/m
 import { getDeleGatorEnvironment } from '../../Delegation/environment';
 import Logger from '../../../util/Logger';
 
-const LOG_PREFIX = '[MoneyAccountUpgradeControllerInit]';
-
 // TODO: source this from a feature flag (parallel to ChompApiConfig.baseUrl)
 // so we can add/swap MUSD chains without a code deploy.
 const MUSD_CHAIN_ID: Hex = CHAIN_IDS.ARBITRUM;
+
+let bootstrapPromise: Promise<void> | null = null;
+
+/**
+ * Promise that resolves once `MoneyAccountUpgradeController.init()` has run.
+ * Rejects if bootstrap fails, or if it hasn't been scheduled yet (i.e. the
+ * keyring is still locked). Callers that depend on the controller being
+ * initialized — e.g. `upgradeAccount` — should `await` this first.
+ */
+export const whenMoneyAccountUpgradeReady = (): Promise<void> => {
+  if (!bootstrapPromise) {
+    return Promise.reject(
+      new Error(
+        'MoneyAccountUpgradeController bootstrap has not been scheduled yet',
+      ),
+    );
+  }
+  return bootstrapPromise;
+};
 
 /**
  * Initialize the MoneyAccountUpgradeController.
@@ -67,16 +84,18 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
       redeemerEnforcer: environment.caveatEnforcers.RedeemerEnforcer,
       valueLteEnforcer: environment.caveatEnforcers.ValueLteEnforcer,
     });
-    Logger.log(LOG_PREFIX, 'MoneyUpgradeController init successfully');
   };
 
   const runBootstrap = () => {
-    bootstrap().catch((error) => {
+    bootstrapPromise = bootstrap();
+    bootstrapPromise.catch((error) => {
       Logger.error(error as Error, 'MoneyAccountUpgradeController bootstrap');
     });
   };
 
-  if (initMessenger.call('KeyringController:getState').isUnlocked) {
+  const keyringState = initMessenger.call('KeyringController:getState');
+
+  if (keyringState.isUnlocked) {
     runBootstrap();
   } else {
     const onUnlock = () => {

@@ -20,7 +20,6 @@ import { ConfirmationsDeveloperOptions } from '../../confirmations/components/de
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
 import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDeveloperOptionsSection';
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
-import ChompApiTest from './ChompApiTest';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -66,7 +65,6 @@ const DeveloperOptions = () => {
       {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
       <CardDeveloperOptionsSection />
       <HapticsDeveloperOptionsSection />
-      {isMusdConversionEnabled && <ChompApiTest />}
     </ScrollView>
   );
 };

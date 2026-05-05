@@ -4,7 +4,6 @@ import {
 } from './index';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import ToastService from '../../core/ToastService';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
 import type { RootState } from '../../reducers';
 
@@ -27,17 +26,16 @@ jest.mock('../../util/Logger', () => ({
   },
 }));
 
-jest.mock('../../core/ToastService', () => ({
-  __esModule: true,
-  default: {
-    showToast: jest.fn(),
-    toastRef: { current: {} },
-  },
-}));
-
 jest.mock('../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
+
+jest.mock(
+  '../../core/Engine/controllers/money-account-upgrade-controller-init',
+  () => ({
+    whenMoneyAccountUpgradeReady: jest.fn(() => Promise.resolve()),
+  }),
+);
 
 const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
   .upgradeAccount as jest.Mock;
@@ -45,7 +43,6 @@ const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
 const mockLogLog = Logger.log as jest.Mock;
-const mockShowToast = ToastService.showToast as jest.Mock;
 
 const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
 const OTHER_ADDRESS = '0x2222222222222222222222222222222222222222' as const;
@@ -59,57 +56,18 @@ describe('upgradeMoneyAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetUpgradesInFlightForTesting();
-    (ToastService as unknown as { toastRef: unknown }).toastRef = {
-      current: {},
-    };
     dispatch = jest.fn();
     getState = jest.fn().mockReturnValue({} as RootState);
     mockUpgradeAccount.mockResolvedValue(undefined);
   });
 
-  it('calls MoneyAccountUpgradeController.upgradeAccount with the primary money account address', () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-
-    upgradeMoneyAccount()(dispatch, getState, undefined);
-
-    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
-  });
-
-  it('logs and shows a toast when the upgrade is fired', () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-
-    upgradeMoneyAccount()(dispatch, getState, undefined);
-
-    expect(mockLogLog).toHaveBeenCalledWith(
-      expect.stringContaining('upgradeMoneyAccount'),
-      'firing upgradeAccount',
-      { address: ADDRESS },
-    );
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        labelOptions: [{ label: 'Upgrading money account…', isBold: true }],
-      }),
-    );
-  });
-
-  it('logs and shows a success toast when upgradeAccount resolves', async () => {
+  it('calls MoneyAccountUpgradeController.upgradeAccount with the primary money account address', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
     upgradeMoneyAccount()(dispatch, getState, undefined);
     await flushPromises();
 
-    expect(mockLogLog).toHaveBeenCalledWith(
-      expect.stringContaining('upgradeMoneyAccount'),
-      'upgradeAccount resolved',
-      { address: ADDRESS },
-    );
-    expect(mockShowToast).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        labelOptions: [
-          { label: 'Money account upgrade complete', isBold: true },
-        ],
-      }),
-    );
+    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
   });
 
   it('skips the call and logs when there is no primary money account', () => {
@@ -119,7 +77,6 @@ describe('upgradeMoneyAccount', () => {
 
     expect(mockUpgradeAccount).not.toHaveBeenCalled();
     expect(mockLogLog).toHaveBeenCalled();
-    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('skips the call when the primary money account address is not a strict hex string', () => {
@@ -135,7 +92,7 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
-  it('catches rejected upgradeAccount promises, logs, and shows an error toast', async () => {
+  it('catches rejected upgradeAccount promises and logs', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     const error = new Error('boom');
     mockUpgradeAccount.mockRejectedValueOnce(error);
@@ -144,15 +101,9 @@ describe('upgradeMoneyAccount', () => {
     await flushPromises();
 
     expect(mockLogError).toHaveBeenCalledWith(error, expect.any(String));
-    expect(mockShowToast).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        labelOptions: [{ label: 'Money account upgrade failed', isBold: true }],
-        descriptionOptions: { description: 'boom' },
-      }),
-    );
   });
 
-  it('wraps non-Error rejections and shows a generic error toast', async () => {
+  it('wraps non-Error rejections', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockUpgradeAccount.mockRejectedValueOnce('string rejection');
 
@@ -163,30 +114,15 @@ describe('upgradeMoneyAccount', () => {
       expect.any(Error),
       expect.any(String),
     );
-    expect(mockShowToast).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        labelOptions: [{ label: 'Money account upgrade failed', isBold: true }],
-        descriptionOptions: { description: 'Unknown error' },
-      }),
-    );
   });
 
-  it('skips showing toasts when the toast ref is not mounted', () => {
-    (ToastService as unknown as { toastRef: unknown }).toastRef = null;
-    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-
-    upgradeMoneyAccount()(dispatch, getState, undefined);
-
-    expect(mockShowToast).not.toHaveBeenCalled();
-    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
-  });
-
-  it('deduplicates concurrent upgrades for the same address', () => {
+  it('deduplicates concurrent upgrades for the same address', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockUpgradeAccount.mockReturnValueOnce(new Promise(() => undefined));
 
     upgradeMoneyAccount()(dispatch, getState, undefined);
     upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
     expect(mockLogLog).toHaveBeenCalledWith(
@@ -202,11 +138,12 @@ describe('upgradeMoneyAccount', () => {
     upgradeMoneyAccount()(dispatch, getState, undefined);
     await flushPromises();
     upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
   });
 
-  it('does not deduplicate upgrades for different addresses', () => {
+  it('does not deduplicate upgrades for different addresses', async () => {
     mockUpgradeAccount.mockReturnValue(new Promise(() => undefined));
 
     mockSelectPrimaryMoneyAccount.mockReturnValueOnce({ address: ADDRESS });
@@ -215,6 +152,7 @@ describe('upgradeMoneyAccount', () => {
       address: OTHER_ADDRESS,
     });
     upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
     expect(mockUpgradeAccount).toHaveBeenNthCalledWith(1, ADDRESS);
