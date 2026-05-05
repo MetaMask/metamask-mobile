@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -74,14 +74,19 @@ const THUMB_SIZE_REST = 24;
 const THUMB_SIZE_DRAG = 32;
 const THUMB_DRAG_SCALE = THUMB_SIZE_DRAG / THUMB_SIZE_REST;
 const SLIDER_ROW_HEIGHT = 32;
+/** ms between JS amount updates while dragging — keeps labels in sync without a re-render every frame */
+const SLIDER_AMOUNT_THROTTLE_MS = 48;
 
 const MusdCalculatorTab: React.FC = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [amount, setAmount] = useState(1000);
-  const [trackWidth, setTrackWidth] = useState(0);
 
   const thumbScale = useSharedValue(1);
+  const trackWidthShared = useSharedValue(0);
+  /** 0–100 linear track % while dragging (follows finger); at rest matches {@link amountToPercent}(amount). */
+  const thumbLinearPctShared = useSharedValue(amountToPercent(1000));
+  const lastThrottledAmountSyncRef = useRef(0);
 
   const ethSourceToken = useMemo(
     () => getNativeSourceToken(EthScope.Mainnet),
@@ -117,42 +122,91 @@ const MusdCalculatorTab: React.FC = () => {
     [amount],
   );
 
-  const thumbPct = amountToPercent(amount);
-  const filledWidth = trackWidth > 0 ? (thumbPct / 100) * trackWidth : 0;
-  const thumbLeft = trackWidth > 0 ? filledWidth - THUMB_SIZE_REST / 2 : 0;
-
-  const updateAmountFromX = useCallback(
-    (x: number) => {
-      if (trackWidth <= 0) {
+  const syncAmountFromLinearPct = useCallback(
+    (linearPct: number, force: boolean) => {
+      const now = globalThis.performance.now();
+      if (
+        !force &&
+        now - lastThrottledAmountSyncRef.current < SLIDER_AMOUNT_THROTTLE_MS
+      ) {
         return;
       }
-      const clampedX = Math.max(0, Math.min(trackWidth, x));
-      const pct = (clampedX / trackWidth) * 100;
-      setAmount(clampAmount(percentToAmount(pct)));
+      lastThrottledAmountSyncRef.current = now;
+      setAmount(clampAmount(percentToAmount(linearPct)));
     },
-    [trackWidth],
+    [],
+  );
+
+  const commitSliderAtX = useCallback(
+    (x: number) => {
+      const w = trackWidthShared.value;
+      if (w <= 0) {
+        return;
+      }
+      const clampedX = Math.max(0, Math.min(w, x));
+      const linearPct = (clampedX / w) * 100;
+      thumbLinearPctShared.value = linearPct;
+      const next = clampAmount(percentToAmount(linearPct));
+      setAmount(next);
+      thumbLinearPctShared.value = amountToPercent(next);
+      lastThrottledAmountSyncRef.current = 0;
+    },
+    [thumbLinearPctShared, trackWidthShared],
   );
 
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .minDistance(0)
+        .minDistance(2)
         .onBegin((e) => {
           thumbScale.value = withTiming(THUMB_DRAG_SCALE, { duration: 150 });
-          runOnJS(updateAmountFromX)(e.x);
+          const w = trackWidthShared.value;
+          if (w <= 0) {
+            return;
+          }
+          const clampedX = Math.max(0, Math.min(w, e.x));
+          const linearPct = (clampedX / w) * 100;
+          thumbLinearPctShared.value = linearPct;
+          runOnJS(syncAmountFromLinearPct)(linearPct, true);
         })
         .onUpdate((e) => {
-          runOnJS(updateAmountFromX)(e.x);
+          const w = trackWidthShared.value;
+          if (w <= 0) {
+            return;
+          }
+          const clampedX = Math.max(0, Math.min(w, e.x));
+          const linearPct = (clampedX / w) * 100;
+          thumbLinearPctShared.value = linearPct;
+          runOnJS(syncAmountFromLinearPct)(linearPct, false);
         })
-        .onFinalize(() => {
+        .onFinalize((e) => {
           thumbScale.value = withTiming(1, { duration: 150 });
+          runOnJS(commitSliderAtX)(e.x);
         }),
-    [thumbScale, updateAmountFromX],
+    [
+      thumbScale,
+      thumbLinearPctShared,
+      trackWidthShared,
+      syncAmountFromLinearPct,
+      commitSliderAtX,
+    ],
   );
 
-  const animatedThumbStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: thumbScale.value }],
-  }));
+  const animatedFillStyle = useAnimatedStyle(() => {
+    const w = trackWidthShared.value;
+    const pct = thumbLinearPctShared.value;
+    return { width: (pct / 100) * w };
+  });
+
+  const animatedThumbStyle = useAnimatedStyle(() => {
+    const w = trackWidthShared.value;
+    const pct = thumbLinearPctShared.value;
+    const filled = (pct / 100) * w;
+    return {
+      transform: [{ scale: thumbScale.value }],
+      left: filled - THUMB_SIZE_REST / 2,
+    };
+  });
 
   const handleBuyMusd = useCallback(() => {
     trackEvent(
@@ -182,7 +236,7 @@ const MusdCalculatorTab: React.FC = () => {
   return (
     <ScrollView
       style={tw.style('flex-1')}
-      contentContainerStyle={tw.style('flex-grow px-4 pb-6 pt-2')}
+      contentContainerStyle={tw.style('flex-grow px-4 pb-8 pt-2')}
       keyboardShouldPersistTaps="handled"
     >
       <Box twClassName="flex-1 flex-col">
@@ -294,10 +348,10 @@ const MusdCalculatorTab: React.FC = () => {
                 accessibilityRole="adjustable"
                 accessibilityValue={{ text: formatCurrency(amount) }}
                 onLayout={(event) => {
-                  setTrackWidth(event.nativeEvent.layout.width);
+                  trackWidthShared.value = event.nativeEvent.layout.width;
                 }}
                 onPressIn={(event) => {
-                  updateAmountFromX(event.nativeEvent.locationX);
+                  commitSliderAtX(event.nativeEvent.locationX);
                 }}
                 style={tw.style('h-8 w-full justify-center')}
               >
@@ -308,13 +362,15 @@ const MusdCalculatorTab: React.FC = () => {
                     top: (SLIDER_ROW_HEIGHT - TRACK_HEIGHT) / 2,
                   }}
                 />
-                <Box
-                  twClassName="absolute left-0 rounded-full bg-success-default"
-                  style={{
-                    width: filledWidth,
-                    height: TRACK_HEIGHT,
-                    top: (SLIDER_ROW_HEIGHT - TRACK_HEIGHT) / 2,
-                  }}
+                <Animated.View
+                  style={[
+                    tw.style('absolute left-0 rounded-full bg-success-default'),
+                    {
+                      height: TRACK_HEIGHT,
+                      top: (SLIDER_ROW_HEIGHT - TRACK_HEIGHT) / 2,
+                    },
+                    animatedFillStyle,
+                  ]}
                 />
                 <Animated.View
                   style={[
@@ -325,7 +381,6 @@ const MusdCalculatorTab: React.FC = () => {
                       width: THUMB_SIZE_REST,
                       height: THUMB_SIZE_REST,
                       top: (SLIDER_ROW_HEIGHT - THUMB_SIZE_REST) / 2,
-                      left: thumbLeft,
                     },
                     animatedThumbStyle,
                   ]}
