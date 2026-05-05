@@ -8391,15 +8391,6 @@
     "season_1": "Sezon 1",
     "musd": {
       "page_title": "mUSD",
-      "title": "mUSD bonus hesaplayıcı",
-      "description": "Stabil kripto paralarınızı mUSD'ye dönüştürerek ne kadar kazanabileceğinize bakın.",
-      "amount_label": "Dönüştürülen miktar",
-      "estimated_bonus": "Tahmini yıllıklandırılmış bonus: %3'e kadar",
-      "initial_amount": "Başlangıç miktarı",
-      "daily_bonus": "Günlük alınabilir bonus",
-      "annualized_bonus": "Yıllıklandırılmış bonus",
-      "disclaimer": "Bu yalnızca bir tahmindir. Bonus değişikliğe tabidir.",
-      "disclaimer_brief": "Bonus tahminidir ve değişebilir.",
       "buy_button": "mUSD al",
       "swap_button": "mUSD'ye takas et"
     },
