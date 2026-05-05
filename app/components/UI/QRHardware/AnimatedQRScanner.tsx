@@ -77,6 +77,20 @@ function buildQrHardwareWalletErrorAnalyticsProperties(options: {
   return payload;
 }
 
+function isSameScanError(
+  previousError: QRHardwareScanError | null,
+  currentError: QRHardwareScanError,
+): boolean {
+  return (
+    previousError?.message === currentError.message &&
+    previousError.metadata.qrHardwareScanErrorType ===
+      currentError.metadata.qrHardwareScanErrorType &&
+    previousError.metadata.isUrFormat === currentError.metadata.isUrFormat &&
+    previousError.metadata.receivedUrType ===
+      currentError.metadata.receivedUrType
+  );
+}
+
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     modal: {
@@ -257,6 +271,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
 
   const scanErrorActiveRef = useRef(false);
+  const lastForwardedScanErrorRef = useRef<QRHardwareScanError | null>(null);
   const onQRHardwareScanErrorRef = useRef(onQRHardwareScanError);
   onQRHardwareScanErrorRef.current = onQRHardwareScanError;
   const theme = useTheme();
@@ -321,6 +336,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const reset = useCallback(() => {
     scanErrorActiveRef.current = false;
+    lastForwardedScanErrorRef.current = null;
     resetDecoder();
     setScanError(null);
   }, [resetDecoder]);
@@ -391,8 +407,16 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
       const errorCallback = onQRHardwareScanErrorRef.current;
       if (errorCallback) {
+        if (isSameScanError(lastForwardedScanErrorRef.current, error)) {
+          scanErrorActiveRef.current = false;
+          return;
+        }
+
+        lastForwardedScanErrorRef.current = error;
         errorCallback(error);
+        scanErrorActiveRef.current = false;
       } else {
+        lastForwardedScanErrorRef.current = null;
         setScanError(error);
       }
 
@@ -447,6 +471,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
           if (expectedURTypes.includes(ur.type)) {
+            lastForwardedScanErrorRef.current = null;
             onScanSuccess(ur);
             setProgress(0);
             setURDecoder(new URRegistryDecoder());
