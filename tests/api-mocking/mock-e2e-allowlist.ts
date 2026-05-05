@@ -15,7 +15,4 @@ export const ALLOWLISTED_HOSTS = [
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
-export const ALLOWLISTED_URLS = [
-  // Temporarily allow existing live requests during migration
-  'https://metamask.github.io/test-dapp/metamask-fox.svg',
-];
+export const ALLOWLISTED_URLS: string[] = [];
