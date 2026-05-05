@@ -2,7 +2,6 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { getNavbar } from './navbar';
-import { mockTheme } from '../../../../../../util/theme';
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -37,7 +36,6 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title,
           }).header()}
         </>,
@@ -51,7 +49,6 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title: 'Test Title',
           }).header()}
         </>,
@@ -65,7 +62,6 @@ describe('getNavbar', () => {
     it('returns an object with a header render function', () => {
       const result = getNavbar({
         onReject: mockOnReject,
-        theme: mockTheme,
         title: 'Test Title',
       });
 
@@ -77,14 +73,15 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title: 'Test Title',
             addBackButton: false,
           }).header()}
         </>,
       );
 
-      expect(queryByTestId('Test Title-navbar-back-button')).toBeNull();
+      expect(
+        queryByTestId('Test Title-navbar-back-button'),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -98,7 +95,6 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title: 'Test Title',
             overrides: { headerTitle: customHeaderTitle },
           }).header()}
@@ -117,7 +113,6 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title: 'Test Title',
             overrides: { headerLeft: customHeaderLeft },
           }).header()}
@@ -138,7 +133,6 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title: 'Test Title',
             overrides: { headerRight: customHeaderRight },
           }).header()}

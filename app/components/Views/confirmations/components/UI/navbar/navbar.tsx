@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
 import { ViewStyle } from 'react-native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-import { Theme } from '../../../../../../util/theme/models';
 
 /**
  * Optional overrides for navbar customization.
@@ -15,14 +14,14 @@ export interface NavbarOverrides {
   headerRight?: (onPress: () => void) => ReactNode;
   /** Additional styles to merge with header */
   headerStyle?: ViewStyle;
-  headerTitleAlign?: 'left' | 'center';
 }
 
 export interface NavbarOptions {
   title: string;
   onReject?: () => void;
   addBackButton?: boolean;
-  theme: Theme;
+  /** @deprecated No longer used. Theming is handled by the bg-default Tailwind token. */
+  theme?: unknown;
   overrides?: NavbarOverrides;
 }
 
@@ -66,11 +65,10 @@ export function getNavbar({
   };
 }
 
-export function getEmptyNavHeader({ theme }: { theme: Theme }) {
+export function getEmptyNavHeader() {
   const navbarOptions = getNavbar({
     title: '',
     addBackButton: false,
-    theme,
   });
   return {
     ...navbarOptions,
