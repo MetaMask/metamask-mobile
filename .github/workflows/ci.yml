@@ -448,110 +448,6 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
-  android-lint:
-    name: Android lint
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
-    timeout-minutes: 45
-    if: >-
-      ${{
-        needs.get_requirements.outputs.skip_everything != 'true' &&
-        !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork)
-      }}
-    needs:
-      - get_requirements
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      GRADLE_USER_HOME: /home/admin/_work/.gradle
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Restore .metamask folder
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      - name: Setup Android build environment
-        timeout-minutes: 15
-        uses: ./.github/actions/setup-e2e-env
-        with:
-          platform: android
-          setup-simulator: false
-          configure-keystores: true
-          android-api-level: 36
-          target: qa
-
-      # React Native is an includeBuild() with its own settings root; cap ABI + Gradle there so the
-      # composite build does not default to all ABIs or ignore android/gradle.properties.
-      - name: Tune included React Native build for CI memory
-        run: |
-          set -euo pipefail
-          RN_GP="node_modules/react-native/gradle.properties"
-          if ! grep -qF '# metamask-mobile android-lint CI' "$RN_GP"; then
-            {
-              echo ''
-              echo '# metamask-mobile android-lint CI'
-              echo 'reactNativeArchitectures=x86_64'
-              echo 'org.gradle.parallel=false'
-              echo 'org.gradle.workers.max=1'
-              echo 'org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8'
-              echo 'kotlin.daemon.jvmargs=-Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError'
-            } >> "$RN_GP"
-          fi
-
-      - name: Restore Gradle dependencies
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        env:
-          GRADLE_LINT_CACHE_VERSION: 1
-        with:
-          path: |
-            /home/admin/_work/.gradle/caches
-            /home/admin/_work/.gradle/wrapper
-          key: android-lint-gradle-${{ env.GRADLE_LINT_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-      - name: Setup project dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn setup:github-ci --no-build-ios
-
-      - name: Run Android lint (prodRelease)
-        working-directory: android
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
-          # ReactAndroid CMake invokes Ninja with high parallelism by default; cap native compile RAM.
-          CMAKE_BUILD_PARALLEL_LEVEL: 1
-          NINJAFLAGS: -j1
-        run: |
-          set -euo pipefail
-          cp gradle.properties.github gradle.properties
-          # github file targets 48GB runners; shrink JVM + workers on smaller self-hosted runners.
-          sed -i \
-            -e 's/^org.gradle.parallel=.*/org.gradle.parallel=false/' \
-            -e 's/^org.gradle.workers.max=.*/org.gradle.workers.max=1/' \
-            -e 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8/' \
-            -e 's/^kotlin.daemon.jvmargs=.*/kotlin.daemon.jvmargs=-Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError/' \
-            gradle.properties
-          ./gradlew --stop || true
-          SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew :app:lintProdRelease \
-            -PreactNativeArchitectures=x86_64 \
-            --max-workers=1 \
-            --no-daemon
-
-      - name: Require clean working directory
-        shell: bash
-        run: |
-          if ! git diff --exit-code; then
-            echo "Working tree dirty at end of job"
-            exit 1
-          else
-            echo "No changes detected"
-          fi
-
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
@@ -831,6 +727,7 @@ jobs:
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
+      run_android_lint: true
       metamask_environment: 'e2e'
       keystore_target: 'qa'
     secrets: inherit
@@ -1053,7 +950,6 @@ jobs:
         unit-tests,
         component-view-tests,
         check-workflows,
-        android-lint,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
       ]
