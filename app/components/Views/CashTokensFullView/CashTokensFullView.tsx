@@ -291,6 +291,12 @@ const CashTokensFullView = () => {
           }
         >
           {isMoneyHubEnabled ? (
+            // MUSD-729 empty state: mirror the "Your balance" funded layout
+            // (mUSD avatar + network badge + $0.00 / 0 mUSD). The standard
+            // <Tokens /> list does not render a row for tokens with zero
+            // balance, and there is no shared design-system component that
+            // matches this presentation, so we fall back to a small bespoke
+            // row to keep the empty/funded structures visually consistent.
             <MoneyMusdEmptyBalanceRow onPress={handleEmptyMusdRowPress} />
           ) : (
             <SectionRow>
