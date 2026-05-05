@@ -22,6 +22,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const ReactActual = require('react');
   const { Text: RNText, View: RNView } = jest.requireActual('react-native');
@@ -68,6 +69,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
   );
   return {
+    ...actual,
     BottomSheet: MockBottomSheet,
     Text: MockText,
     Skeleton: MockSkeleton,
@@ -98,19 +100,6 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     IconSize: { Sm: 'Sm', Md: 'Md' },
   };
 });
-
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return ({ title, onClose }: { title: string; onClose?: () => void }) => (
-      <View testID="account-selector-modal-header">
-        <Text>{title}</Text>
-        <Pressable accessibilityRole="button" onPress={onClose} />
-      </View>
-    );
-  },
-);
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');

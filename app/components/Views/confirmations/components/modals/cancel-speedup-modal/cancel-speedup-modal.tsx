@@ -21,6 +21,7 @@ import {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import {
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -29,7 +30,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { Box } from '../../../../../../components/UI/Box/Box';
 import {
   AlignItems,
@@ -290,7 +290,7 @@ export function CancelSpeedupModal({
         onClose={onClose}
         style={styles.bottomSheetDialogSheet}
       >
-        <HeaderCompactStandard title={title} onClose={close} />
+        <HeaderStandard title={title} onClose={close} />
         <Box style={tw.style('px-3')}>
           <Box gap={4}>
             <InfoSection>
