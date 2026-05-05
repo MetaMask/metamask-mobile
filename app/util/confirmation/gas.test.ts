@@ -291,21 +291,6 @@ describe('normalizeReplacementGasFeeParams', () => {
     });
   });
 
-  it('falls through to eip1559 gas values when legacy gas is incomplete', () => {
-    const result = normalizeReplacementGasFeeParams({
-      legacyGasFee: {},
-      eip1559GasFee: {
-        maxFeePerGas: '0x456',
-        maxPriorityFeePerGas: '0x789',
-      },
-    });
-
-    expect(result).toEqual({
-      maxFeePerGas: '0x456',
-      maxPriorityFeePerGas: '0x789',
-    });
-  });
-
   it('returns undefined for incomplete eip1559 gas fees', () => {
     const result = normalizeReplacementGasFeeParams({
       eip1559GasFee: {

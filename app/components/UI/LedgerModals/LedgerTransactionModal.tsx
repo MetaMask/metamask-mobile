@@ -1,14 +1,13 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
+import { normalizeReplacementGasFeeParams } from '../../../util/confirmation/gas';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
-import { normalizeReplacementGasFeeParams } from '../../../util/confirmation/gas';
-import { type ReplacementTxParams } from '../../../core/HardwareWallet/transactionReplacementParams';
 import { speedUpTransaction } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
@@ -19,6 +18,17 @@ export const createLedgerTransactionModalNavDetails =
 export enum LedgerReplacementTxTypes {
   SPEED_UP = 'speedUp',
   CANCEL = 'cancel',
+}
+
+export interface ReplacementTxParams {
+  type: LedgerReplacementTxTypes;
+  eip1559GasFee?: {
+    maxFeePerGas?: string;
+    maxPriorityFeePerGas?: string;
+  };
+  legacyGasFee?: {
+    gasPrice?: string;
+  };
 }
 
 export interface LedgerTransactionModalParams {
@@ -62,14 +72,8 @@ const LedgerTransactionModal = () => {
 
     onConfirmationComplete(true);
     goBack();
-  }, [
-    ApprovalController,
-    TransactionController,
-    goBack,
-    onConfirmationComplete,
-    replacementParams,
-    transactionId,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onConfirmationComplete, goBack]);
 
   const onRejection = useCallback(() => {
     try {

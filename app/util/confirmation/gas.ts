@@ -14,11 +14,6 @@ import BigNumber from 'bignumber.js';
 import { decGWEIToHexWEI } from '../conversions';
 import { addHexPrefix } from '../number';
 
-type ReplacementGasFeeValues =
-  | GasPriceValue
-  | FeeMarketEIP1559Values
-  | undefined;
-
 export type GasFeeEstimatesInput =
   | GasFeeEstimates
   | { medium?: unknown; gasPrice?: string }
@@ -44,6 +39,11 @@ interface ReplacementGasFeeParamsInput {
     maxPriorityFeePerGas?: string;
   } | null;
 }
+
+export type ReplacementGasFeeValues =
+  | GasPriceValue
+  | FeeMarketEIP1559Values
+  | undefined;
 
 /**
  * Extracts the medium-level gas fee estimate from various possible shapes of gas fee estimates.
