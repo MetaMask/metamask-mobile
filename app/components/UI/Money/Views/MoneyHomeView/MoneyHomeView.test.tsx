@@ -897,6 +897,64 @@ describe('MoneyHomeView', () => {
       animatedTimingSpy.mockRestore();
     });
 
+    it('does not re-render on every scroll event when the visibility region is unchanged', () => {
+      let renderCount = 0;
+      const ProfiledMoneyHomeView = () => (
+        <React.Profiler
+          id="MoneyHomeViewPerf"
+          onRender={() => {
+            renderCount += 1;
+          }}
+        >
+          <MoneyHomeView />
+        </React.Profiler>
+      );
+
+      const { getByTestId } = renderWithProvider(<ProfiledMoneyHomeView />, {
+        state: educationNotSeenState,
+      });
+
+      const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      act(() => {
+        fireScrollViewLayout(scrollView);
+        fireStepperLayout(onboarding, 100, 300);
+      });
+
+      // Stepper occupies y=[100, 400] and viewport height is 600. Scrolling
+      // anywhere in [0, 99] keeps the stepper fully in view, so visibility
+      // never flips. Without the fix the parent would commit on every scroll
+      // (10 commits for 10 events). With the fix the count must be at most 1.
+      const baselineRenderCount = renderCount;
+      act(() => {
+        for (let y = 0; y < 100; y += 10) {
+          fireScroll(scrollView, y);
+        }
+      });
+      expect(renderCount - baselineRenderCount).toBeLessThanOrEqual(1);
+
+      // Crossing the visibility threshold flips isStepperVisible exactly once
+      // and must trigger a bounded number of commits (state change + the
+      // visibility-driven effect mounting the footer), not one per frame.
+      const beforeFlip = renderCount;
+      act(() => {
+        fireScroll(scrollView, 500);
+      });
+      expect(renderCount - beforeFlip).toBeGreaterThanOrEqual(1);
+      expect(renderCount - beforeFlip).toBeLessThanOrEqual(3);
+
+      // Subsequent scroll events that stay past the threshold must not
+      // re-render on every frame either.
+      const afterFlip = renderCount;
+      act(() => {
+        for (let y = 500; y < 600; y += 10) {
+          fireScroll(scrollView, y);
+        }
+      });
+      expect(renderCount - afterFlip).toBeLessThanOrEqual(1);
+    });
+
     it('always renders the footer when education has been seen, regardless of stepper position', () => {
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,

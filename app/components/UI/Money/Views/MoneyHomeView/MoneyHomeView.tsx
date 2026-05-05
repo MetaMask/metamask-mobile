@@ -210,12 +210,16 @@ const MoneyHomeView = () => {
     showMoneyActivityUnderConstructionAlert();
   }, []);
 
-  const [stepperLayout, setStepperLayout] = useState<{
-    y: number;
-    height: number;
-  } | null>(null);
-  const [scrollOffsetY, setScrollOffsetY] = useState(0);
-  const [scrollViewHeight, setScrollViewHeight] = useState(0);
+  // Stepper layout, scroll offset, and scroll view height are read on every
+  // scroll event (~60fps with scrollEventThrottle={16}). Storing them as state
+  // would re-render the entire MoneyHomeView on every frame during scrolling.
+  // We keep them in refs and only flip the derived `isStepperVisible` boolean
+  // when its value actually changes — at most twice per scroll session. The
+  // visibility-driven animation effect therefore only runs when visibility
+  // truly transitions.
+  const stepperLayoutRef = useRef<{ y: number; height: number } | null>(null);
+  const scrollOffsetYRef = useRef(0);
+  const scrollViewHeightRef = useRef(0);
   // The footer height is captured imperatively from onLayout because it is
   // consumed only inside the visibility-driven animation. Storing it in a ref
   // (instead of state) keeps the slide-in/out effect tied to visibility
@@ -228,18 +232,27 @@ const MoneyHomeView = () => {
 
   const footerTranslateY = useRef(new Animated.Value(0)).current;
 
-  const isStepperVisible = useMemo(() => {
+  // Default to visible until layouts settle so the footer stays hidden in the
+  // initial paint and avoids a brief flash of "Add money".
+  const [isStepperVisible, setIsStepperVisible] = useState(true);
+
+  const computeStepperVisibility = useCallback(() => {
+    const stepperLayout = stepperLayoutRef.current;
+    const scrollViewHeight = scrollViewHeightRef.current;
     if (!stepperLayout || scrollViewHeight === 0) {
-      // Default to visible until layouts settle so the footer stays hidden in
-      // the initial paint and avoids a brief flash of "Add money".
       return true;
     }
     const stepperTop = stepperLayout.y;
     const stepperBottom = stepperLayout.y + stepperLayout.height;
-    const viewportTop = scrollOffsetY;
-    const viewportBottom = scrollOffsetY + scrollViewHeight;
+    const viewportTop = scrollOffsetYRef.current;
+    const viewportBottom = viewportTop + scrollViewHeight;
     return stepperBottom > viewportTop && stepperTop < viewportBottom;
-  }, [stepperLayout, scrollOffsetY, scrollViewHeight]);
+  }, []);
+
+  const updateStepperVisibility = useCallback(() => {
+    const next = computeStepperVisibility();
+    setIsStepperVisible((prev) => (prev === next ? prev : next));
+  }, [computeStepperVisibility]);
 
   const shouldShowFooter = hasSeenMusdConversionEducation || !isStepperVisible;
 
@@ -285,27 +298,40 @@ const MoneyHomeView = () => {
     });
   }, [shouldShowFooter, hasSeenMusdConversionEducation, footerTranslateY]);
 
-  const handleStepperLayout = useCallback((event: LayoutChangeEvent) => {
-    const { y, height } = event.nativeEvent.layout;
-    setStepperLayout((prev) => {
+  const handleStepperLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
+      const prev = stepperLayoutRef.current;
       if (prev && prev.y === y && prev.height === height) {
-        return prev;
+        return;
       }
-      return { y, height };
-    });
-  }, []);
+      stepperLayoutRef.current = { y, height };
+      updateStepperVisibility();
+    },
+    [updateStepperVisibility],
+  );
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      setScrollOffsetY(event.nativeEvent.contentOffset.y);
+      // Update the ref unconditionally on every scroll frame (cheap) but only
+      // commit a state change when the visibility boolean actually flips.
+      scrollOffsetYRef.current = event.nativeEvent.contentOffset.y;
+      updateStepperVisibility();
     },
-    [],
+    [updateStepperVisibility],
   );
 
-  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
-    setScrollViewHeight((prev) => (prev === height ? prev : height));
-  }, []);
+  const handleScrollViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (scrollViewHeightRef.current === height) {
+        return;
+      }
+      scrollViewHeightRef.current = height;
+      updateStepperVisibility();
+    },
+    [updateStepperVisibility],
+  );
 
   const handleFooterLayout = useCallback((event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;
