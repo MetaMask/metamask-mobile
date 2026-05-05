@@ -775,6 +775,104 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('limit order maxPossibleAmount', () => {
+    it('uses limit price for maxPossibleAmount when order type is limit', () => {
+      // Use szDecimals: 0 with a balance/leverage combo that causes
+      // rounding overshoot at one price but not another.
+      // balance=999, leverage=3 → theoretical=2997, maxAmount=2997
+      // At price=100: size=2997/100=29.97→30, notional=3000, margin=1000 > 999 → step down by 100 → 2897
+      // buffered = floor(2897*0.995) = 2882
+      // At price=700: size=2997/700=4.28→4, notional=2800, margin=933 < 999 → no step down
+      // But rounding up: 4*700=2800 < 2997, so +1 → 5*700=3500, margin=1167 > 999 → step down by 700 → 2297
+      // buffered = floor(2297*0.995) = 2285
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '999',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '999',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '100', timestamp: Date.now(), symbol: 'BTC' },
+      });
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 0,
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialType: 'limit',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      const maxAtMarketPrice = result.current.maxPossibleAmount;
+
+      // Set limit price to 700 (7x market)
+      act(() => {
+        result.current.setLimitPrice('700');
+      });
+
+      const maxAtLimitPrice = result.current.maxPossibleAmount;
+
+      // The step-down increment differs ($100 vs $700), producing different max
+      expect(maxAtLimitPrice).not.toBe(maxAtMarketPrice);
+    });
+
+    it('uses market price for maxPossibleAmount when order type is market', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      const maxMarket = result.current.maxPossibleAmount;
+
+      // Set limit price but keep order type as market
+      act(() => {
+        result.current.setLimitPrice('100000');
+      });
+
+      const maxAfterLimitSet = result.current.maxPossibleAmount;
+
+      // For market orders, limit price should be ignored
+      expect(maxMarket).toBe(maxAfterLimitSet);
+    });
+
+    it('falls back to market price when limit order has no limit price set', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialType: 'limit',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Limit order type but no limit price set yet — should use market price
+      const maxNoLimitPrice = result.current.maxPossibleAmount;
+
+      // Switch to market type for comparison
+      act(() => {
+        result.current.setOrderType('market');
+      });
+
+      const maxMarketType = result.current.maxPossibleAmount;
+
+      // Both should use market price, so same result
+      expect(maxNoLimitPrice).toBe(maxMarketType);
+    });
+  });
+
   describe('empty amount handling', () => {
     it('should convert empty string to 0', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {

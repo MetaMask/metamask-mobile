@@ -181,9 +181,15 @@ export function usePerpsOrderForm(
   });
 
   // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
+  // For limit orders, use the limit price instead of market price so that margin requirements
+  // are correctly calculated at the order's execution price, not the current spot price.
   const maxPossibleAmount = useMemo(() => {
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
-    const priceForCalc = marketPrice;
+    const limitPriceNum =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? Number.parseFloat(orderForm.limitPrice)
+        : 0;
+    const priceForCalc = limitPriceNum > 0 ? limitPriceNum : marketPrice;
     return getMaxAllowedAmount({
       availableBalance: balanceForMax,
       assetPrice: priceForCalc,
@@ -194,7 +200,9 @@ export function usePerpsOrderForm(
     balanceForMax,
     currentPrice?.price,
     marketData?.szDecimals,
-    orderForm.leverage, // Include current leverage in dependencies
+    orderForm.leverage,
+    orderForm.type,
+    orderForm.limitPrice,
   ]);
 
   // Update amount only once when the hook first calculates the initial value
