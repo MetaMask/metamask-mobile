@@ -87,6 +87,9 @@ const mockOndoLeaderboard = jest.fn();
 jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
+  const { CAMPAIGN_LEADERBOARD_TEST_IDS } = jest.requireActual<
+    typeof import('../components/Campaigns/OndoLeaderboard')
+  >('../components/Campaigns/OndoLeaderboard');
   return {
     __esModule: true,
     default: (props: Record<string, unknown>) => {
@@ -95,6 +98,7 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
         testID: 'campaign-leaderboard',
       });
     },
+    CAMPAIGN_LEADERBOARD_TEST_IDS,
   };
 });
 
