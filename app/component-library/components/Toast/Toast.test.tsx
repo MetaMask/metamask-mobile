@@ -166,63 +166,13 @@ describe('Toast', () => {
     expect(screen.getByText('Success')).toBeOnTheScreen();
   });
 
-  describe('contentAlignItems', () => {
-    type PlainToastOptions = Extract<
-      ToastOptions,
-      { variant: ToastVariants.Plain }
-    >;
-
-    const createPlainToast = (
-      overrides: Partial<Omit<PlainToastOptions, 'variant'>> = {},
-    ): ToastOptions => {
-      const options: PlainToastOptions = {
+  describe('default alignment', () => {
+    it('uses flex-start alignItems on the outer row by default', async () => {
+      const toastOptions: ToastOptions = {
         variant: ToastVariants.Plain,
         labelOptions: [{ label: 'Aligned label' }],
         hasNoTimeout: true,
-        ...overrides,
       };
-
-      return options;
-    };
-
-    it('sets labels container justifyContent to flex-start when contentAlignItems is flex-start', async () => {
-      const toastOptions = createPlainToast({
-        contentAlignItems: 'flex-start',
-      });
-
-      render(<Toast ref={toastRef} />);
-
-      await act(async () => {
-        toastRef.current?.showToast(toastOptions);
-        jest.runAllTimers();
-      });
-
-      const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
-      const flat = StyleSheet.flatten(labelsContainer.props.style);
-
-      expect(flat.justifyContent).toBe('flex-start');
-    });
-
-    it('omits flex-start justify override on labels container when contentAlignItems is omitted', async () => {
-      const toastOptions = createPlainToast();
-
-      render(<Toast ref={toastRef} />);
-
-      await act(async () => {
-        toastRef.current?.showToast(toastOptions);
-        jest.runAllTimers();
-      });
-
-      const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
-      const flat = StyleSheet.flatten(labelsContainer.props.style);
-
-      expect(flat.justifyContent).toBe('center');
-    });
-
-    it('sets outer row alignItems to flex-start when contentAlignItems is flex-start', async () => {
-      const toastOptions = createPlainToast({
-        contentAlignItems: 'flex-start',
-      });
 
       render(<Toast ref={toastRef} />);
 
@@ -237,8 +187,12 @@ describe('Toast', () => {
       expect(flat.alignItems).toBe('flex-start');
     });
 
-    it('sets outer row alignItems to center when contentAlignItems is center', async () => {
-      const toastOptions = createPlainToast({ contentAlignItems: 'center' });
+    it('uses flex-start justifyContent on labels container by default', async () => {
+      const toastOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Aligned label' }],
+        hasNoTimeout: true,
+      };
 
       render(<Toast ref={toastRef} />);
 
@@ -247,26 +201,10 @@ describe('Toast', () => {
         jest.runAllTimers();
       });
 
-      const row = screen.getByTestId(ToastSelectorsIDs.ROW);
-      const flat = StyleSheet.flatten(row.props.style);
+      const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+      const flat = StyleSheet.flatten(labelsContainer.props.style);
 
-      expect(flat.alignItems).toBe('center');
-    });
-
-    it('keeps outer row alignItems center when contentAlignItems is omitted', async () => {
-      const toastOptions = createPlainToast();
-
-      render(<Toast ref={toastRef} />);
-
-      await act(async () => {
-        toastRef.current?.showToast(toastOptions);
-        jest.runAllTimers();
-      });
-
-      const row = screen.getByTestId(ToastSelectorsIDs.ROW);
-      const flat = StyleSheet.flatten(row.props.style);
-
-      expect(flat.alignItems).toBe('center');
+      expect(flat.justifyContent).toBe('flex-start');
     });
   });
 });

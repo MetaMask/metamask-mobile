@@ -127,7 +127,6 @@ describe('useRewardsToast', () => {
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: ToastVariants.Plain,
-          contentAlignItems: 'flex-start',
           hasNoTimeout: true,
         }),
       );
@@ -275,7 +274,6 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Plain,
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Warning,
-        contentAlignItems: 'flex-start',
       });
       expect(config.labelOptions).toEqual([
         { label: 'Loading...', isBold: true },
@@ -329,7 +327,6 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Plain,
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Warning,
-        contentAlignItems: 'flex-start',
         linkButtonOptions: { label: 'Turn on', onPress },
       });
       expect(config.labelOptions).toEqual([

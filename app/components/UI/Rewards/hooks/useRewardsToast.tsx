@@ -117,7 +117,6 @@ const useRewardsToast = (): {
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
         variant: ToastVariants.Plain,
         hasNoTimeout: true,
-        contentAlignItems: 'flex-start' as const,
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
           <Box twClassName="p-1 mr-2">
@@ -158,7 +157,6 @@ const useRewardsToast = (): {
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
         variant: ToastVariants.Plain,
         hasNoTimeout: true,
-        contentAlignItems: 'flex-start',
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
           <Box twClassName="p-1 mr-2">
