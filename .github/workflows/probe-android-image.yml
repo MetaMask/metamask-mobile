@@ -2,7 +2,7 @@
 # Asserts the metamask-android-build Namespace runner image contains the
 # toolchain baked by `MetaMask/runner-images/android/Dockerfile`.
 # Temporary: remove or gate behind `if: false` before merging the trial branch.
-# v9 image rerun marker — third attempt, post-optimize ext4 snapshot ready.
+# v10 image probe — clean auto-build, expect /opt/android-sdk to exist.
 
 name: Probe Android image
 
