@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.76.0",
+  "version": "7.77.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -175,7 +175,7 @@
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
     "d3-color": "3.1.0",
     "napi-postinstall": "npm:npm-empty-package@1.0.0",
-    "axios": "^1.15.0",
+    "axios": "^1.15.1",
     "lodash": "4.18.1",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "@ethersproject/providers/ws": "^7.5.10",
@@ -209,7 +209,8 @@
     "@metamask/keyring-api@npm:^21.5.0": "21.6.0",
     "@metamask/keyring-api@npm:^21.6.0": "23.0.1",
     "@metamask/keyring-api@npm:^22.0.0": "23.0.1",
-    "@metamask/keyring-api@npm:^23.0.1": "23.0.1"
+    "@metamask/keyring-api@npm:^23.0.1": "23.0.1",
+    "@metamask/bridge-status-controller@npm:^71.0.0": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -231,7 +232,7 @@
     "@metamask/account-tree-controller": "^7.1.0",
     "@metamask/accounts-controller": "^37.2.0",
     "@metamask/address-book-controller": "^7.1.0",
-    "@metamask/ai-controllers": "^0.6.0",
+    "@metamask/ai-controllers": "0.6.3",
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
@@ -241,7 +242,7 @@
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
     "@metamask/bridge-controller": "^71.0.0",
-    "@metamask/bridge-status-controller": "^71.1.0",
+    "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
     "@metamask/chain-agnostic-permission": "^1.5.0",
     "@metamask/client-controller": "^1.0.1",
     "@metamask/compliance-controller": "2.0.0",
