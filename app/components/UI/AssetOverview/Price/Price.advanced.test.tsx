@@ -874,33 +874,6 @@ describe('PriceAdvanced', () => {
       );
     });
 
-    it('does not end trace when onSkeletonHidden is called with mismatched series key', () => {
-      const { getByTestId, rerender } = render(
-        <PriceAdvanced {...baseProps} />,
-      );
-
-      act(() => {
-        fireEvent.press(getByTestId('select-1W'));
-      });
-
-      rerender(<PriceAdvanced {...baseProps} />);
-
-      const advancedChart = getByTestId('mock-advanced-chart');
-      const oldOnSkeletonHidden = advancedChart.props.onSkeletonHidden;
-
-      act(() => {
-        fireEvent.press(getByTestId('select-1D'));
-      });
-
-      mockEndTrace.mockClear();
-
-      act(() => {
-        oldOnSkeletonHidden?.();
-      });
-
-      expect(mockEndTrace).not.toHaveBeenCalled();
-    });
-
     it('ends trace with error data when onError is called', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const advancedChart = getByTestId('mock-advanced-chart');

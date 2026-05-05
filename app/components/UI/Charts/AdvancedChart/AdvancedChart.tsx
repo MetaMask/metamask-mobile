@@ -578,7 +578,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (!onSkeletonHidden) {
         return;
       }
-      // Check actual state variables, not derived `showSkeleton`, to avoid stale closure race
       if (isLoading || !isChartReady || layoutSettling) {
         return;
       }

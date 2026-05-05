@@ -254,33 +254,30 @@ const PriceAdvanced = ({
 
   const handleAdvancedChartSkeletonHidden = useCallback(() => {
     const open = activeVisibilityTraceRef.current;
-    if (open?.seriesKey !== ohlcvSeriesKey) {
+    if (!open) {
       return;
     }
     endTrace({
       name: open.traceName,
-      id: ohlcvSeriesKey,
+      id: open.seriesKey,
     });
     activeVisibilityTraceRef.current = null;
-  }, [ohlcvSeriesKey]);
+  }, []);
 
-  const handleAdvancedChartError = useCallback(
-    (error: string) => {
-      const open = activeVisibilityTraceRef.current;
-      if (open?.seriesKey !== ohlcvSeriesKey) {
-        return;
-      }
-      endTrace({
-        name: open.traceName,
-        id: ohlcvSeriesKey,
-        data: {
-          errorMessage: error.slice(0, 200),
-        },
-      });
-      activeVisibilityTraceRef.current = null;
-    },
-    [ohlcvSeriesKey],
-  );
+  const handleAdvancedChartError = useCallback((error: string) => {
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+      data: {
+        errorMessage: error.slice(0, 200),
+      },
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
 
   const {
     ohlcvData,
