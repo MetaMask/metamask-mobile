@@ -328,18 +328,20 @@ const OnboardingMainStep: React.FC = () => {
           <TextField
             placeholder={strings('rewards.onboarding.referral_placeholder')}
             value={referralCode}
-            autoCapitalize="characters"
-            maxLength={6}
             onChangeText={handleReferralCodeChange}
             isDisabled={optinLoading}
             endAccessory={renderReferralIcon()}
-            testID="referral-input"
             isError={
               referralCode.length >= 6 &&
               !referralCodeIsValid &&
               !isValidatingReferralCode &&
               !isUnknownErrorReferralCode
             }
+            inputProps={{
+              autoCapitalize: 'characters',
+              maxLength: 6,
+              testID: 'referral-input',
+            }}
           />
           {referralCode.length >= 6 &&
             !referralCodeIsValid &&

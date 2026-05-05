@@ -16,10 +16,11 @@ import {
 import AppConstants from '../../../../../core/AppConstants';
 import { useBridgeQuoteData } from '.';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
@@ -1021,6 +1022,82 @@ describe('useBridgeQuoteData', () => {
     await waitFor(() => {
       expect(result.current.blockaidError).toBe(null);
     });
+  });
+
+  it('retries validation for the same requestId after validation throws', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(jest.fn());
+    const requestId = 'same-request-id';
+    const firstMockQuote = {
+      ...mockQuoteWithMetadata,
+      quote: {
+        ...mockQuoteWithMetadata.quote,
+        requestId,
+      },
+    };
+    const secondMockQuote = {
+      ...mockQuoteWithMetadata,
+      quote: {
+        ...mockQuoteWithMetadata.quote,
+        requestId,
+      },
+    };
+    let recommendedQuote = firstMockQuote;
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote,
+      alternativeQuotes: [],
+    }));
+
+    mockValidateBridgeTx
+      .mockRejectedValueOnce(new Error('Network timeout'))
+      .mockResolvedValueOnce({ status: 'SUCCESS' });
+
+    const bridgeReducerOverrides = {
+      sourceToken: {
+        symbol: 'SOL',
+        chainId: SolScope.Mainnet,
+        address: '11111111111111111111111111111112',
+        decimals: 9,
+      },
+      destToken: {
+        symbol: 'USDC',
+        chainId: SolScope.Mainnet,
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { store } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    await waitFor(() => {
+      expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
+    });
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Swaps Quote Data Validation error:',
+        expect.any(Error),
+      );
+    });
+
+    recommendedQuote = secondMockQuote;
+    act(() => {
+      store.dispatch(setSourceAmount('2'));
+    });
+
+    await waitFor(() => {
+      expect(mockValidateBridgeTx).toHaveBeenCalledTimes(2);
+    });
+
+    consoleErrorSpy.mockRestore();
   });
 
   // Test validQuotes filtering
