@@ -16,6 +16,10 @@ jest.mock('../../../WalletHomeOnboardingSteps', () => {
   return ({ testID }: { testID?: string }) => <V testID={testID} />;
 });
 
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+}));
+
 jest.mock('../../../../../selectors/assets/balances', () => ({
   // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
   selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),

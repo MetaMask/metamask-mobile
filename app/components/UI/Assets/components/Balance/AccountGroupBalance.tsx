@@ -39,6 +39,7 @@ import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 import BalanceEmptyState from '../../../BalanceEmptyState';
 import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 
 /**
  * Timeout for account group balance fetch
@@ -90,6 +91,7 @@ const AccountGroupBalance = ({
   const walletHomeOnboardingSkipInitialBalanceWait = useSelector(
     selectWalletHomeOnboardingSkipInitialBalanceWait,
   );
+  const { goToBuy } = useRampNavigation();
   const { popularNetworks } = useNetworkEnablement();
 
   // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
@@ -192,6 +194,10 @@ const AccountGroupBalance = ({
     if (walletHomeOnboardingSteps.suppressedReason !== null) {
       return;
     }
+    // Fund checklist step: positive balance advances the checklist in WalletHomeOnboardingSteps.
+    if ((walletHomeOnboardingSteps.stepIndex ?? 0) === 0) {
+      return;
+    }
     const total = accountGroupBalance?.totalBalanceInUserCurrency;
     if (total !== undefined && total > 0) {
       dispatch(suppressWalletHomeOnboardingSteps('account_funded'));
@@ -201,6 +207,7 @@ const AccountGroupBalance = ({
     dispatch,
     groupBalance,
     hasBalanceFetched,
+    walletHomeOnboardingSteps.stepIndex,
     walletHomeOnboardingSteps.suppressedReason,
     walletHomeOnboardingStepsEligible,
   ]);
@@ -252,6 +259,11 @@ const AccountGroupBalance = ({
   /** While the flow is active, always use the checklist surface — never the balance row (avoids a flash before loading/empty state is known). */
   const showWalletHomeOnboardingStepsTile = inWalletHomePostOnboardingFlow;
 
+  const canAdvanceFundStepAfterBalance =
+    hasBalanceFetched &&
+    accountGroupBalance != null &&
+    accountGroupBalance.totalBalanceInUserCurrency > 0;
+
   const renderBalanceOrEmpty = () =>
     !isLoading && shouldShowEmptyState ? (
       <BalanceEmptyState
@@ -295,6 +307,8 @@ const AccountGroupBalance = ({
           isAwaitingBalance={awaitBalanceForPostOnboardingSteps}
           onCoordinatedFlowExit={onCoordinatedFlowExit}
           suspendRiveForCurtain={suspendRiveForCurtain}
+          onFundPrimaryPress={goToBuy}
+          canAdvanceFundStepAfterBalance={canAdvanceFundStepAfterBalance}
           onTradePrimaryPress={onTradePrimaryPress}
           onNotificationsPrimaryPress={onNotificationsPrimaryPress}
           testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}

@@ -2,6 +2,7 @@ import {
   selectHomepageSectionsV1Enabled,
   selectHubPageDiscoveryTabsABTest,
   selectWalletHomeOnboardingStepsEnabled,
+  selectWalletHomePostOnboardingAbTest,
 } from '.';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
@@ -109,19 +110,59 @@ describe('Homepage Feature Flag Selectors', () => {
     });
   });
 
+  describe('selectWalletHomePostOnboardingAbTest', () => {
+    it('returns postOnboardingSteps assignment when flag is set to treatment string', () => {
+      const result = selectWalletHomePostOnboardingAbTest.resultFunc({
+        homeTMCU610AbtestWalletHomePostOnboardingSteps: 'postOnboardingSteps',
+      });
+      expect(result).toEqual({
+        variantName: 'postOnboardingSteps',
+        isActive: true,
+      });
+    });
+
+    it('returns control assignment when flag is set to control string', () => {
+      const result = selectWalletHomePostOnboardingAbTest.resultFunc({
+        homeTMCU610AbtestWalletHomePostOnboardingSteps: 'control',
+      });
+      expect(result).toEqual({ variantName: 'control', isActive: true });
+    });
+
+    it('falls back to control and isActive false when flag is missing', () => {
+      const result = selectWalletHomePostOnboardingAbTest.resultFunc({});
+      expect(result).toEqual({ variantName: 'control', isActive: false });
+    });
+
+    it('falls back to control and isActive false when flag value is invalid', () => {
+      const result = selectWalletHomePostOnboardingAbTest.resultFunc({
+        homeTMCU610AbtestWalletHomePostOnboardingSteps: 'unknown_variant',
+      });
+      expect(result).toEqual({ variantName: 'control', isActive: false });
+    });
+  });
+
   describe('selectWalletHomeOnboardingStepsEnabled', () => {
-    it('returns true when remote flag is valid and enabled', () => {
+    it('returns true when AB assignment is postOnboardingSteps', () => {
       const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({
-        walletHomeOnboardingSteps: {
-          enabled: true,
-          minimumVersion: '1.0.0',
-        },
+        variantName: 'postOnboardingSteps',
+        isActive: true,
       });
       expect(result).toBe(true);
     });
 
-    it('returns false when remote flag is absent', () => {
-      const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({});
+    it('returns false when assignment is control', () => {
+      const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({
+        variantName: 'control',
+        isActive: true,
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when assignment is inactive', () => {
+      const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({
+        variantName: 'control',
+        isActive: false,
+      });
       expect(result).toBe(false);
     });
   });

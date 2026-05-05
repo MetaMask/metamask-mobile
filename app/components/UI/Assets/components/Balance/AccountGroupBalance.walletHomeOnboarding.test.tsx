@@ -64,6 +64,10 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+}));
+
 const onboardingEligibleEmptyBalance = {
   ...initialOnboardingState,
   completedOnboarding: true,
@@ -209,7 +213,7 @@ describe('AccountGroupBalance / wallet home onboarding account_funded', () => {
       userCurrency: 'usd',
     };
     act(() => {
-      store.dispatch(setWalletHomeOnboardingStepsStep(0));
+      store.dispatch(setWalletHomeOnboardingStepsStep(1));
     });
 
     const suppressCalls = dispatchSpy.mock.calls.filter(

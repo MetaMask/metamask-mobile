@@ -25,6 +25,12 @@ export const WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS = 920;
  */
 export const WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS = 550;
 
+/**
+ * After returning from on-ramp without an updated balance yet, wait this long before
+ * clearing deferred-nav state so balance selectors can settle (avoids a false “still zero”).
+ */
+export const WALLET_HOME_ONBOARDING_FUND_RETURN_BALANCE_GRACE_MS = 600;
+
 /** Slide current step off to the left. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS = 300;
 
