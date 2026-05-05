@@ -126,6 +126,31 @@ describe('useAssetBalances', () => {
     walletAddress: '0xwallet1',
   };
 
+  const defaultSelectorMockState = {
+    engine: {
+      backgroundState: {
+        TokensController: {
+          allTokens: {},
+          allDetectedTokens: {},
+        },
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            '0xe708': {
+              nativeCurrency: 'ETH',
+            },
+          },
+        },
+        CurrencyRateController: {
+          currencyRates: {
+            ETH: {
+              conversionRate: 2000,
+            },
+          },
+        },
+      },
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -133,31 +158,7 @@ describe('useAssetBalances', () => {
     mockUseSelector.mockImplementation((selector: any) => {
       if (typeof selector === 'function') {
         // Mock state structure - includes TokensController for the refactored useAssetBalances
-        const state = {
-          engine: {
-            backgroundState: {
-              TokensController: {
-                allTokens: {},
-                allDetectedTokens: {},
-              },
-              NetworkController: {
-                networkConfigurationsByChainId: {
-                  '0xe708': {
-                    nativeCurrency: 'ETH',
-                  },
-                },
-              },
-              CurrencyRateController: {
-                currencyRates: {
-                  ETH: {
-                    conversionRate: 2000,
-                  },
-                },
-              },
-            },
-          },
-        };
-        return selector(state);
+        return selector(defaultSelectorMockState);
       }
       return 'USD';
     });
@@ -264,14 +265,29 @@ describe('useAssetBalances', () => {
     });
 
     it('returns balance info for single Solana token with conversion rate', () => {
-      (
-        Engine.context.MultichainAssetsRatesController as any
-      ).state.conversionRates = {
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
-          {
-            rate: '1.0',
-          },
-      };
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+          const state = {
+            ...defaultSelectorMockState,
+            engine: {
+              ...defaultSelectorMockState.engine,
+              backgroundState: {
+                ...defaultSelectorMockState.engine.backgroundState,
+                MultichainAssetsRatesController: {
+                  conversionRates: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+                      {
+                        rate: '1.0',
+                      },
+                  },
+                },
+              },
+            },
+          };
+          return selector(state);
+        }
+        return 'USD';
+      });
 
       mockFormatWithThreshold.mockReturnValue('$250.25');
 
