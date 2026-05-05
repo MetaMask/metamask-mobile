@@ -161,15 +161,6 @@ export function PredictPayWithRow({
           )}
         </Box>
       </TouchableOpacity>
-      {!isPredictBalanceSelected && (
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="font-medium"
-          color={TextColor.TextDefault}
-        >
-          {strings('predict.order.predict_balance_first')}
-        </Text>
-      )}
     </Box>
   );
 }

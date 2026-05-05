@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "사용 가능한 자금이 없습니다. 다른 계정을 사용하세요."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "지원되지 않는 지갑",
       "message": "하드웨어 지갑이 지원되지 않습니다. 다른 지갑으로 전환하여 계속하세요."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "자금 추가",
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
-      "predict_withdraw": "출금",
-      "money_account_deposit": "자금 추가",
-      "money_account_withdraw": "자금 출금"
+      "predict_withdraw": "출금"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",

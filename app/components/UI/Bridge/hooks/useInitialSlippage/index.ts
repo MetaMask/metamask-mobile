@@ -4,6 +4,7 @@ import {
   selectDestToken,
   selectIsBridge,
   selectIsEvmSwap,
+  selectIsRwaSwap,
   selectIsSolanaSwap,
   selectSourceToken,
   setSlippage,
@@ -15,6 +16,7 @@ import { getIsStablecoinPair } from '../useStablecoinsDefaultSlippage';
 export const useInitialSlippage = () => {
   const dispatch = useDispatch();
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
+  const isRwaSwap = useSelector(selectIsRwaSwap);
   const isBridge = useSelector(selectIsBridge);
   const isEvmSwap = useSelector(selectIsEvmSwap);
   const sourceToken = useSelector(selectSourceToken);
@@ -25,6 +27,10 @@ export const useInitialSlippage = () => {
     if (isSolanaSwap) {
       // We pass undefined to use dynamic slippage from providers
       dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_SOLANA));
+      return;
+    }
+    if (isRwaSwap) {
+      dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_RWA));
       return;
     }
     // EVM Swaps
@@ -61,6 +67,7 @@ export const useInitialSlippage = () => {
     }
   }, [
     isSolanaSwap,
+    isRwaSwap,
     isBridge,
     dispatch,
     sourceToken?.address,

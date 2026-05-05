@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Нет доступных средств. Используйте другой счет."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Кошелек не поддерживается",
       "message": "Аппаратные кошельки не поддерживаются.\nЧтобы продолжить, смените кошелек."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Внести средства",
       "perps_withdraw": "Вывести средства",
       "predict_deposit": "Внести средства для прогнозирования",
-      "predict_withdraw": "Вывести средства",
-      "money_account_deposit": "Внести средства",
-      "money_account_withdraw": "Вывести средства"
+      "predict_withdraw": "Вывести средства"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",

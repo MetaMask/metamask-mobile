@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Δεν υπάρχουν διαθέσιμα χρήματα. Δοκιμάστε με άλλον λογαριασμό."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Το πορτοφόλι δεν υποστηρίζεται",
       "message": "Τα πορτοφόλια υλικού δεν υποστηρίζονται. \nΑλλάξτε πορτοφόλι για να συνεχίσετε."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Προσθήκη κεφαλαίων",
       "perps_withdraw": "Ανάληψη",
       "predict_deposit": "Προσθήκη κεφαλαίων για Προβλέψεις",
-      "predict_withdraw": "Ανάληψη",
-      "money_account_deposit": "Προσθήκη κεφαλαίων",
-      "money_account_withdraw": "Ανάληψη χρημάτων"
+      "predict_withdraw": "Ανάληψη"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",

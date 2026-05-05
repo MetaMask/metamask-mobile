@@ -76,3 +76,10 @@ export interface TestPlanResult {
   excludedFeatures?: string[];
 }
 
+/**
+ * Environment values extracted from build-env.json
+ */
+export interface EnvValidationResult {
+  buildName: string;
+  extractedValues: Record<string, string | undefined>;
+}

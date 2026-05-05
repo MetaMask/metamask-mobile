@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "利用可能な資金がありません。別のアカウントをお試しください。"
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "未対応のウォレットです",
       "message": "ハードウェアウォレットには対応していません。\n続行するにはウォレットを切り替えてください。"
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "資金を追加",
       "perps_withdraw": "出金",
       "predict_deposit": "予測資金を追加",
-      "predict_withdraw": "出金",
-      "money_account_deposit": "資金を追加",
-      "money_account_withdraw": "出金"
+      "predict_withdraw": "出金"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",

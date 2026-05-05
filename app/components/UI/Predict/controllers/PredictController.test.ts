@@ -7682,7 +7682,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('includes predict_token_address in analytics properties when paymentTokenAddress is provided', async () => {
+    it('includes payment_token_address in analytics properties when paymentTokenAddress is provided', async () => {
       await withController(async ({ controller }) => {
         await controller.trackPredictOrderEvent({
           status: 'submitted',
@@ -7693,14 +7693,14 @@ describe('PredictController', () => {
         expect(analytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
-              predict_token_address: '0xtoken',
+              payment_token_address: '0xtoken',
             }),
           }),
         );
       });
     });
 
-    it('omits predict_token_address from analytics properties when not provided', async () => {
+    it('omits payment_token_address from analytics properties when not provided', async () => {
       await withController(async ({ controller }) => {
         await controller.trackPredictOrderEvent({
           status: 'submitted',
@@ -7708,7 +7708,96 @@ describe('PredictController', () => {
         });
 
         const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
-        expect(eventArg.properties).not.toHaveProperty('predict_token_address');
+        expect(eventArg.properties).not.toHaveProperty('payment_token_address');
+      });
+    });
+
+    it('includes payment_token_symbol in analytics properties when paymentTokenSymbol is provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+          paymentTokenSymbol: 'WBTC',
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              payment_token_symbol: 'WBTC',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('omits payment_token_symbol from analytics properties when not provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+        });
+
+        const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
+        expect(eventArg.properties).not.toHaveProperty('payment_token_symbol');
+      });
+    });
+
+    it('includes active_ab_tests in analytics properties when provided and non-empty', async () => {
+      const abTests = [{ key: 'predict-pwat-experiment', value: 'treatment' }];
+
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'initiated',
+          analyticsProperties: { marketId: 'test' },
+          activeAbTests: abTests,
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              active_ab_tests: abTests,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('omits active_ab_tests from analytics properties when empty array provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'initiated',
+          analyticsProperties: { marketId: 'test' },
+          activeAbTests: [],
+        });
+
+        const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
+        expect(eventArg.properties).not.toHaveProperty('active_ab_tests');
+      });
+    });
+
+    it('calls analytics.trackEvent for trackBetslipDismissed', () => {
+      withController(({ controller }) => {
+        controller.trackBetslipDismissed({
+          analyticsProperties: { marketId: 'test' },
+          dismissalMethod: 'back_button',
+          hadEnteredAmount: false,
+          timeOnScreenMs: 1000,
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not call analytics.trackEvent for trackBetslipDismissed when analyticsProperties is missing', () => {
+      withController(({ controller }) => {
+        controller.trackBetslipDismissed({
+          analyticsProperties: undefined,
+          dismissalMethod: 'swipe',
+          hadEnteredAmount: false,
+          timeOnScreenMs: 500,
+        });
+
+        expect(analytics.trackEvent).not.toHaveBeenCalled();
       });
     });
 
@@ -7898,7 +7987,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('fires SUBMITTED event with predict_token_address when placeOrder transitions to DEPOSITING', async () => {
+    it('fires SWAP_INITIATED event with payment_token_address when placeOrder transitions to DEPOSITING', async () => {
       await withController(
         async ({ controller }) => {
           controller.setSelectedPaymentToken({
@@ -7927,8 +8016,9 @@ describe('PredictController', () => {
           expect(analytics.trackEvent).toHaveBeenCalledWith(
             expect.objectContaining({
               properties: expect.objectContaining({
-                status: 'submitted',
-                predict_token_address: '0xtoken',
+                status: 'swap_initiated',
+                payment_token_address: '0xtoken',
+                payment_token_symbol: 'MATIC',
               }),
             }),
           );
@@ -7943,7 +8033,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not include predict_token_address in SUBMITTED event for balance flow', async () => {
+    it('does not include payment_token_address in SUBMITTED event for balance flow', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -7977,7 +8067,192 @@ describe('PredictController', () => {
           expect(
             (submittedCall[0] as { properties: Record<string, unknown> })
               .properties,
-          ).not.toHaveProperty('predict_token_address');
+          ).not.toHaveProperty('payment_token_address');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('stores paymentTokenAddress in activeBuyOrders when transitioning to DEPOSITING', async () => {
+      await withController(
+        async ({ controller }) => {
+          controller.setSelectedPaymentToken({
+            address: '0xpaymenttoken',
+            chainId: '0x89',
+            symbol: 'USDC',
+          });
+
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(
+            controller.state.activeBuyOrders[MOCK_ADDRESS]?.paymentTokenAddress,
+          ).toBe('0xpaymenttoken');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('includes paymentTokenAddress in SUCCEEDED event for pay-with-any-token orders', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(
+        async ({ controller }) => {
+          controller.setSelectedPaymentToken({
+            address: '0xtoken',
+            chainId: '0x89',
+            symbol: 'MATIC',
+          });
+
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+          mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+          });
+
+          const calls = (analytics.trackEvent as jest.Mock).mock.calls;
+          const succeededCall = calls.find(
+            (call: unknown[]) =>
+              (call[0] as { properties: { status: string } }).properties
+                .status === 'succeeded',
+          );
+
+          expect(succeededCall).toBeDefined();
+          expect(
+            (succeededCall[0] as { properties: Record<string, unknown> })
+              .properties,
+          ).toMatchObject({
+            payment_token_address: '0xtoken',
+          });
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('includes paymentTokenAddress in FAILED event for pay-with-any-token orders', async () => {
+      mockPolymarketProvider.placeOrder.mockRejectedValue(
+        new Error('Order failed'),
+      );
+      await withController(
+        async ({ controller }) => {
+          controller.setSelectedPaymentToken({
+            address: '0xtoken',
+            chainId: '0x89',
+            symbol: 'MATIC',
+          });
+
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await expect(
+            controller.placeOrder({
+              analyticsProperties: { marketId: 'market-1' },
+              preview,
+            }),
+          ).rejects.toThrow('Order failed');
+
+          const calls = (analytics.trackEvent as jest.Mock).mock.calls;
+          const failedCall = calls.find(
+            (call: unknown[]) =>
+              (call[0] as { properties: { status: string } }).properties
+                .status === 'failed',
+          );
+
+          expect(failedCall).toBeDefined();
+          expect(
+            (failedCall[0] as { properties: Record<string, unknown> })
+              .properties,
+          ).toMatchObject({
+            payment_token_address: '0xtoken',
+          });
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not include paymentTokenAddress in SUCCEEDED event for balance flow', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+          mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+          });
+
+          const calls = (analytics.trackEvent as jest.Mock).mock.calls;
+          const succeededCall = calls.find(
+            (call: unknown[]) =>
+              (call[0] as { properties: { status: string } }).properties
+                .status === 'succeeded',
+          );
+
+          expect(succeededCall).toBeDefined();
+          expect(
+            (succeededCall[0] as { properties: Record<string, unknown> })
+              .properties,
+          ).not.toHaveProperty('payment_token_address');
         },
         {
           mocks: {
@@ -8826,6 +9101,159 @@ describe('PredictController', () => {
       });
     });
 
+    it('forwards activeAbTests to placeOrder when depositAndOrder is confirmed', () => {
+      withController(({ controller, messenger }) => {
+        const preview = createMockOrderPreview();
+        const abTests = [
+          { key: 'predict-pwat-experiment', value: 'treatment' },
+        ];
+        const placeOrderSpy = jest
+          .spyOn(controller, 'placeOrder')
+          .mockResolvedValue({
+            success: true,
+            response: { id: 'order-1', spentAmount: '1', receivedAmount: '2' },
+          } as any);
+
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          transactionId: 'tx-1',
+        });
+        (
+          controller as unknown as {
+            pendingOrderPreviews: Record<
+              string,
+              {
+                preview: OrderPreview;
+                signerAddress: string;
+                analyticsProperties?: { marketId?: string };
+                activeAbTests?: { key: string; value: string }[];
+              }
+            >;
+          }
+        ).pendingOrderPreviews['tx-1'] = {
+          preview,
+          signerAddress: accountAddress,
+          analyticsProperties: { marketId: 'market-ab' },
+          activeAbTests: abTests,
+        };
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.confirmed,
+            }),
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(placeOrderSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ activeAbTests: abTests }),
+        );
+      });
+    });
+
+    it('fires swap_failed analytics event when depositAndOrder transaction fails', () => {
+      withController(({ controller, messenger }) => {
+        const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
+
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          transactionId: 'tx-1',
+        });
+        jest
+          .spyOn(controller, 'initPayWithAnyToken')
+          .mockResolvedValue(undefined as never);
+
+        (
+          controller as unknown as {
+            pendingOrderPreviews: Record<
+              string,
+              {
+                preview: OrderPreview;
+                signerAddress: string;
+                analyticsProperties?: { marketId?: string };
+              }
+            >;
+          }
+        ).pendingOrderPreviews['tx-1'] = {
+          preview: createMockOrderPreview(),
+          signerAddress: accountAddress,
+          analyticsProperties: { marketId: 'market-fail' },
+        };
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.failed,
+            }),
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Swap reverted' },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(trackSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'swap_failed' }),
+        );
+      });
+    });
+
+    it('fires swap_failed analytics event when depositAndOrder transaction is rejected', () => {
+      withController(({ controller, messenger }) => {
+        const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
+
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          transactionId: 'tx-rej',
+        });
+
+        (
+          controller as unknown as {
+            pendingOrderPreviews: Record<
+              string,
+              {
+                preview: OrderPreview;
+                signerAddress: string;
+                analyticsProperties?: { marketId?: string };
+              }
+            >;
+          }
+        ).pendingOrderPreviews['tx-rej'] = {
+          preview: createMockOrderPreview(),
+          signerAddress: accountAddress,
+          analyticsProperties: { marketId: 'market-rej' },
+        };
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.rejected,
+            }),
+            id: 'tx-rej',
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(trackSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            status: 'swap_failed',
+            failureReason: 'user_rejected',
+          }),
+        );
+      });
+    });
+
     it('does not place order when depositAndOrder confirmed without stored pendingOrderPreview', () => {
       withController(({ controller, messenger }) => {
         const placeOrderSpy = jest.spyOn(controller, 'placeOrder');
@@ -9092,6 +9520,93 @@ describe('PredictController', () => {
 
         expect(handler).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'order', status: 'failed' }),
+        );
+      });
+    });
+
+    it('fires SWAP_FAILED analytics event with paymentTokenAddress from active order when depositAndOrder fails', () => {
+      withController(({ controller, messenger }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          transactionId: 'tx-1',
+          paymentTokenAddress: '0xpaytoken',
+        });
+
+        (
+          controller as unknown as {
+            pendingOrderPreviews: {
+              [transactionId: string]: {
+                preview: OrderPreview;
+                signerAddress: string;
+                analyticsProperties?: { marketId?: string };
+              };
+            };
+          }
+        ).pendingOrderPreviews['tx-1'] = {
+          preview: createMockOrderPreview({ side: Side.BUY }),
+          signerAddress: accountAddress,
+          analyticsProperties: { marketId: 'market-1' },
+        };
+
+        jest
+          .spyOn(controller, 'initPayWithAnyToken')
+          .mockResolvedValue(undefined as never);
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Deposit reverted' },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        const calls = (analytics.trackEvent as jest.Mock).mock.calls;
+        const swapFailedCall = calls.find(
+          (call: unknown[]) =>
+            (call[0] as { properties: { status: string } }).properties
+              .status === 'swap_failed',
+        );
+
+        expect(swapFailedCall).toBeDefined();
+        expect(
+          (swapFailedCall[0] as { properties: Record<string, unknown> })
+            .properties,
+        ).toMatchObject({
+          payment_token_address: '0xpaytoken',
+        });
+      });
+    });
+
+    it('fires FAILED analytics event when depositAndOrder fails with no active buy order', () => {
+      withController(({ controller, messenger }) => {
+        const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Deposit reverted' },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(trackSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'failed' }),
         );
       });
     });

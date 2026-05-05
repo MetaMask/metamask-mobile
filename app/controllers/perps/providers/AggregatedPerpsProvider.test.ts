@@ -23,7 +23,8 @@ const createMockProvider = (providerId: string): jest.Mocked<PerpsProvider> => {
     // Read operations
     getPositions: jest.fn().mockResolvedValue([]),
     getAccountState: jest.fn().mockResolvedValue({
-      availableBalance: '10000',
+      spendableBalance: '10000',
+      withdrawableBalance: '10000',
       totalBalance: '10000',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -302,7 +303,8 @@ describe('AggregatedPerpsProvider', () => {
   describe('Read Operations - getAccountState', () => {
     it('returns account state from default provider with providerId injected', async () => {
       const mockState = {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',

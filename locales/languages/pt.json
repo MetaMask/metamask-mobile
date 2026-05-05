@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Não há fundos disponíveis. Use outra conta."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Não há suporte para esta carteira",
       "message": "Não oferecemos suporte para carteiras de hardware.\nTroque de carteira para continuar."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Adicionar fundos",
       "perps_withdraw": "Sacar",
       "predict_deposit": "Adicionar fundos de previsão",
-      "predict_withdraw": "Sacar",
-      "money_account_deposit": "Adicionar fundos",
-      "money_account_withdraw": "Sacar fundos"
+      "predict_withdraw": "Sacar"
     },
     "sub_title": {
       "permit": "Este site quer permissão para gastar seus tokens.",
