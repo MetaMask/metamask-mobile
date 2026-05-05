@@ -126,6 +126,8 @@ jest.mock('../Permissions', () => ({
     .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
   getPermittedChains: jest.fn().mockResolvedValue(['eip155:1', 'eip155:137']),
 }));
+const { getPermittedChains: mockedGetPermittedChains } =
+  jest.requireMock('../Permissions');
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
@@ -1140,6 +1142,11 @@ describe('WalletConnect2Session', () => {
     });
 
     it('routes tron_signTransaction through MultichainRoutingService with the snap-shaped request', async () => {
+      mockedGetPermittedChains.mockResolvedValue([
+        'eip155:1',
+        'eip155:137',
+        'tron:728126428',
+      ]);
       mockedMessengerCall.mockResolvedValueOnce('snap-result');
       const requestId = Math.floor(Math.random() * 1000000);
       const request: WalletKitTypes.SessionRequest = {
@@ -1201,6 +1208,11 @@ describe('WalletConnect2Session', () => {
     });
 
     it('merges Tron signature-only Snap result into original transaction', async () => {
+      mockedGetPermittedChains.mockResolvedValue([
+        'eip155:1',
+        'eip155:137',
+        'tron:728126428',
+      ]);
       const requestId = Math.floor(Math.random() * 1000000);
       mockedMessengerCall.mockResolvedValueOnce({
         signature: '0xsignature',
@@ -1255,6 +1267,11 @@ describe('WalletConnect2Session', () => {
     });
 
     it('marks tron_signTransaction for redirect before routing to Snap', async () => {
+      mockedGetPermittedChains.mockResolvedValue([
+        'eip155:1',
+        'eip155:137',
+        'tron:728126428',
+      ]);
       const requestId = Math.floor(Math.random() * 1000000);
       const request: WalletKitTypes.SessionRequest = {
         id: requestId,
@@ -1297,6 +1314,11 @@ describe('WalletConnect2Session', () => {
     });
 
     it('rejects Tron Snap request and calls rejectRequest on error', async () => {
+      mockedGetPermittedChains.mockResolvedValue([
+        'eip155:1',
+        'eip155:137',
+        'tron:728126428',
+      ]);
       const requestId = Math.floor(Math.random() * 1000000);
       const snapError = new Error('Snap rejected');
       mockedMessengerCall.mockRejectedValueOnce(snapError);

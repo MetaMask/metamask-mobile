@@ -656,12 +656,16 @@ export class WC2Manager {
     // Get the current chain ID to include in permissions
     const walletChainIdHex = selectEvmChainId(store.getState());
     const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
+    const referencedAdapterNamespaces = proposalReferencedAdapterNamespaces(
+      proposal.params,
+    );
+    const isMultichainOrigin = referencedAdapterNamespaces.length > 0;
 
     try {
       // Create a modified CAIP-25 caveat value that includes the current chain
       const caveatValue = {
         ...getDefaultCaip25CaveatValue(),
-        isMultichainOrigin: true,
+        isMultichainOrigin,
       };
 
       // Important: Use hostname as the origin for permission request to ensure consistency
