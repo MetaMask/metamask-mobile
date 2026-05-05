@@ -1,10 +1,4 @@
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import Engine from '../../../core/Engine';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { strings } from '../../../../locales/i18n';
@@ -23,8 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { HardwareWalletError } from '@metamask/hw-wallet-sdk';
-import { useHardwareWallet } from '../../../core/HardwareWallet/contexts';
+import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
 
 interface IQRSigningDetails {
   pendingScanRequest: QrScanRequest;
@@ -120,13 +113,11 @@ const QRSigningDetails = ({
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { showHardwareWalletError } = useHardwareWallet();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const [scannerVisible, setScannerVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [shouldPause, setShouldPause] = useState(false);
-  const pendingQrScanErrorRef = useRef<HardwareWalletError | null>(null);
 
   const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
 
@@ -158,6 +149,8 @@ const QRSigningDetails = ({
   const hideScanner = useCallback(() => {
     setScannerVisible(false);
   }, []);
+  const { onQRHardwareScanError, handleScannerModalHide } =
+    useQrScanErrorForwarding({ hideScanner });
 
   const onCancel = useCallback(async () => {
     if (pendingScanRequest) {
@@ -215,21 +208,6 @@ const QRSigningDetails = ({
     },
     [hideScanner, failureCallback],
   );
-
-  const onQRHardwareScanError = useCallback((error: HardwareWalletError) => {
-    pendingQrScanErrorRef.current = error;
-    setScannerVisible(false);
-  }, []);
-
-  const handleScannerModalHide = useCallback(() => {
-    const pendingError = pendingQrScanErrorRef.current;
-    if (!pendingError) {
-      return;
-    }
-
-    pendingQrScanErrorRef.current = null;
-    showHardwareWalletError(pendingError);
-  }, [showHardwareWalletError]);
 
   const renderAlert = () =>
     errorMessage !== '' && (

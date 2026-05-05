@@ -49,6 +49,7 @@ import {
   type QRHardwareScanError,
   QRHardwareScanErrorType,
 } from '../../../core/HardwareWallet/errors';
+import { isSameScanError } from './AnimatedQRScanner.utils';
 
 /**
  * Builds {@link MetaMetricsEvents.HARDWARE_WALLET_ERROR} properties for QR hardware flows.
@@ -75,20 +76,6 @@ function buildQrHardwareWalletErrorAnalyticsProperties(options: {
     payload.received_ur_type = received_ur_type ?? '';
   }
   return payload;
-}
-
-function isSameScanError(
-  previousError: QRHardwareScanError | null,
-  currentError: QRHardwareScanError,
-): boolean {
-  return (
-    previousError?.message === currentError.message &&
-    previousError.metadata.qrHardwareScanErrorType ===
-      currentError.metadata.qrHardwareScanErrorType &&
-    previousError.metadata.isUrFormat === currentError.metadata.isUrFormat &&
-    previousError.metadata.receivedUrType ===
-      currentError.metadata.receivedUrType
-  );
 }
 
 const createStyles = (theme: Theme) =>
@@ -407,13 +394,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
       const errorCallback = onQRHardwareScanErrorRef.current;
       if (errorCallback) {
-        if (isSameScanError(lastForwardedScanErrorRef.current, error)) {
-          scanErrorActiveRef.current = false;
-          return;
+        if (!isSameScanError(lastForwardedScanErrorRef.current, error)) {
+          lastForwardedScanErrorRef.current = error;
+          errorCallback(error);
         }
 
-        lastForwardedScanErrorRef.current = error;
-        errorCallback(error);
         scanErrorActiveRef.current = false;
       } else {
         lastForwardedScanErrorRef.current = null;

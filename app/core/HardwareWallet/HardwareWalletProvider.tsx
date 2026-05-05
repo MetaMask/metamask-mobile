@@ -203,8 +203,13 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       return;
     }
 
+    const retryQrScan = qrScanRetryHandlerRef.current;
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-    qrScanRetryHandlerRef.current?.();
+    if (!retryQrScan) {
+      return;
+    }
+
+    retryQrScan();
   }, [deviceId, updateConnectionState]);
 
   const handleAwaitingConfirmationCancel = useCallback(() => {

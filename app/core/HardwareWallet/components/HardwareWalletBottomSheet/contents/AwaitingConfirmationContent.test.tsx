@@ -72,6 +72,16 @@ jest.mock('../../../../../components/UI/QRHardware/AnimatedQRScanner', () => ({
     onScanSuccess: (ur: { cbor: string; type: string }) => void;
     visible: boolean;
   }) => {
+    const ActualReact = jest.requireActual('react');
+    const prevVisibleRef = ActualReact.useRef(visible);
+
+    ActualReact.useEffect(() => {
+      if (prevVisibleRef.current && !visible) {
+        onModalHideComplete?.();
+      }
+      prevVisibleRef.current = visible;
+    }, [visible, onModalHideComplete]);
+
     if (!visible) return null;
     return (
       <MockView testID="animated-qr-scanner-mock">
@@ -88,10 +98,9 @@ jest.mock('../../../../../components/UI/QRHardware/AnimatedQRScanner', () => ({
         <MockButton
           testID="scanner-qr-hardware-error-btn"
           title="onQRHardwareScanError"
-          onPress={() => {
-            onQRHardwareScanError?.(new Error('qr hardware scan failed'));
-            onModalHideComplete?.();
-          }}
+          onPress={() =>
+            onQRHardwareScanError?.(new Error('qr hardware scan failed'))
+          }
         />
         <MockButton
           testID="scanner-success-btn"

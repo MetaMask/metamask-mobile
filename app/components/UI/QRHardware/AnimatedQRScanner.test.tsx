@@ -586,7 +586,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
     });
 
-    it('invokes QR hardware scan error callback once for repeated error frames', async () => {
+    it('tracks metrics for repeated error frames after deduplicating QR hardware scan error callback', async () => {
       render(
         <AnimatedQRScannerModal
           {...defaultProps}
@@ -604,7 +604,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledTimes(2);
     });
 
     it('reopens the scanner when try again is pressed', async () => {

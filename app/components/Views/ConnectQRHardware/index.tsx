@@ -3,7 +3,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -37,10 +36,8 @@ import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { getChecksumAddress } from '@metamask/utils';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/HardwareWalletContext';
-import {
-  HardwareWalletError,
-  HardwareWalletType,
-} from '@metamask/hw-wallet-sdk';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -96,17 +93,12 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
 const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const {
-    setTargetWalletType,
-    showHardwareWalletError,
-    setQrScanRetryHandler,
-  } = useHardwareWallet();
+  const { setTargetWalletType, setQrScanRetryHandler } = useHardwareWallet();
   const insets = useSafeAreaInsets();
   const styles = createStyles(colors, insets);
   const hideMarketingContent = route?.params?.hideMarketingContent ?? false;
 
   const [isScanning, setIsScanning] = useState(false);
-  const pendingQrScanErrorRef = useRef<HardwareWalletError | null>(null);
 
   const KeyringController = useMemo(() => Engine.context.KeyringController, []);
 
@@ -192,19 +184,11 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
     Engine.getQrKeyringScanner().rejectPendingScan(new Error(error));
   }, []);
 
-  const onQRHardwareScanError = useCallback((error: HardwareWalletError) => {
-    pendingQrScanErrorRef.current = error;
+  const hideScanner = useCallback(() => {
     setIsScanning(false);
   }, []);
-
-  const handleScannerModalHide = useCallback(() => {
-    const error = pendingQrScanErrorRef.current;
-    if (!error) {
-      return;
-    }
-    pendingQrScanErrorRef.current = null;
-    showHardwareWalletError(error);
-  }, [showHardwareWalletError]);
+  const { onQRHardwareScanError, handleScannerModalHide } =
+    useQrScanErrorForwarding({ hideScanner });
 
   const cancelScan = useCallback(() => {
     Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
