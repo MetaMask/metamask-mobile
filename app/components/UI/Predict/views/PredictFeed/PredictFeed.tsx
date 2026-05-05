@@ -20,10 +20,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Icon,
-  IconColor,
+  HeaderStandard,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -84,7 +82,6 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import HeaderSearch, {
   HeaderSearchVariant,
 } from '../../../../../component-library/components-temp/HeaderSearch';
@@ -719,7 +716,7 @@ const PredictFeed: React.FC = () => {
             backgroundColor: colors.background.default,
           })}
         >
-          <HeaderCompactStandard
+          <HeaderStandard
             includesTopInset
             title={strings('wallet.predict')}
             onBack={handleBackPress}
