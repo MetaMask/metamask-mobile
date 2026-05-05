@@ -21,8 +21,8 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import {
   StatCell,
-  CAMPAIGN_STATS_SUMMARY_TEST_IDS,
-} from '../components/Campaigns/CampaignStatsSummary';
+  ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS,
+} from '../components/Campaigns/OndoCampaignStatsSummary';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
@@ -47,6 +47,7 @@ type OndoCampaignStatsRouteParams = {
 
 export const ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS = {
   CONTAINER: 'ondo-campaign-stats-view-container',
+  LAST_COMPUTED: 'ondo-campaign-stats-view-last-computed',
 } as const;
 
 const CheckIcon: React.FC = () => (
@@ -346,7 +347,9 @@ const OndoCampaignStatsView: React.FC = () => {
             {!isCampaignComplete && isIneligible && (
               <Box
                 twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
-                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+                testID={
+                  ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER
+                }
               >
                 <Text
                   variant={TextVariant.BodyMd}
