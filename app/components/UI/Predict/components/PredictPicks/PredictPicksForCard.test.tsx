@@ -320,12 +320,12 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-456',
-        refetchInterval: 10000,
         enabled: true,
+        livePriceUpdates: true,
       });
     });
 
-    it('passes refetchInterval of 10000ms to hook when no positions prop', () => {
+    it('enables livePriceUpdates when no positions prop', () => {
       mockUsePredictPositions.mockReturnValue({
         data: [],
         isLoading: false,
@@ -338,7 +338,7 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith(
         expect.objectContaining({
-          refetchInterval: 10000,
+          livePriceUpdates: true,
         }),
       );
     });
@@ -355,8 +355,8 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'market-1',
-        refetchInterval: undefined,
         enabled: false,
+        livePriceUpdates: false,
       });
     });
   });
