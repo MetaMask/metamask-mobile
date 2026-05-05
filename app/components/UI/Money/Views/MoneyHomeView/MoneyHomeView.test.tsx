@@ -22,6 +22,8 @@ import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
+import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from '../../../Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus.testIds';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -70,6 +72,13 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectIsCardholder: jest.fn(),
 }));
 
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
+  () => ({
+    useMerklBonusClaim: jest.fn(),
+  }),
+);
+
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 
 const mockUseMoneyAccountTransactions = jest.mocked(
@@ -77,6 +86,21 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 );
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+
+const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
+
+const buildMerklClaimDataMock = (
+  overrides: Partial<ReturnType<typeof useMerklBonusClaim>> = {},
+): ReturnType<typeof useMerklBonusClaim> => ({
+  claimableReward: null,
+  lifetimeBonusClaimed: null,
+  hasPendingClaim: false,
+  isClaiming: false,
+  error: null,
+  claimRewards: jest.fn(),
+  refetch: jest.fn(),
+  ...overrides,
+});
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -96,10 +120,19 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
   BadgeVariant: { Network: 'Network' },
 }));
 
-jest.mock('../../../Earn/components/AssetOverviewClaimBonus', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../../../Earn/components/AssetOverviewClaimBonus', () => {
+  const { View } = jest.requireActual('react-native');
+  // eslint-disable-next-line
+  const ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS = jest.requireActual(
+    '../../../Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus.testIds',
+  ).ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS;
+  return {
+    __esModule: true,
+    default: () => (
+      <View testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER} />
+    ),
+  };
+});
 
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -124,6 +157,7 @@ describe('MoneyHomeView', () => {
     global.alert = jest.fn();
 
     mockSelectIsCardholder.mockReturnValue(false);
+    mockUseMerklBonusClaim.mockReturnValue(buildMerklClaimDataMock());
 
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$3.00',
@@ -269,6 +303,42 @@ describe('MoneyHomeView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
+  });
+
+  describe('claim bonus gating', () => {
+    it('hides AssetOverviewClaimBonus when there is no claimable reward', () => {
+      mockUseMerklBonusClaim.mockReturnValue(buildMerklClaimDataMock());
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides AssetOverviewClaimBonus when a claim is pending', () => {
+      mockUseMerklBonusClaim.mockReturnValue(
+        buildMerklClaimDataMock({
+          claimableReward: '5.00',
+          hasPendingClaim: true,
+        }),
+      );
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders AssetOverviewClaimBonus when there is a claimable reward and no pending claim', () => {
+      mockUseMerklBonusClaim.mockReturnValue(
+        buildMerklClaimDataMock({
+          claimableReward: '5.00',
+          hasPendingClaim: false,
+        }),
+      );
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 

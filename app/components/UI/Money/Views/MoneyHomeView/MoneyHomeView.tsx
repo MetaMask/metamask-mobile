@@ -11,7 +11,11 @@ import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import AssetOverviewClaimBonus from '../../../Earn/components/AssetOverviewClaimBonus';
-import { LINEA_MUSD_ASSET_FOR_MERKL , MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
+import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
+import {
+  LINEA_MUSD_ASSET_FOR_MERKL,
+  MUSD_MAINNET_ASSET_FOR_DETAILS,
+} from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
@@ -61,6 +65,12 @@ const MoneyHomeView = () => {
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
+
+  const { claimableReward, hasPendingClaim } = useMerklBonusClaim(
+    LINEA_MUSD_ASSET_FOR_MERKL,
+    MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+  );
+  const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
   const isCardholder = useSelector(selectIsCardholder);
 
@@ -170,10 +180,12 @@ const MoneyHomeView = () => {
         />
         <Divider />
         <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
-        <AssetOverviewClaimBonus
-          asset={LINEA_MUSD_ASSET_FOR_MERKL}
-          location={MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB}
-        />
+        {hasClaimableBonus && (
+          <AssetOverviewClaimBonus
+            asset={LINEA_MUSD_ASSET_FOR_MERKL}
+            location={MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB}
+          />
+        )}
         {!isMilestone && (
           <>
             <MoneyHowItWorks
