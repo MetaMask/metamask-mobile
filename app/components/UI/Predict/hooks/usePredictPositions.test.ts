@@ -166,7 +166,7 @@ describe('usePredictPositions', () => {
     expect(mockUsePredictLivePositions).toHaveBeenLastCalledWith(
       [activePosition],
       {
-        enabled: true,
+        enabled: false,
         cacheAddress: MOCK_ADDRESS,
       },
     );
@@ -469,9 +469,10 @@ describe('usePredictPositions', () => {
       },
     );
 
-    const { result } = renderHook(() => usePredictPositions(), {
-      wrapper: Wrapper,
-    });
+    const { result } = renderHook(
+      () => usePredictPositions({ livePriceUpdates: true }),
+      { wrapper: Wrapper },
+    );
 
     await waitFor(() => {
       expect(result.current.data).toEqual([

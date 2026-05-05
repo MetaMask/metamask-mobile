@@ -32,6 +32,7 @@ export const usePredictPositionsForHomepage = (
   const { data, isLoading, error, refetch } = usePredictPositions({
     claimable,
     enabled,
+    livePriceUpdates: true,
   });
 
   const allPositions = useMemo(() => data ?? [], [data]);

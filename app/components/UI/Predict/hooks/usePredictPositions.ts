@@ -17,6 +17,7 @@ interface UsePredictPositionsOptions {
   claimable?: boolean;
   marketId?: string;
   childMarketIds?: string[];
+  livePriceUpdates?: boolean;
 }
 
 function buildSelect(
@@ -53,6 +54,7 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     claimable,
     marketId,
     childMarketIds,
+    livePriceUpdates = false,
   } = options;
 
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
@@ -86,7 +88,7 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
   });
 
   usePredictLivePositions(query.data ?? EMPTY_POSITIONS, {
-    enabled: enabled && claimable !== true,
+    enabled: enabled && livePriceUpdates,
     cacheAddress: address,
   });
 
