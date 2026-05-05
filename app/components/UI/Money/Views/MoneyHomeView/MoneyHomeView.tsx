@@ -76,9 +76,6 @@ const MoneyHomeView = () => {
 
   const isCardholder = useSelector(selectIsCardholder);
   const geolocation = useSelector(getDetectedGeolocation);
-  // Mirror the normalization in useMusdConversionEligibility for consistency.
-  // Fail closed: only show the Metal card row when geolocation positively
-  // resolves to US (loading/null/non-US all hide it).
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
   const homeState = getMoneyHomeState(allTransactions.length);
