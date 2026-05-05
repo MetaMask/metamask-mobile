@@ -14,7 +14,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   IconName as DSIconName,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
@@ -26,6 +25,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../../util/theme';
 import type { ListHeaderWithSearchProps } from './ListHeaderWithSearch.types';
 import styleSheet from './ListHeaderWithSearch.styles';
@@ -140,7 +140,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
   }
 
   return (
-    <HeaderStandard
+    <HeaderCompactStandard
       title={title || defaultTitle}
       onBack={handleBack}
       backButtonProps={{
