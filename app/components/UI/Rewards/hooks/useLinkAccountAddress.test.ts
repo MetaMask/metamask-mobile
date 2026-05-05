@@ -86,6 +86,9 @@ describe('useLinkAccountAddress', () => {
       variant: 'plain',
       hapticsType: 'warning',
     }),
+    loading: jest.fn().mockReturnValue({
+      variant: 'loading',
+    }),
   };
 
   const mockAccount: InternalAccount = {

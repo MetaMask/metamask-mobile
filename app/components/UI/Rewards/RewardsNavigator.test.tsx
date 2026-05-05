@@ -200,7 +200,10 @@ const mockSetOptions = jest.fn();
 const mockSetParams = jest.fn();
 const mockIsFocused = jest.fn();
 const mockReactReduxDispatch = jest.fn();
-const mockUseNavigationState = jest.fn(() => undefined);
+const mockUseNavigationState = jest.fn(
+  (selector: (state: unknown) => unknown): unknown =>
+    selector({ routes: [{}], index: 0 }),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -873,18 +876,19 @@ describe('RewardsNavigator', () => {
         closeEnableNotificationsNudge: mockCloseEnableNotificationsNudge,
         runAfterNotificationsEnabled: jest.fn(),
       });
-      mockUseNavigationState.mockImplementation((selector) =>
-        selector({
-          routes: [
-            {
-              state: {
-                routes: [{ name: Routes.REWARDS_CAMPAIGNS_VIEW }],
-                index: 0,
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [{ name: Routes.REWARDS_CAMPAIGNS_VIEW }],
+                  index: 0,
+                },
               },
-            },
-          ],
-          index: 0,
-        }),
+            ],
+            index: 0,
+          }),
       );
 
       renderWithNavigation(<RewardsNavigator />);
@@ -902,18 +906,19 @@ describe('RewardsNavigator', () => {
         closeEnableNotificationsNudge: mockCloseEnableNotificationsNudge,
         runAfterNotificationsEnabled: jest.fn(),
       });
-      mockUseNavigationState.mockImplementation((selector) =>
-        selector({
-          routes: [
-            {
-              state: {
-                routes: [{ name: Routes.REWARDS_CAMPAIGNS_VIEW }],
-                index: 0,
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [{ name: Routes.REWARDS_CAMPAIGNS_VIEW }],
+                  index: 0,
+                },
               },
-            },
-          ],
-          index: 0,
-        }),
+            ],
+            index: 0,
+          }),
       );
 
       renderWithNavigation(<RewardsNavigator />);
@@ -931,24 +936,58 @@ describe('RewardsNavigator', () => {
         closeEnableNotificationsNudge: mockCloseEnableNotificationsNudge,
         runAfterNotificationsEnabled: jest.fn(),
       });
-      mockUseNavigationState.mockImplementation((selector) =>
-        selector({
-          routes: [
-            {
-              state: {
-                routes: [{ name: Routes.REWARDS_DASHBOARD }],
-                index: 0,
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [{ name: Routes.REWARDS_DASHBOARD }],
+                  index: 0,
+                },
               },
-            },
-          ],
-          index: 0,
-        }),
+            ],
+            index: 0,
+          }),
       );
 
       renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => expect(true).toBe(true));
       expect(mockShowEnableNotificationsNudge).not.toHaveBeenCalled();
+    });
+
+    it('does not show nudge when showEnableNotificationsNudge returns false', async () => {
+      mockUseRewardsNotificationsNudge.mockReturnValue({
+        areNotificationsEnabled: false,
+        canPromptToEnableNotifications: true,
+        shouldPromptToEnableNotifications: true,
+        showEnableNotificationsNudge: mockShowEnableNotificationsNudge,
+        closeEnableNotificationsNudge: mockCloseEnableNotificationsNudge,
+        runAfterNotificationsEnabled: jest.fn(),
+      });
+      mockShowEnableNotificationsNudge.mockReturnValue(false);
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [{ name: Routes.REWARDS_CAMPAIGNS_VIEW }],
+                  index: 0,
+                },
+              },
+            ],
+            index: 0,
+          }),
+      );
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockShowEnableNotificationsNudge).toHaveBeenCalledTimes(1);
+      });
+      expect(mockCloseEnableNotificationsNudge).not.toHaveBeenCalled();
     });
 
     it('shows nudge on campaign route and closes it when navigating away', async () => {
@@ -961,18 +1000,19 @@ describe('RewardsNavigator', () => {
         runAfterNotificationsEnabled: jest.fn(),
       });
       mockShowEnableNotificationsNudge.mockReturnValue(true);
-      mockUseNavigationState.mockImplementation((selector) =>
-        selector({
-          routes: [
-            {
-              state: {
-                routes: [{ name: Routes.REWARDS_CAMPAIGNS_VIEW }],
-                index: 0,
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [{ name: Routes.REWARDS_CAMPAIGNS_VIEW }],
+                  index: 0,
+                },
               },
-            },
-          ],
-          index: 0,
-        }),
+            ],
+            index: 0,
+          }),
       );
 
       const { rerender } = renderWithNavigation(<RewardsNavigator />);
@@ -982,18 +1022,19 @@ describe('RewardsNavigator', () => {
       });
 
       // Navigate away to a non-campaign route
-      mockUseNavigationState.mockImplementation((selector) =>
-        selector({
-          routes: [
-            {
-              state: {
-                routes: [{ name: Routes.REWARDS_DASHBOARD }],
-                index: 0,
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [{ name: Routes.REWARDS_DASHBOARD }],
+                  index: 0,
+                },
               },
-            },
-          ],
-          index: 0,
-        }),
+            ],
+            index: 0,
+          }),
       );
 
       await act(async () => {
@@ -1001,6 +1042,136 @@ describe('RewardsNavigator', () => {
       });
 
       expect(mockCloseEnableNotificationsNudge).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show nudge again when session flag is already set', async () => {
+      mockUseRewardsNotificationsNudge.mockReturnValue({
+        areNotificationsEnabled: false,
+        canPromptToEnableNotifications: true,
+        shouldPromptToEnableNotifications: true,
+        showEnableNotificationsNudge: mockShowEnableNotificationsNudge,
+        closeEnableNotificationsNudge: mockCloseEnableNotificationsNudge,
+        runAfterNotificationsEnabled: jest.fn(),
+      });
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [{ name: Routes.REWARDS_CAMPAIGNS_VIEW }],
+                  index: 0,
+                },
+              },
+            ],
+            index: 0,
+          }),
+      );
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => expect(true).toBe(true));
+      // sessionNotificationsNudgeShown was set true by the previous test
+      expect(mockShowEnableNotificationsNudge).not.toHaveBeenCalled();
+    });
+
+    it('evaluates route conditions for ONDO campaign route', async () => {
+      mockUseRewardsNotificationsNudge.mockReturnValue({
+        areNotificationsEnabled: false,
+        canPromptToEnableNotifications: true,
+        shouldPromptToEnableNotifications: true,
+        showEnableNotificationsNudge: mockShowEnableNotificationsNudge,
+        closeEnableNotificationsNudge: mockCloseEnableNotificationsNudge,
+        runAfterNotificationsEnabled: jest.fn(),
+      });
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [{ name: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW }],
+                  index: 0,
+                },
+              },
+            ],
+            index: 0,
+          }),
+      );
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => expect(true).toBe(true));
+      // session flag already set — nudge not reshown, but route conditions were evaluated
+      expect(mockShowEnableNotificationsNudge).not.toHaveBeenCalled();
+    });
+
+    it('evaluates route conditions for SeasonOne campaign route', async () => {
+      mockUseRewardsNotificationsNudge.mockReturnValue({
+        areNotificationsEnabled: false,
+        canPromptToEnableNotifications: true,
+        shouldPromptToEnableNotifications: true,
+        showEnableNotificationsNudge: mockShowEnableNotificationsNudge,
+        closeEnableNotificationsNudge: mockCloseEnableNotificationsNudge,
+        runAfterNotificationsEnabled: jest.fn(),
+      });
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [
+                    {
+                      name: Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+                    },
+                  ],
+                  index: 0,
+                },
+              },
+            ],
+            index: 0,
+          }),
+      );
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => expect(true).toBe(true));
+      expect(mockShowEnableNotificationsNudge).not.toHaveBeenCalled();
+    });
+
+    it('evaluates route conditions for Perps Trading campaign route', async () => {
+      mockUseRewardsNotificationsNudge.mockReturnValue({
+        areNotificationsEnabled: false,
+        canPromptToEnableNotifications: true,
+        shouldPromptToEnableNotifications: true,
+        showEnableNotificationsNudge: mockShowEnableNotificationsNudge,
+        closeEnableNotificationsNudge: mockCloseEnableNotificationsNudge,
+        runAfterNotificationsEnabled: jest.fn(),
+      });
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            routes: [
+              {
+                state: {
+                  routes: [
+                    {
+                      name: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+                    },
+                  ],
+                  index: 0,
+                },
+              },
+            ],
+            index: 0,
+          }),
+      );
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => expect(true).toBe(true));
+      expect(mockShowEnableNotificationsNudge).not.toHaveBeenCalled();
     });
 
     it('calls success toast when onNotificationsEnabled callback fires', async () => {

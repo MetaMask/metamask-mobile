@@ -84,6 +84,11 @@ jest.mock('../../hooks/useRewardsToast', () => ({
       })),
       enableNotificationsNudge: mockEnableNotificationsNudge,
       entriesClosed: jest.fn(),
+      loading: jest.fn((title: string, subtitle?: string) => ({
+        variant: 'loading',
+        title,
+        subtitle,
+      })),
     },
   })),
 }));

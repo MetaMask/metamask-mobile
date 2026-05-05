@@ -107,6 +107,9 @@ describe('useLinkAccountGroup', () => {
       variant: 'plain',
       hapticsType: 'warning',
     }),
+    loading: jest.fn().mockReturnValue({
+      variant: 'loading',
+    }),
   };
 
   // Mock account data
