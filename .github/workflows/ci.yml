@@ -256,7 +256,7 @@ jobs:
 
   validate-android-play-manifest:
     name: Android Play Store manifest validation
-    runs-on: ubuntu-latest
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # Optimized for lg runner (48GB) with conservative memory settings
     timeout-minutes: 120
     if: >-
       ${{
