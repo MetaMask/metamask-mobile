@@ -25,8 +25,8 @@ const getAllowedHttpsHosts = (): ReadonlySet<string> =>
  * deeplink pipeline from a Braze campaign tap.
  *
  * Allowed schemes:
- *  - `metamask://` — any path.
- *  - `https://` — only on MetaMask-owned universal-link hosts.
+ * - `metamask://` — any path.
+ * - `https://` — only on MetaMask-owned universal-link hosts.
  *
  * Everything else (javascript:, file:, data:, intent:, https:// on third-party hosts,
  * malformed strings, etc.) is rejected.
