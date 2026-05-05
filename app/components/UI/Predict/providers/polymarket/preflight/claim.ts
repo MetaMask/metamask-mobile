@@ -103,11 +103,13 @@ export async function planClaim({
   positions,
   safeAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
+  includeGasStationTransfer = true,
 }: {
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
   protocol?: PolymarketV2ProtocolDefinition;
+  includeGasStationTransfer?: boolean;
 }): Promise<ClaimPlan> {
   const [missingRequirements, safeUsdceBalance, eoaUsdceBalance] =
     await Promise.all([
@@ -119,16 +121,19 @@ export async function planClaim({
         address: safeAddress,
         tokenAddress: protocol.collateral.legacyUsdceToken,
       }),
-      getRawTokenBalance({
-        address: signer.address,
-        tokenAddress: protocol.collateral.legacyUsdceToken,
-      }),
+      includeGasStationTransfer
+        ? getRawTokenBalance({
+            address: signer.address,
+            tokenAddress: protocol.collateral.legacyUsdceToken,
+          })
+        : Promise.resolve(0n),
     ]);
 
   const gasStationDeficit =
-    eoaUsdceBalance >= MIN_GAS_STATION_USDCE_BALANCE_RAW
-      ? 0n
-      : MIN_GAS_STATION_USDCE_BALANCE_RAW - eoaUsdceBalance;
+    includeGasStationTransfer &&
+    eoaUsdceBalance < MIN_GAS_STATION_USDCE_BALANCE_RAW
+      ? MIN_GAS_STATION_USDCE_BALANCE_RAW - eoaUsdceBalance
+      : 0n;
 
   const transactions = compileClaimTransactions({
     protocol,

@@ -16,6 +16,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
+import { PredictClaimStatus } from '../types';
 
 export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
@@ -57,7 +58,11 @@ export const usePredictClaim = () => {
         // TODO: remove once navigation stack is fixed properly
         stack: Routes.PREDICT.ROOT,
       });
-      await claimWinnings({});
+      const result = await claimWinnings({});
+
+      if (result?.status === PredictClaimStatus.CONFIRMED) {
+        navigation.goBack();
+      }
     } catch (err) {
       Logger.error(ensureError(err), {
         tags: {

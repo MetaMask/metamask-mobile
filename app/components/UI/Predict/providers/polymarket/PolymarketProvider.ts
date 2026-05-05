@@ -141,12 +141,9 @@ import {
   signProtocolOrderForDepositWallet,
 } from './protocol/orderCodec';
 import { submitProtocolClobOrder } from './protocol/transport';
-import { buildClaimTransaction } from './preflight/claim';
+import { buildClaimTransaction, planClaim } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
-import {
-  buildTradeAllowancesTx,
-  planTradePreflight,
-} from './preflight/trade';
+import { buildTradeAllowancesTx, planTradePreflight } from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
 
 export type SignTypedMessageFn = (
@@ -343,6 +340,36 @@ export class PolymarketProvider implements PredictProvider {
 
   #isDepositWalletAccount(accountState?: AccountState): boolean {
     return accountState?.walletType === 'deposit-wallet';
+  }
+
+  async #ensureDepositWalletDeployed({
+    signer,
+    accountState,
+  }: {
+    signer: Signer;
+    accountState: AccountState;
+  }): Promise<void> {
+    if (
+      !this.#isDepositWalletAccount(accountState) ||
+      accountState.isDeployed
+    ) {
+      return;
+    }
+
+    const createResponse = await requestDepositWalletCreate({
+      ownerAddress: signer.address,
+    });
+
+    if (createResponse.transactionID) {
+      await waitForDepositWalletTransaction({
+        transactionID: createResponse.transactionID,
+      });
+    }
+
+    this.#accountStateByAddress.set(signer.address, {
+      ...accountState,
+      isDeployed: true,
+    });
   }
 
   #pickExecutor(executors: string[]): string {
@@ -2019,7 +2046,83 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Signer address is required for claim');
       }
 
-      // Get safe address from cache or fetch it
+      if (protocol.key === 'v2') {
+        const accountState =
+          this.#accountStateByAddress.get(signer.address) ??
+          (await this.getAccountState({ ownerAddress: signer.address }));
+        const smartAccountAddress = accountState.address;
+
+        if (this.#isDepositWalletAccount(accountState)) {
+          await this.#ensureDepositWalletDeployed({ signer, accountState });
+
+          const plan = await planClaim({
+            signer,
+            positions,
+            safeAddress: smartAccountAddress,
+            protocol,
+            includeGasStationTransfer: false,
+          });
+
+          const response = await executeDepositWalletBatch({
+            signer,
+            walletAddress: smartAccountAddress,
+            calls: toDepositWalletCalls(plan.transactions),
+          });
+
+          if (response.transactionID) {
+            await waitForDepositWalletTransaction({
+              transactionID: response.transactionID,
+            });
+          }
+
+          const signerApiKey = await this.getApiKey({
+            address: signer.address,
+            protocol,
+          });
+          const syncTokenIds = Array.from(
+            new Set(positions.map((position) => position.outcomeTokenId)),
+          );
+
+          await Promise.all([
+            syncDepositWalletClobBalanceAllowance({
+              protocol,
+              signerAddress: signer.address,
+              apiKey: signerApiKey,
+            }),
+            ...syncTokenIds.map((tokenId) =>
+              syncDepositWalletClobBalanceAllowance({
+                protocol,
+                signerAddress: signer.address,
+                apiKey: signerApiKey,
+                assetType: 'CONDITIONAL',
+                tokenId,
+              }),
+            ),
+          ]);
+
+          return {
+            chainId: POLYGON_MAINNET_CHAIN_ID,
+            transactions: [],
+            relayerTransactionId:
+              response.transactionID ?? response.transactionHash,
+            submittedViaRelayer: true,
+          };
+        }
+
+        const claimTransaction = await buildClaimTransaction({
+          signer,
+          positions,
+          safeAddress: smartAccountAddress,
+          protocol,
+        });
+
+        return {
+          chainId: POLYGON_MAINNET_CHAIN_ID,
+          transactions: [claimTransaction],
+        };
+      }
+
+      // Get safe address from cache or fetch it.
       let safeAddress: string | undefined;
       try {
         safeAddress =
@@ -2035,20 +2138,6 @@ export class PolymarketProvider implements PredictProvider {
 
       if (!safeAddress) {
         throw new Error('Safe address not found for claim');
-      }
-
-      if (protocol.key === 'v2') {
-        const claimTransaction = await buildClaimTransaction({
-          signer,
-          positions,
-          safeAddress,
-          protocol,
-        });
-
-        return {
-          chainId: POLYGON_MAINNET_CHAIN_ID,
-          transactions: [claimTransaction],
-        };
       }
 
       const signerBalance = await getBalance({ address: signer.address });

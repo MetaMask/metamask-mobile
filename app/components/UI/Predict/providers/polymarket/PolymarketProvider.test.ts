@@ -6,8 +6,10 @@ import {
 } from './constants';
 import {
   deriveDepositWalletAddress,
+  executeDepositWalletBatch,
   requestDepositWalletCreate,
   syncDepositWalletClobBalanceAllowance,
+  waitForDepositWalletTransaction,
 } from './depositWallet';
 // Mock external dependencies
 jest.mock('../../../../../core/Engine', () => ({
@@ -125,6 +127,7 @@ jest.mock('./utils', () => {
     buildMarketOrderCreationArgs: jest.fn(),
     encodeApprove: jest.fn(),
     encodeClaim: jest.fn(),
+    encodeRedeemPositions: jest.fn(() => '0xencodedredeem'),
     encodeErc1155Approve: jest.fn(),
     getAllowance: jest.fn().mockResolvedValue(1n),
     getIsApprovedForAll: jest.fn().mockResolvedValue(true),
@@ -293,9 +296,12 @@ const mockGetBalance = getBalance as jest.Mock;
 const mockGetRawBalance = getRawBalance as jest.Mock;
 const mockSubmitProtocolClobOrder = submitProtocolClobOrder as jest.Mock;
 const mockDeriveDepositWalletAddress = deriveDepositWalletAddress as jest.Mock;
+const mockExecuteDepositWalletBatch = executeDepositWalletBatch as jest.Mock;
 const mockRequestDepositWalletCreate = requestDepositWalletCreate as jest.Mock;
 const mockSyncDepositWalletClobBalanceAllowance =
   syncDepositWalletClobBalanceAllowance as jest.Mock;
+const mockWaitForDepositWalletTransaction =
+  waitForDepositWalletTransaction as jest.Mock;
 const mockIsLiveSportsEvent = isLiveSportsEvent as jest.Mock;
 const mockGetEventLeague = getEventLeague as jest.Mock;
 const mockFetchChildEventsFromGammaApi =
@@ -2702,6 +2708,83 @@ describe('PolymarketProvider', () => {
       return { provider: createProvider(), signer: mockSigner };
     }
 
+    it('executes deposit-wallet claims through a WALLET batch', async () => {
+      const { signer } = setupPrepareClaimTest();
+      const provider = createProvider({ predictClobV2Enabled: true });
+      const depositWalletAddress = '0x3333333333333333333333333333333333333333';
+      const position = createMockPosition({
+        outcomeId:
+          '0x1111111111111111111111111111111111111111111111111111111111111111',
+        outcomeTokenId: '12345',
+        claimable: true,
+      });
+
+      jest.spyOn(provider, 'getAccountState').mockResolvedValue({
+        address: depositWalletAddress,
+        isDeployed: true,
+        hasAllowances: true,
+        walletType: 'deposit-wallet',
+      });
+      mockCreateApiKey.mockResolvedValue({
+        apiKey: 'test-api-key',
+        secret: 'test-secret',
+        passphrase: 'test-passphrase',
+      });
+      mockQuery.mockResolvedValue(
+        '0x00000000000000000000000000000000000000000000000000000000000f4240',
+      );
+      mockGetRawBalance.mockResolvedValue(0n);
+      mockExecuteDepositWalletBatch.mockResolvedValue({
+        transactionID: 'deposit-wallet-claim-transaction',
+      });
+
+      const result = await provider.prepareClaim({
+        positions: [position],
+        signer,
+      });
+
+      expect(mockExecuteDepositWalletBatch).toHaveBeenCalledWith({
+        signer,
+        walletAddress: depositWalletAddress,
+        calls: expect.arrayContaining([
+          expect.objectContaining({
+            target: expect.any(String),
+            value: '0',
+            data: '0xencodedredeem',
+          }),
+        ]),
+      });
+      expect(mockWaitForDepositWalletTransaction).toHaveBeenCalledWith({
+        transactionID: 'deposit-wallet-claim-transaction',
+      });
+      expect(mockSyncDepositWalletClobBalanceAllowance).toHaveBeenCalledWith({
+        protocol: expect.objectContaining({ key: 'v2' }),
+        signerAddress: signer.address,
+        apiKey: {
+          apiKey: 'test-api-key',
+          secret: 'test-secret',
+          passphrase: 'test-passphrase',
+        },
+      });
+      expect(mockSyncDepositWalletClobBalanceAllowance).toHaveBeenCalledWith({
+        protocol: expect.objectContaining({ key: 'v2' }),
+        signerAddress: signer.address,
+        apiKey: {
+          apiKey: 'test-api-key',
+          secret: 'test-secret',
+          passphrase: 'test-passphrase',
+        },
+        assetType: 'CONDITIONAL',
+        tokenId: '12345',
+      });
+      expect(result).toEqual({
+        chainId: 137,
+        transactions: [],
+        relayerTransactionId: 'deposit-wallet-claim-transaction',
+        submittedViaRelayer: true,
+      });
+    });
+
     it('successfully prepares a claim for regular position', async () => {
       const { provider, signer } = setupPrepareClaimTest();
       const position = {
@@ -3288,6 +3371,7 @@ describe('PolymarketProvider', () => {
       mockComputeProxyAddress.mockReturnValue(
         '0x1234567890123456789012345678901234567891',
       );
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
       mockGetRawBalance.mockResolvedValue(0n);
 
       const result = await provider.prepareClaim({

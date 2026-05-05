@@ -290,7 +290,7 @@ async function getDepositWalletTransaction({
     body: { transactionID },
   });
 
-  return Array.isArray(response) ? response[0] ?? {} : response;
+  return Array.isArray(response) ? (response[0] ?? {}) : response;
 }
 
 export async function waitForDepositWalletTransaction({
@@ -310,7 +310,9 @@ export async function waitForDepositWalletTransaction({
     }
 
     if (transaction.state && RELAYER_FAILED_STATES.has(transaction.state)) {
-      throw new Error(`Deposit wallet transaction failed: ${transaction.state}`);
+      throw new Error(
+        `Deposit wallet transaction failed: ${transaction.state}`,
+      );
     }
 
     await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
@@ -323,13 +325,25 @@ export async function syncDepositWalletClobBalanceAllowance({
   protocol,
   signerAddress,
   apiKey,
+  assetType = 'COLLATERAL',
+  tokenId,
 }: {
   protocol: Pick<PolymarketProtocolDefinition, 'transport'>;
   signerAddress: string;
   apiKey: ApiKeyCreds;
+  assetType?: 'COLLATERAL' | 'CONDITIONAL';
+  tokenId?: string;
 }): Promise<void> {
-  const requestPath =
-    '/balance-allowance/update?asset_type=COLLATERAL&signature_type=3';
+  const params = new URLSearchParams({
+    asset_type: assetType,
+    signature_type: '3',
+  });
+
+  if (tokenId) {
+    params.set('token_id', tokenId);
+  }
+
+  const requestPath = `/balance-allowance/update?${params.toString()}`;
   const headers = await getL2Headers({
     l2HeaderArgs: {
       method: 'GET',

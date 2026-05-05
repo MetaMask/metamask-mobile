@@ -1423,7 +1423,40 @@ export class PredictController extends BaseController<
         throw new Error('Failed to prepare claim transaction');
       }
 
-      const { transactions, chainId } = prepareClaimResult;
+      const {
+        transactions,
+        chainId,
+        relayerTransactionId,
+        submittedViaRelayer,
+      } = prepareClaimResult;
+
+      if (submittedViaRelayer) {
+        const batchId =
+          relayerTransactionId ?? `deposit-wallet-claim-${Date.now()}`;
+
+        provider.confirmClaim?.({
+          positions: claimablePositions,
+          signer,
+        });
+
+        this.update((state) => {
+          delete state.pendingClaims[signer.address];
+          state.claimablePositions[signer.address] = [];
+          state.lastError = null;
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        traceData = {
+          success: true,
+          positionCount: claimablePositions.length,
+        };
+
+        return {
+          batchId,
+          chainId,
+          status: PredictClaimStatus.CONFIRMED,
+        };
+      }
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from claim preparation');

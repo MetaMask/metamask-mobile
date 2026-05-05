@@ -108,6 +108,8 @@ export interface ClaimOrderResponse {
     };
     type?: TransactionType;
   }[];
+  relayerTransactionId?: string;
+  submittedViaRelayer?: boolean;
 }
 
 export interface SignWithdrawParams {
