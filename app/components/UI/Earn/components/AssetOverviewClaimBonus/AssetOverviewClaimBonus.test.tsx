@@ -71,6 +71,7 @@ const createMockAsset = (overrides: Partial<TokenI> = {}): TokenI => ({
 const createMockMerklClaimData = (
   overrides: Partial<MerklClaimData> = {},
 ): MerklClaimData => ({
+  isEligible: true,
   claimableReward: null,
   lifetimeBonusClaimed: null,
   hasPendingClaim: false,

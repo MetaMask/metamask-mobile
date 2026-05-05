@@ -107,6 +107,7 @@ const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
 const buildMerklClaimDataMock = (
   overrides: Partial<ReturnType<typeof useMerklBonusClaim>> = {},
 ): ReturnType<typeof useMerklBonusClaim> => ({
+  isEligible: true,
   claimableReward: null,
   lifetimeBonusClaimed: null,
   hasPendingClaim: false,
@@ -414,20 +415,9 @@ describe('MoneyHomeView', () => {
   });
 
   describe('claim bonus gating', () => {
-    it('hides AssetOverviewClaimBonus when there is no claimable reward', () => {
-      mockUseMerklBonusClaim.mockReturnValue(buildMerklClaimDataMock());
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(
-        queryByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('hides AssetOverviewClaimBonus when a claim is pending', () => {
+    it('hides AssetOverviewClaimBonus when the user is not eligible (geo/feature flag/token)', () => {
       mockUseMerklBonusClaim.mockReturnValue(
-        buildMerklClaimDataMock({
-          claimableReward: '5.00',
-          hasPendingClaim: true,
-        }),
+        buildMerklClaimDataMock({ isEligible: false }),
       );
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
@@ -435,9 +425,62 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('renders AssetOverviewClaimBonus when eligible with no current claim (accruing state)', () => {
+      // Eligible user holding mUSD whose bonus has not yet accrued past the
+      // claim threshold — the card must render so the user sees the
+      // "Accruing next bonus" state.
+      mockUseMerklBonusClaim.mockReturnValue(
+        buildMerklClaimDataMock({
+          isEligible: true,
+          claimableReward: null,
+          hasPendingClaim: false,
+        }),
+      );
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders AssetOverviewClaimBonus during an in-flight claim', () => {
+      // While the claim transaction is pending, the card stays visible so the
+      // child can show the disabled/loading button. Previously the parent
+      // gated this state out and the card disappeared mid-claim.
+      mockUseMerklBonusClaim.mockReturnValue(
+        buildMerklClaimDataMock({
+          isEligible: true,
+          claimableReward: '5.00',
+          hasPendingClaim: true,
+        }),
+      );
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders AssetOverviewClaimBonus in the post-claim accruing state', () => {
+      // After a successful claim, claimableReward becomes null (session lock)
+      // but the user is still eligible — the child renders "Accruing next
+      // bonus". The parent must keep the card mounted.
+      mockUseMerklBonusClaim.mockReturnValue(
+        buildMerklClaimDataMock({
+          isEligible: true,
+          claimableReward: null,
+          hasPendingClaim: false,
+          lifetimeBonusClaimed: '12.34',
+        }),
+      );
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
     it('renders AssetOverviewClaimBonus when there is a claimable reward and no pending claim', () => {
       mockUseMerklBonusClaim.mockReturnValue(
         buildMerklClaimDataMock({
+          isEligible: true,
           claimableReward: '5.00',
           hasPendingClaim: false,
         }),
@@ -476,11 +519,13 @@ describe('MoneyHomeView', () => {
       expect(lastReceivedProps?.merklClaimData).toBe(merklClaimData);
     });
 
-    it('renders the structural divider after MoneyEarnings when there is no claimable bonus', () => {
+    it('renders the structural divider after MoneyEarnings when the bonus card is hidden', () => {
       // Regression guard: when AssetOverviewClaimBonus is hidden, the divider
       // between MoneyEarnings and the next section must still render so the
       // layout does not collapse.
-      mockUseMerklBonusClaim.mockReturnValue(buildMerklClaimDataMock());
+      mockUseMerklBonusClaim.mockReturnValue(
+        buildMerklClaimDataMock({ isEligible: false }),
+      );
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
       );
@@ -492,7 +537,7 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the structural divider after MoneyEarnings when there is a claimable bonus', () => {
+    it('renders the structural divider after MoneyEarnings when the bonus card is visible', () => {
       mockUseMerklBonusClaim.mockReturnValue(
         buildMerklClaimDataMock({
           claimableReward: '5.00',

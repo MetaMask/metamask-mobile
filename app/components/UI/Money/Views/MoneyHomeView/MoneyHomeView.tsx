@@ -84,8 +84,12 @@ const MoneyHomeView = () => {
     LINEA_MUSD_ASSET_FOR_MERKL,
     MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
   );
-  const hasClaimableBonus =
-    !!merklClaimData.claimableReward && !merklClaimData.hasPendingClaim;
+  // Render the bonus card whenever the user is base-eligible (feature flag
+  // on, geo-allowed, recognized token). The child handles the claimable,
+  // in-flight, post-claim, and accruing sub-states internally — gating on
+  // a fresh claim amount here would hide the card during in-flight and
+  // post-claim states where the card must remain visible.
+  const isBonusEligible = merklClaimData.isEligible;
 
   const isCardholder = useSelector(selectIsCardholder);
 
@@ -266,7 +270,7 @@ const MoneyHomeView = () => {
           onInfoPress={handleEarningsInfoPress}
         />
         <Divider testID={MoneyHomeViewTestIds.EARNINGS_DIVIDER} />
-        {hasClaimableBonus && (
+        {isBonusEligible && (
           <AssetOverviewClaimBonus
             asset={LINEA_MUSD_ASSET_FOR_MERKL}
             location={MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB}

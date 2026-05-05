@@ -167,6 +167,7 @@ describe('CashTokensFullView', () => {
       tokenBalanceByChain: {},
     });
     mockUseMerklBonusClaim.mockReturnValue({
+      isEligible: true,
       claimableReward: null,
       lifetimeBonusClaimed: null,
       hasPendingClaim: false,

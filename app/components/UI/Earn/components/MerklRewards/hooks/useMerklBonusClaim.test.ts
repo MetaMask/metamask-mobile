@@ -168,6 +168,7 @@ describe('useMerklBonusClaim', () => {
       useMerklBonusClaim(undefined, 'test_location'),
     );
 
+    expect(result.current.isEligible).toBe(false);
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
     expect(result.current.isClaiming).toBe(false);
@@ -181,6 +182,7 @@ describe('useMerklBonusClaim', () => {
       useMerklBonusClaim(eligibleAsset, 'test_location'),
     );
 
+    expect(result.current.isEligible).toBe(false);
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
     expect(result.current.error).toBeNull();
@@ -193,6 +195,7 @@ describe('useMerklBonusClaim', () => {
       useMerklBonusClaim(eligibleAsset, 'test_location'),
     );
 
+    expect(result.current.isEligible).toBe(false);
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
     expect(result.current.error).toBeNull();
@@ -203,9 +206,58 @@ describe('useMerklBonusClaim', () => {
       useMerklBonusClaim(ineligibleAsset, 'test_location'),
     );
 
+    expect(result.current.isEligible).toBe(false);
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
     expect(result.current.error).toBeNull();
+  });
+
+  it('exposes isEligible=true while a claim is in flight so the parent can keep rendering the card', () => {
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '5.00',
+      hasClaimedBefore: false,
+      rewardsFetchVersion: 0,
+      refetch: mockMerklRewardsRefetch,
+    });
+    mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: true });
+
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
+
+    expect(result.current.isEligible).toBe(true);
+    expect(result.current.hasPendingClaim).toBe(true);
+  });
+
+  it('exposes isEligible=true after a successful claim (post-claim accruing state)', async () => {
+    const mockSuccessfulClaimRewards = jest.fn().mockResolvedValue({
+      txHash: '0x123',
+      transactionMeta: {},
+    });
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.50',
+      hasClaimedBefore: false,
+      rewardsFetchVersion: 0,
+      refetch: mockMerklRewardsRefetch,
+    });
+    mockUseMerklClaimTransaction.mockReturnValue({
+      claimRewards: mockSuccessfulClaimRewards,
+      isClaiming: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() =>
+      useMerklBonusClaim(eligibleAsset, 'test_location'),
+    );
+
+    await act(async () => {
+      await result.current.claimRewards();
+    });
+
+    // claimableReward is locked to null after a successful claim,
+    // but the user remains base-eligible so the card stays visible.
+    expect(result.current.claimableReward).toBeNull();
+    expect(result.current.isEligible).toBe(true);
   });
 
   it('passes eligible asset to underlying hooks', () => {

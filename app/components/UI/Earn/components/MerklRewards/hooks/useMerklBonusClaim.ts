@@ -17,6 +17,13 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { getUsdAmountRange } from '../../../../../../util/analytics/usdAmountRange';
 export interface MerklClaimData {
+  /**
+   * Whether the asset is base-eligible for the Merkl bonus campaign
+   * (feature flag enabled, geo-allowed, and token recognized as eligible).
+   * Stays true regardless of claim state, so parents can render the
+   * bonus card during in-flight, post-claim, and accruing states.
+   */
+  isEligible: boolean;
   /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
   claimableReward: string | null;
   /** Lifetime bonus claimed in human-readable USD (e.g. "221.59"); null while loading. */
@@ -37,6 +44,7 @@ export interface MerklClaimData {
 }
 
 const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
+  isEligible: false,
   claimableReward: null,
   lifetimeBonusClaimed: null,
   hasPendingClaim: false,
@@ -182,6 +190,7 @@ export const useMerklBonusClaim = (
     }
 
     return {
+      isEligible,
       claimableReward:
         !isClaimLocked && isClaimableBonusAboveThreshold(claimableReward)
           ? claimableReward
