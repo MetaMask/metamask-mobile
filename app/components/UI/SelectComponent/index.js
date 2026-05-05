@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import PropTypes from 'prop-types';
 import {
   ScrollView,
@@ -14,8 +15,6 @@ import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-
 const ROW_HEIGHT = 35;
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -182,7 +181,7 @@ export default class SelectComponent extends PureComponent {
           backdropOpacity={1}
         >
           <View style={styles.modalView}>
-            <HeaderCompactStandard
+            <HeaderStandard
               title={this.props.label}
               onClose={this.hidePicker}
             />
