@@ -230,12 +230,22 @@ describe('MoneyHomeView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the onboarding card', () => {
+  it('renders the onboarding card when education has not been seen', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
+      state: educationNotSeenState,
     });
 
     expect(getByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('does not render the onboarding card when education has been seen', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
+      state: educationSeenState,
+    });
+
+    expect(
+      queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders the earnings section', () => {
@@ -441,7 +451,7 @@ describe('MoneyHomeView', () => {
 
     it('renders onboarding card with step 2', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
+        state: educationNotSeenState,
       });
       expect(
         getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
@@ -491,7 +501,7 @@ describe('MoneyHomeView', () => {
 
     it('navigates to Card root when onboarding CTA is tapped', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
+        state: educationNotSeenState,
       });
 
       fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
@@ -517,7 +527,7 @@ describe('MoneyHomeView', () => {
 
     it('renders onboarding card with step 2 and link-card variant', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
+        state: educationNotSeenState,
       });
       expect(
         getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
@@ -617,7 +627,7 @@ describe('MoneyHomeView', () => {
 
     it('navigates to Card home when onboarding CTA is tapped by cardholder', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
+        state: educationNotSeenState,
       });
 
       fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
@@ -641,7 +651,7 @@ describe('MoneyHomeView', () => {
 
     it('renders onboarding card with step 1', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
+        state: educationNotSeenState,
       });
       expect(
         getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
@@ -685,7 +695,7 @@ describe('MoneyHomeView', () => {
       ['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON],
     ])('opens the Add money sheet from the %s button', (_label, testId) => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
+        state: educationNotSeenState,
       });
 
       fireEvent.press(getByTestId(testId));
@@ -955,7 +965,7 @@ describe('MoneyHomeView', () => {
       expect(renderCount - afterFlip).toBeLessThanOrEqual(1);
     });
 
-    it('always renders the footer when education has been seen, regardless of stepper position', () => {
+    it('always renders the footer and never the stepper when education has been seen', () => {
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,
         { state: educationSeenState },
@@ -963,17 +973,68 @@ describe('MoneyHomeView', () => {
 
       // Footer is mounted from the first render when education has been seen.
       expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+      // Stepper is gated on !hasSeenMusdConversionEducation, so it must not
+      // render at all once the user has completed/dismissed onboarding.
+      expect(
+        queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
 
-      // Even with the stepper fully visible the footer stays mounted.
-      const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
+      // Scroll events with the stepper absent must keep the footer visible.
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
       act(() => {
         fireScrollViewLayout(scrollView);
-        fireStepperLayout(onboarding, 100, 300);
         fireScroll(scrollView, 0);
       });
 
       expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('keeps the footer hidden when the stepper is below the viewport (off-screen, not yet scrolled to)', () => {
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+        { state: educationNotSeenState },
+      );
+
+      const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      // Simulate a tall scroll where the stepper sits below the visible
+      // viewport (y=900, height=300, viewport height=600). The user has not
+      // yet scrolled to the stepper, so the footer must stay hidden.
+      act(() => {
+        fireScrollViewLayout(scrollView);
+        fireStepperLayout(onboarding, 900, 300);
+        fireScroll(scrollView, 0);
+      });
+
+      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the footer hidden on initial layout while the stepper height is still 0', () => {
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+        { state: educationNotSeenState },
+      );
+
+      const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      // First onLayout reports an unmeasured (height=0) stepper. The footer
+      // must not flash into view before measurements settle.
+      act(() => {
+        fireScrollViewLayout(scrollView);
+        fireStepperLayout(onboarding, 0, 0);
+      });
+
+      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).not.toBeOnTheScreen();
+
+      // Once the stepper reports a real height the footer is still hidden
+      // because the user has not scrolled past it.
+      act(() => {
+        fireStepperLayout(onboarding, 100, 300);
+      });
+
+      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).not.toBeOnTheScreen();
     });
   });
 });

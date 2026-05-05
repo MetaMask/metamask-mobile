@@ -239,14 +239,25 @@ const MoneyHomeView = () => {
   const computeStepperVisibility = useCallback(() => {
     const stepperLayout = stepperLayoutRef.current;
     const scrollViewHeight = scrollViewHeightRef.current;
-    if (!stepperLayout || scrollViewHeight === 0) {
+    // Treat a missing layout, an unmeasured (height === 0) stepper, or a
+    // not-yet-laid-out scroll view as "stepper still considered visible" so the
+    // footer stays hidden until measurements settle. This avoids a flash of
+    // "Add money" before the stepper's onLayout reports a real height.
+    if (
+      !stepperLayout ||
+      stepperLayout.height === 0 ||
+      scrollViewHeight === 0
+    ) {
       return true;
     }
-    const stepperTop = stepperLayout.y;
+    // The footer should only peek in once the user has scrolled past the
+    // stepper's bottom edge. While the stepper is anywhere on screen — or
+    // still below the fold and reachable by scrolling — the footer stays
+    // hidden. This matches the AC ("scrolling past the stepper triggers the
+    // peek animation").
     const stepperBottom = stepperLayout.y + stepperLayout.height;
-    const viewportTop = scrollOffsetYRef.current;
-    const viewportBottom = viewportTop + scrollViewHeight;
-    return stepperBottom > viewportTop && stepperTop < viewportBottom;
+    const isUserPastStepper = scrollOffsetYRef.current > stepperBottom;
+    return !isUserPastStepper;
   }, []);
 
   const updateStepperVisibility = useCallback(() => {
@@ -390,13 +401,15 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        <Box onLayout={handleStepperLayout}>
-          <MoneyOnboardingCard
-            currentStep={isMilestone ? 2 : 1}
-            variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
-            onCtaPress={handleOnboardingCtaPress}
-          />
-        </Box>
+        {!hasSeenMusdConversionEducation && (
+          <Box onLayout={handleStepperLayout}>
+            <MoneyOnboardingCard
+              currentStep={isMilestone ? 2 : 1}
+              variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
+              onCtaPress={handleOnboardingCtaPress}
+            />
+          </Box>
+        )}
         <Divider />
         <MoneyEarnings
           lifetimeEarnings={formattedZero}
