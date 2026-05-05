@@ -123,20 +123,22 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             </Text>
           )}
 
-          {/* Tokens section */}
-          {item.relatedAssets.length > 0 && (
+          {/* Tokens section — only assets with a purchasable CAIP-19 identifier */}
+          {item.relatedAssets.some((asset) => asset.caip19?.length) && (
             <Box gap={1}>
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                Tokens
+                {strings('homepage.sections.tokens')}
               </Text>
 
-              {item.relatedAssets.map((asset) => (
-                <TokenRow key={asset.sourceAssetId} asset={asset} />
-              ))}
+              {item.relatedAssets
+                .filter((asset) => asset.caip19?.length)
+                .map((asset) => (
+                  <TokenRow key={asset.sourceAssetId} asset={asset} />
+                ))}
             </Box>
           )}
 
