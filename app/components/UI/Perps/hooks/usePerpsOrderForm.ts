@@ -184,17 +184,6 @@ export function usePerpsOrderForm(
   const maxPossibleAmount = useMemo(() => {
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const priceForCalc = marketPrice;
-    // eslint-disable-next-line no-console
-    console.debug(
-      '[PR-29748] BUG_MARKER: maxPossibleAmount uses market price even for limit orders',
-      JSON.stringify({
-        orderType: orderForm.type,
-        limitPrice: orderForm.limitPrice,
-        marketPrice,
-        priceForCalc,
-        leverage: orderForm.leverage,
-      }),
-    );
     return getMaxAllowedAmount({
       availableBalance: balanceForMax,
       assetPrice: priceForCalc,
@@ -206,8 +195,6 @@ export function usePerpsOrderForm(
     currentPrice?.price,
     marketData?.szDecimals,
     orderForm.leverage, // Include current leverage in dependencies
-    orderForm.type,
-    orderForm.limitPrice,
   ]);
 
   // Update amount only once when the hook first calculates the initial value
