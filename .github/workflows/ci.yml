@@ -483,6 +483,24 @@ jobs:
           android-api-level: 36
           target: qa
 
+      - name: Restore Gradle dependencies
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        env:
+          GRADLE_LINT_CACHE_VERSION: 1
+        with:
+          path: |
+            /home/admin/_work/.gradle/caches
+            /home/admin/_work/.gradle/wrapper
+          key: android-lint-gradle-${{ env.GRADLE_LINT_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios
+
       - name: Run Android lint (prodRelease)
         working-directory: android
         env:
