@@ -533,7 +533,7 @@ jobs:
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: --max_old_space_size=20480
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max_old_space_size=12288' || '--max_old_space_size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -736,7 +736,7 @@ jobs:
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: --max-old-space-size=20480
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
