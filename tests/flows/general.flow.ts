@@ -57,8 +57,12 @@ export const dismissDevScreens = async (): Promise<void> => {
     await Gestures.tap(fastRefreshButton, {
       elemDescription: 'Dev Menu Fast Refresh Button',
     });
-  } catch {
-    logger.error('Dev screens dismiss error');
+  } catch (error) {
+    logger.debug(
+      `Dev screens were not dismissed (best effort): ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 };
 
@@ -105,8 +109,12 @@ export const dismissDevScreensPlaywright = async (): Promise<void> => {
       description: 'Dev Menu Fast Refresh Button should be visible',
     });
     await PlaywrightGestures.waitAndTap(fastRefreshButton);
-  } catch {
-    logger.error('Dev screens dismiss error');
+  } catch (error) {
+    logger.debug(
+      `Playwright dev screens were not dismissed (best effort): ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 };
 

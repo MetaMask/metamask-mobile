@@ -12,10 +12,12 @@ import Utilities from './Utilities';
 import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'child_process';
-import { CurrentDeviceDetails } from './fixture';
+import type { CurrentDeviceDetails } from './fixture';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
+
+type AndroidIntentExtra = ['s', string, string];
 
 /**
  * Get the driver instance.
@@ -270,29 +272,28 @@ class PlaywrightUtilities {
   }
 
   /**
-   * Builds `optionalIntentArguments` for Android `am start` from {@link LaunchArgs}.
-   * Each defined string value is passed as a string extra (`--es`) using the same keys
-   * as Detox `launchArgs` / `react-native-launch-arguments`.
+   * Builds Android string intent extras from {@link LaunchArgs}.
+   * Each defined string value is passed as a string extra (`--es`) using the
+   * same keys as Detox `launchArgs` / `react-native-launch-arguments`.
    */
-  private static buildAndroidOptionalIntentArguments(
+  private static buildAndroidIntentExtras(
     { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
       launchArgs: {} as Partial<LaunchArgs>,
     },
-  ): string | undefined {
+  ): AndroidIntentExtra[] {
     const resolved = PlaywrightUtilities.buildResolvedLaunchArgs({
       launchArgs,
     });
 
-    const segments: string[] = [];
+    const extras: AndroidIntentExtra[] = [];
     for (const [key, value] of Object.entries(resolved)) {
       if (value === undefined || value === '') {
         continue;
       }
-      const escaped = String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-      segments.push(`--es ${key} "${escaped}"`);
+      extras.push(['s', key, String(value)]);
     }
 
-    return segments.length > 0 ? segments.join(' ') : undefined;
+    return extras;
   }
 
   /**
@@ -340,16 +341,17 @@ class PlaywrightUtilities {
       );
     }
 
-    const optionalIntentArguments =
-      PlaywrightUtilities.buildAndroidOptionalIntentArguments({
-        launchArgs,
-      });
+    const extras = PlaywrightUtilities.buildAndroidIntentExtras({
+      launchArgs,
+    });
+
     await drv.execute('mobile: startActivity', {
-      appPackage: pkg,
-      appActivity: activity,
-      ...(optionalIntentArguments !== undefined
-        ? { optionalIntentArguments }
-        : {}),
+      component: `${pkg}/${activity}`,
+      action: 'android.intent.action.MAIN',
+      categories: ['android.intent.category.LAUNCHER'],
+      stop: true,
+      wait: true,
+      ...(extras.length > 0 ? { extras } : {}),
     });
   }
 
@@ -402,6 +404,7 @@ class PlaywrightUtilities {
     if (!currentDeviceDetails?.packageName && !currentDeviceDetails?.appId) {
       throw new Error('Package name or app id is not available');
     }
+
     if (currentDeviceDetails.platform === 'android') {
       await this.launchAppAndroid(currentDeviceDetails, {
         launchArgs,

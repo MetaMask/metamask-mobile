@@ -67,6 +67,7 @@ import {
 } from '../../websocket/account-activity-mocks';
 import { FrameworkDetector } from '../FrameworkDetector';
 import PlaywrightUtilities from '../PlaywrightUtilities';
+import { DeviceCommandHandler } from '../services/device-commands';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -523,6 +524,10 @@ export async function withFixtures(
     analyticsExpectations,
     currentDeviceDetails,
   } = options;
+  const deviceCommands =
+    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
+      ? new DeviceCommandHandler({ currentDeviceDetails, logger })
+      : undefined;
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
@@ -655,19 +660,36 @@ export async function withFixtures(
           throw new Error('currentDeviceDetails is not available');
         }
         const testArgs = {
-          fixtureServerPort: `${getFixturesServerPort()}`,
-          commandQueueServerPort: `${commandQueueServer.getServerPort()}`,
+          fixtureServerPort: isAndroid
+            ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+            : `${getFixturesServerPort()}`,
+          commandQueueServerPort: isAndroid
+            ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+            : `${commandQueueServer.getServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-          mockServerPort: `${mockServerPort}`,
-          [ACCOUNT_ACTIVITY_WS.launchArgKey]: `${accountActivityWsServer.getServerPort()}`,
+          mockServerPort: isAndroid
+            ? `${FALLBACK_MOCKSERVER_PORT}`
+            : `${mockServerPort}`,
+          [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+            ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+            : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
         };
-        console.log('currentDeviceDetails', currentDeviceDetails);
-        console.log('args', testArgs);
 
-        await PlaywrightUtilities.launchApp(currentDeviceDetails, {
-          launchArgs: testArgs,
-        });
+        if (deviceCommands) {
+          await deviceCommands.clearAppData();
+        }
+
+        const appStateRequest = fixtureServer.waitForNextStateRequest();
+        try {
+          await PlaywrightUtilities.launchApp(currentDeviceDetails, {
+            launchArgs: testArgs,
+          });
+          await appStateRequest;
+        } catch (error) {
+          appStateRequest.catch(() => undefined);
+          throw error;
+        }
       } else {
         throw new Error(`Unsupported test runner: ${framework}`);
       }
@@ -687,6 +709,7 @@ export async function withFixtures(
       mockServer: mockServerInstance.server,
       localNodes,
       commandQueueServer,
+      deviceCommands,
     });
   } catch (error) {
     testError = error as Error;

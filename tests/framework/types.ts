@@ -31,6 +31,7 @@ import FixtureBuilder from './fixtures/FixtureBuilder.ts';
 import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 import { CurrentDeviceDetails } from './fixture/index';
+import type { PlatformDeviceCommandHandler } from './services/device-commands/types';
 
 /*
  * WDIO PLAYWRIGHT TESTS
@@ -316,6 +317,7 @@ export interface TestSuiteParams {
   mockServer: Mockttp;
   localNodes?: LocalNode[];
   commandQueueServer?: CommandQueueServer;
+  deviceCommands?: PlatformDeviceCommandHandler;
 }
 
 /**
