@@ -7993,7 +7993,7 @@
     },
     "cashback_screen": {
       "title": "mUSD Back",
-      "available_cashback": "Available mUSD back",
+      "available_cashback": "Available mUSD",
       "network_fee": "Network fee",
       "expected_to_receive": "Expected to receive",
       "withdraw": "Withdraw",
