@@ -353,8 +353,6 @@ describeForPlatforms('BridgeView', () => {
         .withOverrides({
           bridge: {
             sourceToken: ETH_SOURCE,
-            popularTokensCache: {},
-            lastCleanupTime: 0,
           },
           engine: {
             backgroundState: {

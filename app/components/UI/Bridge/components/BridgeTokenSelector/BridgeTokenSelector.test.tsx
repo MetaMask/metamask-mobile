@@ -37,6 +37,9 @@ const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
   configureStore({
     reducer: {
       user: () => ({ appTheme: 'light' }),
+      settings: () => ({
+        basicFunctionalityEnabled: true,
+      }),
       engine: () => ({
         backgroundState: {
           NetworkController: {
@@ -176,6 +179,12 @@ jest.mock('../../hooks/usePopularTokens', () => ({
   usePopularTokens: (params: unknown) => mockUsePopularTokens(params),
 }));
 
+const mockUseInitialBridgeTokens = jest.fn((_: unknown) => ({}));
+jest.mock('../../hooks/useInitialBridgeTokens', () => ({
+  useInitialBridgeTokens: (params: unknown) =>
+    mockUseInitialBridgeTokens(params),
+}));
+
 const mockSearchTokens = jest.fn();
 const mockDebouncedSearch = Object.assign(jest.fn(), { cancel: jest.fn() });
 const mockResetSearch = jest.fn();
@@ -245,6 +254,9 @@ jest.mock('../../../../../core/Engine', () => ({
       BridgeController: {
         trackUnifiedSwapBridgeEvent: (...args: unknown[]) =>
           mockTrackEvent(...args),
+      },
+      AuthenticationController: {
+        getBearerToken: jest.fn().mockResolvedValue('bearer-token'),
       },
     },
   },
@@ -724,16 +736,10 @@ describe('BridgeTokenSelector', () => {
         renderWithReduxProvider(<BridgeTokenSelector />);
 
         await waitFor(() => {
-          expect(mockUseBalancesByAssetId).toHaveBeenCalledWith(
-            expect.objectContaining({
-              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
-            }),
-          );
-          expect(mockUsePopularTokens).toHaveBeenCalledWith(
-            expect.objectContaining({
-              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
-            }),
-          );
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
+            MOCK_CHAIN_IDS.ethereum,
+            MOCK_CHAIN_IDS.polygon,
+          ]);
           expect(mockUseSearchTokens).toHaveBeenCalledWith(
             expect.objectContaining({
               chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
@@ -750,16 +756,9 @@ describe('BridgeTokenSelector', () => {
       renderWithReduxProvider(<BridgeTokenSelector />);
 
       await waitFor(() => {
-        expect(mockUseBalancesByAssetId).toHaveBeenCalledWith(
-          expect.objectContaining({
-            chainIds: [MOCK_CHAIN_IDS.polygon],
-          }),
-        );
-        expect(mockUsePopularTokens).toHaveBeenCalledWith(
-          expect.objectContaining({
-            chainIds: [MOCK_CHAIN_IDS.polygon],
-          }),
-        );
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
+          MOCK_CHAIN_IDS.polygon,
+        ]);
       });
     });
   });
@@ -811,11 +810,9 @@ describe('BridgeTokenSelector', () => {
       expect(mockResetSearch).toHaveBeenCalled();
 
       await waitFor(() => {
-        expect(mockUsePopularTokens).toHaveBeenCalledWith(
-          expect.objectContaining({
-            chainIds: [MOCK_CHAIN_IDS.polygon],
-          }),
-        );
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
+          MOCK_CHAIN_IDS.polygon,
+        ]);
         expect(mockUseSearchTokens).toHaveBeenCalledWith(
           expect.objectContaining({
             chainIds: [MOCK_CHAIN_IDS.polygon],

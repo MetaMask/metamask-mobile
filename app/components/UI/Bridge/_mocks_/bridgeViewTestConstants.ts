@@ -29,6 +29,4 @@ export const DEFAULT_BRIDGE = {
   sourceAmount: '1',
   sourceToken: ETH_SOURCE,
   destToken: USDC_DEST,
-  popularTokensCache: {},
-  lastCleanupTime: 0,
 } as const;

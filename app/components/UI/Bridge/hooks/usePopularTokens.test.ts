@@ -54,10 +54,14 @@ describe('usePopularTokens', () => {
     it('uses includeAssets as a placeholder when fetchTokens is loading', async () => {
       jest.useFakeTimers();
 
-      const fetchTokensMock = jest.fn().mockImplementationOnce(
-        () =>
-          new Promise((resolve) => setTimeout(() => resolve(mockPopularTokens), 10000)),
-      );
+      const fetchTokensMock = jest
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve(mockPopularTokens), 10000),
+            ),
+        );
 
       const mockIncludeAssets = [createMockIncludeAsset()];
 

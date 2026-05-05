@@ -53,10 +53,7 @@ import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import {
-  type BridgeToken,
-  TokenSelectorType,
-} from '../../types';
+import { type BridgeToken, TokenSelectorType } from '../../types';
 import { usePopularTokens } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
