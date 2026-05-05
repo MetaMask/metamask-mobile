@@ -36,6 +36,13 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+jest.mock('../../../../SimulationDetails/FiatDisplay/useFiatFormatter', () =>
+  jest.fn(
+    () => (value: { toNumber: () => number }) =>
+      `$${value.toNumber().toLocaleString('en-US')}`,
+  ),
+);
+
 jest.mock('../../../../../../core/DeeplinkManager', () => ({
   handleDeeplink: jest.fn(),
 }));
@@ -68,16 +75,16 @@ describe('MusdCalculatorTab', () => {
   it('renders calculator layout and controls', () => {
     const { getByText, getByTestId } = render(<MusdCalculatorTab />);
 
-    expect(getByText('rewards.musd.hero_hold')).toBeTruthy();
-    expect(getByText('rewards.musd.hero_earn')).toBeTruthy();
-    expect(getByText('rewards.musd.slider_amount_label')).toBeTruthy();
-    expect(getByText('rewards.musd.disclaimer_calculator')).toBeTruthy();
-    expect(getByText('rewards.musd.scale_min')).toBeTruthy();
-    expect(getByText('rewards.musd.scale_mid')).toBeTruthy();
-    expect(getByText('rewards.musd.scale_max')).toBeTruthy();
-    expect(getByText('rewards.musd.buy_button')).toBeTruthy();
-    expect(getByText('rewards.musd.swap_button')).toBeTruthy();
-    expect(getByTestId('musd-slider-track')).toBeTruthy();
+    expect(getByText('rewards.musd.hero_hold')).toBeOnTheScreen();
+    expect(getByText('rewards.musd.hero_earn')).toBeOnTheScreen();
+    expect(getByText('rewards.musd.slider_amount_label')).toBeOnTheScreen();
+    expect(getByText('rewards.musd.disclaimer_calculator')).toBeOnTheScreen();
+    expect(getByTestId('musd-slider-scale-min')).toHaveTextContent('$100');
+    expect(getByTestId('musd-slider-scale-mid')).toHaveTextContent('$1,000');
+    expect(getByTestId('musd-slider-scale-max')).toHaveTextContent('$10,000');
+    expect(getByText('rewards.musd.buy_button')).toBeOnTheScreen();
+    expect(getByText('rewards.musd.swap_button')).toBeOnTheScreen();
+    expect(getByTestId('musd-slider-track')).toBeOnTheScreen();
   });
 
   it('calls handleDeeplink and tracks buy_musd event when Buy button is pressed', () => {

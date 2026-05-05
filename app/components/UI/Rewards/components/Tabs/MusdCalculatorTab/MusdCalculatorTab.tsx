@@ -50,6 +50,7 @@ import {
   clampAmount,
   MUSD_CALCULATOR_APY,
   percentToAmount,
+  SNAP_POINTS,
 } from '../../../utils/musdCalculatorSlider';
 import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 
@@ -91,6 +92,19 @@ const MusdCalculatorTab: React.FC = () => {
   const formatCurrency = useCallback(
     (value: number) => formatFiat(new BigNumber(value)),
     [formatFiat],
+  );
+
+  const scaleMinLabel = useMemo(
+    () => formatCurrency(SNAP_POINTS[0]),
+    [formatCurrency],
+  );
+  const scaleMidLabel = useMemo(
+    () => formatCurrency(SNAP_POINTS[1]),
+    [formatCurrency],
+  );
+  const scaleMaxLabel = useMemo(
+    () => formatCurrency(SNAP_POINTS[2]),
+    [formatCurrency],
   );
 
   const yearlyEarnings = useMemo(() => amount * MUSD_CALCULATOR_APY, [amount]);
@@ -330,8 +344,9 @@ const MusdCalculatorTab: React.FC = () => {
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}
+                  testID="musd-slider-scale-min"
                 >
-                  {strings('rewards.musd.scale_min')}
+                  {scaleMinLabel}
                 </Text>
               </Box>
               <Box twClassName="min-w-[72px] flex-1 items-center">
@@ -339,8 +354,9 @@ const MusdCalculatorTab: React.FC = () => {
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}
+                  testID="musd-slider-scale-mid"
                 >
-                  {strings('rewards.musd.scale_mid')}
+                  {scaleMidLabel}
                 </Text>
               </Box>
               <Box twClassName="min-w-[72px] flex-1 items-end">
@@ -348,8 +364,9 @@ const MusdCalculatorTab: React.FC = () => {
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}
+                  testID="musd-slider-scale-max"
                 >
-                  {strings('rewards.musd.scale_max')}
+                  {scaleMaxLabel}
                 </Text>
               </Box>
             </Box>

@@ -8407,9 +8407,6 @@
       "earnings_per_month_suffix": "/mo",
       "earnings_per_day_suffix": "/day",
       "slider_amount_label": "Amount",
-      "scale_min": "$100",
-      "scale_mid": "$1,000",
-      "scale_max": "$10,000",
       "disclaimer_calculator": "Calculation based on 3% APY. Bonus rate may change. Paid daily, claimable any time.",
       "buy_button": "Buy mUSD",
       "swap_button": "Swap to mUSD"
