@@ -394,24 +394,11 @@ const PriceAdvanced = ({
   }, [shouldFallbackToLegacy]);
 
   useEffect(() => {
-    const cleanup = () => {
-      const open = activeVisibilityTraceRef.current;
-      if (open) {
-        endTrace({
-          name: open.traceName,
-          id: open.seriesKey,
-          data: { unmounted: true },
-        });
-        activeVisibilityTraceRef.current = null;
-        visibilityTraceStartedRef.current = null;
-      }
-    };
-
     if (shouldFallbackToLegacyRef.current) {
-      return cleanup;
+      return;
     }
     if (visibilityTraceStartedRef.current === ohlcvSeriesKey) {
-      return cleanup;
+      return;
     }
 
     const previousSeriesId = visibilityTraceStartedRef.current;
@@ -444,9 +431,23 @@ const PriceAdvanced = ({
         ? { data: { assetId: currentAssetId } }
         : {}),
     });
-
-    return cleanup;
   }, [ohlcvSeriesKey]);
+
+  useEffect(
+    () => () => {
+      const open = activeVisibilityTraceRef.current;
+      if (open) {
+        endTrace({
+          name: open.traceName,
+          id: open.seriesKey,
+          data: { unmounted: true },
+        });
+        activeVisibilityTraceRef.current = null;
+        visibilityTraceStartedRef.current = null;
+      }
+    },
+    [],
+  );
 
   if (shouldFallbackToLegacy) {
     return (
