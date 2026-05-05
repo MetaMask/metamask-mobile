@@ -1,5 +1,6 @@
 // Third party dependencies
 import React, { useRef } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 
 // External dependencies
 import BottomSheet, {
@@ -12,7 +13,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Text, {
   TextColor,
   TextVariant,
@@ -47,7 +47,7 @@ const ShowDisplayNftMediaSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('show_display_nft_media.show_display_nft_media_title')}
         onClose={onCancel}
       />

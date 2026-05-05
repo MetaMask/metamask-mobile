@@ -1,5 +1,10 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { HeaderStandard ,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -7,7 +12,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
@@ -38,11 +42,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
 import OldButton, {
   ButtonVariants,
   ButtonSize as OldButtonSize,
@@ -353,7 +352,7 @@ const Settings: React.FC = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.security_title')}
         onBack={() => navigation.goBack()}
         includesTopInset

@@ -7,6 +7,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -30,7 +31,6 @@ import Animated, {
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Engine from '../../../core/Engine';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -354,7 +354,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             animatedStyle,
           ]}
         >
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('accounts.accounts_title')}
             onBack={closeModal}
             backButtonProps={{
@@ -380,7 +380,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               },
             ]}
           >
-            <HeaderCompactStandard
+            <HeaderStandard
               title={
                 screen === AccountSelectorScreens.AddAccountActions
                   ? strings('account_actions.add_account')

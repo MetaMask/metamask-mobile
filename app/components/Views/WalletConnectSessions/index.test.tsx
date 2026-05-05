@@ -94,7 +94,7 @@ describe('WalletConnectSessions', () => {
     });
   });
 
-  it('renders inline HeaderCompactStandard with title and back button', async () => {
+  it('renders inline HeaderStandard with title and back button', async () => {
     mockGetSessions.mockReturnValue([]);
 
     const { getByTestId, getByText } = renderScreen(WalletConnectSessions, {

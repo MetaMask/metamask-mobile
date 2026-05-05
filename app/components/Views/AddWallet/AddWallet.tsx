@@ -8,6 +8,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -24,8 +25,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { AddWalletTestIds } from './AddWallet.testIds';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-
 interface ActionConfig {
   analyticsEvent: IMetaMetricsEvent;
   description: string;
@@ -87,7 +86,7 @@ const AddWallet = () => {
   return (
     <SafeAreaView style={tw`flex-1 bg-default`} edges={['top', 'bottom']}>
       <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
-        <HeaderCompactStandard
+        <HeaderStandard
           backButtonProps={{
             accessibilityLabel: strings('navigation.back'),
             onPress: handleBack,

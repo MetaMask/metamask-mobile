@@ -5,6 +5,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -17,7 +18,6 @@ import React, { ReactNode, useEffect } from 'react';
 import { Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../../component-library/components-temp/TitleStandard';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -187,7 +187,7 @@ const SelectHardwareWallet = () => {
         backgroundColor: colors.background.default,
       })}
     >
-      <HeaderCompactStandard includesTopInset onBack={navigation.goBack} />
+      <HeaderStandard includesTopInset onBack={navigation.goBack} />
       <TitleStandard
         title={strings('connect_hardware.title_select_hardware')}
         twClassName="px-4 pb-6"

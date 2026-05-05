@@ -54,7 +54,7 @@ describe('SimpleWebview', () => {
     expect(getHeaderCompactStandardNavbarOptions).toHaveBeenCalled();
   });
 
-  it('sets header options from HeaderCompactStandard and Device.isAndroid() for includesTopInset', () => {
+  it('sets header options from getHeaderCompactStandardNavbarOptions (MMDS HeaderStandard) and Device.isAndroid() for includesTopInset', () => {
     render(<SimpleWebview />);
 
     expect(getHeaderCompactStandardNavbarOptions).toHaveBeenCalledWith(

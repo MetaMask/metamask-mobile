@@ -427,7 +427,7 @@ describe('ActivityView', () => {
       expect(getByText('Activity')).toBeOnTheScreen();
     });
 
-    it('renders HeaderCompactStandard with back button when showBackButton is true', () => {
+    it('renders HeaderStandard with back button when showBackButton is true', () => {
       mockRoute.params = { showBackButton: true };
 
       const { getByTestId } = renderComponent(mockInitialState);
@@ -446,7 +446,7 @@ describe('ActivityView', () => {
       expect(queryByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT)).toBeNull();
     });
 
-    it('does not render HeaderCompactStandard when showBackButton is false', () => {
+    it('does not render HeaderStandard when showBackButton is false', () => {
       mockRoute.params = { showBackButton: false };
 
       const { queryByTestId } = renderComponent(mockInitialState);

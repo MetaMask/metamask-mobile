@@ -1,4 +1,9 @@
 import React, { useCallback } from 'react';
+import { HeaderStandard ,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,11 +15,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
-import {
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { selectPerformanceMetrics } from '../../../../core/redux/slices/performance';
 import { useDispatch, useSelector } from 'react-redux';
@@ -31,7 +31,6 @@ import {
   setIsDaimoDemo,
 } from '../../../../core/redux/slices/card';
 import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 
 /**
@@ -156,7 +155,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
   );
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.experimental_title')}
         onBack={handleBack}
         backButtonProps={{

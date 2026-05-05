@@ -26,6 +26,7 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   IconName,
   IconColor,
   Text,
@@ -35,7 +36,6 @@ import {
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
   ToastContext,
@@ -241,7 +241,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,

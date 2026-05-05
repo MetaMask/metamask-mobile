@@ -10,9 +10,8 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
@@ -188,7 +187,7 @@ const ActivityView = () => {
         testID={ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW}
       >
         {showBackButton ? (
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('activity_view.title')}
             onBack={handleBackPress}
             backButtonProps={{ testID: 'activity-view-back-button' }}
