@@ -427,7 +427,7 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   it('navigates back when back button is pressed', () => {
     const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-    fireEvent.press(getByTestId('header-back-button'));
+    fireEvent.press(getByTestId('ondo-rwa-selector-header-back-button'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
