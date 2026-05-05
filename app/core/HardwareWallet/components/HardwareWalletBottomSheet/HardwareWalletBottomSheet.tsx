@@ -13,7 +13,10 @@ import {
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { isQRHardwareScanError } from '../../errors';
+import {
+  isQRHardwareScanError,
+  type QRHardwareScanErrorMetadata,
+} from '../../errors';
 
 import {
   ConnectingContent,
@@ -139,8 +142,10 @@ export const HardwareWalletBottomSheet: React.FC<
       connectionState.status === ConnectionStatus.ErrorState &&
       isQRHardwareScanError(connectionState.error)
     ) {
+      const qrErrorMetadata = connectionState.error
+        .metadata as QRHardwareScanErrorMetadata;
       setOpenQrScannerOnMount(
-        connectionState.error.metadata.qrScanPurpose === QrScanRequestType.SIGN,
+        qrErrorMetadata.qrScanPurpose === QrScanRequestType.SIGN,
       );
       onRetryQrScan?.();
       return;

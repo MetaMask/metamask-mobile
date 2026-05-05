@@ -483,6 +483,48 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
+    it('resumes scanning when external QR hardware error callback keeps modal open', async () => {
+      const validDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 1),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => true),
+        resultError: jest.fn(),
+        resultUR: jest.fn(() => ({
+          type: SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
+          cbor: Buffer.from([]),
+        })),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => validDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Scanned QR code is not in UR format',
+        }),
+      );
+
+      await mockOnCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
+
+      await waitFor(() => {
+        expect(mockOnScanSuccess).toHaveBeenCalledWith({
+          type: SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
+          cbor: Buffer.from([]),
+        });
+      });
+    });
+
     it('resumes scanning after forwarding an existing inline error to an external callback', async () => {
       const validDecoderInstance = {
         receivePart: jest.fn(),
