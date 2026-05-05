@@ -20,7 +20,22 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const resetMockKeyrings = () => {
+  jest.requireMock(
+    '../../../core/Engine',
+  ).context.KeyringController.state.keyrings = [
+    {
+      type: 'HD Key Tree',
+      accounts: ['0x935e73edb9ff52e23bac7f7e043a1ecd06d05477'],
+    },
+  ];
+};
+
 describe('useIsConfirmationFromQrAccount', () => {
+  beforeEach(() => {
+    resetMockKeyrings();
+  });
+
   it('returns false when from address belongs to a non-QR keyring', () => {
     const { result } = renderHookWithProvider(
       () => useIsConfirmationFromQrAccount(),
