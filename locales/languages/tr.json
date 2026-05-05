@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Para mevcut değil. Farklı bir hesap kullanın."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Cüzdan desteklenmiyor",
       "message": "Donanım cüzdanları desteklenmiyor.\nDevam etmek için cüzdan değiştirin."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Fon ekle",
       "perps_withdraw": "Çek",
       "predict_deposit": "Tahmin fonu ekle",
-      "predict_withdraw": "Çek",
-      "money_account_deposit": "Fon ekle",
-      "money_account_withdraw": "Para çek"
+      "predict_withdraw": "Çek"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",

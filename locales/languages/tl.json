@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Walang available na mga pondo. Gumamit ng ibang account."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Hindi sinusuportahan ang wallet",
       "message": "Hindi pa sinusuportahan ang mga wallet na hardware.\nMagpalit ng wallet para magpatuloy."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Magdagdag ng pondo",
       "perps_withdraw": "Mag-withdraw",
       "predict_deposit": "Magdagdag ng mga pondo para sa Prediksyon",
-      "predict_withdraw": "Mag-withdraw",
-      "money_account_deposit": "Magdagdag ng pondo",
-      "money_account_withdraw": "I-withdraw ang mga pondo"
+      "predict_withdraw": "Mag-withdraw"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",

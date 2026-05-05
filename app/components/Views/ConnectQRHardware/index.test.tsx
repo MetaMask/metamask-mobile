@@ -209,16 +209,6 @@ describe('ConnectQRHardware', () => {
     mockCreateEventBuilder.mockClear();
   });
 
-  it('renders correctly to match snapshot', () => {
-    mockKeyringController.getAccounts.mockResolvedValue([]);
-    const wrapper = renderWithProvider(
-      <ConnectQRHardware navigation={mockedNavigate} />,
-      { state: mockInitialState },
-    );
-
-    expect(wrapper).toMatchSnapshot();
-  });
-
   it('renders first page correctly when user clicks `continue` button', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 

@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "No hay fondos disponibles. Usa otra cuenta."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Billetera no admitida",
       "message": "Las billeteras físicas no son compatibles.\nCambia de billetera para continuar."
     },
@@ -6917,9 +6917,7 @@
       "perps_deposit": "Agregar fondos",
       "perps_withdraw": "Retirar",
       "predict_deposit": "Añadir fondos de Predicciones",
-      "predict_withdraw": "Retirar",
-      "money_account_deposit": "Agregar fondos",
-      "money_account_withdraw": "Retirar fondos"
+      "predict_withdraw": "Retirar"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",

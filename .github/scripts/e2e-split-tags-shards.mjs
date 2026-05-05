@@ -108,9 +108,9 @@ async function shouldSkipFlakinessDetection() {
     );
 
     const labels = data?.repository?.pullRequest?.labels?.nodes || [];
-    const labelFound = labels.some((l) => String(l?.name).toLowerCase() === 'skip-e2e-quality-gate');
+    const labelFound = labels.some((l) => String(l?.name).toLowerCase() === 'skip-e2e-flakiness-detection');
     if (labelFound) {
-      console.log('⏭️  Found "skip-e2e-quality-gate" label → SKIPPING flakiness detection');
+      console.log('⏭️  Found "skip-e2e-flakiness-detection" label → SKIPPING flakiness detection');
     }
     return labelFound;
   } catch (e) {

@@ -3,7 +3,10 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isQRHardwareAccount,
+} from '../../../../../util/address';
 import {
   TransactionMeta,
   TransactionType,
@@ -64,6 +67,8 @@ export function useAutomaticTransactionPayToken({
     [from],
   );
 
+  const isQRWallet = useMemo(() => isQRHardwareAccount(from ?? ''), [from]);
+
   const targetToken = useMemo(
     () => requiredTokens.find((token) => !token.allowUnderMinimum),
     [requiredTokens],
@@ -104,6 +109,7 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
+        isQRWallet,
         isMoneyAccountWithdraw,
         isWithdraw,
         lastWithdrawToken,
@@ -112,9 +118,11 @@ export function useAutomaticTransactionPayToken({
         preferredToken,
         preferredTokensFromFlags,
         minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
+        transactionMeta,
       }),
     [
       isHardwareWallet,
+      isQRWallet,
       isMoneyAccountWithdraw,
       isWithdraw,
       lastWithdrawToken,
@@ -123,6 +131,7 @@ export function useAutomaticTransactionPayToken({
       preferredTokensFromFlags,
       targetToken,
       tokens,
+      transactionMeta,
     ],
   );
 
@@ -186,6 +195,7 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
+  isQRWallet,
   isMoneyAccountWithdraw,
   isWithdraw,
   lastWithdrawToken,
@@ -194,8 +204,10 @@ function getBestToken({
   minimumRequiredTokenBalance,
   targetToken,
   tokens,
+  transactionMeta,
 }: {
   isHardwareWallet: boolean;
+  isQRWallet: boolean;
   isMoneyAccountWithdraw: boolean;
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
@@ -204,7 +216,12 @@ function getBestToken({
   minimumRequiredTokenBalance: number;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
+  transactionMeta: TransactionMeta;
 }): { address: Hex; chainId: Hex } | undefined {
+  const isMusdConversion = hasTransactionType(transactionMeta, [
+    TransactionType.musdConversion,
+  ]);
+
   const targetTokenFallback = targetToken
     ? {
         address: targetToken.address,
@@ -212,7 +229,7 @@ function getBestToken({
       }
     : undefined;
 
-  if (isHardwareWallet) {
+  if (isHardwareWallet && (!isMusdConversion || isQRWallet)) {
     return targetTokenFallback;
   }
 
