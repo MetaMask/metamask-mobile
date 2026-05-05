@@ -175,6 +175,11 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Verify PR_TOKEN
+        env:
+          PR_TOKEN: ${{ secrets.PR_TOKEN }}
+        run: echo "PR_TOKEN length=${#PR_TOKEN}"
+
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.PR_TOKEN || github.token }}
