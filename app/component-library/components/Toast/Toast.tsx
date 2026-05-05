@@ -291,11 +291,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   }
 
   return (
-    <Animated.View
-      testID={ToastSelectorsIDs.ROW}
-      onLayout={onAnimatedViewLayout}
-      style={baseStyle}
-    >
+    <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
       {renderToastContent(toastOptions)}
     </Animated.View>
   );
