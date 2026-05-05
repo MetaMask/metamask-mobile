@@ -15,6 +15,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
+- [BigInt number migration](./docs/bigint-migration-guide.md) (deprecated `app/util/number/index.js` burndown and ESLint allowlist)
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)

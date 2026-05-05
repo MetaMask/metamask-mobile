@@ -58,7 +58,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
@@ -222,10 +222,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={hasExtraBottomPadding && styles.extraBottomPadding}
         >
           <AlertMessage alertMessage={alertMessage} />
-          {supportAccountSelection && <PayAccountSelector />}
-          {!isResultReady && disablePay !== true && hasTokens && <PayWithRow />}
+          {!isResultReady && (
+            <>
+              {supportAccountSelection && (
+                <PayAccountSelector style={styles.separator} />
+              )}
+              {disablePay !== true && hasTokens && <PayWithRow />}
+            </>
+          )}
           {isResultReady && (
             <Box>
+              {supportAccountSelection && <PayAccountSelector />}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
@@ -357,7 +364,7 @@ function ConfirmButton({
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const isLoading = useIsTransactionPayLoading();
-  const { onConfirm } = useTransactionConfirm();
+  const { onConfirm } = useConfirmActions();
   const disabled = hasBlockingAlerts || isLoading || Boolean(disableConfirm);
   const buttonLabel = useButtonLabel();
 

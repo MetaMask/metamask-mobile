@@ -196,3 +196,6 @@ runway-artifacts/
 release-test-plan.json
 release-delta.json
 release-signoffs.json
+
+# Build environment validation
+build-env.json
