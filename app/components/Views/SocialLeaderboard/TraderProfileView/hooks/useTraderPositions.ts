@@ -7,6 +7,12 @@ import type {
   Position,
 } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
+import {
+  addSocialBreadcrumb,
+  buildSocialErrorExtras,
+  categoriseSocialError,
+  extractHttpStatus,
+} from '../../../../../util/social/socialServiceTelemetry';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 
 const EMPTY_POSITIONS: Position[] = [];
@@ -52,16 +58,43 @@ export const useTraderPositions = (
   const openPositions = openData?.positions ?? EMPTY_POSITIONS;
   const closedPositions = closedData?.positions ?? EMPTY_POSITIONS;
 
-  const combinedError = openError ?? closedError;
+  useEffect(() => {
+    if (openError) {
+      Logger.error(
+        openError as Error,
+        buildSocialErrorExtras({
+          legacyMessage: 'useTraderPositions: positions fetch failed',
+          endpoint: 'open_positions',
+          error: openError,
+        }),
+      );
+      addSocialBreadcrumb({
+        endpoint: 'open_positions',
+        errorCategory: categoriseSocialError(openError),
+        httpStatus: extractHttpStatus(openError),
+      });
+    }
+  }, [openError]);
 
   useEffect(() => {
-    if (combinedError) {
+    if (closedError) {
       Logger.error(
-        combinedError as Error,
-        'useTraderPositions: positions fetch failed',
+        closedError as Error,
+        buildSocialErrorExtras({
+          legacyMessage: 'useTraderPositions: positions fetch failed',
+          endpoint: 'closed_positions',
+          error: closedError,
+        }),
       );
+      addSocialBreadcrumb({
+        endpoint: 'closed_positions',
+        errorCategory: categoriseSocialError(closedError),
+        httpStatus: extractHttpStatus(closedError),
+      });
     }
-  }, [combinedError]);
+  }, [closedError]);
+
+  const combinedError = openError ?? closedError;
 
   return {
     openPositions,
