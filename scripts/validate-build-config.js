@@ -10,6 +10,17 @@ const { checkValue } = require('./lib/validate-value');
 
 const BUILDS_PATH = path.join(__dirname, '../builds.yml');
 
+// Env keys in builds.yml that may legitimately be the empty string. Every
+// other declared env key must have a non-empty value, so an accidental
+// `PORTFOLIO_API_URL: ''` (or a botched YAML anchor merge) fails validation
+// instead of shipping with a blank value. Adding to this list should be
+// deliberate: the review on that PR is the gate for "yes, this key is
+// intentionally optional."
+const ENV_KEYS_ALLOWED_EMPTY = new Set([
+  'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
+  'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
+]);
+
 function validate() {
   if (!fs.existsSync(BUILDS_PATH)) {
     console.error('❌ builds.yml not found');
@@ -49,13 +60,14 @@ function validate() {
     }
 
     // Hygiene checks on env values: catch trailing whitespace, stray \r,
-    // invisible characters, etc. so operator typos fail CI before the build
-    // fans out. Empty strings are allowed here (e.g. optional allowlists)
-    // but whitespace-only values still fail.
+    // invisible characters, accidental empties, etc. so operator typos fail
+    // CI before the build fans out. Strict by default; only the keys in
+    // ENV_KEYS_ALLOWED_EMPTY may be the empty string. Whitespace-only values
+    // always fail, since "intentionally empty" should be `''` not `'   '`.
     if (build.env && typeof build.env === 'object') {
       for (const [envKey, envVal] of Object.entries(build.env)) {
         const issues = checkValue(`${name}.env.${envKey}`, envVal, {
-          allowEmpty: true,
+          allowEmpty: ENV_KEYS_ALLOWED_EMPTY.has(envKey),
         });
         issues.forEach((issue) => errors.push(issue.message));
       }
