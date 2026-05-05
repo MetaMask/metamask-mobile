@@ -73,7 +73,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Print runner environment diagnostics
         run: |
@@ -154,7 +154,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -204,22 +204,22 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
-      # ── Changed: cirruslabs/cache → actions/cache@v4 ──
+      # ── Changed: cirruslabs/cache → actions/cache@v5 ──
       - name: Restore iOS app matching fingerprint from branch cache
         id: cache-restore
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: bitrise-ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION
             }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
-      # ── Changed: cirruslabs/cache/restore → actions/cache/restore@v4 ──
+      # ── Changed: cirruslabs/cache/restore → actions/cache/restore@v5 ──
       - name: Restore iOS app matching fingerprint from main cache
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name !=
           'main' }}
         id: cache-restore-main
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -319,7 +319,7 @@ jobs:
 
       - name: Upload iOS APP Artifact (Simulator)
         id: upload-app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: main-qa-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -330,7 +330,7 @@ jobs:
         id: upload-sourcemap
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' ||
           steps.cache-restore-main.outputs.cache-hit == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: main-qa-index.js.map
           path: sourcemaps/ios/index.js.map
