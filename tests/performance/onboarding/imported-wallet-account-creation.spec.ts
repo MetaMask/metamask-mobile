@@ -1,5 +1,7 @@
 import { test } from '../../framework/fixture';
 import {
+  Performance,
+  System,
   PerformanceOnboarding,
   PerformanceAccountList,
 } from '../../tags.performance.js';
@@ -10,7 +12,7 @@ import TimerHelper from '../../framework/TimerHelper';
 import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
 
 /* Scenario 1: Imported wallet with 50+ accounts + account creation */
-test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
+test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
   test.skip(
     'Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@metamask-onboarding-team' },

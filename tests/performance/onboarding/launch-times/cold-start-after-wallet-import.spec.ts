@@ -1,5 +1,7 @@
 import { test } from '../../../framework/fixture';
 import {
+  Performance,
+  System,
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
@@ -14,7 +16,7 @@ import {
 import TimerHelper from '../../../framework/TimerHelper';
 import WalletView from '../../../page-objects/wallet/WalletView';
 
-test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
+test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },

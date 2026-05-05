@@ -1,7 +1,11 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import { PerformanceOnboarding } from '../../tags.performance.js';
+import {
+  Performance,
+  System,
+  PerformanceOnboarding,
+} from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import {
   asPlaywrightElement,
@@ -21,7 +25,7 @@ import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
 
 /* Scenario 4: Imported wallet with +50 accounts */
-test.describe(PerformanceOnboarding, () => {
+test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
   test.setTimeout(240000);
   test(
     'Onboarding Import SRP with +50 accounts, SRP 3',

@@ -6,7 +6,11 @@ import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
-import { PerformancePredict } from '../../../tags.performance.js';
+import {
+  Performance,
+  System,
+  PerformancePredict,
+} from '../../../tags.performance.js';
 
 /*
  * Scenario: Predict Deposit Performance Test
@@ -24,7 +28,7 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 4. Time to proceed to confirmation screen
  * 5. Time to verify deposit info (fees, amount) appears
  */
-perfTest.describe(PerformancePredict, () => {
+perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
   perfTest(
     'Predict Deposit - Complete Flow Performance',
     { tag: '@team-predict' },
