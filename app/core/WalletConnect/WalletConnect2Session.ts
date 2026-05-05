@@ -58,6 +58,7 @@ import {
 } from './multichain';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
@@ -790,7 +791,29 @@ class WalletConnect2Session {
       this.requestsToRedirect[requestEvent.id] = true;
     }
 
-    const permittedChains = await getPermittedChains(this.channelId);
+    const getPermittedChainsSafe = async (
+      subject: string,
+    ): Promise<CaipChainId[]> => {
+      try {
+        return await getPermittedChains(subject);
+      } catch (error) {
+        if (error instanceof PermissionDoesNotExistError) {
+          return [];
+        }
+        throw error;
+      }
+    };
+
+    const permittedChainsFromChannel = await getPermittedChainsSafe(
+      this.channelId,
+    );
+    const permittedChainsFromSession =
+      this.session.topic !== this.channelId
+        ? await getPermittedChainsSafe(this.session.topic)
+        : [];
+    const permittedChains = Array.from(
+      new Set([...permittedChainsFromChannel, ...permittedChainsFromSession]),
+    );
     const compatibleRequestChainIds =
       getCompatibleCaipChainIdsForWalletConnect(requestChainId);
     const isPermittedRequestChain = compatibleRequestChainIds.some((chainId) =>
@@ -807,8 +830,16 @@ class WalletConnect2Session {
       requestNamespace !== KnownCaipNamespace.Wallet
     ) {
       if (!isPermittedRequestChain) {
-        throw providerErrors.unauthorized({
-          message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${requestChainId} to continue.`,
+        this._isHandlingRequest = false;
+        return this.web3Wallet.respondSessionRequest({
+          topic: this.session.topic,
+          response: {
+            id: requestEvent.id,
+            jsonrpc: '2.0',
+            error: providerErrors.unauthorized({
+              message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${requestChainId} to continue.`,
+            }),
+          },
         });
       }
       return this.routeToSnap(requestEvent, requestChainId);

@@ -73,15 +73,43 @@ export const buildAdapterScopedPermissionsNamespaces = ({
 
 export const normalizeCaipChainIdInboundForWalletConnect = (
   caipChainId: string,
-): string => normalizeCaipChainIdInboundForWalletConnectTron(caipChainId);
+): string => {
+  if (!caipChainId.startsWith(`${KnownCaipNamespace.Tron}:`)) {
+    return caipChainId;
+  }
+  const chainRef = caipChainId.slice(`${KnownCaipNamespace.Tron}:`.length);
+  if (!chainRef.startsWith('0x')) {
+    return caipChainId;
+  }
+  return `${KnownCaipNamespace.Tron}:${parseInt(chainRef, 16)}`;
+};
 
 export const normalizeCaipChainIdOutboundForWalletConnect = (
   caipChainId: string,
-): string => normalizeCaipChainIdOutboundForWalletConnectTron(caipChainId);
+): string => {
+  if (!caipChainId.startsWith(`${KnownCaipNamespace.Tron}:`)) {
+    return caipChainId;
+  }
+  const chainRef = caipChainId.slice(`${KnownCaipNamespace.Tron}:`.length);
+  if (chainRef.startsWith('0x')) {
+    return caipChainId;
+  }
+  if (!/^\d+$/.test(chainRef)) {
+    return caipChainId;
+  }
+  return `${KnownCaipNamespace.Tron}:0x${parseInt(chainRef, 10).toString(16)}`;
+};
 
 export const getCompatibleCaipChainIdsForWalletConnect = (
   caipChainId: string,
-): string[] => getCompatibleTronCaipChainIdsForWalletConnect(caipChainId);
+): string[] =>
+  Array.from(
+    new Set([
+      caipChainId,
+      normalizeCaipChainIdInboundForWalletConnect(caipChainId),
+      normalizeCaipChainIdOutboundForWalletConnect(caipChainId),
+    ]),
+  );
 
 /**
  * Translate a WalletConnect request into the parameter shape the
