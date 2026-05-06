@@ -11,6 +11,7 @@ export function MoneyAccountDepositInfo() {
   return (
     <CustomAmountInfo
       currency={MONEY_ACCOUNT_CURRENCY}
+      hasMax
       supportAccountSelection
     />
   );

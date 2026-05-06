@@ -2,6 +2,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 
 import {
@@ -69,6 +71,7 @@ import {
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
   RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
+  RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -124,7 +127,8 @@ type AllowedActions =
   | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction;
+  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -150,8 +154,21 @@ export function getRewardsControllerMessenger(
     parent: rootMessenger,
   });
 
+  // Widen `messenger` to a generic `Messenger<...>` for the delegate call only.
+  // `delegate`'s constraint is `DelegatedActions extends (MessengerActions<Delegatee> & Action)['type'][]`,
+  // which performs an intersection between the delegatee's action union and the
+  // root messenger's action union. With ~46 actions on each side, this hits
+  // TypeScript's union-type-complexity ceiling (TS2590). Erasing the delegatee's
+  // specific action union to the open `ActionConstraint` short-circuits the
+  // intersection without affecting the runtime behavior — `delegate` only
+  // inspects the action/event name strings at runtime.
   rootMessenger.delegate({
-    messenger,
+    messenger: messenger as Messenger<
+      typeof name,
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -202,6 +219,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsTradingCampaignLeaderboard',
       'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
       'RewardsDataService:getPerpsTradingCampaignVolume',
+      'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',
