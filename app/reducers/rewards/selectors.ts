@@ -188,6 +188,15 @@ export const selectCampaignParticipantStatus =
     return state.rewards.campaignParticipantStatuses?.[key] ?? null;
   };
 
+export const selectCampaignParticipantOptedIn =
+  (
+    subscriptionId: string | undefined | null,
+    campaignId: string | undefined | null,
+  ) =>
+  (state: RootState): boolean =>
+    selectCampaignParticipantStatus(subscriptionId, campaignId)(state)
+      ?.optedIn === true;
+
 export const selectCampaignParticipantCount =
   (subscriptionId: string | undefined, campaignId: string | undefined) =>
   (state: RootState) => {

@@ -47,6 +47,9 @@ jest.mock('../../../util/test/utils', () => ({
 }));
 
 describe('Root', () => {
+  /** Must match `testID` on the `View` returned by `jest.mock('../../Nav/App')`. */
+  const mockedAppTestId = 'mock-app';
+
   it('should initialize SecureKeychain', async () => {
     render(<Root foxCode="" />);
 
@@ -66,9 +69,9 @@ describe('Root', () => {
     Object.defineProperty(testUtils, 'isTest', { value: true, writable: true });
   });
 
-  it('should render null while isTest is true and store is loading', () => {
+  it('does not mount Nav/App until the store gate clears when isTest is true', () => {
     Object.defineProperty(testUtils, 'isTest', { value: true, writable: true });
-    const { toJSON } = render(<Root foxCode="" />);
-    expect(toJSON()).toMatchSnapshot();
+    const { queryByTestId } = render(<Root foxCode="" />);
+    expect(queryByTestId(mockedAppTestId)).toBeNull();
   });
 });

@@ -1,5 +1,4 @@
 import { MessengerClientInitFunction } from '../../types';
-import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
@@ -44,10 +43,6 @@ export const keyringControllerInit: MessengerClientInitFunction<
   qrKeyringScanner,
   getMessengerClient,
 }) => {
-  const { remoteFeatureFlags } = getMessengerClient(
-    'RemoteFeatureFlagController',
-  ).state;
-
   // Required by the HD keyring and money keyring to use native crypto functions.
   const cryptographicFunctions: CryptographicFunctions = {
     pbkdf2Sha512: pbkdf2,
@@ -81,35 +76,34 @@ export const keyringControllerInit: MessengerClientInitFunction<
   hdKeyringBuilder.type = HdKeyring.type;
   additionalKeyrings.push(hdKeyringBuilder);
 
-  // We only need this keyring if Money accounts are enabled.
-  if (isMoneyAccountEnabled(remoteFeatureFlags)) {
-    const moneyKeyringBuilder = () =>
-      new MoneyKeyring({
-        cryptographicFunctions,
-        getMnemonic: async (entropySource: string) =>
-          // This builder needs the controller itself, so we re-use `getMessengerClient` to access
-          // the controller instance as it will be available when this method gets called.
-          // NOTE: This is required since we cannot self-use our own actions with the init messenger.
-          getMessengerClient('KeyringController').withKeyringUnsafe(
-            {
-              filter: (keyring, metadata): keyring is HdKeyring =>
-                keyring.type === KeyringTypes.hd &&
-                metadata.id === entropySource,
-            },
-            async ({ keyring }) => {
-              if (!keyring?.mnemonic) {
-                throw new Error(
-                  `Unable to get mnemonic to initialize MoneyKeyring`,
-                );
-              }
+  // The builder is always registered so the KeyringController can recognise the
+  // MoneyKeyring type during vault deserialization (even if the feature flag is
+  // disabled at that time).
+  const moneyKeyringBuilder = () =>
+    new MoneyKeyring({
+      cryptographicFunctions,
+      getMnemonic: async (entropySource: string) =>
+        // This builder needs the controller itself, so we re-use `getMessengerClient` to access
+        // the controller instance as it will be available when this method gets called.
+        // NOTE: This is required since we cannot self-use our own actions with the init messenger.
+        getMessengerClient('KeyringController').withKeyringUnsafe(
+          {
+            filter: (keyring, metadata): keyring is HdKeyring =>
+              keyring.type === KeyringTypes.hd && metadata.id === entropySource,
+          },
+          async ({ keyring }) => {
+            if (!keyring?.mnemonic) {
+              throw new Error(
+                `Unable to get mnemonic to initialize MoneyKeyring`,
+              );
+            }
 
-              return encodeMnemonic(keyring.mnemonic);
-            },
-          ),
-      });
-    moneyKeyringBuilder.type = MoneyKeyring.type;
-    additionalKeyrings.push(moneyKeyringBuilder);
-  }
+            return encodeMnemonic(keyring.mnemonic);
+          },
+        ),
+    });
+  moneyKeyringBuilder.type = MoneyKeyring.type;
+  additionalKeyrings.push(moneyKeyringBuilder);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringBuilder = getMessengerClient('SnapKeyringBuilder');

@@ -63,7 +63,6 @@ describe('usePredictAccountState', () => {
   const mockAccountState = {
     address: '0x1234567890abcdef1234567890abcdef12345678',
     isDeployed: true,
-    hasAllowances: true,
   };
 
   beforeEach(() => {
@@ -117,7 +116,6 @@ describe('usePredictAccountState', () => {
       expect(mockGetAccountState).toHaveBeenCalledWith({});
       expect(result.current.data?.address).toEqual(mockAccountState.address);
       expect(result.current.data?.isDeployed).toBe(true);
-      expect(result.current.data?.hasAllowances).toBe(true);
       expect(result.current.error).toBeNull();
     });
 
@@ -213,24 +211,6 @@ describe('usePredictAccountState', () => {
       });
 
       expect(result.current.data?.isDeployed).toBe(false);
-    });
-
-    it('returns hasAllowances as false when account lacks allowances', async () => {
-      const { Wrapper } = createWrapper();
-      mockGetAccountState.mockResolvedValue({
-        ...mockAccountState,
-        hasAllowances: false,
-      });
-
-      const { result } = renderHook(() => usePredictAccountState(), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.data).toBeDefined();
-      });
-
-      expect(result.current.data?.hasAllowances).toBe(false);
     });
 
     it('has undefined data when query is disabled', () => {
