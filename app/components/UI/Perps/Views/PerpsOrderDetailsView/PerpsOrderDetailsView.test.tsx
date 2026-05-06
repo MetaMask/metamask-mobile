@@ -314,10 +314,13 @@ describe('PerpsOrderDetailsView', () => {
   });
 
   it('renders price below trigger condition for short take-profit orders', () => {
+    const { strings } = jest.requireMock('../../../../../../locales/i18n');
     const triggerOrder: Order = {
       ...mockOrder,
       isTrigger: true,
-      triggerPrice: '51000',
+      symbol: 'CHIP',
+      triggerPrice: '0.001234',
+      price: '0.0012',
       detailedOrderType: 'Take Profit Limit',
       reduceOnly: true,
       side: 'buy',
@@ -332,7 +335,10 @@ describe('PerpsOrderDetailsView', () => {
     expect(
       screen.getByText('perps.order_details.price_below'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('$50000')).toBeOnTheScreen();
+    expect(strings).toHaveBeenCalledWith('perps.order_details.price_below', {
+      price: '$0.001234',
+    });
+    expect(screen.getByText('$0.0012')).toBeOnTheScreen();
     expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
   });
 
