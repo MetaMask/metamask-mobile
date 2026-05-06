@@ -23,14 +23,15 @@ describe('DefiEmptyState', () => {
     expect(getByText('Explore DeFi')).toBeDefined();
   });
 
-  it('should navigate to explore sites section in TrendingView', () => {
+  it('opens Explore on the main feed then Sites full view', () => {
     const { getByText } = renderWithProvider(<DefiEmptyState />);
 
     const button = getByText('Explore DeFi');
     fireEvent.press(button);
 
-    expect(mockNavigate).toHaveBeenCalledWith('TrendingView', {
-      screen: 'SitesFullView',
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, 'TrendingView', {
+      screen: 'TrendingFeed',
     });
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, 'SitesFullView');
   });
 });

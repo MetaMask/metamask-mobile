@@ -21,10 +21,11 @@ export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
   const tw = useTailwind();
 
   const handleExploreDefi = () => {
-    // Navigate users to the in-app Explore sites section.
+    // Open the Explore tab on the main feed, then push Sites (root stack).
     navigate(Routes.TRENDING_VIEW, {
-      screen: Routes.SITES_FULL_VIEW,
+      screen: Routes.TRENDING_FEED,
     });
+    navigate(Routes.SITES_FULL_VIEW);
   };
 
   return (
