@@ -8658,29 +8658,18 @@
       "retry_button": "Tekrar Dene",
       "refreshing": "Yenileniyor..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Kazancınız",
-      "rank_label": "{{place}}. sıra",
-      "email_instructions": "Ödülünüzü almak için kodunuzla ondocampaign@consensys.net adresine e-posta gönderin.",
-      "open_mail": "Postayı aç",
-      "skip_for_now": "Şimdilik atla",
-      "mail_subject": "Ondo kampanyası ödül talebi",
-      "mail_body": "Kazanma kodum: {{code}}",
-      "winning_code": "Kazanma kodu",
-      "close_a11y": "Kapat"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Kazancınız",
-        "description": "Ödülünüzü bugün alın.",
-        "a11y": "Kazanan bilgilerini aç"
+        "title": "Kazandınız!",
+        "description": "Kazanan kodunuzu doğrulayın ve ödülünüzü bugün talep edin.",
+        "a11y": "Ayrıntıları görüntüle"
       },
       "participant_pending": {
         "title": "Kampanya sona erdi.",
         "description": "Sonuçları belirliyoruz. Kısa bir süre tekrar kontrol edin."
       },
       "participant_finalized": {
-        "title": "Kampanya sonuçları açıklandı",
+        "title": "Kampanya sonuçları hazır.",
         "description": "Bu kez kazanamadınız. Nerede bitirdiğinizi görmek için liderlik tablosunu kontrol edin."
       },
       "winner_finalized": {
@@ -8688,17 +8677,28 @@
         "description": "Ödülünüz yolda - kısa bir süre sonra iletişime geçeceğiz."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Kazancınız 💰",
-        "description": "{{campaignName}} adlı kampanyadan ödülünüzü alın",
+        "description": "Ödülünüzü bugün {{campaignName}} üzerinden talep edin.",
         "cta": "Ayrıntıları görüntüle"
       },
-      "participant_no_winner": {
-        "title": "Sonuçlar belli oldu. 🏅",
-        "description": "{{campaignName}} adlı kampanyadaki sıralamanızı görün",
+      "non_winner": {
+        "title": "Sonuçlar hazır 🏅",
+        "description": "{{campaignName}} içinde sıralamanızı görün.",
         "cta": "Görüntüle"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Kazancınız",
+      "rank_label": "{{place}}. sıra",
+      "email_instructions": "Ödülünüzü almak için kodunuzla {{email}} adresine e-posta gönderin.",
+      "open_mail": "Postayı aç",
+      "skip_for_now": "Şimdilik atla",
+      "mail_subject": "{{campaignName}} – ödül talebi",
+      "mail_body": "Kazanma kodum: {{code}}",
+      "winning_code": "Kazanma kodu",
+      "close_a11y": "Kapat"
     }
   },
   "time": {
