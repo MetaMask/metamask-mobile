@@ -32,9 +32,9 @@ describe('MoneyMetaMaskCard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders metal card row', () => {
+  it('renders metal card row when showMetalCard is true', () => {
     const { getByText, getByTestId } = render(
-      <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
+      <MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard />,
     );
 
     expect(
@@ -48,14 +48,36 @@ describe('MoneyMetaMaskCard', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides metal card row by default (showMetalCard not provided)', () => {
+    const { queryByTestId, queryByText } = render(
+      <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(strings('money.metamask_card.metal_card')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides metal card row when showMetalCard is false', () => {
+    const { queryByTestId } = render(
+      <MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard={false} />,
+    );
+
+    expect(
+      queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+    ).not.toBeOnTheScreen();
+  });
+
   it('calls onGetNowPress when virtual card Get now is pressed', () => {
     const mockGetNow = jest.fn();
-    const { getAllByText } = render(
+    const { getByText } = render(
       <MoneyMetaMaskCard onGetNowPress={mockGetNow} />,
     );
-    const getNowButtons = getAllByText(strings('money.metamask_card.get_now'));
 
-    fireEvent.press(getNowButtons[0]);
+    fireEvent.press(getByText(strings('money.metamask_card.get_now')));
 
     expect(mockGetNow).toHaveBeenCalledTimes(1);
     expect(mockGetNow.mock.calls[0]).toEqual([]);
@@ -64,7 +86,7 @@ describe('MoneyMetaMaskCard', () => {
   it('calls onGetNowPress when metal card Get now is pressed', () => {
     const mockGetNow = jest.fn();
     const { getAllByText } = render(
-      <MoneyMetaMaskCard onGetNowPress={mockGetNow} />,
+      <MoneyMetaMaskCard onGetNowPress={mockGetNow} showMetalCard />,
     );
     const getNowButtons = getAllByText(strings('money.metamask_card.get_now'));
 
@@ -174,9 +196,9 @@ describe('MoneyMetaMaskCard', () => {
   });
 
   describe('upsell mode (default)', () => {
-    it('renders virtual and metal card rows', () => {
+    it('renders virtual and metal card rows when showMetalCard is true', () => {
       const { getByTestId } = render(
-        <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
+        <MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard />,
       );
 
       expect(
@@ -185,6 +207,19 @@ describe('MoneyMetaMaskCard', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
       ).toBeOnTheScreen();
+    });
+
+    it('renders only the virtual card row when showMetalCard is false', () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard={false} />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not render link mode elements', () => {

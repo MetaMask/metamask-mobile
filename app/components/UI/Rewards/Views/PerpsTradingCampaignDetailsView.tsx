@@ -1,6 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -28,11 +33,14 @@ import PerpsTradingCampaignLeaderboard, {
 import PerpsTradingCampaignPrizePool from '../components/Campaigns/PerpsTradingCampaignPrizePool';
 import PerpsTradingCampaignCTA from '../components/Campaigns/PerpsTradingCampaignCTA';
 import PerpsCampaignStatsSummary from '../components/Campaigns/PerpsCampaignStatsSummary';
+import PerpsTradingCampaignEndedStats from '../components/Campaigns/PerpsTradingCampaignEndedStats';
+import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import { useGetPerpsTradingCampaignVolume } from '../hooks/useGetPerpsTradingCampaignVolume';
+import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -52,6 +60,11 @@ type PerpsTradingCampaignDetailsRouteParams = {
 export const PERPS_CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'perps-campaign-details-container',
 } as const;
+
+const sessionWinningViewAutoNavCampaignIds = new Set<string>();
+export function resetPerpsTradingCampaignDetailsSessionAutoNavigationForTests(): void {
+  sessionWinningViewAutoNavCampaignIds.clear();
+}
 
 const PerpsTradingCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
@@ -103,9 +116,14 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     refetch: refetchLeaderboard,
   } = useGetPerpsTradingCampaignLeaderboard(effectiveCampaignId || undefined);
 
-  const { position } = useGetPerpsTradingCampaignLeaderboardPosition(
-    isOptedIn ? effectiveCampaignId || undefined : undefined,
-  );
+  const { position, isLoading: isPositionLoading } =
+    useGetPerpsTradingCampaignLeaderboardPosition(
+      isOptedIn ? effectiveCampaignId || undefined : undefined,
+    );
+  const { outcome: participantOutcome } =
+    usePerpsTradingCampaignParticipantOutcome(
+      isComplete && isOptedIn ? effectiveCampaignId || undefined : undefined,
+    );
 
   const {
     volume,
@@ -130,6 +148,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     showStatsSummarySection,
     showPrizePoolSection,
     showLeaderboardSection,
+    showCampaignEndedStats,
   } = useMemo(() => {
     if (!campaign) {
       return {
@@ -137,17 +156,32 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
         showStatsSummarySection: false,
         showPrizePoolSection: false,
         showLeaderboardSection: false,
+        showCampaignEndedStats: false,
       };
     }
 
+    const showEndedStats =
+      isComplete && !isParticipantStatusLoading && (!isOptedIn || !hasPosition);
+
     return {
       showHowItWorksSection:
-        Boolean(campaign.details?.howItWorks) && isActive && !hasPosition,
+        Boolean(campaign.details?.howItWorks) &&
+        isActive &&
+        (!isOptedIn || (!hasPosition && !isPositionLoading)),
       showStatsSummarySection: hasPosition,
-      showPrizePoolSection: isActive,
+      showPrizePoolSection: isActive || isComplete,
       showLeaderboardSection: true,
+      showCampaignEndedStats: showEndedStats,
     };
-  }, [campaign, isActive, hasPosition]);
+  }, [
+    campaign,
+    isActive,
+    isComplete,
+    isOptedIn,
+    isParticipantStatusLoading,
+    hasPosition,
+    isPositionLoading,
+  ]);
 
   const navigateToLeaderboard = useCallback(() => {
     if (!effectiveCampaignId) return;
@@ -162,6 +196,36 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
       campaignId: effectiveCampaignId,
     });
   }, [navigation, effectiveCampaignId]);
+
+  const navigateToWinningView = useCallback(() => {
+    if (!effectiveCampaignId) return;
+    navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW, {
+      campaignId: effectiveCampaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, effectiveCampaignId, campaign]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !sessionWinningViewAutoNavCampaignIds.has(effectiveCampaignId) &&
+        campaign &&
+        isComplete &&
+        participantOutcome?.winnerVerificationCode &&
+        participantOutcome?.outcomeStatus === 'pending' &&
+        effectiveCampaignId
+      ) {
+        sessionWinningViewAutoNavCampaignIds.add(effectiveCampaignId);
+        navigateToWinningView();
+      }
+    }, [
+      campaign,
+      effectiveCampaignId,
+      isComplete,
+      navigateToWinningView,
+      participantOutcome,
+    ]),
+  );
 
   const navigateToMechanics = useCallback(() => {
     if (!effectiveCampaignId) return;
@@ -233,6 +297,30 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                 </Box>
               )}
 
+              {showCampaignEndedStats && (
+                <Box twClassName="p-4 gap-4">
+                  <PerpsTradingCampaignEndedStats
+                    leaderboard={leaderboard}
+                    totalNotionalVolume={volume?.totalUsdVolume ?? null}
+                    isLeaderboardLoading={isLeaderboardLoading}
+                    isVolumeLoading={isVolumeLoading}
+                    hasLeaderboardError={hasLeaderboardError}
+                    hasVolumeError={hasVolumeError}
+                    onRetryLeaderboard={refetchLeaderboard}
+                    onRetryVolume={refetchVolume}
+                  />
+                  {isOptedIn && participantOutcome?.outcomeStatus != null && (
+                    <CampaignOutcomeBanner
+                      outcomeStatus={participantOutcome.outcomeStatus}
+                      winnerVerificationCode={
+                        participantOutcome.winnerVerificationCode ?? null
+                      }
+                      onWinnerPress={navigateToWinningView}
+                    />
+                  )}
+                </Box>
+              )}
+
               {showStatsSummarySection && (
                 <Box twClassName="p-4">
                   <Pressable onPress={navigateToStats}>
@@ -258,6 +346,11 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                     leaderboardPosition={position}
                     leaderboard={leaderboard}
                     isCampaignComplete={isComplete}
+                    outcomeStatus={participantOutcome?.outcomeStatus}
+                    winnerVerificationCode={
+                      participantOutcome?.winnerVerificationCode ?? null
+                    }
+                    onWinnerPress={navigateToWinningView}
                   />
                 </Box>
               )}

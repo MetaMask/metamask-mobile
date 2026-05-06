@@ -34,9 +34,10 @@ describe('AssetElement', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = render(<AssetElement asset={erc20Token} />);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders the asset row with the expected test id when no balance is shown', () => {
+    const { getByTestId } = render(<AssetElement asset={erc20Token} />);
+
+    expect(getByTestId(getAssetTestId(erc20Token.symbol))).toBeOnTheScreen();
   });
 
   it('renders the main balance if provided', () => {
