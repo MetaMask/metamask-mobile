@@ -10,22 +10,12 @@ import {
 } from '@metamask/react-native-webview/src/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
-// eslint-disable-next-line import-x/no-unresolved
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
 import { EmptyObject } from '@metamask/snaps-sdk';
 import { assert, hasProperty } from '@metamask/utils';
 import Logger from '../../util/Logger';
 
 const styles = createStyles();
-
-// The bundled `index.html` ships a LavaMoat scuttling allow-list that does
-// not include `XMLSerializer` / `DOMParser`, which several first-party
-// snaps (`bitcoin-wallet-snap`, `tron-wallet-snap`, …) need at startup.
-// We extend that allow-list via a Yarn patch on
-// `@metamask/snaps-execution-environments` (see
-// `.yarn/patches/@metamask-snaps-execution-environments-npm-*.patch`).
-// TODO: drop the patch once the upstream package adds those globals to the
-// scuttling exceptions list.
 
 // This is a hack to allow us to asynchronously await the creation of the WebView.
 // eslint-disable-next-line import-x/no-mutable-exports
