@@ -10,6 +10,7 @@ import { LANGUAGE } from '../app/constants/storage';
 // import 'intl/locale-data/jsonp/en.js';
 
 // Import all locales
+import ar from './languages/ar';
 import de from './languages/de';
 import el from './languages/el';
 import en from './languages/en';
@@ -27,6 +28,7 @@ import vi from './languages/vi';
 import zh from './languages/zh';
 
 export const supportedTranslations = {
+  ar,
   de,
   el,
   en,
@@ -45,6 +47,7 @@ export const supportedTranslations = {
 };
 
 export const I18nEvents = new EventEmitter();
+const RTL_LANGUAGE_CODES = ['ar', 'he', 'fa', 'ur'];
 
 // Should the app fallback to English if user locale doesn't exists
 I18n.fallbacks = true;
@@ -53,9 +56,6 @@ I18n.defaultLocale = 'en';
 I18n.translations = supportedTranslations;
 // If language selected get locale
 getUserPreferableLocale();
-
-// Uncomment this for using RTL
-//const currentLocale = I18n.currentLocale();
 
 // /**
 //  * Dynamically require locale data based on whatever language is selected.
@@ -91,15 +91,37 @@ getUserPreferableLocale();
 //   }
 // }
 
+export function isLocaleRTL(locale) {
+  const languageCode = locale?.split(/[-_]/)[0]?.toLowerCase();
+  return RTL_LANGUAGE_CODES.includes(languageCode);
+}
+
+function configureRTL(locale) {
+  const shouldUseRTL = isLocaleRTL(locale);
+  ReactNative.I18nManager.allowRTL(shouldUseRTL);
+  ReactNative.I18nManager.forceRTL(shouldUseRTL);
+  ReactNative.I18nManager.swapLeftAndRightInRTL(shouldUseRTL);
+  return shouldUseRTL;
+}
+
 // Is it a RTL language?
-export const isRTL = false; // currentLocale.indexOf('jaJp') === 0;
+export const isRTL = isLocaleRTL(I18n.locale);
 
 // Set locale
 export async function setLocale(locale) {
+  const previousDirection = ReactNative.I18nManager.isRTL;
+  const nextDirection = configureRTL(locale);
+  const shouldReload = previousDirection !== nextDirection;
   I18n.locale = locale;
   // Platform.OS === 'ios' && getLocaleData(locale);
   await StorageWrapper.setItem(LANGUAGE, locale);
   I18nEvents.emit('localeChanged', locale);
+
+  // Direction changes are applied by React Native on the next app start.
+  if (shouldReload) {
+    ReactNative.DevSettings?.reload?.();
+  }
+  return shouldReload;
 }
 
 /**
@@ -110,6 +132,7 @@ export async function setLocale(locale) {
  */
 export function getLanguages() {
   return {
+    ar: 'العربية',
     de: 'Deutsch',
     el: 'Ελληνικά',
     en: 'English',
@@ -129,7 +152,7 @@ export function getLanguages() {
 }
 
 // Allow RTL alignment in RTL languages
-ReactNative.I18nManager.allowRTL(isRTL);
+configureRTL(I18n.locale);
 
 // The method we'll use instead of a regular string
 export function strings(name, params = {}) {
@@ -141,6 +164,7 @@ async function getUserPreferableLocale() {
   const locale = await StorageWrapper.getItem(LANGUAGE);
   if (locale) {
     I18n.locale = locale;
+    configureRTL(locale);
   }
 }
 

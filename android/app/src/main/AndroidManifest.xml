@@ -55,6 +55,7 @@
 		android:allowBackup="false"
 		android:theme="@style/AppTheme"
 		android:hardwareAccelerated="true"
+		android:supportsRtl="true"
 		android:usesCleartextTraffic="${isDebug}"
 		tools:targetApi="33"
 		tools:ignore="GoogleAppIndexingWarning"

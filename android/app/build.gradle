@@ -199,7 +199,7 @@ android {
         resValue "string", "com_braze_custom_endpoint", "${System.env.MM_BRAZE_SDK_ENDPOINT ?: ''}"
 
         // Explicitly specify supported languages for the app, ensuring the app locales are valid when uploading to the Play Store
-        resourceConfigurations += ['en', 'de', 'el', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'tl', 'tr', 'vi', 'zh']
+        resourceConfigurations += ['en', 'ar', 'de', 'el', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'tl', 'tr', 'vi', 'zh']
     }
 
 	  packagingOptions {
