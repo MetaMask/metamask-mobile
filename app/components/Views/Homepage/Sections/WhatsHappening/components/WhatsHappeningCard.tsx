@@ -13,6 +13,11 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
 import { formatShortDate } from '../util/formatDate';
+import {
+  getImpactLabel,
+  getImpactBackgroundClass,
+  getImpactTextColor,
+} from '../util/impact';
 
 interface WhatsHappeningCardProps {
   item: WhatsHappeningItem;
@@ -37,18 +42,39 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
       )}
     >
       <Box gap={3}>
-        {/* Category badge */}
-        {item.category && (
-          <Box twClassName="self-start rounded-full bg-background-default px-2 py-0.5">
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings(
-                `homepage.sections.whats_happening_categories.${item.category}`,
-              )}
-            </Text>
+        {/* Impact + Category badges */}
+        {(item.impact || item.category) && (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-wrap gap-2"
+          >
+            {item.impact && (
+              <Box
+                twClassName={`self-start rounded-full ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
+              >
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={getImpactTextColor(item.impact)}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {getImpactLabel(item.impact)}
+                </Text>
+              </Box>
+            )}
+            {item.category && (
+              <Box twClassName="self-start rounded-full bg-background-default px-2 py-0.5">
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings(
+                    `homepage.sections.whats_happening_categories.${item.category}`,
+                  )}
+                </Text>
+              </Box>
+            )}
           </Box>
         )}
 

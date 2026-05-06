@@ -22,8 +22,6 @@ import {
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
-import Toast from '../../../../component-library/components/Toast';
-import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
@@ -36,7 +34,6 @@ import { ScrollView } from 'react-native';
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const toastRef = useRef<ToastRef>(null);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -217,7 +214,6 @@ const RewardsDashboard: React.FC = () => {
           </Box>
         </ScrollView>
       </SafeAreaView>
-      <Toast ref={toastRef} />
     </ErrorBoundary>
   );
 };
