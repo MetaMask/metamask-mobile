@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useOndoOutcomeToast } from './useOndoOutcomeToast';
+import { usePerpsTradingCampaignEndedOutcomeToast } from './usePerpsTradingCampaignEndedOutcomeToast';
 import { useCampaignOutcomeToast } from './useCampaignOutcomeToast';
-import { useOndoCampaignParticipantOutcome } from './useOndoCampaignParticipantOutcome';
+import { usePerpsTradingCampaignParticipantOutcome } from './usePerpsTradingCampaignParticipantOutcome';
 import {
   CampaignType,
   type CampaignDto,
@@ -12,8 +12,8 @@ jest.mock('./useCampaignOutcomeToast', () => ({
   useCampaignOutcomeToast: jest.fn(),
 }));
 
-jest.mock('./useOndoCampaignParticipantOutcome', () => ({
-  useOndoCampaignParticipantOutcome: jest.fn(),
+jest.mock('./usePerpsTradingCampaignParticipantOutcome', () => ({
+  usePerpsTradingCampaignParticipantOutcome: jest.fn(),
 }));
 
 const mockUseCampaignOutcomeToast =
@@ -21,13 +21,13 @@ const mockUseCampaignOutcomeToast =
     typeof useCampaignOutcomeToast
   >;
 
-const CAMPAIGN_ID = 'campaign-123';
-const CAMPAIGN_NAME = 'Ondo Campaign';
+const CAMPAIGN_ID = 'campaign-xyz';
+const CAMPAIGN_NAME = 'Perps Campaign';
 
-const makeCampaign = (id = CAMPAIGN_ID): CampaignDto => ({
+const makeCampaign = (id = CAMPAIGN_ID, name = CAMPAIGN_NAME): CampaignDto => ({
   id,
-  name: CAMPAIGN_NAME,
-  type: CampaignType.ONDO_HOLDING,
+  name,
+  type: CampaignType.PERPS_TRADING,
   endDate: '2025-01-01',
   startDate: '2024-01-01',
   termsAndConditions: null,
@@ -37,42 +37,42 @@ const makeCampaign = (id = CAMPAIGN_ID): CampaignDto => ({
   showUpcomingDate: false,
 });
 
-describe('useOndoOutcomeToast', () => {
+describe('usePerpsTradingCampaignEndedOutcomeToast', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('calls useCampaignOutcomeToast with ONDO_HOLDING campaign type', () => {
-    renderHook(() => useOndoOutcomeToast());
+  it('calls useCampaignOutcomeToast with PERPS_TRADING campaign type', () => {
+    renderHook(() => usePerpsTradingCampaignEndedOutcomeToast());
     expect(mockUseCampaignOutcomeToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        campaignType: CampaignType.ONDO_HOLDING,
+        campaignType: CampaignType.PERPS_TRADING,
       }),
     );
   });
 
-  it('passes useOndoCampaignParticipantOutcome as the useOutcome function', () => {
-    renderHook(() => useOndoOutcomeToast());
+  it('passes usePerpsTradingCampaignParticipantOutcome as the useOutcome function', () => {
+    renderHook(() => usePerpsTradingCampaignEndedOutcomeToast());
     expect(mockUseCampaignOutcomeToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        useOutcome: useOndoCampaignParticipantOutcome,
+        useOutcome: usePerpsTradingCampaignParticipantOutcome,
       }),
     );
   });
 
-  it('getWinnerNavigation returns ONDO winning view route with campaignId and campaignName', () => {
-    renderHook(() => useOndoOutcomeToast());
+  it('getWinnerNavigation returns Perps winning view route with campaignId and campaignName', () => {
+    renderHook(() => usePerpsTradingCampaignEndedOutcomeToast());
     const { getWinnerNavigation } =
       mockUseCampaignOutcomeToast.mock.calls[0][0];
     const nav = getWinnerNavigation(makeCampaign());
     expect(nav).toEqual({
-      route: Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
+      route: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW,
       params: { campaignId: CAMPAIGN_ID, campaignName: CAMPAIGN_NAME },
     });
   });
 
   it('getWinnerNavigation uses empty string for campaignName when name is null', () => {
-    renderHook(() => useOndoOutcomeToast());
+    renderHook(() => usePerpsTradingCampaignEndedOutcomeToast());
     const { getWinnerNavigation } =
       mockUseCampaignOutcomeToast.mock.calls[0][0];
     const nav = getWinnerNavigation({
@@ -85,13 +85,13 @@ describe('useOndoOutcomeToast', () => {
     });
   });
 
-  it('getNonWinnerNavigation returns ONDO campaign details route', () => {
-    renderHook(() => useOndoOutcomeToast());
+  it('getNonWinnerNavigation returns Perps details view route', () => {
+    renderHook(() => usePerpsTradingCampaignEndedOutcomeToast());
     const { getNonWinnerNavigation } =
       mockUseCampaignOutcomeToast.mock.calls[0][0];
     const nav = getNonWinnerNavigation(makeCampaign());
     expect(nav).toEqual({
-      route: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+      route: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
       params: { campaignId: CAMPAIGN_ID },
     });
   });
