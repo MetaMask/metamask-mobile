@@ -12,19 +12,15 @@ class ChangePasswordView {
   }
 
   get passwordInput(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(
-          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-        )
-      : Matchers.getElementByLabel(
-          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-        );
+    return Matchers.getEditTextWithAncestorTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
   }
 
   get confirmPasswordInput(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(RESET_PASSWORD_CONFIRM_INPUT_BOX_ID)
-      : Matchers.getElementByLabel(RESET_PASSWORD_CONFIRM_INPUT_BOX_ID);
+    return Matchers.getEditTextWithAncestorTestId(
+      RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
+    );
   }
 
   get iUnderstandCheckBox(): DetoxElement {

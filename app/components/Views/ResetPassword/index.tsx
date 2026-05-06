@@ -570,16 +570,13 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
               {strings('manual_backup_step_1.enter_current_password')}
             </Label>
             <TextField
+              testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               placeholder={strings('password_reset.password_title')}
               onChangeText={onPasswordChange}
               value={password}
-              accessibilityLabel={
-                ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
-              }
               inputProps={{
                 secureTextEntry: true,
                 onSubmitEditing: reauthenticateWithPassword,
-                testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
                 keyboardAppearance: themeAppearance,
                 autoComplete: 'password',
               }}
@@ -648,6 +645,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     {strings('reset_password.password')}
                   </Label>
                   <TextField
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     value={password}
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
@@ -655,9 +653,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     placeholder={strings(
                       'reset_password.new_password_placeholder',
                     )}
-                    accessibilityLabel={
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
-                    }
                     isError={isPasswordTooShort()}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
@@ -677,7 +672,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     }
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(0),
-                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
                       onSubmitEditing: jumpToConfirmPassword,
                       returnKeyType: 'next',
                       autoComplete: 'password-new',
@@ -698,15 +692,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     {strings('reset_password.confirm_password')}
                   </Label>
                   <TextField
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
                     inputRef={confirmPasswordInput}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     placeholder={strings(
                       'reset_password.confirm_password_placeholder',
                     )}
-                    accessibilityLabel={
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                    }
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(1)}>
                         <Icon
@@ -725,8 +719,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     }
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(1),
-                      testID:
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
                       returnKeyType: 'done',
                       autoComplete: 'password-new',
                       autoCapitalize: 'none',
