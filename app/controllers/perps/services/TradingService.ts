@@ -1722,6 +1722,16 @@ export class TradingService {
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : 'Unknown error';
       traceData = { success: false, error: errorMessage };
+
+      this.#deps.logger.error(
+        ensureError(error, 'TradingService.updatePositionTPSL'),
+        this.#getErrorContext('updatePositionTPSL', {
+          symbol: params.symbol,
+          hasTakeProfit: Boolean(params.takeProfitPrice),
+          hasStopLoss: Boolean(params.stopLossPrice),
+        }),
+      );
+
       throw error;
     } finally {
       const completionDuration = this.#deps.performance.now() - startTime;

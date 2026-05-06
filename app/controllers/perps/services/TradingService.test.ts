@@ -1822,6 +1822,39 @@ describe('TradingService', () => {
         undefined,
       );
     });
+
+    it('logs error with message and context when provider throws', async () => {
+      const params: UpdatePositionTPSLParams = {
+        symbol: 'BTC',
+        takeProfitPrice: '55000',
+        stopLossPrice: '45000',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.updatePositionTPSL.mockRejectedValue(
+        new Error('TPSL provider failure'),
+      );
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await expect(
+        tradingService.updatePositionTPSL({
+          provider: mockProvider,
+          params,
+          context: { ...mockContext, getPositions: mockGetPositions },
+        }),
+      ).rejects.toThrow('TPSL provider failure');
+
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'TPSL provider failure' }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'updatePositionTPSL',
+          symbol: 'BTC',
+        }),
+      );
+    });
   });
 
   describe('updateMargin', () => {
