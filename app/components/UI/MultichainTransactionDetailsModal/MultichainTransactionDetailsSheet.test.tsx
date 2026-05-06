@@ -113,42 +113,42 @@ describe('MultichainTransactionDetailsSheet', () => {
 
   it('renders the transaction title', () => {
     const { getByText } = renderSheet();
-    expect(getByText('Send ETH')).toBeTruthy();
+    expect(getByText('Send ETH')).toBeOnTheScreen();
   });
 
   it('renders the transaction status row', () => {
     const { getByTestId } = renderSheet();
     expect(
       getByTestId(`transaction-status-${mockTransaction.id}`),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('renders the from address row', () => {
     const { getByText } = renderSheet();
     // formatAddress shortens it — just check the label exists
-    expect(getByText('From')).toBeTruthy();
+    expect(getByText('From')).toBeOnTheScreen();
   });
 
   it('renders the to address row', () => {
     const { getByText } = renderSheet();
-    expect(getByText('To')).toBeTruthy();
+    expect(getByText('To')).toBeOnTheScreen();
   });
 
   it('renders the amount row', () => {
     const { getByText } = renderSheet();
-    expect(getByText('Amount')).toBeTruthy();
-    expect(getByText('0.5 ETH')).toBeTruthy();
+    expect(getByText('Amount')).toBeOnTheScreen();
+    expect(getByText('0.5 ETH')).toBeOnTheScreen();
   });
 
   it('renders the network fee row', () => {
     const { getByText } = renderSheet();
-    expect(getByText('Network fee')).toBeTruthy();
-    expect(getByText('0.001 ETH')).toBeTruthy();
+    expect(getByText('Network fee')).toBeOnTheScreen();
+    expect(getByText('0.001 ETH')).toBeOnTheScreen();
   });
 
   it('renders the priority fee row', () => {
     const { getByText } = renderSheet();
-    expect(getByText('0.0001 ETH')).toBeTruthy();
+    expect(getByText('0.0001 ETH')).toBeOnTheScreen();
   });
 
   it('closes the sheet when close button is pressed', () => {
@@ -165,7 +165,7 @@ describe('MultichainTransactionDetailsSheet', () => {
       },
     });
     const { getByText, queryByText } = renderSheet();
-    expect(getByText('Receive')).toBeTruthy();
+    expect(getByText('Receive')).toBeOnTheScreen();
     expect(queryByText('From')).toBeNull();
     expect(queryByText('To')).toBeNull();
     expect(queryByText('Network fee')).toBeNull();

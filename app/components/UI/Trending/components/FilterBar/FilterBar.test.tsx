@@ -18,7 +18,7 @@ describe('FilterButton', () => {
     const { getByText } = renderWithProvider(
       <FilterButton {...defaultProps} />,
     );
-    expect(getByText('Test Label')).toBeTruthy();
+    expect(getByText('Test Label')).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
@@ -64,14 +64,14 @@ describe('FilterButton', () => {
       <FilterButton {...defaultProps} />,
     );
     // wide=true is the default — component renders without error
-    expect(getByTestId('filter-btn')).toBeTruthy();
+    expect(getByTestId('filter-btn')).toBeOnTheScreen();
   });
 
   it('renders with wide=false (compact padding)', () => {
     const { getByTestId } = renderWithProvider(
       <FilterButton {...defaultProps} wide={false} />,
     );
-    expect(getByTestId('filter-btn')).toBeTruthy();
+    expect(getByTestId('filter-btn')).toBeOnTheScreen();
   });
 });
 
@@ -89,12 +89,12 @@ describe('FilterBar', () => {
 
   it('renders price-change button with correct label', () => {
     const { getByText } = renderWithProvider(<FilterBar {...defaultProps} />);
-    expect(getByText('24h %')).toBeTruthy();
+    expect(getByText('24h %')).toBeOnTheScreen();
   });
 
   it('renders network button with correct label', () => {
     const { getByText } = renderWithProvider(<FilterBar {...defaultProps} />);
-    expect(getByText('All Networks')).toBeTruthy();
+    expect(getByText('All Networks')).toBeOnTheScreen();
   });
 
   it('calls onPriceChangePress when price-change button is pressed', () => {
@@ -150,7 +150,7 @@ describe('FilterBar', () => {
         }
       />,
     );
-    expect(getByTestId('extra-filter')).toBeTruthy();
+    expect(getByTestId('extra-filter')).toBeOnTheScreen();
   });
 
   it('renders without extra filters', () => {
