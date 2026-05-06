@@ -3,7 +3,12 @@ import type {
   V4MultiAccountTransactionsResponse,
 } from '@metamask/core-backend';
 import type { InfiniteData } from '@tanstack/react-query';
-import { selectTransactions } from './transformations';
+import {
+  isBridgeHistoryForEvmTransaction,
+  mergeTransactionsByTime,
+  selectTransactions,
+} from './transformations';
+import { TransactionKind } from '../types';
 
 describe('selectTransactions', () => {
   const address = '0x0000000000000000000000000000000000000001';
@@ -87,5 +92,164 @@ describe('selectTransactions', () => {
 
     expect(result.pages[0].data).toHaveLength(1);
     expect(result.pages[0].data[0].hash).toBe('0xnormal');
+  });
+
+  it('filters incoming token transfers', () => {
+    const incomingTokenTransfer = buildTransaction({
+      hash: '0xincoming-token',
+      from: otherAddress,
+      to: address,
+      valueTransfers: [
+        {
+          contractAddress: '0x00000000000000000000000000000000000000aa',
+          from: otherAddress,
+          to: address,
+        },
+      ],
+    } as Partial<V1TransactionByHashResponse>);
+    const outgoing = buildTransaction({ hash: '0xoutgoing' });
+
+    const result = selectTransactions({ address })(
+      buildData([incomingTokenTransfer, outgoing]),
+    );
+
+    expect(result.pages[0].data).toHaveLength(1);
+    expect(result.pages[0].data[0].hash).toBe('0xoutgoing');
+  });
+
+  it('filters incoming native transfers', () => {
+    const incomingNativeTransfer = buildTransaction({
+      hash: '0xincoming-native',
+      from: otherAddress,
+      to: address,
+      valueTransfers: [
+        {
+          from: otherAddress,
+          to: address,
+        },
+      ],
+    } as Partial<V1TransactionByHashResponse>);
+    const outgoing = buildTransaction({ hash: '0xoutgoing' });
+
+    const result = selectTransactions({ address })(
+      buildData([incomingNativeTransfer, outgoing]),
+    );
+
+    expect(result.pages[0].data).toHaveLength(1);
+    expect(result.pages[0].data[0].hash).toBe('0xoutgoing');
+  });
+
+  it('filters zero-value self sends without calldata or transfers', () => {
+    const selfSend = buildTransaction({
+      from: address,
+      to: address,
+      value: '0',
+      methodId: '0x',
+      valueTransfers: [],
+    });
+
+    const result = selectTransactions({ address })(buildData([selfSend]));
+
+    expect(result.pages[0].data).toHaveLength(0);
+  });
+});
+
+describe('isBridgeHistoryForEvmTransaction', () => {
+  it('matches bridge history by original transaction id', () => {
+    const tx = {
+      id: 'tx-id',
+      actionId: 'action-id',
+    };
+    const bridgeHistoryValues = [
+      {
+        txMetaId: 'different-id',
+        originalTransactionId: 'action-id',
+      },
+    ];
+
+    const result = isBridgeHistoryForEvmTransaction(
+      tx as Parameters<typeof isBridgeHistoryForEvmTransaction>[0],
+      bridgeHistoryValues as Parameters<
+        typeof isBridgeHistoryForEvmTransaction
+      >[1],
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('matches bridge history by source hash', () => {
+    const tx = {
+      id: 'tx-id',
+      hash: '0xABC',
+    };
+    const bridgeHistoryValues = [
+      {
+        txMetaId: 'different-id',
+        status: {
+          srcChain: {
+            txHash: '0xabc',
+          },
+        },
+      },
+    ];
+
+    const result = isBridgeHistoryForEvmTransaction(
+      tx as Parameters<typeof isBridgeHistoryForEvmTransaction>[0],
+      bridgeHistoryValues as Parameters<
+        typeof isBridgeHistoryForEvmTransaction
+      >[1],
+    );
+
+    expect(result).toBe(true);
+  });
+});
+
+describe('mergeTransactionsByTime', () => {
+  it('sorts unified transactions by time and removes local transactions with confirmed hashes', () => {
+    const localDuplicate = {
+      id: 'local-duplicate',
+      hash: '0xDUPLICATE',
+      time: 300,
+    };
+    const localUnique = {
+      id: 'local-unique',
+      hash: '0xlocal',
+      time: 200,
+    };
+    const confirmedDuplicate = {
+      id: 'confirmed-duplicate',
+      hash: '0xduplicate',
+      time: 400,
+    };
+    const nonEvm = {
+      id: 'non-evm',
+      timestamp: 1,
+    };
+
+    const result = mergeTransactionsByTime(
+      [localDuplicate, localUnique] as Parameters<
+        typeof mergeTransactionsByTime
+      >[0],
+      [confirmedDuplicate] as Parameters<typeof mergeTransactionsByTime>[1],
+      [nonEvm] as Parameters<typeof mergeTransactionsByTime>[2],
+    );
+
+    expect(result).toStrictEqual([
+      {
+        kind: TransactionKind.NonEvm,
+        tx: nonEvm,
+        time: 1000,
+      },
+      {
+        kind: TransactionKind.ConfirmedEvm,
+        tx: confirmedDuplicate,
+        time: 400,
+      },
+      {
+        kind: TransactionKind.Evm,
+        tx: localUnique,
+        time: 200,
+      },
+    ]);
   });
 });
