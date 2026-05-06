@@ -369,12 +369,21 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
-          <PerpsSectionWithProvider
-            ref={perpsSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-            totalSectionsLoaded={totalSectionsLoaded}
-            mode={sectionMode}
-          />
+          {perpsProvidersHoisted ? (
+            <PerpsSectionBase
+              ref={perpsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+              mode={sectionMode}
+            />
+          ) : (
+            <PerpsSectionWithProvider
+              ref={perpsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+              mode={sectionMode}
+            />
+          )}
           <PredictionsSection
             ref={predictionsSectionRef}
             sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
