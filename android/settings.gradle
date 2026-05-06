@@ -58,5 +58,9 @@ includeBuild('../node_modules/react-native') {
     }
 }
 
+// Build Detox from source to ensure our patches are applied
+include ':detox'
+project(':detox').projectDir = new File(rootProject.projectDir, '../node_modules/detox/android/detox')
+
 apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle")
 useExpoModules()
