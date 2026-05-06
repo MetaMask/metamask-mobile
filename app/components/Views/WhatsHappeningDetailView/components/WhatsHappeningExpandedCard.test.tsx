@@ -8,6 +8,18 @@ import Routes from '../../../../constants/navigation/Routes';
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn((eventName: string) => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(() => ({ category: eventName })),
+      })),
+      build: jest.fn(() => ({ category: eventName })),
+    })),
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -78,7 +90,11 @@ describe('WhatsHappeningExpandedCard', () => {
 
   it('renders the title and description', () => {
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={baseItem} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={baseItem}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.getByText(baseItem.title)).toBeOnTheScreen();
     expect(screen.getByText(baseItem.description)).toBeOnTheScreen();
@@ -86,7 +102,11 @@ describe('WhatsHappeningExpandedCard', () => {
 
   it('renders the impact badge for positive impact', () => {
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={baseItem} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={baseItem}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
   });
@@ -94,7 +114,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('renders Neutral badge when impact is explicitly neutral', () => {
     const item = { ...baseItem, impact: 'neutral' as const };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.getByText('Neutral')).toBeOnTheScreen();
   });
@@ -102,7 +126,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('does not render an impact badge when impact is undefined', () => {
     const item = { ...baseItem, impact: undefined };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.queryByText('Neutral')).toBeNull();
     expect(screen.queryByText('Bullish')).toBeNull();
@@ -112,7 +140,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('renders Tokens section when assets have caip19', () => {
     const item = { ...baseItem, relatedAssets: [tokenAsset] };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
@@ -122,7 +154,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('does not render Tokens section when no assets have caip19', () => {
     const item = { ...baseItem, relatedAssets: [perpsOnlyAsset] };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.queryByText('Tokens')).toBeNull();
     expect(screen.queryByText('Buy')).toBeNull();
@@ -131,7 +167,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('renders Perps section when assets have hlPerpsMarket', () => {
     const item = { ...baseItem, relatedAssets: [perpsOnlyAsset] };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.getByText('Perps')).toBeOnTheScreen();
     expect(screen.getByText('TSLA')).toBeOnTheScreen();
@@ -141,7 +181,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('does not render Perps section when no assets have hlPerpsMarket', () => {
     const item = { ...baseItem, relatedAssets: [tokenAsset] };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.queryByText('Perps')).toBeNull();
     expect(screen.queryByText('Trade')).toBeNull();
@@ -150,7 +194,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('renders both Tokens and Perps sections when there are separate token and perps-only assets', () => {
     const item = { ...baseItem, relatedAssets: [tokenAsset, perpsOnlyAsset] };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
     expect(screen.getByText('Perps')).toBeOnTheScreen();
@@ -161,7 +209,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('does not duplicate a dual asset (caip19 + hlPerpsMarket) into the Perps section', () => {
     const item = { ...baseItem, relatedAssets: [dualAsset] };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
     expect(screen.getByText('Buy')).toBeOnTheScreen();
@@ -171,7 +223,11 @@ describe('WhatsHappeningExpandedCard', () => {
 
   it('renders neither section when relatedAssets is empty', () => {
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={baseItem} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={baseItem}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     expect(screen.queryByText('Tokens')).toBeNull();
     expect(screen.queryByText('Perps')).toBeNull();
@@ -180,7 +236,11 @@ describe('WhatsHappeningExpandedCard', () => {
   it('Trade button navigates to PerpsMarketDetails', () => {
     const item = { ...baseItem, relatedAssets: [perpsOnlyAsset] };
     renderWithProvider(
-      <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+      />,
     );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
