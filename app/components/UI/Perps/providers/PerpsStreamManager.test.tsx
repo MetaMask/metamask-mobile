@@ -2745,12 +2745,14 @@ describe('PerpsStreamManager', () => {
     });
 
     it('does not touch marketData (REST-based, not a stream channel)', () => {
-      const spy = jest.spyOn(testStreamManager.marketData, 'getSnapshot');
+      const pauseSpy = jest.spyOn(testStreamManager.marketData, 'pause');
+      const resumeSpy = jest.spyOn(testStreamManager.marketData, 'resume');
 
       testStreamManager.pauseAllChannels();
       testStreamManager.resumeAllChannels();
 
-      expect(spy).not.toHaveBeenCalled();
+      expect(pauseSpy).not.toHaveBeenCalled();
+      expect(resumeSpy).not.toHaveBeenCalled();
     });
   });
 
