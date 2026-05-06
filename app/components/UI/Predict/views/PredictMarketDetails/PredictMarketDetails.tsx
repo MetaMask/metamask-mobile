@@ -129,6 +129,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     childMarketIds: market?.childMarketIds,
     claimable: false,
     enabled: !isMarketLoading && Boolean(resolvedMarketId),
+    livePriceUpdates: true,
   });
 
   // "claimable" positions
