@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHomeView from './MoneyHomeView';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
@@ -335,6 +336,47 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  it('navigates to Card root when Get now row is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+  });
+
+  it('navigates to potential earnings screen when View potential earnings is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(
+      getByTestId(
+        MoneyPotentialEarningsTestIds.VIEW_POTENTIAL_EARNINGS_BUTTON,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
+  });
+
+  it('opens the MUSD learn more URL when learn more is pressed in empty state', () => {
+    const mockOpenURL = jest
+      .spyOn(require('react-native').Linking, 'openURL')
+      .mockResolvedValue(undefined);
+
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
+
+    expect(mockOpenURL).toHaveBeenCalledTimes(1);
+    mockOpenURL.mockRestore();
+  });
+
   describe('projected earnings', () => {
     it('passes the formatted projected earnings to MoneyEarnings', () => {
       mockMoneyFormatFiat.mockReturnValue('$0.12');
@@ -597,8 +639,270 @@ describe('MoneyHomeView', () => {
     it('mounts the footer in its hidden initial position', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
-      // Animation behavior is verified by computeStepperVisibility's unit
-      // tests and the Detox/E2E pass; we don't simulate scroll/layout here.
+    });
+
+    it('handleScrollViewLayout updates scroll view height and calls updateStepperVisibility', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      act(() => {
+        fireEvent(scrollView, 'layout', {
+          nativeEvent: { layout: { height: 700, width: 390, x: 0, y: 0 } },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('handleScrollViewLayout is a no-op when height is unchanged', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      act(() => {
+        fireEvent(scrollView, 'layout', {
+          nativeEvent: { layout: { height: 600, width: 390, x: 0, y: 0 } },
+        });
+      });
+
+      act(() => {
+        fireEvent(scrollView, 'layout', {
+          nativeEvent: { layout: { height: 600, width: 390, x: 0, y: 0 } },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('handleScroll records the current scroll offset and calls updateStepperVisibility', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      act(() => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { y: 300, x: 0 },
+            contentSize: { height: 1200, width: 390 },
+            layoutMeasurement: { height: 700, width: 390 },
+          },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('handleStepperLayout stores new layout and triggers visibility update', () => {
+      const { UNSAFE_getAllByType, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      const Box = jest.requireActual(
+        '@metamask/design-system-react-native',
+      ).Box;
+      const stepperBox = UNSAFE_getAllByType(Box).find(
+        (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
+      );
+
+      act(() => {
+        stepperBox?.props.onLayout({
+          nativeEvent: { layout: { y: 200, height: 120, x: 0, width: 390 } },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('handleStepperLayout is a no-op when layout dimensions are unchanged', () => {
+      const { UNSAFE_getAllByType, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      const Box = jest.requireActual(
+        '@metamask/design-system-react-native',
+      ).Box;
+      const stepperBox = UNSAFE_getAllByType(Box).find(
+        (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
+      );
+
+      act(() => {
+        stepperBox?.props.onLayout({
+          nativeEvent: { layout: { y: 200, height: 120, x: 0, width: 390 } },
+        });
+      });
+
+      act(() => {
+        stepperBox?.props.onLayout({
+          nativeEvent: { layout: { y: 200, height: 120, x: 0, width: 390 } },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('footer peek-in: scrolling past stepper bottom triggers animateFooter(true)', () => {
+      const { UNSAFE_getAllByType, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      act(() => {
+        fireEvent(scrollView, 'layout', {
+          nativeEvent: { layout: { height: 700, width: 390, x: 0, y: 0 } },
+        });
+      });
+
+      const Box = jest.requireActual(
+        '@metamask/design-system-react-native',
+      ).Box;
+      const stepperBox = UNSAFE_getAllByType(Box).find(
+        (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
+      );
+
+      act(() => {
+        stepperBox?.props.onLayout({
+          nativeEvent: { layout: { y: 100, height: 200, x: 0, width: 390 } },
+        });
+      });
+
+      act(() => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { y: 500, x: 0 },
+            contentSize: { height: 2000, width: 390 },
+            layoutMeasurement: { height: 700, width: 390 },
+          },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('footer hide: scrolling back above stepper bottom triggers animateFooter(false)', () => {
+      const { UNSAFE_getAllByType, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      act(() => {
+        fireEvent(scrollView, 'layout', {
+          nativeEvent: { layout: { height: 700, width: 390, x: 0, y: 0 } },
+        });
+      });
+
+      const Box = jest.requireActual(
+        '@metamask/design-system-react-native',
+      ).Box;
+      const stepperBox = UNSAFE_getAllByType(Box).find(
+        (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
+      );
+
+      act(() => {
+        stepperBox?.props.onLayout({
+          nativeEvent: { layout: { y: 100, height: 200, x: 0, width: 390 } },
+        });
+      });
+
+      act(() => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { y: 500, x: 0 },
+            contentSize: { height: 2000, width: 390 },
+            layoutMeasurement: { height: 700, width: 390 },
+          },
+        });
+      });
+
+      act(() => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { y: 50, x: 0 },
+            contentSize: { height: 2000, width: 390 },
+            layoutMeasurement: { height: 700, width: 390 },
+          },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('updateStepperVisibility does not animate when visibility is unchanged', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      act(() => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { y: 0, x: 0 },
+            contentSize: { height: 2000, width: 390 },
+            layoutMeasurement: { height: 700, width: 390 },
+          },
+        });
+      });
+
+      act(() => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { y: 10, x: 0 },
+            contentSize: { height: 2000, width: 390 },
+            layoutMeasurement: { height: 700, width: 390 },
+          },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('handleFooterLayout updates footer height on first measurement', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      const footerEl = getByTestId(MoneyFooterTestIds.CONTAINER);
+      let footerAnimatedView: ReactTestInstance | null = null;
+      let cursor: ReactTestInstance | null = footerEl.parent ?? null;
+      while (cursor) {
+        if (typeof cursor.props?.onLayout === 'function') {
+          footerAnimatedView = cursor;
+          break;
+        }
+        cursor = cursor.parent ?? null;
+      }
+
+      act(() => {
+        footerAnimatedView?.props.onLayout?.({
+          nativeEvent: { layout: { height: 80, width: 390, x: 0, y: 0 } },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('handleFooterLayout is a no-op when footer height is unchanged', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      const footerEl = getByTestId(MoneyFooterTestIds.CONTAINER);
+      let footerAnimatedView: ReactTestInstance | null = null;
+      let cursor: ReactTestInstance | null = footerEl.parent ?? null;
+      while (cursor) {
+        if (typeof cursor.props?.onLayout === 'function') {
+          footerAnimatedView = cursor;
+          break;
+        }
+        cursor = cursor.parent ?? null;
+      }
+
+      act(() => {
+        footerAnimatedView?.props.onLayout?.({
+          nativeEvent: { layout: { height: 80, width: 390, x: 0, y: 0 } },
+        });
+      });
+
+      act(() => {
+        footerAnimatedView?.props.onLayout?.({
+          nativeEvent: { layout: { height: 80, width: 390, x: 0, y: 0 } },
+        });
+      });
+
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
     });
   });
 });
