@@ -128,4 +128,59 @@ describe('processAttribution', () => {
       utm_content: '',
     });
   });
+
+  it('maps attribution_id (snake_case) to attributionId like deeplink save path', () => {
+    (store.getState as jest.Mock).mockReturnValue({
+      security: { dataCollectionForMarketing: true },
+    });
+    (extractURLParams as jest.Mock).mockReturnValue({
+      params: {
+        attributionId: '',
+        attribution_id: 'snake-value',
+        utm_source: 'src',
+        utm_medium: 'med',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+      },
+    });
+
+    const result = processAttribution({
+      currentDeeplink:
+        'metamask://connect?attribution_id=snake-value&utm_source=src&utm_medium=med',
+      store,
+    });
+    expect(result).toEqual({
+      attributionId: 'snake-value',
+      utm_source: 'src',
+      utm_medium: 'med',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
+    });
+  });
+
+  it('prefers attributionId over attribution_id when both are present', () => {
+    (store.getState as jest.Mock).mockReturnValue({
+      security: { dataCollectionForMarketing: true },
+    });
+    (extractURLParams as jest.Mock).mockReturnValue({
+      params: {
+        attributionId: 'camel',
+        attribution_id: 'snake',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+      },
+    });
+
+    const result = processAttribution({
+      currentDeeplink:
+        'metamask://connect?attributionId=camel&attribution_id=snake',
+      store,
+    });
+    expect(result?.attributionId).toBe('camel');
+  });
 });

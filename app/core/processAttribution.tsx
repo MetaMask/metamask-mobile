@@ -1,4 +1,5 @@
 import extractURLParams from './DeeplinkManager/utils/extractURLParams';
+import { attributionIdFromUrlParams } from './redux/slices/attributionFromSources';
 import { RootState } from '../reducers';
 import { Store } from 'redux';
 import Logger from '../util/Logger';
@@ -33,14 +34,9 @@ export function processAttribution({
 
   if (currentDeeplink) {
     const { params } = extractURLParams(currentDeeplink);
-    const {
-      attributionId,
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_term,
-      utm_content,
-    } = params;
+    const attributionId = attributionIdFromUrlParams(params);
+    const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+      params;
 
     return {
       attributionId,

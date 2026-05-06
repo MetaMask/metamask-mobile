@@ -13,6 +13,19 @@ function readStringField(
 }
 
 /**
+ * Prefer camelCase when both are present, matching {@link attributionPayloadFromDeeplink}.
+ */
+export function attributionIdFromUrlParams(
+  params: unknown,
+): string | undefined {
+  const raw = params as Record<string, unknown>;
+  return (
+    readStringField(raw, 'attributionId') ??
+    readStringField(raw, 'attribution_id')
+  );
+}
+
+/**
  * Parse acquisition params from a deeplink URL for {@link saveAttribution}.
  * Returns null if there is nothing attributable.
  */
@@ -22,9 +35,7 @@ export function attributionPayloadFromDeeplink(
   const { params } = extractURLParams(deeplinkUrl);
   const raw = params as unknown as Record<string, unknown>;
 
-  const attribution_id =
-    readStringField(raw, 'attributionId') ??
-    readStringField(raw, 'attribution_id');
+  const attribution_id = attributionIdFromUrlParams(raw);
 
   const payload: SaveAttributionPayload = {};
 
