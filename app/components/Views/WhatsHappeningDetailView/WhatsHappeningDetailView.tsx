@@ -50,7 +50,7 @@ const WhatsHappeningDetailView = () => {
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
-  const { initialIndex = 0 } = route.params;
+  const initialIndex = route.params?.initialIndex ?? 0;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
