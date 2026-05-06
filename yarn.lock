@@ -10066,21 +10066,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-execution-environments@npm:11.0.2":
-  version: 11.0.2
-  resolution: "@metamask/snaps-execution-environments@npm:11.0.2"
+"@metamask/snaps-execution-environments@npm:^11.0.2":
+  version: 11.1.0
+  resolution: "@metamask/snaps-execution-environments@npm:11.1.0"
   dependencies:
-    "@metamask/json-rpc-engine": "npm:^10.2.3"
+    "@metamask/json-rpc-engine": "npm:^10.2.4"
     "@metamask/object-multiplex": "npm:^2.1.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/providers": "npm:^22.1.1"
     "@metamask/rpc-errors": "npm:^7.0.3"
-    "@metamask/snaps-sdk": "npm:^11.0.0"
-    "@metamask/snaps-utils": "npm:^12.1.2"
+    "@metamask/snaps-sdk": "npm:^11.1.0"
+    "@metamask/snaps-utils": "npm:^12.2.0"
     "@metamask/superstruct": "npm:^3.2.1"
-    "@metamask/utils": "npm:^11.10.0"
+    "@metamask/utils": "npm:^11.11.0"
     readable-stream: "npm:^3.6.2"
-  checksum: 10/9faa7bba96688fe1430bbe7797df1693e7f3a67c7d993fdba2731fa6ce062910ab48eecb36188e7448d452d5642bafe42a5bf9ab6abeb3b0e31962fe24495993
+  checksum: 10/8db679dbf695eae062c17da232fa7d9a1e8b07da53714fcfc2428eb0208e598738e9a3142f89033b88a43e04c31b6ccd013ca3dd7a29369ba0436d6cc45df12d
   languageName: node
   linkType: hard
 
@@ -35945,7 +35945,7 @@ __metadata:
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^24.0.0"
     "@metamask/snaps-controllers": "npm:^20.0.3"
-    "@metamask/snaps-execution-environments": "npm:11.0.2"
+    "@metamask/snaps-execution-environments": "npm:^11.0.2"
     "@metamask/snaps-rpc-methods": "npm:^15.1.1"
     "@metamask/snaps-sdk": "npm:^11.1.0"
     "@metamask/snaps-utils": "npm:^12.2.0"
