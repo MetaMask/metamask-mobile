@@ -131,7 +131,7 @@ export function BatchSellTokenRow({
   networkImageSource,
   onTokenPress,
 }: BatchSellTokenRowProps) {
-  const chainId = formatChainIdToHex(token.chainId) as Hex;
+  const chainId = formatChainIdToHex(token.chainId);
   const isNative = isNativeAddress(token.address);
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
