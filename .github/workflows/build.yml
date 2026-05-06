@@ -125,6 +125,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: 'yarn'
       - run: yarn install --immutable
       - run: node scripts/validate-build-config.js
 

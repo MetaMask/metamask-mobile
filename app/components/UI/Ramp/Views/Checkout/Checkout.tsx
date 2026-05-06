@@ -25,7 +25,11 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import { closeSession, getSession } from '../../headless/sessionRegistry';
+import {
+  closeSession,
+  failSession,
+  getSession,
+} from '../../headless/sessionRegistry';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
@@ -115,6 +119,18 @@ const Checkout = () => {
       );
     }
   }, [uri, createEventBuilder, trackEvent, rampRoutingDecision]);
+
+  const failHeadlessCheckout = useCallback(
+    (checkoutError: unknown) => {
+      if (!failSession(headlessSessionId, checkoutError)) {
+        return false;
+      }
+      // @ts-expect-error navigation prop mismatch
+      navigation.getParent()?.pop();
+      return true;
+    },
+    [headlessSessionId, navigation],
+  );
 
   useEffect(() => {
     // For external-browser flows (e.g. PayPal), addPrecreatedOrder is called in
@@ -223,6 +239,9 @@ const Checkout = () => {
         Logger.error(navError as Error, {
           message: 'UnifiedCheckout: error handling callback',
         });
+        if (failHeadlessCheckout(navError)) {
+          return;
+        }
         setError((navError as Error)?.message);
       }
     },
@@ -236,6 +255,7 @@ const Checkout = () => {
       addOrder,
       getOrderFromCallback,
       headlessSessionId,
+      failHeadlessCheckout,
     ],
   );
 
@@ -332,6 +352,9 @@ const Checkout = () => {
                 'fiat_on_ramp_aggregator.webview_received_error',
                 { code: nativeEvent.statusCode },
               );
+              if (failHeadlessCheckout(new Error(webviewHttpError))) {
+                return;
+              }
               setError(webviewHttpError);
             } else {
               Logger.log(
