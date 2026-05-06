@@ -2391,11 +2391,6 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Owner address is required');
       }
 
-      const cachedAccountState = this.#accountStateByAddress.get(ownerAddress);
-      if (cachedAccountState) {
-        return cachedAccountState;
-      }
-
       const protocol = this.#getProtocol();
       const { feeCollection: flagFeeCollection } = this.#getFeatureFlags();
       const extraUsdcSpenders = flagFeeCollection.permit2Enabled

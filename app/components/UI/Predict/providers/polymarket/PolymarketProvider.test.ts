@@ -5426,18 +5426,35 @@ describe('PolymarketProvider', () => {
       });
     });
 
-    it('caches account state by owner address', async () => {
-      // Given an account state check
+    it('refreshes account state for repeated owner lookups', async () => {
       const provider = createProvider();
-      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
-      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (isSmartContractAddress as jest.Mock)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+      (hasAllowances as jest.Mock)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
 
-      // When getting account state twice
-      await provider.getAccountState({ ownerAddress: '0x123' });
-      await provider.getAccountState({ ownerAddress: '0x123' });
+      const firstResult = await provider.getAccountState({
+        ownerAddress: '0x123',
+      });
+      const secondResult = await provider.getAccountState({
+        ownerAddress: '0x123',
+      });
 
-      // Then Safe address is only computed once
-      expect(computeProxyAddress).toHaveBeenCalledTimes(1);
+      expect(firstResult).toEqual({
+        address: '0xSafeAddress',
+        isDeployed: false,
+        hasAllowances: false,
+        walletType: 'safe',
+      });
+      expect(secondResult).toEqual({
+        address: '0xSafeAddress',
+        isDeployed: true,
+        hasAllowances: true,
+        walletType: 'safe',
+      });
+      expect(computeProxyAddress).toHaveBeenCalledTimes(2);
     });
 
     it('computes Safe address for each unique owner', async () => {
