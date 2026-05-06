@@ -18,6 +18,15 @@ interface UseQrConfirmOptions {
   isTransactionReq: boolean;
 }
 
+/**
+ * Coordinates QR hardware wallet confirmation for transactions and message approvals.
+ *
+ * Ensures the QR account is ready, shows the awaiting-confirmation UI, opens the
+ * scanner when a QR signing payload is already active, and forwards terminal
+ * errors through the hardware wallet error flow.
+ *
+ * @returns An `onConfirm` callback for the confirmation submit action.
+ */
 export function useQrConfirm({
   onReject,
   onTransactionConfirm,
@@ -37,6 +46,19 @@ export function useQrConfirm({
   const transactionMetadata = useTransactionMetadataRequest();
 
   const hasRejectedRef = useRef(false);
+
+  const executeQrConfirmation = useCallback(async () => {
+    if (isTransactionReq) {
+      await onTransactionConfirm({
+        onError: (err) => {
+          throw err;
+        },
+      });
+      return;
+    }
+
+    await executeApproval();
+  }, [executeApproval, isTransactionReq, onTransactionConfirm]);
 
   const onConfirm = useCallback(async () => {
     hasRejectedRef.current = false;
@@ -70,17 +92,7 @@ export function useQrConfirm({
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
-        execute: async () => {
-          if (isTransactionReq) {
-            await onTransactionConfirm({
-              onError: (err) => {
-                throw err;
-              },
-            });
-          } else {
-            await executeApproval();
-          }
-        },
+        execute: executeQrConfirmation,
         onRejected: rejectOnce,
       });
     } catch (err) {
@@ -94,9 +106,8 @@ export function useQrConfirm({
     transactionMetadata?.txParams?.from,
     isSigningQRObject,
     isTransactionReq,
+    executeQrConfirmation,
     onReject,
-    onTransactionConfirm,
-    executeApproval,
     ensureDeviceReady,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,

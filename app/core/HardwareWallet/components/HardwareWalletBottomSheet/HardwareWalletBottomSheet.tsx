@@ -142,8 +142,7 @@ export const HardwareWalletBottomSheet: React.FC<
       connectionState.status === ConnectionStatus.ErrorState &&
       isQRHardwareScanError(connectionState.error)
     ) {
-      const qrErrorMetadata = connectionState.error
-        .metadata as QRHardwareScanErrorMetadata;
+      const qrErrorMetadata = connectionState.error.metadata;
       setOpenQrScannerOnMount(
         qrErrorMetadata.qrScanPurpose === QrScanRequestType.SIGN,
       );
