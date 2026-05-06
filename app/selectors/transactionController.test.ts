@@ -6,9 +6,14 @@ import {
   selectLastWithdrawTokenByType,
   selectLocalTransactions,
   selectNonReplacedTransactions,
+  selectRequiredTransactionIds,
   selectRequiredTransactionHashes,
+  selectRequiredTransactions,
   selectSwapsTransactions,
+  selectTransactionBatchMetadataById,
   selectTransactionMetadataById,
+  selectTransactionsByBatchId,
+  selectTransactionsByIds,
   selectSortedTransactions,
   selectSortedEVMTransactionsForSelectedAccountGroup,
 } from './transactionController';
@@ -125,6 +130,57 @@ describe('TransactionController Selectors', () => {
     });
   });
 
+  describe('selectRequiredTransactionIds', () => {
+    it('returns required child transaction ids', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'parent',
+                  requiredTransactionIds: ['child-1', 'child-2'],
+                },
+                {
+                  id: 'child-1',
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectRequiredTransactionIds(state)).toStrictEqual(
+        new Set(['child-1', 'child-2']),
+      );
+    });
+  });
+
+  describe('selectRequiredTransactions', () => {
+    it('returns transactions referenced by required ids', () => {
+      const child = {
+        id: 'child',
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'parent',
+                  requiredTransactionIds: ['child'],
+                },
+                child,
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectRequiredTransactions(state)).toStrictEqual([child]);
+    });
+  });
+
   describe('selectLocalTransactions', () => {
     it('filters required child transactions before nonce dedupe', () => {
       const activeEvmAddress = '0x0000000000000000000000000000000000000001';
@@ -173,8 +229,8 @@ describe('TransactionController Selectors', () => {
         pendingSmartTransactionsForGroup: [],
       } as unknown as RootState;
 
-      expect(selectLocalTransactions(state).map(({ id }) => id)).toStrictEqual([
-        'parent',
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'parent' }),
       ]);
     });
   });
@@ -218,6 +274,78 @@ describe('TransactionController Selectors', () => {
       expect(
         selectTransactionMetadataById(state, 'non-existent'),
       ).toBeUndefined();
+    });
+  });
+
+  describe('selectTransactionBatchMetadataById', () => {
+    it('returns the transaction batch matching the given id', () => {
+      const batch = {
+        id: 'batch-id',
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [],
+              transactionBatches: [batch],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectTransactionBatchMetadataById(state, 'batch-id')).toBe(batch);
+    });
+  });
+
+  describe('selectTransactionsByIds', () => {
+    it('returns matching transactions in requested id order', () => {
+      const first = {
+        id: 'first',
+      };
+      const second = {
+        id: 'second',
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [first, second],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(
+        selectTransactionsByIds(state, ['second', 'missing', 'first']),
+      ).toStrictEqual([second, first]);
+    });
+  });
+
+  describe('selectTransactionsByBatchId', () => {
+    it('returns transactions matching the batch id', () => {
+      const matchingTransaction = {
+        id: 'matching',
+        batchId: 'batch-id',
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                matchingTransaction,
+                {
+                  id: 'other',
+                  batchId: 'other-batch-id',
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectTransactionsByBatchId(state, 'batch-id')).toStrictEqual([
+        matchingTransaction,
+      ]);
     });
   });
 
