@@ -17,6 +17,8 @@ export interface FilterButtonProps {
   ellipsizeMode?: 'tail' | 'head' | 'middle' | 'clip';
   /** Optional Tailwind class overrides for layout in custom contexts */
   twClassName?: string;
+  /** Optional icon name to replace the default ArrowDown icon */
+  iconName?: IconName;
 }
 
 export const FilterButton: React.FC<FilterButtonProps> = ({
@@ -27,6 +29,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   numberOfLines,
   ellipsizeMode,
   twClassName,
+  iconName = IconName.ArrowDown,
 }) => {
   const tw = useTailwind();
 
@@ -51,7 +54,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
           {label}
         </Text>
         <Icon
-          name={IconName.ArrowDown}
+          name={iconName}
           color={IconColor.Alternative}
           size={IconSize.Xs}
         />
@@ -64,6 +67,8 @@ export interface FilterBarProps {
   priceChangeButtonText: string;
   onPriceChangePress: () => void;
   isPriceChangeDisabled?: boolean;
+  /** Optional icon name for the price change button */
+  priceChangeIconName?: IconName;
 
   networkName: string;
   onNetworkPress: () => void;
@@ -81,6 +86,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   priceChangeButtonText,
   onPriceChangePress,
   isPriceChangeDisabled = false,
+  priceChangeIconName,
   networkName,
   onNetworkPress,
   extraFilters,
@@ -95,6 +101,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           label={priceChangeButtonText}
           onPress={onPriceChangePress}
           disabled={isPriceChangeDisabled}
+          iconName={priceChangeIconName}
         />
         <View style={tw`ml-2 min-w-0 shrink flex-row items-center gap-2`}>
           <FilterButton
