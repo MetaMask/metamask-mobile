@@ -147,8 +147,6 @@ export async function setupMusdMocks(
     earnMusdConvertibleTokensAllowlist: { '*': ['USDC'] },
     earnMusdConversionMinAssetBalanceRequired: 0.01,
     earnMusdConversionGeoBlockedCountries: { blockedRegions: ['GB'] },
-    homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-    homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
   });
 
   await setupMockRequest(mockServer, {
