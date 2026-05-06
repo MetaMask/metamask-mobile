@@ -1,10 +1,8 @@
 import React from 'react';
 import {
-  FontWeight,
+  HeaderBase,
   HeaderBaseVariant,
-  HeaderStandard,
   IconName,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
@@ -17,15 +15,10 @@ interface MoneyHeaderProps {
 }
 
 const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
-  <HeaderStandard
+  <HeaderBase
     testID={MoneyHeaderTestIds.CONTAINER}
     variant={HeaderBaseVariant.Display}
-    title={strings('money.title')}
-    titleProps={{
-      variant: TextVariant.HeadingLg,
-      fontWeight: FontWeight.Bold,
-      testID: MoneyHeaderTestIds.TITLE,
-    }}
+    titleTestID={MoneyHeaderTestIds.TITLE}
     endButtonIconProps={[
       {
         iconName: IconName.MoreVertical,
@@ -34,7 +27,9 @@ const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
         testID: MoneyHeaderTestIds.MENU_BUTTON,
       },
     ]}
-  />
+  >
+    {strings('money.title')}
+  </HeaderBase>
 );
 
 export default MoneyHeader;
