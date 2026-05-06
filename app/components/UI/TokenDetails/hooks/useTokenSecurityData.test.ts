@@ -109,6 +109,42 @@ describe('useTokenSecurityData', () => {
     expect(result.current.securityData).toBeNull();
   });
 
+  it('ignores prefetchedData with wrong shape and fetches instead', async () => {
+    const assetId = 'eip155:1/erc20:0x1234' as CaipAssetType;
+    mockFetchTokenAssets.mockResolvedValue([
+      {
+        assetId,
+        name: 'Test Token',
+        symbol: 'TEST',
+        decimals: 18,
+        securityData: mockSecurityData,
+      },
+    ]);
+
+    // Bridge SecurityData shape: { type: "Verified" } — missing resultType
+    const wrongShapedData = {
+      type: 'Verified',
+    } as unknown as TokenSecurityData;
+
+    const { result } = renderHook(() =>
+      useTokenSecurityData({
+        assetId,
+        prefetchedData: wrongShapedData,
+      }),
+    );
+
+    expect(result.current.isLoading).toBe(true);
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockFetchTokenAssets).toHaveBeenCalledWith([assetId], {
+      includeTokenSecurityData: true,
+    });
+    expect(result.current.securityData).toBe(mockSecurityData);
+  });
+
   it('does not fetch when assetId is null', () => {
     const { result } = renderHook(() =>
       useTokenSecurityData({ assetId: null }),
