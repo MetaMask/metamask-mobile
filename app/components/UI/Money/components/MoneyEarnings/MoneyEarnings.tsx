@@ -65,17 +65,14 @@ const MoneyEarnings = ({
       infoAccessibilityLabel={strings('money.earnings.info_label')}
     />
 
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Start}
-      twClassName="mt-3 gap-4"
-    >
-      <Box twClassName="flex-1 gap-0.5" testID={MoneyEarningsTestIds.MONTHLY}>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
+    <Box twClassName="mt-3 gap-1">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="justify-between"
+        testID={MoneyEarningsTestIds.MONTHLY}
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.earnings.estimated_monthly')}
         </Text>
         {isLoading ? (
@@ -91,20 +88,15 @@ const MoneyEarnings = ({
         )}
       </Box>
 
-      <Box twClassName="gap-0.5 flex-1">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {strings('money.earnings.estimated_yearly')}
-          </Text>
-        </Box>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="justify-between"
+        testID={MoneyEarningsTestIds.YEARLY}
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {strings('money.earnings.estimated_yearly')}
+        </Text>
         {isLoading ? (
           <Skeleton
             height={24}

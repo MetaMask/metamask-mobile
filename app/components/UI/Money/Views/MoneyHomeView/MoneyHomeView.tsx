@@ -155,9 +155,8 @@ const MoneyHomeView = () => {
   const handleEarningsInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
-      params: { apy: apyPercent },
     });
-  }, [navigation, apyPercent]);
+  }, [navigation]);
 
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
