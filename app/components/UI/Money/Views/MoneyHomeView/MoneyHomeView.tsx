@@ -35,6 +35,7 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
+import { computeStepperVisibility } from './utils/computeStepperVisibility';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -233,28 +234,15 @@ const MoneyHomeView = () => {
   // initial paint and we avoid a flash of "Add money".
   const isStepperVisibleRef = useRef(true);
 
-  const computeStepperVisibility = useCallback(() => {
-    const stepperLayout = stepperLayoutRef.current;
-    const scrollViewHeight = scrollViewHeightRef.current;
-    // While the stepper is rendered but not yet measured, treat it as visible
-    // so the footer stays hidden until measurements settle. Avoids a brief
-    // "Add money" flash before the stepper's onLayout reports a real height.
-    if (
-      !stepperLayout ||
-      stepperLayout.height === 0 ||
-      scrollViewHeight === 0
-    ) {
-      return true;
-    }
-    // The footer should only peek in once the user has scrolled past the
-    // stepper's bottom edge. While the stepper is anywhere on screen — or
-    // still below the fold and reachable by scrolling — the footer stays
-    // hidden. This matches the AC ("scrolling past the stepper triggers the
-    // peek animation").
-    const stepperBottom = stepperLayout.y + stepperLayout.height;
-    const isUserPastStepper = scrollOffsetYRef.current > stepperBottom;
-    return !isUserPastStepper;
-  }, []);
+  const getStepperVisible = useCallback(
+    () =>
+      computeStepperVisibility({
+        stepperLayout: stepperLayoutRef.current,
+        scrollViewHeight: scrollViewHeightRef.current,
+        scrollOffsetY: scrollOffsetYRef.current,
+      }),
+    [],
+  );
 
   const animateFooter = useCallback(
     (visible: boolean) => {
@@ -267,11 +255,11 @@ const MoneyHomeView = () => {
   );
 
   const updateStepperVisibility = useCallback(() => {
-    const next = computeStepperVisibility();
+    const next = getStepperVisible();
     if (next === isStepperVisibleRef.current) return;
     isStepperVisibleRef.current = next;
     animateFooter(!next);
-  }, [computeStepperVisibility, animateFooter]);
+  }, [getStepperVisible, animateFooter]);
 
   const handleStepperLayout = useCallback(
     (event: LayoutChangeEvent) => {
