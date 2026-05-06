@@ -130,76 +130,78 @@ const PerpsModalStack = () => {
   }
 
   return (
-    <PerpsConnectionProvider isFullScreen suppressErrorView>
-      <PerpsStreamProvider>
-        <ModalStack.Navigator
-          screenOptions={{
-            ...clearStackNavigatorOptions,
-            presentation: 'transparentModal',
-          }}
-        >
-          <ModalStack.Screen
-            name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
-            component={PerpsQuoteExpiredModal}
-          />
-          <ModalStack.Screen
-            name={Routes.PERPS.MODALS.GTM_MODAL}
-            component={PerpsGTMModal}
-          />
-          <ModalStack.Screen
-            name={Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS}
-            component={PerpsCloseAllPositionsView}
-            options={{
-              title: strings('perps.close_all_modal.title'),
+    <PerpsGlobalErrorGate>
+      <PerpsConnectionProvider isFullScreen suppressErrorView>
+        <PerpsStreamProvider>
+          <ModalStack.Navigator
+            screenOptions={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
             }}
-          />
-          <ModalStack.Screen
-            name={Routes.PERPS.MODALS.CANCEL_ALL_ORDERS}
-            component={PerpsCancelAllOrdersView}
-            options={{
-              title: strings('perps.cancel_all_modal.title'),
-            }}
-          />
-          <ModalStack.Screen
-            name={Routes.PERPS.MODALS.CROSS_MARGIN_WARNING}
-            component={PerpsCrossMarginWarningBottomSheet}
-            options={{
-              title: strings('perps.crossMargin.title'),
-            }}
-          />
-          <ModalStack.Screen
-            name={Routes.PERPS.MODALS.SELECT_PROVIDER}
-            component={PerpsSelectProviderView}
-            options={{
-              title: strings('perps.provider_selector.title'),
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
-          />
-          {/* Action Selection Modals */}
-          <ModalStack.Screen
-            name={Routes.PERPS.SELECT_MODIFY_ACTION}
-            component={PerpsSelectModifyActionView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
-          />
-          <ModalStack.Screen
-            name={Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION}
-            component={PerpsSelectAdjustMarginActionView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
-          />
-          <ModalStack.Screen
-            name={Routes.PERPS.SELECT_ORDER_TYPE}
-            component={PerpsSelectOrderTypeView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
-          />
-        </ModalStack.Navigator>
-      </PerpsStreamProvider>
-    </PerpsConnectionProvider>
+          >
+            <ModalStack.Screen
+              name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
+              component={PerpsQuoteExpiredModal}
+            />
+            <ModalStack.Screen
+              name={Routes.PERPS.MODALS.GTM_MODAL}
+              component={PerpsGTMModal}
+            />
+            <ModalStack.Screen
+              name={Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS}
+              component={PerpsCloseAllPositionsView}
+              options={{
+                title: strings('perps.close_all_modal.title'),
+              }}
+            />
+            <ModalStack.Screen
+              name={Routes.PERPS.MODALS.CANCEL_ALL_ORDERS}
+              component={PerpsCancelAllOrdersView}
+              options={{
+                title: strings('perps.cancel_all_modal.title'),
+              }}
+            />
+            <ModalStack.Screen
+              name={Routes.PERPS.MODALS.CROSS_MARGIN_WARNING}
+              component={PerpsCrossMarginWarningBottomSheet}
+              options={{
+                title: strings('perps.crossMargin.title'),
+              }}
+            />
+            <ModalStack.Screen
+              name={Routes.PERPS.MODALS.SELECT_PROVIDER}
+              component={PerpsSelectProviderView}
+              options={{
+                title: strings('perps.provider_selector.title'),
+                cardStyle: { backgroundColor: 'transparent' },
+              }}
+            />
+            {/* Action Selection Modals */}
+            <ModalStack.Screen
+              name={Routes.PERPS.SELECT_MODIFY_ACTION}
+              component={PerpsSelectModifyActionView}
+              options={{
+                cardStyle: { backgroundColor: 'transparent' },
+              }}
+            />
+            <ModalStack.Screen
+              name={Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION}
+              component={PerpsSelectAdjustMarginActionView}
+              options={{
+                cardStyle: { backgroundColor: 'transparent' },
+              }}
+            />
+            <ModalStack.Screen
+              name={Routes.PERPS.SELECT_ORDER_TYPE}
+              component={PerpsSelectOrderTypeView}
+              options={{
+                cardStyle: { backgroundColor: 'transparent' },
+              }}
+            />
+          </ModalStack.Navigator>
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    </PerpsGlobalErrorGate>
   );
 };
 
