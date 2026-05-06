@@ -26,7 +26,6 @@ import PillToggleCardList, {
 } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
-import { useSectionViewed } from '../hooks/useSectionViewed';
 import { trackExploreInteracted } from '../search/analytics';
 
 const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
@@ -42,7 +41,6 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
 }) => {
   const perps = usePerpsFeed({ variant: 'macro', refresh });
   const activePillKey = useRef<string>('stocks');
-  const perpsViewed = useSectionViewed('Macro', 'perps_stocks_commodities');
 
   const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
     const stocks = perps.data
@@ -89,7 +87,7 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box ref={perpsViewed.viewRef} onLayout={perpsViewed.onLayout}>
+    <Box>
       <SectionHeader
         title={strings('trending.macro_stocks_commodity_perps')}
         onViewAll={() => onViewAll(activePillKey.current)}
@@ -153,12 +151,10 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showPolitics =
     isPredictEnabled && (politics.isLoading || politics.data.length > 0);
 
-  const politicsViewed = useSectionViewed('Macro', 'predictions_politics');
-
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
       {showPolitics && (
-        <Box ref={politicsViewed.viewRef} onLayout={politicsViewed.onLayout}>
+        <Box>
           <SectionHeader
             title={strings('trending.predictions')}
             onViewAll={() =>

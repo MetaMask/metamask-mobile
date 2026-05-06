@@ -27,13 +27,13 @@ import { PredictionCarouselRowItem } from '../feeds/predictions/PredictionRowIte
 import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
 import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import HorizontalCarousel from '../components/HorizontalCarousel';
 import PillScrollList from '../components/PillScrollList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
-import { useSectionViewed } from '../hooks/useSectionViewed';
 import { trackExploreInteracted } from '../search/analytics';
 
 interface PerpsBlockProps {
@@ -47,12 +47,11 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     refresh,
     withTileExtras: false,
   });
-  const perpsMoversViewed = useSectionViewed('Now', 'perps_movers');
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box ref={perpsMoversViewed.viewRef} onLayout={perpsMoversViewed.onLayout}>
+    <Box>
       <SectionHeader
         title={strings('trending.perps_movers')}
         onViewAll={() => navigateToPerpsMarketList(navigation)}
@@ -139,6 +138,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             asset_type: 'stock',
             position: index,
             token_symbol: item.symbol,
+            chain_id: getCaipChainIdFromAssetId(item.assetId),
             item_clicked: item.assetId,
           })
         }
@@ -153,10 +153,6 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     cryptoMovers.isLoading || cryptoMovers.data.length > 0;
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
-  const predictionsViewed = useSectionViewed('Now', 'predictions_trending');
-  const cryptoMoversViewed = useSectionViewed('Now', 'tokens_movers');
-  const stocksViewed = useSectionViewed('Now', 'stocks');
-
   return (
     <ExploreScroll
       refreshing={refreshing}
@@ -164,10 +160,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
     >
       {showPredictions && (
-        <Box
-          ref={predictionsViewed.viewRef}
-          onLayout={predictionsViewed.onLayout}
-        >
+        <Box>
           <SectionHeader
             title={strings('wallet.predict')}
             onViewAll={() => navigateToPredictionsList(navigation, 'trending')}
@@ -186,10 +179,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showCryptoMovers && (
-        <Box
-          ref={cryptoMoversViewed.viewRef}
-          onLayout={cryptoMoversViewed.onLayout}
-        >
+        <Box>
           <SectionHeader
             title={strings('trending.crypto_movers')}
             onViewAll={() =>
@@ -214,6 +204,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
                     asset_type: 'token',
                     position: index,
                     token_symbol: token.symbol,
+                    chain_id: getCaipChainIdFromAssetId(token.assetId),
                     item_clicked: token.assetId,
                   })
                 }
@@ -233,7 +224,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showStocks && (
-        <Box ref={stocksViewed.viewRef} onLayout={stocksViewed.onLayout}>
+        <Box>
           <SectionHeader
             title={strings('trending.stocks')}
             onViewAll={() =>

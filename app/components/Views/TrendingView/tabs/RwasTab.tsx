@@ -16,6 +16,7 @@ import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsRowItem from '../feeds/perps/PerpsRowItem';
@@ -33,7 +34,6 @@ import PillToggleCardList, {
 } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
-import { useSectionViewed } from '../hooks/useSectionViewed';
 import { trackExploreInteracted } from '../search/analytics';
 
 const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
@@ -49,7 +49,6 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
 }) => {
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
   const activePillKey = useRef<string>('commodities');
-  const perpsMarketsViewed = useSectionViewed('RWAs', 'perps_markets');
 
   const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
     const byType = (type: PerpsMarketData['marketType']) =>
@@ -98,10 +97,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box
-      ref={perpsMarketsViewed.viewRef}
-      onLayout={perpsMarketsViewed.onLayout}
-    >
+    <Box>
       <SectionHeader
         title={strings('trending.rwa_perps_section')}
         onViewAll={() => onViewAll(activePillKey.current)}
@@ -177,6 +173,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             asset_type: 'stock',
             position: index,
             token_symbol: item.symbol,
+            chain_id: getCaipChainIdFromAssetId(item.assetId),
             item_clicked: item.assetId,
           })
         }
@@ -189,13 +186,10 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     isPredictEnabled && (politics.isLoading || politics.data.length > 0);
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
-  const politicsViewed = useSectionViewed('RWAs', 'predictions_politics');
-  const stocksViewed = useSectionViewed('RWAs', 'stocks');
-
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
       {showPolitics && (
-        <Box ref={politicsViewed.viewRef} onLayout={politicsViewed.onLayout}>
+        <Box>
           <SectionHeader
             title={strings('trending.predictions')}
             onViewAll={() =>
@@ -216,7 +210,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showStocks && (
-        <Box ref={stocksViewed.viewRef} onLayout={stocksViewed.onLayout}>
+        <Box>
           <SectionHeader
             title={strings('trending.stocks')}
             onViewAll={() =>

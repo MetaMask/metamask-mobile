@@ -19,7 +19,6 @@ import ExploreScroll from '../components/ExploreScroll';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
-import { useSectionViewed } from '../hooks/useSectionViewed';
 import { trackExploreInteracted } from '../search/analytics';
 
 const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
@@ -72,15 +71,10 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showFavorites = favorites.isLoading || favorites.data.length > 0;
   const showSites = sites.isLoading || sites.data.length > 0;
 
-  const recentsViewed = useSectionViewed('Sites', 'sites_recents');
-  const favoritesViewed = useSectionViewed('Sites', 'sites_favorites');
-  const ecosystemsViewed = useSectionViewed('Sites', 'sites_ecosystems');
-  const popularViewed = useSectionViewed('Sites', 'sites_popular');
-
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
       {showRecents && (
-        <Box ref={recentsViewed.viewRef} onLayout={recentsViewed.onLayout}>
+        <Box>
           <SectionHeader
             title={strings('autocomplete.recents')}
             testID="section-header-view-all-dapps_recents"
@@ -112,7 +106,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showFavorites && (
-        <Box ref={favoritesViewed.viewRef} onLayout={favoritesViewed.onLayout}>
+        <Box>
           <SectionHeader
             title={strings('autocomplete.favorites')}
             onViewAll={() =>
@@ -132,7 +126,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         </Box>
       )}
 
-      <Box ref={ecosystemsViewed.viewRef} onLayout={ecosystemsViewed.onLayout}>
+      <Box>
         <SectionHeader
           title={strings('trending.ecosystems')}
           subtitle={strings('trending.ecosystems_subtitle')}
@@ -163,7 +157,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       </Box>
 
       {showSites && (
-        <Box ref={popularViewed.viewRef} onLayout={popularViewed.onLayout}>
+        <Box>
           <SectionHeader
             title={strings('trending.popular')}
             onViewAll={() => navigation.navigate(Routes.SITES_FULL_VIEW)}

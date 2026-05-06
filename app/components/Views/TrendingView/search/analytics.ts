@@ -23,7 +23,9 @@ export type ExploreSectionName =
   | 'predictions_politics'
   | 'predictions_crypto'
   | 'predictions_sports'
-  | 'predictions_all_sports'
+  | 'predictions_football'
+  | 'predictions_basketball'
+  | 'predictions_tennis'
   | 'sites_recents'
   | 'sites_favorites'
   | 'sites_ecosystems'
@@ -34,8 +36,7 @@ export interface ExploreInteractedProperties {
     | 'tab_switched'
     | 'section_see_all_tapped'
     | 'section_item_tapped'
-    | 'prediction_voted'
-    | 'section_viewed';
+    | 'prediction_voted';
   tab_name: ExploreTabName;
   section_name?: ExploreSectionName;
   position?: number;

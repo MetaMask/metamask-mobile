@@ -12,6 +12,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
+import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
@@ -29,7 +30,6 @@ import HorizontalCarousel from '../components/HorizontalCarousel';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
-import { useSectionViewed } from '../hooks/useSectionViewed';
 import { trackExploreInteracted } from '../search/analytics';
 
 interface CryptoPerpsBlockProps {
@@ -46,12 +46,11 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
     refresh,
     withTileExtras: true,
   });
-  const perpsViewed = useSectionViewed('Crypto', 'perps_crypto');
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box ref={perpsViewed.viewRef} onLayout={perpsViewed.onLayout}>
+    <Box>
       <SectionHeader
         title={strings('trending.crypto_perps_section')}
         onViewAll={onViewAll}
@@ -114,6 +113,7 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             asset_type: 'token',
             position: index,
             token_symbol: item.symbol,
+            chain_id: getCaipChainIdFromAssetId(item.assetId),
             item_clicked: item.assetId,
           })
         }
@@ -154,16 +154,10 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showCryptoPredictions =
     cryptoPredictions.isLoading || cryptoPredictions.data.length > 0;
 
-  const tokensViewed = useSectionViewed('Crypto', 'tokens_trending');
-  const cryptoPredictionsViewed = useSectionViewed(
-    'Crypto',
-    'predictions_crypto',
-  );
-
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
       {showTokens && (
-        <Box ref={tokensViewed.viewRef} onLayout={tokensViewed.onLayout}>
+        <Box>
           <SectionHeader
             title={strings('trending.trending_tokens')}
             onViewAll={() =>
@@ -195,10 +189,7 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {showCryptoPredictions && (
-        <Box
-          ref={cryptoPredictionsViewed.viewRef}
-          onLayout={cryptoPredictionsViewed.onLayout}
-        >
+        <Box>
           <SectionHeader
             title={strings('trending.predictions')}
             onViewAll={() => navigateToPredictionsList(navigation, 'crypto')}
