@@ -5,11 +5,11 @@ import {
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
 
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -179,23 +179,25 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
           {isQrScanError ? (
             <Button
               testID={ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID}
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('hardware_wallet.common.learn_more')}
+              isFullWidth
               onPress={handleLearnMore}
-            />
+            >
+              {strings('hardware_wallet.common.learn_more')}
+            </Button>
           ) : null}
           <Button
             testID={ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={buttonLabel}
+            isFullWidth
             onPress={handleContinue}
             isDisabled={showLoading}
-            loading={showLoading}
-          />
+            isLoading={showLoading}
+          >
+            {buttonLabel}
+          </Button>
         </>
       }
     />
