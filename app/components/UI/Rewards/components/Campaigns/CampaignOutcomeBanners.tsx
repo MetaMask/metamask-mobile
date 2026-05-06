@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsInfoBanner from '../RewardsInfoBanner';
-import type { OndoGmCampaignParticipantOutcomeStatus } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignParticipantOutcomeStatus } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface WinnerPendingBannerProps {
   onPress: () => void;
@@ -25,7 +25,7 @@ export const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
   ({ onPress }) => (
     <Pressable
       accessibilityLabel={strings(
-        'rewards.ondo_outcome_banner.winner_pending.a11y',
+        'rewards.campaign_outcome_banner.winner_pending.a11y',
       )}
       onPress={onPress}
     >
@@ -36,10 +36,12 @@ export const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
       >
         <Box twClassName="flex-1 gap-0.5">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('rewards.ondo_outcome_banner.winner_pending.title')}
+            {strings('rewards.campaign_outcome_banner.winner_pending.title')}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('rewards.ondo_outcome_banner.winner_pending.description')}
+            {strings(
+              'rewards.campaign_outcome_banner.winner_pending.description',
+            )}
           </Text>
         </Box>
         <Icon
@@ -54,46 +56,47 @@ export const WinnerPendingBanner = React.memo<WinnerPendingBannerProps>(
 
 export const WinnerFinalizedBanner = React.memo(() => (
   <RewardsInfoBanner
-    title={strings('rewards.ondo_outcome_banner.winner_finalized.title')}
+    title={strings('rewards.campaign_outcome_banner.winner_finalized.title')}
     description={strings(
-      'rewards.ondo_outcome_banner.winner_finalized.description',
+      'rewards.campaign_outcome_banner.winner_finalized.description',
     )}
   />
 ));
 
 export const ParticipantFinalizedBanner = React.memo(() => (
   <RewardsInfoBanner
-    title={strings('rewards.ondo_outcome_banner.participant_finalized.title')}
+    title={strings(
+      'rewards.campaign_outcome_banner.participant_finalized.title',
+    )}
     description={strings(
-      'rewards.ondo_outcome_banner.participant_finalized.description',
+      'rewards.campaign_outcome_banner.participant_finalized.description',
     )}
   />
 ));
 
 export const ParticipantPendingBanner = React.memo(() => (
   <RewardsInfoBanner
-    title={strings('rewards.ondo_outcome_banner.participant_pending.title')}
+    title={strings('rewards.campaign_outcome_banner.participant_pending.title')}
     description={strings(
-      'rewards.ondo_outcome_banner.participant_pending.description',
+      'rewards.campaign_outcome_banner.participant_pending.description',
     )}
   />
 ));
 
-export interface OndoGmCampaignOutcomeBannerProps {
-  outcomeStatus: OndoGmCampaignParticipantOutcomeStatus;
+export interface CampaignOutcomeBannerProps {
+  outcomeStatus: CampaignParticipantOutcomeStatus;
   winnerVerificationCode: string | null | undefined;
   onWinnerPress: () => void;
 }
 
-export const OndoGmCampaignOutcomeBanner =
-  React.memo<OndoGmCampaignOutcomeBannerProps>(
-    ({ outcomeStatus, winnerVerificationCode, onWinnerPress }) => {
-      const hasCode = Boolean(winnerVerificationCode);
-      const isFinalized = outcomeStatus === 'finalized';
-      if (hasCode && !isFinalized)
-        return <WinnerPendingBanner onPress={onWinnerPress} />;
-      if (hasCode && isFinalized) return <WinnerFinalizedBanner />;
-      if (isFinalized) return <ParticipantFinalizedBanner />;
-      return <ParticipantPendingBanner />;
-    },
-  );
+export const CampaignOutcomeBanner = React.memo<CampaignOutcomeBannerProps>(
+  ({ outcomeStatus, winnerVerificationCode, onWinnerPress }) => {
+    const hasCode = Boolean(winnerVerificationCode);
+    const isFinalized = outcomeStatus === 'finalized';
+    if (hasCode && !isFinalized)
+      return <WinnerPendingBanner onPress={onWinnerPress} />;
+    if (hasCode && isFinalized) return <WinnerFinalizedBanner />;
+    if (isFinalized) return <ParticipantFinalizedBanner />;
+    return <ParticipantPendingBanner />;
+  },
+);
