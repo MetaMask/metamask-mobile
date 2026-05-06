@@ -178,7 +178,13 @@ jobs:
       - name: Verify PR_TOKEN
         env:
           PR_TOKEN: ${{ secrets.PR_TOKEN }}
-        run: echo "PR_TOKEN length=${#PR_TOKEN}"
+        run: |
+          echo "PR_TOKEN length=${#PR_TOKEN}"
+          if [ -z "$PR_TOKEN" ]; then
+            echo "PR_TOKEN is EMPTY — will fall back to github.token"
+          else
+            echo "PR_TOKEN is SET"
+          fi
 
       - uses: actions/checkout@v4
         with:
