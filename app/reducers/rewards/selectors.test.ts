@@ -51,6 +51,7 @@ import {
   selectCampaignsError,
   selectCampaignParticipantStatuses,
   selectCampaignParticipantStatus,
+  selectCampaignParticipantOptedIn,
   selectCampaignParticipantCount,
   selectIsRewardsVersionBlocked,
   selectVersionGuardMinimumMobileVersion,
@@ -3282,6 +3283,39 @@ describe('Rewards selectors', () => {
       expect(
         selectCampaignParticipantStatus('sub-2', 'campaign-1')(state),
       ).toBeNull();
+    });
+  });
+
+  describe('selectCampaignParticipantOptedIn', () => {
+    it('returns true when participant status is opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(true);
+    });
+
+    it('returns false when participant status is not opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
+    });
+
+    it('returns false when status is missing', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
     });
   });
 

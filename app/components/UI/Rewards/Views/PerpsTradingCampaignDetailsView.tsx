@@ -1,6 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -33,6 +38,7 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import { useGetPerpsTradingCampaignVolume } from '../hooks/useGetPerpsTradingCampaignVolume';
+import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -52,6 +58,11 @@ type PerpsTradingCampaignDetailsRouteParams = {
 export const PERPS_CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'perps-campaign-details-container',
 } as const;
+
+const sessionWinningViewAutoNavCampaignIds = new Set<string>();
+export function resetPerpsTradingCampaignDetailsSessionAutoNavigationForTests(): void {
+  sessionWinningViewAutoNavCampaignIds.clear();
+}
 
 const PerpsTradingCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
@@ -106,6 +117,10 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
   const { position } = useGetPerpsTradingCampaignLeaderboardPosition(
     isOptedIn ? effectiveCampaignId || undefined : undefined,
   );
+  const { outcome: participantOutcome } =
+    usePerpsTradingCampaignParticipantOutcome(
+      isComplete && isOptedIn ? effectiveCampaignId || undefined : undefined,
+    );
 
   const {
     volume,
@@ -162,6 +177,36 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
       campaignId: effectiveCampaignId,
     });
   }, [navigation, effectiveCampaignId]);
+
+  const navigateToWinningView = useCallback(() => {
+    if (!effectiveCampaignId) return;
+    navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW, {
+      campaignId: effectiveCampaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, effectiveCampaignId, campaign]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !sessionWinningViewAutoNavCampaignIds.has(effectiveCampaignId) &&
+        campaign &&
+        isComplete &&
+        participantOutcome?.winnerVerificationCode &&
+        participantOutcome?.outcomeStatus === 'pending' &&
+        effectiveCampaignId
+      ) {
+        sessionWinningViewAutoNavCampaignIds.add(effectiveCampaignId);
+        navigateToWinningView();
+      }
+    }, [
+      campaign,
+      effectiveCampaignId,
+      isComplete,
+      navigateToWinningView,
+      participantOutcome,
+    ]),
+  );
 
   const navigateToMechanics = useCallback(() => {
     if (!effectiveCampaignId) return;
@@ -258,6 +303,11 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                     leaderboardPosition={position}
                     leaderboard={leaderboard}
                     isCampaignComplete={isComplete}
+                    outcomeStatus={participantOutcome?.outcomeStatus}
+                    winnerVerificationCode={
+                      participantOutcome?.winnerVerificationCode ?? null
+                    }
+                    onWinnerPress={navigateToWinningView}
                   />
                 </Box>
               )}

@@ -2,18 +2,21 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsTradingCampaignDetailsView, {
   PERPS_CAMPAIGN_DETAILS_TEST_IDS,
+  resetPerpsTradingCampaignDetailsSessionAutoNavigationForTests,
 } from './PerpsTradingCampaignDetailsView';
 import {
   type CampaignDto,
   CampaignType,
   type PerpsTradingCampaignLeaderboardEntry,
   type PerpsTradingCampaignLeaderboardPositionDto,
+  type PerpsTradingCampaignParticipantOutcomeDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import { useGetPerpsTradingCampaignVolume } from '../hooks/useGetPerpsTradingCampaignVolume';
+import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
@@ -24,6 +27,7 @@ const mockRouteState: { params: { campaignId?: string } } = {
 };
 
 jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: (callback: () => void) => callback(),
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
@@ -137,13 +141,34 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
 
 jest.mock('../components/Campaigns/PerpsCampaignStatsSummary', () => {
   const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { Pressable, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, {
-        testID: 'perps-campaign-stats-summary-container',
-      }),
+    default: ({
+      outcomeStatus,
+      winnerVerificationCode,
+      onWinnerPress,
+    }: {
+      outcomeStatus?: string;
+      winnerVerificationCode?: string | null;
+      onWinnerPress?: () => void;
+    }) =>
+      ReactActual.createElement(
+        View,
+        {
+          testID: 'perps-campaign-stats-summary-container',
+        },
+        outcomeStatus &&
+          onWinnerPress &&
+          ReactActual.createElement(
+            Pressable,
+            {
+              testID: `campaign-outcome-banner-${outcomeStatus}-${winnerVerificationCode ?? 'null'}`,
+              onPress: onWinnerPress,
+            },
+            ReactActual.createElement(Text, null, 'Campaign outcome'),
+          ),
+      ),
   };
 });
 
@@ -247,6 +272,12 @@ const mockUseGetPerpsTradingCampaignVolume =
     typeof useGetPerpsTradingCampaignVolume
   >;
 
+jest.mock('../hooks/usePerpsTradingCampaignParticipantOutcome');
+const mockUsePerpsTradingCampaignParticipantOutcome =
+  usePerpsTradingCampaignParticipantOutcome as jest.MockedFunction<
+    typeof usePerpsTradingCampaignParticipantOutcome
+  >;
+
 import { useSelector } from 'react-redux';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 
@@ -317,6 +348,7 @@ function setupHooks(
     participant?: { optedIn: boolean };
     position?: { rank: number; neighbors: unknown[] } | null;
     totalParticipants?: number;
+    outcome?: PerpsTradingCampaignParticipantOutcomeDto | null;
   } = {},
 ) {
   const {
@@ -326,6 +358,7 @@ function setupHooks(
     participant = { optedIn: false },
     position = null,
     totalParticipants: totalParticipantsOverride,
+    outcome = null,
   } = overrides;
 
   mockUseRewardCampaigns.mockReturnValue({
@@ -370,6 +403,12 @@ function setupHooks(
   mockUseGetPerpsTradingCampaignVolume.mockReturnValue({
     ...defaultVolumeHook,
   } as ReturnType<typeof useGetPerpsTradingCampaignVolume>);
+
+  mockUsePerpsTradingCampaignParticipantOutcome.mockReturnValue({
+    outcome,
+    isLoading: false,
+    hasError: false,
+  } as ReturnType<typeof usePerpsTradingCampaignParticipantOutcome>);
 }
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -398,6 +437,7 @@ describe('PerpsTradingCampaignDetailsView', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
     jest.clearAllMocks();
+    resetPerpsTradingCampaignDetailsSessionAutoNavigationForTests();
     mockRouteState.params = { campaignId: 'perps-campaign-1' };
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectReferralCode) {
@@ -550,6 +590,120 @@ describe('PerpsTradingCampaignDetailsView', () => {
     expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
     expect(queryByTestId('perps-prize-pool')).toBeNull();
     expect(queryByTestId('perps-trading-cta')).toBeNull();
+  });
+
+  it('shows outcome banner for completed opted-in participants and navigates winners to winning view', () => {
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2025-01-01T00:00:00.000Z',
+        }),
+      ],
+      participant: { optedIn: true },
+      position: { rank: 3, neighbors: [] },
+      outcome: {
+        subscriptionId: 'subscription-id',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: 'PERPS-WINNER-123',
+        rank: 3,
+      },
+    });
+
+    const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
+
+    fireEvent.press(
+      getByTestId('campaign-outcome-banner-pending-PERPS-WINNER-123'),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW,
+      {
+        campaignId: 'perps-campaign-1',
+        campaignName: 'Perps Trading',
+      },
+    );
+  });
+
+  it('auto-navigates once to winning view for a completed pending winner outcome', () => {
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2025-01-01T00:00:00.000Z',
+        }),
+      ],
+      participant: { optedIn: true },
+      position: { rank: 3, neighbors: [] },
+      outcome: {
+        subscriptionId: 'subscription-id',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: 'PERPS-WINNER-123',
+        rank: 3,
+      },
+    });
+
+    const { rerender } = render(<PerpsTradingCampaignDetailsView />);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW,
+      {
+        campaignId: 'perps-campaign-1',
+        campaignName: 'Perps Trading',
+      },
+    );
+
+    mockNavigate.mockClear();
+    rerender(<PerpsTradingCampaignDetailsView />);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-navigate for finalized outcomes', () => {
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2025-01-01T00:00:00.000Z',
+        }),
+      ],
+      participant: { optedIn: true },
+      position: { rank: 3, neighbors: [] },
+      outcome: {
+        subscriptionId: 'subscription-id',
+        outcomeStatus: 'finalized',
+        winnerVerificationCode: 'PERPS-WINNER-123',
+        rank: 3,
+      },
+    });
+
+    render(<PerpsTradingCampaignDetailsView />);
+
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW,
+      expect.any(Object),
+    );
+  });
+
+  it('does not show outcome banner outside the stats summary section', () => {
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2025-01-01T00:00:00.000Z',
+        }),
+      ],
+      participant: { optedIn: true },
+      position: null,
+      outcome: {
+        subscriptionId: 'subscription-id',
+        outcomeStatus: 'finalized',
+        winnerVerificationCode: null,
+      },
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+
+    expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
+    expect(queryByTestId('campaign-outcome-banner-finalized-null')).toBeNull();
   });
 
   it('displays total participant count when the leaderboard reports participants', () => {

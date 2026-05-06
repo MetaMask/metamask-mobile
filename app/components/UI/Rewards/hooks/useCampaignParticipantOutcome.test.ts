@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignParticipantStatus } from '../../../../reducers/rewards/selectors';
+import { selectCampaignParticipantOptedIn } from '../../../../reducers/rewards/selectors';
 import { useCampaignParticipantOutcome } from './useCampaignParticipantOutcome';
 import type { BaseCampaignParticipantOutcomeDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -19,16 +19,16 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCampaignParticipantStatus: jest.fn(),
+  selectCampaignParticipantOptedIn: jest.fn(),
 }));
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockSelectCampaignParticipantStatus =
-  selectCampaignParticipantStatus as jest.MockedFunction<
-    typeof selectCampaignParticipantStatus
+const mockSelectCampaignParticipantOptedIn =
+  selectCampaignParticipantOptedIn as jest.MockedFunction<
+    typeof selectCampaignParticipantOptedIn
   >;
 
 const CAMPAIGN_ID = 'campaign-123';
@@ -49,16 +49,13 @@ function setupSelectors({
   subscriptionId?: string | null;
   isOptedIn?: boolean;
 } = {}) {
-  const participantStatusSelector = jest
-    .fn()
-    .mockReturnValue(isOptedIn ? { optedIn: true } : null);
-  mockSelectCampaignParticipantStatus.mockReturnValue(
-    participantStatusSelector,
+  const participantOptedInSelector = jest.fn().mockReturnValue(isOptedIn);
+  mockSelectCampaignParticipantOptedIn.mockReturnValue(
+    participantOptedInSelector,
   );
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return subscriptionId;
-    if (selector === participantStatusSelector)
-      return isOptedIn ? { optedIn: true } : null;
+    if (selector === participantOptedInSelector) return isOptedIn;
     return undefined;
   });
 }

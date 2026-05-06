@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignParticipantStatus } from '../../../../reducers/rewards/selectors';
+import { selectCampaignParticipantOptedIn } from '../../../../reducers/rewards/selectors';
 import type { BaseCampaignParticipantOutcomeDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseCampaignParticipantOutcomeResult<
@@ -24,9 +24,9 @@ export function useCampaignParticipantOutcome<
   config: CampaignOutcomeFetchConfig,
 ): UseCampaignParticipantOutcomeResult<T> {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const isOptedIn =
-    useSelector(selectCampaignParticipantStatus(subscriptionId, campaignId))
-      ?.optedIn === true;
+  const isOptedIn = useSelector(
+    selectCampaignParticipantOptedIn(subscriptionId, campaignId),
+  );
   const [outcome, setOutcome] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);

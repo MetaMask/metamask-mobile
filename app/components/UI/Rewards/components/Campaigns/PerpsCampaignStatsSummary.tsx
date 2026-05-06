@@ -13,6 +13,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type {
+  CampaignParticipantOutcomeStatus,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
@@ -20,6 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { formatSignedUsd, formatUsd } from '../../utils/formatUtils';
 import { PERPS_QUALIFICATION_NOTIONAL_USD } from '../../utils/perpsCampaignConstants';
 import { PendingTag, StatCell } from './OndoCampaignStatsSummary';
+import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
 
 const PERPS_NOTIONAL_THRESHOLD_LABEL = formatUsd(
   PERPS_QUALIFICATION_NOTIONAL_USD,
@@ -43,12 +45,18 @@ export interface PerpsCampaignStatsSummaryProps {
   leaderboard: PerpsTradingCampaignLeaderboardDto | null;
   /** When false, pending (not yet qualified) users see a {@link PendingTag} next to rank. */
   isCampaignComplete?: boolean;
+  outcomeStatus?: CampaignParticipantOutcomeStatus;
+  winnerVerificationCode?: string | null;
+  onWinnerPress?: () => void;
 }
 
 const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
   leaderboardPosition,
   leaderboard: _leaderboard,
   isCampaignComplete = false,
+  outcomeStatus,
+  winnerVerificationCode,
+  onWinnerPress,
 }) => {
   const isPending =
     leaderboardPosition != null && !leaderboardPosition.qualified;
@@ -179,6 +187,14 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
             )}
           </Text>
         </Box>
+      )}
+
+      {isCampaignComplete && outcomeStatus != null && onWinnerPress != null && (
+        <CampaignOutcomeBanner
+          outcomeStatus={outcomeStatus}
+          winnerVerificationCode={winnerVerificationCode ?? null}
+          onWinnerPress={onWinnerPress}
+        />
       )}
     </Box>
   );
