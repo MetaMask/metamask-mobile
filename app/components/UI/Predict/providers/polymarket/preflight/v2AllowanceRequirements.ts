@@ -48,23 +48,27 @@ function buildErc1155OperatorRequirements({
   }));
 }
 
-export function getCanonicalV2AllowanceRequirements(
+export function getLegacySweepAllowanceRequirements(
   protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
 ): V2AllowanceRequirement[] {
-  const { collateral, contracts } = protocol;
-
-  if (!collateral.onrampAddress || !collateral.offrampAddress) {
-    throw new Error(
-      'Polymarket CLOB v2 collateral ramp addresses are required',
-    );
-  }
+  const { collateral } = protocol;
 
   return [
+    // Temporary legacy Safe USDC.e -> pUSD sweep support. TODO: remove after one release.
     {
       type: 'erc20-allowance',
       tokenAddress: collateral.legacyUsdceToken,
       spender: collateral.onrampAddress,
     },
+  ];
+}
+
+export function getActiveV2AllowanceRequirements(
+  protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
+): V2AllowanceRequirement[] {
+  const { collateral, contracts } = protocol;
+
+  return [
     ...buildErc20AllowanceRequirements({
       tokenAddress: collateral.tradingToken,
       spenders: [
@@ -73,7 +77,6 @@ export function getCanonicalV2AllowanceRequirements(
         contracts.negRiskExchange,
         contracts.negRiskAdapter,
         PERMIT2_ADDRESS,
-        collateral.offrampAddress,
       ],
     }),
     ...buildErc1155OperatorRequirements({
@@ -84,5 +87,14 @@ export function getCanonicalV2AllowanceRequirements(
         contracts.negRiskAdapter,
       ],
     }),
+  ];
+}
+
+export function getCanonicalV2AllowanceRequirements(
+  protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
+): V2AllowanceRequirement[] {
+  return [
+    ...getLegacySweepAllowanceRequirements(protocol),
+    ...getActiveV2AllowanceRequirements(protocol),
   ];
 }
