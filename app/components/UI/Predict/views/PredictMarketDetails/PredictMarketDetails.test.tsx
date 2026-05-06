@@ -211,6 +211,10 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn(),
+}));
+
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: jest.fn(() => ({
     data: 100,
@@ -562,6 +566,9 @@ function setupPredictMarketDetailsTest(
   const { usePredictPositions } = jest.requireMock(
     '../../hooks/usePredictPositions',
   );
+  const { usePredictLivePositions } = jest.requireMock(
+    '../../hooks/usePredictLivePositions',
+  );
   const { usePredictEligibility } = jest.requireMock(
     '../../hooks/usePredictEligibility',
   );
@@ -624,6 +631,7 @@ function setupPredictMarketDetailsTest(
     ({ claimable }: { claimable?: boolean }) =>
       claimable ? claimablePositionsHook : activePositionsHook,
   );
+  usePredictLivePositions.mockImplementation(() => undefined);
 
   // Set up usePredictOrderPreview mock to return preview data matching position currentValue
   mockUsePredictOrderPreview.mockImplementation(
