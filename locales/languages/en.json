@@ -6556,6 +6556,12 @@
     "musd_row": {
       "add": "Add"
     },
+    "balance_card": {
+      "label": "Money balance",
+      "add": "Add",
+      "info_sheet_title": "Money Home",
+      "info_sheet_body": "Your dollar-backed balance, always available. Spend it, send it, or trade it anytime. We don't calculate this into your total account balance."
+    },
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
