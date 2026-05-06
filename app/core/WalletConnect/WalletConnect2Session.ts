@@ -12,6 +12,7 @@ import {
   CaipChainId,
   Hex,
   KnownCaipNamespace,
+  parseCaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -90,17 +91,21 @@ class WalletConnect2Session {
   public session: SessionTypes.Struct;
 
   private normalizeSessionNamespaces(
-    namespaces: SessionTypes.Struct['namespaces'] | undefined,
-  ): SessionTypes.Struct['namespaces'] {
-    const normalizedNamespaces: SessionTypes.Struct['namespaces'] = {};
+    namespaces: SessionTypes.Namespaces | undefined,
+  ): SessionTypes.Namespaces {
+    const normalizedNamespaces: SessionTypes.Namespaces = {};
 
     Object.entries(namespaces ?? {}).forEach(([namespace, config]) => {
       const accounts = Array.isArray(config?.accounts) ? config.accounts : [];
       const derivedChains = Array.from(
         new Set(
-          accounts
-            .map((account) => account.split(':').slice(0, 2).join(':'))
-            .filter((chain) => chain.includes(':')),
+          accounts.flatMap((account) => {
+            try {
+              return [parseCaipAccountId(account as CaipAccountId).chainId];
+            } catch {
+              return [];
+            }
+          }),
         ),
       );
       const chains =
@@ -353,18 +358,6 @@ class WalletConnect2Session {
     );
   }
 
-  private async getScopedPermissionsWithFallback(sessionTopic: string) {
-    try {
-      return await getScopedPermissions({
-        channelId: sessionTopic,
-      });
-    } catch {
-      return await getScopedPermissions({
-        channelId: this.channelId,
-      });
-    }
-  }
-
   approveRequest = async ({ id, result }: { id: string; result: unknown }) => {
     const topic = this.topicByRequestId[id];
 
@@ -452,12 +445,7 @@ class WalletConnect2Session {
       );
 
       if (accounts.length === 0) {
-        const sessionTopicApprovedAccounts = getPermittedAccounts(sessionTopic);
-        const fallbackApprovedAccounts = getPermittedAccounts(this.channelId);
-        const effectiveApprovedAccounts =
-          sessionTopicApprovedAccounts.length > 0
-            ? sessionTopicApprovedAccounts
-            : fallbackApprovedAccounts;
+        const effectiveApprovedAccounts = getPermittedAccounts(this.channelId);
         if (effectiveApprovedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
@@ -496,7 +484,7 @@ class WalletConnect2Session {
         this.session.namespaces,
       );
       const namespaces = this.normalizeSessionNamespaces(
-        await this.getScopedPermissionsWithFallback(sessionTopic),
+        await getScopedPermissions({ channelId: this.channelId }),
       );
       DevLogger.log(
         `🔴🔴 WC2::updateSession updating with namespaces`,
