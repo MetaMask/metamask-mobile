@@ -1,14 +1,21 @@
 import React from 'react';
 import ActivityView from '.';
+import { BackHandler } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import { fireEvent } from '@testing-library/react-native';
+import { cleanup, fireEvent } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
+import Routes from '../../../constants/navigation/Routes';
+
+let mockMoneyHomeScreenEnabled = false;
+jest.mock('../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHomeScreenEnabledFlag: jest.fn(() => mockMoneyHomeScreenEnabled),
+}));
 
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = false;
@@ -236,6 +243,8 @@ describe('ActivityView', () => {
   const mockUseCurrentNetworkInfo =
     useCurrentNetworkInfo as jest.MockedFunction<typeof useCurrentNetworkInfo>;
 
+  let backHandlerSpy: jest.SpyInstance;
+
   const defaultNetworkInfo = {
     enabledNetworks: [
       { chainId: '0x1', enabled: true },
@@ -266,13 +275,24 @@ describe('ActivityView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    backHandlerSpy = jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockReturnValue({ remove: jest.fn() } as unknown as ReturnType<
+        typeof BackHandler.addEventListener
+      >);
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
     mockIsEvmSelected = true;
+    mockMoneyHomeScreenEnabled = false;
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
     mockAreAllEvmPopularNetworksEnabled = false;
     clearRenderedTabs();
     mockRoute.params = {};
+  });
+
+  afterEach(() => {
+    cleanup();
+    backHandlerSpy.mockRestore();
   });
 
   describe('Network Manager Integration', () => {
@@ -403,6 +423,80 @@ describe('ActivityView', () => {
 
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
+
+    it('displays back button when Money home screen flag is enabled without showBackButton param', () => {
+      mockMoneyHomeScreenEnabled = true;
+      mockRoute.params = {};
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('activity-view-back-button')).toBeOnTheScreen();
+    });
+
+    it('calls navigation.navigate with HOME_TABS on back button press when Money flag is enabled', () => {
+      mockMoneyHomeScreenEnabled = true;
+      mockRoute.params = {};
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      fireEvent.press(getByTestId('activity-view-back-button'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('calls navigation.navigate with HOME_TABS and not goBack when both flag and showBackButton param are true', () => {
+      mockMoneyHomeScreenEnabled = true;
+      mockRoute.params = { showBackButton: true };
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      fireEvent.press(getByTestId('activity-view-back-button'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('registers hardwareBackPress handler when Money flag is enabled', () => {
+      mockMoneyHomeScreenEnabled = true;
+      mockRoute.params = {};
+
+      renderComponent(mockInitialState);
+
+      expect(BackHandler.addEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('navigates to HOME_TABS when hardwareBackPress fires with Money flag enabled', () => {
+      mockMoneyHomeScreenEnabled = true;
+      mockRoute.params = {};
+      renderComponent(mockInitialState);
+      const [[, handler]] = (BackHandler.addEventListener as jest.Mock).mock
+        .calls;
+
+      const result = handler();
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(result).toBe(true);
+    });
+
+    it('does not navigate to HOME_TABS on hardwareBackPress when Money flag is disabled', () => {
+      mockMoneyHomeScreenEnabled = false;
+      mockRoute.params = {};
+
+      renderComponent(mockInitialState);
+
+      const hardwareBackPressCalls = (
+        BackHandler.addEventListener as jest.Mock
+      ).mock.calls.filter(([event]: [string]) => event === 'hardwareBackPress');
+      hardwareBackPressCalls.forEach(([, handler]: [string, () => boolean]) =>
+        handler(),
+      );
+
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+      );
+    });
   });
 
   describe('header and SafeAreaView', () => {
@@ -462,6 +556,18 @@ describe('ActivityView', () => {
       expect(
         queryByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
       ).toBeNull();
+    });
+
+    it('renders HeaderCompactStandard when Money home screen flag is enabled', () => {
+      mockMoneyHomeScreenEnabled = true;
+      mockRoute.params = {};
+
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT)).toBeNull();
     });
   });
 

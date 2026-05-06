@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -33,6 +33,19 @@ import SportsTab from './tabs/SportsTab';
 import DappsTab from './tabs/DappsTab';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import ExplorePageV1 from './ExplorePageV1';
+import {
+  trackExploreInteracted,
+  type ExploreTabName,
+} from './search/analytics';
+
+const TAB_NAMES: ExploreTabName[] = [
+  'Now',
+  'Macro',
+  'RWAs',
+  'Crypto',
+  'Sports',
+  'Sites',
+];
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -89,6 +102,19 @@ export const ExploreFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
+  const previousTabRef = useRef<ExploreTabName>('Now');
+
+  const handleTabChange = useCallback(({ i }: { i: number }) => {
+    const destinationTab = TAB_NAMES[i];
+    if (!destinationTab) return;
+    trackExploreInteracted({
+      interaction_type: 'tab_switched',
+      tab_name: destinationTab,
+      previous_tab: previousTabRef.current,
+    });
+    previousTabRef.current = destinationTab;
+  }, []);
+
   return (
     <SafeAreaView
       edges={{ top: 'additive' }}
@@ -123,7 +149,10 @@ export const ExploreFeed: React.FC = () => {
         {!isBasicFunctionalityEnabled ? (
           <BasicFunctionalityEmptyState />
         ) : isExplorePageV2Enabled ? (
-          <TabsList tabsListContentTwClassName="px-0 pb-3">
+          <TabsList
+            tabsListContentTwClassName="px-0 pb-3"
+            onChangeTab={handleTabChange}
+          >
             <Box
               key="now"
               twClassName="flex-1"
