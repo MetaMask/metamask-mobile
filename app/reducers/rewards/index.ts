@@ -866,7 +866,7 @@ const rewardsSlice = createSlice({
       action: PayloadAction<{
         campaignId: string;
         subscriptionId: string;
-        variant: 'winner_verify' | 'participant_no_winner';
+        variant: 'winner' | 'non_winner';
       }>,
     ) => {
       const key = `${action.payload.campaignId}:${action.payload.subscriptionId}:${action.payload.variant}`;
