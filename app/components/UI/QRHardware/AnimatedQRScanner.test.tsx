@@ -786,6 +786,28 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
     });
 
+    it('handles analytics failure gracefully during QR scan error', async () => {
+      const { withQrKeyring } = jest.requireMock(
+        '../../../core/QrKeyring/QrKeyring',
+      );
+      const originalImpl = withQrKeyring.getMockImplementation();
+      withQrKeyring.mockRejectedValue(new Error('analytics failure'));
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            device_model: 'Unknown',
+          }),
+        );
+      });
+
+      withQrKeyring.mockImplementation(originalImpl);
+    });
+
     it('does not process QR code when codes array is empty', async () => {
       const mockDecoderInstance = {
         receivePart: jest.fn(),
@@ -1312,6 +1334,34 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         },
         { timeout: 2000 },
       );
+    });
+  });
+
+  describe('showScannerError scanErrorActiveRef guard', () => {
+    it('ignores scan errors while an inline error is already being displayed', async () => {
+      const { getByText } = render(
+        <AnimatedQRScannerModal {...defaultProps} />,
+      );
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            'hardware_wallet.qr_scan_errors.non_ur_qr_scanned.pair.title',
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      const decoderCallsAfterFirstError =
+        mockURRegistryDecoder.mock.calls.length;
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockURRegistryDecoder).toHaveBeenCalledTimes(
+        decoderCallsAfterFirstError,
+      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
   });
 

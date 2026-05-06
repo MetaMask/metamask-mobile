@@ -92,17 +92,7 @@ export function useQrConfirm({
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
-        execute: async () => {
-          if (isTransactionReq) {
-            await onTransactionConfirm({
-              onError: (err) => {
-                throw err;
-              },
-            });
-          } else {
-            await executeApproval();
-          }
-        },
+        execute: executeQrConfirmation,
         onRejected: rejectOnce,
       });
     } catch (err) {
@@ -115,10 +105,9 @@ export function useQrConfirm({
     approvalRequest?.requestData?.from,
     transactionMetadata?.txParams?.from,
     isSigningQRObject,
+    executeQrConfirmation,
     isTransactionReq,
     onReject,
-    onTransactionConfirm,
-    executeApproval,
     ensureDeviceReady,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,

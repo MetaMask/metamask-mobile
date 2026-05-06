@@ -3,6 +3,7 @@ import { Button, Text, View } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { HardwareWalletError } from '@metamask/hw-wallet-sdk';
+import { stringify as uuidStringify } from 'uuid';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { typedSignV3ConfirmationState } from '../../../../../util/test/confirm-data-helpers';
@@ -32,8 +33,10 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('uuid', () => ({
-  stringify: jest.fn().mockReturnValue('c95ecc76-d6e9-4a0a-afa3-31429bc80566'),
+  stringify: jest.fn(),
 }));
+
+const mockUuidStringify = uuidStringify as jest.Mock;
 
 const MockView = View;
 const MockText = Text;
@@ -204,7 +207,95 @@ describe('QRInfo', () => {
     expect(mockSetScannerVisible).toHaveBeenCalledWith(true);
   });
 
+  it('registers cleanup that clears QR scan retry handler on unmount', () => {
+    const mockSetScannerVisible = jest.fn();
+    createQRHardwareHookSpy({ setScannerVisible: mockSetScannerVisible });
+    const { unmount } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+
+    unmount();
+
+    expect(mockSetQrScanRetryHandler).toHaveBeenCalledWith(null);
+  });
+
+  it('shows error when scanned signature request ID does not match pending request', () => {
+    mockUuidStringify.mockReturnValue('mismatched-uuid-value');
+    jest.spyOn(ETHSignature, 'fromCBOR').mockReturnValue({
+      getRequestId: () => Buffer.from('different-request-id'),
+    } as unknown as ETHSignature);
+    const mockSetScannerVisible = jest.fn();
+    createQRHardwareHookSpy({
+      scannerVisible: true,
+      setScannerVisible: mockSetScannerVisible,
+    });
+    const { getByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+
+    fireEvent.press(getByText('onScanSuccess'));
+
+    expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
+    expect(mockQrKeyringBridge.resolvePendingScan).not.toHaveBeenCalled();
+    expect(
+      getByText(
+        "Incongruent transaction data. Please use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('clears error message when error alert is pressed', () => {
+    mockUuidStringify.mockReturnValue('mismatched-uuid-value');
+    jest.spyOn(ETHSignature, 'fromCBOR').mockReturnValue({
+      getRequestId: () => Buffer.from('different-request-id'),
+    } as unknown as ETHSignature);
+    const mockSetScannerVisible = jest.fn();
+    createQRHardwareHookSpy({
+      scannerVisible: true,
+      setScannerVisible: mockSetScannerVisible,
+    });
+    const { getByText, queryByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+
+    fireEvent.press(getByText('onScanSuccess'));
+
+    const errorText =
+      "Incongruent transaction data. Please use your hardware wallet to sign the QR code below and tap 'Get Signature'.";
+    expect(getByText(errorText)).toBeOnTheScreen();
+
+    fireEvent.press(getByText(errorText));
+
+    expect(queryByText(errorText)).toBeNull();
+  });
+
+  it('shows error when scanned signature has no request ID', () => {
+    mockUuidStringify.mockReturnValue('c95ecc76-d6e9-4a0a-afa3-31429bc80566');
+    jest.spyOn(ETHSignature, 'fromCBOR').mockReturnValue({
+      getRequestId: () => null,
+    } as unknown as ETHSignature);
+    const mockSetScannerVisible = jest.fn();
+    createQRHardwareHookSpy({
+      scannerVisible: true,
+      setScannerVisible: mockSetScannerVisible,
+    });
+    const { getByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+
+    fireEvent.press(getByText('onScanSuccess'));
+
+    expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
+    expect(mockQrKeyringBridge.resolvePendingScan).not.toHaveBeenCalled();
+    expect(
+      getByText(
+        "Incongruent transaction data. Please use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('submits request when onScanSuccess is called by scanner', () => {
+    mockUuidStringify.mockReturnValue('c95ecc76-d6e9-4a0a-afa3-31429bc80566');
     jest.spyOn(ETHSignature, 'fromCBOR').mockReturnValue({
       getRequestId: () => mockPendingScanRequest.request?.requestId,
     } as unknown as ETHSignature);

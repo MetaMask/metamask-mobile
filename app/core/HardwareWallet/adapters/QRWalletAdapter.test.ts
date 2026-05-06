@@ -149,7 +149,7 @@ describe('QRWalletAdapter', () => {
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
       expect(result).toBe(false);
-      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+      expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1);
       expect(adapter.getConnectedDeviceId()).toBeNull();
       expect(adapter.isConnected()).toBe(false);
       expect(onDeviceEvent).toHaveBeenCalledWith({
@@ -168,6 +168,7 @@ describe('QRWalletAdapter', () => {
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
       expect(result).toBe(false);
+      expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1);
       expect(adapter.getConnectedDeviceId()).toBeNull();
       expect(adapter.isConnected()).toBe(false);
       expect(onDeviceEvent).toHaveBeenCalledWith({
@@ -270,6 +271,7 @@ describe('QRWalletAdapter', () => {
       const result = await adapter.ensurePermissions();
 
       expect(result).toBe(false);
+      expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1);
       expect(onDeviceEvent).toHaveBeenCalledWith({
         event: DeviceEvent.ConnectionFailed,
         error: {
