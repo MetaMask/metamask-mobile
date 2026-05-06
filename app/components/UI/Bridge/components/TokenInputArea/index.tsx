@@ -76,6 +76,7 @@ const createStyles = ({
     amountInputWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
+      flex: 1,
       minWidth: 0,
     },
     input: {
@@ -84,6 +85,7 @@ const createStyles = ({
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
+      flex: 1,
       flexShrink: 1,
     },
     inputPrefix: {
