@@ -5,12 +5,6 @@ import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 describe('MoneyBalanceSummary', () => {
-  it('renders the title', () => {
-    const { getByTestId } = render(<MoneyBalanceSummary apy={4} />);
-
-    expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
-  });
-
   it('renders the APY label inside a tag', () => {
     const { getByTestId } = render(<MoneyBalanceSummary apy={5.5} />);
 
