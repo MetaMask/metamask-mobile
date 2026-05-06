@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
@@ -19,14 +19,17 @@ import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
+import Routes from '../../../constants/navigation/Routes';
 import { useParams } from '../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import { TabsList } from '../../../component-library/components-temp/Tabs';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
+import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
@@ -37,6 +40,7 @@ import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import {
   NetworkType,
+  useNetworksByCustomNamespace,
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
@@ -96,13 +100,24 @@ const ActivityView = () => {
     networkType: NetworkType.Popular,
   });
 
+  const { areAllNetworksSelected: areAllEvmPopularNetworksEnabled } =
+    useNetworksByCustomNamespace({
+      networkType: NetworkType.Popular,
+      namespace: KnownCaipNamespace.Eip155,
+    });
+
   const currentNetworkName = getNetworkInfo(0)?.networkName;
+
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
 
   const params = useParams();
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(
-    () => perpsEnabledFlag && isEvmSelected,
-    [perpsEnabledFlag, isEvmSelected],
+    () =>
+      perpsEnabledFlag && (isEvmSelected || areAllEvmPopularNetworksEnabled),
+    [perpsEnabledFlag, isEvmSelected, areAllEvmPopularNetworksEnabled],
   );
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
@@ -114,13 +129,34 @@ const ActivityView = () => {
     navigation.navigate(...createNetworkManagerNavDetails({}));
   };
 
-  const handleBackPress = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
+  // Prevent back button returning to confirmation screen in case that users are redirected after a successful transaction.
+  const handleNavigateHome = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS);
   }, [navigation]);
 
-  const showBackButton = params.showBackButton || false;
+  const handleBackPress = useCallback(() => {
+    if (isMoneyHomeScreenEnabled) {
+      handleNavigateHome();
+    } else if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [isMoneyHomeScreenEnabled, navigation, handleNavigateHome]);
+
+  useEffect(() => {
+    if (!isMoneyHomeScreenEnabled) return;
+
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        handleNavigateHome();
+        return true;
+      },
+    );
+
+    return () => subscription.remove();
+  }, [navigation, isMoneyHomeScreenEnabled, handleNavigateHome]);
+
+  const showBackButton = params.showBackButton || isMoneyHomeScreenEnabled;
 
   // Calculate dynamic tab indices based on which tabs are enabled
   // Tab order: Transactions (0), Orders (1), Perps (conditional), Predict (conditional)
