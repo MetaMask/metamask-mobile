@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Debug runner environment
-        run: whoami && echo $HOME
+        run: whoami && echo "$HOME"
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache

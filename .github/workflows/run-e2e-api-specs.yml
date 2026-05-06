@@ -6,6 +6,15 @@ name: API Specs E2E Tests
 on:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
   pull_request:
     types: [opened, synchronize]
 
