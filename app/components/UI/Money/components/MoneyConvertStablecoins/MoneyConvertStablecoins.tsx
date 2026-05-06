@@ -1,10 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Box,
   BoxFlexDirection,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -29,7 +26,7 @@ import { buildTokenIconUrl } from '../../../Card/util/buildTokenIconUrl';
 import MusdConversionAssetRow from '../../../Earn/components/Musd/MusdConversionAssetRow';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import {
   createTokenChainKey,
@@ -37,12 +34,18 @@ import {
   selectHasUnapprovedMusdConversion,
   selectMusdConversionStatuses,
 } from '../../../Earn/selectors/musdConversionStatus';
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents';
+import { getNetworkName } from '../../../Earn/utils/network';
+import Logger from '../../../../../util/Logger';
+
+const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 interface MoneyConvertStablecoinsProps {
-  tokens: AssetType[];
-  onMaxPress: (token: AssetType) => void;
-  onEditPress: (token: AssetType) => void;
-  onLearnMorePress: () => void;
+  location: string;
 }
 
 const FEATURE_TAGS = [
@@ -134,12 +137,85 @@ const Description = () => (
 );
 
 const MoneyConvertStablecoins = ({
-  tokens,
-  onMaxPress,
-  onEditPress,
-  onLearnMorePress,
+  location,
 }: MoneyConvertStablecoinsProps) => {
+  const { tokens } = useMusdConversionTokens();
+  const { initiateMaxConversion, initiateCustomConversion } =
+    useMusdConversion();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   const hasTokens = tokens.length > 0;
+
+  const handleMaxPress = useCallback(
+    async (token: AssetType) => {
+      try {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED,
+          )
+            .addProperties({
+              location,
+              button_type: 'text_button',
+              button_action: 'max',
+              button_text: strings('earn.musd_conversion.max'),
+              redirects_to:
+                MUSD_EVENT_LOCATIONS.QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
+              asset_symbol: token.symbol,
+              network_chain_id: token.chainId,
+              network_name: token.chainId
+                ? getNetworkName(token.chainId as Hex)
+                : 'unknown',
+            })
+            .build(),
+        );
+        await initiateMaxConversion(token);
+      } catch (error) {
+        Logger.error(error as Error, {
+          message:
+            '[MoneyConvertStablecoins] Failed to initiate max conversion',
+        });
+      }
+    },
+    [createEventBuilder, initiateMaxConversion, location, trackEvent],
+  );
+
+  const handleEditPress = useCallback(
+    async (token: AssetType) => {
+      try {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED,
+          )
+            .addProperties({
+              location,
+              button_type: 'icon_button',
+              icon: IconName.Edit,
+              button_action: 'custom',
+              redirects_to: MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+              asset_symbol: token.symbol,
+              network_chain_id: token.chainId,
+              network_name: token.chainId
+                ? getNetworkName(token.chainId as Hex)
+                : 'unknown',
+            })
+            .build(),
+        );
+
+        await initiateCustomConversion({
+          preferredPaymentToken: {
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          },
+        });
+      } catch (error) {
+        Logger.error(error as Error, {
+          message:
+            '[MoneyConvertStablecoins] Failed to initiate custom conversion',
+        });
+      }
+    },
+    [createEventBuilder, initiateCustomConversion, location, trackEvent],
+  );
 
   const hasUnapprovedMusdConversion = useSelector(
     selectHasUnapprovedMusdConversion,
@@ -196,8 +272,8 @@ const MoneyConvertStablecoins = ({
             <Box key={`${token.address}-${token.chainId}`} twClassName="px-4">
               <MusdConversionAssetRow
                 token={token}
-                onMaxPress={onMaxPress}
-                onEditPress={onEditPress}
+                onMaxPress={handleMaxPress}
+                onEditPress={handleEditPress}
                 areActionsDisabled={
                   hasUnapprovedMusdConversion || hasInFlightMusdConversion
                 }
@@ -207,18 +283,6 @@ const MoneyConvertStablecoins = ({
           ))}
         </Box>
       )}
-
-      <Box twClassName="px-4 mt-3">
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={onLearnMorePress}
-          testID={MoneyConvertStablecoinsTestIds.LEARN_MORE_CTA}
-        >
-          {strings('money.convert_stablecoins.learn_more')}
-        </Button>
-      </Box>
     </Box>
   );
 };

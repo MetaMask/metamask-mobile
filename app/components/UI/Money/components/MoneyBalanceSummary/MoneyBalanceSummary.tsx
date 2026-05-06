@@ -9,6 +9,8 @@ import {
   IconColor,
   IconName,
   Skeleton,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -51,7 +53,7 @@ const MoneyBalanceSummary = ({
         fontWeight={FontWeight.Bold}
         testID={MoneyBalanceSummaryTestIds.TITLE}
       >
-        {strings('money.title')}
+        {strings('money.your_balance')}
       </Text>
     </Box>
 
@@ -87,19 +89,19 @@ const MoneyBalanceSummary = ({
           />
         ) : (
           isPositiveNumber(apy) && (
-            <Box
-              twClassName="self-start rounded-md bg-success-muted px-2 py-0.5"
+            <Tag
+              severity={TagSeverity.Success}
               testID={MoneyBalanceSummaryTestIds.APY_TAG}
             >
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.SuccessDefault}
                 testID={MoneyBalanceSummaryTestIds.APY}
               >
                 {strings('money.apy_label', { percentage: apy })}
               </Text>
-            </Box>
+            </Tag>
           )
         )}
         {onApyInfoPress && isPositiveNumber(apy) && !isLoading && (
