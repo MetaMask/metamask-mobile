@@ -536,6 +536,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
   });
 
+  DevLogger.log(
+    '[PR-29800] BUG_MARKER: positionSize uses market price for limit orders',
+    {
+      orderType: orderForm.type,
+      limitPrice: orderForm.limitPrice,
+      marketPrice: assetData.price,
+    },
+  );
+
   // Real-time position size calculation - memoized to prevent recalculation
   const positionSize = useMemo(() => {
     // During loading, show '--' placeholder (consistent with other unavailable data displays)
