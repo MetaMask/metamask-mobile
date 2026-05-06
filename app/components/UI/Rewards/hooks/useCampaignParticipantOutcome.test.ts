@@ -148,7 +148,7 @@ describe('useCampaignParticipantOutcome', () => {
     const { result, rerender } = renderHook(
       ({ id }: { id: string | undefined }) =>
         useCampaignParticipantOutcome(id, CONFIG),
-      { initialProps: { id: CAMPAIGN_ID } },
+      { initialProps: { id: CAMPAIGN_ID } as { id: string | undefined } },
     );
 
     await waitFor(() => {
