@@ -8658,29 +8658,18 @@
       "retry_button": "फिर से प्रयास करें",
       "refreshing": "रिफ्रेश हो रहा है..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "आप जीत गए",
-      "rank_label": "{{place}} जगह",
-      "email_instructions": "अपना इनाम पाने के लिए ondocampaign@consensys.net पर अपना कोड ईमेल करें।",
-      "open_mail": "मेल खोलें",
-      "skip_for_now": "अभी के लिए स्किप करें",
-      "mail_subject": "Ondo कैंपेन प्राइज़ क्लेम",
-      "mail_body": "मेरा विनिंग कोड: {{code}}",
-      "winning_code": "विनिंग कोड",
-      "close_a11y": "बंद करें"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "आप जीत गए",
-        "description": "आज ही अपना प्राइज़ क्लेम करें।",
-        "a11y": "विनर की जानकारी खोलें"
+        "title": "आप जीत गए!",
+        "description": "अपना विजेता कोड सत्यापित करें और आज ही अपना इनाम दावा करें।",
+        "a11y": "विवरण देखें"
       },
       "participant_pending": {
         "title": "कैंपेन खत्म हो गया है।",
         "description": "हम रिज़ल्ट तय कर रहे हैं। जल्द ही वापस आकर देखें।"
       },
       "participant_finalized": {
-        "title": "कैंपेन के रिज़ल्ट आ गए हैं",
+        "title": "कैंपेन के परिणाम आ गए हैं।",
         "description": "आप इस बार नहीं जीते। लीडरबोर्ड देखें कि आप कहाँ पर हैं।"
       },
       "winner_finalized": {
@@ -8688,17 +8677,28 @@
         "description": "आपका रिवॉर्ड आने वाला है — हम जल्द ही आपसे कॉन्टैक्ट करेंगे।"
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "आप जीत गए 💰",
-        "description": "{{campaignName}} से अपना प्राइज़ क्लेम करें",
+        "description": "आज ही {{campaignName}} से अपना इनाम दावा करें।",
         "cta": "विवरण देखें"
       },
-      "participant_no_winner": {
-        "title": "रिज़ल्ट आ गए हैं। 🏅",
-        "description": "{{campaignName}} में अपनी रैंकिंग देखें",
+      "non_winner": {
+        "title": "परिणाम आ गए हैं 🏅",
+        "description": "{{campaignName}} में अपनी रैंकिंग देखें।",
         "cta": "देखें"
       }
+    },
+    "campaign_winning": {
+      "you_won": "आप जीत गए",
+      "rank_label": "{{place}} जगह",
+      "email_instructions": "अपना इनाम पाने के लिए {{email}} पर अपना कोड ईमेल करें।",
+      "open_mail": "मेल खोलें",
+      "skip_for_now": "अभी के लिए स्किप करें",
+      "mail_subject": "{{campaignName}} – पुरस्कार दावा",
+      "mail_body": "मेरा विनिंग कोड: {{code}}",
+      "winning_code": "विनिंग कोड",
+      "close_a11y": "बंद करें"
     }
   },
   "time": {
