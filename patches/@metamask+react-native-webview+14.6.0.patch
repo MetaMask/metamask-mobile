@@ -2,16 +2,37 @@ diff --git a/node_modules/@metamask/react-native-webview/android/src/main/java/c
 index 3f9aa9c998..62acefe282 100644
 --- a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
 +++ b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
-@@ -26,0 +27 @@ import androidx.webkit.JavaScriptReplyProxy;
+@@ -24,6 +24,7 @@ import android.webkit.WebViewClient;
+ import androidx.annotation.NonNull;
+ import androidx.annotation.Nullable;
+ import androidx.webkit.JavaScriptReplyProxy;
 +import androidx.webkit.ScriptHandler;
-@@ -61,0 +63 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+ import androidx.webkit.WebMessageCompat;
+ import androidx.webkit.WebViewCompat;
+ import androidx.webkit.WebViewFeature;
+@@ -59,6 +60,7 @@ import java.util.Set;
+ public class RNCWebView extends WebView implements LifecycleEventListener {
+     protected @Nullable String injectedJS;
+     protected @Nullable String injectedJSBeforeContentLoaded;
 +    protected @Nullable ScriptHandler injectedJSBeforeContentLoadedScriptHandler;
-@@ -371,0 +374,4 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+     protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
+     protected @Nullable RNCWebViewBridge fallbackBridge;
+     protected @Nullable WebViewCompat.WebMessageListener bridgeListener = null;
+@@ -369,6 +371,10 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+     }
+ 
+     public void callInjectedJavaScriptBeforeContentLoaded() {
 +        if (isDocumentStartJavaScriptSupported()) {
 +            return;
 +        }
 +
-@@ -379,0 +386,39 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+         if (getSettings().getJavaScriptEnabled() &&
+                 injectedJSBeforeContentLoaded != null &&
+                 !TextUtils.isEmpty(injectedJSBeforeContentLoaded)) {
+@@ -377,6 +383,45 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+         }
+     }
+ 
 +    public boolean isDocumentStartJavaScriptSupported() {
 +        return WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT);
 +    }
@@ -51,18 +72,51 @@ index 3f9aa9c998..62acefe282 100644
 +                "})();";
 +    }
 +
-@@ -473,0 +519 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+     protected String injectedJavaScriptObject = null;
+ 
+     public void setInjectedJavaScriptObject(String obj) {
+@@ -471,6 +516,7 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+     }
+ 
+     protected void cleanupCallbacksAndDestroy() {
 +        removeDocumentStartJavaScript();
+         setWebViewClient(null);
+         destroy();
+     }
 diff --git a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
 index b19f456155..3dfb567f17 100644
 --- a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
 +++ b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
-@@ -325,0 +326,2 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+@@ -323,6 +323,8 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+     }
+ 
+     fun onAfterUpdateTransaction(viewWrapper: RNCWebViewWrapper) {
 +        viewWrapper.webView.resetDocumentStartJavaScript()
 +
-@@ -551,0 +554 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+         mPendingSource?.let { source ->
+             loadSource(viewWrapper, source)
+         }
+@@ -549,6 +551,7 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+     fun setInjectedJavaScriptBeforeContentLoaded(viewWrapper: RNCWebViewWrapper, value: String?) {
+         val view = viewWrapper.webView
+         view.injectedJSBeforeContentLoaded = value
 +        view.resetDocumentStartJavaScript()
-@@ -561,0 +565 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+     }
+ 
+     fun setInjectedJavaScriptForMainFrameOnly(viewWrapper: RNCWebViewWrapper, value: Boolean) {
+@@ -559,6 +562,7 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+     fun setInjectedJavaScriptBeforeContentLoadedForMainFrameOnly(viewWrapper: RNCWebViewWrapper, value: Boolean) {
+         val view = viewWrapper.webView
+         view.injectedJavaScriptBeforeContentLoadedForMainFrameOnly = value
 +        view.resetDocumentStartJavaScript()
-@@ -601,0 +606 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+     }
+ 
+     fun setInjectedJavaScriptObject(viewWrapper: RNCWebViewWrapper, value: String?) {
+@@ -599,6 +603,7 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+     fun setJavaScriptEnabled(viewWrapper: RNCWebViewWrapper, enabled: Boolean) {
+         val view = viewWrapper.webView
+         view.settings.javaScriptEnabled = enabled
 +        view.resetDocumentStartJavaScript()
+     }
+ 
+     fun setAllowFileAccess(viewWrapper: RNCWebViewWrapper, allowFileAccess: Boolean) {
