@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import currencySymbols from '../../../../../util/currency-symbols.json';
-import { getCurrencySymbol } from '../../../../../util/number/bigint';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
 import { BridgeToken } from '../../types';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
@@ -12,20 +10,11 @@ import {
   formatSecondaryTokenAmount,
   formatTokenInputAmountFromFiat,
 } from '../../utils/sourceAmountInputMode';
-import { formatCurrency } from '../../utils/currencyUtils';
+import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 
 const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
-type CurrencyCode = keyof typeof currencySymbols;
-
-const getInputCurrencySymbol = (currency?: string) => {
-  const currencyCode = (currency || 'usd').toLowerCase();
-
-  return currencyCode in currencySymbols
-    ? getCurrencySymbol(currencyCode as CurrencyCode)
-    : currencyCode.toUpperCase();
-};
 
 export const useSourceAmountInput = ({
   sourceAmount,
@@ -202,7 +191,7 @@ export const useSourceAmountInput = ({
   }, [canToggle, currentCurrency, isFiatMode, sourceAmount, sourceToken]);
 
   const inputPrefix = isFiatMode
-    ? getInputCurrencySymbol(currentCurrency)
+    ? getCurrencySymbol(currentCurrency || 'usd')
     : undefined;
 
   return {
