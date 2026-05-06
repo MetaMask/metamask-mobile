@@ -21,7 +21,7 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch: 'tests/performance/fixtures/test.spec.ts',
+      testMatch: 'tests/performance/fixtures/test.spec.ts', // DEMO TEST USING WITHFIXTURES
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -161,8 +161,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-android-browserstack',
-      testMatch:
-        'tests/performance/mm-connect/connection-evm-rejection.spec.ts',
+      testMatch: '**/performance/mm-connect/**/*.spec.ts',
       timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
