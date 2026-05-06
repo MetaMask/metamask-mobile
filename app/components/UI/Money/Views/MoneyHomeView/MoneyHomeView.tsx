@@ -6,14 +6,18 @@ import React, {
   useState,
 } from 'react';
 import {
-  Animated,
-  Easing,
   LayoutChangeEvent,
   Linking,
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -56,6 +60,11 @@ import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+
+// Slide distance for the footer peek-in/out animation. Large enough to fully
+// clear any realistic footer height (button + safe-area insets).
+const FOOTER_HIDDEN_OFFSET = 240;
+const FOOTER_ANIMATION_DURATION_MS = 300;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
 
@@ -212,29 +221,31 @@ const MoneyHomeView = () => {
 
   // Stepper layout, scroll offset, and scroll view height are read on every
   // scroll event (~60fps with scrollEventThrottle={16}). Storing them as state
-  // would re-render the entire MoneyHomeView on every frame during scrolling.
-  // We keep them in refs and only flip the derived `isStepperVisible` boolean
-  // when its value actually changes — at most twice per scroll session. The
-  // visibility-driven animation effect therefore only runs when visibility
-  // truly transitions.
+  // would re-render MoneyHomeView on every frame during scrolling.
   const stepperLayoutRef = useRef<{ y: number; height: number } | null>(null);
   const scrollOffsetYRef = useRef(0);
   const scrollViewHeightRef = useRef(0);
-  // The footer height is captured imperatively from onLayout because it is
-  // consumed only inside the visibility-driven animation. Storing it in a ref
-  // (instead of state) keeps the slide-in/out effect tied to visibility
-  // transitions, so a layout reflow that changes the height never restarts the
-  // animation mid-flight.
-  const footerHeightRef = useRef(0);
-  const [isFooterMounted, setIsFooterMounted] = useState(
-    hasSeenMusdConversionEducation,
+  // ScrollView reserves matching bottom padding so the absolutely positioned
+  // footer overlay never hides scroll content -- state, not a ref, so the
+  // padding update triggers a re-render.
+  const [footerHeight, setFooterHeight] = useState(0);
+
+  const footerTranslateY = useSharedValue(
+    hasSeenMusdConversionEducation ? 0 : FOOTER_HIDDEN_OFFSET,
+  );
+  const footerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: footerTranslateY.value }],
+  }));
+  const scrollContentStyle = useMemo(
+    () => ({ paddingBottom: footerHeight }),
+    [footerHeight],
   );
 
-  const footerTranslateY = useRef(new Animated.Value(0)).current;
-
-  // Default to visible until layouts settle so the footer stays hidden in the
-  // initial paint and avoids a brief flash of "Add money".
-  const [isStepperVisible, setIsStepperVisible] = useState(true);
+  // Default to "stepper visible" until layouts settle so the footer stays
+  // hidden in the initial paint and we avoid a brief flash of "Add money".
+  // Mirrored in a ref so the scroll-driven flip can compare without stale
+  // state and trigger the animation outside any setState updater.
+  const isStepperVisibleRef = useRef(true);
 
   const computeStepperVisibility = useCallback(() => {
     const stepperLayout = stepperLayoutRef.current;
@@ -260,54 +271,30 @@ const MoneyHomeView = () => {
     return !isUserPastStepper;
   }, []);
 
+  const animateFooter = useCallback(
+    (visible: boolean) => {
+      footerTranslateY.value = withTiming(visible ? 0 : FOOTER_HIDDEN_OFFSET, {
+        duration: FOOTER_ANIMATION_DURATION_MS,
+        easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+      });
+    },
+    [footerTranslateY],
+  );
+
   const updateStepperVisibility = useCallback(() => {
     const next = computeStepperVisibility();
-    setIsStepperVisible((prev) => (prev === next ? prev : next));
-  }, [computeStepperVisibility]);
+    if (next === isStepperVisibleRef.current) return;
+    isStepperVisibleRef.current = next;
+    animateFooter(hasSeenMusdConversionEducation || !next);
+  }, [computeStepperVisibility, animateFooter, hasSeenMusdConversionEducation]);
 
-  const shouldShowFooter = hasSeenMusdConversionEducation || !isStepperVisible;
-
+  // `hasSeenMusdConversionEducation` is monotonic in Redux (false -> true,
+  // never back), so we only handle the false -> true transition here.
   useEffect(() => {
     if (hasSeenMusdConversionEducation) {
-      // Once education is seen the footer is always visible, no animation.
-      setIsFooterMounted(true);
-      footerTranslateY.setValue(0);
-      return;
+      footerTranslateY.value = 0;
     }
-
-    if (shouldShowFooter) {
-      // Start the footer off-screen so it slides up smoothly when peeking in.
-      // Read the latest measured height from a ref so subsequent layout
-      // reflows do not retrigger this effect and restart the slide-in.
-      footerTranslateY.setValue(footerHeightRef.current || 80);
-      setIsFooterMounted(true);
-      Animated.timing(footerTranslateY, {
-        toValue: 0,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start();
-      return;
-    }
-
-    if (footerHeightRef.current === 0) {
-      // Nothing to animate yet; ensure the footer is unmounted so the user
-      // doesn't see a flash before measurements are available.
-      setIsFooterMounted(false);
-      return;
-    }
-
-    Animated.timing(footerTranslateY, {
-      toValue: footerHeightRef.current,
-      duration: 200,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    }).start(({ finished }) => {
-      if (finished) {
-        setIsFooterMounted(false);
-      }
-    });
-  }, [shouldShowFooter, hasSeenMusdConversionEducation, footerTranslateY]);
+  }, [hasSeenMusdConversionEducation, footerTranslateY]);
 
   const handleStepperLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -346,10 +333,7 @@ const MoneyHomeView = () => {
 
   const handleFooterLayout = useCallback((event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;
-    // Cache imperatively so layout reflows update the height available to the
-    // exit animation without re-running the visibility effect (which would
-    // restart the slide-in animation mid-flight).
-    footerHeightRef.current = height;
+    setFooterHeight((prev) => (prev === height ? prev : height));
   }, []);
 
   const handleOnboardingCtaPress = useCallback(() => {
@@ -384,7 +368,7 @@ const MoneyHomeView = () => {
       />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={scrollContentStyle}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         onLayout={handleScrollViewLayout}
@@ -482,17 +466,12 @@ const MoneyHomeView = () => {
           />
         )}
       </ScrollView>
-      {isFooterMounted &&
-        (hasSeenMusdConversionEducation ? (
-          <MoneyFooter onAddMoneyPress={handleAddPress} />
-        ) : (
-          <Animated.View
-            onLayout={handleFooterLayout}
-            style={{ transform: [{ translateY: footerTranslateY }] }}
-          >
-            <MoneyFooter onAddMoneyPress={handleAddPress} />
-          </Animated.View>
-        ))}
+      <Animated.View
+        onLayout={handleFooterLayout}
+        style={[styles.footerOverlay, footerAnimatedStyle]}
+      >
+        <MoneyFooter onAddMoneyPress={handleAddPress} />
+      </Animated.View>
     </Box>
   );
 };

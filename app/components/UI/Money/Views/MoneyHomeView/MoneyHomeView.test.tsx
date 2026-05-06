@@ -1,7 +1,22 @@
 import React from 'react';
 import type { ReactTestInstance } from 'react-test-renderer';
-import { Animated } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
+import { withTiming } from 'react-native-reanimated';
+
+// Replace `withTiming` with a jest.fn so tests can spy on the animation
+// trigger (the property is non-configurable on the namespace import, so a
+// hoisted jest.mock is the only way to wrap it).
+jest.mock('react-native-reanimated', () => {
+  const original = jest.requireActual('react-native-reanimated');
+  return {
+    __esModule: true,
+    ...original,
+    default: original.default,
+    withTiming: jest.fn((toValue: number) => toValue),
+  };
+});
+
+const mockWithTiming = withTiming as jest.MockedFunction<typeof withTiming>;
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHomeView from './MoneyHomeView';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
@@ -707,6 +722,10 @@ describe('MoneyHomeView', () => {
   });
 
   describe('Add money footer peek-and-hide', () => {
+    // Mirror of the module-local constant in MoneyHomeView.tsx -- the slide
+    // distance used to translate the footer overlay off-screen when hidden.
+    const FOOTER_HIDDEN_OFFSET = 240;
+
     const fireScrollViewLayout = (scrollView: ReactTestInstance) => {
       fireEvent(scrollView, 'layout', {
         nativeEvent: { layout: { x: 0, y: 0, width: 375, height: 600 } },
@@ -739,7 +758,40 @@ describe('MoneyHomeView', () => {
       });
     };
 
-    it('does not render the footer when the stepper is visible and education has not been seen', () => {
+    // The footer is always mounted in the new architecture; visibility is
+    // expressed through the wrapping <Animated.View>'s translateY transform.
+    // Read the resolved transform value from the animated wrapper around the
+    // <MoneyFooter> container.
+    const findTranslateYInStyle = (style: unknown): number | null => {
+      const flat = (Array.isArray(style) ? style : [style]).filter(Boolean);
+      for (const entry of flat) {
+        const transform = (entry as { transform?: unknown }).transform;
+        if (Array.isArray(transform)) {
+          for (const op of transform) {
+            if (op && typeof op === 'object' && 'translateY' in op) {
+              return (op as { translateY: number }).translateY;
+            }
+          }
+        }
+      }
+      return null;
+    };
+
+    const getFooterTranslateY = (
+      footerContainer: ReactTestInstance | null,
+    ): number | null => {
+      // Walk up from <MoneyFooter container Box> through any DSRN wrappers
+      // until we reach the <Animated.View> that owns the translateY transform.
+      let node: ReactTestInstance | null | undefined = footerContainer?.parent;
+      while (node) {
+        const found = findTranslateYInStyle(node.props?.style);
+        if (found !== null) return found;
+        node = node.parent;
+      }
+      return null;
+    };
+
+    it('keeps the footer translated off-screen when the stepper is visible and education has not been seen', () => {
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,
         { state: educationNotSeenState },
@@ -753,21 +805,16 @@ describe('MoneyHomeView', () => {
         fireStepperLayout(onboarding, 100, 300);
       });
 
-      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).not.toBeOnTheScreen();
+      // Footer is always mounted in the always-on overlay architecture.
+      const footer = queryByTestId(MoneyFooterTestIds.CONTAINER);
+      expect(footer).toBeOnTheScreen();
+      // ...but translated off-screen by the hidden offset while the stepper
+      // remains in view.
+      expect(getFooterTranslateY(footer)).toBe(FOOTER_HIDDEN_OFFSET);
     });
 
-    it('renders the footer when the stepper has scrolled out of view and education has not been seen', () => {
-      const animatedTimingSpy = jest
-        .spyOn(Animated, 'timing')
-        .mockImplementation(
-          () =>
-            ({
-              start: (cb?: Animated.EndCallback) => cb?.({ finished: true }),
-              stop: jest.fn(),
-              reset: jest.fn(),
-            }) as unknown as Animated.CompositeAnimation,
-        );
-
+    it('triggers the slide-in animation when the stepper has scrolled out of view and education has not been seen', () => {
+      mockWithTiming.mockClear();
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,
         { state: educationNotSeenState },
@@ -786,27 +833,17 @@ describe('MoneyHomeView', () => {
         fireScroll(scrollView, 500);
       });
 
+      // Footer remains mounted; the visibility flip drives withTiming(0)
+      // (slide on-screen). Style updates run on the UI thread in production
+      // and aren't observable in tests, so we assert on the trigger instead.
       expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
-
-      animatedTimingSpy.mockRestore();
+      expect(mockWithTiming).toHaveBeenCalledWith(0, expect.anything());
     });
 
-    it('hides the footer again when the stepper scrolls back into view', () => {
-      const animatedTimingSpy = jest
-        .spyOn(Animated, 'timing')
-        .mockImplementation(
-          () =>
-            ({
-              start: (cb?: Animated.EndCallback) => cb?.({ finished: true }),
-              stop: jest.fn(),
-              reset: jest.fn(),
-            }) as unknown as Animated.CompositeAnimation,
-        );
-
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-        { state: educationNotSeenState },
-      );
+    it('triggers the slide-out animation when the stepper scrolls back into view', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
+        state: educationNotSeenState,
+      });
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -821,42 +858,22 @@ describe('MoneyHomeView', () => {
         fireScroll(scrollView, 500);
       });
 
-      // Measure the animated footer wrapper so the exit animation can run.
-      const animatedFooter = queryByTestId(MoneyFooterTestIds.CONTAINER);
-      const animatedFooterParent = animatedFooter?.parent;
-      if (animatedFooterParent) {
-        act(() => {
-          fireEvent(animatedFooterParent, 'layout', {
-            nativeEvent: {
-              layout: { x: 0, y: 0, width: 375, height: 80 },
-            },
-          });
-        });
-      }
-      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+      // Reset the spy so we only assert on the slide-out call below.
+      mockWithTiming.mockClear();
 
       // Scroll back so the stepper re-enters the viewport.
       act(() => {
         fireScroll(scrollView, 0);
       });
 
-      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).not.toBeOnTheScreen();
-
-      animatedTimingSpy.mockRestore();
+      expect(mockWithTiming).toHaveBeenCalledWith(
+        FOOTER_HIDDEN_OFFSET,
+        expect.anything(),
+      );
     });
 
-    it('does not restart the slide-in animation when the footer reflows after appearing', () => {
-      const animatedTimingSpy = jest
-        .spyOn(Animated, 'timing')
-        .mockImplementation(
-          () =>
-            ({
-              start: (cb?: Animated.EndCallback) => cb?.({ finished: true }),
-              stop: jest.fn(),
-              reset: jest.fn(),
-            }) as unknown as Animated.CompositeAnimation,
-        );
-
+    it('does not retrigger withTiming when the footer reflows after appearing', () => {
+      mockWithTiming.mockClear();
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,
         { state: educationNotSeenState },
@@ -876,25 +893,28 @@ describe('MoneyHomeView', () => {
         fireScroll(scrollView, 500);
       });
 
-      const callsAfterPeek = animatedTimingSpy.mock.calls.length;
+      const callsAfterPeek = mockWithTiming.mock.calls.length;
       expect(callsAfterPeek).toBeGreaterThan(0);
 
       // Subsequent layout reflows on the animated footer wrapper (e.g. when
-      // the measured height changes) must not retrigger the slide-in.
-      const animatedFooter = queryByTestId(MoneyFooterTestIds.CONTAINER);
-      const animatedFooterParent = animatedFooter?.parent;
-      if (animatedFooterParent) {
+      // the measured height changes) must not retrigger the slide animation.
+      const footerContainer = queryByTestId(MoneyFooterTestIds.CONTAINER);
+      // Walk up to the <Animated.View> wrapper that owns onLayout.
+      let wrapper: ReactTestInstance | null | undefined =
+        footerContainer?.parent;
+      while (wrapper && typeof wrapper.props?.onLayout !== 'function') {
+        wrapper = wrapper.parent;
+      }
+      if (wrapper) {
         act(() => {
-          fireEvent(animatedFooterParent, 'layout', {
+          fireEvent(wrapper, 'layout', {
             nativeEvent: {
               layout: { x: 0, y: 0, width: 375, height: 80 },
             },
           });
         });
-        // A second layout with a different height simulates a reflow after the
-        // initial measurement settles.
         act(() => {
-          fireEvent(animatedFooterParent, 'layout', {
+          fireEvent(wrapper, 'layout', {
             nativeEvent: {
               layout: { x: 0, y: 0, width: 375, height: 96 },
             },
@@ -902,9 +922,7 @@ describe('MoneyHomeView', () => {
         });
       }
 
-      expect(animatedTimingSpy).toHaveBeenCalledTimes(callsAfterPeek);
-
-      animatedTimingSpy.mockRestore();
+      expect(mockWithTiming).toHaveBeenCalledTimes(callsAfterPeek);
     });
 
     it('does not re-render on every scroll event when the visibility region is unchanged', () => {
@@ -933,9 +951,10 @@ describe('MoneyHomeView', () => {
       });
 
       // Stepper occupies y=[100, 400] and viewport height is 600. Scrolling
-      // anywhere in [0, 99] keeps the stepper fully in view, so visibility
-      // never flips. Without the fix the parent would commit on every scroll
-      // (10 commits for 10 events). With the fix the count must be at most 1.
+      // anywhere in [0, 99] keeps the stepper fully in view, so the visibility
+      // ref never flips and animation never triggers. Without the
+      // ref-debounced flip path the parent would commit on every scroll
+      // (10 commits for 10 events).
       const baselineRenderCount = renderCount;
       act(() => {
         for (let y = 0; y < 100; y += 10) {
@@ -944,15 +963,15 @@ describe('MoneyHomeView', () => {
       });
       expect(renderCount - baselineRenderCount).toBeLessThanOrEqual(1);
 
-      // Crossing the visibility threshold flips isStepperVisible exactly once
-      // and must trigger a bounded number of commits (state change + the
-      // visibility-driven effect mounting the footer), not one per frame.
+      // Crossing the visibility threshold flips the ref + triggers withTiming
+      // exactly once. No state change, so no React commit caused by the flip
+      // itself -- but the footer onLayout that follows the first reveal can
+      // commit once for setFooterHeight. Cap at 2 to allow that single layout.
       const beforeFlip = renderCount;
       act(() => {
         fireScroll(scrollView, 500);
       });
-      expect(renderCount - beforeFlip).toBeGreaterThanOrEqual(1);
-      expect(renderCount - beforeFlip).toBeLessThanOrEqual(3);
+      expect(renderCount - beforeFlip).toBeLessThanOrEqual(2);
 
       // Subsequent scroll events that stay past the threshold must not
       // re-render on every frame either.
@@ -989,7 +1008,7 @@ describe('MoneyHomeView', () => {
       expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('keeps the footer hidden when the stepper is below the viewport (off-screen, not yet scrolled to)', () => {
+    it('keeps the footer translated off-screen when the stepper is below the viewport (off-screen, not yet scrolled to)', () => {
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,
         { state: educationNotSeenState },
@@ -1007,10 +1026,12 @@ describe('MoneyHomeView', () => {
         fireScroll(scrollView, 0);
       });
 
-      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).not.toBeOnTheScreen();
+      const footer = queryByTestId(MoneyFooterTestIds.CONTAINER);
+      expect(footer).toBeOnTheScreen();
+      expect(getFooterTranslateY(footer)).toBe(FOOTER_HIDDEN_OFFSET);
     });
 
-    it('keeps the footer hidden on initial layout while the stepper height is still 0', () => {
+    it('keeps the footer translated off-screen on initial layout while the stepper height is still 0', () => {
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,
         { state: educationNotSeenState },
@@ -1026,7 +1047,9 @@ describe('MoneyHomeView', () => {
         fireStepperLayout(onboarding, 0, 0);
       });
 
-      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).not.toBeOnTheScreen();
+      let footer = queryByTestId(MoneyFooterTestIds.CONTAINER);
+      expect(footer).toBeOnTheScreen();
+      expect(getFooterTranslateY(footer)).toBe(FOOTER_HIDDEN_OFFSET);
 
       // Once the stepper reports a real height the footer is still hidden
       // because the user has not scrolled past it.
@@ -1034,7 +1057,8 @@ describe('MoneyHomeView', () => {
         fireStepperLayout(onboarding, 100, 300);
       });
 
-      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).not.toBeOnTheScreen();
+      footer = queryByTestId(MoneyFooterTestIds.CONTAINER);
+      expect(getFooterTranslateY(footer)).toBe(FOOTER_HIDDEN_OFFSET);
     });
   });
 });
