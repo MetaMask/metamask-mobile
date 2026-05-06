@@ -91,26 +91,6 @@ const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-// Mock Toast component
-jest.mock('../../../../component-library/components/Toast', () => {
-  const ReactActual = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: ReactActual.forwardRef(
-      (
-        _props: Record<string, unknown>,
-        ref: React.Ref<{ showToast: jest.Mock }>,
-      ) => {
-        ReactActual.useImperativeHandle(ref, () => ({
-          showToast: jest.fn(),
-          closeToast: jest.fn(),
-        }));
-        return ReactActual.createElement(ReactActual.Fragment, null, 'Toast');
-      },
-    ),
-  };
-});
-
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
