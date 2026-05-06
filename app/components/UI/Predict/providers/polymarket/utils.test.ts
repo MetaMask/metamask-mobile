@@ -46,10 +46,12 @@ const mockFetch = jest.fn();
 global.fetch = mockFetch;
 const mockQuery = jest.mocked(query);
 const mockEthQuery = jest.mocked(EthQuery);
-const mockNetworkController = Engine.context.NetworkController as {
-  findNetworkClientIdByChainId: jest.Mock;
-  getNetworkClientById: jest.Mock;
-};
+const mockFindNetworkClientIdByChainId = jest.mocked(
+  Engine.context.NetworkController.findNetworkClientIdByChainId,
+);
+const mockGetNetworkClientById = jest.mocked(
+  Engine.context.NetworkController.getNetworkClientById,
+);
 
 const apiKeyCreds = {
   apiKey: 'api-key',
@@ -73,12 +75,12 @@ describe('polymarket utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSignTypedMessage.mockResolvedValue('0xsig');
-    mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
-      'test-network-client-id',
-    );
-    mockNetworkController.getNetworkClientById.mockReturnValue({
+    mockFindNetworkClientIdByChainId.mockReturnValue('test-network-client-id');
+    mockGetNetworkClientById.mockReturnValue({
       provider: {},
-    });
+    } as ReturnType<
+      typeof Engine.context.NetworkController.getNetworkClientById
+    >);
   });
 
   it('creates API keys against the canonical CLOB host', async () => {

@@ -1073,10 +1073,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         body?.method === 'eth_sendRawTransaction' ||
         body?.method === 'eth_sendTransaction'
       ) {
-        // Return a unique 32-byte hash per call so cross-chain transactions
-        // (e.g. Polygon deposit + Linea relay) don't share the same hash.
-        txHashCounter++;
-        result = `0x${txHashCounter.toString(16).padStart(64, '0')}`;
+        // A valid 32-byte tx hash is required; returning `0x` breaks submission and the
+        // activity list never shows Predict withdraw (or any) transactions.
+        result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT.transactionHash;
       } else if (body?.method === 'eth_getBlockByNumber') {
         // Return block details to enable EIP-1559 transactions
         result = {
