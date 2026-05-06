@@ -149,6 +149,7 @@ describe('QRWalletAdapter', () => {
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
       expect(result).toBe(false);
+      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
       expect(adapter.getConnectedDeviceId()).toBeNull();
       expect(adapter.isConnected()).toBe(false);
       expect(onDeviceEvent).toHaveBeenCalledWith({

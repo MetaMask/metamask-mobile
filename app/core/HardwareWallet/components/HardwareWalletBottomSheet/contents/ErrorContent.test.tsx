@@ -79,17 +79,17 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      label,
+    Button: ({
+      children,
       onPress,
       testID,
       isDisabled,
     }: {
-      label: React.ReactNode;
+      children: React.ReactNode;
       onPress?: () => void;
       testID?: string;
       isDisabled?: boolean;
@@ -97,18 +97,17 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
       <TouchableOpacity
         testID={testID}
         onPress={isDisabled ? undefined : onPress}
-        isDisabled={isDisabled}
+        disabled={isDisabled}
       >
-        {typeof label === 'string' ? (
-          <Text>{label}</Text>
+        {typeof children === 'string' ? (
+          <Text>{children}</Text>
         ) : (
-          <View>{label}</View>
+          <View>{children}</View>
         )}
       </TouchableOpacity>
     ),
-    ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
-    ButtonSize: { Lg: 'Lg' },
-    ButtonWidthTypes: { Full: 'Full' },
+    ButtonVariant: { Primary: 'primary', Secondary: 'secondary' },
+    ButtonSize: { Lg: 'lg' },
   };
 });
 

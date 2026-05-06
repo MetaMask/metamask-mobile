@@ -207,7 +207,7 @@ export function getQrHardwareScanErrorAnalyticsProperties(
   if (!isQRHardwareScanError(error)) {
     return {};
   }
-  const metadata = error.metadata as QRHardwareScanErrorMetadata;
+  const metadata = error.metadata;
   const payload: Record<string, string | boolean> = {
     error_category: metadata.qrHardwareScanErrorType,
     is_ur_format: metadata.isUrFormat,
