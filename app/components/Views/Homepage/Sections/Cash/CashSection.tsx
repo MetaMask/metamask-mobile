@@ -76,8 +76,12 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     if (!isCashSectionEnabled) {
+      let reason = 'flag_off';
+      if (isMusdConversionEnabled) {
+        reason = !isGeoEligible ? 'geo_ineligible' : 'money_home_on';
+      }
       Logger.log(
-        `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} reason=${!isMusdConversionEnabled ? 'flag_off' : 'geo_ineligible'}`,
+        `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} moneyHome=${isMoneyHomeEnabled} reason=${reason}`,
       );
       return null;
     }
