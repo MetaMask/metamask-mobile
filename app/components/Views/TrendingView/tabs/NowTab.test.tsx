@@ -52,10 +52,9 @@ jest.mock('../../Homepage/Sections/WhatsHappening', () => {
   const { forwardRef } = require('react');
   return {
     __esModule: true,
-    default: forwardRef((
-      _props: unknown,
-      ref: unknown,
-    ) => mockWhatsHappeningImpl(ref)),
+    default: forwardRef((_props: unknown, ref: unknown) =>
+      mockWhatsHappeningImpl(ref),
+    ),
   };
 });
 
