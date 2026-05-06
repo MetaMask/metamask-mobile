@@ -138,7 +138,7 @@ module.exports = {
       plugins: [['@babel/plugin-transform-classes', { loose: true }]],
     },
     {
-      test: (f) => !!f?.includes('/app/lib/snaps'),
+      test: (f) => !!f?.includes('/app/lib/snaps/SnapsExecutionWebView.tsx'),
       plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },
     // TODO: Remove this once we have a fix for the private methods
