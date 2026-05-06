@@ -112,7 +112,10 @@ import {
 } from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
 import { getEarnControllerMessenger } from './earn-controller-messenger';
-import { getMoneyAccountControllerMessenger } from './money-account-controller-messenger';
+import {
+  getMoneyAccountControllerInitMessenger,
+  getMoneyAccountControllerMessenger,
+} from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
@@ -340,7 +343,7 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountController: {
     getMessenger: getMoneyAccountControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getMoneyAccountControllerInitMessenger,
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
