@@ -8649,29 +8649,18 @@
       "retry_button": "Thử lại",
       "refreshing": "Đang làm mới..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Bạn đã thắng",
-      "rank_label": "Hạng {{place}}",
-      "email_instructions": "Gửi email đến ondocampaign@consensys.net kèm mã của bạn để nhận thưởng.",
-      "open_mail": "Mở thư",
-      "skip_for_now": "Bỏ qua bây giờ",
-      "mail_subject": "Nhận thưởng chiến dịch Ondo",
-      "mail_body": "Mã trúng thưởng của tôi: {{code}}",
-      "winning_code": "Mã trúng thưởng",
-      "close_a11y": "Đóng"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Bạn đã thắng",
-        "description": "Nhận giải thưởng của bạn ngay hôm nay.",
-        "a11y": "Mở thông tin người chiến thắng"
+        "title": "Bạn đã thắng!",
+        "description": "Xác minh mã trúng thưởng và nhận giải thưởng hôm nay.",
+        "a11y": "Xem chi tiết"
       },
       "participant_pending": {
         "title": "Chiến dịch đã kết thúc.",
         "description": "Chúng tôi đang xác định kết quả. Hãy quay lại sau."
       },
       "participant_finalized": {
-        "title": "Kết quả chiến dịch đã có",
+        "title": "Đã có kết quả chiến dịch.",
         "description": "Lần này bạn đã không giành chiến thắng. Hãy kiểm tra bảng xếp hạng để xem bạn đứng ở vị trí nào."
       },
       "winner_finalized": {
@@ -8679,17 +8668,28 @@
         "description": "Phần thưởng của bạn đang được gửi — chúng tôi sẽ sớm liên hệ với bạn."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Bạn đã thắng 💰",
-        "description": "Nhận giải thưởng của bạn từ {{campaignName}}",
+        "description": "Nhận thưởng từ {{campaignName}} hôm nay.",
         "cta": "Xem chi tiết"
       },
-      "participant_no_winner": {
-        "title": "Kết quả đã có. 🏅",
-        "description": "Xem thứ hạng của bạn trong {{campaignName}}",
+      "non_winner": {
+        "title": "Đã có kết quả 🏅",
+        "description": "Xem thứ hạng của bạn trong {{campaignName}}.",
         "cta": "Xem"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Bạn đã thắng",
+      "rank_label": "Hạng {{place}}",
+      "email_instructions": "Gửi email đến {{email}} kèm mã của bạn để nhận thưởng.",
+      "open_mail": "Mở thư",
+      "skip_for_now": "Bỏ qua bây giờ",
+      "mail_subject": "{{campaignName}} – nhận thưởng",
+      "mail_body": "Mã trúng thưởng của tôi: {{code}}",
+      "winning_code": "Mã trúng thưởng",
+      "close_a11y": "Đóng"
     }
   },
   "time": {

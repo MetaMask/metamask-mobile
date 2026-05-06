@@ -6,7 +6,6 @@
     ".*api.etherscan.io/.*",
     ".*static.metafi.codefi.network/.*",
     ".*static.cx.metamask.io/.*",
-    ".*rpc.tenderly.co/.*",
     ".*api-goerli.etherscan.io/.*",
     ".*gateway.pinata.cloud/.*",
     ".*stale.*",

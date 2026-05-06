@@ -8649,29 +8649,18 @@
       "retry_button": "Coba lagi",
       "refreshing": "Menyegarkan..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Anda menang",
-      "rank_label": "{{place}} tempat",
-      "email_instructions": "Kirimkan kode Anda ke ondocampaign@consensys.net untuk mengklaim hadiah Anda.",
-      "open_mail": "Buka surat",
-      "skip_for_now": "Lewati untuk saat ini",
-      "mail_subject": "Klaim hadiah kampanye Ondo",
-      "mail_body": "Kode pemenang: {{code}}",
-      "winning_code": "Kode pemenang",
-      "close_a11y": "Tutup"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Anda menang",
-        "description": "Klaim hadiah Anda hari ini.",
-        "a11y": "Buka detail pemenang"
+        "title": "Anda menang!",
+        "description": "Verifikasi kode kemenangan Anda dan klaim hadiah Anda hari ini.",
+        "a11y": "Lihat detail"
       },
       "participant_pending": {
         "title": "Kampanye telah berakhir.",
         "description": "Kami sedang menentukan hasilnya. Periksa kembali sesaat lagi."
       },
       "participant_finalized": {
-        "title": "Hasil kampanye telah keluar",
+        "title": "Hasil kampanye sudah tersedia.",
         "description": "Anda tidak menang kali ini. Periksa papan peringkat untuk melihat posisi Anda."
       },
       "winner_finalized": {
@@ -8679,17 +8668,28 @@
         "description": "Reward sedang dikirim — kami akan segera menghubungi Anda."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Anda menang 💰",
-        "description": "Klaim hadiah dari {{campaignName}}",
+        "description": "Klaim hadiah Anda dari {{campaignName}} hari ini.",
         "cta": "Lihat detail"
       },
-      "participant_no_winner": {
-        "title": "Hasilnya sudah keluar. 🏅",
-        "description": "Lihat peringkat Anda di {{campaignName}}",
+      "non_winner": {
+        "title": "Hasil sudah tersedia 🏅",
+        "description": "Lihat peringkat Anda di {{campaignName}}.",
         "cta": "Lihat"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Anda menang",
+      "rank_label": "{{place}} tempat",
+      "email_instructions": "Kirimkan kode Anda ke {{email}} untuk mengklaim hadiah Anda.",
+      "open_mail": "Buka surat",
+      "skip_for_now": "Lewati untuk saat ini",
+      "mail_subject": "Klaim hadiah {{campaignName}}",
+      "mail_body": "Kode pemenang: {{code}}",
+      "winning_code": "Kode pemenang",
+      "close_a11y": "Tutup"
     }
   },
   "time": {

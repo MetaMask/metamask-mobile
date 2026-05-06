@@ -8649,29 +8649,18 @@
       "retry_button": "Subukang muli",
       "refreshing": "Nire-refresh..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Nanalo ka",
-      "rank_label": "{{place}} lugar",
-      "email_instructions": "I-email sa ondocampaign@consensys.net ang code mo para kunin ang premyo mo.",
-      "open_mail": "Buksan ang mail",
-      "skip_for_now": "Laktawan muna",
-      "mail_subject": "Pagkuha ng premyo ng campaign ng Ondo",
-      "mail_body": "Ang nanalong code: {{code}}",
-      "winning_code": "Nanalong code",
-      "close_a11y": "Isara"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Nanalo ka",
-        "description": "Kunin ang premyo mo ngayon.",
-        "a11y": "Ipakita ang mga detalye ng nanalo"
+        "title": "Nanalo ka!",
+        "description": "I-verify ang winning code mo at kunin ang premyo mo ngayon.",
+        "a11y": "Tingnan ang mga detalye"
       },
       "participant_pending": {
         "title": "Tapos na ang campaign.",
         "description": "Inaalam na namin ang resulta. Bumalik sa lalong madaling panahon."
       },
       "participant_finalized": {
-        "title": "Lumabas na ang resulta ng campaign",
+        "title": "Lumabas na ang resulta ng campaign.",
         "description": "Hindi ka nanalo sa pagkakataong ito. Tingnan ang leaderboard para malaman kung ano ang rank mo."
       },
       "winner_finalized": {
@@ -8679,17 +8668,28 @@
         "description": "Parating na ang reward mo — makikipag-ugnayan kami sa iyo sa lalong madaling panahon."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Nanalo ka 💰",
-        "description": "Kunin ang premyo mo mula sa {{campaignName}}",
+        "description": "Kunin ang premyo mo mula sa {{campaignName}} ngayon.",
         "cta": "Tingnan ang mga detalye"
       },
-      "participant_no_winner": {
-        "title": "Lumabas na ang resulta. 🏅",
-        "description": "Tingnan ang ranking mo sa {{campaignName}}",
+      "non_winner": {
+        "title": "Lumabas na ang resulta 🏅",
+        "description": "Tingnan ang ranking mo sa {{campaignName}}.",
         "cta": "Tingnan"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Nanalo ka",
+      "rank_label": "{{place}} lugar",
+      "email_instructions": "I-email sa {{email}} ang code mo para kunin ang premyo mo.",
+      "open_mail": "Buksan ang mail",
+      "skip_for_now": "Laktawan muna",
+      "mail_subject": "{{campaignName}} – pagkuha ng premyo",
+      "mail_body": "Ang nanalong code: {{code}}",
+      "winning_code": "Nanalong code",
+      "close_a11y": "Isara"
     }
   },
   "time": {
