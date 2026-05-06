@@ -11,6 +11,7 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import WalletView from '../../page-objects/wallet/WalletView';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -57,6 +58,11 @@ test.describe(PerformanceOnboarding, () => {
       const timer5 = new TimerHelper(
         'Apple: Tap "Done" → feature sheet visible',
         { ios: 2500, android: 3100 },
+        currentDeviceDetails.platform,
+      );
+      const timerWallet = new TimerHelper(
+        'Apple: After onboarding modal → Wallet main screen visible',
+        { ios: 15000, android: 15000 },
         currentDeviceDetails.platform,
       );
 
@@ -133,7 +139,16 @@ test.describe(PerformanceOnboarding, () => {
 
         await dismisspredictionsModalPlaywright();
 
-        const timers = [timer1, timer2, timer4, timer5];
+        await timerWallet.measure(async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(WalletView.container),
+            {
+              description: 'Wallet main screen should be visible',
+            },
+          );
+        });
+
+        const timers = [timer1, timer2, timer4, timer5, timerWallet];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }

@@ -268,24 +268,6 @@ if (enableApiCallLogs || isTest) {
       }
     }
 
-    // Hosts that bypass the mock proxy and make direct network requests.
-    const PROXY_BYPASS_PATTERNS = [
-      '.node.web3auth.io',
-      '.uat-node.web3auth.io',
-      'auth-service.uat-api.cx.metamask.io',
-    ];
-
-    const shouldBypassProxy = (targetUrl) => {
-      try {
-        const hostname = new URL(targetUrl).hostname;
-        return PROXY_BYPASS_PATTERNS.some(
-          (p) => hostname === p || hostname.endsWith(p),
-        );
-      } catch {
-        return false;
-      }
-    };
-
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {
       // Extract URL string from Request or URL objects
@@ -301,7 +283,7 @@ if (enableApiCallLogs || isTest) {
         urlString = String(url);
       }
 
-      if (!isMockServerAvailable || shouldBypassProxy(urlString)) {
+      if (!isMockServerAvailable) {
         return originalFetch(url, options);
       }
 
@@ -349,8 +331,7 @@ if (enableApiCallLogs || isTest) {
                 }
                 if (
                   !url.includes(`localhost:${mockServerPort}`) &&
-                  !url.includes('/proxy') &&
-                  !shouldBypassProxy(url)
+                  !url.includes('/proxy')
                 ) {
                   url = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
                 }
@@ -434,12 +415,10 @@ if (enableApiCallLogs || isTest) {
         const fetchSourceModule = require('expo/src/winter/fetch/fetch');
         const originalExpoFetch = fetchSourceModule.fetch;
         fetchSourceModule.fetch = (url, options) => {
-          if (shouldBypassProxy(String(url))) {
-            return originalExpoFetch(url, options);
-          }
-          const proxyUrl = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+          const urlStr = String(url);
+          const proxyUrl = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlStr)}`;
           // eslint-disable-next-line no-console
-          console.log(`[E2E SHIM] expo/fetch: ${url} → ${proxyUrl}`);
+          console.log(`[E2E SHIM] expo/fetch: ${urlStr} → ${proxyUrl}`);
           return originalExpoFetch(proxyUrl, options);
         };
         // eslint-disable-next-line no-console
