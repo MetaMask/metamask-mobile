@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import { Linking } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   FontWeight,

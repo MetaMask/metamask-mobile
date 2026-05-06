@@ -709,7 +709,11 @@
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
     "i_understand": "I understand",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "new_address_title": "New address",
+    "new_address_message": "You're sending to this address for the first time. Make sure that it's correct before you continue:",
+    "alert_navigation_previous": "Previous alert",
+    "alert_navigation_next": "Next alert"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -7107,7 +7111,8 @@
     "custom_amount": {
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
-      "buy_perps": "Add funds to your wallet to use Perps."
+      "buy_perps": "Add funds to your wallet to use Perps.",
+      "projected_five_year_balance": "Projected 5-year balance:"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -8128,6 +8133,15 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "notifications_nudge": {
+      "title": "Don't miss out",
+      "description": "Enable notifications to stay informed on campaigns.",
+      "turn_on_button": "Turn on",
+      "loading": "Enabling notifications...",
+      "loading_description": "This may take a moment.",
+      "enable_error": "Failed to enable notifications",
+      "success": "Notifications enabled"
+    },
     "version_guard": {
       "title": "Update required",
       "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
@@ -8592,6 +8606,46 @@
       "body": "This position won't be entered in the campaign. It won't meet the {{days}}-day hold requirement.",
       "cancel": "Cancel",
       "confirm": "I understand"
+    },
+    "perps_trading_campaign": {
+      "title": "Perps Trading Competition",
+      "stats_title": "Stats",
+      "performance_title": "Performance",
+      "label_rank": "Rank",
+      "label_your_rank": "Your rank",
+      "label_pnl": "PnL",
+      "label_volume": "Volume",
+      "label_notional_volume": "Notional volume",
+      "label_margin": "Margin",
+      "label_margin_deployed": "Margin deployed",
+      "pending": "Pending",
+      "qualified": "Qualified",
+      "open_position_cta": "Open Position",
+      "leaderboard_title": "Leaderboard",
+      "leaderboard_total_participants": "{{count}} participants",
+      "last_updated": "Last updated: {{time}}",
+      "leaderboard_error_loading": "Failed to load leaderboard",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
+      "leaderboard_powered_by_prefix": "Powered by ",
+      "leaderboard_hypertracker_brand": "HyperTracker",
+      "prize_pool_title": "Prize pool",
+      "prize_pool_current_label": "Current",
+      "prize_pool_next_label": "Next",
+      "prize_pool_volume_subtext": "{{current}} of {{target}} volume",
+      "prize_pool_max_tier_subtext": "{{maxThreshold}}+ volume — all milestones reached",
+      "prize_pool_max_badge": "Max",
+      "prize_pool_error_title": "Failed to load prize pool",
+      "prize_pool_error_description": "There was an error loading the prize pool. Please try again.",
+      "prize_pool_retry_button": "Retry",
+      "stats_notional_volume_threshold": "${{amount}} required",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for this rank",
+      "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_retry": "Retry"
     },
     "campaigns_preview": {
       "title": "Campaigns",

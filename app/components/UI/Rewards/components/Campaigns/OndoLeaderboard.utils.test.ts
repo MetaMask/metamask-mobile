@@ -1,6 +1,5 @@
 import {
   buildLeaderboardUserPosition,
-  formatComputedAt,
   formatRateOfReturn,
   formatTierDisplayName,
   getCampaignTierNames,
@@ -9,13 +8,20 @@ import {
 import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, string>) => {
     const t: Record<string, string> = {
       'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
       'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
+      'rewards.perps_trading_campaign.last_updated': 'Last updated: {{time}}',
     };
-    return t[key] ?? key;
+    let template = t[key] ?? key;
+    if (params) {
+      for (const [paramKey, value] of Object.entries(params)) {
+        template = template.split(`{{${paramKey}}}`).join(value);
+      }
+    }
+    return template;
   },
   default: { locale: 'en-US' },
 }));
@@ -44,35 +50,6 @@ describe('OndoLeaderboard.utils', () => {
 
     it('formats small negative rate', () => {
       expect(formatRateOfReturn(-0.0832)).toBe('-8.32%');
-    });
-  });
-
-  describe('formatComputedAt', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date('2024-03-20T12:00:00.000Z'));
-    });
-
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
-    it('returns empty string for null', () => {
-      expect(formatComputedAt(null)).toBe('');
-    });
-
-    it('returns empty string for empty string', () => {
-      expect(formatComputedAt('')).toBe('');
-    });
-
-    it('returns a non-empty string for a valid ISO timestamp', () => {
-      const result = formatComputedAt('2024-03-20T12:00:00.000Z');
-      expect(result).toBeTruthy();
-      expect(typeof result).toBe('string');
-    });
-
-    it('returns empty string for an unparseable value', () => {
-      expect(formatComputedAt('not-a-date')).toBe('');
     });
   });
 
