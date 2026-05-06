@@ -10,49 +10,45 @@ const REPO_URL = process.env.GITHUB_REPOSITORY
 
 const SKIP_CI_BUMP_VERSION_SUBJECT = /^\[skip ci\] Bump version number to/;
 
-function getMergeBase(headRef: string, baseRef: string): string | null {
-  try {
-    const out = execFileSync('git', ['merge-base', headRef, baseRef], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    return out.trim() || null;
-  } catch {
-    return null;
+function getMergeBase(headRef: string, baseRef: string): string {
+  const out = execFileSync('git', ['merge-base', headRef, baseRef], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const sha = out.trim();
+  if (!sha) {
+    throw new Error(`git merge-base returned empty for ${headRef} and ${baseRef}`);
   }
+  return sha;
 }
 
 function getAncestryPathCommits(
   mergeBaseHash: string,
   headRef: string,
 ): { hash: string; subject: string }[] {
-  try {
-    const out = execFileSync(
-      'git',
-      ['log', '--ancestry-path', `${mergeBaseHash}..${headRef}`, '--pretty=format:%h\t%s'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-    );
+  const out = execFileSync(
+    'git',
+    ['log', '--ancestry-path', `${mergeBaseHash}..${headRef}`, '--pretty=format:%h\t%s'],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  );
 
-    if (!out.trim()) return [];
+  if (!out.trim()) return [];
 
-    return out
-      .trim()
-      .split('\n')
-      .filter((line) => {
-        const tab = line.indexOf('\t');
-        const subject = tab >= 0 ? line.slice(tab + 1) : line;
-        return !SKIP_CI_BUMP_VERSION_SUBJECT.test(subject.trim());
-      })
-      .map((line) => {
-        const tab = line.indexOf('\t');
-        return {
-          hash: tab >= 0 ? line.slice(0, tab) : '',
-          subject: tab >= 0 ? line.slice(tab + 1) : line,
-        };
-      });
-  } catch {
-    return [];
-  }
+  return out
+    .trim()
+    .split('\n')
+    .filter((line) => {
+      const tab = line.indexOf('\t');
+      const subject = tab >= 0 ? line.slice(tab + 1) : line;
+      return !SKIP_CI_BUMP_VERSION_SUBJECT.test(subject.trim());
+    })
+    .map((line) => {
+      const tab = line.indexOf('\t');
+      return {
+        hash: tab >= 0 ? line.slice(0, tab) : '',
+        subject: tab >= 0 ? line.slice(tab + 1) : line,
+      };
+    });
 }
 
 function formatSubjectWithPrLinks(subject: string): string {
@@ -66,11 +62,6 @@ export function extractCherryPicks(): { hash: string; subject: string }[] {
   const headRef = (process.env.HEAD_REF ?? '').trim() || 'HEAD';
 
   const mergeBase = getMergeBase(headRef, baseRef);
-  if (!mergeBase) {
-    console.log('[cherry-picks] Could not resolve merge-base');
-    return [];
-  }
-
   const commits = getAncestryPathCommits(mergeBase, headRef);
   console.log(`[cherry-picks] Found ${commits.length} commit(s)`);
   return commits;
