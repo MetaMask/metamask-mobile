@@ -8658,29 +8658,18 @@
       "retry_button": "Tentar novamente",
       "refreshing": "Atualizando..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Você ganhou",
-      "rank_label": "{{place}} lugar",
-      "email_instructions": "Envie um e-mail para ondocampaign@consensys.net com o seu código para reivindicar seu prêmio.",
-      "open_mail": "Abrir e-mail",
-      "skip_for_now": "Ignorar por enquanto",
-      "mail_subject": "Reivindicação de prêmio da campanha Ondo",
-      "mail_body": "Meu código ganhador: {{code}}",
-      "winning_code": "Código ganhador",
-      "close_a11y": "Fechar"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Você ganhou",
-        "description": "Reivindique seu prêmio hoje mesmo.",
-        "a11y": "Ver detalhes dos ganhadores"
+        "title": "Você ganhou!",
+        "description": "Verifique seu código vencedor e reivindique seu prêmio hoje.",
+        "a11y": "Ver detalhes"
       },
       "participant_pending": {
         "title": "A campanha terminou.",
         "description": "Estamos analisando os resultados. Volte em breve."
       },
       "participant_finalized": {
-        "title": "Os resultados da campanha foram divulgados",
+        "title": "Os resultados da campanha estão disponíveis.",
         "description": "Você não ganhou desta vez. Confira o placar de classificação para ver sua posição final."
       },
       "winner_finalized": {
@@ -8688,17 +8677,28 @@
         "description": "Sua recompensa está a caminho. Entraremos em contato em breve."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Você ganhou 💰",
-        "description": "Reivindique seu prêmio da {{campaignName}}",
+        "description": "Reivindique seu prêmio da {{campaignName}} hoje.",
         "cta": "Ver detalhes"
       },
-      "participant_no_winner": {
-        "title": "Os resultados foram divulgados.🏅",
-        "description": "Veja sua classificação na {{campaignName}}",
+      "non_winner": {
+        "title": "Os resultados estão disponíveis 🏅",
+        "description": "Veja sua classificação na {{campaignName}}.",
         "cta": "Ver"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Você ganhou",
+      "rank_label": "{{place}} lugar",
+      "email_instructions": "Envie um e-mail para {{email}} com o seu código para reivindicar seu prêmio.",
+      "open_mail": "Abrir e-mail",
+      "skip_for_now": "Ignorar por enquanto",
+      "mail_subject": "{{campaignName}} – reivindicação de prêmio",
+      "mail_body": "Meu código ganhador: {{code}}",
+      "winning_code": "Código ganhador",
+      "close_a11y": "Fechar"
     }
   },
   "time": {
