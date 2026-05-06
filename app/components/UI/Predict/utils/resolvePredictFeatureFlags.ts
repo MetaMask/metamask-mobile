@@ -16,7 +16,6 @@ import {
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
-import { LEGACY_V2_CLOB_BASE_URL } from '../providers/polymarket/constants';
 import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
@@ -30,32 +29,6 @@ function resolveVersionGatedBooleanFlag(flag: unknown): boolean {
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flag),
     ) ?? false
   );
-}
-
-function resolvePredictClobV2Flag({
-  predictClobV2Flag,
-  predictClobV2UseLegacyClobHostFlag,
-}: {
-  predictClobV2Flag: unknown;
-  predictClobV2UseLegacyClobHostFlag: unknown;
-}): {
-  enabled: boolean;
-  clobBaseUrl?: string;
-} {
-  const enabled = resolveVersionGatedBooleanFlag(predictClobV2Flag);
-
-  if (!enabled) {
-    return { enabled: false, clobBaseUrl: undefined };
-  }
-
-  return {
-    enabled: true,
-    clobBaseUrl: resolveVersionGatedBooleanFlag(
-      predictClobV2UseLegacyClobHostFlag,
-    )
-      ? LEGACY_V2_CLOB_BASE_URL
-      : undefined,
-  };
 }
 
 /**
@@ -118,10 +91,6 @@ export function resolvePredictFeatureFlags(
   const predictUpDownEnabled = resolveVersionGatedBooleanFlag(
     flags.predictUpDown,
   );
-  const predictClobV2 = resolvePredictClobV2Flag({
-    predictClobV2Flag: flags.predictClobV2,
-    predictClobV2UseLegacyClobHostFlag: flags.predictClobV2UseLegacyClobHost,
-  });
 
   return {
     feeCollection,
@@ -131,7 +100,5 @@ export function resolvePredictFeatureFlags(
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
-    predictClobV2Enabled: predictClobV2.enabled,
-    predictClobV2ClobBaseUrl: predictClobV2.clobBaseUrl,
   };
 }

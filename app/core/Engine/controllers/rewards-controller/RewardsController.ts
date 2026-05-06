@@ -33,6 +33,7 @@ import {
   type PerpsTradingCampaignLeaderboardPositionDto,
   type PerpsTradingCampaignVolumeDto,
   type PaginatedOndoGmActivityDto,
+  type PerpsTradingCampaignParticipantOutcomeDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
@@ -153,6 +154,9 @@ const PERPS_TRADING_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS =
 
 // Perps Trading Campaign volume cache threshold
 const PERPS_TRADING_CAMPAIGN_VOLUME_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+
+// Perps Trading participant outcome cache threshold
+const PERPS_TRADING_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -447,6 +451,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPerpsTradingCampaignLeaderboardPosition',
   'getPerpsTradingCampaignVolume',
   'getOptInStatus',
+  'getPerpsTradingCampaignParticipantOutcome',
   'getPerpsDiscountForAccount',
   'getPointsEvents',
   'getPointsEventsIfChanged',
@@ -503,6 +508,13 @@ export class RewardsController extends BaseController<
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
+  #perpsTradingParticipantOutcomeCache: Map<
+    string,
+    {
+      payload: PerpsTradingCampaignParticipantOutcomeDto | null;
+      lastFetched: number;
+    }
+  > = new Map();
 
   /**
    * Calculate tier status and next tier information
@@ -3693,6 +3705,58 @@ export class RewardsController extends BaseController<
       },
     });
     return result;
+  }
+
+  /**
+   * Fetch the participant outcome for the current user in a completed Perps Trading campaign.
+   * Results are cached for 10 minutes using a private in-memory Map.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The participant outcome DTO, or null if unavailable.
+   */
+  async getPerpsTradingCampaignParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PerpsTradingCampaignParticipantOutcomeDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+    const key = `${subscriptionId}:${campaignId}`;
+    try {
+      return await wrapWithCache<PerpsTradingCampaignParticipantOutcomeDto | null>(
+        {
+          key,
+          ttl: PERPS_TRADING_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS,
+          readCache: (k) =>
+            this.#perpsTradingParticipantOutcomeCache.get(k) ?? undefined,
+          fetchFresh: async () =>
+            this.#withAuthRetry(async () => {
+              Logger.log(
+                'RewardsController: Fetching Perps Trading campaign participant outcome',
+              );
+              return this.messenger.call(
+                'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
+                campaignId,
+                subscriptionId,
+              );
+            }, subscriptionId),
+          writeCache: (k, payload) => {
+            if (payload !== null) {
+              this.#perpsTradingParticipantOutcomeCache.set(k, {
+                payload,
+                lastFetched: Date.now(),
+              });
+            }
+          },
+        },
+      );
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'RewardsController: Failed to fetch Perps Trading participant outcome',
+      );
+      return null;
+    }
   }
 
   /**

@@ -1,12 +1,14 @@
+import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
-import { POLYGON_USDCE } from '../../../Views/confirmations/constants/predict';
-import { TransactionType } from '@metamask/transaction-controller';
+import { POLYGON_PUSD } from '../../../Views/confirmations/constants/predict';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
   AssetType,
@@ -17,8 +19,6 @@ import { hasTransactionType } from '../../../Views/confirmations/utils/transacti
 import { PREDICT_BALANCE_CHAIN_ID } from '../constants/transactions';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 
 export function usePredictBalanceTokenFilter(
   forceEnabled = false,
@@ -29,10 +29,10 @@ export function usePredictBalanceTokenFilter(
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const usdceToken = useSelector((state: RootState) =>
+  const pusdToken = useSelector((state: RootState) =>
     selectSingleTokenByAddressAndChainId(
       state,
-      POLYGON_USDCE.address,
+      POLYGON_PUSD.address,
       PREDICT_BALANCE_CHAIN_ID,
     ),
   );
@@ -60,9 +60,9 @@ export function usePredictBalanceTokenFilter(
 
       const predictBalanceHighlightedItem: HighlightedItem = {
         position: 'in_asset_list',
-        icon: usdceToken?.image ?? '',
+        icon: pusdToken?.image ?? '',
         name: strings('predict.payment.predict_balance'),
-        name_description: POLYGON_USDCE.symbol,
+        name_description: POLYGON_PUSD.symbol,
         fiat: balanceFormatted,
         isSelected: isPredictBalanceSelected,
         action: onSelect ?? (() => undefined),
@@ -90,7 +90,7 @@ export function usePredictBalanceTokenFilter(
       isPredictBalanceSelected,
       predictBalance,
       formatFiat,
-      usdceToken,
+      pusdToken,
       handleAddFunds,
       onSelect,
     ],

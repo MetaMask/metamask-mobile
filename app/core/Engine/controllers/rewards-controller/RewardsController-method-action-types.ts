@@ -515,6 +515,19 @@ export type RewardsControllerGetOndoCampaignDepositsAction = {
 };
 
 /**
+ * Fetch the participant outcome for the current user in a completed Perps Trading campaign.
+ * Results are cached for 10 minutes using a private in-memory Map.
+ *
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The participant outcome DTO, or null if unavailable.
+ */
+export type RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction = {
+  type: `RewardsController:getPerpsTradingCampaignParticipantOutcome`;
+  handler: RewardsController['getPerpsTradingCampaignParticipantOutcome'];
+};
+
+/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes.
@@ -797,6 +810,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
+  | RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
