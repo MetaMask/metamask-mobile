@@ -9620,6 +9620,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/ramps-controller@npm:^13.3.0":
+  version: 13.3.0
+  resolution: "@metamask/ramps-controller@npm:13.3.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/messenger": "npm:^1.2.0"
+  checksum: 10/7e90a3e6cd1d7c9921e51b601cccb3df0c6466074153116f3f890582ef101f7b2680e717253a931c322d39099d1ac1a3966113e84ec43a35a36b963e8ec4dc6f
+  languageName: node
+  linkType: hard
+
 "@metamask/react-data-query@npm:^0.2.0":
   version: 0.2.0
   resolution: "@metamask/react-data-query@npm:0.2.0"
@@ -35709,7 +35720,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^3.1.0"
     "@metamask/profile-sync-controller": "npm:^28.0.2"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^13.2.0"
+    "@metamask/ramps-controller": "npm:^13.3.0"
     "@metamask/react-data-query": "npm:^0.2.0"
     "@metamask/react-native-acm": "npm:1.2.0"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
