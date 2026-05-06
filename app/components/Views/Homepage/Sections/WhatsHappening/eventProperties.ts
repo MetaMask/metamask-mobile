@@ -6,14 +6,18 @@ import type { WhatsHappeningItem } from './types';
  *
  * Optional fields (`category`, `impact`) are stripped when undefined so
  * the resulting payload only includes keys that have a real value.
+ *
+ * The shape is widened with `Record<string, unknown>` so the result can be
+ * passed directly to `AnalyticsEventBuilder.addProperties`, which expects
+ * an index-signature-compatible bag.
  */
-export interface WhatsHappeningEventProps {
+export type WhatsHappeningEventProps = {
   event_id: string;
   card_index: number;
   category?: WhatsHappeningItem['category'];
   impact?: WhatsHappeningItem['impact'];
   asset_symbols: string[];
-}
+} & Record<string, unknown>;
 
 export const getWhatsHappeningEventProps = (
   item: WhatsHappeningItem,

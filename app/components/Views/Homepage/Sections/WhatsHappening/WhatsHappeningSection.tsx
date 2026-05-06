@@ -16,7 +16,7 @@ import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MAX_ITEMS_DISPLAYED , WhatsHappeningEntryPoint } from './constants';
+import { MAX_ITEMS_DISPLAYED, WhatsHappeningEntryPoint } from './constants';
 import { useWhatsHappening } from './hooks';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
