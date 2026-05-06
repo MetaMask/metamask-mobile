@@ -1453,21 +1453,33 @@ const Wallet = ({
     </View>
   );
 
+  /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
+  const walletHomeAccountGroupBalanceProps = {
+    onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
+    suspendRiveForCurtain: postOnboardingExitAnimating,
+    onTradePrimaryPress: goToSwapsFromOnboardingChecklist,
+    onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
+  };
+
+  const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
+    <AssetDetailsActions
+      displayBuyButton={displayBuyButton}
+      displaySwapsButton={displaySwapsButton}
+      goToSwaps={goToSwaps}
+      onReceive={onReceive}
+      onSend={onSend}
+      buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+      swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+      sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+      receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+    />
+  ) : null;
+
   const portfolioHeaderBase = (
     <>
       {bannerContent}
-      <AccountGroupBalance />
-      <AssetDetailsActions
-        displayBuyButton={displayBuyButton}
-        displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
-        onReceive={onReceive}
-        onSend={onSend}
-        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-      />
+      <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+      {walletHomeMainAssetDetailsActions}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
     </>
   );
@@ -1476,19 +1488,9 @@ const Wallet = ({
     <>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
-        <AccountGroupBalance />
+        <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       </View>
-      <AssetDetailsActions
-        displayBuyButton={displayBuyButton}
-        displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
-        onReceive={onReceive}
-        onSend={onSend}
-        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-      />
+      {walletHomeMainAssetDetailsActions}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
     </>
   );
@@ -1518,30 +1520,9 @@ const Wallet = ({
           testID={WalletViewSelectorsIDs.WALLET_TOP_CLUSTER_INNER}
           style={styles.walletTopCluster}
         >
-          <AccountGroupBalance
-            onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-            suspendRiveForCurtain={postOnboardingExitAnimating}
-            onTradePrimaryPress={goToSwapsFromOnboardingChecklist}
-            onNotificationsPrimaryPress={
-              handleWalletHomeOnboardingNotificationsPrimary
-            }
-          />
+          <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
 
-          {showWalletHomeMainActions ? (
-            <AssetDetailsActions
-              displayBuyButton={displayBuyButton}
-              displaySwapsButton={displaySwapsButton}
-              goToSwaps={goToSwaps}
-              onReceive={onReceive}
-              onSend={onSend}
-              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-              receiveButtonActionID={
-                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
-              }
-            />
-          ) : null}
+          {walletHomeMainAssetDetailsActions}
         </View>
 
         <Reanimated.View
