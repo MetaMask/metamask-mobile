@@ -300,6 +300,7 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_STATS}
             component={PerpsTradingCampaignStatsView}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW}
