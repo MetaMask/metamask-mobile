@@ -216,7 +216,7 @@ export function useTabsBarLayout({
             });
           }
 
-          if (containerWidth > 0) {
+          if (!fillWidth && containerWidth > 0) {
             const totalWidth = tabLayouts.current.reduce(
               (sum, l) => sum + (l?.width || 0),
               0,
@@ -228,7 +228,7 @@ export function useTabsBarLayout({
         }
       }
     },
-    [tabs.length, layoutsReady, containerWidth, animateToTab],
+    [fillWidth, tabs.length, layoutsReady, containerWidth, animateToTab],
   );
 
   useEffect(
