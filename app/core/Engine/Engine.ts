@@ -58,6 +58,7 @@ import { notificationServicesPushControllerInit } from './controllers/notificati
 import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
+  ohlcvServiceInit,
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
@@ -354,6 +355,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
+        OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
@@ -505,6 +507,7 @@ export class Engine {
     );
     const accountActivityService =
       messengerClientsByName.AccountActivityService;
+    const ohlcvService = messengerClientsByName.OHLCVService;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsController =
@@ -583,6 +586,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
+      OHLCVService: ohlcvService,
       AccountsController: accountsController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,

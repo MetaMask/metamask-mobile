@@ -36,6 +36,7 @@ import TimeRangeSelector, {
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
+import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import {
   Box,
@@ -58,6 +59,19 @@ import type {
 import PriceLegacy from './Price.legacy';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
+
+/**
+ * Maps UI time-range selections to the WebSocket candle interval used by
+ * OHLCVService. These match the default intervals the REST OHLCV API returns
+ * for each timePeriod.
+ */
+const WS_INTERVAL_BY_TIME_RANGE: Record<TimeRange, string> = {
+  '1H': '1m',
+  '1D': '15m',
+  '1W': '1h',
+  '1M': '1d',
+  '1Y': '1d',
+};
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -219,6 +233,35 @@ const PriceAdvanced = ({
     interval: config.interval,
     vsCurrency: currentCurrency,
   });
+
+  const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+  const wsEnabled =
+    !chartLoading &&
+    ohlcvData.length >= CHART_DATA_THRESHOLD &&
+    !hasEmptyData &&
+    !chartError;
+
+  const { latestBar } = useOHLCVRealtime({
+    assetId,
+    interval: wsInterval,
+    currency: currentCurrency,
+    enabled: wsEnabled,
+  });
+
+  // TradingView Advanced Charts Bar.time expects milliseconds
+  // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
+  // OHLCVService delivers bars with `timestamp` in Unix seconds — multiply by 1000
+  const realtimeBar = useMemo(() => {
+    if (!latestBar) return undefined;
+    return {
+      time: latestBar.timestamp * 1000,
+      open: latestBar.open,
+      high: latestBar.high,
+      low: latestBar.low,
+      close: latestBar.close,
+      volume: latestBar.volume,
+    };
+  }, [latestBar]);
 
   const ohlcvPagination = useMemo(
     () => ({
@@ -402,6 +445,7 @@ const PriceAdvanced = ({
           <AdvancedChart
             ohlcvData={ohlcvData}
             ohlcvSeriesKey={ohlcvSeriesKey}
+            realtimeBar={realtimeBar}
             height={CHART_HEIGHT}
             showVolume={chartType === ChartType.Candles}
             volumeOverlay

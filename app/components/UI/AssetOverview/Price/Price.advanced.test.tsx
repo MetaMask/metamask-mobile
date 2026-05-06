@@ -80,6 +80,10 @@ jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
   useOHLCVChart: (...args: unknown[]) => mockUseOHLCVChart(...args),
 }));
 
+jest.mock('../../Charts/AdvancedChart/useOHLCVRealtime', () => ({
+  useOHLCVRealtime: () => ({ latestBar: null }),
+}));
+
 jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { View, Pressable, Text } = require('react-native');
