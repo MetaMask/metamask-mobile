@@ -281,15 +281,20 @@ describe('PredictPayWithRow', () => {
     expect(tree).not.toContain('backgroundColor');
   });
 
-  it('renders predict balance first hint when external token selected', () => {
+  it('does not render predict balance first hint when external token selected', () => {
+    // The "Predict balance used first" hint was removed because payment with
+    // an ERC20 token exclusively uses that token — Predict balance is never
+    // used first.
     mockIsPredictBalanceSelected = false;
 
     renderWithProvider(<PredictPayWithRow />);
 
-    expect(screen.getByText('Predict balance used first')).toBeOnTheScreen();
+    expect(
+      screen.queryByText('Predict balance used first'),
+    ).not.toBeOnTheScreen();
   });
 
-  it('hides predict balance first hint when predict balance selected', () => {
+  it('does not render predict balance first hint when predict balance selected', () => {
     mockIsPredictBalanceSelected = true;
 
     renderWithProvider(<PredictPayWithRow />);

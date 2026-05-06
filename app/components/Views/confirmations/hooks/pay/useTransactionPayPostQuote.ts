@@ -30,6 +30,9 @@ export function useTransactionPayPostQuote(): void {
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
+  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
 
   useEffect(() => {
     if (
@@ -45,12 +48,15 @@ export function useTransactionPayPostQuote(): void {
       const from = transactionMeta?.txParams?.from as Hex | undefined;
 
       // Predict withdrawals refund to the Safe proxy address.
-      // Perps withdrawals don't use refundTo -- funds go HyperCore -> Relay directly.
-      const refundTo = isPerpsWithdraw
-        ? undefined
-        : from
-          ? computeProxyAddress(from)
-          : undefined;
+      // Perps and money-account withdrawals don't use refundTo -- funds land
+      // on the user's address directly (HyperCore -> Relay for perps; vault
+      // teller -> user for money account).
+      const refundTo =
+        isPerpsWithdraw || isMoneyAccountWithdraw
+          ? undefined
+          : from
+            ? computeProxyAddress(from)
+            : undefined;
 
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isPostQuote = true;
@@ -70,6 +76,7 @@ export function useTransactionPayPostQuote(): void {
         transactionId,
         refundTo,
         isPerpsWithdraw,
+        isMoneyAccountWithdraw,
       });
     } catch (error) {
       log('Error initializing post-quote transaction', {
@@ -79,6 +86,7 @@ export function useTransactionPayPostQuote(): void {
     }
   }, [
     canSelectWithdrawToken,
+    isMoneyAccountWithdraw,
     isPerpsWithdraw,
     transactionId,
     transactionMeta?.txParams?.from,
