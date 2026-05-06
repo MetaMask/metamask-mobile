@@ -114,6 +114,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          runner_provider: ${{ inputs.runner_provider }}
 
       - name: Print iOS tool versions
         run: |
