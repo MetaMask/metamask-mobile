@@ -1,5 +1,4 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -35,9 +34,10 @@ describe('AssetElement', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const wrapper = shallow(<AssetElement asset={erc20Token} />);
-    expect(wrapper).toMatchSnapshot();
+  it('renders the asset row with the expected test id when no balance is shown', () => {
+    const { getByTestId } = render(<AssetElement asset={erc20Token} />);
+
+    expect(getByTestId(getAssetTestId(erc20Token.symbol))).toBeOnTheScreen();
   });
 
   it('renders the main balance if provided', () => {

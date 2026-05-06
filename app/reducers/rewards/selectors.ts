@@ -188,6 +188,15 @@ export const selectCampaignParticipantStatus =
     return state.rewards.campaignParticipantStatuses?.[key] ?? null;
   };
 
+export const selectCampaignParticipantOptedIn =
+  (
+    subscriptionId: string | undefined | null,
+    campaignId: string | undefined | null,
+  ) =>
+  (state: RootState): boolean =>
+    selectCampaignParticipantStatus(subscriptionId, campaignId)(state)
+      ?.optedIn === true;
+
 export const selectCampaignParticipantCount =
   (subscriptionId: string | undefined, campaignId: string | undefined) =>
   (state: RootState) => {
@@ -307,3 +316,37 @@ export const selectOndoCampaignDepositsError = (state: RootState) =>
 
 export const selectPendingDeeplink = (state: RootState) =>
   state.rewards.pendingDeeplink;
+
+export const selectDismissedCampaignOutcomeToasts = (state: RootState) =>
+  state.rewards.dismissedCampaignOutcomeToasts;
+
+// Perps Trading Campaign leaderboard selectors
+export const selectPerpsTradingCampaignLeaderboard = (state: RootState) =>
+  state.rewards.perpsTradingCampaignLeaderboard;
+
+export const selectPerpsTradingCampaignLeaderboardLoading = (
+  state: RootState,
+) => state.rewards.perpsTradingCampaignLeaderboardLoading;
+
+export const selectPerpsTradingCampaignLeaderboardError = (state: RootState) =>
+  state.rewards.perpsTradingCampaignLeaderboardError;
+
+// Perps Trading Campaign leaderboard position selectors
+export const selectPerpsTradingCampaignLeaderboardPositionById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboardPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+// Perps Trading Campaign prize pool selectors
+export const selectPerpsTradingCampaignVolume = (state: RootState) =>
+  state.rewards.perpsTradingCampaignVolume;
+
+export const selectPerpsTradingCampaignVolumeLoading = (state: RootState) =>
+  state.rewards.perpsTradingCampaignVolumeLoading;
+
+export const selectPerpsTradingCampaignVolumeError = (state: RootState) =>
+  state.rewards.perpsTradingCampaignVolumeError;

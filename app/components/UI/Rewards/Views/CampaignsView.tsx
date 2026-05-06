@@ -20,6 +20,8 @@ import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import CampaignsGroup from '../components/Campaigns/CampaignsGroup';
 import { strings } from '../../../../../locales/i18n';
+import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
+import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 
 /**
  * CampaignsView displays all campaigns organized by status:
@@ -32,6 +34,8 @@ const CampaignsView: React.FC = () => {
   const navigation = useNavigation();
   const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
     useRewardCampaigns();
+  useOndoOutcomeToast();
+  usePerpsTradingCampaignEndedOutcomeToast();
 
   useTrackRewardsPageView({ page_type: 'campaigns_overview' });
 

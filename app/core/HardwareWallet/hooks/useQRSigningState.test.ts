@@ -18,6 +18,46 @@ describe('useQRSigningState', () => {
     jest.clearAllMocks();
   });
 
+  it('preserves the returned object reference across rerenders when QR state is unchanged', () => {
+    const { result, rerender } = renderHookWithProvider(
+      () => useQRSigningState(),
+      {
+        state: { qrKeyringScanner: {} },
+      },
+    );
+
+    const initialValue = result.current;
+
+    rerender(undefined as never);
+
+    expect(result.current).toBe(initialValue);
+  });
+
+  it('returns a new object reference when QR state changes', () => {
+    const { result, store } = renderHookWithProvider(
+      () => useQRSigningState(),
+      {
+        state: { qrKeyringScanner: {} },
+      },
+    );
+
+    const initialValue = result.current;
+
+    act(() => {
+      store.dispatch(
+        scanRequested({
+          type: QrScanRequestType.SIGN,
+          request: {
+            requestId: 'new-request',
+            payload: { type: 'eth-sign-request', cbor: 'abc' },
+          },
+        }),
+      );
+    });
+
+    expect(result.current).not.toBe(initialValue);
+  });
+
   it('returns initial state when no pending scan request', () => {
     const { result } = renderHookWithProvider(() => useQRSigningState(), {
       state: { qrKeyringScanner: {} },

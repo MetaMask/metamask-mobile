@@ -106,8 +106,8 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 {
   "android_devices": [
     {
-      "name": "Samsung Galaxy S23 Ultra",
-      "os_version": "13.0",
+      "name": "Samsung Galaxy S25 Ultra",
+      "os_version": "15.0",
       "category": "high"
     },
     { "name": "Google Pixel 8 Pro", "os_version": "14.0", "category": "low" }
@@ -141,11 +141,13 @@ yarn run-playwright:ios-onboarding-bs      # Run onboarding tests on BrowserStac
 
 # MM Connect (Multichain API + local Browser Playground dapp)
 yarn run-playwright:mm-connect-android-local    # Local Android emulator (dapp on 10.0.2.2:8090)
-yarn run-playwright:mm-connect-android-bs      # BrowserStack Android (no tunnel; use remote dapp if any)
-yarn run-playwright:mm-connect-android-bs-local # BrowserStack Android + Local tunnel (see below)
+yarn run-playwright:mm-connect-android-bs       # BrowserStack Android (same Playwright project as below)
+yarn run-playwright:mm-connect-android-bs-local # BrowserStack Android (alias; tunnel still required — see below)
 ```
 
 #### MM Connect on BrowserStack (local dapp)
+
+**BrowserStack Local (tunnel) must be enabled** when you run mm-connect tests against BrowserStack: the suite serves the Browser Playground from your machine on port **8090**, and only the tunnel lets cloud devices reach it via `bs-local.com`. Start the tunnel **before** the test and set `BROWSERSTACK_LOCAL=true` (see step 2 below). Performance CI starts the tunnel and sets these variables **only for the mm-connect build type**; other performance jobs do not use the tunnel.
 
 The `connection-multichain` test starts a **local dapp server** (Browser Playground) on port **8090**. To run it on BrowserStack, the cloud device must reach that server via **BrowserStack Local** (tunnel).
 
@@ -178,7 +180,7 @@ The `connection-multichain` test starts a **local dapp server** (Browser Playgro
 - **One tunnel per account:** don't run multiple Local binaries for the same account unless you use different `localIdentifier` values and pass them in capabilities.
 - **Tunnel timeouts** (`TIMEOUT_CONNECTING` to port 45691 in the Local terminal): the cloud device cannot reach your Local binary. Allow incoming connections for ports **45690** and **45691** in your firewall, or try a different network (e.g. avoid strict NAT). See [BrowserStack Local troubleshooting](https://www.browserstack.com/docs/app-automate/appium/troubleshooting/local-issues) for more.
 
-**CI:** BrowserStack Local is enabled for all performance build types (not only mm-connect); the tunnel is started and `local: true` plus `localIdentifier` are sent in capabilities so every run can use the tunnel (e.g. for future test dapps). The workflow starts the tunnel with `--force-local --verbose` only (no `--include-hosts`). Using `--include-hosts localhost 127.0.0.1` can prevent requests to `bs-local.com:8090` from being forwarded to the runner's localhost; the device then cannot load the dapp. The workflow waits 15s for mm-connect (10s for other build types) after starting the tunnel before running tests.
+**CI:** For **mm-connect** runs only, the workflow starts BrowserStack Local (`--force-local --verbose`, no `--include-hosts`), sets `BROWSERSTACK_LOCAL=true` and `BROWSERSTACK_LOCAL_IDENTIFIER`, and waits **15s** after the tunnel is up before running tests. Other performance build types (for example onboarding) **do not** start the tunnel or enable local capabilities. Using `--include-hosts localhost 127.0.0.1` can prevent requests to `bs-local.com:8090` from reaching the runner; the device then cannot load the dapp.
 
 ### Using CLI Directly
 
@@ -216,7 +218,22 @@ npx playwright test --grep "@PerformanceLogin.*@PerformanceLaunch" --project and
 
 ## Test Tags
 
-Tests are tagged with area-specific tags defined in `tests/tags.performance.js`. These tags allow for selective test execution based on which areas of the app are affected by code changes.
+Tags are defined in `tests/tags.performance.js` and embedded in `test.describe()` names. They are runner-agnostic — any runner with `--grep` support can filter by them.
+
+### Test Type Tags
+
+These tags control which Playwright config picks up a test:
+
+| Tag            | Description                                                            | Config that filters for it                                                                 |
+| -------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `@Performance` | Test measures performance (uses `TimerHelper`, quality gates enforced) | `playwright.config.ts` (`grep: /@Performance/`)                                            |
+| `@System`      | Test verifies functionality (no quality gates or metrics)              | `playwright.system.config.ts` / `playwright.system-emulator.config.ts` (`grep: /@System/`) |
+
+Most existing tests are tagged with **both** `@Performance @System` — they measure perf and also serve as system smoke tests. A test can use just one tag if it should only run in one suite.
+
+### Area Tags
+
+These tags categorize tests by feature area and can be used with `--grep` for ad-hoc filtering:
 
 | Tag                        | Description                                                   |
 | -------------------------- | ------------------------------------------------------------- |
@@ -230,18 +247,41 @@ Tests are tagged with area-specific tags defined in `tests/tags.performance.js`.
 | `@PerformancePredict`      | Predict market performance (market list, details, deposits)   |
 | `@PerformancePreps`        | Perpetuals trading performance (positions, add funds, orders) |
 
-Tags are imported into test files from `tests/tags.performance.js`:
+### Tagging Convention
+
+Import type tags and area tags from `tests/tags.performance.js`:
 
 ```typescript
-import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
+import {
+  Performance,
+  System,
+  PerformanceLogin,
+  PerformanceSwaps,
+} from '../../tags.performance.js';
 
-perfTest.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
-  perfTest(
-    'Swap flow performance',
-    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      // test implementation
-    },
-  );
+// Both perf and system test (most common):
+perfTest.describe(
+  `${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`,
+  () => {
+    perfTest(
+      'Swap flow performance',
+      async (
+        { currentDeviceDetails, driver, performanceTracker },
+        testInfo,
+      ) => {
+        // test implementation with TimerHelper and thresholds
+      },
+    );
+  },
+);
+
+// System-only test (functional verification, no perf measurement):
+test.describe(`${System} ${PerformanceLogin}`, () => {
+  test('Verify wallet loads after login', async ({ driver }) => {
+    // No TimerHelper — pure functional check
+    await loginToAppPlaywright();
+    await WalletView.waitForAccountName('Account 1');
+  });
 });
 ```
 
@@ -564,8 +604,8 @@ BROWSERSTACK_USERNAME=your_username
 BROWSERSTACK_ACCESS_KEY=your_access_key
 
 # Device Configuration (optional, defaults provided in config)
-BROWSERSTACK_DEVICE="Samsung Galaxy S23 Ultra"
-BROWSERSTACK_OS_VERSION="13.0"
+BROWSERSTACK_DEVICE="Samsung Galaxy S25 Ultra"
+BROWSERSTACK_OS_VERSION="15.0"
 
 # App URLs (required for BrowserStack tests)
 BROWSERSTACK_ANDROID_APP_URL=bs://your-android-app-id

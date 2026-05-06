@@ -113,56 +113,126 @@ runs:
         distribution: ${{ inputs.jdk-distribution }}
 
     - name: Install required emulator dependencies
-      if: ${{ inputs.platform == 'android' && runner.os == 'Linux' }}
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          libpulse0 \
-          libglu1-mesa \
-          libnss3 \
-          libxss1
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' }}
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: 3
+        max_attempts: 3
+        retry_wait_seconds: 30
+        on_retry_command: sudo apt-get clean
+        command: |
+          set -euo pipefail
+          sudo apt-get -o DPkg::Lock::Timeout=120 update
+          sudo apt-get -o DPkg::Lock::Timeout=120 install -y \
+            libpulse0 \
+            libglu1-mesa \
+            libnss3 \
+            libxss1
+          echo "✅ Linux dependencies installed successfully"
 
-        echo "✅ Linux dependencies installed successfully"
+    ## Android System Image Setup (only when simulator/emulator is needed)
+
+    # Prepare SDK directories for cache restore
+    - name: Prepare Android SDK directories for cache
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      env:
+        CACHE_PATH: /opt/android-sdk/system-images/android-${{ inputs.android-api-level }}/${{ inputs.android-tag }}/${{ inputs.android-abi }}
+      run: |
+        set -euo pipefail
+        sudo mkdir -p "$CACHE_PATH" /opt/android-sdk/.temp
+        sudo chown -R "$(id -u):$(id -g)" "$CACHE_PATH" /opt/android-sdk/.temp
       shell: bash
 
-    ## Android SDK Setup (SDK pre-installed in container)
+    # Restore exact system image from cache
+    - name: Restore Android system image from cache
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      id: android-system-image-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: /opt/android-sdk/system-images/android-${{ inputs.android-api-level }}/${{ inputs.android-tag }}/${{ inputs.android-abi }}
+        key: android-system-image-v1-${{ runner.os }}-api${{ inputs.android-api-level }}-${{ inputs.android-tag }}-${{ inputs.android-abi }}
 
-    - name: Install additional Android SDK components if needed
-      if: ${{ inputs.platform == 'android' && (inputs.android-api-level != '34' || inputs.android-abi != 'x86_64') }}
+    # Install the requested system image with retry and cleanup
+    - name: Prepare Android system image
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      id: prepare-android-system-image
       env:
         ANDROID_API_LEVEL: ${{ inputs.android-api-level }}
+        ANDROID_TAG: ${{ inputs.android-tag }}
         ANDROID_ABI: ${{ inputs.android-abi }}
       run: |
-        IMAGE="system-images;android-$ANDROID_API_LEVEL;google_apis;$ANDROID_ABI"
-        echo "Installing additional system image: $IMAGE"
-        echo "y" | "/opt/android-sdk/cmdline-tools/latest/bin/sdkmanager" "$IMAGE"
+        set -euo pipefail
+        SDKMANAGER="/opt/android-sdk/cmdline-tools/latest/bin/sdkmanager"
+        IMAGE_PACKAGE="system-images;android-$ANDROID_API_LEVEL;$ANDROID_TAG;$ANDROID_ABI"
+        IMAGE_DIR="/opt/android-sdk/system-images/android-$ANDROID_API_LEVEL/$ANDROID_TAG/$ANDROID_ABI"
+
+        if [ -f "$IMAGE_DIR/package.xml" ] || [ -f "$IMAGE_DIR/source.properties" ]; then
+          echo "System image already installed: $IMAGE_PACKAGE"
+          echo "image-package=$IMAGE_PACKAGE" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        for attempt in 1 2 3; do
+          echo "Installing system image (attempt $attempt/3): $IMAGE_PACKAGE"
+          if echo "y" | "$SDKMANAGER" "$IMAGE_PACKAGE" 2>&1; then
+            if [ -f "$IMAGE_DIR/package.xml" ] || [ -f "$IMAGE_DIR/source.properties" ]; then
+              echo "image-package=$IMAGE_PACKAGE" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          else
+            find /opt/android-sdk/.temp -type f -name '*.zip' -exec unzip -t {} \; || true
+          fi
+          rm -rf "$IMAGE_DIR"
+          find /opt/android-sdk/.temp -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
+          sleep 10
+        done
+
+        echo "::error::Failed to install Android system image: $IMAGE_PACKAGE"
+        exit 1
       shell: bash
 
-    ## Launch AVD
+    # Save system image cache (only on trusted refs, only if no cache hit)
+    - name: Save Android system image to cache
+      if: >-
+        ${{
+          inputs.platform == 'android' &&
+          inputs.setup-simulator == 'true' &&
+          steps.android-system-image-cache.outputs.cache-hit != 'true' &&
+          github.event_name != 'pull_request' &&
+          github.event_name != 'pull_request_target' &&
+          github.event_name != 'merge_group' &&
+          github.ref == 'refs/heads/main'
+        }}
+      uses: actions/cache/save@v4
+      with:
+        path: /opt/android-sdk/system-images/android-${{ inputs.android-api-level }}/${{ inputs.android-tag }}/${{ inputs.android-abi }}
+        key: android-system-image-v1-${{ runner.os }}-api${{ inputs.android-api-level }}-${{ inputs.android-tag }}-${{ inputs.android-abi }}
+
+    ## Launch AVD (only when simulator/emulator is needed)
 
     - name: Set ANDROID_AVD_HOME for downstream steps
-      if: ${{ inputs.platform == 'android'}}
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
       shell: bash
       run: |
         echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
         mkdir -p "$HOME/.android/avd"
 
     - name: Create Android Virtual Device (AVD)
-      if: ${{ inputs.platform == 'android'}}
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
       env:
-        ANDROID_API_LEVEL: ${{ inputs.android-api-level }}
         ANDROID_TAG: ${{ inputs.android-tag }}
         ANDROID_ABI: ${{ inputs.android-abi }}
         ANDROID_AVD_NAME: ${{ inputs.android-avd-name }}
         ANDROID_DEVICE: ${{ inputs.android-device }}
         ANDROID_SDCARD_SIZE: ${{ inputs.android-sdcard-size }}
+        IMAGE_PACKAGE: ${{ steps.prepare-android-system-image.outputs.image-package }}
       run: |
-        IMAGE="system-images;android-$ANDROID_API_LEVEL;$ANDROID_TAG;$ANDROID_ABI"
-        echo "Creating AVD with image: $IMAGE"
+        set -euo pipefail
+        echo "Creating AVD with image: $IMAGE_PACKAGE"
         "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" --verbose create avd \
           --force \
           --name "$ANDROID_AVD_NAME" \
-          --package "$IMAGE" \
+          --package "$IMAGE_PACKAGE" \
           --device "$ANDROID_DEVICE" \
           --tag "$ANDROID_TAG" \
           --abi "$ANDROID_ABI" \
@@ -211,7 +281,11 @@ runs:
       with:
         path: |
           node_modules
+          .yarn/install-state.gz
         key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-
+      continue-on-error: true
 
     - name: Install JavaScript dependencies with retry
       id: yarn-install
@@ -220,6 +294,7 @@ runs:
         timeout_minutes: 15
         max_attempts: 3
         retry_wait_seconds: 30
+        on_retry_command: echo "⚠️ yarn install failed — likely a transient network issue on the self-hosted runner. Retrying..."
         command: yarn install --immutable
       env:
         NODE_OPTIONS: --max-old-space-size=4096
@@ -315,19 +390,19 @@ runs:
           ${{ runner.os }}-cocoapods-specs-
       continue-on-error: true
 
-    - name: Clear CocoaPods trunk to prevent stale specs
-      if: ${{ inputs.platform == 'ios' }}
-      run: pod repo remove trunk || true
-      shell: bash
-
     - name: Install CocoaPods via bundler
       if: ${{ inputs.platform == 'ios'}}
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
         timeout_minutes: 15
-        max_attempts: 2
-        retry_wait_seconds: 30
+        max_attempts: 3
+        retry_wait_seconds: 60
+        on_retry_command: |
+          echo "::warning::CocoaPods install failed, retrying after trunk cleanup..."
+          pod repo remove trunk || true
         command: cd ios && bundle exec pod install --repo-update
+      env:
+        COCOAPODS_DISABLE_STATS: 'true'
 
     - name: Install applesimutils
       if: ${{ inputs.platform == 'ios' }}

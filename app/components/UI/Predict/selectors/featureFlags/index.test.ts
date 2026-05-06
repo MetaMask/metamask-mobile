@@ -1,7 +1,6 @@
 import {
   selectExtendedSportsMarketsLeagues,
   selectPredictBottomSheetEnabledFlag,
-  selectPredictClobV2EnabledFlag,
   selectPredictEnabledFlag,
   selectPredictFakOrdersEnabledFlag,
   selectPredictFeaturedCarouselEnabledFlag,
@@ -13,7 +12,6 @@ import {
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
 } from '.';
-import { LEGACY_V2_CLOB_BASE_URL } from '../../providers/polymarket/constants';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
@@ -1256,83 +1254,6 @@ describe('Predict Feature Flag Selectors', () => {
       };
 
       const result = selectPredictUpDownEnabledFlag(state);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('selectPredictClobV2EnabledFlag', () => {
-    it('returns true when flag is enabled and version requirement is met', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictClobV2: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictClobV2EnabledFlag(state);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when flag is disabled', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictClobV2: {
-                  enabled: false,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictClobV2EnabledFlag(state);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when app version is below minimum required version', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictClobV2: {
-                  enabled: true,
-                  minimumVersion: '99.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictClobV2EnabledFlag(state);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote feature flags are empty', () => {
-      const result = selectPredictClobV2EnabledFlag(mockedEmptyFlagsState);
 
       expect(result).toBe(false);
     });

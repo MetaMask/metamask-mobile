@@ -107,9 +107,12 @@ jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -296,13 +299,6 @@ describe('ResetPassword', () => {
     mockExportSeedPhrase.mockClear();
     mockTrackEvent.mockClear();
     mockNavigation.push.mockClear();
-  });
-
-  it('render matches snapshot', async () => {
-    const component = renderComponent();
-    await flushMicrotasks();
-
-    expect(component.toJSON()).toMatchSnapshot();
   });
 
   describe('confirm current password view', () => {
@@ -503,10 +499,10 @@ describe('ResetPassword', () => {
 
       expect(
         within(newPasswordField).getByDisplayValue('NewPassword'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         within(confirmPasswordField).getByDisplayValue('NewPassword123'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('clears confirm password when new password is emptied', async () => {
@@ -530,7 +526,9 @@ describe('ResetPassword', () => {
         fireEvent.changeText(newPasswordField, '');
       });
 
-      expect(within(confirmPasswordField).getByDisplayValue('')).toBeTruthy();
+      expect(
+        within(confirmPasswordField).getByDisplayValue(''),
+      ).toBeOnTheScreen();
     });
 
     it('toggles password visibility for new password field', async () => {
@@ -805,7 +803,6 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:passcodeDisabled',
       );
-      expect(component).toBeTruthy();
     });
 
     it('sets biometry type and triggers reauthentication when biometrics available', async () => {
@@ -828,7 +825,6 @@ describe('ResetPassword', () => {
       });
 
       expect(Authentication.getType).toHaveBeenCalled();
-      expect(component).toBeTruthy();
     });
 
     it('auto-reauthenticates with biometric credentials when available', async () => {
@@ -862,7 +858,6 @@ describe('ResetPassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:biometryChoiceDisabled',
       );
-      expect(component).toBeTruthy();
     });
   });
 

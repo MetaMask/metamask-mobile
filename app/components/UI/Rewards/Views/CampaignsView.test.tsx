@@ -6,6 +6,8 @@ import {
   CampaignType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
+import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
 const mockGoBack = jest.fn();
@@ -26,6 +28,21 @@ jest.mock('../hooks/useRewardCampaigns');
 const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
   typeof useRewardCampaigns
 >;
+
+jest.mock('../hooks/useOndoOutcomeToast', () => ({
+  useOndoOutcomeToast: jest.fn(),
+}));
+const mockUseOndoOutcomeToast = useOndoOutcomeToast as jest.MockedFunction<
+  typeof useOndoOutcomeToast
+>;
+
+jest.mock('../hooks/usePerpsTradingCampaignEndedOutcomeToast', () => ({
+  usePerpsTradingCampaignEndedOutcomeToast: jest.fn(),
+}));
+const mockUsePerpsTradingCampaignEndedOutcomeToast =
+  usePerpsTradingCampaignEndedOutcomeToast as jest.MockedFunction<
+    typeof usePerpsTradingCampaignEndedOutcomeToast
+  >;
 
 jest.mock('../components/Campaigns/CampaignsGroup', () => {
   const ReactActual = jest.requireActual('react');
@@ -145,6 +162,7 @@ const createTestCampaign = (
   excludedRegions: [],
   details: null,
   featured: true,
+  showUpcomingDate: false,
   ...overrides,
 });
 
@@ -173,6 +191,15 @@ describe('CampaignsView', () => {
       getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_VIEW),
     ).toBeOnTheScreen();
     expect(getByText('Campaigns')).toBeOnTheScreen();
+  });
+
+  it('mounts campaign outcome toast hooks on render', () => {
+    render(<CampaignsView />);
+
+    expect(mockUseOndoOutcomeToast).toHaveBeenCalledTimes(1);
+    expect(mockUsePerpsTradingCampaignEndedOutcomeToast).toHaveBeenCalledTimes(
+      1,
+    );
   });
 
   it('navigates back when the back button is pressed', () => {

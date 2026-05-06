@@ -455,6 +455,8 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.DAPP, DeepLinkRoute.DAPP],
       [ACTIONS.WC, DeepLinkRoute.WC],
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
+      [ACTIONS.SOCIAL_LEADERBOARD, DeepLinkRoute.SOCIAL_LEADERBOARD],
+      [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
       'maps action %s to its corresponding route',
       (action, expectedRoute) => {
@@ -517,6 +519,20 @@ describe('deepLinkAnalytics', () => {
     it('extract shield route', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/shield');
       expect(result).toBe(DeepLinkRoute.SHIELD);
+    });
+
+    it('extract social trader position route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social-trader-position?positionId=position-1',
+      );
+      expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER_POSITION);
+    });
+
+    it('extract social leaderboard route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social-leaderboard?ignored=true',
+      );
+      expect(result).toBe(DeepLinkRoute.SOCIAL_LEADERBOARD);
     });
 
     it('extract home route for empty path', () => {
