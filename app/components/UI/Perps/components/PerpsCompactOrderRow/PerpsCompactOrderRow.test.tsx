@@ -23,6 +23,7 @@ jest.mock('../../utils/formatUtils', () => ({
   formatPositionSize: jest.fn((value) => value),
   formatPerpsFiat: jest.fn((value) => `$${value.toFixed(2)}`),
   PRICE_RANGES_MINIMAL_VIEW: {},
+  PRICE_RANGES_UNIVERSAL: 'universal-ranges',
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
@@ -111,7 +112,9 @@ describe('PerpsCompactOrderRow', () => {
     const { formatPerpsFiat } = jest.requireMock('../../utils/formatUtils');
     render(<PerpsCompactOrderRow order={mockTriggerOrder} />);
 
-    expect(formatPerpsFiat).toHaveBeenCalledWith(47000, expect.any(Object));
+    expect(formatPerpsFiat).toHaveBeenCalledWith(47000, {
+      ranges: 'universal-ranges',
+    });
   });
 
   it('falls back to order price for trigger-market orders when trigger price is invalid', () => {
@@ -128,7 +131,9 @@ describe('PerpsCompactOrderRow', () => {
       <PerpsCompactOrderRow order={triggerOrderWithInvalidTriggerPrice} />,
     );
 
-    expect(formatPerpsFiat).toHaveBeenCalledWith(48000, expect.any(Object));
+    expect(formatPerpsFiat).toHaveBeenCalledWith(48000, {
+      ranges: 'universal-ranges',
+    });
     expect(screen.getByText('Market price')).toBeOnTheScreen();
     expect(screen.queryByText('Trigger price')).toBeNull();
   });
@@ -154,7 +159,9 @@ describe('PerpsCompactOrderRow', () => {
     render(<PerpsCompactOrderRow order={mockLimitBuyOrder} />);
 
     // Should have called formatPerpsFiat with the order price value (50000)
-    expect(formatPerpsFiat).toHaveBeenCalledWith(50000, expect.any(Object));
+    expect(formatPerpsFiat).toHaveBeenCalledWith(50000, {
+      ranges: 'universal-ranges',
+    });
   });
 
   it('calls onPress when tapped', () => {

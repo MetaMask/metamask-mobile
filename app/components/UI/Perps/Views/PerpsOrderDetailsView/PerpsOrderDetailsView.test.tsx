@@ -93,9 +93,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 
 jest.mock('../../utils/formatUtils', () => ({
-  formatPerpsFiat: jest.fn((value) => `$${value.toFixed(2)}`),
+  formatPerpsFiat: jest.fn((value, options) =>
+    options?.ranges === 'universal-ranges'
+      ? `$${value.toString()}`
+      : `$${value.toFixed(2)}`,
+  ),
   formatPositionSize: jest.fn((value) => value.toFixed(4)),
   formatOrderCardDate: jest.fn(() => 'Nov 25, 2025'),
+  PRICE_RANGES_UNIVERSAL: 'universal-ranges',
 }));
 
 // Mock component-library Button to be testable
@@ -295,6 +300,19 @@ describe('PerpsOrderDetailsView', () => {
     expect(screen.getByText('perps.order_details.no')).toBeOnTheScreen();
   });
 
+  it('renders limit price with market precision ranges', () => {
+    const chipOrder: Order = {
+      ...mockOrder,
+      symbol: 'CHIP',
+      price: '0.001234',
+    };
+    mockRouteParams = { order: chipOrder };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(screen.getByText('$0.001234')).toBeOnTheScreen();
+  });
+
   it('renders price below trigger condition for short take-profit orders', () => {
     const triggerOrder: Order = {
       ...mockOrder,
@@ -314,7 +332,7 @@ describe('PerpsOrderDetailsView', () => {
     expect(
       screen.getByText('perps.order_details.price_below'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('$50000.00')).toBeOnTheScreen();
+    expect(screen.getByText('$50000')).toBeOnTheScreen();
     expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
   });
 
@@ -415,7 +433,7 @@ describe('PerpsOrderDetailsView', () => {
 
     render(<PerpsOrderDetailsView />);
 
-    expect(screen.getByText('$100.00')).toBeOnTheScreen();
+    expect(screen.getByText('$100')).toBeOnTheScreen();
     expect(screen.getByText('$200.00')).toBeOnTheScreen();
     expect(screen.queryByText('$160.00')).not.toBeOnTheScreen();
   });
@@ -529,8 +547,8 @@ describe('PerpsOrderDetailsView', () => {
       screen.getByText('perps.order_details.take_profit'),
     ).toBeOnTheScreen();
     expect(screen.getByText('perps.order_details.stop_loss')).toBeOnTheScreen();
-    expect(screen.getByText('$52000.00')).toBeOnTheScreen();
-    expect(screen.getByText('$48000.00')).toBeOnTheScreen();
+    expect(screen.getByText('$52000')).toBeOnTheScreen();
+    expect(screen.getByText('$48000')).toBeOnTheScreen();
   });
 
   it('hides take profit and stop loss rows when prices are not available', () => {
