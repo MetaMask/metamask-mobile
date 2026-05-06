@@ -525,6 +525,58 @@ describe('WebSocketManager', () => {
         }),
       );
     });
+
+    it('does not unsubscribe overlapping tokens still needed by another subscription', () => {
+      const manager = WebSocketManager.getInstance();
+      const homepageCallback = jest.fn();
+      const marketDetailsCallback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1', 'token2'], homepageCallback);
+      const unsubscribeMarketDetails = manager.subscribeToMarketPrices(
+        ['token1'],
+        marketDetailsCallback,
+      );
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].send.mockClear();
+
+      unsubscribeMarketDetails();
+
+      expect(mockWebSocketInstances[0].send).not.toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'unsubscribe',
+          assets_ids: ['token1'],
+        }),
+      );
+    });
+
+    it('only unsubscribes tokens no longer needed by remaining subscriptions', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1', 'token2'], callback1);
+      const unsubscribe = manager.subscribeToMarketPrices(
+        ['token2', 'token3'],
+        callback2,
+      );
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].send.mockClear();
+
+      unsubscribe();
+
+      expect(mockWebSocketInstances[0].send).toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'unsubscribe',
+          assets_ids: ['token3'],
+        }),
+      );
+      expect(mockWebSocketInstances[0].send).not.toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'unsubscribe',
+          assets_ids: ['token2', 'token3'],
+        }),
+      );
+    });
   });
 
   describe('crypto price subscriptions', () => {
