@@ -14,8 +14,17 @@ import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import Engine from '../../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectPredictWithAnyTokenEnabledFlag } from '../../../selectors/featureFlags';
-import { PredictTradeStatus } from '../../../constants/eventNames';
+import {
+  PredictDismissalMethod,
+  PredictTradeStatus,
+} from '../../../constants/eventNames';
+import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
+import {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
+  predictBuyPreviewSessionRef,
+} from '../../PredictBuyPreview/PredictBuyPreview';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
@@ -49,6 +58,7 @@ interface UsePredictBuyActionsParams {
   setIsConfirming: (value: boolean) => void;
   isSheetMode?: boolean;
   onClose?: () => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const usePredictBuyActions = ({
@@ -57,6 +67,7 @@ export const usePredictBuyActions = ({
   setIsConfirming,
   isSheetMode = false,
   onClose,
+  transactionActiveAbTests,
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
@@ -80,16 +91,25 @@ export const usePredictBuyActions = ({
   const clearActiveOrderTransactionIdRef = useRef(
     clearActiveOrderTransactionId,
   );
+  const mountTimestampRef = useRef(Date.now());
   onRejectRef.current = onReject;
   clearActiveOrderTransactionIdRef.current = clearActiveOrderTransactionId;
 
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
+    // Initialise shared session ref so PredictPreviewSheetContext can read
+    // accurate values for swipe/hardware-back dismiss tracking.
+    predictBuyPreviewSessionRef.mountTimestamp = mountTimestampRef.current;
+    predictBuyPreviewSessionRef.hadEnteredAmount = false;
+    predictBuyPreviewDismissedViaBackRef.current = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
+
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       sharePrice: analyticsProperties?.sharePrice,
+      activeAbTests: transactionActiveAbTests,
     });
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -148,10 +168,34 @@ export const usePredictBuyActions = ({
     }
 
     return navigation.addListener('beforeRemove', () => {
+      // Only fire dismiss if the user didn't confirm an order. StackActions.pop()
+      // after success/deposit also triggers beforeRemove, which is not a dismissal.
+      if (!didInitiateOrderRef.current) {
+        // beforeRemove fires for back button, iOS swipe-back, and Android hardware
+        // back identically. The header back button explicitly sets
+        // predictBuyPreviewDismissedViaBackRef before triggering goBack(), so any
+        // unmarked dismissal is treated as a swipe.
+        const dismissalMethod = predictBuyPreviewDismissedViaBackRef.current
+          ? PredictDismissalMethod.BACK_BUTTON
+          : PredictDismissalMethod.SWIPE;
+        Engine.context.PredictController.trackBetslipDismissed({
+          analyticsProperties,
+          dismissalMethod,
+          hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+          timeOnScreenMs: Date.now() - mountTimestampRef.current,
+          activeAbTests: transactionActiveAbTests,
+        });
+      }
       onRejectRef.current(undefined, true);
       clearActiveOrderTransactionIdRef.current();
     });
-  }, [navigation, payWithAnyTokenEnabled, isSheetMode]);
+  }, [
+    navigation,
+    payWithAnyTokenEnabled,
+    isSheetMode,
+    analyticsProperties,
+    transactionActiveAbTests,
+  ]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
@@ -173,6 +217,7 @@ export const usePredictBuyActions = ({
 
   const handleConfirm = useCallback(async () => {
     didInitiateOrderRef.current = true;
+    predictBuyPreviewOrderInitiatedRef.current = true;
     setIsConfirming(true);
 
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {

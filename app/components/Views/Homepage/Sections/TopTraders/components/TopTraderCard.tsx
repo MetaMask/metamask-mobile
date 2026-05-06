@@ -38,7 +38,6 @@ export interface TopTraderCardProps {
 // Fixed dimensions for every tile in the homepage Top Traders carousel
 const AVATAR_SIZE = 60;
 export const TOP_TRADER_CARD_WIDTH = 200;
-export const TOP_TRADER_CARD_HEIGHT = 188;
 
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
@@ -59,7 +58,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
 
   return (
     <Box
-      twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-[${TOP_TRADER_CARD_HEIGHT}px] rounded-2xl bg-muted p-4 overflow-hidden gap-1`}
+      twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-auto rounded-2xl bg-muted p-4 overflow-hidden gap-1`}
       testID={testID ?? `top-trader-card-${trader.id}`}
     >
       <TouchableOpacity
@@ -134,6 +133,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
         size={ButtonSize.Md}
+        twClassName="mt-2"
         isFullWidth
         onPress={() => onFollowPress(trader.id)}
       >

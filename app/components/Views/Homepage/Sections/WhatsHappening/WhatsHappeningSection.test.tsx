@@ -138,10 +138,9 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(mockItem.title));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ items: [mockItem], initialIndex: 0 }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 0,
+    });
   });
 
   it('navigates to detail view at index 0 when ViewMore card is pressed', () => {
@@ -153,10 +152,9 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(/view more/i));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ items: [mockItem], initialIndex: 0 }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 0,
+    });
   });
 
   it('navigates with correct index when second card is pressed', () => {
@@ -173,12 +171,8 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(secondItem.title));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({
-        items: [mockItem, secondItem],
-        initialIndex: 1,
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 1,
+    });
   });
 });
