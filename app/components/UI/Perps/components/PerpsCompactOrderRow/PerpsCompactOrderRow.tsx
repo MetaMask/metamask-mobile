@@ -1,6 +1,5 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Text, {
   TextVariant,
   TextColor,
@@ -47,11 +46,6 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
-  if (priceValue !== null) {
-    DevLogger.log(
-      '[PR-29770] BUG_MARKER: compact open order price rendered with default minimal price precision',
-    );
-  }
   const formattedPrice =
     priceValue !== null
       ? formatPerpsFiat(priceValue, {
