@@ -24,6 +24,7 @@ const MoneyScreenStack = () => {
 
   return (
     <Stack.Navigator
+      initialRouteName={Routes.MONEY.HOME}
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: colors.background.default },
