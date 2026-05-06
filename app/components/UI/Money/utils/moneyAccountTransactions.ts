@@ -1,7 +1,11 @@
 import { ethers } from 'ethers';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 
@@ -160,6 +164,38 @@ export async function buildMoneyAccountDepositBatch({
       type: TransactionType.moneyAccountDeposit,
     },
   };
+}
+
+/**
+ * Returns the per-nested-call data updates required when the user changes
+ * the deposit amount on a Money Account deposit confirmation.
+ *
+ * Stub implementation — real encoding will replace this once the deposit
+ * batch re-encoding logic is wired in.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function updateMoneyAccountDepositTokenAmount(
+  _transactionMeta: TransactionMeta,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _amountHuman: string,
+): Promise<UpdateTransactionPayAmountCall[]> {
+  return [];
+}
+
+/**
+ * Returns the per-nested-call data updates required when the user changes
+ * the withdrawal amount on a Money Account withdraw confirmation.
+ *
+ * Stub implementation — real encoding will replace this once the withdraw
+ * re-encoding logic is wired in.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function updateMoneyAccountWithdrawTokenAmount(
+  _transactionMeta: TransactionMeta,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _amountHuman: string,
+): Promise<UpdateTransactionPayAmountCall[]> {
+  return [];
 }
 
 // -- Withdrawal helpers ----------------------------------------------------
