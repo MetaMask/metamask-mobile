@@ -256,10 +256,10 @@ export function useQuickBuyQuotes({
     const controllerFields = {
       ...metadataDeps.bridgeController,
       quotes: rawQuotes,
-      quoteRequest: {
-        ...metadataDeps.bridgeController.quoteRequest,
+      quoteRequest:[ {
+        ...metadataDeps.bridgeController.quoteRequest[0],
         ...quoteRequestPatch,
-      },
+      }],
       gasFeeEstimatesByChainId: metadataDeps.gasFeeEstimatesByChainId,
       ...metadataDeps.multichainAssetsRates,
       ...metadataDeps.tokenRates,

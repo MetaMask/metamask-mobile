@@ -307,7 +307,7 @@ export function createStateFixture(): StateFixtureBuilder {
                 conversionRates: {},
               },
               BridgeController: {
-                quoteRequest: {
+                quoteRequest: [{
                   srcChainId: numericChainId,
                   srcTokenAddress,
                   destChainId: numericChainId,
@@ -315,7 +315,7 @@ export function createStateFixture(): StateFixtureBuilder {
                   destAddress: '',
                   srcAmount,
                   slippage: 0.005,
-                },
+                }],
                 quotes: [quoteResponse],
                 recommendedQuote: quoteResponse,
                 quotesLastFetched: now,
@@ -446,7 +446,7 @@ export function createStateFixture(): StateFixtureBuilder {
             backgroundState: {
               ...bg,
               BridgeController: {
-                quoteRequest: {
+                quoteRequest: [{
                   srcChainId: undefined,
                   srcTokenAddress: undefined,
                   destChainId: undefined,
@@ -454,7 +454,7 @@ export function createStateFixture(): StateFixtureBuilder {
                   destAddress: undefined,
                   srcAmount: undefined,
                   slippage: 0.005,
-                },
+                }],
                 isInPolling: false,
                 quotesLastFetched: 0,
                 quotes: [],
