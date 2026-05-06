@@ -32,12 +32,13 @@ export const PriceImpactModal = () => {
     chainId: token?.chainId,
   });
 
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteData({
+    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
+  });
   const confirmBridge = useBridgeConfirm({
-    latestSourceBalance: tokenBalance,
+    activeQuote,
     location,
   });
-
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote.priceData?.priceImpact,
   );

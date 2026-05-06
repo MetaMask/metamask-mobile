@@ -6,30 +6,13 @@ export const ALLOWLISTED_HOSTS = [
   '127.0.0.1',
   'localhost',
   '10.0.2.2', // Android emulator host
+  // Seedless OAuth / Web3Auth UAT — real services (proxy forwards; see shim.js)
   'auth-service.uat-api.cx.metamask.io',
   '*.node.web3auth.io',
   '*.uat-node.web3auth.io',
-  'api.tenderly.co',
-  'rpc.tenderly.co',
-  'virtual.mainnet.rpc.tenderly.co',
-  'testnet-rpc.monad.xyz',
-  'virtual.linea.rpc.tenderly.co',
-  'nft.dev-api.cx.metamask.io',
-  'nft.uat-api.cx.metamask.io',
-  'nft.api.cx.metamask.io',
   'gamma-api.polymarket.com',
-  'clob.polymarket.com',
   '*.polymarket.com',
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
-export const ALLOWLISTED_URLS = [
-  // Temporarily allow existing live requests during migration
-  'https://api.avax.network/ext/bc/C/rpc',
-  'https://mainnet.era.zksync.io/',
-  'https://rpc.atlantischain.network/',
-  'https://nft.api.cx.metamask.io/collections?chainId=0x539&contract=0xb2552e4f4bc23e1572041677234d192774558bf0',
-  'https://metamask.github.io/test-dapp/metamask-fox.svg',
-  'https://nft.api.cx.metamask.io/collections?contract=0xb66a603f4cfe17e3d27b87a8bfcad319856518b8&chainId=1',
-  'https://nft.api.cx.metamask.io/users/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=',
-];
+export const ALLOWLISTED_URLS: string[] = [];
