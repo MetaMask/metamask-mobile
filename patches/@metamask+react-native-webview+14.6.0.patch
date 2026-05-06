@@ -1,0 +1,68 @@
+diff --git a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
+index 3f9aa9c998..62acefe282 100644
+--- a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
++++ b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
+@@ -26,0 +27 @@ import androidx.webkit.JavaScriptReplyProxy;
++import androidx.webkit.ScriptHandler;
+@@ -61,0 +63 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
++    protected @Nullable ScriptHandler injectedJSBeforeContentLoadedScriptHandler;
+@@ -371,0 +374,4 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
++        if (isDocumentStartJavaScriptSupported()) {
++            return;
++        }
++
+@@ -379,0 +386,39 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
++    public boolean isDocumentStartJavaScriptSupported() {
++        return WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT);
++    }
++
++    public void resetDocumentStartJavaScript() {
++        if (!isDocumentStartJavaScriptSupported()) {
++            return;
++        }
++
++        removeDocumentStartJavaScript();
++
++        if (getSettings().getJavaScriptEnabled() &&
++                injectedJSBeforeContentLoaded != null &&
++                !TextUtils.isEmpty(injectedJSBeforeContentLoaded)) {
++            injectedJSBeforeContentLoadedScriptHandler = WebViewCompat.addDocumentStartJavaScript(
++                    this,
++                    getWrappedInjectedJavaScriptBeforeContentLoaded(),
++                    Set.of("*"));
++        }
++    }
++
++    protected void removeDocumentStartJavaScript() {
++        if (injectedJSBeforeContentLoadedScriptHandler != null) {
++            injectedJSBeforeContentLoadedScriptHandler.remove();
++            injectedJSBeforeContentLoadedScriptHandler = null;
++        }
++    }
++
++    protected String getWrappedInjectedJavaScriptBeforeContentLoaded() {
++        if (!injectedJavaScriptBeforeContentLoadedForMainFrameOnly) {
++            return "(function() {\n" + injectedJSBeforeContentLoaded + ";\n})();";
++        }
++
++        return "(function() {\n" +
++                "  try { if (window.self !== window.top) { return; } } catch (_) { return; }\n" +
++                injectedJSBeforeContentLoaded + ";\n" +
++                "})();";
++    }
++
+@@ -473,0 +519 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
++        removeDocumentStartJavaScript();
+diff --git a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
+index b19f456155..3dfb567f17 100644
+--- a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
++++ b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
+@@ -325,0 +326,2 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
++        viewWrapper.webView.resetDocumentStartJavaScript()
++
+@@ -551,0 +554 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
++        view.resetDocumentStartJavaScript()
+@@ -561,0 +565 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
++        view.resetDocumentStartJavaScript()
+@@ -601,0 +606 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
++        view.resetDocumentStartJavaScript()
