@@ -218,6 +218,7 @@ builds:
   # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
   # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
   main-rc-with-srp:
+    script_name: main-rc
     github_environment: build-rc
     signing: *signing_rc
     env:
