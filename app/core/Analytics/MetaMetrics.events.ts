@@ -664,7 +664,7 @@ enum EVENT_NAME {
   EXPLORE_SEARCH_INTERACTED = 'Explore Search Interacted',
 
   // Explore
-  EXPLORE_INTERACTED = 'Explore Interacted',
+  EXPLORE_INTERACTED = 'Explore Page Interacted',
 
   // Market Insights
   MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW = 'Market Insights Card Scrolled to View',
