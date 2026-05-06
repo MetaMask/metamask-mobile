@@ -231,7 +231,13 @@ const MoneyHomeView = () => {
   const [footerHeight, setFooterHeight] = useState(0);
 
   const isStepperRendered = !hasSeenMusdConversionEducation;
-  const footerTranslateY = useSharedValue(FOOTER_HIDDEN_OFFSET);
+  // Conditionally seed both shared value and visibility ref so the
+  // education-seen path renders the footer in its final position with NO
+  // mount animation. Otherwise the on-mount visibility-recompute effect
+  // would slide the footer in from FOOTER_HIDDEN_OFFSET → 0 every time.
+  const footerTranslateY = useSharedValue(
+    isStepperRendered ? FOOTER_HIDDEN_OFFSET : 0,
+  );
   const footerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: footerTranslateY.value }],
   }));
@@ -240,11 +246,12 @@ const MoneyHomeView = () => {
     [footerHeight],
   );
 
-  // Default to "stepper visible" until layouts settle so the footer stays
-  // hidden in the initial paint and we avoid a brief flash of "Add money".
-  // Mirrored in a ref so the scroll-driven flip can compare without stale
-  // state and trigger the animation outside any setState updater.
-  const isStepperVisibleRef = useRef(true);
+  // Seed visibility tracking based on whether the stepper is rendered at all.
+  // - Stepper rendered: default to "visible" until layouts settle so the
+  //   footer stays hidden on initial paint and we avoid a flash of "Add money".
+  // - Stepper not rendered (education seen): default to "not visible" so the
+  //   on-mount visibility-recompute matches and produces no animation.
+  const isStepperVisibleRef = useRef(isStepperRendered);
 
   const computeStepperVisibility = useCallback(() => {
     // When the stepper isn't rendered, it can't obstruct the footer.

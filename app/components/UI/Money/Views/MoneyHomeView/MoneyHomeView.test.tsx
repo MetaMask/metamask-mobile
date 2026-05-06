@@ -985,6 +985,8 @@ describe('MoneyHomeView', () => {
     });
 
     it('always renders the footer and never the stepper when education has been seen', () => {
+      mockWithTiming.mockClear();
+
       const { queryByTestId, getByTestId } = renderWithProvider(
         <MoneyHomeView />,
         { state: educationSeenState },
@@ -997,8 +999,13 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
+      // The footer must render in its final visible position with NO
+      // mount animation. If withTiming fires here, the user sees an
+      // unwanted 300ms slide-in every time the screen mounts post-education.
+      expect(mockWithTiming).not.toHaveBeenCalled();
 
-      // Scroll events with the stepper absent must keep the footer visible.
+      // Scroll events with the stepper absent must keep the footer visible
+      // and must not trigger any animation (visibility ref starts in sync).
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
       act(() => {
         fireScrollViewLayout(scrollView);
@@ -1006,6 +1013,7 @@ describe('MoneyHomeView', () => {
       });
 
       expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(mockWithTiming).not.toHaveBeenCalled();
     });
 
     it('keeps the footer translated off-screen when the stepper is below the viewport (off-screen, not yet scrolled to)', () => {
