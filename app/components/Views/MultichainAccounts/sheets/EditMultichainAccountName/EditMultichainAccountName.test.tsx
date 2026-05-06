@@ -260,7 +260,7 @@ describe('EditMultichainAccountName', () => {
       } as typeof mockRoute);
 
       const { getByText } = render();
-      expect(getByText('Account Group')).toBeTruthy();
+      expect(getByText('Account Group')).toBeOnTheScreen();
     });
   });
 
@@ -274,7 +274,7 @@ describe('EditMultichainAccountName', () => {
       });
 
       const { getByTestId } = render();
-      expect(getByTestId(EditAccountNameIds.BACK_BUTTON)).toBeTruthy();
+      expect(getByTestId(EditAccountNameIds.BACK_BUTTON)).toBeOnTheScreen();
     });
   });
 });

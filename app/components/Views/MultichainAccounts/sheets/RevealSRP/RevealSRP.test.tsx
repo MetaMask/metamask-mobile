@@ -132,7 +132,7 @@ describe('RevealSRP', () => {
     });
 
     const { getByTestId } = render();
-    expect(getByTestId(AccountDetailsIds.BACK_BUTTON)).toBeTruthy();
+    expect(getByTestId(AccountDetailsIds.BACK_BUTTON)).toBeOnTheScreen();
   });
 
   it('renders on Android when status bar height is unavailable', () => {
@@ -144,6 +144,6 @@ describe('RevealSRP', () => {
     });
 
     const { getByTestId } = render();
-    expect(getByTestId(AccountDetailsIds.BACK_BUTTON)).toBeTruthy();
+    expect(getByTestId(AccountDetailsIds.BACK_BUTTON)).toBeOnTheScreen();
   });
 });
