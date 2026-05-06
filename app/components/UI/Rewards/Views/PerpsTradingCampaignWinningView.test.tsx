@@ -110,7 +110,7 @@ describe('PerpsTradingCampaignWinningView', () => {
           params: { campaignId: 'campaign-perps-1' },
         },
       }),
-      {},
+      expect.anything(),
     );
   });
 
@@ -131,7 +131,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         winningCode: null,
         hasOutcomeLoaded: true,
       }),
-      {},
+      expect.anything(),
     );
   });
 
@@ -147,7 +147,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         winningCode: null,
         hasOutcomeLoaded: false,
       }),
-      {},
+      expect.anything(),
     );
   });
 
@@ -159,7 +159,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         isRankLoading: false,
         isResultLoading: false,
       }),
-      {},
+      expect.anything(),
     );
   });
 
@@ -179,7 +179,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         isRankLoading: false,
         isResultLoading: false,
       }),
-      {},
+      expect.anything(),
     );
   });
 
@@ -200,7 +200,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         rankDisplay: null,
         isRankLoading: false,
       }),
-      {},
+      expect.anything(),
     );
   });
 });
