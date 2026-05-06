@@ -17,6 +17,7 @@ export interface UseFeedScrollManagerParams {
   headerRef: React.RefObject<View>;
   tabBarRef: React.RefObject<View>;
   setActiveIndex: (index: number) => void;
+  onHeaderHiddenChange?: (hidden: boolean) => void;
 }
 
 export interface UseFeedScrollManagerReturn {
@@ -69,6 +70,7 @@ export const useFeedScrollManager = ({
   headerRef,
   tabBarRef,
   setActiveIndex,
+  onHeaderHiddenChange,
 }: UseFeedScrollManagerParams): UseFeedScrollManagerReturn => {
   const isHeaderHidden = useSharedValue(0);
   const headerTranslateY = useSharedValue(0);
@@ -186,6 +188,7 @@ export const useFeedScrollManager = ({
         accumulatedDelta.value = 0;
         lastDirection.value = 0;
         runOnJS(setHeaderHidden)(false);
+        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(false);
         return;
       }
 
@@ -202,6 +205,7 @@ export const useFeedScrollManager = ({
         );
         accumulatedDelta.value = 0;
         runOnJS(setHeaderHidden)(true);
+        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(true);
       }
 
       // Scrolling up -> show header
@@ -210,6 +214,7 @@ export const useFeedScrollManager = ({
         headerTranslateY.value = withTiming(0, animationConfig);
         accumulatedDelta.value = 0;
         runOnJS(setHeaderHidden)(false);
+        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(false);
       }
     },
   });

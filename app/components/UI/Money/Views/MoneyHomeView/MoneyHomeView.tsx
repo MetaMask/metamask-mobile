@@ -1,5 +1,17 @@
-import React, { useCallback, useMemo } from 'react';
-import { ScrollView, Linking } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  LayoutChangeEvent,
+  Linking,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+} from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -23,6 +35,7 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
+import { computeStepperVisibility } from './utils/computeStepperVisibility';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -36,11 +49,17 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+
+// Slide distance for the footer peek-in/out animation. Large enough to fully
+// clear any realistic footer height (button + safe-area insets).
+const FOOTER_HIDDEN_OFFSET = 240;
+const FOOTER_ANIMATION_DURATION_MS = 300;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
 
@@ -73,6 +92,8 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const geolocation = useSelector(getDetectedGeolocation);
+  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -83,11 +104,28 @@ const MoneyHomeView = () => {
     [currentCurrency],
   );
 
-  const projectedEarnings = useMemo(() => {
+  const monthlyEarnings = useMemo(() => {
     if (!totalFiatRaw || !apyPercent) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
-    const earnings = calculateProjectedEarnings(balance.toNumber(), apyPercent);
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1 / 12,
+    );
+    if (!Number.isFinite(earnings)) return formattedZero;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+
+  const yearlyEarnings = useMemo(() => {
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1,
+    );
     if (!Number.isFinite(earnings)) return formattedZero;
     return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
@@ -134,9 +172,8 @@ const MoneyHomeView = () => {
   const handleEarningsInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
-      params: { apy: apyPercent },
     });
-  }, [navigation, apyPercent]);
+  }, [navigation]);
 
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
@@ -188,6 +225,97 @@ const MoneyHomeView = () => {
     showMoneyActivityUnderConstructionAlert();
   }, []);
 
+  // Stepper layout, scroll offset, and scroll view height are read on every
+  // scroll event (~60fps with scrollEventThrottle={16}). Storing them as state
+  // would re-render MoneyHomeView on every frame during scrolling.
+  const stepperLayoutRef = useRef<{ y: number; height: number } | null>(null);
+  const scrollOffsetYRef = useRef(0);
+  const scrollViewHeightRef = useRef(0);
+  // ScrollView reserves matching bottom padding so the absolutely positioned
+  // footer overlay never hides scroll content -- state, not a ref, so the
+  // padding update triggers a re-render.
+  const [footerHeight, setFooterHeight] = useState(0);
+
+  const footerTranslateY = useSharedValue(FOOTER_HIDDEN_OFFSET);
+  const footerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: footerTranslateY.value }],
+  }));
+  const scrollContentStyle = useMemo(
+    () => ({ paddingBottom: footerHeight }),
+    [footerHeight],
+  );
+
+  // Default to "visible" until layouts settle so the footer stays hidden on
+  // initial paint and we avoid a flash of "Add money".
+  const isStepperVisibleRef = useRef(true);
+
+  const getStepperVisible = useCallback(
+    () =>
+      computeStepperVisibility({
+        stepperLayout: stepperLayoutRef.current,
+        scrollViewHeight: scrollViewHeightRef.current,
+        scrollOffsetY: scrollOffsetYRef.current,
+      }),
+    [],
+  );
+
+  const animateFooter = useCallback(
+    (visible: boolean) => {
+      footerTranslateY.value = withTiming(visible ? 0 : FOOTER_HIDDEN_OFFSET, {
+        duration: FOOTER_ANIMATION_DURATION_MS,
+        easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+      });
+    },
+    [footerTranslateY],
+  );
+
+  const updateStepperVisibility = useCallback(() => {
+    const next = getStepperVisible();
+    if (next === isStepperVisibleRef.current) return;
+    isStepperVisibleRef.current = next;
+    animateFooter(!next);
+  }, [getStepperVisible, animateFooter]);
+
+  const handleStepperLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
+      const prev = stepperLayoutRef.current;
+      if (prev && prev.y === y && prev.height === height) {
+        return;
+      }
+      stepperLayoutRef.current = { y, height };
+      updateStepperVisibility();
+    },
+    [updateStepperVisibility],
+  );
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      // Update the ref unconditionally on every scroll frame (cheap) but only
+      // commit a state change when the visibility boolean actually flips.
+      scrollOffsetYRef.current = event.nativeEvent.contentOffset.y;
+      updateStepperVisibility();
+    },
+    [updateStepperVisibility],
+  );
+
+  const handleScrollViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (scrollViewHeightRef.current === height) {
+        return;
+      }
+      scrollViewHeightRef.current = height;
+      updateStepperVisibility();
+    },
+    [updateStepperVisibility],
+  );
+
+  const handleFooterLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    setFooterHeight((prev) => (prev === height ? prev : height));
+  }, []);
+
   const handleOnboardingCtaPress = useCallback(() => {
     if (isCardholderWithMilestone) {
       handleLinkCardPress();
@@ -217,8 +345,11 @@ const MoneyHomeView = () => {
       <MoneyHeader onMenuPress={handleMenuPress} />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={scrollContentStyle}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        onLayout={handleScrollViewLayout}
+        scrollEventThrottle={16}
       >
         <MoneyBalanceSummary
           apy={apyPercent}
@@ -231,15 +362,17 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        <MoneyOnboardingCard
-          currentStep={isMilestone ? 2 : 1}
-          variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
-          onCtaPress={handleOnboardingCtaPress}
-        />
+        <Box onLayout={handleStepperLayout}>
+          <MoneyOnboardingCard
+            currentStep={isMilestone ? 2 : 1}
+            variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
+            onCtaPress={handleOnboardingCtaPress}
+          />
+        </Box>
         <Divider />
         <MoneyEarnings
-          lifetimeEarnings={formattedZero}
-          projectedEarnings={projectedEarnings}
+          monthlyEarnings={monthlyEarnings}
+          yearlyEarnings={yearlyEarnings}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
         />
@@ -275,7 +408,6 @@ const MoneyHomeView = () => {
             <MoneyPotentialEarnings
               tokens={conversionTokens}
               apy={apyPercent}
-              condensed={isMilestone}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
@@ -289,6 +421,7 @@ const MoneyHomeView = () => {
           onHeaderPress={handleHeaderPress}
           onLinkPress={handleLinkCardPress}
           apy={apyPercent}
+          showMetalCard={isUS}
         />
         <Divider />
         {isMilestone && (
@@ -310,8 +443,13 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyFooter onAddMoneyPress={handleAddPress} />
       </ScrollView>
+      <Animated.View
+        onLayout={handleFooterLayout}
+        style={[styles.footerOverlay, footerAnimatedStyle]}
+      >
+        <MoneyFooter onAddMoneyPress={handleAddPress} />
+      </Animated.View>
     </Box>
   );
 };

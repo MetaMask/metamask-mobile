@@ -1045,6 +1045,19 @@ describe('MainNavigator', () => {
       expect(screen).toBeDefined();
     });
 
+    it('includes WhatsHappeningDetailView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.WHATS_HAPPENING_DETAIL,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
     it('includes Browser home screen in main navigator', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
