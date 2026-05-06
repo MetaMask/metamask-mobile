@@ -14,6 +14,14 @@ export enum TokenDetailsSource {
   HomeSection = 'home_section',
   /** Trending tokens section (e.g. Explore tab) */
   Trending = 'trending',
+  /** Explore Now tab — crypto movers pills */
+  ExploreNowMovers = 'explore_now_movers',
+  /** Explore Now tab — stocks list */
+  ExploreNowStocks = 'explore_now_stocks',
+  /** Explore Crypto tab — trending tokens list */
+  ExploreCryptoTrending = 'explore_crypto_trending',
+  /** Explore RWAs tab — stocks list */
+  ExploreRwasStocks = 'explore_rwas_stocks',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */

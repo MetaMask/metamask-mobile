@@ -1,7 +1,21 @@
-import React, { useCallback } from 'react';
-import { ScrollView, Linking } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  LayoutChangeEvent,
+  Linking,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+} from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import BigNumber from 'bignumber.js';
 import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
@@ -21,16 +35,31 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
+import { computeStepperVisibility } from './utils/computeStepperVisibility';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { calculateProjectedEarnings } from '../../utils/projections';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
+import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import Logger from '../../../../../util/Logger';
+import { AssetType } from '../../../../Views/confirmations/types/token';
+import { Hex } from '@metamask/utils';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+
+// Slide distance for the footer peek-in/out animation. Large enough to fully
+// clear any realistic footer height (button + safe-area insets).
+const FOOTER_HIDDEN_OFFSET = 240;
+const FOOTER_ANIMATION_DURATION_MS = 300;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
 
@@ -48,43 +77,145 @@ const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const { totalFiatFormatted, vaultApyQuery, isAggregatedBalanceLoading } =
-    useMoneyAccountBalance();
+  const {
+    totalFiatFormatted,
+    totalFiatRaw,
+    vaultApyQuery,
+    isAggregatedBalanceLoading,
+    apyPercent,
+  } = useMoneyAccountBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
+  const { initiateCustomConversion } = useMusdConversion();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
+
+  const isCardholder = useSelector(selectIsCardholder);
+  const geolocation = useSelector(getDetectedGeolocation);
+  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
+  const isCardholderWithMilestone = isMilestone && isCardholder;
+
+  const formattedZero = useMemo(
+    () => moneyFormatFiat(new BigNumber(0), currentCurrency),
+    [currentCurrency],
+  );
+
+  const monthlyEarnings = useMemo(() => {
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1 / 12,
+    );
+    if (!Number.isFinite(earnings)) return formattedZero;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+
+  const yearlyEarnings = useMemo(() => {
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1,
+    );
+    if (!Number.isFinite(earnings)) return formattedZero;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleMenuPress = displayUnderConstructionAlert;
+  const handleMenuPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.MORE_SHEET,
+    });
+  }, [navigation]);
 
-  const handleAddPress = displayUnderConstructionAlert;
-  const handleTransferPress = displayUnderConstructionAlert;
-  const handleCardPress = displayUnderConstructionAlert;
-  const handleApyInfoPress = displayUnderConstructionAlert;
-  const handleProjectedEarningsPress = displayUnderConstructionAlert;
-  const handleGetNowPress = displayUnderConstructionAlert;
+  const handleAddPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
+  }, [navigation]);
+
+  const handleTransferPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+    });
+  }, [navigation]);
+
+  const handleCardPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation]);
+
+  const handleLinkCardPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+    });
+  }, [navigation]);
+
+  const handleGetNowPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation]);
+
+  const handleApyInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
+      params: { apy: apyPercent },
+    });
+  }, [navigation, apyPercent]);
+
+  const handleEarningsInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+    });
+  }, [navigation]);
+
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
       ...MUSD_MAINNET_ASSET_FOR_DETAILS,
       source: TokenDetailsSource.MobileTokenListPage,
     });
   }, []);
+
   const handleHeaderPress = displayUnderConstructionAlert;
 
-  const handleTokenConvertPress = displayUnderConstructionAlert;
+  const handleTokenConvertPress = useCallback(
+    async (token: AssetType) => {
+      try {
+        await initiateCustomConversion({
+          preferredPaymentToken: {
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          },
+          navigationStack: Routes.MONEY.ROOT,
+        });
+      } catch (error) {
+        Logger.error(error as Error, {
+          message:
+            '[MoneyHomeView] Failed to initiate conversion from potential earnings',
+        });
+      }
+    },
+    [initiateCustomConversion],
+  );
 
-  const handleEarnCryptoPress = displayUnderConstructionAlert;
+  const handleEarnCryptoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
+  }, [navigation]);
+
   const handleLearnMorePress = useCallback(() => {
     Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
   }, []);
-  const handleAddMoneyPress = displayUnderConstructionAlert;
+
   const handleHowItWorksHeaderPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
   }, [navigation]);
@@ -98,9 +229,116 @@ const MoneyHomeView = () => {
     showMoneyActivityUnderConstructionAlert();
   }, []);
 
-  // TODO: Remove before launch
-  // Useful for testing how zero and non-zero APYs are handled quickly.
-  const DEV_APY = __DEV__ ? 4 : vaultApyQuery.data?.apy;
+  // Stepper layout, scroll offset, and scroll view height are read on every
+  // scroll event (~60fps with scrollEventThrottle={16}). Storing them as state
+  // would re-render MoneyHomeView on every frame during scrolling.
+  const stepperLayoutRef = useRef<{ y: number; height: number } | null>(null);
+  const scrollOffsetYRef = useRef(0);
+  const scrollViewHeightRef = useRef(0);
+  // ScrollView reserves matching bottom padding so the absolutely positioned
+  // footer overlay never hides scroll content -- state, not a ref, so the
+  // padding update triggers a re-render.
+  const [footerHeight, setFooterHeight] = useState(0);
+
+  const footerTranslateY = useSharedValue(FOOTER_HIDDEN_OFFSET);
+  const footerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: footerTranslateY.value }],
+  }));
+  const scrollContentStyle = useMemo(
+    () => ({ paddingBottom: footerHeight }),
+    [footerHeight],
+  );
+
+  // Default to "visible" until layouts settle so the footer stays hidden on
+  // initial paint and we avoid a flash of "Add money".
+  const isStepperVisibleRef = useRef(true);
+
+  const getStepperVisible = useCallback(
+    () =>
+      computeStepperVisibility({
+        stepperLayout: stepperLayoutRef.current,
+        scrollViewHeight: scrollViewHeightRef.current,
+        scrollOffsetY: scrollOffsetYRef.current,
+      }),
+    [],
+  );
+
+  const animateFooter = useCallback(
+    (visible: boolean) => {
+      footerTranslateY.value = withTiming(visible ? 0 : FOOTER_HIDDEN_OFFSET, {
+        duration: FOOTER_ANIMATION_DURATION_MS,
+        easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+      });
+    },
+    [footerTranslateY],
+  );
+
+  const updateStepperVisibility = useCallback(() => {
+    const next = getStepperVisible();
+    if (next === isStepperVisibleRef.current) return;
+    isStepperVisibleRef.current = next;
+    animateFooter(!next);
+  }, [getStepperVisible, animateFooter]);
+
+  const handleStepperLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
+      const prev = stepperLayoutRef.current;
+      if (prev && prev.y === y && prev.height === height) {
+        return;
+      }
+      stepperLayoutRef.current = { y, height };
+      updateStepperVisibility();
+    },
+    [updateStepperVisibility],
+  );
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      // Update the ref unconditionally on every scroll frame (cheap) but only
+      // commit a state change when the visibility boolean actually flips.
+      scrollOffsetYRef.current = event.nativeEvent.contentOffset.y;
+      updateStepperVisibility();
+    },
+    [updateStepperVisibility],
+  );
+
+  const handleScrollViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (scrollViewHeightRef.current === height) {
+        return;
+      }
+      scrollViewHeightRef.current = height;
+      updateStepperVisibility();
+    },
+    [updateStepperVisibility],
+  );
+
+  const handleFooterLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    setFooterHeight((prev) => (prev === height ? prev : height));
+  }, []);
+
+  const handleOnboardingCtaPress = useCallback(() => {
+    if (isCardholderWithMilestone) {
+      handleLinkCardPress();
+      return;
+    }
+
+    if (isMilestone) {
+      handleCardPress();
+      return;
+    }
+
+    handleAddPress();
+  }, [
+    isCardholderWithMilestone,
+    isMilestone,
+    handleLinkCardPress,
+    handleCardPress,
+    handleAddPress,
+  ]);
 
   return (
     <Box
@@ -114,11 +352,14 @@ const MoneyHomeView = () => {
       />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={scrollContentStyle}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        onLayout={handleScrollViewLayout}
+        scrollEventThrottle={16}
       >
         <MoneyBalanceSummary
-          apy={DEV_APY}
+          apy={apyPercent}
           balance={totalFiatFormatted ?? '--.--'}
           onApyInfoPress={handleApyInfoPress}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
@@ -128,17 +369,25 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        <MoneyOnboardingCard
-          currentStep={isMilestone ? 2 : 1}
-          onCtaPress={isMilestone ? handleCardPress : handleAddPress}
-        />
+        <Box onLayout={handleStepperLayout}>
+          <MoneyOnboardingCard
+            currentStep={isMilestone ? 2 : 1}
+            variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
+            onCtaPress={handleOnboardingCtaPress}
+          />
+        </Box>
         <Divider />
-        <MoneyEarnings onProjectedPress={handleProjectedEarningsPress} />
+        <MoneyEarnings
+          monthlyEarnings={monthlyEarnings}
+          yearlyEarnings={yearlyEarnings}
+          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+          onInfoPress={handleEarningsInfoPress}
+        />
         <Divider />
         {!isMilestone && (
           <>
             <MoneyHowItWorks
-              apy={DEV_APY}
+              apy={apyPercent}
               onHeaderPress={handleHowItWorksHeaderPress}
               isLoading={vaultApyQuery.isLoading}
             />
@@ -165,8 +414,7 @@ const MoneyHomeView = () => {
           <>
             <MoneyPotentialEarnings
               tokens={conversionTokens}
-              apy={DEV_APY}
-              condensed={isMilestone}
+              apy={apyPercent}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
@@ -175,8 +423,12 @@ const MoneyHomeView = () => {
           </>
         )}
         <MoneyMetaMaskCard
+          mode={isCardholderWithMilestone ? 'link' : 'upsell'}
           onGetNowPress={handleGetNowPress}
           onHeaderPress={handleHeaderPress}
+          onLinkPress={handleLinkCardPress}
+          apy={apyPercent}
+          showMetalCard={isUS}
         />
         <Divider />
         {isMilestone && (
@@ -191,12 +443,17 @@ const MoneyHomeView = () => {
         )}
         {!isMilestone && (
           <MoneyWhatYouGet
-            apy={DEV_APY}
+            apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}
           />
         )}
       </ScrollView>
-      <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />
+      <Animated.View
+        onLayout={handleFooterLayout}
+        style={[styles.footerOverlay, footerAnimatedStyle]}
+      >
+        <MoneyFooter onAddMoneyPress={handleAddPress} />
+      </Animated.View>
     </Box>
   );
 };

@@ -40,14 +40,11 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import AppConstants from '../../../../../core/AppConstants';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  MusdNavigationTarget,
-} from '../../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
+import { MusdNavigationTarget } from '../../types/musd.types';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
+import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -65,12 +62,6 @@ interface EarnMusdConversionEducationViewRouteParams {
     chainId: Hex;
   };
   /**
-   * Caller's intended navigation override. When present, this is forwarded to
-   * `initiateCustomConversion` on continue so the education screen doesn't hijack
-   * the destination (e.g., pencil-in-Hub preserves CUSTOM; other callers keep their intent).
-   */
-  navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
-  /**
    * Pure-navigation exit target. When present, the primary button routes here and
    * skips conversion entirely. Use for entry points that only needed the education
    * screen as a gate (e.g., home -> Money Hub).
@@ -85,17 +76,13 @@ interface EarnMusdConversionEducationViewRouteParams {
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
+  const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
 
-  const {
-    preferredPaymentToken,
-    isDeeplink,
-    navigationOverride: callerNavigationOverride,
-    returnTo,
-  } = useParams<EarnMusdConversionEducationViewRouteParams>();
+  const { preferredPaymentToken, isDeeplink, returnTo } =
+    useParams<EarnMusdConversionEducationViewRouteParams>();
 
   // Hooks for deeplink case (when no params provided)
   const {
@@ -159,15 +146,21 @@ const EarnMusdConversionEducationView = () => {
       };
     }
 
+    // Fallback to the Money Hub if enabled.
+    if (isMoneyHubEnabled) {
+      return { action: 'navigate_money_hub' as const };
+    }
+
     return { action: 'navigate_home' as const };
   }, [
     isDeeplink,
     isGeoEligible,
     hasConvertibleTokens,
+    isMusdBuyable,
+    isMoneyHubEnabled,
+    conversionTokens,
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
-    isMusdBuyable,
-    conversionTokens,
   ]);
 
   const primaryButtonText = useMemo(() => {
@@ -211,10 +204,10 @@ const EarnMusdConversionEducationView = () => {
   }, [submitScreenViewedEvent]);
 
   const submitContinuePressedEvent = useCallback(() => {
-    let redirectsTo = isQuickConvertEnabled
-      ? MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-      : MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+    let redirectsTo = MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     if (returnTo) {
+      redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
+    } else if (deeplinkState?.action === 'navigate_money_hub') {
       redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
     } else if (deeplinkState?.action === 'navigate_home') {
       redirectsTo = MUSD_EVENT_LOCATIONS.HOME_SCREEN;
@@ -235,9 +228,7 @@ const EarnMusdConversionEducationView = () => {
         .build(),
     );
   }, [
-    isQuickConvertEnabled,
     returnTo,
-    MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
     MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
     MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
     MUSD_EVENT_LOCATIONS.HOME_SCREEN,
@@ -250,7 +241,7 @@ const EarnMusdConversionEducationView = () => {
     primaryButtonText,
   ]);
 
-  const submitGoBackPressedEvent = () => {
+  const submitGoBackPressedEvent = (redirectsTo?: string) => {
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
@@ -261,6 +252,7 @@ const EarnMusdConversionEducationView = () => {
           button_text: strings(
             'earn.musd_conversion.education.secondary_button',
           ),
+          ...(redirectsTo ? { redirects_to: redirectsTo } : {}),
         })
         .build(),
     );
@@ -305,26 +297,24 @@ const EarnMusdConversionEducationView = () => {
           return;
         }
 
+        if (deeplinkState.action === 'navigate_money_hub') {
+          navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
+          return;
+        }
+
         if (deeplinkState.action === 'convert') {
           await initiateCustomConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
-            navigationOverride:
-              MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           });
           return;
         }
       }
 
-      // Proceed to conversion flow if we have the required params (normal flow).
-      // Honor caller's navigationOverride; fall back to QUICK_CONVERT.
       if (!isDeeplink && preferredPaymentToken) {
         await initiateCustomConversion({
           preferredPaymentToken,
           skipEducationCheck: true,
-          navigationOverride:
-            callerNavigationOverride ??
-            MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         return;
       }
@@ -349,11 +339,25 @@ const EarnMusdConversionEducationView = () => {
     goToBuy,
     isDeeplink,
     returnTo,
-    callerNavigationOverride,
   ]);
 
-  const handleGoBack = () => {
+  const handleNotNow = () => {
+    // Redirect to the Money Hub if enabled and geo-eligible.
+    if (isDeeplink && isMoneyHubEnabled && isGeoEligible) {
+      // Pop education screen from the navigation stack.
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+      dispatch(setMusdConversionEducationSeen(true));
+      submitGoBackPressedEvent(MONEY_EVENT_LOCATIONS.MONEY_HUB);
+      navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW);
+      return;
+    }
+
+    dispatch(setMusdConversionEducationSeen(true));
     submitGoBackPressedEvent();
+
+    // Pop education screen from the navigation stack.
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
@@ -418,7 +422,7 @@ const EarnMusdConversionEducationView = () => {
         <DesignSystemButton
           variant={DesignSystemButtonVariant.Tertiary}
           isFullWidth
-          onPress={handleGoBack}
+          onPress={handleNotNow}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
         >
           <Text variant={TextVariant.BodyMDMedium}>

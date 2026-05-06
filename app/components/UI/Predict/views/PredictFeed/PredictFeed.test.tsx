@@ -10,6 +10,15 @@ import {
   getPredictFeedSelector,
   getPredictFeedMockSelector,
 } from '../../Predict.testIds';
+
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  Reanimated.default.createAnimatedComponent = (
+    Component: React.ComponentType,
+  ) => Component;
+  return Reanimated;
+});
+
 import PredictFeed from './PredictFeed';
 
 jest.mock('../../hooks/useFeaturedCarouselData', () => ({
@@ -323,30 +332,32 @@ describe('PredictFeed', () => {
     });
 
     it('hides search overlay on initial render', () => {
-      const { queryByTestId } = render(<PredictFeed />);
+      const { queryByPlaceholderText } = render(<PredictFeed />);
 
-      expect(queryByTestId(PredictFeedSelectorsIDs.SEARCH_ICON)).toBeNull();
+      expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
     });
   });
 
   describe('search functionality', () => {
     it('opens search overlay when search button pressed', () => {
-      const { getByTestId } = render(<PredictFeed />);
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
 
       expect(
-        getByTestId(PredictFeedSelectorsIDs.SEARCH_ICON),
+        getByPlaceholderText('Search prediction markets'),
       ).toBeOnTheScreen();
     });
 
     it('closes search overlay when cancel button pressed', () => {
-      const { getByTestId, getByText, queryByTestId } = render(<PredictFeed />);
+      const { getByTestId, getByText, queryByPlaceholderText } = render(
+        <PredictFeed />,
+      );
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
       fireEvent.press(getByText('Cancel'));
 
-      expect(queryByTestId(PredictFeedSelectorsIDs.SEARCH_ICON)).toBeNull();
+      expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
     });
   });
 
@@ -957,10 +968,10 @@ describe('PredictFeed', () => {
           },
         });
 
-        const { getByTestId } = render(<PredictFeed />);
+        const { getByPlaceholderText } = render(<PredictFeed />);
 
         expect(
-          getByTestId(PredictFeedSelectorsIDs.SEARCH_ICON),
+          getByPlaceholderText('Search prediction markets'),
         ).toBeOnTheScreen();
       },
     );
@@ -990,14 +1001,69 @@ describe('PredictFeed', () => {
         },
       });
 
-      const { getByText, getByTestId, queryByTestId } = render(<PredictFeed />);
+      const { getByText, queryByPlaceholderText, getByPlaceholderText } =
+        render(<PredictFeed />);
 
       expect(
-        getByTestId(PredictFeedSelectorsIDs.SEARCH_ICON),
+        getByPlaceholderText('Search prediction markets'),
       ).toBeOnTheScreen();
 
       fireEvent.press(getByText('Cancel'));
-      expect(queryByTestId(PredictFeedSelectorsIDs.SEARCH_ICON)).toBeNull();
+      expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
+    });
+  });
+
+  describe('hideHeader prop', () => {
+    it('renders header nav by default when hideHeader is not provided', () => {
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(
+        getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides header nav when hideHeader is true', () => {
+      const { queryByTestId } = render(<PredictFeed hideHeader />);
+
+      expect(
+        queryByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
+      ).toBeNull();
+      expect(queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON)).toBeNull();
+    });
+
+    it('still renders container, tabs, and pager when hideHeader is true', () => {
+      const { getByTestId } = render(<PredictFeed hideHeader />);
+
+      expect(
+        getByTestId(PredictMarketListSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByTestId(PredictFeedSelectorsIDs.TABS)).toBeOnTheScreen();
+      expect(
+        getByTestId(PredictFeedMockSelectorsIDs.PAGER_VIEW),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('onHeaderHiddenChange prop', () => {
+    it('passes onHeaderHiddenChange callback to useFeedScrollManager', () => {
+      const onHeaderHiddenChange = jest.fn();
+
+      render(<PredictFeed onHeaderHiddenChange={onHeaderHiddenChange} />);
+
+      expect(mockUseFeedScrollManager).toHaveBeenCalledWith(
+        expect.objectContaining({ onHeaderHiddenChange }),
+      );
+    });
+
+    it('passes undefined to useFeedScrollManager when onHeaderHiddenChange is not provided', () => {
+      render(<PredictFeed />);
+
+      expect(mockUseFeedScrollManager).toHaveBeenCalledWith(
+        expect.objectContaining({ onHeaderHiddenChange: undefined }),
+      );
     });
   });
 });

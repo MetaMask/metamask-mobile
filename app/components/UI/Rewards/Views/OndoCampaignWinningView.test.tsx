@@ -1,22 +1,34 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
-import { Linking } from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
+import { render } from '@testing-library/react-native';
 import OndoCampaignWinningView, {
   ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS,
 } from './OndoCampaignWinningView';
+import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
-import { useOndoCampaignWinnerCode } from '../hooks/useOndoCampaignWinnerCode';
+import CampaignWinningView from './CampaignWinningView';
+import Routes from '../../../../constants/navigation/Routes';
 
-jest.mock('../../../../images/rewards/campaign_winning.png', () => ({
-  __esModule: true,
-  default: 1,
+jest.mock('./CampaignWinningView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(({ testID }: { testID: string }) =>
+      ReactActual.createElement(View, { testID }),
+    ),
+  };
+});
+
+jest.mock('../hooks/useOndoCampaignParticipantOutcome', () => ({
+  useOndoCampaignParticipantOutcome: jest.fn(),
 }));
 
-const mockGoBack = jest.fn();
+jest.mock('../hooks/useGetOndoLeaderboardPosition', () => ({
+  useGetOndoLeaderboardPosition: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: jest.fn(), navigate: jest.fn() }),
   useRoute: () => ({
     params: { campaignId: 'campaign-ondo-1', campaignName: 'Ondo Campaign' },
   }),
@@ -28,400 +40,133 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
-jest.mock('react-native-safe-area-context', () => {
-  const actual = jest.requireActual('react-native-safe-area-context');
-  return {
-    ...actual,
-    useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
-  };
-});
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-  useDispatch: jest.fn(() => jest.fn()),
-}));
-
-jest.mock('../../../Views/ErrorBoundary', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) =>
-      ReactActual.createElement(View, null, children),
-  };
-});
-
-jest.mock('../hooks/useTrackRewardsPageView', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-jest.mock('../../../../core/Analytics', () => ({
-  MetaMetricsEvents: {
-    REWARDS_PAGE_BUTTON_CLICKED: 'REWARDS_PAGE_BUTTON_CLICKED',
-  },
-}));
-
-jest.mock('../utils', () => ({
-  RewardsMetricsButtons: {
-    COPY_REFERRAL_CODE: 'copy_referral_code',
-  },
-}));
-
-jest.mock('../hooks/useOndoCampaignWinnerCode', () => ({
-  useOndoCampaignWinnerCode: jest.fn(),
-}));
-
-const mockTrackEvent = jest.fn();
-const mockBuild = jest.fn(() => ({}));
-jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: () => ({
-      addProperties: () => ({ build: mockBuild }),
-    }),
-  }),
-}));
-
-const mockPosition = {
-  projectedTier: 'MID',
-  rank: 3,
-  totalInTier: 100,
-  rateOfReturn: 0.2823,
-  currentUsdValue: 2000,
-  totalUsdDeposited: 1000,
-  netDeposit: 900,
-  qualifiedDays: 10,
-  qualified: true,
-  neighbors: [],
-  computedAt: '2024-01-01T00:00:00.000Z',
-};
-
-jest.mock('../hooks/useGetOndoLeaderboardPosition', () => ({
-  useGetOndoLeaderboardPosition: jest.fn(),
-}));
-
-const mockUseGetOndoLeaderboardPosition =
-  useGetOndoLeaderboardPosition as jest.MockedFunction<
-    typeof useGetOndoLeaderboardPosition
-  >;
-
-const mockUseOndoCampaignWinnerCode =
-  useOndoCampaignWinnerCode as jest.MockedFunction<
-    typeof useOndoCampaignWinnerCode
-  >;
-
-jest.mock('../components/ReferralDetails/CopyableField', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text, Pressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      label,
-      value,
-      onCopy,
-    }: {
-      label: string;
-      value?: string | null;
-      onCopy?: () => void;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'copyable-field' },
-        ReactActual.createElement(Text, null, label),
-        ReactActual.createElement(
-          Text,
-          { testID: 'copyable-value' },
-          value ?? '',
-        ),
-        ReactActual.createElement(Pressable, {
-          testID: 'copyable-trigger',
-          onPress: onCopy,
-        }),
-      ),
-  };
-});
-
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn(
-    (key: string, params?: { place?: string; code?: string }) => {
-      const map: Record<string, string> = {
-        'rewards.ondo_campaign_winning.you_won': 'You won',
-        'rewards.ondo_campaign_winning.email_instructions':
-          'Email ondocampaign@consensys.net with your code to claim your prize.',
-        'rewards.ondo_campaign_winning.open_mail': 'Open mail',
-        'rewards.ondo_campaign_winning.skip_for_now': 'Skip for now',
-        'rewards.ondo_campaign_winning.mail_subject':
-          'Ondo campaign prize claim',
-        'rewards.ondo_campaign_winning.mail_body': `My winning code: ${params?.code ?? ''}`,
-        'rewards.ondo_campaign_winning.winning_code': 'Winning code',
-        'rewards.ondo_campaign_winning.close_a11y': 'Close',
-        'rewards.ondo_campaign_winning.error_title':
-          'Could not load your winning code',
-        'rewards.ondo_campaign_winning.error_description':
-          'Something went wrong while fetching your code. Please try again later or contact support.',
-        'rewards.ondo_campaign_winning.error_retry': 'Try again',
-      };
-      if (key === 'rewards.ondo_campaign_winning.rank_label' && params?.place) {
-        return `${params.place} place`;
-      }
-      return map[key] ?? key;
-    },
-  ),
-}));
+const mockUseOutcome = useOndoCampaignParticipantOutcome as jest.MockedFunction<
+  typeof useOndoCampaignParticipantOutcome
+>;
+const mockUsePosition = useGetOndoLeaderboardPosition as jest.MockedFunction<
+  typeof useGetOndoLeaderboardPosition
+>;
+const mockCampaignWinningView = CampaignWinningView as jest.MockedFunction<
+  typeof CampaignWinningView
+>;
 
 describe('OndoCampaignWinningView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseGetOndoLeaderboardPosition.mockReturnValue({
-      position: mockPosition,
+    mockUseOutcome.mockReturnValue({
+      outcome: {
+        subscriptionId: 'sub-1',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: 'ONDO-WIN-99',
+      },
+      isLoading: false,
+      hasError: false,
+    });
+    mockUsePosition.mockReturnValue({
+      position: null,
       isLoading: false,
       hasError: false,
       hasFetched: true,
       refetch: jest.fn(),
     });
-    mockUseOndoCampaignWinnerCode.mockReturnValue({
-      code: 'LVL346',
-      isLoading: false,
-      hasFetched: true,
-      hasError: false,
-      retry: jest.fn(),
-    });
   });
 
-  it('renders the main container', () => {
+  it('renders the container with the Ondo testID', () => {
     const { getByTestId } = render(<OndoCampaignWinningView />);
     expect(
       getByTestId(ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER),
     ).toBeTruthy();
   });
 
-  it('shows you won, rank place, and rate from leaderboard position', () => {
-    const { getByText } = render(<OndoCampaignWinningView />);
-    expect(getByText('You won')).toBeTruthy();
-    expect(getByText('3rd place')).toBeTruthy();
-    expect(getByText('+28.23%')).toBeTruthy();
-  });
-
-  it('calls goBack when Skip for now is pressed', () => {
-    const { getByText } = render(<OndoCampaignWinningView />);
-    fireEvent.press(getByText('Skip for now'));
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls goBack when close is pressed', () => {
-    const { getByLabelText } = render(<OndoCampaignWinningView />);
-    fireEvent.press(getByLabelText('Close'));
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('copies referral code and tracks analytics when copy is triggered', () => {
-    const setStringSpy = jest.spyOn(Clipboard, 'setString');
-    const { getByTestId } = render(<OndoCampaignWinningView />);
-    fireEvent.press(getByTestId('copyable-trigger'));
-    expect(setStringSpy).toHaveBeenCalledWith('LVL346');
-    expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('opens mailto when Open mail is pressed', async () => {
-    const openSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    const { getByText } = render(<OndoCampaignWinningView />);
-    fireEvent.press(getByText('Open mail'));
-    expect(openSpy).toHaveBeenCalled();
-    const url = openSpy.mock.calls[0][0] as string;
-    expect(url).toContain('mailto:ondocampaign@consensys.net');
-    expect(url).toContain(encodeURIComponent('LVL346'));
-    openSpy.mockRestore();
-  });
-
-  describe('auto-redirect when user is not a winner', () => {
-    it('calls goBack when code is null after a successful fetch', () => {
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: null,
+  it('passes correct Ondo-specific props to CampaignWinningView', () => {
+    render(<OndoCampaignWinningView />);
+    expect(mockCampaignWinningView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        testID: ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER,
+        prizeEmail: 'ondocampaign@consensys.net',
+        campaignName: 'Ondo Campaign',
+        campaignId: 'campaign-ondo-1',
+        analyticsPageType: 'ondo_campaign_winning',
+        winningCode: 'ONDO-WIN-99',
+        hasOutcomeLoaded: true,
         isLoading: false,
-        hasFetched: true,
-        hasError: false,
-        retry: jest.fn(),
-      });
-      render(<OndoCampaignWinningView />);
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call goBack while the fetch is still in progress', () => {
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: null,
-        isLoading: true,
-        hasFetched: false,
-        hasError: false,
-        retry: jest.fn(),
-      });
-      render(<OndoCampaignWinningView />);
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('does not call goBack when fetch errored (error takes precedence)', () => {
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: null,
-        isLoading: false,
-        hasFetched: true,
-        hasError: true,
-        retry: jest.fn(),
-      });
-      render(<OndoCampaignWinningView />);
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('does not call goBack when code is an empty string after a successful fetch', () => {
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: '',
-        isLoading: false,
-        hasFetched: true,
-        hasError: false,
-        retry: jest.fn(),
-      });
-      render(<OndoCampaignWinningView />);
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
+        rankDisplay: null,
+        resultDisplay: null,
+        isRankLoading: false,
+        isResultLoading: false,
+        fallbackRoute: {
+          route: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+          params: { campaignId: 'campaign-ondo-1' },
+        },
+      }),
+      {},
+    );
   });
 
-  describe('loading states', () => {
-    it('shows a skeleton while winning code is loading', () => {
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: null,
-        isLoading: true,
-        hasFetched: false,
-        hasError: false,
-        retry: jest.fn(),
-      });
-      const { queryByTestId } = render(<OndoCampaignWinningView />);
-      expect(queryByTestId('copyable-field')).toBeNull();
+  it('passes winningCode as null when outcome has no code', () => {
+    mockUseOutcome.mockReturnValue({
+      outcome: {
+        subscriptionId: 'sub-1',
+        outcomeStatus: 'finalized',
+        winnerVerificationCode: null,
+      },
+      isLoading: false,
+      hasError: false,
     });
-
-    it('shows CopyableField once winning code has loaded', () => {
-      const { getByTestId } = render(<OndoCampaignWinningView />);
-      expect(getByTestId('copyable-field')).toBeTruthy();
-    });
-
-    it('shows the primary CTA in loading state while winning code is loading', () => {
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: null,
-        isLoading: true,
-        hasFetched: false,
-        hasError: false,
-        retry: jest.fn(),
-      });
-      const openSpy = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValue(undefined);
-      const { getByText } = render(<OndoCampaignWinningView />);
-      fireEvent.press(getByText('Open mail'));
-      expect(openSpy).not.toHaveBeenCalled();
-      openSpy.mockRestore();
-    });
-
-    it('does not show the primary CTA in loading state once code has loaded', () => {
-      const openSpy = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValue(undefined);
-      const { getByText } = render(<OndoCampaignWinningView />);
-      fireEvent.press(getByText('Open mail'));
-      expect(openSpy).toHaveBeenCalledTimes(1);
-      openSpy.mockRestore();
-    });
-
-    it('hides rank and rate text while position is loading', () => {
-      mockUseGetOndoLeaderboardPosition.mockReturnValue({
-        position: null,
-        isLoading: true,
-        hasError: false,
-        hasFetched: false,
-        refetch: jest.fn(),
-      });
-      const { queryByText } = render(<OndoCampaignWinningView />);
-      expect(queryByText('3rd place')).toBeNull();
-      expect(queryByText('+28.23%')).toBeNull();
-    });
+    render(<OndoCampaignWinningView />);
+    expect(mockCampaignWinningView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        winningCode: null,
+        hasOutcomeLoaded: true,
+      }),
+      {},
+    );
   });
 
-  describe('error states', () => {
-    it('shows the error banner when winning code fetch fails', () => {
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: null,
-        isLoading: false,
-        hasFetched: true,
-        hasError: true,
-        retry: jest.fn(),
-      });
-      const { queryByTestId } = render(<OndoCampaignWinningView />);
-      expect(queryByTestId('copyable-field')).toBeNull();
-      expect(queryByTestId('copyable-trigger')).toBeNull();
+  it('does not mark outcome as loaded until the outcome exists', () => {
+    mockUseOutcome.mockReturnValue({
+      outcome: null,
+      isLoading: false,
+      hasError: false,
     });
-
-    it('calls retry when Try again is pressed in the error banner', () => {
-      const mockRetry = jest.fn();
-      mockUseOndoCampaignWinnerCode.mockReturnValue({
-        code: null,
-        isLoading: false,
-        hasFetched: true,
-        hasError: true,
-        retry: mockRetry,
-      });
-      const { getByText } = render(<OndoCampaignWinningView />);
-      fireEvent.press(getByText('Try again'));
-      expect(mockRetry).toHaveBeenCalledTimes(1);
-    });
-
-    it('hides the rank/rate section entirely when position fails to load', () => {
-      mockUseGetOndoLeaderboardPosition.mockReturnValue({
-        position: null,
-        isLoading: false,
-        hasError: true,
-        hasFetched: true,
-        refetch: jest.fn(),
-      });
-      const { queryByText } = render(<OndoCampaignWinningView />);
-      expect(queryByText('3rd place')).toBeNull();
-      expect(queryByText('+28.23%')).toBeNull();
-    });
-
-    it('hides the rank/rate section when position is null and not loading', () => {
-      mockUseGetOndoLeaderboardPosition.mockReturnValue({
-        position: null,
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: jest.fn(),
-      });
-      const { queryByText } = render(<OndoCampaignWinningView />);
-      expect(queryByText('3rd place')).toBeNull();
-      expect(queryByText('+28.23%')).toBeNull();
-    });
+    render(<OndoCampaignWinningView />);
+    expect(mockCampaignWinningView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        winningCode: null,
+        hasOutcomeLoaded: false,
+      }),
+      {},
+    );
   });
 
-  it('does not throw when mailto openURL rejects', async () => {
-    const openSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockRejectedValue(new Error('no mail app'));
-    const { getByText } = render(<OndoCampaignWinningView />);
-    await act(async () => {
-      fireEvent.press(getByText('Open mail'));
+  it('passes rank and result display when position is available', () => {
+    mockUseOutcome.mockReturnValue({
+      outcome: {
+        subscriptionId: 'sub-1',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: 'ONDO-WIN-99',
+        tierRank: 3,
+      },
+      isLoading: false,
+      hasError: false,
     });
-    expect(openSpy).toHaveBeenCalled();
-    openSpy.mockRestore();
-  });
+    mockUsePosition.mockReturnValue({
+      position: { rank: 9, rateOfReturn: 0.1234 } as never,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
 
-  describe('mailto URL construction', () => {
-    it('appends the winning code to the mail subject', async () => {
-      const openSpy = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValue(undefined);
-      const { getByText } = render(<OndoCampaignWinningView />);
-      fireEvent.press(getByText('Open mail'));
-      const url = openSpy.mock.calls[0][0] as string;
-      expect(url).toContain(
-        encodeURIComponent('Ondo campaign prize claim - LVL346'),
-      );
-      openSpy.mockRestore();
-    });
+    render(<OndoCampaignWinningView />);
+    expect(mockCampaignWinningView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rankDisplay: '3rd',
+        resultDisplay: '+12.34%',
+        isRankLoading: false,
+        isResultLoading: false,
+      }),
+      {},
+    );
   });
 });

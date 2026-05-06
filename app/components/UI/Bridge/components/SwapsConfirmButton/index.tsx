@@ -13,12 +13,13 @@ import {
   selectIsSubmittingTx,
   selectSourceAmount,
   selectSourceToken,
-  selectDestTokenWarning,
+  selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
+import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -34,6 +35,7 @@ import {
   exceedsPriceImpactErrorThreshold,
   parsePriceImpact,
 } from '../../utils/getPriceImpactViewData';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -53,14 +55,9 @@ export const SwapsConfirmButton = ({
   transactionActiveAbTests,
 }: Props) => {
   const navigation = useNavigation();
-  const handleConfirm = useBridgeConfirm({
-    latestSourceBalance,
-    location,
-    transactionActiveAbTests,
-  });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const tokenWarning = useSelector(selectDestTokenWarning);
+  const destToken = useSelector(selectDestToken);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -88,8 +85,12 @@ export const SwapsConfirmButton = ({
     quoteFetchError,
     isNoQuotesAvailable,
     isActiveQuoteForCurrentTokenPair,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  } = useBridgeQuoteDataContext();
+
+  const handleConfirm = useBridgeConfirm({
+    activeQuote,
+    location,
+    transactionActiveAbTests,
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
@@ -159,17 +160,27 @@ export const SwapsConfirmButton = ({
     !walletAddress;
 
   const handleContinue = async () => {
-    if (tokenWarning) {
+    const securityData = destToken?.securityData;
+    if (isNegativeSecurityType(securityData?.type)) {
       const params: TokenWarningModalParams = {
-        warningType:
-          tokenWarning.type as TokenWarningModalParams['warningType'],
-        description: tokenWarning.description,
+        warningType: securityData.type,
+        features: securityData.metadata?.features ?? [],
         mode: TokenWarningModalMode.Execution,
         location,
       };
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params,
+      });
+      return;
+    }
+
+    if (hasMissingPriceData(activeQuote)) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location,
+        },
       });
       return;
     }
