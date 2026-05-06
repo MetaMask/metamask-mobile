@@ -178,6 +178,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
   });
+  const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location = route.params?.location;
@@ -339,7 +340,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
         balance,
         MAX_INPUT_LENGTH,
       );
-      sourceAmountInput.syncFiatAmountToTokenAmount(cleaned);
+      syncFiatAmountToTokenAmount(cleaned);
       dispatch(setSourceAmountAsMax(cleaned));
     }
   };
@@ -350,10 +351,10 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
       // current cursor position, so clear the cursor state before updating.
       const normalizedValue =
         normalizeSourceAmountToMaxLength(value, MAX_INPUT_LENGTH) || undefined;
-      sourceAmountInput.syncFiatAmountToTokenAmount(normalizedValue);
+      syncFiatAmountToTokenAmount(normalizedValue);
       dispatch(setSourceAmount(normalizedValue));
     },
-    [dispatch, sourceAmountInput],
+    [dispatch, syncFiatAmountToTokenAmount],
   );
 
   const handleSourceTokenPress = () =>
@@ -362,9 +363,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     });
 
   const handleFlipTokensPress = useCallback(() => {
-    sourceAmountInput.resetToTokenMode();
+    resetToTokenMode();
     handleSwitchTokens(destTokenAmount)();
-  }, [destTokenAmount, handleSwitchTokens, sourceAmountInput]);
+  }, [destTokenAmount, handleSwitchTokens, resetToTokenMode]);
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
