@@ -22,6 +22,11 @@ import {
   buildEnvValidationSection,
   buildEnvValidationFailureSection,
 } from './env-validation-section';
+import {
+  extractCherryPicks,
+  buildCherryPicksSection,
+  buildCherryPicksFailureSection,
+} from './cherry-picks-section';
 import { validateEnv } from './validate-env';
 import type { BuildInfo, TestPlanResult, EnvValidationResult } from './types';
 
@@ -151,6 +156,10 @@ function buildCommentBody(
     iosResult?: EnvValidationResult;
     error?: string;
   },
+  cherryPicks: {
+    commits: { hash: string; subject: string }[];
+    error?: string;
+  },
   testPlanError?: string,
 ): string {
   let body = `${RC_BUILD_COMMENT_MARKER}
@@ -169,6 +178,15 @@ ${buildMoreInfoSection(buildInfo)}
   } else if (envValidation.error) {
     body += `---\n\n`;
     body += buildEnvValidationFailureSection(envValidation.error);
+  }
+
+  // Add cherry-picks section
+  if (cherryPicks.commits.length > 0) {
+    body += `---\n\n`;
+    body += buildCherryPicksSection(cherryPicks.commits);
+  } else if (cherryPicks.error) {
+    body += `---\n\n`;
+    body += buildCherryPicksFailureSection(cherryPicks.error);
   }
 
   // Add test plan section
@@ -261,8 +279,22 @@ async function main(): Promise<void> {
     console.log('  - No build-env artifacts found');
   }
 
+  // Extract cherry-picks from git history
+  console.log('\n=== Cherry-picks ===\n');
+  const cherryPicks: { commits: { hash: string; subject: string }[]; error?: string } = {
+    commits: [],
+  };
+
+  try {
+    cherryPicks.commits = extractCherryPicks();
+    console.log(`  - Found ${cherryPicks.commits.length} commit(s)`);
+  } catch (error) {
+    cherryPicks.error = error instanceof Error ? error.message : String(error);
+    console.error(`  - Error: ${cherryPicks.error}`);
+  }
+
   // Build the comment body
-  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, testPlanError);
+  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, cherryPicks, testPlanError);
 
   // Post comment and minimize old ones
   console.log(`\n=== Posting Comment to PR #${prNumber} ===\n`);

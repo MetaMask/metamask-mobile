@@ -217,8 +217,7 @@ function buildSlackMessage(options) {
     androidUrl,
     iosUrl,
     pipelineUrl,
-    rcCommitsText,
-    hasRcCommits,
+    prNumber,
   } = options;
 
   const blocks = [
@@ -269,8 +268,9 @@ function buildSlackMessage(options) {
     },
   ];
 
-  // Add RC commit list if we have entries
-  if (hasRcCommits && rcCommitsText) {
+  // Add link to cherry-picks section in PR comment
+  if (prNumber) {
+    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#cherry-picks|View what's in this RC>`;
     blocks.push(
       {
         type: 'divider',
@@ -279,20 +279,17 @@ function buildSlackMessage(options) {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*📋 What's in this RC:*\n${rcCommitsText}`,
+          text: `*📋 What's in this RC:*\n${cherryPicksLink}`,
         },
       },
     );
   } else {
     const releaseNotesMrkdwn = `<${REPO_URL}/tree/release/${version}|View release notes>`;
-    const fallbackMrkdwn = pipelineUrl
-      ? `_Could not list RC commits (empty ancestry path, merge-base failed, incomplete git history, or \`git log\` failed). For full notes see ${releaseNotesMrkdwn} — also linked in the footer below._`
-      : `_Could not list RC commits (empty ancestry path, merge-base failed, incomplete git history, or \`git log\` failed). For full notes see ${releaseNotesMrkdwn}._`;
     blocks.push({
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: fallbackMrkdwn,
+        text: `_Cherry-picks list available in the release PR. ${releaseNotesMrkdwn}_`,
       },
     });
   }
@@ -399,16 +396,18 @@ async function main() {
   const pipelineUrl = process.env.BUILD_PIPELINE_URL;
   const botToken = process.env.SLACK_BOT_TOKEN;
 
+  const prNumber = process.env.PR_NUMBER || '';
   const expectedChannelName = getSlackChannel(version);
 
   console.log(`\n📣 Preparing Slack notification for RC v${version} (${buildNumber})`);
+  if (prNumber) {
+    console.log(`📍 Release PR: #${prNumber}`);
+  }
   if (isDryRun) {
     console.log('🧪 DRY RUN: will print payload JSON and not call Slack');
   } else {
     console.log(`📍 Target channel: ${expectedChannelName}`);
   }
-
-  const { text: rcCommitsText, hasEntries: hasRcCommits } = extractRcCommitsFromGit();
 
   // Build and send the message
   console.log('\n📤 Posting to Slack...');
@@ -419,8 +418,7 @@ async function main() {
     androidUrl,
     iosUrl,
     pipelineUrl,
-    rcCommitsText,
-    hasRcCommits,
+    prNumber,
   });
 
   if (isDryRun) {

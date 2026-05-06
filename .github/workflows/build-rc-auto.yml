@@ -199,4 +199,5 @@ jobs:
       semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version }}
       ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
       android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
+      pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
     secrets: inherit
