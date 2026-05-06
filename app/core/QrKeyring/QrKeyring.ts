@@ -21,7 +21,7 @@ export const withQrKeyring = async <CallbackResult = void>(
     metadata: KeyringMetadata;
   }) => Promise<CallbackResult>,
 ): Promise<CallbackResult> =>
-  await Engine.context.KeyringController.withKeyringV2(
+  await Engine.context.KeyringController.withKeyring(
     { type: ExtendedKeyringTypes.qr },
     ({ keyring, metadata }) => {
       if (!(keyring instanceof QrKeyring)) {

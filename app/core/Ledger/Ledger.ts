@@ -48,7 +48,7 @@ export const withLedgerKeyring = async <CallbackResult = void>(
   }) => Promise<CallbackResult>,
 ): Promise<CallbackResult> => {
   const keyringController = Engine.context.KeyringController;
-  return await keyringController.withKeyringV2(
+  return await keyringController.withKeyring(
     { type: ExtendedKeyringTypes.ledger },
     ({ keyring, metadata }) => {
       if (!(keyring instanceof LedgerKeyring)) {
