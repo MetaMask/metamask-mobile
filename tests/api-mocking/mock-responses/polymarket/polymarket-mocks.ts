@@ -44,6 +44,7 @@ import {
   USER_WALLET_ADDRESS,
   SAFE_FACTORY_ADDRESS,
   USDC_CONTRACT_ADDRESS,
+  POLYGON_PUSD_TOKEN_ADDRESS,
   MULTICALL_CONTRACT_ADDRESS,
   CONDITIONAL_TOKENS_CONTRACT_ADDRESS,
   POST_CASH_OUT_USDC_BALANCE_WEI,
@@ -491,6 +492,50 @@ export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
 }
 
 /**
+ * Mock for Polymarket CLOB API key endpoints.
+ *
+ * The real Polymarket server always returns 400 for POST /auth/api-key on the
+ * test wallet, which causes `createApiKey` to fall back to
+ * GET /auth/derive-api-key.  Both paths are mocked here so the order-placement
+ * flow never makes real network calls — eliminating the Android CI failure
+ * caused by `clob.polymarket.com` being unreachable in that environment.
+ *
+ * The `secret` value is a valid base64 string; `getL2Headers` decodes it with
+ * `Buffer.from(secret, 'base64')` before computing the HMAC.  The relayer mock
+ * does not validate HMAC headers, so the exact credential values don't matter.
+ */
+export const POLYMARKET_CLOB_AUTH_MOCKS = async (mockServer: Mockttp) => {
+  // POST /auth/api-key always returns 400 for the test wallet, triggering the
+  // derive-api-key fallback.  Replicate that behaviour so createApiKey takes
+  // the correct code path without touching the real server.
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('clob.polymarket.com/auth/api-key'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenReply(400, JSON.stringify({ error: 'Could not create api key' }), {
+      'content-type': 'application/json',
+    });
+
+  // GET /auth/derive-api-key — the actual credential source used at runtime.
+  // The returned values are only used to compute HMAC headers; the relayer
+  // mock does not validate those headers, so any non-empty strings suffice.
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('clob.polymarket.com/auth/derive-api-key'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: { apiKey: 'e2e-key', secret: 'e2e-secret', passphrase: 'e2e-pass' },
+    }));
+};
+
+/**
  * Mock for Polymarket CLOB prices API
  * Returns BUY (best ask) and SELL (best bid) prices for outcome tokens
  * This is used to display current market prices in the UI
@@ -839,6 +884,24 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
       name: 'USD Coin',
       iconUrl:
         'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x2791bca1f2de4661ed88a30c99a7a9449aa84174.png',
+    },
+  });
+
+  // pUSD (Polymarket USD) on Polygon — predict / transaction-pay call
+  // GET .../token/137?address=0xC011...&includeRwaData=true
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: new RegExp(
+      `^https://token\\.api\\.cx\\.metamask\\.io/token/137\\?.*address=${POLYGON_PUSD_TOKEN_ADDRESS}`,
+      'i',
+    ),
+    responseCode: 200,
+    response: {
+      address: POLYGON_PUSD_TOKEN_ADDRESS,
+      symbol: 'PUSD',
+      decimals: 6,
+      name: 'Polymarket USD',
+      iconUrl: `https://static.cx.metamask.io/api/v1/tokenIcons/137/${POLYGON_PUSD_TOKEN_ADDRESS}.png`,
     },
   });
 
@@ -2123,4 +2186,5 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
+  await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);
 };

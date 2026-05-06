@@ -1,5 +1,5 @@
 import WalletView from '../../page-objects/wallet/WalletView';
-import { SmokeCard } from '../../tags';
+import { SmokeMoney } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -9,7 +9,7 @@ import CardHomeView from '../../page-objects/Card/CardHomeView';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { cardButtonExpectations } from '../../helpers/analytics/expectations/card-button.analytics';
 
-describe(SmokeCard('Card NavBar Button'), () => {
+describe(SmokeMoney('Card NavBar Button'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });

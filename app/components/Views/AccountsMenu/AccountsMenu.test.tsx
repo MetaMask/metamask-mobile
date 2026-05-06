@@ -96,11 +96,6 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPermissionsSettingsV1Enabled: true,
-}));
-
 jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   __esModule: true,
   default: jest.fn(() => false),
